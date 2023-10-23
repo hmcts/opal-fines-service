@@ -12,7 +12,7 @@ management:
         include: health, info, prometheus
 
 springdoc:
-  packagesToScan: uk.gov.hmcts.reform.account-enquiry.controllers
+  packagesToScan: uk.gov.hmcts.opal.controllers
   writer-with-order-by-keys: true
 
 #If you use a database then uncomment below lines and update db properties accordingly
@@ -20,7 +20,7 @@ spring:
   config:
     import: "optional:configtree:/mnt/secrets/opal/"
   application:
-    name: Spring Boot Template
+    name: Opal Account Enquiry
 #  datasource:
 #    driver-class-name: org.postgresql.Driver
 #    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}${DB_OPTIONS:}
