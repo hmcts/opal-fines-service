@@ -1,7 +1,7 @@
 {
-  "connectionString": "${file:/mnt/secrets/rpe/app-insights-connection-string}",
+  "connectionString": "${file:/mnt/secrets/opal/app-insights-connection-string}",
   "role": {
-    "name": "rpe-demo"
+    "name": "opal-account-enquiry"
   },
   "preview": {
     "sampling": {

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.demo.controllers;
+package uk.gov.hmcts.opal.controllers;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -12,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static io.restassured.RestAssured.given;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-class SampleFunctionalTest {
+class SampleSmokeTest {
     protected static final String CONTENT_TYPE_VALUE = "application/json";
 
     @Value("${TEST_URL:http://localhost:8080}")
@@ -25,7 +25,7 @@ class SampleFunctionalTest {
     }
 
     @Test
-    void functionalTest() {
+    void smokeTest() {
         Response response = given()
             .contentType(ContentType.JSON)
             .when()
