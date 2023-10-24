@@ -13,8 +13,8 @@ public class OpenAPIConfiguration {
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
-            .info(new Info().title("OPAL Account Enquiry")
-                      .description("OPAL Account Enquiry")
+            .info(new Info().title("Opal Account Enquiry")
+                      .description("Opal Account Enquiry")
                       .version("v0.0.1")
                       .license(new License().name("MIT").url("https://opensource.org/licenses/MIT")))
             .externalDocs(new ExternalDocumentation()

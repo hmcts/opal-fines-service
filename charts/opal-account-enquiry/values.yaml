@@ -9,3 +9,4 @@ java:
 #        - name: AppInsightsInstrumentationKey
 #          alias: azure.application-insights.instrumentation-key
   environment:
+    RUN_DB_MIGRATION_ON_STARTUP: false

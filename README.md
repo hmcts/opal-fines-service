@@ -1,19 +1,41 @@
-# opal-account-enquiry
+# Opal Account Enquiry
+
+## Getting Started
+
+### Prerequisites
+- [JDK 17](https://java.com)
+- [Docker](https://docker.com)
 
 ## Building and deploying the application
 
-### Building the application
+### Running the application
 
-The project uses [Gradle](https://gradle.org) as a build tool. It already contains
-`./gradlew` wrapper script, so there's no need to install gradle.
+#### Approach 1: Dev Application (No existing dependencies)
 
-To build the project execute the following command:
+The simplest way to run the application is using the `bootTestRun` Gradle task:
 
 ```bash
-  ./gradlew build
+  ./gradlew bootTestRun
 ```
 
-### Running the application
+This task has no dependencies and starts up a Postgres database in Docker using [Testcontainers](https://testcontainers.com).
+The database is available on `jdbc:postgresql://localhost:5432/opal_db` with username and password `opal`.
+
+To persist the database between application restarts set the environment variable `TESTCONTAINERS_REUSE_ENABLE` to `true`.
+Note this does **not** persist data if the Docker container is manually stopped, or through laptop restarts).
+
+#### Approach 2: Dev Application (With existing dependencies)
+
+Use the standard Spring Boot `run` Gradle task:
+
+```bash
+  ./gradlew run
+```
+
+This approach can be used if a database is already running and may be preferred if the lack of long-term data persistence
+from the previous approach is an issue for development.
+
+#### Approach 3: Docker
 
 Create the image of the application by executing the following command:
 
@@ -34,24 +56,7 @@ by executing the following command:
   docker-compose up
 ```
 
-This will start the API container exposing the application's port
-(set to `4550` in this template app).
-
-In order to test if the application is up, you can call its health endpoint:
-
-```bash
-  curl http://localhost:4550/health
-```
-
-You should get a response similar to this:
-
-```
-  {"status":"UP","diskSpace":{"status":"UP","total":249644974080,"free":137188298752,"threshold":10485760}}
-```
-
-### Alternative script to run application
-
-To skip all the setting up and building, just execute the following command:
+To skip all the setting up and building with Docker, just execute the following command:
 
 ```bash
 ./bin/run-in-docker.sh
@@ -78,6 +83,31 @@ docker image rm <image-id>
 ```
 
 There is no need to remove postgres and java or similar core images.
+
+### Verifying application startup
+
+Regardless of approach followed for starting the application, in order to test if the application is up, you can call its health endpoint:
+
+```bash
+  curl http://localhost:4550/health
+```
+
+You should get a response similar to this:
+
+```
+  {"status":"UP","diskSpace":{"status":"UP","total":249644974080,"free":137188298752,"threshold":10485760}}
+```
+
+### Building the application
+
+The project uses [Gradle](https://gradle.org) as a build tool. It already contains
+`./gradlew` wrapper script, so there's no need to install gradle.
+
+To build the project execute the following command:
+
+```bash
+  ./gradlew build
+```
 
 ## License
 

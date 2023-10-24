@@ -2,3 +2,13 @@ java:
   # Don't modify below here
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
+  environment:
+    OPAL_DB_HOST: "{{ .Release.Name }}-postgresql"
+    OPAL_DB_NAME: "{{ .Values.postgresql.auth.database}}"
+    OPAL_DB_USERNAME: "{{ .Values.postgresql.auth.username}}"
+    OPAL_DB_PASSWORD: "{{ .Values.postgresql.auth.password}}"
+    OPAL_DB_OPTIONS: "?stringtype=unspecified"
+    OPAL_DB_PORT: 5432
+    RUN_DB_MIGRATION_ON_STARTUP: true
+  postgresql:
+    enabled: true
