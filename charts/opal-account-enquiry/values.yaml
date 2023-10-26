@@ -1,12 +1,11 @@
 java:
   applicationPort: 4550
-  image: 'hmctspublic.azurecr.io/opal/account-enquiry:latest'
+  image: 'sdshmctspublic.azurecr.io/opal/account-enquiry:latest'
   ingressHost: opal-account-enquiry-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
-#  Uncomment once the vault containing the app insights key has been set up
-#  keyVaults:
-#    opal:
-#      secrets:
-#        - name: AppInsightsInstrumentationKey
-#          alias: azure.application-insights.instrumentation-key
+  keyVaults:
+    opal:
+      secrets:
+        - name: app-insights-connection-string
+          alias: app-insights-connection-string
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: false
