@@ -2,6 +2,11 @@ java:
   # Don't modify below here
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
+  keyVaults:
+    opal:
+      secrets:
+        - name: app-insights-connection-string
+          alias: app-insights-connection-string
   environment:
     OPAL_DB_HOST: "{{ .Release.Name }}-postgresql"
     OPAL_DB_NAME: "{{ .Values.postgresql.auth.database}}"
