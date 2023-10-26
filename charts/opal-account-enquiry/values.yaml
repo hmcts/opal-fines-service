@@ -16,6 +16,6 @@ java:
         - name: account-enquiry-POSTGRES-USER
           alias: OPAL_DB_USERNAME
         - name: account-enquiry-POSTGRES-DATABASE
-          alias: OPAL_DB_DATABASE
+          alias: OPAL_DB_NAME
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: false
