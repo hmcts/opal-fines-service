@@ -47,7 +47,7 @@ data "azurerm_key_vault" "key_vault" {
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
-  name         = "opal-db-POSTGRES-USER"
+  name         = "${var.component}-POSTGRES-USER"
   value        = module.opal_db.username
   key_vault_id = data.azurerm_key_vault.key_vault.id
 }
