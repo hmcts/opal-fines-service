@@ -1,6 +1,6 @@
 java:
   applicationPort: 4550
-  image: 'hmctspublic.azurecr.io/opal/account-enquiry:latest'
+  image: 'sdshmctspublic.azurecr.io/opal/account-enquiry:latest'
   ingressHost: opal-account-enquiry-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
 #  Uncomment once the vault containing the app insights key has been set up
 #  keyVaults:
