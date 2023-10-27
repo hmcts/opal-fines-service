@@ -6,4 +6,6 @@ def type = "java"
 def product = "opal"
 def component = "account-enquiry"
 
-withPipeline(type, product, component) {}
+withPipeline(type, product, component) {
+    enableDbMigration(product)
+}
