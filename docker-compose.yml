@@ -8,7 +8,6 @@ services:
         - http_proxy
         - https_proxy
         - no_proxy
-    image: hmctspublic.azurecr.io/spring-boot/template
     environment:
       # these environment variables are used by java-logging library
       - ROOT_APPENDER
@@ -22,5 +21,21 @@ services:
       - LOGBACK_REQUIRE_THREAD
       - LOGBACK_REQUIRE_ALERT_LEVEL=false
       - LOGBACK_REQUIRE_ERROR_CODE=false
+      - OPAL_DB_HOST=opal-db
     ports:
       - $SERVER_PORT:$SERVER_PORT
+
+  opal-db:
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_DB=opal_db
+      - POSTGRES_USER=opal
+      - POSTGRES_PASSWORD=opal
+    ports:
+      - 5432:5432
+    volumes:
+      - opal-database-data:/var/lib/postgresql/data
+
+volumes:
+  opal-database-data:
