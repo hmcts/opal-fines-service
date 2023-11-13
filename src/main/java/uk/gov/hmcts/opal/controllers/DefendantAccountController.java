@@ -44,10 +44,6 @@ public class DefendantAccountController {
 
         DefendantAccountEntity response = defendantAccountService.putDefendantAccount(defendantAccountEntity);
 
-        if (response == null) {
-            return ResponseEntity.noContent().build();
-        }
-
         return ResponseEntity.ok(response);
 
     }
