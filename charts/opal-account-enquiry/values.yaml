@@ -8,14 +8,14 @@ java:
         - name: app-insights-connection-string
           alias: app-insights-connection-string
         - name: account-enquiry-POSTGRES-HOST
-          alias: OPAL_DB_HOST
+          alias: OPAL_FINES_DB_HOST
         - name: account-enquiry-POSTGRES-PASS
-          alias: OPAL_DB_PASSWORD
+          alias: OPAL_FINES_DB_PASSWORD
         - name: account-enquiry-POSTGRES-PORT
-          alias: OPAL_DB_PORT
+          alias: OPAL_FINES_DB_PORT
         - name: account-enquiry-POSTGRES-USER
-          alias: OPAL_DB_USERNAME
+          alias: OPAL_FINES_DB_USERNAME
         - name: account-enquiry-POSTGRES-DATABASE
-          alias: OPAL_DB_NAME
+          alias: OPAL_FINES_DB_NAME
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true

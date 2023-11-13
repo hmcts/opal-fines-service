@@ -19,7 +19,7 @@ The simplest way to run the application is using the `bootTestRun` Gradle task:
 ```
 
 This task has no dependencies and starts up a Postgres database in Docker using [Testcontainers](https://testcontainers.com).
-The database is available on `jdbc:postgresql://localhost:5432/opal_db` with username and password `opal`.
+The database is available on `jdbc:postgresql://localhost:5432/opal-fines-db` with username and password `opal-fines`.
 
 To persist the database between application restarts set the environment variable `TESTCONTAINERS_REUSE_ENABLE` to `true`.
 Note this does **not** persist data if the Docker container is manually stopped, or through laptop restarts).

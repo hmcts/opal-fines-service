@@ -21,7 +21,7 @@ services:
       - LOGBACK_REQUIRE_THREAD
       - LOGBACK_REQUIRE_ALERT_LEVEL=false
       - LOGBACK_REQUIRE_ERROR_CODE=false
-      - OPAL_DB_HOST=opal-db
+      - OPAL_FINES_DB_HOST=opal-fines-db
     ports:
       - $SERVER_PORT:$SERVER_PORT
 
@@ -29,7 +29,7 @@ services:
     image: postgres:15
     restart: always
     environment:
-      - POSTGRES_DB=opal_db
+      - POSTGRES_DB=opal-fines-db
       - POSTGRES_USER=opal
       - POSTGRES_PASSWORD=opal
     ports:
