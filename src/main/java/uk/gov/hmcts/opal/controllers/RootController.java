@@ -23,6 +23,6 @@ public class RootController {
      */
     @GetMapping("/")
     public ResponseEntity<String> welcome() {
-        return ok("Welcome to opal-account-enquiry");
+        return ok("Welcome to opal-fines-service");
     }
 }

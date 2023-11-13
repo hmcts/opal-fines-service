@@ -1,0 +1,21 @@
+java:
+  applicationPort: 4550
+  image: 'sdshmctspublic.azurecr.io/opal/fines-service:latest'
+  ingressHost: opal-fines-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
+  keyVaults:
+    opal:
+      secrets:
+        - name: app-insights-connection-string
+          alias: app-insights-connection-string
+        - name: fines-service-POSTGRES-HOST
+          alias: OPAL_FINES_DB_HOST
+        - name: fines-service-POSTGRES-PASS
+          alias: OPAL_FINES_DB_PASSWORD
+        - name: fines-service-POSTGRES-PORT
+          alias: OPAL_FINES_DB_PORT
+        - name: fines-service-POSTGRES-USER
+          alias: OPAL_FINES_DB_USERNAME
+        - name: fines-service-POSTGRES-DATABASE
+          alias: OPAL_FINES_DB_NAME
+  environment:
+    RUN_DB_MIGRATION_ON_STARTUP: true

@@ -19,7 +19,7 @@ spring:
   config:
     import: "optional:configtree:/mnt/secrets/opal/"
   application:
-    name: Opal Account Enquiry
+    name: Opal Fines Service
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://${OPAL_FINES_DB_HOST:localhost}:${OPAL_FINES_DB_PORT:5432}/${OPAL_FINES_DB_NAME:opal-fines-db}${OPAL_FINES_DB_OPTIONS:}
