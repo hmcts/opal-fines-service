@@ -108,6 +108,16 @@ To build the project execute the following command:
 ```bash
   ./gradlew build
 ```
+## Manual api testing (Postman)
+
+Within the project's postman directory is an importable script to set up api tests in the Postman app.
+Current tests cover the following apis:
+
+PUT http://localhost:4550/api/defendant-account
+Create a new or update an existing Defendant Account in OPAL
+
+GET http://localhost:4550/api/defendant-account
+Get an existing Defendant Account by business Unit ID and Account Number.
 
 ## License
 

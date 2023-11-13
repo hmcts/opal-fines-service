@@ -1,0 +1,103 @@
+{
+	"info": {
+		"_postman_id": "cab7d6d7-8cb1-46bc-b4d1-317236d8e791",
+		"name": "DefendantAccount",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31122798"
+	},
+	"item": [
+		{
+			"name": "PUT http://localhost:4550/api/defendant-account",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"businessUnitId\": 1,\n    \"accountNumber\": \"1212\",\n    \"imposedHearingDate\": null,\n    \"imposingCourtId\": null,\n    \"amountImposed\": null,\n    \"amountPaid\": null,\n    \"accountBalance\": null,\n    \"accountStatus\": null,\n    \"completedDate\": null,\n    \"enforcingCourtId\": null,\n    \"lastHearingCourtId\": null,\n    \"lastHearingDate\": null,\n    \"lastMovementDate\": null,\n    \"lastEnforcement\": null,\n    \"lastChangedDate\": null,\n    \"originatorName\": null,\n    \"originatorReference\": null,\n    \"originatorType\": null,\n    \"allowWriteoffs\": true,\n    \"allowCheques\": true,\n    \"chequeClearancePeriod\": null,\n    \"creditTransferClearancePeriod\": null,\n    \"enforcementOverrideResultId\": null,\n    \"enforcementOverrideEnforcerId\": null,\n    \"enforcementOverrideTfoLjaId\": null,\n    \"unitFineDetail\": null,\n    \"unitFineValue\": null,\n    \"collectionOrder\": true,\n    \"collectionOrderEffectiveDate\": null,\n    \"furtherStepsNoticeDate\": null,\n    \"confiscationOrderDate\": null,\n    \"fineRegistrationDate\": null,\n    \"suspendedCommittalEnforcementId\": null,\n    \"consolidatedAccountType\": null,\n    \"paymentCardRequested\": true,\n    \"paymentCardRequestedDate\": null,\n    \"paymentCardRequestedBy\": null,\n    \"prosecutorCaseReference\": null,\n    \"enforcementCaseStatus\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4550/api/defendant-account",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4550",
+					"path": [
+						"api",
+						"defendant-account"
+					]
+				},
+				"description": "Puts a new (no defendant_account_id) defendant account into opal db"
+			},
+			"response": []
+		},
+		{
+			"name": "GET http://localhost:4550/api/defendant-account",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"businessUnitId\": 1,\n  \"accountNumber\": \"1212\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4550/api/defendant-account",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4550",
+					"path": [
+						"api",
+						"defendant-account"
+					]
+				},
+				"description": "Get a defendant account from opal, account number is only unique within a businessunit"
+			},
+			"response": []
+		},
+		{
+			"name": "PUT {update} http://localhost:4550/api/defendant-account",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"defendantAccountId\": 1,\n    \"businessUnitId\": 1,\n    \"accountNumber\": \"1212\",\n    \"imposedHearingDate\": null,\n    \"imposingCourtId\": null,\n    \"amountImposed\": 100,\n    \"amountPaid\": null,\n    \"accountBalance\": null,\n    \"accountStatus\": null,\n    \"completedDate\": null,\n    \"enforcingCourtId\": null,\n    \"lastHearingCourtId\": null,\n    \"lastHearingDate\": null,\n    \"lastMovementDate\": null,\n    \"lastEnforcement\": null,\n    \"lastChangedDate\": null,\n    \"originatorName\": null,\n    \"originatorReference\": null,\n    \"originatorType\": null,\n    \"allowWriteoffs\": true,\n    \"allowCheques\": true,\n    \"chequeClearancePeriod\": null,\n    \"creditTransferClearancePeriod\": null,\n    \"enforcementOverrideResultId\": null,\n    \"enforcementOverrideEnforcerId\": null,\n    \"enforcementOverrideTfoLjaId\": null,\n    \"unitFineDetail\": null,\n    \"unitFineValue\": null,\n    \"collectionOrder\": true,\n    \"collectionOrderEffectiveDate\": null,\n    \"furtherStepsNoticeDate\": null,\n    \"confiscationOrderDate\": null,\n    \"fineRegistrationDate\": null,\n    \"suspendedCommittalEnforcementId\": null,\n    \"consolidatedAccountType\": null,\n    \"paymentCardRequested\": true,\n    \"paymentCardRequestedDate\": null,\n    \"paymentCardRequestedBy\": null,\n    \"prosecutorCaseReference\": null,\n    \"enforcementCaseStatus\": null\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4550/api/defendant-account",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4550",
+					"path": [
+						"api",
+						"defendant-account"
+					]
+				},
+				"description": "Puts a new (no defendant_account_id) defendant account into opal db"
+			},
+			"response": []
+		}
+	]
+}
