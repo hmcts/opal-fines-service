@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
 public class DefendantAccountControllerIntegrationTest {
 
     @Autowired
@@ -33,7 +32,7 @@ public class DefendantAccountControllerIntegrationTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private DefendantAccountRepository defendantAccountRepository; // Assuming this is your JpaRepository
+    private DefendantAccountRepository defendantAccountRepository;
 
     DefendantAccountEntity requestEntity = new DefendantAccountEntity();
 
