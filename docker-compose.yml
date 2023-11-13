@@ -25,13 +25,13 @@ services:
     ports:
       - $SERVER_PORT:$SERVER_PORT
 
-  opal-db:
+  opal-fines-db:
     image: postgres:15
     restart: always
     environment:
       - POSTGRES_DB=opal-fines-db
-      - POSTGRES_USER=opal
-      - POSTGRES_PASSWORD=opal
+      - POSTGRES_USER=opal-fines
+      - POSTGRES_PASSWORD=opal-fines
     ports:
       - 5432:5432
     volumes:
