@@ -1,8 +1,8 @@
 apiVersion: v2
 appVersion: "1.0"
-description: A Helm chart for opal-account-enquiry app
-name: opal-account-enquiry
-home: https://github.com/hmcts/opal-account-enquiry
+description: A Helm chart for opal-fines-service app
+name: opal-fines-service
+home: https://github.com/hmcts/opal-fines-service
 version: 0.0.16
 maintainers:
   - name: HMCTS Opal Team

@@ -1,7 +1,7 @@
 {
   "connectionString": "${file:/mnt/secrets/opal/app-insights-connection-string}",
   "role": {
-    "name": "opal-account-enquiry"
+    "name": "opal-fines-service"
   },
   "preview": {
     "sampling": {
