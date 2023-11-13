@@ -3,7 +3,7 @@ appVersion: "1.0"
 description: A Helm chart for opal-account-enquiry app
 name: opal-account-enquiry
 home: https://github.com/hmcts/opal-account-enquiry
-version: 0.0.15
+version: 0.0.16
 maintainers:
   - name: HMCTS Opal Team
 dependencies:

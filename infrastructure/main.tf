@@ -10,14 +10,14 @@ provider "azurerm" {
 }
 
 locals {
-  db_name = "opal"
+  db_name = "opal-fines-db"
 }
 
-module "opal_db" {
+module "opal-fines-db" {
   providers = {
     azurerm.postgres_network = azurerm.postgres_network
   }
-  
+
   source = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
   env    = var.env
 
@@ -32,12 +32,12 @@ module "opal_db" {
   ]
 
   pgsql_version = "15"
-  
+
   # The ID of the principal to be granted admin access to the database server.
   # On Jenkins it will be injected for you automatically as jenkins_AAD_objectId.
   # Otherwise change the below:
   admin_user_object_id = var.jenkins_AAD_objectId
-  
+
   common_tags = var.common_tags
 }
 
@@ -48,19 +48,19 @@ data "azurerm_key_vault" "key_vault" {
 
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
   name         = "${var.component}-POSTGRES-USER"
-  value        = module.opal_db.username
+  value        = module.opal-fines-db.username
   key_vault_id = data.azurerm_key_vault.key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
   name         = "${var.component}-POSTGRES-PASS"
-  value        = module.opal_db.password
+  value        = module.opal-fines-db.password
   key_vault_id = data.azurerm_key_vault.key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
   name         = "${var.component}-POSTGRES-HOST"
-  value        = module.opal_db.fqdn
+  value        = module.opal-fines-db.fqdn
   key_vault_id = data.azurerm_key_vault.key_vault.id
 }
 
