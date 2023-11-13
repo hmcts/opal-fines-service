@@ -114,8 +114,8 @@ project.tasks['check'].dependsOn integration
 
 sonarqube {
   properties {
-    property "sonar.projectName", "HMCTS :: opal-account-enquiry"
-    property "sonar.projectKey", "uk.gov.hmcts:opal-account-enquiry"
+    property "sonar.projectName", "HMCTS :: opal-fines-service"
+    property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
   }
 }
 
@@ -187,7 +187,7 @@ dependencies {
 mainClassName = 'uk.gov.hmcts.opal.Application'
 
 bootJar {
-  archiveFileName = "opal-account-enquiry.jar"
+  archiveFileName = "opal-fines-service.jar"
 
   manifest {
     attributes('Implementation-Version': project.version.toString())

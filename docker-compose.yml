@@ -1,7 +1,7 @@
 version: '2.1'
 
 services:
-  opal-account-enquiry:
+  opal-fines-service:
     build:
       context: .
       args:

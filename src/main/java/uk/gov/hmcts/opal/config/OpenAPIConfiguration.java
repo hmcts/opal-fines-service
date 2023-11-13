@@ -13,13 +13,13 @@ public class OpenAPIConfiguration {
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
-            .info(new Info().title("Opal Account Enquiry")
-                      .description("Opal Account Enquiry")
+            .info(new Info().title("Opal Fines Service")
+                      .description("Opal Fines Service")
                       .version("v0.0.1")
                       .license(new License().name("MIT").url("https://opensource.org/licenses/MIT")))
             .externalDocs(new ExternalDocumentation()
                               .description("README")
-                              .url("https://github.com/hmcts/opal-account-enquiry"));
+                              .url("https://github.com/hmcts/opal-fines-service"));
     }
 
 }
