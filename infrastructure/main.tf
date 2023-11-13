@@ -10,7 +10,7 @@ provider "azurerm" {
 }
 
 locals {
-  db_name = "opal"
+  db_name = "opal-fines-db"
 }
 
 module "opal-fines-db" {
