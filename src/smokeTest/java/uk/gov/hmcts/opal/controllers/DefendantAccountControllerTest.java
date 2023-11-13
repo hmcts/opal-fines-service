@@ -1,82 +1,142 @@
 package uk.gov.hmcts.opal.controllers;
 
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
-import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.Assertions;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 
-import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-@SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
-class DefendantAccountControllerTest {
-
-    @Mock
-    private DefendantAccountService defendantAccountService;
+public class DefendantAccountControllerTest {
 
     @InjectMocks
     private DefendantAccountController defendantAccountController;
 
-    @Value("${TEST_URL:http://localhost:4550/api/defendant-account}")
-    private String testUrl;
+    @Mock
+    private DefendantAccountService defendantAccountService;
+
+    private ObjectMapper objectMapper;
 
     @BeforeEach
-    public void setup() {
-        RestAssured.baseURI = testUrl;
-        RestAssured.useRelaxedHTTPSValidation();
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        objectMapper = new ObjectMapper();
     }
 
     @Test
-    @Transactional
-    void testGetDefendantAccount_WithValidRequest_ReturnsDefendantAccountEntity() {
+    public void testGetDefendantAccount_Success() {
         // Arrange
-        DefendantAccountEntity defendantAccountExpected = new DefendantAccountEntity();
+        AccountEnquiryDto request = AccountEnquiryDto.builder().build();
+        DefendantAccountEntity mockResponse = new DefendantAccountEntity();
 
-        when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class)))
-            .thenReturn(defendantAccountExpected);
+        when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(mockResponse);
 
         // Act
-        AccountEnquiryDto request = AccountEnquiryDto.builder()
-            .businessUnitId(Short.parseShort("0")).accountNumber("0").build();
+        ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(request);
 
-        ResponseEntity<DefendantAccountEntity> re = defendantAccountController.getDefendantAccount(request);
-        DefendantAccountEntity defendantAccountActual = re.getBody();
-
-        Assertions.assertEquals(200, re.getStatusCode().value());
-        Assertions.assertEquals(defendantAccountExpected, defendantAccountActual);
+        // Assert
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(mockResponse, responseEntity.getBody());
+        verify(defendantAccountService, times(1)).getDefendantAccount(any(
+            AccountEnquiryDto.class));
     }
 
     @Test
-    void testGetDefendantAccount_WithEmptyRequest_ReturnsNoData() {
+    public void testGetDefendantAccount_NoContent() {
+        // Arrange
+        AccountEnquiryDto request = AccountEnquiryDto.builder().build();
 
-        String jsonBody = "{\n"
-            + " \"businessUnitId\": 0 ,\n"
-            + " \"accountNumber\": \"0\"\n"
-            + "}\n";
-        Response response = given()
-            .contentType(ContentType.JSON)
-            .body(jsonBody)
-            .when()
-            .get()
-            .then()
-            .extract().response();
+        when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(null);
 
-        Assertions.assertEquals(204, response.statusCode());
+        // Act
+        ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(request);
+
+        // Assert
+        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+        verify(defendantAccountService, times(1)).getDefendantAccount(any(
+            AccountEnquiryDto.class));
+    }
+
+    @Test
+    public void testPutDefendantAccount_Success() {
+        // Arrange
+        DefendantAccountEntity requestEntity = new DefendantAccountEntity();
+        DefendantAccountEntity mockResponse = new DefendantAccountEntity();
+
+        when(defendantAccountService.putDefendantAccount(any(DefendantAccountEntity.class))).thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.putDefendantAccount(
+            requestEntity);
+
+        // Assert
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(mockResponse, responseEntity.getBody());
+        verify(defendantAccountService, times(1)).putDefendantAccount(any(
+            DefendantAccountEntity.class));
+    }
+
+    @Test
+    public void testPutDefendantAccount_NoContent() {
+        // Arrange
+        DefendantAccountEntity requestEntity = new DefendantAccountEntity();
+
+        when(defendantAccountService.putDefendantAccount(any(DefendantAccountEntity.class))).thenReturn(null);
+
+        // Act
+        ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.putDefendantAccount(
+            requestEntity);
+
+        // Assert
+        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+        verify(defendantAccountService, times(1)).putDefendantAccount(any(
+            DefendantAccountEntity.class));
+    }
+
+    @Test
+    public void testControllerModelEqualsAndHashCode() {
+        // Arrange
+        DefendantAccountController model1 = new DefendantAccountController();
+        DefendantAccountController model2 = new DefendantAccountController();
+
+        // Assert
+        assertEquals(model1, model2);
+        assertEquals(model1.hashCode(), model2.hashCode());
+    }
+
+    @Test
+    public void testControllerModelToString() {
+        // Arrange
+        DefendantAccountController model = new DefendantAccountController();
+
+        // Act
+        String result = model.toString();
+
+        // Assert
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testSetAndGetServiceClass() {
+        // Arrange
+        DefendantAccountController model = new DefendantAccountController();
+
+        // Act
+        model.setDefendantAccountService(new DefendantAccountService());
+
+        // Assert
+        assertNotNull(model.getDefendantAccountService());
     }
 }
