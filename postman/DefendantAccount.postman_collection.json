@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "cab7d6d7-8cb1-46bc-b4d1-317236d8e791",
+		"_postman_id": "82d69869-6b55-4f76-9bfd-eead7177eca4",
 		"name": "DefendantAccount",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "31122798"
+		"_exporter_id": "31123183"
 	},
 	"item": [
 		{
@@ -73,6 +73,40 @@
 							"key": "accountNumber",
 							"value": "1212"
 						}
+					]
+				},
+				"description": "Get a defendant account from opal, account number is only unique within a businessunit"
+			},
+			"response": []
+		},
+		{
+			"name": "GET http://localhost:4550/api/defendant-accounts",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4550/api/defendant-account/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4550",
+					"path": [
+						"api",
+						"defendant-account",
+            "1"
 					]
 				},
 				"description": "Get a defendant account from opal, account number is only unique within a businessunit"

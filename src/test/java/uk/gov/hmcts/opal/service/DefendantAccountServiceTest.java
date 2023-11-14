@@ -15,6 +15,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+
 class DefendantAccountServiceTest {
 
     @Mock
@@ -62,4 +64,19 @@ class DefendantAccountServiceTest {
         verify(defendantAccountRepository, times(1)).save(mockEntity);
     }
 
+    @Test
+    void testGetDefendantAccounts() {
+        // Arrange
+
+        List<DefendantAccountEntity> mockEntity = List.of(new DefendantAccountEntity());
+        when(defendantAccountRepository.findAllByBusinessUnitId(Short.valueOf("123")))
+            .thenReturn(mockEntity);
+
+        // Act
+        List<DefendantAccountEntity> result = defendantAccountService.getDefendantAccountsByBusinessUnit((short) 123);
+
+        // Assert
+        assertEquals(mockEntity, result);
+        verify(defendantAccountRepository, times(1)).findAllByBusinessUnitId(Short.valueOf("123"));
+    }
 }
