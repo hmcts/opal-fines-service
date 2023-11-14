@@ -10,7 +10,6 @@ import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -63,18 +62,4 @@ class DefendantAccountServiceTest {
         verify(defendantAccountRepository, times(1)).save(mockEntity);
     }
 
-    @Test
-    void testToString() {
-        DefendantAccountService service = new DefendantAccountService();
-        assertNotNull(service.toString());
-    }
-
-    @Test
-    void testEqualsAndHashCode() {
-        DefendantAccountService service1 = new DefendantAccountService();
-        DefendantAccountService service2 = new DefendantAccountService();
-
-        assertEquals(service1, service2);
-        assertEquals(service1.hashCode(), service2.hashCode());
-    }
 }

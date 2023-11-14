@@ -1,9 +1,8 @@
 package uk.gov.hmcts.opal.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,12 +16,11 @@ import uk.gov.hmcts.opal.service.DefendantAccountService;
 
 @RestController
 @RequestMapping("/api/defendant-account")
-@Data
 @Slf4j
+@RequiredArgsConstructor
 public class DefendantAccountController {
 
-    @Autowired
-    DefendantAccountService defendantAccountService;
+    private final DefendantAccountService defendantAccountService;
 
     @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches for a defendant account in the Opal DB")
@@ -45,6 +43,5 @@ public class DefendantAccountController {
         DefendantAccountEntity response = defendantAccountService.putDefendantAccount(defendantAccountEntity);
 
         return ResponseEntity.ok(response);
-
     }
 }
