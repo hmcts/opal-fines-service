@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.config.db.migration;
 
+import lombok.Generated;
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -20,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnClass(Flyway.class)
 @ConditionalOnProperty(prefix = "dbMigration", name = "runOnStartup", havingValue = "false")
+@Generated
 public class FlywayConfiguration {
 
     @Bean
