@@ -50,15 +50,3 @@ dbMigration:
 azure:
   application-insights:
     instrumentation-key: ${opal.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
-
----
-
-spring:
-  config:
-    activate:
-      on-profile: integration-test
-
-flyway:
-  enabled: ${SPRING_FLYWAY_ENABLED:false}
-main:
-  lazy-initialization: true
