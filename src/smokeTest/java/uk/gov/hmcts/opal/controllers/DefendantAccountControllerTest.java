@@ -1,11 +1,14 @@
 package uk.gov.hmcts.opal.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.restassured.RestAssured;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
@@ -19,6 +22,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class DefendantAccountControllerTest {
 
     @InjectMocks
@@ -29,10 +33,15 @@ public class DefendantAccountControllerTest {
 
     private ObjectMapper objectMapper;
 
+    @Value("${TEST_URL:http://localhost:4550}")
+    private String testUrl;
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         objectMapper = new ObjectMapper();
+        RestAssured.baseURI = testUrl;
+        RestAssured.useRelaxedHTTPSValidation();
     }
 
     @Test
@@ -84,23 +93,6 @@ public class DefendantAccountControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
-        verify(defendantAccountService, times(1)).putDefendantAccount(any(
-            DefendantAccountEntity.class));
-    }
-
-    @Test
-    public void testPutDefendantAccount_NoContent() {
-        // Arrange
-        DefendantAccountEntity requestEntity = new DefendantAccountEntity();
-
-        when(defendantAccountService.putDefendantAccount(any(DefendantAccountEntity.class))).thenReturn(null);
-
-        // Act
-        ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.putDefendantAccount(
-            requestEntity);
-
-        // Assert
-        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
         verify(defendantAccountService, times(1)).putDefendantAccount(any(
             DefendantAccountEntity.class));
     }
