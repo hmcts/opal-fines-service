@@ -1,0 +1,3 @@
+spring:
+  flyway:
+    enabled: ${SPRING_FLYWAY_ENABLED:false}
