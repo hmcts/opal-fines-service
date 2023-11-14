@@ -1,14 +1,11 @@
 package uk.gov.hmcts.opal.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.RestAssured;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
@@ -22,27 +19,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-public class DefendantAccountControllerTest {
-
-    @InjectMocks
-    private DefendantAccountController defendantAccountController;
+@ExtendWith(MockitoExtension.class)
+class DefendantAccountControllerTest {
 
     @Mock
     private DefendantAccountService defendantAccountService;
 
+    @InjectMocks
+    private DefendantAccountController defendantAccountController;
+
     private ObjectMapper objectMapper;
-
-    @Value("${TEST_URL:http://localhost:4550}")
-    private String testUrl;
-
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        objectMapper = new ObjectMapper();
-        RestAssured.baseURI = testUrl;
-        RestAssured.useRelaxedHTTPSValidation();
-    }
 
     @Test
     public void testGetDefendantAccount_Success() {

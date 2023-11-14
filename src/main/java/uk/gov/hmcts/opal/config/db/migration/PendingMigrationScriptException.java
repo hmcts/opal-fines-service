@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.config.db.migration;
 
+import lombok.Generated;
+
+@Generated
 public class PendingMigrationScriptException extends RuntimeException {
 
     public PendingMigrationScriptException(String script) {
