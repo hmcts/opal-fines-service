@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
@@ -22,9 +23,16 @@ public class DefendantAccountController {
 
     private final DefendantAccountService defendantAccountService;
 
-    @GetMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping
     @Operation(summary = "Searches for a defendant account in the Opal DB")
-    public ResponseEntity<DefendantAccountEntity> getDefendantAccount(@RequestBody AccountEnquiryDto request) {
+    public ResponseEntity<DefendantAccountEntity> getDefendantAccount(
+        @RequestParam(name = "businessUnitId", required = true) Short businessUnitId,
+        @RequestParam(name = "accountNumber", required = true) String accountNumber) {
+
+        AccountEnquiryDto request = AccountEnquiryDto.builder()
+            .businessUnitId(businessUnitId)
+            .accountNumber(accountNumber)
+            .build();
 
         DefendantAccountEntity response = defendantAccountService.getDefendantAccount(request);
 

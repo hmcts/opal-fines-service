@@ -116,7 +116,7 @@ Current tests cover the following apis:
 PUT http://localhost:4550/api/defendant-account
 Create a new or update an existing Defendant Account in OPAL
 
-GET http://localhost:4550/api/defendant-account
+GET http://localhost:4550/api/defendant-account?businessUnitId=${Short}&accountNumber=${String}
 Get an existing Defendant Account by business Unit ID and Account Number.
 
 ## License

@@ -46,7 +46,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"businessUnitId\": 1,\n  \"accountNumber\": \"1212\"\n}\n",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -54,7 +54,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:4550/api/defendant-account",
+					"raw": "http://localhost:4550/api/defendant-account?businessUnitId=1&accountNumber=1212",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -63,6 +63,16 @@
 					"path": [
 						"api",
 						"defendant-account"
+					],
+					"query": [
+						{
+							"key": "businessUnitId",
+							"value": "1"
+						},
+						{
+							"key": "accountNumber",
+							"value": "1212"
+						}
 					]
 				},
 				"description": "Get a defendant account from opal, account number is only unique within a businessunit"
