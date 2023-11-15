@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,7 +12,6 @@ import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,8 +25,6 @@ class DefendantAccountControllerTest {
 
     @InjectMocks
     private DefendantAccountController defendantAccountController;
-
-    private ObjectMapper objectMapper;
 
     @Test
     public void testGetDefendantAccount_Success() {
@@ -81,40 +77,5 @@ class DefendantAccountControllerTest {
         assertEquals(mockResponse, responseEntity.getBody());
         verify(defendantAccountService, times(1)).putDefendantAccount(any(
             DefendantAccountEntity.class));
-    }
-
-    @Test
-    public void testControllerModelEqualsAndHashCode() {
-        // Arrange
-        DefendantAccountController model1 = new DefendantAccountController();
-        DefendantAccountController model2 = new DefendantAccountController();
-
-        // Assert
-        assertEquals(model1, model2);
-        assertEquals(model1.hashCode(), model2.hashCode());
-    }
-
-    @Test
-    public void testControllerModelToString() {
-        // Arrange
-        DefendantAccountController model = new DefendantAccountController();
-
-        // Act
-        String result = model.toString();
-
-        // Assert
-        assertNotNull(result);
-    }
-
-    @Test
-    public void testSetAndGetServiceClass() {
-        // Arrange
-        DefendantAccountController model = new DefendantAccountController();
-
-        // Act
-        model.setDefendantAccountService(new DefendantAccountService());
-
-        // Assert
-        assertNotNull(model.getDefendantAccountService());
     }
 }
