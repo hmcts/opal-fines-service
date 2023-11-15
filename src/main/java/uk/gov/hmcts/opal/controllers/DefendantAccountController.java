@@ -26,8 +26,8 @@ public class DefendantAccountController {
     @GetMapping
     @Operation(summary = "Searches for a defendant account in the Opal DB")
     public ResponseEntity<DefendantAccountEntity> getDefendantAccount(
-        @RequestParam(name = "businessUnitId", required = true) Short businessUnitId,
-        @RequestParam(name = "accountNumber", required = true) String accountNumber) {
+        @RequestParam(name = "businessUnitId") Short businessUnitId,
+        @RequestParam(name = "accountNumber") String accountNumber) {
 
         AccountEnquiryDto request = AccountEnquiryDto.builder()
             .businessUnitId(businessUnitId)
