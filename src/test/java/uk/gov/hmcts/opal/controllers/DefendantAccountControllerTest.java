@@ -29,13 +29,13 @@ class DefendantAccountControllerTest {
     @Test
     public void testGetDefendantAccount_Success() {
         // Arrange
-        AccountEnquiryDto request = AccountEnquiryDto.builder().build();
         DefendantAccountEntity mockResponse = new DefendantAccountEntity();
 
         when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(mockResponse);
 
         // Act
-        ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(request);
+        ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
+            (short)1, "");
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -46,13 +46,12 @@ class DefendantAccountControllerTest {
 
     @Test
     public void testGetDefendantAccount_NoContent() {
-        // Arrange
-        AccountEnquiryDto request = AccountEnquiryDto.builder().build();
 
         when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(null);
 
         // Act
-        ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(request);
+        ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
+            (short)1, "");
 
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
