@@ -8,6 +8,8 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
+import java.util.List;
+
 @Service
 @Transactional
 @Slf4j
@@ -25,5 +27,11 @@ public class DefendantAccountService {
     public DefendantAccountEntity putDefendantAccount(DefendantAccountEntity defendantAccountEntity) {
 
         return defendantAccountRepository.save(defendantAccountEntity);
+    }
+
+    public List<DefendantAccountEntity> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
+
+        log.info(":getDefendantAccountsByBusinessUnit: busUnit: {}", businessUnitId);
+        return defendantAccountRepository.findAllByBusinessUnitId(businessUnitId);
     }
 }
