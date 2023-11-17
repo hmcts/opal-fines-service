@@ -1,4 +1,7 @@
-# Opal Fine Service
+# Opal Fines Service
+[![API Docs](https://img.shields.io/badge/API%20Docs-Fines_Services-e140ad.svg)](https://hmcts.github.io/cnp-api-docs/swagger.html?url=https://hmcts.github.io/cnp-api-docs/specs/opal-fines-service.json)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=uk.gov.hmcts%3Aopal-fines-service&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=uk.gov.hmcts%3Aopal-fines-service)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=uk.gov.hmcts%3Aopal-fines-service&metric=coverage)](https://sonarcloud.io/summary/new_code?id=uk.gov.hmcts%3Aopal-fines-service)
 
 ## Getting Started
 
@@ -118,6 +121,11 @@ Create a new or update an existing Defendant Account in OPAL
 
 GET http://localhost:4550/api/defendant-account?businessUnitId=${Short}&accountNumber=${String}
 Get an existing Defendant Account by business Unit ID and Account Number.
+
+## OpenAPI
+
+The OpenAPI specification is available publicly (see badge at top of README) and when running the application
+at `/swagger-ui/index.html`. When running locally this is available at http://localhost:4550/swagger-ui/index.html.
 
 ## License
 
