@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.service;
 
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.entity.NoteEntity;
