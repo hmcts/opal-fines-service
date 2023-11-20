@@ -1,7 +1,7 @@
 java:
   applicationPort: 4550
   image: 'sdshmctspublic.azurecr.io/opal/fines-service:latest'
-  ingressHost: opal-fines-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
+  ingressHost: opal-fines-service.{{ .Values.global.environment }}.platform.hmcts.net
   keyVaults:
     opal:
       secrets:

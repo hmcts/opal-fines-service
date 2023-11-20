@@ -17,6 +17,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountControllerTest {
 
@@ -76,5 +78,24 @@ class DefendantAccountControllerTest {
         assertEquals(mockResponse, responseEntity.getBody());
         verify(defendantAccountService, times(1)).putDefendantAccount(any(
             DefendantAccountEntity.class));
+    }
+
+    @Test
+    public void testGetDefendantAccounts_Success() {
+        // Arrange
+        List<DefendantAccountEntity> mockResponse = List.of(new DefendantAccountEntity());
+
+        when(defendantAccountService.getDefendantAccountsByBusinessUnit(any(Short.class))).thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<List<DefendantAccountEntity>> responseEntity = defendantAccountController
+            .getDefendantAccountsByBusinessUnit(any(Short.class));
+
+        // Assert
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(mockResponse, responseEntity.getBody());
+        verify(defendantAccountService, times(1)).getDefendantAccountsByBusinessUnit(any(
+            Short.class));
+
     }
 }

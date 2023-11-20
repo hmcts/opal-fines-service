@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/defendant-account")
@@ -49,6 +52,22 @@ public class DefendantAccountController {
         @RequestBody DefendantAccountEntity defendantAccountEntity) {
 
         DefendantAccountEntity response = defendantAccountService.putDefendantAccount(defendantAccountEntity);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(value = "/{businessUnit}")
+    @Operation(summary = "Searches for all defendant accounts within a business unit")
+    public ResponseEntity<List<DefendantAccountEntity>> getDefendantAccountsByBusinessUnit(
+        @PathVariable short businessUnit) {
+
+        log.info(":GET:getDefendantAccountsByBusinessUnit: busUnit: {}", businessUnit);
+        List<DefendantAccountEntity> response = defendantAccountService
+            .getDefendantAccountsByBusinessUnit(businessUnit);
+
+        if (response == null) {
+            return ResponseEntity.noContent().build();
+        }
 
         return ResponseEntity.ok(response);
     }
