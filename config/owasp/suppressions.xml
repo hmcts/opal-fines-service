@@ -5,12 +5,7 @@
   <!--End of false positives section -->
 
   <!--Please add Temporary suppression here-->
-  <suppress>
-    <notes>Temporarily suppression</notes>
-    <cve>CVE-2018-10237</cve>
-    <cve>CVE-2023-2976</cve>
-    <cve>CVE-2020-8908</cve>
-  </suppress>
+
   <!--End of Temporary suppression section -->
 
 </suppressions>
