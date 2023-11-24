@@ -43,7 +43,7 @@ class FeatureToggleApiTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldReturnCorrectState_whenUserIsProvided(Boolean toggleState) {
-        LDUser ldUSer = new LDUser.Builder("civil-service")
+        LDUser ldUSer = new LDUser.Builder("opal")
             .custom("timestamp", String.valueOf(System.currentTimeMillis()))
             .custom("environment", FAKE_ENVIRONMENT).build();
         givenToggle(FAKE_FEATURE, toggleState);
@@ -79,7 +79,7 @@ class FeatureToggleApiTest {
         );
 
         var capturedLdUser = ldUserArgumentCaptor.getValue();
-        assertThat(capturedLdUser.getKey()).isEqualTo("civil-service");
+        assertThat(capturedLdUser.getKey()).isEqualTo("opal");
         assertThat(ImmutableList.copyOf(capturedLdUser.getCustomAttributes())).extracting("name")
             .containsOnlyOnceElementsOf(customAttributesKeys);
     }
@@ -87,7 +87,7 @@ class FeatureToggleApiTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldReturnCorrectState_whenUserWithLocationIsProvided(Boolean toggleState) {
-        LDUser ldUSer = new LDUser.Builder("civil-service")
+        LDUser ldUSer = new LDUser.Builder("opal")
             .custom("timestamp", String.valueOf(System.currentTimeMillis()))
             .custom("environment", FAKE_ENVIRONMENT)
             .custom("location", "000000")

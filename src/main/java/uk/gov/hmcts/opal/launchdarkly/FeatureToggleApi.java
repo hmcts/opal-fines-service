@@ -40,7 +40,7 @@ public class FeatureToggleApi {
     }
 
     public LDUser.Builder createLDUser() {
-        return new LDUser.Builder("civil-service")
+        return new LDUser.Builder("opal")
             .custom("timestamp", String.valueOf(System.currentTimeMillis()))
             .custom("environment", environment);
     }
@@ -51,9 +51,5 @@ public class FeatureToggleApi {
         } catch (IOException e) {
             log.error("Error in closing the Launchdarkly client::", e);
         }
-    }
-
-    public boolean isFeatureEnabledForLocation(String feature, String location, boolean defaultValue) {
-        return internalClient.boolVariation(feature, createLDUser().custom("location", location).build(), defaultValue);
     }
 }
