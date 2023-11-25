@@ -1,0 +1,31 @@
+{
+  "segments": {},
+  "flags": {
+    "legacy-app-mode-enabled": {
+      "key": "legacy-app-mode-enabled",
+      "on": false,
+      "prerequisites": [],
+      "targets": [],
+      "rules": [],
+      "fallthrough": {
+        "variation": 0
+      },
+      "offVariation": 1,
+      "variations": [
+        true,
+        false
+      ],
+      "clientSideAvailability": {
+        "usingMobileKey": true,
+        "usingEnvironmentId": false
+      },
+      "clientSide": false,
+      "salt": "d1a9d794232b464aa9648385517260cb",
+      "trackEvents": false,
+      "trackEventsFallthrough": false,
+      "debugEventsUntilDate": null,
+      "version": 2,
+      "deleted": false
+    }
+  }
+}
