@@ -53,7 +53,7 @@ class TestingSupportControllerTest {
     void getFeatureFlagValue() {
         when(featureToggleService.isFeatureEnabled("my-feature")).thenReturn(true);
 
-        ResponseEntity<Boolean> response = controller.getFeatureFlagValue("my-feature");
+        var response = controller.getFeatureFlagValue("my-feature");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(true, response.getBody());

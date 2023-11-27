@@ -15,4 +15,7 @@ public class FeatureToggleService {
         return this.featureToggleApi.isFeatureEnabled(feature);
     }
 
+    public String getFeatureValue(String feature) {
+        return this.featureToggleApi.getFeatureValue(feature, "");
+    }
 }
