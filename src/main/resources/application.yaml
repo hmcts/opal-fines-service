@@ -52,3 +52,8 @@ azure:
     instrumentation-key: ${opal.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
 
 app-mode: opal
+
+launchdarkly:
+  sdk-key: ${LAUNCH_DARKLY_SDK_KEY:}
+  offline-mode: ${LAUNCH_DARKLY_OFFLINE_MODE:false}
+  env: ${LAUNCH_DARKLY_ENV:default}

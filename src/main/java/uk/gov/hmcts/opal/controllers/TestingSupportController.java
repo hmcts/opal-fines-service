@@ -4,11 +4,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.AppMode;
+import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 
 @RestController
@@ -17,6 +19,7 @@ import uk.gov.hmcts.opal.service.DynamicConfigService;
 public class TestingSupportController {
 
     private final DynamicConfigService dynamicConfigService;
+    private final FeatureToggleService featureToggleService;
 
     @GetMapping("/app-mode")
     @Operation(summary = "Retrieves the value for app mode.")
@@ -28,5 +31,10 @@ public class TestingSupportController {
     @Operation(summary = "Updates the value for app mode.")
     public ResponseEntity<AppMode> updateMode(@RequestBody AppMode mode) {
         return ResponseEntity.accepted().body(this.dynamicConfigService.updateAppMode(mode));
+    }
+
+    @GetMapping("/launchdarkly/{featureKey}")
+    public ResponseEntity<Boolean> getFeatureFlagValue(@PathVariable String featureKey) {
+        return ResponseEntity.ok(this.featureToggleService.isFeatureEnabled(featureKey));
     }
 }
