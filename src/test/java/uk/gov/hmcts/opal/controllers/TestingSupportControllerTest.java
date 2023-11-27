@@ -7,13 +7,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.AppMode;
+import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = {TestingSupportController.class, DynamicConfigService.class})
+@SpringBootTest(classes = {TestingSupportController.class, DynamicConfigService.class, FeatureToggleService.class})
 class TestingSupportControllerTest {
 
     @Autowired
@@ -21,6 +22,9 @@ class TestingSupportControllerTest {
 
     @MockBean
     private DynamicConfigService configService;
+
+    @MockBean
+    private FeatureToggleService featureToggleService;
 
     @Test
     void getAppMode() {
@@ -43,6 +47,16 @@ class TestingSupportControllerTest {
         assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
         assertEquals("legacy", response.getBody().getMode());
 
+    }
+
+    @Test
+    void getFeatureFlagValue() {
+        when(featureToggleService.isFeatureEnabled("my-feature")).thenReturn(true);
+
+        ResponseEntity<Boolean> response = controller.getFeatureFlagValue("my-feature");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(true, response.getBody());
     }
 
 }
