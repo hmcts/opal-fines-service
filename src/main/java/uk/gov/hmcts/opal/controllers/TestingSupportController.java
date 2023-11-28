@@ -33,8 +33,13 @@ public class TestingSupportController {
         return ResponseEntity.accepted().body(this.dynamicConfigService.updateAppMode(mode));
     }
 
-    @GetMapping("/launchdarkly/{featureKey}")
-    public ResponseEntity<Boolean> getFeatureFlagValue(@PathVariable String featureKey) {
+    @GetMapping("/launchdarkly/bool/{featureKey}")
+    public ResponseEntity<Boolean> isFeatureEnabled(@PathVariable String featureKey) {
         return ResponseEntity.ok(this.featureToggleService.isFeatureEnabled(featureKey));
+    }
+
+    @GetMapping("/launchdarkly/string/{featureKey}")
+    public ResponseEntity<String> getFeatureValue(@PathVariable String featureKey) {
+        return ResponseEntity.ok(this.featureToggleService.getFeatureValue(featureKey));
     }
 }

@@ -31,6 +31,9 @@ public class FeatureToggleApi {
         return internalClient.boolVariation(feature, createLDUser().build(), defaultValue);
     }
 
+    public String getFeatureValue(String feature, String defaultValue) {
+        return internalClient.stringVariation(feature, createLDUser().build(), defaultValue);
+    }
     public boolean isFeatureEnabled(String feature, LDUser user) {
         return internalClient.boolVariation(feature, user, false);
     }
