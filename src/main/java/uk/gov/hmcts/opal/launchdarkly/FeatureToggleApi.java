@@ -31,15 +31,17 @@ public class FeatureToggleApi {
         return internalClient.boolVariation(feature, createLDUser().build(), defaultValue);
     }
 
-    public String getFeatureValue(String feature, String defaultValue) {
-        return internalClient.stringVariation(feature, createLDUser().build(), defaultValue);
-    }
     public boolean isFeatureEnabled(String feature, LDUser user) {
         return internalClient.boolVariation(feature, user, false);
     }
 
+
     public boolean isFeatureEnabled(String feature, LDUser user, boolean defaultValue) {
         return internalClient.boolVariation(feature, user, defaultValue);
+    }
+
+    public String getFeatureValue(String feature, String defaultValue) {
+        return internalClient.stringVariation(feature, createLDUser().build(), defaultValue);
     }
 
     public LDUser.Builder createLDUser() {

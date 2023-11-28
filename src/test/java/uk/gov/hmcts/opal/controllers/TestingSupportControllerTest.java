@@ -50,13 +50,23 @@ class TestingSupportControllerTest {
     }
 
     @Test
-    void getFeatureFlagValue() {
+    void isFeatureEnabled() {
         when(featureToggleService.isFeatureEnabled("my-feature")).thenReturn(true);
 
-        ResponseEntity<Boolean> response = controller.getFeatureFlagValue("my-feature");
+        ResponseEntity<Boolean> response = controller.isFeatureEnabled("my-feature");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(true, response.getBody());
+    }
+
+    @Test
+    void getFeatureFlagValue() {
+        when(featureToggleService.getFeatureValue("my-feature")).thenReturn("value");
+
+        ResponseEntity<String> response = controller.getFeatureValue("my-feature");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("value", response.getBody());
     }
 
 }
