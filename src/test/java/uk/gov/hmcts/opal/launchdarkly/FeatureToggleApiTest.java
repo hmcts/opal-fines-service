@@ -66,6 +66,15 @@ class FeatureToggleApiTest {
         verifyBoolVariationCalled(FAKE_FEATURE, List.of("timestamp", "environment"));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = { "opal", "legacy"})
+    void shouldReturnCorrectStringValue_whenDefaultServiceUser(String toggleState) {
+        when(ldClient.stringVariation(eq(FAKE_FEATURE), any(LDUser.class), any()))
+            .thenReturn(toggleState);
+
+        assertThat(featureToggleApi.getFeatureValue(FAKE_FEATURE, null)).isEqualTo(toggleState);
+    }
+
     private void givenToggle(String feature, boolean state) {
         when(ldClient.boolVariation(eq(feature), any(LDUser.class), anyBoolean()))
             .thenReturn(state);
