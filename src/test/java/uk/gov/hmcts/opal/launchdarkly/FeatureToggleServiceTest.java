@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -35,5 +36,14 @@ class FeatureToggleServiceTest {
     private void givenToggle(String feature, boolean state) {
         when(featureToggleApi.isFeatureEnabled(eq(feature)))
             .thenReturn(state);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "opal", "legacy"})
+    void shouldReturnCorrectValue_whenMyFeatureValueInvoked(String toggleValue) {
+        when(featureToggleApi.getFeatureValue(eq("myFeature"), any()))
+            .thenReturn(toggleValue);
+
+        assertThat(featureToggleService.getFeatureValue("myFeature")).isEqualTo(toggleValue);
     }
 }
