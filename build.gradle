@@ -202,7 +202,9 @@ dependencies {
   }
 }
 
-mainClassName = 'uk.gov.hmcts.opal.Application'
+application {
+  mainClass.set('uk.gov.hmcts.opal.Application')
+}
 
 bootJar {
   archiveFileName = "opal-fines-service.jar"
@@ -242,6 +244,5 @@ task migratePostgresDatabase(type: org.flywaydb.gradle.task.FlywayMigrateTask) {
   if (project.hasProperty("dburl")) {
     url = "jdbc:postgresql://${dburl}"
   }
-  println "url is ${url}"
+  println "Flyway jbdc property 'url' (derived from System property 'FLYWAY_URL'?) is: ${url}"
 }
-
