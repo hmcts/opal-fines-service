@@ -6,6 +6,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
+import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
@@ -78,5 +81,22 @@ class DefendantAccountServiceTest {
         // Assert
         assertEquals(mockEntity, result);
         verify(defendantAccountRepository, times(1)).findAllByBusinessUnitId(Short.valueOf("123"));
+    }
+
+    @Test
+    void testSearchDefendantAccounts() {
+        // Arrange
+        AccountSearchDto mockSearch = AccountSearchDto.builder().build();
+        AccountSearchResultsDto mockResponse =  AccountSearchResultsDto.builder()
+            .searchResults(List.of(AccountSummaryDto.builder().build()))
+            .totalCount(999)
+            .cursor(0)
+            .build();
+
+        // Act
+        AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(mockSearch);
+
+        // Assert
+        assertEquals(mockResponse, result);
     }
 }
