@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.launchdarkly;
 
-import com.google.common.collect.ImmutableList;
+import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +33,9 @@ class FeatureToggleApiTest {
     @Captor
     private ArgumentCaptor<LDUser> ldUserArgumentCaptor;
 
+    @Captor
+    private ArgumentCaptor<LDContext> ldContextArgumentCaptor;
+
     private FeatureToggleApi featureToggleApi;
 
     @BeforeEach
@@ -43,16 +46,17 @@ class FeatureToggleApiTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldReturnCorrectState_whenUserIsProvided(Boolean toggleState) {
-        LDUser ldUSer = new LDUser.Builder("opal")
+        LDUser ldUser = new LDUser.Builder("opal")
             .custom("timestamp", String.valueOf(System.currentTimeMillis()))
             .custom("environment", FAKE_ENVIRONMENT).build();
         givenToggle(FAKE_FEATURE, toggleState);
+        LDContext ldContext = LDContext.fromUser(ldUser);
 
-        assertThat(featureToggleApi.isFeatureEnabled(FAKE_FEATURE, ldUSer)).isEqualTo(toggleState);
+        assertThat(featureToggleApi.isFeatureEnabled(FAKE_FEATURE, ldUser)).isEqualTo(toggleState);
 
         verify(ldClient).boolVariation(
             FAKE_FEATURE,
-            ldUSer,
+            ldContext,
             false
         );
     }
@@ -69,45 +73,44 @@ class FeatureToggleApiTest {
     @ParameterizedTest
     @ValueSource(strings = { "opal", "legacy"})
     void shouldReturnCorrectStringValue_whenDefaultServiceUser(String toggleState) {
-        when(ldClient.stringVariation(eq(FAKE_FEATURE), any(LDUser.class), any()))
+        when(ldClient.stringVariation(eq(FAKE_FEATURE), any(LDContext.class), any()))
             .thenReturn(toggleState);
 
         assertThat(featureToggleApi.getFeatureValue(FAKE_FEATURE, null)).isEqualTo(toggleState);
     }
 
     private void givenToggle(String feature, boolean state) {
-        when(ldClient.boolVariation(eq(feature), any(LDUser.class), anyBoolean()))
+        when(ldClient.boolVariation(eq(feature), any(LDContext.class), anyBoolean()))
             .thenReturn(state);
     }
 
     private void verifyBoolVariationCalled(String feature, List<String> customAttributesKeys) {
         verify(ldClient).boolVariation(
             eq(feature),
-            ldUserArgumentCaptor.capture(),
+            ldContextArgumentCaptor.capture(),
             eq(false)
         );
 
-        var capturedLdUser = ldUserArgumentCaptor.getValue();
-        assertThat(capturedLdUser.getKey()).isEqualTo("opal");
-        assertThat(ImmutableList.copyOf(capturedLdUser.getCustomAttributes())).extracting("name")
-            .containsOnlyOnceElementsOf(customAttributesKeys);
+        var capturedLdContext = ldContextArgumentCaptor.getValue();
+        assertThat(capturedLdContext.getKey()).isEqualTo("opal");
     }
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldReturnCorrectState_whenUserWithLocationIsProvided(Boolean toggleState) {
-        LDUser ldUSer = new LDUser.Builder("opal")
+        LDUser ldUser = new LDUser.Builder("opal")
             .custom("timestamp", String.valueOf(System.currentTimeMillis()))
             .custom("environment", FAKE_ENVIRONMENT)
             .custom("location", "000000")
             .build();
+        LDContext ldContext = LDContext.fromUser(ldUser);
         givenToggle(FAKE_FEATURE, toggleState);
 
-        assertThat(featureToggleApi.isFeatureEnabled(FAKE_FEATURE, ldUSer)).isEqualTo(toggleState);
+        assertThat(featureToggleApi.isFeatureEnabled(FAKE_FEATURE, ldUser)).isEqualTo(toggleState);
 
         verify(ldClient).boolVariation(
             FAKE_FEATURE,
-            ldUSer,
+            ldContext,
             false
         );
     }

@@ -87,7 +87,7 @@ class DefendantAccountServiceTest {
     void testSearchDefendantAccounts() {
         // Arrange
         AccountSearchDto mockSearch = AccountSearchDto.builder().build();
-        AccountSearchResultsDto mockResponse =  AccountSearchResultsDto.builder()
+        AccountSearchResultsDto expectedResponse =  AccountSearchResultsDto.builder()
             .searchResults(List.of(AccountSummaryDto.builder().build()))
             .totalCount(999)
             .cursor(0)
@@ -97,6 +97,6 @@ class DefendantAccountServiceTest {
         AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(mockSearch);
 
         // Assert
-        assertEquals(mockResponse, result);
+        assertEquals(expectedResponse, result);
     }
 }
