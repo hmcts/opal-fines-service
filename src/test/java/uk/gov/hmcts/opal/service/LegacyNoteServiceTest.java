@@ -45,14 +45,16 @@ class LegacyNoteServiceTest {
             .postedBy("user123")
             .build();
 
-        String jsonBody = "{\n"
-            + "    \"noteId\": 1,\n"
-            + "    \"noteType\": \"AC\",\n"
-            + "    \"associatedRecordType\": \"defendants_accounts\",\n"
-            + "    \"associatedRecordId\": \"123456\",\n"
-            + "    \"noteText\": \"This is a sample note text.\",\n"
-            + "    \"postedBy\": \"user123\"\n"
-            + "}";
+        String jsonBody = """
+            {
+            "noteId": 1,
+            "noteType": "AC",
+            "associatedRecordType": "defendants_accounts",
+            "associatedRecordId": "123456",
+            "noteText": "This is a sample note text.",
+            "postedBy": "user123"
+            }
+            """;
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
         when(restTemplate.postForEntity(any(String.class), any(NoteDto.class), any(Class.class)))
@@ -92,13 +94,15 @@ class LegacyNoteServiceTest {
         final NoteDto inputNoteDto = new NoteDto();
 
 
-        String jsonBody = "{\n"
-            + "    \"noteType\": \"AC\",\n"
-            + "    \"associatedRecordType\": \"defendants_accounts\",\n"
-            + "    \"associatedRecordId\": \"123456\",\n"
-            + "    \"noteText\": \"This is a sample note text.\",\n"
-            + "    \"postedBy\": \"user123\"\n"
-            + "}";
+        String jsonBody = """
+            {
+            "noteType": "AC",
+            "associatedRecordType": "defendants_accounts",
+            "associatedRecordId": "123456",
+            "noteText": "This is a sample note text.",
+            "postedBy": "user123"
+            }
+            """;
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -120,13 +124,16 @@ class LegacyNoteServiceTest {
         final NoteDto inputNoteDto = new NoteDto();
 
 
-        String jsonBody = "{\n"
-            + "    \"noteTypeFOOBAR\": \"AC\",\n"
-            + "    \"associatedRecordType\": \"defendants_accounts\",\n"
-            + "    \"associatedRecordId\": \"123456\",\n"
-            + "    \"noteText\": \"This is a sample note text.\",\n"
-            + "    \"postedBy\": \"user123\"\n"
-            + "}";
+        String jsonBody = """
+            {
+            "noteTypeFOOBAR": "AC",
+            "associatedRecordType": "defendants_accounts",
+            "associatedRecordId": "123456",
+            "noteText": "This is a sample note text.",
+            "postedBy": "user123"
+            }
+            """;
+
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.OK);
