@@ -1,16 +1,16 @@
 package uk.gov.hmcts.opal.dto;
 
 
-import java.time.LocalDate;
-
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
 public class AccountSearchDto implements ToJsonString {
+    /** The court (CT) or MET (metropolitan area). */
+    private String court;
     /** Defendant Surname, Company Name or A/C number. */
-    private String nameOrAccountNo;
+    private String surname;
     /** Can be either Defendant, Minor Creditor or Company. */
     private String searchType;
     /** Defendant Forenames. */
@@ -18,9 +18,9 @@ public class AccountSearchDto implements ToJsonString {
     /** Defendant Initials. */
     private String initials;
     /** Defendant Date of Birth. */
-    private LocalDate dateOfBirth;
+    private DateDto dateOfBirth;
     /** Defendant Address, typically just first line. */
-    private String address;
+    private String addressLineOne;
     /** National Insurance Number. */
     private String niNumber;
     /** Prosecutor Case Reference. */

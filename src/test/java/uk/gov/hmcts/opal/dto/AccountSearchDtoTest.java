@@ -2,22 +2,25 @@ package uk.gov.hmcts.opal.dto;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static uk.gov.hmcts.opal.dto.DateDto.fromLocalDate;
 
 import java.time.LocalDate;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
+@Slf4j
 public class AccountSearchDtoTest {
 
     @Test
     public void testBuilder() {
         final LocalDate today = LocalDate.now();
         AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto(today);
-
-        assertEquals("accountNameNo", accountEnquiryDto.getNameOrAccountNo());
-        assertEquals("Scotland", accountEnquiryDto.getAddress());
+        assertEquals("Bath", accountEnquiryDto.getCourt());
+        assertEquals("Smith", accountEnquiryDto.getSurname());
+        assertEquals("Scotland", accountEnquiryDto.getAddressLineOne());
         assertEquals("case001", accountEnquiryDto.getPcr());
-        assertEquals(today, accountEnquiryDto.getDateOfBirth());
+        assertEquals(fromLocalDate(today), accountEnquiryDto.getDateOfBirth());
         assertEquals("Dave", accountEnquiryDto.getForename());
         assertEquals("HRH", accountEnquiryDto.getInitials());
         assertEquals("QUICK", accountEnquiryDto.getSearchType());
@@ -59,10 +62,11 @@ public class AccountSearchDtoTest {
 
     private AccountSearchDto constructTestAccountSearchDto(final LocalDate today) {
         return AccountSearchDto.builder()
-            .nameOrAccountNo("accountNameNo")
-            .address("Scotland")
+            .court("Bath")
+            .surname("Smith")
+            .addressLineOne("Scotland")
             .pcr("case001")
-            .dateOfBirth(today)
+            .dateOfBirth(fromLocalDate(today))
             .forename("Dave")
             .initials("HRH")
             .searchType("QUICK")
