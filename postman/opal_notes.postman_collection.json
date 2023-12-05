@@ -1,0 +1,39 @@
+{
+	"info": {
+		"_postman_id": "a9c3289b-1117-4a3e-9e62-5624aba22e6d",
+		"name": "opal_notes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1068308"
+	},
+	"item": [
+		{
+			"name": "create note",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"noteType\": \"AC\",\n    \"associatedRecordType\": \"defendants_accounts\",\n    \"associatedRecordId\": \"123456\",\n    \"noteText\": \"This is a sample note text.\",\n    \"postedDate\": \"2023-11-13T12:00:00\",\n    \"postedBy\": \"user123\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:4550/api/notes",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4550",
+					"path": [
+						"api",
+						"notes"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

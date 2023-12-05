@@ -53,6 +53,8 @@ azure:
 
 app-mode: opal
 
+legacy-gateway-url: ${OPAL_LEGACY_GATEWAY_URL:http://localhost:4553/opal}
+
 launchdarkly:
   sdk-key: ${LAUNCH_DARKLY_SDK_KEY:}
   offline-mode: ${LAUNCH_DARKLY_OFFLINE_MODE:false}

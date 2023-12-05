@@ -11,11 +11,13 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class NoteService {
+//@ConditionalOnProperty(name = "app-mode", havingValue = "opal", matchIfMissing = true)
+public class NoteService implements NoteServiceInterface {
 
 
     private final NoteRepository noteRepository;
 
+    @Override
     public NoteDto saveNote(NoteDto noteDto) {
         NoteEntity noteEntity = NoteEntity.builder()
             .noteType(noteDto.getNoteType())
