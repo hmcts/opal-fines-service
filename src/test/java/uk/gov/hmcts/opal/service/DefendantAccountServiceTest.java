@@ -161,7 +161,7 @@ class DefendantAccountServiceTest {
         mockCourt.setCourtCode((short)1);
         mockDefendantAccount.setLastHearingCourtId(mockCourt);
         mockDefendantAccount.setEnforcingCourtId(mockCourt);
-        DefendantAccountPartiesEntity mockAccountPartyEntity = new DefendantAccountPartiesEntity();
+        DefendantAccountPartiesEntity mockAccountPartyEntity = DefendantAccountPartiesEntity.builder().build();
         mockAccountPartyEntity.setDefendantAccount(mockDefendantAccount);
         PartyEntity mockPartyEntity = PartyEntity.builder().build();
         mockAccountPartyEntity.setParty(mockPartyEntity);

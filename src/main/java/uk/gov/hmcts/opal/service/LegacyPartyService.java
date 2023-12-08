@@ -10,7 +10,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.PartyDto;
+import uk.gov.hmcts.opal.entity.PartySummary;
+
+import java.util.Collections;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -83,5 +88,10 @@ public class LegacyPartyService implements PartyServiceInterface {
             log.warn("Received non-2xx response: {}", responseEntity.getStatusCode());
         }
         return null;
+    }
+
+    @Override
+    public List<PartySummary> searchForParty(AccountSearchDto accountSearchDto) {
+        return Collections.<PartySummary>emptyList();
     }
 }

@@ -9,7 +9,11 @@ import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.PartyDto;
+import uk.gov.hmcts.opal.entity.PartySummary;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -181,8 +185,6 @@ class LegacyPartyServiceTest {
     @SuppressWarnings("unchecked")
     void getParty_ErrorResponse() throws Exception {
         // Arrange
-        final PartyDto inputPartyDto = new PartyDto();
-
 
         String jsonBody = createJsonBody2();
 
@@ -197,6 +199,18 @@ class LegacyPartyServiceTest {
         // Assert
 
         assertNull(resultPartyDto);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void searchForParty_SuccessfulResponse() throws Exception {
+        // Arrange
+
+        // Act
+        List<PartySummary> resultPartyDto = legacyPartyService.searchForParty(AccountSearchDto.builder().build());
+
+        // Assert
+        assertEquals(0, resultPartyDto.size());
     }
 
     private static String createJsonBody1() {

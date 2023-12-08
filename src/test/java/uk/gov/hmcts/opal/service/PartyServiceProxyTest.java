@@ -7,9 +7,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.PartyDto;
+import uk.gov.hmcts.opal.entity.PartySummary;
 
+import java.util.Collections;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -48,6 +54,7 @@ class PartyServiceProxyTest {
         when(dynamicConfigService.getAppMode()).thenReturn(appMode);
         when(opalPartyService.saveParty(partyDto)).thenReturn(partyDto);
         when(opalPartyService.getParty(1L)).thenReturn(partyDto);
+        when(opalPartyService.searchForParty(any())).thenReturn(Collections.emptyList());
 
         // When: saveParty is called on the proxy
         PartyDto result1 = partyServiceProxy.saveParty(partyDto);
@@ -65,6 +72,12 @@ class PartyServiceProxyTest {
         verifyNoInteractions(legacyPartyService);
         Assertions.assertEquals(partyDto, result2);
 
+        // When
+        List<PartySummary> result3 = partyServiceProxy.searchForParty(AccountSearchDto.builder().build());
+
+        // Then
+        verify(opalPartyService).searchForParty(any());
+        verifyNoInteractions(legacyPartyService);
     }
 
     @Test
@@ -76,6 +89,7 @@ class PartyServiceProxyTest {
         when(dynamicConfigService.getAppMode()).thenReturn(appMode);
         when(legacyPartyService.saveParty(partyDto)).thenReturn(partyDto);
         when(legacyPartyService.getParty(1L)).thenReturn(partyDto);
+        when(legacyPartyService.searchForParty(any())).thenReturn(Collections.emptyList());
 
         // When: saveParty is called on the proxy
         PartyDto result1 = partyServiceProxy.saveParty(partyDto);
@@ -92,5 +106,13 @@ class PartyServiceProxyTest {
         verify(legacyPartyService).getParty(1L);
         verifyNoInteractions(opalPartyService);
         Assertions.assertEquals(partyDto, result2);
+
+
+        // When
+        List<PartySummary> result3 = partyServiceProxy.searchForParty(AccountSearchDto.builder().build());
+
+        // Then
+        verify(legacyPartyService).searchForParty(any());
+        verifyNoInteractions(opalPartyService);
     }
 }

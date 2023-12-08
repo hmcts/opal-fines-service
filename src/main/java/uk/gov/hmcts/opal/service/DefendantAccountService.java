@@ -13,6 +13,7 @@ import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.DefendantAccountSummary;
 import uk.gov.hmcts.opal.entity.EnforcersEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -81,6 +82,9 @@ public class DefendantAccountService {
                 throw new RuntimeException(e);
             }
         }
+        List<DefendantAccountSummary> summaries = defendantAccountRepository.findByOriginatorNameContaining(
+            accountSearchDto.getSurname());
+        
         return AccountSearchResultsDto.builder()
             .searchResults(List.of(AccountSummaryDto.builder().build()))
             .totalCount(999)
