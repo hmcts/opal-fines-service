@@ -7,6 +7,8 @@ plugins {
   id 'org.sonarqube' version '4.4.1.3373'
   id 'uk.gov.hmcts.java' version '0.12.50'
   id 'org.flywaydb.flyway' version '10.1.0'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.0.21'
+
 }
 
 group = 'uk.gov.hmcts'
@@ -42,8 +44,17 @@ sourceSets {
       compileClasspath += main.output
       runtimeClasspath += main.output
       srcDir file('src/smokeTest/java')
+
     }
     resources.srcDir file('src/smokeTest/resources')
+  }
+  serenityTest {
+    java {
+      compileClasspath += test.output
+      runtimeClasspath += test.output
+      test.java.srcDir file('src/test/java')
+    }
+    resources.srcDir file('src/test/resources')
   }
 }
 
@@ -96,8 +107,13 @@ task integration(type: Test) {
 
 task smoke(type: Test) {
   description = "Runs Smoke Tests"
-  testClassesDirs = sourceSets.smokeTest.output.classesDirs
-  classpath = sourceSets.smokeTest.runtimeClasspath
+  testLogging.showStandardStreams = true
+  testClassesDirs = sourceSets.serenityTest.output.classesDirs
+  classpath = sourceSets.serenityTest.runtimeClasspath
+  include '**/Junit5RunnerTest.class'
+
+  dependsOn clearReports
+  finalizedBy aggregate
 }
 
 jacocoTestReport {
@@ -202,6 +218,15 @@ dependencies {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
+  testImplementation 'org.junit.platform:junit-platform-suite:1.10.1'
+  testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.14.0'
+
+  implementation "net.serenity-bdd:serenity-core:4.0.21"
+  implementation 'net.serenity-bdd:serenity-rest-assured:4.0.21'
+  implementation 'net.serenity-bdd:serenity-report-resources:4.0.21'
+
+  testImplementation "net.serenity-bdd:serenity-cucumber:4.0.21"
+  testImplementation "net.serenity-bdd:serenity-ensure:4.0.21"
 }
 
 application {
