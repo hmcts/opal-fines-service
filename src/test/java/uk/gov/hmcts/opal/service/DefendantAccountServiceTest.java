@@ -31,7 +31,7 @@ class DefendantAccountServiceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
+        AutoCloseable autoCloseable = MockitoAnnotations.openMocks(this);
     }
 
     @Test
