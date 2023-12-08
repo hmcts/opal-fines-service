@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +12,10 @@ import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
+import java.io.InputStream;
 import java.util.List;
+
+import static uk.gov.hmcts.opal.dto.ToJsonString.newObjectMapper;
 
 @Service
 @Transactional
@@ -39,6 +43,20 @@ public class DefendantAccountService {
     }
 
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
+
+        if ("test".equalsIgnoreCase(accountSearchDto.getCourt())) {
+
+            try (InputStream in = Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream("tempData.json")) {
+                ObjectMapper mapper = newObjectMapper();
+                AccountSearchResultsDto dto = mapper.readValue(in, AccountSearchResultsDto.class);
+                log.info(":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
+                         dto.toPrettyJsonString());
+                return dto;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
         return AccountSearchResultsDto.builder()
             .searchResults(List.of(AccountSummaryDto.builder().build()))
             .totalCount(999)

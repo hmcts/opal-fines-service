@@ -13,6 +13,7 @@ import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -98,5 +99,22 @@ class DefendantAccountServiceTest {
 
         // Assert
         assertEquals(expectedResponse, result);
+    }
+
+    @Test
+    void testSearchDefendantAccountsTemporary() {
+        // Arrange
+        AccountSearchDto mockSearch = AccountSearchDto.builder().court("test").build();
+        AccountSearchResultsDto expectedResponse =  AccountSearchResultsDto.builder()
+            .searchResults(List.of(AccountSummaryDto.builder().build()))
+            .totalCount(999)
+            .cursor(0)
+            .build();
+
+        // Act
+        AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(mockSearch);
+
+        // Assert
+        assertNotNull(result);
     }
 }
