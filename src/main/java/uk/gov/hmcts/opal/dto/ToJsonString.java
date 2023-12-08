@@ -23,7 +23,7 @@ public interface ToJsonString {
             .readTree(this.toJsonString());
     }
 
-    private static ObjectMapper newObjectMapper() {
+    static ObjectMapper newObjectMapper() {
         return new ObjectMapper()
             .registerModule(new JavaTimeModule());
     }

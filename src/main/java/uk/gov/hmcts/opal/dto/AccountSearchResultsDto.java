@@ -3,13 +3,17 @@ package uk.gov.hmcts.opal.dto;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 
 @Builder
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
 public class AccountSearchResultsDto implements ToJsonString {
 
