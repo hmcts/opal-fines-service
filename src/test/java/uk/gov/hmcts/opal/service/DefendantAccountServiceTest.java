@@ -189,6 +189,12 @@ class DefendantAccountServiceTest {
         defendantAccountService.getAccountDetailsByAccountSummary(constructTestAccountSummaryDto(LocalDate.now()));
     }
 
+    @Test
+    void testGetAccountDetailsByAccountSummaryTemporary2() {
+        var testAccountSummary = AccountSummaryDto.builder().court("test").build();
+        defendantAccountService.getAccountDetailsByAccountSummary(testAccountSummary);
+    }
+
     private AccountSummaryDto constructTestAccountSummaryDto(final LocalDate today) {
         return AccountSummaryDto.builder()
             .accountNo("accountNameNo")
