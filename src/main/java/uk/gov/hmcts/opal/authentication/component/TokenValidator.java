@@ -6,6 +6,8 @@ import uk.gov.hmcts.opal.authentication.model.JwtValidationResult;
 
 public interface TokenValidator {
 
-    JwtValidationResult validate(String accessToken, AuthProviderConfigurationProperties providerConfig, AuthConfigurationProperties configuration);
+    JwtValidationResult validate(String accessToken,
+                                 AuthProviderConfigurationProperties providerConfig,
+                                 AuthConfigurationProperties configuration);
 
 }

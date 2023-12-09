@@ -35,7 +35,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return configStrategy.getLoginUri(redirectUri);
         }
 
-        var validationResult = tokenValidator.validate(accessToken, configStrategy.getProviderConfiguration(), configStrategy.getConfiguration());
+        var validationResult = tokenValidator.validate(
+            accessToken,
+            configStrategy.getProviderConfiguration(),
+            configStrategy.getConfiguration()
+        );
 
         if (!validationResult.valid()) {
             return configStrategy.getLoginUri(redirectUri);
@@ -52,13 +56,23 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         OAuthProviderRawResponse tokenResponse;
         try {
-            tokenResponse = azureDao.fetchAccessToken(code, configStrategy.getProviderConfiguration(), configStrategy.getConfiguration());
+            tokenResponse = azureDao.fetchAccessToken(
+                code,
+                configStrategy.getProviderConfiguration(),
+                configStrategy.getConfiguration()
+            );
         } catch (AzureDaoException e) {
             throw new OpalApiException(AuthenticationError.FAILED_TO_OBTAIN_ACCESS_TOKEN, e);
         }
-        var accessToken = Objects.nonNull(tokenResponse.getIdToken()) ? tokenResponse.getIdToken() : tokenResponse.getAccessToken();
+        var accessToken = Objects.nonNull(tokenResponse.getIdToken())
+            ? tokenResponse.getIdToken()
+            : tokenResponse.getAccessToken();
 
-        var validationResult = tokenValidator.validate(accessToken,  configStrategy.getProviderConfiguration(), configStrategy.getConfiguration());
+        var validationResult = tokenValidator.validate(
+            accessToken,
+            configStrategy.getProviderConfiguration(),
+            configStrategy.getConfiguration()
+        );
         if (!validationResult.valid()) {
             throw new OpalApiException(AuthenticationError.FAILED_TO_VALIDATE_ACCESS_TOKEN);
         }

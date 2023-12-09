@@ -5,12 +5,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
 import uk.gov.hmcts.opal.authentication.config.AuthStrategySelector;
 import uk.gov.hmcts.opal.authentication.controller.AuthenticationController;
-import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AuthenticationService;
-import uk.gov.hmcts.opal.authorisation.api.AuthorisationApi;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.exception.OpalApiException;
 
 import java.net.URI;
 import java.text.ParseException;
@@ -21,7 +17,6 @@ import java.util.Optional;
 public abstract class AbstractUserController implements AuthenticationController {
 
     private final AuthenticationService authenticationService;
-    private final AuthorisationApi authorisationApi;
 
     protected final AuthStrategySelector locator;
 
@@ -42,16 +37,6 @@ public abstract class AbstractUserController implements AuthenticationController
         String accessToken = authenticationService.handleOauthCode(code);
         var securityTokenBuilder = SecurityToken.builder()
             .accessToken(accessToken);
-
-        try {
-            Optional<String> emailAddressOptional = parseEmailAddressFromAccessToken(accessToken);
-            if (emailAddressOptional.isPresent()) {
-                Optional<UserState> userStateOptional = authorisationApi.getAuthorisation(emailAddressOptional.get());
-                securityTokenBuilder.userState(userStateOptional.orElse(null));
-            }
-        } catch (ParseException e) {
-            throw new OpalApiException(AuthenticationError.FAILED_TO_PARSE_ACCESS_TOKEN, e);
-        }
 
         return securityTokenBuilder.build();
     }

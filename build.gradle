@@ -116,6 +116,7 @@ sonarqube {
   properties {
     property "sonar.projectName", "HMCTS :: opal-fines-service"
     property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
+    property "sonar.gradle.skipCompile", "true"
   }
 }
 

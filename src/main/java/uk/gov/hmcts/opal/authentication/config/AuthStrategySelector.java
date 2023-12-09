@@ -18,7 +18,10 @@ public class AuthStrategySelector {
     public final AuthConfigFallback defaultFallback;
 
 
-    public AuthenticationConfigurationPropertiesStrategy locateAuthenticationConfiguration(AuthConfigFallback fallback) {
+    public AuthenticationConfigurationPropertiesStrategy locateAuthenticationConfiguration(
+        AuthConfigFallback fallback
+    ) {
+
         HttpServletRequest request =
             ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
                 .getRequest();

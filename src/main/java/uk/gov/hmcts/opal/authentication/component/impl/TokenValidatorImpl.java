@@ -27,7 +27,10 @@ import java.util.HashSet;
 public class TokenValidatorImpl implements TokenValidator {
 
     @Override
-    public JwtValidationResult validate(String accessToken, AuthProviderConfigurationProperties providerConfig, AuthConfigurationProperties configuration) {
+    public JwtValidationResult validate(String accessToken,
+                                        AuthProviderConfigurationProperties providerConfig,
+                                        AuthConfigurationProperties configuration
+    ) {
         log.debug("Validating JWT: {}", accessToken);
 
         var keySelector = new JWSVerificationKeySelector<>(
