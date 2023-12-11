@@ -105,16 +105,15 @@ class DefendantAccountServiceTest {
     void testSearchDefendantAccountsTemporary() {
         // Arrange
         AccountSearchDto mockSearch = AccountSearchDto.builder().court("test").build();
-        AccountSearchResultsDto expectedResponse =  AccountSearchResultsDto.builder()
-            .searchResults(List.of(AccountSummaryDto.builder().build()))
-            .totalCount(999)
-            .cursor(0)
-            .build();
 
         // Act
         AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(mockSearch);
 
         // Assert
         assertNotNull(result);
+        assertEquals(100, result.getSearchResults().size());
+        assertEquals(100, result.getCount());
+        assertEquals(100, result.getPageSize());
+        assertEquals(100, result.getTotalCount());
     }
 }
