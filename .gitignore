@@ -3,6 +3,9 @@
 !gradle/wrapper/gradle-wrapper.jar
 *.class
 bin/main/application.yaml
+smoke-test-report
+functional-test-report
+target
 
 ### STS ###
 .apt_generated
