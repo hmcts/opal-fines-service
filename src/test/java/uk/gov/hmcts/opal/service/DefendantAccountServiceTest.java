@@ -6,10 +6,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
+import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,7 +31,7 @@ class DefendantAccountServiceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
+        AutoCloseable autoCloseable = MockitoAnnotations.openMocks(this);
     }
 
     @Test
@@ -78,5 +82,38 @@ class DefendantAccountServiceTest {
         // Assert
         assertEquals(mockEntity, result);
         verify(defendantAccountRepository, times(1)).findAllByBusinessUnitId(Short.valueOf("123"));
+    }
+
+    @Test
+    void testSearchDefendantAccounts() {
+        // Arrange
+        AccountSearchDto mockSearch = AccountSearchDto.builder().build();
+        AccountSearchResultsDto expectedResponse =  AccountSearchResultsDto.builder()
+            .searchResults(List.of(AccountSummaryDto.builder().build()))
+            .totalCount(999)
+            .cursor(0)
+            .build();
+
+        // Act
+        AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(mockSearch);
+
+        // Assert
+        assertEquals(expectedResponse, result);
+    }
+
+    @Test
+    void testSearchDefendantAccountsTemporary() {
+        // Arrange
+        AccountSearchDto mockSearch = AccountSearchDto.builder().court("test").build();
+
+        // Act
+        AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(mockSearch);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(100, result.getSearchResults().size());
+        assertEquals(100, result.getCount());
+        assertEquals(100, result.getPageSize());
+        assertEquals(100, result.getTotalCount());
     }
 }

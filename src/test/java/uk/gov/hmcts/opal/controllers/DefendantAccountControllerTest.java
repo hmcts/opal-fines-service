@@ -8,16 +8,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
+import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountControllerTest {
@@ -97,5 +99,24 @@ class DefendantAccountControllerTest {
         verify(defendantAccountService, times(1)).getDefendantAccountsByBusinessUnit(any(
             Short.class));
 
+    }
+
+    @Test
+    public void testPostDefendantAccountSearch_Success() {
+        // Arrange
+        AccountSearchDto requestEntity = AccountSearchDto.builder().build();
+        AccountSearchResultsDto mockResponse = AccountSearchResultsDto.builder().build();
+
+        when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class))).thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<AccountSearchResultsDto> responseEntity = defendantAccountController.postDefendantAccountSearch(
+            requestEntity);
+
+        // Assert
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(mockResponse, responseEntity.getBody());
+        verify(defendantAccountService, times(1)).searchDefendantAccounts(any(
+            AccountSearchDto.class));
     }
 }

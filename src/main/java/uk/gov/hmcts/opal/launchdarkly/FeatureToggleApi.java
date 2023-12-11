@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.launchdarkly;
 
+import com.launchdarkly.sdk.ContextBuilder;
+import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import lombok.extern.slf4j.Slf4j;
@@ -24,30 +26,30 @@ public class FeatureToggleApi {
     }
 
     public boolean isFeatureEnabled(String feature) {
-        return internalClient.boolVariation(feature, createLDUser().build(), false);
+        return internalClient.boolVariation(feature, createLDContext().build(), false);
     }
 
     public boolean isFeatureEnabled(String feature, boolean defaultValue) {
-        return internalClient.boolVariation(feature, createLDUser().build(), defaultValue);
+        return internalClient.boolVariation(feature, createLDContext().build(), defaultValue);
     }
 
     public boolean isFeatureEnabled(String feature, LDUser user) {
-        return internalClient.boolVariation(feature, user, false);
+        return internalClient.boolVariation(feature, LDContext.fromUser(user), false);
     }
 
 
     public boolean isFeatureEnabled(String feature, LDUser user, boolean defaultValue) {
-        return internalClient.boolVariation(feature, user, defaultValue);
+        return internalClient.boolVariation(feature, LDContext.fromUser(user), defaultValue);
     }
 
     public String getFeatureValue(String feature, String defaultValue) {
-        return internalClient.stringVariation(feature, createLDUser().build(), defaultValue);
+        return internalClient.stringVariation(feature, createLDContext().build(), defaultValue);
     }
 
-    public LDUser.Builder createLDUser() {
-        return new LDUser.Builder("opal")
-            .custom("timestamp", String.valueOf(System.currentTimeMillis()))
-            .custom("environment", environment);
+    public ContextBuilder createLDContext() {
+        return LDContext.builder("opal")
+            .set("timestamp", String.valueOf(System.currentTimeMillis()))
+            .set("environment", environment);
     }
 
     private void close() {

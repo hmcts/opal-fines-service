@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.launchdarkly;
 
-import com.launchdarkly.sdk.LDUser;
+import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.server.LDClient;
 import lombok.SneakyThrows;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -73,7 +73,7 @@ class FeatureToggleAspectTest {
     }
 
     private void givenToggle(String feature, boolean state) {
-        when(ldClient.boolVariation(eq(feature), any(LDUser.class), anyBoolean()))
+        when(ldClient.boolVariation(eq(feature), any(LDContext.class), anyBoolean()))
             .thenReturn(state);
     }
 }

@@ -7,12 +7,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
+import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 
@@ -57,7 +60,7 @@ public class DefendantAccountController {
     }
 
     @GetMapping(value = "/{businessUnit}")
-    @Operation(summary = "Searches for all defendant accounts within a business unit")
+    @Operation(summary = "Returns all defendant accounts within a business unit")
     public ResponseEntity<List<DefendantAccountEntity>> getDefendantAccountsByBusinessUnit(
         @PathVariable short businessUnit) {
 
@@ -69,6 +72,15 @@ public class DefendantAccountController {
             return ResponseEntity.noContent().build();
         }
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Searches defendant accounts based upon criteria in request body")
+    public ResponseEntity<AccountSearchResultsDto> postDefendantAccountSearch(
+        @RequestBody AccountSearchDto accountSearchDto) {
+
+        AccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
         return ResponseEntity.ok(response);
     }
 }
