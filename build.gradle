@@ -196,8 +196,6 @@ dependencies {
   implementation 'org.flywaydb:flyway-core'
   implementation 'org.postgresql:postgresql'
 
-  implementation 'com.fasterxml.jackson.core:jackson-databind'
-
   compileOnly 'org.projectlombok:lombok:1.18.30'
   annotationProcessor 'org.projectlombok:lombok:1.18.30'
 

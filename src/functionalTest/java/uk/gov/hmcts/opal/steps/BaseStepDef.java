@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.stepDefinitions;
+package uk.gov.hmcts.opal.steps;
 
 public class BaseStepDef {
 

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.stepDefinitions;
+package uk.gov.hmcts.opal.steps;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.When;
@@ -11,10 +11,10 @@ import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 
-public class StepDef_notesAPI extends BaseStepDef {
+public class NotesApiStepDef extends BaseStepDef {
 
     @When("I post the following data to the notes API")
-    public void iPostTheFollowingToNoteApi(DataTable notesFields) throws JSONException {
+    public void postToNotesApi(DataTable notesFields) throws JSONException {
         Map<String, String> dataToPost = notesFields.asMap(String.class, String.class);
 
         JSONObject body = new JSONObject();
@@ -24,7 +24,7 @@ public class StepDef_notesAPI extends BaseStepDef {
         body.put("noteType", dataToPost.get("noteType"));
         body.put("postedBy", dataToPost.get("postedBy"));
         body.put("postedDate", dataToPost.get("postedDate"));
-        if(!(dataToPost.get("noteId") == null)){
+        if (dataToPost.get("noteId") != null) {
             body.put("noteId", dataToPost.get("noteId"));
         }
         SerenityRest.given()
@@ -40,7 +40,7 @@ public class StepDef_notesAPI extends BaseStepDef {
             .body("noteText", Matchers.equalTo(dataToPost.get("noteText")))
             .body("noteType", Matchers.equalTo(dataToPost.get("noteType")))
             .body("postedBy", Matchers.equalTo(dataToPost.get("postedBy")));
-            //.body("postedDate", equalTo(dataToPost.get("postedDate")));
+        //.body("postedDate", equalTo(dataToPost.get("postedDate")));
     }
 
 }

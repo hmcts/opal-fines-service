@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.stepDefinitions;
+package uk.gov.hmcts.opal.steps;
 
 import io.cucumber.java.PendingException;
 import io.cucumber.java.en.And;
@@ -6,10 +6,10 @@ import io.cucumber.java.en.Then;
 import net.serenitybdd.rest.SerenityRest;
 import org.hamcrest.Matchers;
 
-public class StepDef_healthApi extends BaseStepDef {
+public class HealthApiStepDef extends BaseStepDef {
 
     @Then("I check the health of the fines api")
-    public void checkHealthOfFinesApi(){
+    public void checkHealthOfFinesApi() {
         System.out.println("Test URL: " + getTestUrl());
         SerenityRest.when().get(getTestUrl() + "/health");
         SerenityRest.then().assertThat().statusCode(200).and().body("status", Matchers.is("UP"));
