@@ -20,6 +20,31 @@ spring:
     import: "optional:configtree:/mnt/secrets/opal/"
   application:
     name: Opal Fines Service
+  security:
+    oauth2:
+      client:
+        registration:
+          internal-azure-ad:
+            client-id: ${AAD_CLIENT_ID:00000000-0000-0000-0000-000000000000}
+            client-secret: ${AAD_CLIENT_SECRET:}
+            scope: api://${AAD_CLIENT_ID:00000000-0000-0000-0000-000000000000}/dartsinternaluser
+            redirect-uri: ${opal.frontend.url}/auth/internal/callback
+            logout-redirect-uri: ${opal.frontend.url}/auth/internal/logout-callback
+            authorization-grant-type: authorization_code
+            response-type: code
+            response-mode: form_post
+            prompt: login
+            issuer-uri: ${opal.azure.active-directory-justice-auth-uri}/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/v2.0
+            claims: preferred_username
+            provider: internal-azure-ad-provider
+        provider:
+          internal-azure-ad-provider:
+            authorization-uri: ${opal.azure.active-directory-justice-auth-uri}/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/oauth2/v2.0/authorize
+            token-uri: ${opal.azure.active-directory-justice-auth-uri}/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/oauth2/v2.0/token
+            jwk-set-uri: ${opal.azure.active-directory-justice-auth-uri}/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/discovery/v2.0/keys
+            logout-uri: ${opal.azure.active-directory-justice-auth-uri}/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/oauth2/v2.0/logout
+            reset-password-uri: ${opal.azure.active-directory-justice-auth-uri}/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/oauth2/v2.0/authorize
+
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://${OPAL_FINES_DB_HOST:localhost}:${OPAL_FINES_DB_PORT:5432}/${OPAL_FINES_DB_NAME:opal-fines-db}${OPAL_FINES_DB_OPTIONS:}
@@ -59,3 +84,9 @@ launchdarkly:
   sdk-key: ${LAUNCH_DARKLY_SDK_KEY:}
   offline-mode: ${LAUNCH_DARKLY_OFFLINE_MODE:false}
   env: ${LAUNCH_DARKLY_ENV:default}
+
+opal:
+  frontend:
+      url: ${OPAL_FRONTEND_URL:http://localhost:4550}
+  azure:
+    active-directory-justice-auth-uri: https://login.microsoftonline.com
