@@ -168,7 +168,7 @@ ext {
 }
 
 ext['snakeyaml.version'] = '2.0'
-ext['jackson.version'] = '2.15.3'
+ext['jackson.version'] = '2.16.0'
 ext['tomcat.version'] = '10.1.16'
 
 dependencies {
