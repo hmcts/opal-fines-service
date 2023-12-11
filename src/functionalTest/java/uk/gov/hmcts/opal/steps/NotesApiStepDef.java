@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.serenity.stepDefinitions;
+package uk.gov.hmcts.opal.steps;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.When;
@@ -6,24 +6,15 @@ import net.serenitybdd.rest.SerenityRest;
 import org.hamcrest.Matchers;
 import org.json.JSONException;
 import org.json.JSONObject;
-import static net.serenitybdd.rest.SerenityRest.*;
 
 import java.util.Map;
 
-public class StepDef_notesAPI {
-    String testURL = System.getenv("TEST_URL");
+import static net.serenitybdd.rest.SerenityRest.then;
 
-    public String ifUrlNullSetLocal(){
-        if(testURL == null){
-            testURL = "http://localhost:4550";
-            System.out.println("Set to: " + testURL);
-        }
-        else return testURL;
-        return testURL;
-    }
+public class NotesApiStepDef extends BaseStepDef {
 
     @When("I post the following data to the notes API")
-    public void iPostTheFollowingToNoteApi(DataTable notesFields) throws JSONException {
+    public void postToNotesApi(DataTable notesFields) throws JSONException {
         Map<String, String> dataToPost = notesFields.asMap(String.class, String.class);
 
         JSONObject body = new JSONObject();
@@ -33,7 +24,7 @@ public class StepDef_notesAPI {
         body.put("noteType", dataToPost.get("noteType"));
         body.put("postedBy", dataToPost.get("postedBy"));
         body.put("postedDate", dataToPost.get("postedDate"));
-        if(!(dataToPost.get("noteId") == null)){
+        if (dataToPost.get("noteId") != null) {
             body.put("noteId", dataToPost.get("noteId"));
         }
         SerenityRest.given()
@@ -41,7 +32,7 @@ public class StepDef_notesAPI {
             .contentType("application/json")
             .body(body.toString())
             .when()
-            .post(ifUrlNullSetLocal() + "/api/notes");
+            .post(getTestUrl() + "/api/notes");
         then().assertThat()
             .statusCode(201)
             .body("associatedRecordId", Matchers.equalTo(dataToPost.get("recordId")))
@@ -49,7 +40,7 @@ public class StepDef_notesAPI {
             .body("noteText", Matchers.equalTo(dataToPost.get("noteText")))
             .body("noteType", Matchers.equalTo(dataToPost.get("noteType")))
             .body("postedBy", Matchers.equalTo(dataToPost.get("postedBy")));
-            //.body("postedDate", equalTo(dataToPost.get("postedDate")));
+        //.body("postedDate", equalTo(dataToPost.get("postedDate")));
     }
 
 }

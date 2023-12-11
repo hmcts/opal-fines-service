@@ -7,8 +7,7 @@ plugins {
   id 'org.sonarqube' version '4.4.1.3373'
   id 'uk.gov.hmcts.java' version '0.12.50'
   id 'org.flywaydb.flyway' version '10.1.0'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.0.21'
-
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.0.27'
 }
 
 group = 'uk.gov.hmcts'
@@ -37,24 +36,6 @@ sourceSets {
       srcDir file('src/integrationTest/java')
     }
     resources.srcDir file('src/integrationTest/resources')
-  }
-
-  smokeTest {
-    java {
-      compileClasspath += main.output
-      runtimeClasspath += main.output
-      srcDir file('src/smokeTest/java')
-
-    }
-    resources.srcDir file('src/smokeTest/resources')
-  }
-  serenityTest {
-    java {
-      compileClasspath += test.output
-      runtimeClasspath += test.output
-      test.java.srcDir file('src/test/java')
-    }
-    resources.srcDir file('src/test/resources')
   }
 }
 
@@ -90,13 +71,6 @@ test {
   failFast = true
 }
 
-task functional(type: Test) {
-  description = "Runs functional tests"
-  group = "Verification"
-  testClassesDirs = sourceSets.functionalTest.output.classesDirs
-  classpath = sourceSets.functionalTest.runtimeClasspath
-}
-
 task integration(type: Test) {
   description = "Runs integration tests"
   group = "Verification"
@@ -105,15 +79,36 @@ task integration(type: Test) {
   failFast = true
 }
 
+task functional(type: Test) {
+  description = "Runs functional tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  testLogging.showStandardStreams = true
+  systemProperty "cucumber.filter.tags", "not @Smoke and not @Ignore"
+  doLast {
+    tasks.aggregate.aggregate()
+    delete "${rootDir}/functional-test-report/"
+    new File("${rootDir}/functional-test-report").mkdirs()
+    file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/functional-test-report"))
+    logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
+  }
+}
+
 task smoke(type: Test) {
   description = "Runs Smoke Tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
   testLogging.showStandardStreams = true
-  testClassesDirs = sourceSets.serenityTest.output.classesDirs
-  classpath = sourceSets.serenityTest.runtimeClasspath
-  include '**/Junit5RunnerTest.class'
-
-  dependsOn clearReports
-  finalizedBy aggregate
+  systemProperty "cucumber.filter.tags", "@Smoke and not @Ignore"
+  doLast {
+    tasks.aggregate.aggregate()
+    delete "${rootDir}/smoke-test-report/"
+    new File("${rootDir}/smoke-test-report").mkdirs()
+    file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/smoke-test-report"))
+    logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
+  }
 }
 
 jacocoTestReport {
@@ -169,10 +164,11 @@ repositories {
 
 ext {
   log4JVersion = "2.22.0"
+  serenityVersion = "4.0.27"
 }
 
 ext['snakeyaml.version'] = '2.0'
-ext['jackson.version'] = '2.15.3'
+ext['jackson.version'] = '2.16.0'
 ext['tomcat.version'] = '10.1.16'
 
 dependencies {
@@ -200,8 +196,6 @@ dependencies {
   implementation 'org.flywaydb:flyway-core'
   implementation 'org.postgresql:postgresql'
 
-  implementation 'com.fasterxml.jackson.core:jackson-databind'
-
   compileOnly 'org.projectlombok:lombok:1.18.30'
   annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
@@ -221,12 +215,12 @@ dependencies {
   testImplementation 'org.junit.platform:junit-platform-suite:1.10.1'
   testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.14.0'
 
-  implementation "net.serenity-bdd:serenity-core:4.0.21"
-  implementation 'net.serenity-bdd:serenity-rest-assured:4.0.21'
-  implementation 'net.serenity-bdd:serenity-report-resources:4.0.21'
+  testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
+  testImplementation "net.serenity-bdd:serenity-rest-assured:${serenityVersion}"
+  testImplementation "net.serenity-bdd:serenity-report-resources:${serenityVersion}"
 
-  testImplementation "net.serenity-bdd:serenity-cucumber:4.0.21"
-  testImplementation "net.serenity-bdd:serenity-ensure:4.0.21"
+  testImplementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
+  testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
 }
 
 application {
@@ -242,10 +236,6 @@ bootJar {
 }
 
 // Gradle 7.x issue, workaround from: https://github.com/gradle/gradle/issues/17236#issuecomment-894768083
-rootProject.tasks.named("processSmokeTestResources") {
-  duplicatesStrategy = 'include'
-}
-
 rootProject.tasks.named("processFunctionalTestResources") {
   duplicatesStrategy = 'include'
 }
