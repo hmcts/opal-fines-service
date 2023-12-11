@@ -9,8 +9,11 @@ import java.util.List;
 @Repository
 public interface DefendantAccountRepository extends JpaRepository<DefendantAccountEntity, Long> {
 
-    DefendantAccountEntity findByBusinessUnitIdAndAccountNumber(Short businessUnitId, String accountNumber);
+    DefendantAccountEntity findByBusinessUnitId_BusinessUnitIdAndAccountNumber(Short businessUnitId,
+                                                                               String accountNumber);
 
-    List<DefendantAccountEntity> findAllByBusinessUnitId(Short businessUnitId);
+    List<DefendantAccountEntity> findAllByBusinessUnitId_BusinessUnitId(Short businessUnitId);
 
 }
+
+
