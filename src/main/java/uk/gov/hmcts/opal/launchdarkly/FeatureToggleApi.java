@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.launchdarkly;
 
-import com.launchdarkly.sdk.ContextBuilder;
 import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
@@ -26,11 +25,11 @@ public class FeatureToggleApi {
     }
 
     public boolean isFeatureEnabled(String feature) {
-        return internalClient.boolVariation(feature, createLDContext().build(), false);
+        return internalClient.boolVariation(feature, getContext(), false);
     }
 
     public boolean isFeatureEnabled(String feature, boolean defaultValue) {
-        return internalClient.boolVariation(feature, createLDContext().build(), defaultValue);
+        return internalClient.boolVariation(feature, getContext(), defaultValue);
     }
 
     public boolean isFeatureEnabled(String feature, LDUser user) {
@@ -43,13 +42,17 @@ public class FeatureToggleApi {
     }
 
     public String getFeatureValue(String feature, String defaultValue) {
-        return internalClient.stringVariation(feature, createLDContext().build(), defaultValue);
+        return internalClient.stringVariation(feature, getContext(), defaultValue);
     }
 
-    public ContextBuilder createLDContext() {
-        return LDContext.builder("opal")
-            .set("timestamp", String.valueOf(System.currentTimeMillis()))
-            .set("environment", environment);
+    public LDUser.Builder createLDUser() {
+        return new LDUser.Builder("opal")
+            .custom("timestamp", String.valueOf(System.currentTimeMillis()))
+            .custom("environment", environment);
+    }
+
+    public LDContext getContext() {
+        return LDContext.fromUser(createLDUser().build());
     }
 
     private void close() {
