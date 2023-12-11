@@ -88,7 +88,7 @@ class FeatureToggleApiTest {
         );
 
         var capturedLdContext = ldContextArgumentCaptor.getValue();
-        assertThat(capturedLdContext.getKey()).isEqualTo("opal");
+        assertThat(capturedLdContext.getKey()).isEqualTo(FAKE_KEY);
     }
 
     @ParameterizedTest
