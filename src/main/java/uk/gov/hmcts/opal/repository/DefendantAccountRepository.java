@@ -13,4 +13,6 @@ public interface DefendantAccountRepository extends JpaRepository<DefendantAccou
 
     List<DefendantAccountEntity> findAllByBusinessUnitId(Short businessUnitId);
 
+    DefendantAccountEntity findBy()
+
 }

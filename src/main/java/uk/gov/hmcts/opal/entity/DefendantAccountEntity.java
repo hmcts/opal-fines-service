@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -25,8 +27,9 @@ public class DefendantAccountEntity {
     @Column(name = "defendant_account_id")
     private Long defendantAccountId;
 
-    @Column(name = "business_unit_id")
-    private Short businessUnitId;
+    @ManyToOne
+    @JoinColumn(name = "business_unit_id", referencedColumnName = "business_unit_id", nullable = false)
+    private BusinessUnitsEntity businessUnit;
 
     @Column(name = "account_number", length = 20)
     private String accountNumber;
@@ -93,16 +96,16 @@ public class DefendantAccountEntity {
     @Column(name = "cheque_clearance_period")
     private Short chequeClearancePeriod;
 
-    @Column(name = "credit_transfer_clearance_period")
+    @Column(name = "credit_trans_clearance_period")
     private Short creditTransferClearancePeriod;
 
-    @Column(name = "enforcement_override_result_id", length = 10)
+    @Column(name = "enf_override_result_id", length = 10)
     private String enforcementOverrideResultId;
 
-    @Column(name = "enforcement_override_enforcer_id")
+    @Column(name = "enf_override_enforcer_id")
     private Long enforcementOverrideEnforcerId;
 
-    @Column(name = "enforcement_override_tfo_lja_id")
+    @Column(name = "enf_override_tfo_lja_id")
     private Short enforcementOverrideTfoLjaId;
 
     @Column(name = "unit_fine_detail", length = 100)
@@ -114,7 +117,7 @@ public class DefendantAccountEntity {
     @Column(name = "collection_order")
     private boolean collectionOrder;
 
-    @Column(name = "collection_order_effective_date")
+    @Column(name = "collection_order_date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date collectionOrderEffectiveDate;
 
@@ -130,7 +133,7 @@ public class DefendantAccountEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date fineRegistrationDate;
 
-    @Column(name = "suspended_committal_enforcement_id")
+    @Column(name = "suspended_committal_id")
     private Long suspendedCommittalEnforcementId;
 
     @Column(name = "consolidated_account_type", length = 1)

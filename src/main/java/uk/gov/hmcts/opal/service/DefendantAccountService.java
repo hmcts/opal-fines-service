@@ -5,6 +5,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
@@ -62,5 +63,14 @@ public class DefendantAccountService {
             .totalCount(999)
             .cursor(0)
             .build();
+    }
+
+    public AccountDetailsDto getAccountDetailsByAccountSummary(AccountSummaryDto accountSummary) {
+
+
+
+
+
+        return
     }
 }
