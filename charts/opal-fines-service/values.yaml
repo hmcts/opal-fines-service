@@ -17,5 +17,11 @@ java:
           alias: OPAL_FINES_DB_USERNAME
         - name: fines-service-POSTGRES-DATABASE
           alias: OPAL_FINES_DB_NAME
+        - name: AzureADTenantId
+          alias: AAD_TENANT_ID
+        - name: AzureADClientId
+          alias: AAD_CLIENT_ID
+        - name: AzureADClientSecret
+          alias: AAD_CLIENT_SECRET
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true

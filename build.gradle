@@ -109,6 +109,35 @@ jacocoTestReport {
   }
 }
 
+def coverageExclusions = [
+  '**/uk/gov/hmcts/opal/**/model/**',
+  '**/uk/gov/hmcts/opal/**/config/**'
+]
+
+jacocoTestReport {
+  executionData(test, integration)
+  reports {
+    xml.required = true
+    csv.required = false
+    html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+  }
+  afterEvaluate {
+    classDirectories.setFrom(files(classDirectories.files.collect {
+      fileTree(dir: it, exclude:  jacocoExclusionArray(coverageExclusions)
+      )
+    }))
+  }
+}
+
+static String[] jacocoExclusionArray(ArrayList<String> exclusions)
+{
+  final def lst = new ArrayList<String>();
+
+  exclusions.stream().forEach {it.endsWith(".java") ? lst.add(it.replace(".java", ".class")) : lst.add(it)}
+
+  return lst.toArray();
+}
+
 project.tasks['sonarqube'].dependsOn jacocoTestReport
 project.tasks['check'].dependsOn integration
 
