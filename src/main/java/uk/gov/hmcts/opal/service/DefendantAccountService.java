@@ -68,9 +68,38 @@ public class DefendantAccountService {
     public AccountDetailsDto getAccountDetailsByAccountSummary(AccountSummaryDto accountSummary) {
 
 
+    private String buildFullAddress(PartyEntity partyEntity){
 
+        return partyEntity.getAddressLine1() + ", " +
+            partyEntity.getAddressLine2() + ", " +
+            partyEntity.getAddressLine3() + ", " +
+            partyEntity.getAddressLine4() + ", " +
+            partyEntity.getAddressLine5();
+    }
 
+    private String buildFullName(PartyEntity partyEntity){
 
-        return
+        return partyEntity.getOrganisationName() == null ? partyEntity.getForenames() + " " +
+            partyEntity.getInitials() + " " +
+            partyEntity.getSurname() + " " +
+            partyEntity.getTitle() : partyEntity.getOrganisationName();
+    }
+
+    private String buildPaymentDetails(PaymentTermsEntity paymentTermsEntity) {
+        final String paymentType = paymentTermsEntity.getTermsTypeCode();
+
+        return switch (paymentType) {
+            case "I" -> buildInstalmentDetails(paymentTermsEntity);
+            case "B" -> buildByDateDetails(paymentTermsEntity);
+            default -> "Paid";
+        };
+    }
+
+    private String buildInstalmentDetails(PaymentTermsEntity paymentTermsEntity) {
+        return paymentTermsEntity.getInstalmentAmount() + " / " + paymentTermsEntity.getInstalmentPeriod();
+    }
+
+    private String buildByDateDetails(PaymentTermsEntity paymentTermsEntity) {
+        return paymentTermsEntity.getEffectiveDate() + " By Date";
     }
 }

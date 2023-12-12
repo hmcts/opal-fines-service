@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Builder
@@ -45,7 +46,7 @@ public class AccountDetailsDto implements ToJsonString{
     private LocalDate lastMovement;
 
     //notes.note_text
-    private String commentField;
+    //private String commentField; //TODO: How do I get a unique notes row ?
 
     //defendant_accounts.prosecutor_case_reference
     private String pcr;
@@ -56,11 +57,11 @@ public class AccountDetailsDto implements ToJsonString{
     //debtor_detail.hearing_language
     private String hearingLanguage;
 
-    //payment_terms.installment_amount (if payment_terms.terms_type_code == I ) { + payment_terms.instalment_period }
-    private Double paymentDetails;
+    //payment_terms.installment_amount / payment_terms.installment_period
+    private String paymentDetails;
 
-    //to be defined
-    //private Double lumpSum;
+    //payment_terms.instalment_lump_sum
+    private BigDecimal lumpSum;
 
     //payment_terms.effective_date
     private LocalDate commencing;
@@ -78,20 +79,20 @@ public class AccountDetailsDto implements ToJsonString{
     private String override;
 
     //defendant_accounts.enf_override_enforcer_id
-    private String enforcer;
+    private Short enforcer;
 
     //defendant_accounts.enforcing_court_id
     private int enforcementCourt;
 
     //defendant_accounts.amount_imposed
-    private Double imposed;
+    private BigDecimal imposed;
 
     //defendant_accounts.amount_paid
-    private Double amountPaid;
-
-    //to be defined
-    //private Double arrears;
+    private BigDecimal amountPaid;
 
     //defendant_accounts.account_balance
-    private Double balance;
+    private BigDecimal arrears;
+
+    //defendant_accounts.account_balance
+    private BigDecimal balance;
 }
