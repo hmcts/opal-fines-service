@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -26,6 +28,7 @@ public class PaymentTermsEntity {
 
 
     @Column(name = "posted_date", nullable = false)
+    @Temporal(TemporalType.DATE)
     private LocalDate postedDate;
 
     @Column(name = "posted_by")
@@ -35,6 +38,7 @@ public class PaymentTermsEntity {
     private String termsTypeCode;
 
     @Column(name = "effective_date")
+    @Temporal(TemporalType.DATE)
     private LocalDate effectiveDate;
 
     @Column(name = "instalment_period")
@@ -55,4 +59,4 @@ public class PaymentTermsEntity {
     @Column(name = "account_balance")
     private BigDecimal accountBalance;
 
-    }
+}

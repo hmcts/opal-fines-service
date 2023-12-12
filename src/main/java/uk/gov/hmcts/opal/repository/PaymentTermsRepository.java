@@ -8,5 +8,5 @@ import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 @Repository
 public interface PaymentTermsRepository extends JpaRepository<PaymentTermsEntity, Long> {
 
-    PaymentTermsEntity findByDefendantAccountId(DefendantAccountEntity defendantAccount);
+    PaymentTermsEntity findByDefendantAccount_DefendantAccountId(DefendantAccountEntity defendantAccount);
 }

@@ -8,22 +8,23 @@ import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 
 @Repository
 public interface DefendantAccountPartiesRepository extends JpaRepository<DefendantAccountPartiesEntity, Long> {
 
-    @Query("SELECT dap FROM DefendantAccountPartyEntity dap " +
-        "JOIN dap.partyId p " +
-        "JOIN dap.defendantAccountId da " +
-        "JOIN da.lastHearingCourtId c " +
-        "WHERE da.account_number = :accountNumber " +
-        "AND p.dateOfBirth = :dateOfBirth " +
-        "AND p.surname = :surname " +
-        "AND p.forenames = :forenames " +
-        "AND p.title = :title " +
-        "AND da.accountBalance = :balance" +
-        "AND da.lastHearingCourtId = :court")
+    @Query("""
+        SELECT dap FROM DefendantAccountPartiesEntity dap
+        JOIN dap.party p
+        JOIN dap.defendantAccount da
+        JOIN da.lastHearingCourtId c
+        WHERE da.accountNumber = :accountNumber
+        AND p.dateOfBirth = :dateOfBirth
+        AND p.surname = :surname
+        AND p.forenames = :forenames
+        AND p.title = :title
+        and p.addressLine1 = :addressLine1
+        AND da.accountBalance = :balance
+        AND da.lastHearingCourtId = :court""")
     DefendantAccountPartiesEntity findByDefendantAccountDetailsCustomQuery(@Param("accountNumber") String accountNumber,
                                                             @Param("dateOfBirth") LocalDate dateOfBirth,
                                                             @Param("surname") String surname,

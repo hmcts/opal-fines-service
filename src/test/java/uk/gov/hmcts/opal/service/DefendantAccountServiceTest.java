@@ -41,7 +41,8 @@ class DefendantAccountServiceTest {
             Short.valueOf("123")).build();
 
         DefendantAccountEntity mockEntity = new DefendantAccountEntity();
-        when(defendantAccountRepository.findByBusinessUnitIdAndAccountNumber(Short.valueOf("123"), "12345"))
+        when(defendantAccountRepository.findByBusinessUnitId_BusinessUnitIdAndAccountNumber(
+            Short.valueOf("123"), "12345"))
             .thenReturn(mockEntity);
 
         // Act
@@ -49,7 +50,8 @@ class DefendantAccountServiceTest {
 
         // Assert
         assertEquals(mockEntity, result);
-        verify(defendantAccountRepository, times(1)).findByBusinessUnitIdAndAccountNumber(
+        verify(defendantAccountRepository, times(1))
+            .findByBusinessUnitId_BusinessUnitIdAndAccountNumber(
             Short.valueOf("123"), "12345");
     }
 
@@ -73,7 +75,7 @@ class DefendantAccountServiceTest {
         // Arrange
 
         List<DefendantAccountEntity> mockEntity = List.of(new DefendantAccountEntity());
-        when(defendantAccountRepository.findAllByBusinessUnitId(Short.valueOf("123")))
+        when(defendantAccountRepository.findAllByBusinessUnitId_BusinessUnitId(Short.valueOf("123")))
             .thenReturn(mockEntity);
 
         // Act
@@ -81,7 +83,8 @@ class DefendantAccountServiceTest {
 
         // Assert
         assertEquals(mockEntity, result);
-        verify(defendantAccountRepository, times(1)).findAllByBusinessUnitId(Short.valueOf("123"));
+        verify(defendantAccountRepository, times(1))
+            .findAllByBusinessUnitId_BusinessUnitId(Short.valueOf("123"));
     }
 
     @Test

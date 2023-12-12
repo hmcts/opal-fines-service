@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.util;
 public class NamesUtil {
 
 
-    public static String[] splitFullName(String fullName){
+    public static String[] splitFullName(String fullName) {
 
         // Splitting by comma to separate surname and rest of the name
         String[] nameSplit = fullName.split(",\\s+", 2);

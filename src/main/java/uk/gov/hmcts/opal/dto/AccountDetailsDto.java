@@ -2,18 +2,18 @@ package uk.gov.hmcts.opal.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Jacksonized
-public class AccountDetailsDto implements ToJsonString{
+public class AccountDetailsDto implements ToJsonString {
 
     //defendant_accounts.account_number
     private String accountNumber;
@@ -46,7 +46,7 @@ public class AccountDetailsDto implements ToJsonString{
     private LocalDate lastMovement;
 
     //notes.note_text
-    //private String commentField; //TODO: How do I get a unique notes row ?
+    private List<String> commentField;
 
     //defendant_accounts.prosecutor_case_reference
     private String pcr;

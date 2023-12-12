@@ -15,7 +15,6 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 
 @Entity
 @Data
@@ -36,7 +35,7 @@ public class DefendantAccountEntity {
     private String accountNumber;
 
     @Column(name = "imposed_hearing_date")
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     private LocalDate imposedHearingDate;
 
     @Column(name = "imposing_court_id")
@@ -55,7 +54,7 @@ public class DefendantAccountEntity {
     private String accountStatus;
 
     @Column(name = "completed_date")
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     private LocalDate completedDate;
 
     @ManyToOne
@@ -67,18 +66,18 @@ public class DefendantAccountEntity {
     private CourtsEntity lastHearingCourtId;
 
     @Column(name = "last_hearing_date")
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     private LocalDate lastHearingDate;
 
     @Column(name = "last_movement_date")
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     private LocalDate lastMovementDate;
 
     @Column(name = "last_enforcement", length = 6)
     private String lastEnforcement;
 
     @Column(name = "last_changed_date")
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     private LocalDate lastChangedDate;
 
     @Column(name = "originator_name", length = 100)
@@ -121,19 +120,19 @@ public class DefendantAccountEntity {
     private boolean collectionOrder;
 
     @Column(name = "collection_order_date")
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     private LocalDate collectionOrderEffectiveDate;
 
     @Column(name = "further_steps_notice_date")
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     private LocalDate furtherStepsNoticeDate;
 
     @Column(name = "confiscation_order_date")
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     private LocalDate confiscationOrderDate;
 
     @Column(name = "fine_registration_date")
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     private LocalDate fineRegistrationDate;
 
     @Column(name = "suspended_committal_id")
@@ -146,7 +145,7 @@ public class DefendantAccountEntity {
     private boolean paymentCardRequested;
 
     @Column(name = "payment_card_requested_date")
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     private LocalDate paymentCardRequestedDate;
 
     @Column(name = "payment_card_requested_by", length = 20)

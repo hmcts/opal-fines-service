@@ -77,7 +77,7 @@ public class DefendantAccountController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
+    @GetMapping(value = "/details")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     public ResponseEntity<AccountDetailsDto> getAccountDetailsByAccountSummary(
         @RequestBody AccountSummaryDto accountSummary) {

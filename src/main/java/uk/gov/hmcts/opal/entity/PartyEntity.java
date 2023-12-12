@@ -72,6 +72,7 @@ public class PartyEntity {
     private String accountType;
 
     @Column(name = "birth_date")
+    @Temporal(TemporalType.DATE)
     private LocalDate dateOfBirth;
 
     @Column(name = "age")
