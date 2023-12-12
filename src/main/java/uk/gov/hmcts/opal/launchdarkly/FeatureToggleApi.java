@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.launchdarkly;
 
 import com.launchdarkly.sdk.ContextBuilder;
 import com.launchdarkly.sdk.LDContext;
-import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +16,15 @@ public class FeatureToggleApi {
 
     private final LDClientInterface internalClient;
     private final String environment;
+    private final String key;
 
     @Autowired
-    public FeatureToggleApi(LDClientInterface internalClient, @Value("${launchdarkly.env}") String environment) {
+    public FeatureToggleApi(LDClientInterface internalClient,
+                            @Value("${launchdarkly.env}") String environment,
+                            @Value("${launchdarkly.sdk-key}") String sdkKey) {
         this.internalClient = internalClient;
         this.environment = environment;
+        this.key = sdkKey;
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
@@ -33,13 +36,13 @@ public class FeatureToggleApi {
         return internalClient.boolVariation(feature, createLDContext().build(), defaultValue);
     }
 
-    public boolean isFeatureEnabled(String feature, LDUser user) {
-        return internalClient.boolVariation(feature, LDContext.fromUser(user), false);
+    public boolean isFeatureEnabled(String feature, LDContext context) {
+        return internalClient.boolVariation(feature, context, false);
     }
 
 
-    public boolean isFeatureEnabled(String feature, LDUser user, boolean defaultValue) {
-        return internalClient.boolVariation(feature, LDContext.fromUser(user), defaultValue);
+    public boolean isFeatureEnabled(String feature, LDContext context, boolean defaultValue) {
+        return internalClient.boolVariation(feature, context, defaultValue);
     }
 
     public String getFeatureValue(String feature, String defaultValue) {
@@ -47,7 +50,7 @@ public class FeatureToggleApi {
     }
 
     public ContextBuilder createLDContext() {
-        return LDContext.builder("opal")
+        return LDContext.builder(this.key)
             .set("timestamp", String.valueOf(System.currentTimeMillis()))
             .set("environment", environment);
     }
