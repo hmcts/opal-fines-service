@@ -100,15 +100,6 @@ task smoke(type: Test) {
   classpath = sourceSets.smokeTest.runtimeClasspath
 }
 
-jacocoTestReport {
-  executionData(test, integration)
-  reports {
-    xml.required = true
-    csv.required = false
-    html.required = true
-  }
-}
-
 def coverageExclusions = [
   '**/uk/gov/hmcts/opal/**/model/**',
   '**/uk/gov/hmcts/opal/**/config/**'
@@ -118,6 +109,7 @@ jacocoTestReport {
   executionData(test, integration)
   reports {
     xml.required = true
+    html.required = true
     csv.required = false
     html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
   }
@@ -141,11 +133,16 @@ static String[] jacocoExclusionArray(ArrayList<String> exclusions)
 project.tasks['sonarqube'].dependsOn jacocoTestReport
 project.tasks['check'].dependsOn integration
 
+jacocoTestReport.dependsOn check
+jacocoTestCoverageVerification.dependsOn jacocoTestReport
+
 sonarqube {
   properties {
     property "sonar.projectName", "HMCTS :: opal-fines-service"
     property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
     property "sonar.gradle.skipCompile", "true"
+    property "sonar.exclusions", coverageExclusions.join(', ')
+    property 'sonar.coverage.exclusions', "**/entity/*,**/model/*"
   }
 }
 
