@@ -8,12 +8,14 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.ModelAndView;
+import uk.gov.hmcts.opal.authentication.component.impl.DummyAuthStrategy;
 import uk.gov.hmcts.opal.authentication.config.AuthStrategySelector;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
@@ -21,9 +23,11 @@ import uk.gov.hmcts.opal.authentication.service.AuthenticationService;
 
 import java.net.URI;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -47,8 +51,12 @@ class AuthenticationInternalUserControllerTest {
 
     @Mock
     private AuthStrategySelector locator;
+
     @Mock
     private InternalAuthConfigurationProperties internalAuthConfigurationProperties;
+
+    @InjectMocks
+    private DummyAuthStrategy dummyAuthStrategy;
 
     @Test
     void loginAndRefreshShouldReturnLoginPageAsRedirectWhenAuthHeaderIsNotSet() {
@@ -150,5 +158,19 @@ class AuthenticationInternalUserControllerTest {
         signedJwt.sign(new RSASSASigner(rsaKey));
 
         return signedJwt.serialize();
+    }
+
+    @Test
+    @SneakyThrows
+    void parseEmailAddressFromAccessToken() {
+        // Given
+        String accessToken = createDummyAccessToken("test@example.com");
+        when(locator.locateAuthenticationConfiguration()).thenReturn(dummyAuthStrategy);
+
+        // When
+        Optional<String> result = controller.parseEmailAddressFromAccessToken(accessToken);
+
+        // Then
+        assertFalse(result.isPresent());
     }
 }
