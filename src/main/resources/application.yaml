@@ -27,7 +27,7 @@ spring:
           internal-azure-ad:
             client-id: ${AAD_CLIENT_ID:00000000-0000-0000-0000-000000000000}
             client-secret: ${AAD_CLIENT_SECRET:}
-            scope: api://${AAD_CLIENT_ID:00000000-0000-0000-0000-000000000000}/dartsinternaluser
+            scope: api://${AAD_CLIENT_ID:00000000-0000-0000-0000-000000000000}/opalinternaluser
             redirect-uri: ${opal.frontend.url}/auth/internal/callback
             logout-redirect-uri: ${opal.frontend.url}/auth/internal/logout-callback
             authorization-grant-type: authorization_code
