@@ -2,9 +2,13 @@ package uk.gov.hmcts.opal.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -12,7 +16,8 @@ import jakarta.persistence.TemporalType;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
+import java.util.Set;
 
 @Entity
 @Data
@@ -25,15 +30,16 @@ public class DefendantAccountEntity {
     @Column(name = "defendant_account_id")
     private Long defendantAccountId;
 
-    @Column(name = "business_unit_id")
-    private Short businessUnitId;
+    @ManyToOne
+    @JoinColumn(name = "business_unit_id", referencedColumnName = "business_unit_id", nullable = false)
+    private BusinessUnitsEntity businessUnitId;
 
     @Column(name = "account_number", length = 20)
     private String accountNumber;
 
     @Column(name = "imposed_hearing_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date imposedHearingDate;
+    @Temporal(TemporalType.DATE)
+    private LocalDate imposedHearingDate;
 
     @Column(name = "imposing_court_id")
     private Long imposingCourtId;
@@ -51,29 +57,31 @@ public class DefendantAccountEntity {
     private String accountStatus;
 
     @Column(name = "completed_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date completedDate;
+    @Temporal(TemporalType.DATE)
+    private LocalDate completedDate;
 
-    @Column(name = "enforcing_court_id")
-    private Long enforcingCourtId;
+    @ManyToOne
+    @JoinColumn(name = "enforcing_court_id", referencedColumnName = "court_id", nullable = false)
+    private CourtsEntity enforcingCourtId;
 
-    @Column(name = "last_hearing_court_id")
-    private Long lastHearingCourtId;
+    @ManyToOne
+    @JoinColumn(name = "last_hearing_court_id", referencedColumnName = "court_id", nullable = false)
+    private CourtsEntity lastHearingCourtId;
 
     @Column(name = "last_hearing_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date lastHearingDate;
+    @Temporal(TemporalType.DATE)
+    private LocalDate lastHearingDate;
 
     @Column(name = "last_movement_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date lastMovementDate;
+    @Temporal(TemporalType.DATE)
+    private LocalDate lastMovementDate;
 
     @Column(name = "last_enforcement", length = 6)
     private String lastEnforcement;
 
     @Column(name = "last_changed_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date lastChangedDate;
+    @Temporal(TemporalType.DATE)
+    private LocalDate lastChangedDate;
 
     @Column(name = "originator_name", length = 100)
     private String originatorName;
@@ -93,16 +101,16 @@ public class DefendantAccountEntity {
     @Column(name = "cheque_clearance_period")
     private Short chequeClearancePeriod;
 
-    @Column(name = "credit_transfer_clearance_period")
+    @Column(name = "credit_trans_clearance_period")
     private Short creditTransferClearancePeriod;
 
-    @Column(name = "enforcement_override_result_id", length = 10)
+    @Column(name = "enf_override_result_id", length = 10)
     private String enforcementOverrideResultId;
 
-    @Column(name = "enforcement_override_enforcer_id")
+    @Column(name = "enf_override_enforcer_id")
     private Long enforcementOverrideEnforcerId;
 
-    @Column(name = "enforcement_override_tfo_lja_id")
+    @Column(name = "enf_override_tfo_lja_id")
     private Short enforcementOverrideTfoLjaId;
 
     @Column(name = "unit_fine_detail", length = 100)
@@ -114,23 +122,23 @@ public class DefendantAccountEntity {
     @Column(name = "collection_order")
     private boolean collectionOrder;
 
-    @Column(name = "collection_order_effective_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date collectionOrderEffectiveDate;
+    @Column(name = "collection_order_date")
+    @Temporal(TemporalType.DATE)
+    private LocalDate collectionOrderEffectiveDate;
 
     @Column(name = "further_steps_notice_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date furtherStepsNoticeDate;
+    @Temporal(TemporalType.DATE)
+    private LocalDate furtherStepsNoticeDate;
 
     @Column(name = "confiscation_order_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date confiscationOrderDate;
+    @Temporal(TemporalType.DATE)
+    private LocalDate confiscationOrderDate;
 
     @Column(name = "fine_registration_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date fineRegistrationDate;
+    @Temporal(TemporalType.DATE)
+    private LocalDate fineRegistrationDate;
 
-    @Column(name = "suspended_committal_enforcement_id")
+    @Column(name = "suspended_committal_id")
     private Long suspendedCommittalEnforcementId;
 
     @Column(name = "consolidated_account_type", length = 1)
@@ -140,8 +148,8 @@ public class DefendantAccountEntity {
     private boolean paymentCardRequested;
 
     @Column(name = "payment_card_requested_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date paymentCardRequestedDate;
+    @Temporal(TemporalType.DATE)
+    private LocalDate paymentCardRequestedDate;
 
     @Column(name = "payment_card_requested_by", length = 20)
     private String paymentCardRequestedBy;
@@ -152,5 +160,7 @@ public class DefendantAccountEntity {
     @Column(name = "enforcement_case_status", length = 10)
     private String enforcementCaseStatus;
 
-}
+    @OneToMany(mappedBy = "defendantAccount", fetch = FetchType.EAGER)
+    private Set<DefendantAccountPartiesEntity> parties;
 
+}

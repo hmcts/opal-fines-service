@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 
@@ -67,6 +69,20 @@ public class DefendantAccountController {
         log.info(":GET:getDefendantAccountsByBusinessUnit: busUnit: {}", businessUnit);
         List<DefendantAccountEntity> response = defendantAccountService
             .getDefendantAccountsByBusinessUnit(businessUnit);
+
+        if (response == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(value = "/details")
+    @Operation(summary = "Get defendant account details by providing the defendant account summary")
+    public ResponseEntity<AccountDetailsDto> getAccountDetailsByAccountSummary(
+        @RequestBody AccountSummaryDto accountSummary) {
+
+        AccountDetailsDto response = defendantAccountService.getAccountDetailsByAccountSummary(accountSummary);
 
         if (response == null) {
             return ResponseEntity.noContent().build();

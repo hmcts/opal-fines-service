@@ -5,14 +5,29 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AccountSummaryDto;
+import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.DefendantAccountSummary;
+import uk.gov.hmcts.opal.entity.EnforcersEntity;
+import uk.gov.hmcts.opal.entity.NoteEntity;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.EnforcersRepository;
+import uk.gov.hmcts.opal.repository.NoteRepository;
+import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+import uk.gov.hmcts.opal.util.NamesUtil;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import static uk.gov.hmcts.opal.dto.ToJsonString.newObjectMapper;
@@ -25,9 +40,19 @@ public class DefendantAccountService {
 
     private final DefendantAccountRepository defendantAccountRepository;
 
+    private final DefendantAccountPartiesRepository defendantAccountPartiesRepository;
+
+    private final PaymentTermsRepository paymentTermsRepository;
+
+    private final DebtorDetailRepository debtorDetailRepository;
+
+    private final EnforcersRepository enforcersRepository;
+
+    private final NoteRepository noteRepository;
+
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
 
-        return defendantAccountRepository.findByBusinessUnitIdAndAccountNumber(
+        return defendantAccountRepository.findByBusinessUnitId_BusinessUnitIdAndAccountNumber(
             request.getBusinessUnitId(), request.getAccountNumber());
     }
 
@@ -39,7 +64,7 @@ public class DefendantAccountService {
     public List<DefendantAccountEntity> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
 
         log.info(":getDefendantAccountsByBusinessUnit: busUnit: {}", businessUnitId);
-        return defendantAccountRepository.findAllByBusinessUnitId(businessUnitId);
+        return defendantAccountRepository.findAllByBusinessUnitId_BusinessUnitId(businessUnitId);
     }
 
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
@@ -57,10 +82,142 @@ public class DefendantAccountService {
                 throw new RuntimeException(e);
             }
         }
+        List<DefendantAccountSummary> summaries = defendantAccountRepository.findByOriginatorNameContaining(
+            accountSearchDto.getSurname());
+        
         return AccountSearchResultsDto.builder()
             .searchResults(List.of(AccountSummaryDto.builder().build()))
             .totalCount(999)
             .cursor(0)
             .build();
+    }
+
+    public AccountDetailsDto getAccountDetailsByAccountSummary(AccountSummaryDto accountSummary) {
+
+        //split name into parts for db query
+        final String[] nameParts = NamesUtil.splitFullName(accountSummary.getName());
+
+        //query db for defendantAccountPartiesEntity
+        DefendantAccountPartiesEntity defendantAccountPartiesEntity = defendantAccountPartiesRepository
+            .findByDefendantAccountDetailsCustomQuery(
+                                                                            accountSummary.getAccountNo(),
+                                                                            accountSummary.getDateOfBirth(),
+                                                                            nameParts[0],
+                                                                            nameParts[1],
+                                                                            nameParts[2],
+                                                                            accountSummary.getAddressLine1(),
+                                                                            accountSummary.getBalance(),
+                                                                            accountSummary.getCourt());
+
+        //Extract unique defendantAccount and party entities
+        final DefendantAccountEntity defendantAccountEntity = defendantAccountPartiesEntity.getDefendantAccount();
+        final PartyEntity partyEntity = defendantAccountPartiesEntity.getParty();
+
+        //query DB for debtorDetailsEntity
+        DebtorDetailEntity debtorDetailEntity = debtorDetailRepository.findByParty_PartyId(partyEntity);
+
+        //query DB for PaymentTermsEntity
+        PaymentTermsEntity paymentTermsEntity = paymentTermsRepository.findByDefendantAccount_DefendantAccountId(
+            defendantAccountEntity);
+
+        //query DB for EnforcementEntity
+        EnforcersEntity enforcersEntity = enforcersRepository.findByEnforcerId(defendantAccountEntity
+                                                                                   .getEnforcementOverrideEnforcerId());
+
+        //query DB for NoteEntity by associatedRecordId (defendantAccountId) and noteType ("AC")
+        List<NoteEntity> noteEntity = noteRepository.findByAssociatedRecordIdAndNoteType(
+            defendantAccountEntity.getDefendantAccountId().toString(), "AC");
+
+
+        //build fullAddress
+        final String fullAddress = buildFullAddress(partyEntity);
+
+        //build fullName
+        final String fullName = buildFullName(partyEntity);
+
+        //build paymentDetails
+        final String paymentDetails = buildPaymentDetails(paymentTermsEntity);
+
+        //build comments
+        final List<String> comments = buildCommentsFromAssociatedNotes(noteEntity);
+
+        //populate accountDetailsDto and return
+        return AccountDetailsDto.builder()
+            .accountNumber(defendantAccountEntity.getAccountNumber())
+            .fullName(fullName)
+            .accountCT(defendantAccountEntity.getBusinessUnitId().getBusinessUnitName())
+            .accountType(defendantAccountEntity.getOriginatorType())
+            .address(fullAddress)
+            .postCode(partyEntity.getPostcode())
+            .dob(partyEntity.getDateOfBirth())
+            .detailsChanged(defendantAccountEntity.getLastChangedDate())
+            .lastCourtAppAndCourtCode(defendantAccountEntity.getLastHearingDate().toString()
+                                          + defendantAccountEntity.getLastHearingCourtId().getCourtCode())
+            .lastMovement(defendantAccountEntity.getLastMovementDate())
+            .commentField(comments)
+            .pcr(defendantAccountEntity.getProsecutorCaseReference())
+            .documentLanguage(debtorDetailEntity.getDocumentLanguage())
+            .hearingLanguage(debtorDetailEntity.getHearingLanguage())
+            .paymentDetails(paymentDetails)
+            .lumpSum(paymentTermsEntity.getInstalmentLumpSum())
+            .commencing(paymentTermsEntity.getEffectiveDate())
+            .daysInDefault(paymentTermsEntity.getJailDays())
+            .sentencedDate(defendantAccountEntity.getImposedHearingDate())
+            .lastEnforcement(defendantAccountEntity.getLastEnforcement())
+            .override(defendantAccountEntity.getEnforcementOverrideResultId())
+            .enforcer(enforcersEntity.getEnforcerCode())
+            .enforcementCourt(defendantAccountEntity.getEnforcingCourtId().getCourtCode())
+            .imposed(defendantAccountEntity.getAmountImposed())
+            .amountPaid(defendantAccountEntity.getAmountPaid())
+            .arrears(defendantAccountEntity.getAccountBalance())
+            .balance(defendantAccountEntity.getAccountBalance())
+            .build();
+    }
+
+    private String buildFullAddress(PartyEntity partyEntity) {
+
+        return partyEntity.getAddressLine1() + ", "
+            + partyEntity.getAddressLine2() + ", "
+            + partyEntity.getAddressLine3() + ", "
+            + partyEntity.getAddressLine4() + ", "
+            + partyEntity.getAddressLine5();
+    }
+
+    private String buildFullName(PartyEntity partyEntity) {
+
+        return partyEntity.getOrganisationName() == null ? partyEntity.getTitle() + " "
+            + partyEntity.getForenames() + " "
+            + partyEntity.getInitials() + " "
+            + partyEntity.getSurname() : partyEntity.getOrganisationName();
+    }
+
+    private String buildPaymentDetails(PaymentTermsEntity paymentTermsEntity) {
+        final String paymentType = paymentTermsEntity.getTermsTypeCode();
+
+        return switch (paymentType) {
+            case "I" -> buildInstalmentDetails(paymentTermsEntity);
+            case "B" -> buildByDateDetails(paymentTermsEntity);
+            default -> "Paid";
+        };
+    }
+
+    private String buildInstalmentDetails(PaymentTermsEntity paymentTermsEntity) {
+        return paymentTermsEntity.getInstalmentAmount() + " / " + paymentTermsEntity.getInstalmentPeriod();
+    }
+
+    private String buildByDateDetails(PaymentTermsEntity paymentTermsEntity) {
+        return paymentTermsEntity.getEffectiveDate() + " By Date";
+    }
+
+    private List<String> buildCommentsFromAssociatedNotes(List<NoteEntity> notes) {
+
+        List<String> comments = new ArrayList<>();
+
+        for (NoteEntity note : notes) {
+
+            comments.add(note.getNoteText());
+        }
+
+        return comments;
     }
 }
