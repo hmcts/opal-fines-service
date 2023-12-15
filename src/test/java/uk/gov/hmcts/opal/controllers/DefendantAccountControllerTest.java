@@ -7,9 +7,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 
@@ -99,6 +101,25 @@ class DefendantAccountControllerTest {
         verify(defendantAccountService, times(1)).getDefendantAccountsByBusinessUnit(any(
             Short.class));
 
+    }
+
+    @Test
+    public void testGetDefendantAccountDetails_Success() {
+        // Arrange
+        AccountDetailsDto mockResponse = new AccountDetailsDto();
+
+        when(defendantAccountService.getAccountDetailsByAccountSummary(any(AccountSummaryDto.class)))
+            .thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<AccountDetailsDto> responseEntity = defendantAccountController
+            .getAccountDetailsByAccountSummary(AccountSummaryDto.builder().build());
+
+        // Assert
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(mockResponse, responseEntity.getBody());
+        verify(defendantAccountService, times(1)).getAccountDetailsByAccountSummary(any(
+            AccountSummaryDto.class));
     }
 
     @Test

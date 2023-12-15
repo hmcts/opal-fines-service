@@ -8,5 +8,5 @@ maintainers:
   - name: HMCTS Opal Team
 dependencies:
   - name: java
-    version: 5.0.2
+    version: 5.0.3
     repository: 'https://hmctspublic.azurecr.io/helm/v1/repo/'

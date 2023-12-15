@@ -9,8 +9,21 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AccountSummaryDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitsEntity;
+import uk.gov.hmcts.opal.entity.CourtsEntity;
+import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.EnforcersEntity;
+import uk.gov.hmcts.opal.entity.NoteEntity;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.EnforcersRepository;
+import uk.gov.hmcts.opal.repository.NoteRepository;
+import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -19,12 +32,29 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 class DefendantAccountServiceTest {
 
     @Mock
     private DefendantAccountRepository defendantAccountRepository;
+
+    @Mock
+    DefendantAccountPartiesRepository defendantAccountPartiesRepository;
+
+    @Mock
+    DebtorDetailRepository debtorDetailRepository;
+
+    @Mock
+    PaymentTermsRepository paymentTermsRepository;
+
+    @Mock
+    EnforcersRepository enforcersRepository;
+
+    @Mock
+    NoteRepository noteRepository;
 
     @InjectMocks
     private DefendantAccountService defendantAccountService;
@@ -41,7 +71,8 @@ class DefendantAccountServiceTest {
             Short.valueOf("123")).build();
 
         DefendantAccountEntity mockEntity = new DefendantAccountEntity();
-        when(defendantAccountRepository.findByBusinessUnitIdAndAccountNumber(Short.valueOf("123"), "12345"))
+        when(defendantAccountRepository.findByBusinessUnitId_BusinessUnitIdAndAccountNumber(
+            Short.valueOf("123"), "12345"))
             .thenReturn(mockEntity);
 
         // Act
@@ -49,7 +80,8 @@ class DefendantAccountServiceTest {
 
         // Assert
         assertEquals(mockEntity, result);
-        verify(defendantAccountRepository, times(1)).findByBusinessUnitIdAndAccountNumber(
+        verify(defendantAccountRepository, times(1))
+            .findByBusinessUnitId_BusinessUnitIdAndAccountNumber(
             Short.valueOf("123"), "12345");
     }
 
@@ -73,7 +105,7 @@ class DefendantAccountServiceTest {
         // Arrange
 
         List<DefendantAccountEntity> mockEntity = List.of(new DefendantAccountEntity());
-        when(defendantAccountRepository.findAllByBusinessUnitId(Short.valueOf("123")))
+        when(defendantAccountRepository.findAllByBusinessUnitId_BusinessUnitId(Short.valueOf("123")))
             .thenReturn(mockEntity);
 
         // Act
@@ -81,7 +113,8 @@ class DefendantAccountServiceTest {
 
         // Assert
         assertEquals(mockEntity, result);
-        verify(defendantAccountRepository, times(1)).findAllByBusinessUnitId(Short.valueOf("123"));
+        verify(defendantAccountRepository, times(1))
+            .findAllByBusinessUnitId_BusinessUnitId(Short.valueOf("123"));
     }
 
     @Test
@@ -115,5 +148,55 @@ class DefendantAccountServiceTest {
         assertEquals(100, result.getCount());
         assertEquals(100, result.getPageSize());
         assertEquals(100, result.getTotalCount());
+    }
+
+    @Test
+    void testGetAccountDetailsByAccountSummaryTemporary() {
+
+        DefendantAccountEntity mockDefendantAccount = new DefendantAccountEntity();
+        mockDefendantAccount.setDefendantAccountId(1L);
+        mockDefendantAccount.setBusinessUnitId(new BusinessUnitsEntity());
+        mockDefendantAccount.setLastHearingDate(LocalDate.now());
+        CourtsEntity mockCourt = new CourtsEntity();
+        mockCourt.setCourtCode((short)1);
+        mockDefendantAccount.setLastHearingCourtId(mockCourt);
+        mockDefendantAccount.setEnforcingCourtId(mockCourt);
+        DefendantAccountPartiesEntity mockAccountPartyEntity = DefendantAccountPartiesEntity.builder().build();
+        mockAccountPartyEntity.setDefendantAccount(mockDefendantAccount);
+        PartyEntity mockPartyEntity = PartyEntity.builder().build();
+        mockAccountPartyEntity.setParty(mockPartyEntity);
+
+        when(defendantAccountPartiesRepository.findByDefendantAccountDetailsCustomQuery(
+            any(), any(), any(), any(), any(), any(), any(), any()))
+            .thenReturn(mockAccountPartyEntity);
+
+        DebtorDetailEntity mockDebtorDetail = new DebtorDetailEntity();
+        when(debtorDetailRepository.findByParty_PartyId(any())).thenReturn(mockDebtorDetail);
+
+        PaymentTermsEntity mockPaymentTerms = new PaymentTermsEntity();
+        mockPaymentTerms.setTermsTypeCode("I"); // could be "B"
+        mockPaymentTerms.setJailDays(1);
+        when(paymentTermsRepository.findByDefendantAccount_DefendantAccountId(any()))
+                .thenReturn(mockPaymentTerms);
+
+        EnforcersEntity mockEnforcersEntity = new EnforcersEntity();
+
+        when(enforcersRepository.findByEnforcerId(any())).thenReturn(mockEnforcersEntity);
+
+        List<NoteEntity> mockNotes = List.of(NoteEntity.builder().build());
+        when(noteRepository.findByAssociatedRecordIdAndNoteType(any(), any())).thenReturn(mockNotes);
+
+        defendantAccountService.getAccountDetailsByAccountSummary(constructTestAccountSummaryDto(LocalDate.now()));
+    }
+
+    private AccountSummaryDto constructTestAccountSummaryDto(final LocalDate today) {
+        return AccountSummaryDto.builder()
+            .accountNo("accountNameNo")
+            .name("Smith, Mr JJ")
+            .dateOfBirth(today)
+            .addressLine1("Scotland")
+            .balance(BigDecimal.valueOf(1000))
+            .court("London")
+            .build();
     }
 }

@@ -2,9 +2,11 @@ package uk.gov.hmcts.opal.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -17,6 +19,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Data
@@ -72,6 +75,7 @@ public class PartyEntity {
     private String accountType;
 
     @Column(name = "birth_date")
+    @Temporal(TemporalType.DATE)
     private LocalDate dateOfBirth;
 
     @Column(name = "age")
@@ -90,4 +94,6 @@ public class PartyEntity {
     @Column(name = "amount_imposed", precision = 18, scale = 2)
     private BigDecimal amountImposed;
 
+    @OneToMany(mappedBy = "party", fetch = FetchType.EAGER)
+    private Set<DefendantAccountPartiesEntity> defendantAccounts;
 }
