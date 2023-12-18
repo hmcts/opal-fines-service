@@ -74,6 +74,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             configStrategy.getConfiguration()
         );
         if (!validationResult.valid()) {
+            log.error("Invalid reason: " + validationResult.reason());
             throw new OpalApiException(AuthenticationError.FAILED_TO_VALIDATE_ACCESS_TOKEN);
         }
 
