@@ -72,7 +72,7 @@ public class DefendantAccountService {
         if ("test".equalsIgnoreCase(accountSearchDto.getCourt())) {
 
             try (InputStream in = Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("tempData.json")) {
+                .getResourceAsStream("tempSearchData.json")) {
                 ObjectMapper mapper = newObjectMapper();
                 AccountSearchResultsDto dto = mapper.readValue(in, AccountSearchResultsDto.class);
                 log.info(":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
@@ -84,7 +84,7 @@ public class DefendantAccountService {
         }
         List<DefendantAccountSummary> summaries = defendantAccountRepository.findByOriginatorNameContaining(
             accountSearchDto.getSurname());
-        
+
         return AccountSearchResultsDto.builder()
             .searchResults(List.of(AccountSummaryDto.builder().build()))
             .totalCount(999)
@@ -93,6 +93,24 @@ public class DefendantAccountService {
     }
 
     public AccountDetailsDto getAccountDetailsByAccountSummary(AccountSummaryDto accountSummary) {
+
+
+        if ("test".equalsIgnoreCase(accountSummary.getCourt())) {
+
+
+            try (InputStream in = Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream("tempDetailsData.json")) {
+
+                ObjectMapper mapper = newObjectMapper();
+                AccountDetailsDto dto = mapper.readValue(in, AccountDetailsDto.class);
+                log.info(
+                    ":getAccountDetailsByAccountSummary: temporary Hack for Front End testing. Read JSON file: \n{}",
+                         dto.toPrettyJsonString());
+                return dto;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         //split name into parts for db query
         final String[] nameParts = NamesUtil.splitFullName(accountSummary.getName());
