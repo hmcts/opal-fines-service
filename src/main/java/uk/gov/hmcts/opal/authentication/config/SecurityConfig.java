@@ -58,6 +58,7 @@ public class SecurityConfig {
         "/health/**",
         "/mappings",
         "/info",
+        "/api/**",
         "/metrics",
         "/metrics/**",
         "/internal-user/login-or-refresh",
