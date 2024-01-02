@@ -13,6 +13,17 @@
 
 ### Running the application
 
+#### Environment variables
+
+The following environment variables are required to run the service.
+
+```bash
+AAD_CLIENT_ID= <Ask Team Memebers>
+AAD_CLIENT_SECRET=<Ask Team Memebers>
+AAD_TENANT_ID=<Ask Team Memebers>
+
+LAUNCH_DARKLY_SDK_KEY=<Ask Team Memebers>
+```
 #### Approach 1: Dev Application (No existing dependencies)
 
 The simplest way to run the application is using the `bootTestRun` Gradle task:
