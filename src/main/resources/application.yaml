@@ -27,15 +27,15 @@ spring:
           internal-azure-ad:
             client-id: ${AAD_CLIENT_ID:00000000-0000-0000-0000-000000000000}
             client-secret: ${AAD_CLIENT_SECRET:}
-            scope: openid
-#            scope: api://${AAD_CLIENT_ID:00000000-0000-0000-0000-000000000000}/opalinternaluser
+            scope: api://${AAD_CLIENT_ID:00000000-0000-0000-0000-000000000000}/opalinternaluser
             redirect-uri: ${opal.frontend.url}/sso/login-callback
             logout-redirect-uri: ${opal.frontend.url}/sso/logout-callback
             authorization-grant-type: authorization_code
             response-type: code
             response-mode: form_post
             prompt: login
-            issuer-uri: ${opal.azure.active-directory-justice-auth-uri}/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/v2.0
+#            issuer-uri: ${opal.azure.active-directory-justice-auth-uri}/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/v2.0
+            issuer-uri: https://sts.windows.net/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/
             claims: preferred_username
             provider: internal-azure-ad-provider
         provider:
