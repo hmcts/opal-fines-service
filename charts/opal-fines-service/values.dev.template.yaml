@@ -7,6 +7,12 @@ java:
       secrets:
         - name: app-insights-connection-string
           alias: app-insights-connection-string
+        - name: AzureADTenantId
+          alias: AAD_TENANT_ID
+        - name: AzureADClientId
+          alias: AAD_CLIENT_ID
+        - name: AzureADClientSecret
+          alias: AAD_CLIENT_SECRET
   environment:
     OPAL_FINES_DB_HOST: "{{ .Release.Name }}-postgresql"
     OPAL_FINES_DB_NAME: "{{ .Values.postgresql.auth.database}}"
