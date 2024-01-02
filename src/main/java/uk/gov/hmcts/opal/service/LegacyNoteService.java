@@ -32,7 +32,7 @@ public class LegacyNoteService implements NoteServiceInterface {
             .queryParam("actionType", "postAccountNotes");
 
         ResponseEntity<String> responseEntity = restTemplate.postForEntity(
-            builder.toUriString(), noteDto, String.class);
+            gatewayUrl + builder.toUriString(), noteDto, String.class);
 
         if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
             String rawJson = responseEntity.getBody();
