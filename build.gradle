@@ -208,7 +208,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client'
 
-  implementation group: 'org.springframework.security', name: 'spring-security-oauth2-authorization-server', version: '1.2.0'
+  implementation group: 'org.springframework.security', name: 'spring-security-oauth2-authorization-server', version: '1.2.1'
 
   implementation group: 'org.springframework', name: 'spring-aspects'
 
