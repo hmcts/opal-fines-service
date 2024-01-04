@@ -37,15 +37,6 @@ sourceSets {
     }
     resources.srcDir file('src/integrationTest/resources')
   }
-
-  smokeTest {
-    java {
-      compileClasspath += main.output
-      runtimeClasspath += main.output
-      srcDir file('src/smokeTest/java')
-    }
-    resources.srcDir file('src/smokeTest/resources')
-  }
 }
 
 configurations {
@@ -80,13 +71,6 @@ test {
   failFast = true
 }
 
-task functional(type: Test) {
-  description = "Runs functional tests"
-  group = "Verification"
-  testClassesDirs = sourceSets.functionalTest.output.classesDirs
-  classpath = sourceSets.functionalTest.runtimeClasspath
-}
-
 task integration(type: Test) {
   description = "Runs integration tests"
   group = "Verification"
@@ -95,28 +79,82 @@ task integration(type: Test) {
   failFast = true
 }
 
+task functional(type: Test) {
+  description = "Runs functional tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  testLogging.showStandardStreams = true
+  systemProperty "cucumber.filter.tags", "not @Smoke and not @Ignore"
+  doLast {
+    tasks.aggregate.aggregate()
+    delete "${rootDir}/functional-test-report/"
+    new File("${rootDir}/functional-test-report").mkdirs()
+    file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/functional-test-report"))
+    logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
+  }
+}
+
 task smoke(type: Test) {
   description = "Runs Smoke Tests"
-  testClassesDirs = sourceSets.smokeTest.output.classesDirs
-  classpath = sourceSets.smokeTest.runtimeClasspath
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  testLogging.showStandardStreams = true
+  systemProperty "cucumber.filter.tags", "@Smoke and not @Ignore"
+  doLast {
+    tasks.aggregate.aggregate()
+    delete "${rootDir}/smoke-test-report/"
+    new File("${rootDir}/smoke-test-report").mkdirs()
+    file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/smoke-test-report"))
+    logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
+  }
 }
+
+def coverageExclusions = [
+  '**/uk/gov/hmcts/opal/**/model/**',
+  '**/uk/gov/hmcts/opal/**/config/**',
+  '**/uk/gov/hmcts/opal/**/exception/**'
+]
 
 jacocoTestReport {
   executionData(test, integration)
   reports {
     xml.required = true
-    csv.required = false
     html.required = true
+    csv.required = false
+    html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
   }
+  afterEvaluate {
+    classDirectories.setFrom(files(classDirectories.files.collect {
+      fileTree(dir: it, exclude:  jacocoExclusionArray(coverageExclusions)
+      )
+    }))
+  }
+}
+
+static String[] jacocoExclusionArray(ArrayList<String> exclusions)
+{
+  final def lst = new ArrayList<String>();
+
+  exclusions.stream().forEach {it.endsWith(".java") ? lst.add(it.replace(".java", ".class")) : lst.add(it)}
+
+  return lst.toArray();
 }
 
 project.tasks['sonarqube'].dependsOn jacocoTestReport
 project.tasks['check'].dependsOn integration
 
+jacocoTestReport.dependsOn check
+jacocoTestCoverageVerification.dependsOn jacocoTestReport
+
 sonarqube {
   properties {
     property "sonar.projectName", "HMCTS :: opal-fines-service"
     property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
+    property "sonar.gradle.skipCompile", "true"
+    property "sonar.exclusions", coverageExclusions.join(', ')
+    property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*"
   }
 }
 
@@ -138,7 +176,7 @@ dependencyManagement {
   }
 
   dependencies {
-    dependency group: 'com.google.guava', name: 'guava', version: '32.1.3-jre'
+    dependency group: 'com.google.guava', name: 'guava', version: '33.0.0-jre'
   }
 }
 
@@ -154,11 +192,12 @@ repositories {
 
 ext {
   log4JVersion = "2.22.0"
+  serenityVersion = "4.0.29"
 }
 
 ext['snakeyaml.version'] = '2.0'
-ext['jackson.version'] = '2.15.3'
-ext['tomcat.version'] = '10.1.15'
+ext['jackson.version'] = '2.16.0'
+ext['tomcat.version'] = '10.1.16'
 
 dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
@@ -166,27 +205,31 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client'
+
+  implementation group: 'org.springframework.security', name: 'spring-security-oauth2-authorization-server', version: '1.2.1'
 
   implementation group: 'org.springframework', name: 'spring-aspects'
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-archaius', version: '2.2.10.RELEASE'
 
-  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.2.0'
+  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.3.0'
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.0.1'
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
-  implementation group: 'com.google.guava', name: 'guava', version: '32.1.3-jre'
+  implementation group: 'com.google.guava', name: 'guava', version: '33.0.0-jre'
 
-  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.3.0'
+  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.1.1'
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
   implementation 'org.postgresql:postgresql'
 
-  implementation 'com.fasterxml.jackson.core:jackson-databind'
 
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.0'
   compileOnly 'org.projectlombok:lombok:1.18.30'
   annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
@@ -203,6 +246,15 @@ dependencies {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
+  testImplementation 'org.junit.platform:junit-platform-suite:1.10.1'
+  testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.15.0'
+
+  testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
+  testImplementation "net.serenity-bdd:serenity-rest-assured:${serenityVersion}"
+  testImplementation "net.serenity-bdd:serenity-report-resources:${serenityVersion}"
+
+  testImplementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
+  testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
 }
 
 application {
@@ -218,10 +270,6 @@ bootJar {
 }
 
 // Gradle 7.x issue, workaround from: https://github.com/gradle/gradle/issues/17236#issuecomment-894768083
-rootProject.tasks.named("processSmokeTestResources") {
-  duplicatesStrategy = 'include'
-}
-
 rootProject.tasks.named("processFunctionalTestResources") {
   duplicatesStrategy = 'include'
 }
