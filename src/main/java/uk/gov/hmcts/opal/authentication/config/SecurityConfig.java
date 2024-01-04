@@ -62,6 +62,7 @@ public class SecurityConfig {
         "/metrics",
         "/metrics/**",
         "/internal-user/login-or-refresh",
+        "/internal-user/logout",
         "/internal-user/handle-oauth-code",
         "/"
     };
