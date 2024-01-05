@@ -14,6 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class AccountSummaryDto implements ToJsonString {
+    /** The primary key to the entity in the database. */
+    private Long defendantAccountId;
     /** The defendant account number. */
     private String accountNo;
     /** The name of the defendant, being an aggregation of surname, firstnames and title. */
