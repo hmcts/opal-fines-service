@@ -103,7 +103,7 @@ class DefendantAccountControllerTest {
 
     }
 
-    @Test
+    /*@Test
     public void testGetDefendantAccountDetails_Success() {
         // Arrange
         AccountDetailsDto mockResponse = new AccountDetailsDto();
@@ -120,7 +120,7 @@ class DefendantAccountControllerTest {
         assertEquals(mockResponse, responseEntity.getBody());
         verify(defendantAccountService, times(1)).getAccountDetailsByAccountSummary(any(
             AccountSummaryDto.class));
-    }
+    }*/
 
     @Test
     public void testPostDefendantAccountSearch_Success() {

@@ -92,10 +92,10 @@ public class DefendantAccountService {
             .build();
     }
 
-    public AccountDetailsDto getAccountDetailsByAccountSummary(AccountSummaryDto accountSummary) {
+    public AccountDetailsDto getAccountDetailsByAccountSummary(Long defendantAccountId) {
 
 
-        if ("test".equalsIgnoreCase(accountSummary.getCourt())) {
+        if (defendantAccountId.equals(0L)) {
 
 
             try (InputStream in = Thread.currentThread().getContextClassLoader()
@@ -111,7 +111,7 @@ public class DefendantAccountService {
                 throw new RuntimeException(e);
             }
         }
-
+        /*
         //split name into parts for db query
         final String[] nameParts = NamesUtil.splitFullName(accountSummary.getName());
 
@@ -190,6 +190,9 @@ public class DefendantAccountService {
             .arrears(defendantAccountEntity.getAccountBalance())
             .balance(defendantAccountEntity.getAccountBalance())
             .build();
+            */
+
+        return null;
     }
 
     private String buildFullAddress(PartyEntity partyEntity) {

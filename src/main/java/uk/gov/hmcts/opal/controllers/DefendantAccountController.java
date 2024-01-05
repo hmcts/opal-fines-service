@@ -31,7 +31,7 @@ public class DefendantAccountController {
 
     private final DefendantAccountService defendantAccountService;
 
-    @GetMapping
+    @GetMapping(value= "/hello-world")
     @Operation(summary = "Searches for a defendant account in the Opal DB")
     public ResponseEntity<DefendantAccountEntity> getDefendantAccount(
         @RequestParam(name = "businessUnitId") Short businessUnitId,
@@ -77,12 +77,12 @@ public class DefendantAccountController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(value = "/details", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/details")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     public ResponseEntity<AccountDetailsDto> getAccountDetailsByAccountSummary(
-        @RequestBody AccountSummaryDto accountSummary) {
+        @RequestParam(name = "defendantAccountId") Long DefendantAccountId) {
 
-        AccountDetailsDto response = defendantAccountService.getAccountDetailsByAccountSummary(accountSummary);
+        AccountDetailsDto response = defendantAccountService.getAccountDetailsByAccountSummary(DefendantAccountId);
 
         if (response == null) {
             return ResponseEntity.noContent().build();
