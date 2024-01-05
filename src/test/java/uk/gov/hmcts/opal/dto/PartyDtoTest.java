@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.dto;
 
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -34,8 +33,6 @@ public class PartyDtoTest {
         assertEquals(Short.valueOf((short) 21), partyDto.getAge());
         assertEquals("FF22446688", partyDto.getNiNumber());
         assertEquals(LocalDateTime.of(2023, 12, 5, 15, 45), partyDto.getLastChangedDate());
-        assertEquals("666", partyDto.getAccountNo());
-        assertEquals(BigDecimal.TEN, partyDto.getAmountImposed());
 
         assertNotNull(AccountEnquiryDto.builder().toString());
     }
@@ -90,8 +87,6 @@ public class PartyDtoTest {
             .age((short)21)
             .niNumber("FF22446688")
             .lastChangedDate(LocalDateTime.of(2023, 12, 5, 15, 45))
-            .accountNo("666")
-            .amountImposed(BigDecimal.TEN)
             .build();
     }
 }

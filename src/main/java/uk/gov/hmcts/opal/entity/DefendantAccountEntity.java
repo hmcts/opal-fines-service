@@ -14,7 +14,10 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,6 +26,9 @@ import java.util.List;
 @Entity
 @Data
 @Table(name = "defendant_accounts")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class DefendantAccountEntity {
 
     @Id

@@ -11,7 +11,6 @@ import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartySummary;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -98,8 +97,6 @@ class PartyServiceTest {
             .age((short)21)
             .niNumber("FF22446688")
             .lastChangedDate(LocalDateTime.of(2023, 12, 5, 15, 45))
-            .accountNo("666")
-            .amountImposed(BigDecimal.TEN)
             .build();
     }
 
