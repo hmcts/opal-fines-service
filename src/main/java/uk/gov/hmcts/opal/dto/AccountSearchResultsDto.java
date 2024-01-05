@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.dto;
 
 
 import java.util.List;
+import java.util.Optional;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +21,7 @@ public class AccountSearchResultsDto implements ToJsonString {
     /** The number of AccountSummary objects returned within this response. */
     private Integer count;
     /** The total number of matching Accounts found in the database. */
-    private Integer totalCount;
+    private Long totalCount;
     /** The position of the first AccountSummary in this response within the total search of the database. */
     private Integer cursor;
     /** The maximum number of AccountSummary objects that can be returned in a single search response. */
@@ -31,7 +32,7 @@ public class AccountSearchResultsDto implements ToJsonString {
     public static class AccountSearchResultsDtoBuilder {
         public AccountSearchResultsDtoBuilder searchResults(List<AccountSummaryDto> searchResults) {
             this.searchResults = searchResults;
-            this.count(searchResults.size());
+            this.count(Optional.ofNullable(searchResults).map(List::size).orElse(0));
             return this;
         }
 

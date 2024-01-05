@@ -27,8 +27,37 @@ public class AccountSearchDtoTest {
         assertEquals("VISA", accountEnquiryDto.getMajorCreditor());
         assertEquals("XX12345678", accountEnquiryDto.getNiNumber());
         assertEquals("6", accountEnquiryDto.getTillNumber());
+        assertEquals(today, accountEnquiryDto.getDateOfBirth().toLocalDate());
 
         assertNotNull(AccountEnquiryDto.builder().toString());
+
+        assertNotNull(AccountSearchDto.builder().dateOfBirth(
+            DateDto.builder().build()).build());
+        assertNotNull(AccountSearchDto.builder().dateOfBirth(
+            DateDto.builder().year(2024).build()).build());
+        assertNotNull(AccountSearchDto.builder().dateOfBirth(
+            DateDto.builder().year(2024).monthOfYear(-1).build()).build());
+        assertNotNull(AccountSearchDto.builder().dateOfBirth(
+            DateDto.builder().year(2024).monthOfYear(2).build()).build());
+        assertNotNull(AccountSearchDto.builder().dateOfBirth(
+            DateDto.builder().year(2024).monthOfYear(4).build()).build());
+        assertNotNull(AccountSearchDto.builder().dateOfBirth(
+            DateDto.builder().year(2024).monthOfYear(6).build()).build());
+        assertNotNull(AccountSearchDto.builder().dateOfBirth(
+            DateDto.builder().year(2024).monthOfYear(8).build()).build());
+        assertNotNull(AccountSearchDto.builder().dateOfBirth(
+            DateDto.builder().year(2024).monthOfYear(9).build()).build());
+        assertNotNull(AccountSearchDto.builder().dateOfBirth(
+            DateDto.builder().year(2024).monthOfYear(11).build()).build());
+        assertNotNull(AccountSearchDto.builder().dateOfBirth(
+            DateDto.builder().year(2024).monthOfYear(13).build()).build());
+        assertNotNull(AccountSearchDto.builder().dateOfBirth(
+            DateDto.builder().year(2024).monthOfYear(6).dayOfMonth(-5).build()).build());
+        assertNotNull(AccountSearchDto.builder().dateOfBirth(
+            DateDto.builder().year(2024).monthOfYear(6).dayOfMonth(5).build()).build());
+        assertNotNull(AccountSearchDto.builder().dateOfBirth(
+            DateDto.builder().year(2024).monthOfYear(6).dayOfMonth(35).build()).build());
+
     }
 
     @Test

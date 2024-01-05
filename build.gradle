@@ -37,6 +37,7 @@ sourceSets {
     }
     resources.srcDir file('src/integrationTest/resources')
   }
+
 }
 
 configurations {
@@ -154,7 +155,7 @@ sonarqube {
     property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
     property "sonar.gradle.skipCompile", "true"
     property "sonar.exclusions", coverageExclusions.join(', ')
-    property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*"
+    property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*,**/repository/jpa/*,**/opal/dto/*"
   }
 }
 
@@ -232,6 +233,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
   compileOnly 'org.projectlombok:lombok:1.18.30'
   annotationProcessor 'org.projectlombok:lombok:1.18.30'
+  annotationProcessor 'org.hibernate:hibernate-jpamodelgen:6.4.1.Final'
 
   testCompileOnly 'org.projectlombok:lombok:1.18.30'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'

@@ -7,6 +7,9 @@ smoke-test-report
 functional-test-report
 target
 
+### Generated Source ###
+/src/generated
+
 ### STS ###
 .apt_generated
 .classpath

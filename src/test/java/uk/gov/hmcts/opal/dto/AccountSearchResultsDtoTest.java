@@ -13,7 +13,7 @@ public class AccountSearchResultsDtoTest {
     public void testBuilder() {
         AccountSearchResultsDto accountEnquiryDto = constructAccountSearchResultsDto();
         assertEquals(999, accountEnquiryDto.getTotalCount());
-        assertEquals(6, accountEnquiryDto.getCursor());
+        assertEquals(7, accountEnquiryDto.getCursor());
         assertEquals(100, accountEnquiryDto.getPageSize());
         assertEquals(1, accountEnquiryDto.getCount());
         assertNotNull(AccountEnquiryDto.builder().toString());
@@ -52,8 +52,8 @@ public class AccountSearchResultsDtoTest {
     private AccountSearchResultsDto constructAccountSearchResultsDto() {
         return AccountSearchResultsDto.builder()
             .searchResults(List.of(AccountSummaryDto.builder().build()))
-            .totalCount(999)
-            .cursor(6)
+            .totalCount(999L)
+            .cursor(7)
             .build();
     }
 }

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
@@ -23,10 +25,16 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcersRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
+
+import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyLink;
+import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyDefendantAccountSummary;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.opal.dto.ToJsonString.newObjectMapper;
 
@@ -80,13 +88,19 @@ public class DefendantAccountService {
                 throw new RuntimeException(e);
             }
         }
-        List<DefendantAccountSummary> summaries = defendantAccountRepository.findByOriginatorNameContaining(
-            accountSearchDto.getSurname());
+
+        Page<DefendantAccountSummary> summariesPage = defendantAccountRepository
+            .findBy(DefendantAccountSpecs.findByAccountSearch(accountSearchDto),
+                    ffq -> ffq.as(DefendantAccountSummary.class).page(Pageable.unpaged()));
+
+        List<AccountSummaryDto> dtos = summariesPage.getContent().stream()
+            .map(this::toDto)
+            .collect(Collectors.toList());
 
         return AccountSearchResultsDto.builder()
-            .searchResults(List.of(AccountSummaryDto.builder().build()))
-            .totalCount(999)
-            .cursor(0)
+            .searchResults(dtos)
+            .totalCount(summariesPage.getTotalElements())
+            .cursor(summariesPage.getNumber())
             .build();
     }
 
@@ -222,5 +236,18 @@ public class DefendantAccountService {
         }
 
         return comments;
+    }
+
+    public AccountSummaryDto toDto(DefendantAccountSummary summary) {
+        Optional<PartyDefendantAccountSummary> party = summary.getParties().stream().findAny().map(PartyLink::getParty);
+        return AccountSummaryDto.builder()
+            .defendantAccountId(summary.getDefendantAccountId())
+            .accountNo(summary.getAccountNumber())
+            .court(summary.getImposingCourtId())
+            .balance(summary.getAccountBalance())
+            .name(party.map(PartyDefendantAccountSummary::getName).orElse(""))
+            .addressLine1(party.map(PartyDefendantAccountSummary::getAddressLine1).orElse(""))
+            .dateOfBirth(party.map(PartyDefendantAccountSummary::getDateOfBirth).orElse(null))
+            .build();
     }
 }

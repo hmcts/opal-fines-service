@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.entity;
 
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -36,8 +35,6 @@ public class PartyEntityTest {
         party.setAge((short)21);
         party.setNiNumber("FF22446688");
         party.setLastChangedDate(LocalDateTime.of(2023, 12, 5, 15, 45));
-        party.setAccountNo("666");
-        party.setAmountImposed(BigDecimal.TEN);
 
         // Test getters
         assertEquals(Long.valueOf(1L), party.getPartyId());
@@ -58,8 +55,6 @@ public class PartyEntityTest {
         assertEquals(Short.valueOf((short) 21), party.getAge());
         assertEquals("FF22446688", party.getNiNumber());
         assertEquals(LocalDateTime.of(2023, 12, 5, 15, 45), party.getLastChangedDate());
-        assertEquals("666", party.getAccountNo());
-        assertEquals(BigDecimal.TEN, party.getAmountImposed());
 
     }
 

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,10 +17,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Data
@@ -88,12 +88,6 @@ public class PartyEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime lastChangedDate;
 
-    @Column(name = "account_number", length = 20)
-    private String accountNo;
-
-    @Column(name = "amount_imposed", precision = 18, scale = 2)
-    private BigDecimal amountImposed;
-
-    @OneToMany(mappedBy = "party", fetch = FetchType.EAGER)
-    private Set<DefendantAccountPartiesEntity> defendantAccounts;
+    @OneToMany(mappedBy = "party", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<DefendantAccountPartiesEntity> defendantAccounts;
 }
