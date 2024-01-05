@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.authentication.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,11 +20,13 @@ import java.net.URI;
 @RestController
 @RequestMapping("/internal-user")
 @RequiredArgsConstructor
+@Tag(name = "Authentication Controller - Internal Users")
 public class AuthenticationInternalUserController {
 
     private final AuthenticationService authenticationService;
 
     @GetMapping("/login-or-refresh")
+    @Operation(summary = "Handles login for the front end API calls")
     public ModelAndView loginOrRefresh(
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestParam(value = "redirect_uri", required = false) String redirectUri
@@ -36,6 +40,7 @@ public class AuthenticationInternalUserController {
     }
 
     @PostMapping("/handle-oauth-code")
+    @Operation(summary = "Handles Oauth code for the front end API calls")
     public SecurityToken handleOauthCode(@RequestParam("code") String code) {
         String accessToken = authenticationService.handleOauthCode(code);
         var securityTokenBuilder = SecurityToken.builder()
@@ -45,6 +50,7 @@ public class AuthenticationInternalUserController {
     }
 
     @GetMapping("/logout")
+    @Operation(summary = "Handles Logout for the front end API calls")
     public ModelAndView logout(
         @RequestHeader("Authorization") String authHeaderValue,
         @RequestParam(value = "redirect_uri", required = false) String redirectUri
@@ -55,6 +61,7 @@ public class AuthenticationInternalUserController {
     }
 
     @GetMapping("/reset-password")
+    @Operation(summary = "Handles password reset for the front end API calls")
     public ModelAndView resetPassword(@RequestParam(value = "redirect_uri", required = false) String redirectUri) {
         URI url = authenticationService.resetPassword(redirectUri);
         return new ModelAndView("redirect:" + url.toString());

@@ -12,7 +12,7 @@ management:
         include: health, info, prometheus
 
 springdoc:
-  packagesToScan: uk.gov.hmcts.opal.controllers
+  packagesToScan: uk.gov.hmcts.opal.controllers,uk.gov.hmcts.opal.authentication.controller
   writer-with-order-by-keys: true
 
 spring:
