@@ -22,7 +22,7 @@ spring:
     name: Opal Fines Service
   jackson:
     serialization:
-      write_dates_as_timestamps: true
+      write_dates_as_timestamps: false
   security:
     oauth2:
       client:
