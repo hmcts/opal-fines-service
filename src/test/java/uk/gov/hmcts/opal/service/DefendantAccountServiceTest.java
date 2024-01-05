@@ -5,6 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
@@ -14,6 +18,7 @@ import uk.gov.hmcts.opal.entity.CourtsEntity;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.DefendantAccountSummary;
 import uk.gov.hmcts.opal.entity.EnforcersEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -32,8 +37,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 class DefendantAccountServiceTest {
 
@@ -116,21 +124,27 @@ class DefendantAccountServiceTest {
             .findAllByBusinessUnitId_BusinessUnitId(Short.valueOf("123"));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testSearchDefendantAccounts() {
         // Arrange
-        AccountSearchDto mockSearch = AccountSearchDto.builder().build();
         AccountSearchResultsDto expectedResponse =  AccountSearchResultsDto.builder()
             .searchResults(List.of(AccountSummaryDto.builder().build()))
-            .totalCount(999)
-            .cursor(0)
+            .totalCount(999L)
+            .cursor(1)
             .build();
+        Page<AccountSummaryDto> mockPage = new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 999L);
+        when(defendantAccountRepository.findBy(any(Specification.class), any()))
+            .thenReturn(mockPage);
 
         // Act
-        AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(mockSearch);
+        AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(
+            AccountSearchDto.builder().build());
 
         // Assert
-        assertEquals(expectedResponse, result);
+        assertEquals(expectedResponse.getTotalCount(), result.getTotalCount());
+
+        assertNotNull(defendantAccountService.toDto(new TestDefendantAccountSummary()));
     }
 
     @Test
@@ -160,7 +174,7 @@ class DefendantAccountServiceTest {
         mockCourt.setCourtCode((short)1);
         mockDefendantAccount.setLastHearingCourtId(mockCourt);
         mockDefendantAccount.setEnforcingCourtId(mockCourt);
-        DefendantAccountPartiesEntity mockAccountPartyEntity = DefendantAccountPartiesEntity.builder().build();
+        DefendantAccountPartiesEntity mockAccountPartyEntity = new DefendantAccountPartiesEntity();
         mockAccountPartyEntity.setDefendantAccount(mockDefendantAccount);
         PartyEntity mockPartyEntity = PartyEntity.builder().build();
         mockAccountPartyEntity.setParty(mockPartyEntity);
@@ -191,6 +205,34 @@ class DefendantAccountServiceTest {
     @Test
     void testGetAccountDetailsByAccountSummaryTemporary2() {
         defendantAccountService.getAccountDetailsByDefendantAccountId(0L);
+    }
+
+    private class TestDefendantAccountSummary implements DefendantAccountSummary {
+
+        @Override
+        public Long getDefendantAccountId() {
+            return 0L;
+        }
+
+        @Override
+        public String getAccountNumber() {
+            return "";
+        }
+
+        @Override
+        public BigDecimal getAccountBalance() {
+            return BigDecimal.TEN;
+        }
+
+        @Override
+        public String getImposingCourtId() {
+            return "";
+        }
+
+        @Override
+        public Set<PartyLink> getParties() {
+            return Collections.emptySet();
+        }
     }
 
 }

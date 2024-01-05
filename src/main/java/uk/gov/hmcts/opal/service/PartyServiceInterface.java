@@ -35,8 +35,6 @@ public interface PartyServiceInterface {
             .age(dto.getAge())
             .niNumber(dto.getNiNumber())
             .lastChangedDate(dto.getLastChangedDate())
-            .accountNo(dto.getAccountNo())
-            .amountImposed(dto.getAmountImposed())
             .build();
     }
 
@@ -60,8 +58,6 @@ public interface PartyServiceInterface {
             .age(entity.getAge())
             .niNumber(entity.getNiNumber())
             .lastChangedDate(entity.getLastChangedDate())
-            .accountNo(entity.getAccountNo())
-            .amountImposed(entity.getAmountImposed())
             .build();
     }
 }

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -10,14 +11,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import lombok.Builder;
 import lombok.Data;
 
 
 @Entity
 @Table(name = "defendant_account_parties")
 @Data
-@Builder
 public class DefendantAccountPartiesEntity {
 
     @Id
@@ -27,12 +26,12 @@ public class DefendantAccountPartiesEntity {
     @Column(name = "defendant_account_party_id")
     private Long defendantAccountPartyId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "defendant_account_id", referencedColumnName = "defendant_account_id", nullable = false)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "defendant_account_id", nullable = false)
     private DefendantAccountEntity defendantAccount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "party_id", referencedColumnName = "party_id", nullable = false)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "party_id",  nullable = false)
     private PartyEntity party;
 
     @Column(name = "association_type", nullable = false, length = 30)

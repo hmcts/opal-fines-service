@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -17,7 +18,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Data
@@ -138,9 +139,6 @@ public class DefendantAccountEntity {
     @Temporal(TemporalType.DATE)
     private LocalDate fineRegistrationDate;
 
-    @Column(name = "suspended_committal_id")
-    private Long suspendedCommittalEnforcementId;
-
     @Column(name = "consolidated_account_type", length = 1)
     private String consolidatedAccountType;
 
@@ -160,7 +158,7 @@ public class DefendantAccountEntity {
     @Column(name = "enforcement_case_status", length = 10)
     private String enforcementCaseStatus;
 
-    @OneToMany(mappedBy = "defendantAccount", fetch = FetchType.EAGER)
-    private Set<DefendantAccountPartiesEntity> parties;
+    @OneToMany(mappedBy = "defendantAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<DefendantAccountPartiesEntity> parties;
 
 }

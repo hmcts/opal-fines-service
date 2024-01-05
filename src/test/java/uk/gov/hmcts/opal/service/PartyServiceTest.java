@@ -121,8 +121,6 @@ class PartyServiceTest {
             .age((short)21)
             .niNumber("FF22446688")
             .lastChangedDate(LocalDateTime.of(2023, 12, 5, 15, 45))
-            .accountNo("666")
-            .amountImposed(BigDecimal.TEN)
             .build();
     }
 }

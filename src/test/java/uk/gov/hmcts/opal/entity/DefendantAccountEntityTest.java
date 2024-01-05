@@ -51,7 +51,6 @@ public class DefendantAccountEntityTest {
         defendantAccount.setFurtherStepsNoticeDate(now);
         defendantAccount.setConfiscationOrderDate(now);
         defendantAccount.setFineRegistrationDate(now);
-        defendantAccount.setSuspendedCommittalEnforcementId(1L);
         defendantAccount.setConsolidatedAccountType("type");
         defendantAccount.setPaymentCardRequested(true);
         defendantAccount.setPaymentCardRequestedDate(now);
@@ -94,7 +93,6 @@ public class DefendantAccountEntityTest {
         assertEquals(now, defendantAccount.getFurtherStepsNoticeDate());
         assertEquals(now, defendantAccount.getConfiscationOrderDate());
         assertEquals(now, defendantAccount.getFineRegistrationDate());
-        assertEquals(Long.valueOf(1L), defendantAccount.getSuspendedCommittalEnforcementId());
         assertEquals("type", defendantAccount.getConsolidatedAccountType());
         assertTrue(defendantAccount.isPaymentCardRequested());
         assertEquals(now, defendantAccount.getPaymentCardRequestedDate());
