@@ -52,7 +52,7 @@ public class AccountSearchResultsDtoTest {
     private AccountSearchResultsDto constructAccountSearchResultsDto() {
         return AccountSearchResultsDto.builder()
             .searchResults(List.of(AccountSummaryDto.builder().build()))
-            .totalCount(999)
+            .totalCount(999L)
             .cursor(6)
             .build();
     }

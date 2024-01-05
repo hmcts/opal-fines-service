@@ -15,15 +15,19 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Jacksonized
 public class DateDto {
-    private Integer dayOfBirth;
-    private Integer monthOfBirth;
-    private Integer yearOfBirth;
+    private Integer dayOfMonth;
+    private Integer monthOfYear;
+    private Integer year;
 
     public static DateDto fromLocalDate(LocalDate local) {
         return DateDto.builder()
-            .yearOfBirth(local.getYear())
-            .monthOfBirth(local.getMonthValue())
-            .dayOfBirth(local.getDayOfMonth())
+            .year(local.getYear())
+            .monthOfYear(local.getMonthValue())
+            .dayOfMonth(local.getDayOfMonth())
             .build();
+    }
+
+    public LocalDate toLocalDate() {
+        return LocalDate.of(year, monthOfYear, dayOfMonth);
     }
 }
