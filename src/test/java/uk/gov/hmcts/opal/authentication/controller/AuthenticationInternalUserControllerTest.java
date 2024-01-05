@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.authentication.controller.impl;
+package uk.gov.hmcts.opal.authentication.controller;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
