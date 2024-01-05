@@ -33,6 +33,7 @@ import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyDefendantAccountSum
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -130,15 +131,16 @@ public class DefendantAccountService {
 
         //query db for defendantAccountPartiesEntity
         DefendantAccountPartiesEntity defendantAccountPartiesEntity = defendantAccountPartiesRepository
-            .findByDefendantAccountId(defendantAccountId);
+            .findByDefendantAccountDefendantAccountId(defendantAccountId);
 
         //Extract unique defendantAccount and party entities
         final DefendantAccountEntity defendantAccountEntity = defendantAccountPartiesEntity.getDefendantAccount();
         final PartyEntity partyEntity = defendantAccountPartiesEntity.getParty();
 
+
         //query DB for PaymentTermsEntity
         PaymentTermsEntity paymentTermsEntity = paymentTermsRepository.findByDefendantAccount_DefendantAccountId(
-            defendantAccountEntity);
+            defendantAccountEntity.getDefendantAccountId());
 
         //query DB for EnforcementEntity
         EnforcersEntity enforcersEntity = enforcersRepository.findByEnforcerId(defendantAccountEntity
@@ -163,6 +165,7 @@ public class DefendantAccountService {
 
         //populate accountDetailsDto and return
         return AccountDetailsDto.builder()
+            .defendantAccountId(defendantAccountEntity.getDefendantAccountId())
             .accountNumber(defendantAccountEntity.getAccountNumber())
             .fullName(fullName)
             .accountCT(defendantAccountEntity.getBusinessUnitId().getBusinessUnitName())
@@ -172,13 +175,15 @@ public class DefendantAccountService {
             .dob(partyEntity.getDateOfBirth())
             .detailsChanged(defendantAccountEntity.getLastChangedDate())
             .lastCourtAppAndCourtCode(defendantAccountEntity.getLastHearingDate().toString()
-                                          + defendantAccountEntity.getLastHearingCourtId().getCourtCode())
+                                          + " " + defendantAccountEntity.getLastHearingCourtId().getCourtCode())
             .lastMovement(defendantAccountEntity.getLastMovementDate())
             .commentField(comments)
             .pcr(defendantAccountEntity.getProsecutorCaseReference())
             .paymentDetails(paymentDetails)
             .lumpSum(paymentTermsEntity.getInstalmentLumpSum())
-            .commencing(paymentTermsEntity.getEffectiveDate())
+            .commencing(paymentTermsEntity.getTermsTypeCode().equals("I")
+                            ? paymentTermsEntity.getEffectiveDate()
+                            : null)
             .daysInDefault(paymentTermsEntity.getJailDays())
             .lastEnforcement(defendantAccountEntity.getLastEnforcement())
             .override(defendantAccountEntity.getEnforcementOverrideResultId())
@@ -192,20 +197,37 @@ public class DefendantAccountService {
     }
 
     private String buildFullAddress(PartyEntity partyEntity) {
+        List<String> addressLines = new ArrayList<>();
 
-        return partyEntity.getAddressLine1() + ", "
-            + partyEntity.getAddressLine2() + ", "
-            + partyEntity.getAddressLine3() + ", "
-            + partyEntity.getAddressLine4() + ", "
-            + partyEntity.getAddressLine5();
+        addressLines.add(partyEntity.getAddressLine1());
+        addressLines.add(partyEntity.getAddressLine2());
+        addressLines.add(partyEntity.getAddressLine3());
+        addressLines.add(partyEntity.getAddressLine4());
+        addressLines.add(partyEntity.getAddressLine5());
+
+        addressLines.removeIf(Objects::isNull);
+
+        return String.join(", ", addressLines);
     }
+
 
     private String buildFullName(PartyEntity partyEntity) {
 
-        return partyEntity.getOrganisationName() == null ? partyEntity.getTitle() + " "
-            + partyEntity.getForenames() + " "
-            + partyEntity.getInitials() + " "
-            + partyEntity.getSurname() : partyEntity.getOrganisationName();
+        if (partyEntity.getOrganisationName() != null) {
+
+            return partyEntity.getOrganisationName();
+        }
+
+        List<String> nameParts = new ArrayList<>();
+
+        nameParts.add(partyEntity.getTitle());
+        nameParts.add(partyEntity.getForenames());
+        nameParts.add(partyEntity.getInitials());
+        nameParts.add(partyEntity.getSurname());
+
+        nameParts.removeIf(Objects::isNull);
+
+        return String.join(" ", nameParts);
     }
 
     private String buildPaymentDetails(PaymentTermsEntity paymentTermsEntity) {

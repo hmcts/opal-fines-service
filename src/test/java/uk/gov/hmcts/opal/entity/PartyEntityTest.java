@@ -55,7 +55,6 @@ public class PartyEntityTest {
         assertEquals(Short.valueOf((short) 21), party.getAge());
         assertEquals("FF22446688", party.getNiNumber());
         assertEquals(LocalDateTime.of(2023, 12, 5, 15, 45), party.getLastChangedDate());
-
     }
 
     @Test

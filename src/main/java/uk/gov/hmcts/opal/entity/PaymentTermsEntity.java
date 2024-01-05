@@ -8,7 +8,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -16,6 +19,9 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "payment_terms")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PaymentTermsEntity {
 
     @Id

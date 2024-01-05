@@ -232,9 +232,7 @@ class LegacyPartyServiceTest {
               "dateOfBirth" : [ 2001, 8, 16 ],
               "age" : 21,
               "niNumber" : "FF22446688",
-              "lastChangedDate" : [ 2023, 12, 5, 15, 45 ],
-              "accountNo" : "666",
-              "amountImposed" : 10
+              "lastChangedDate" : [ 2023, 12, 5, 15, 45 ]
             }
             """;
     }
@@ -258,9 +256,7 @@ class LegacyPartyServiceTest {
               "dateOfBirth" : [ 2001, 8, 16 ],
               "age" : 21,
               "niNumber" : "FF22446688",
-              "lastChangedDate" : [ 2023, 12, 5, 15, 45 ],
-              "accountNo" : "666",
-              "amountImposed" : 10
+              "lastChangedDate" : [ 2023, 12, 5, 15, 45 ]
             }
             """;
     }

@@ -15,6 +15,9 @@ import java.util.List;
 @AllArgsConstructor
 public class AccountDetailsDto implements ToJsonString {
 
+    //defendant_accounts.defendant_account_id
+    private Long defendantAccountId;
+
     //defendant_accounts.account_number
     private String accountNumber;
 
@@ -24,7 +27,7 @@ public class AccountDetailsDto implements ToJsonString {
     // business_units.business_unit_type
     private String accountCT;
 
-    //parties.account_type
+    //defendant_accounts.originator_reference
     private String accountType;
 
     //parties.address_line_(*)

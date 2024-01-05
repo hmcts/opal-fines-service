@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -35,6 +34,4 @@ public class PartyDto implements ToJsonString {
     private Short age;
     private String niNumber;
     private LocalDateTime lastChangedDate;
-    private String accountNo;
-    private BigDecimal amountImposed;
 }
