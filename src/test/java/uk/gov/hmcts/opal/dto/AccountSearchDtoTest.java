@@ -27,6 +27,7 @@ public class AccountSearchDtoTest {
         assertEquals("VISA", accountEnquiryDto.getMajorCreditor());
         assertEquals("XX12345678", accountEnquiryDto.getNiNumber());
         assertEquals("6", accountEnquiryDto.getTillNumber());
+        assertEquals(today, accountEnquiryDto.getDateOfBirth().toLocalDate());
 
         assertNotNull(AccountEnquiryDto.builder().toString());
     }
