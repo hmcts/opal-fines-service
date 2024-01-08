@@ -18,7 +18,6 @@ import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 
@@ -79,12 +78,12 @@ public class DefendantAccountController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(value = "/details", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/details")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     public ResponseEntity<AccountDetailsDto> getAccountDetailsByAccountSummary(
-        @RequestBody AccountSummaryDto accountSummary) {
+        @RequestParam(name = "defendantAccountId") Long defendantAccountId) {
 
-        AccountDetailsDto response = defendantAccountService.getAccountDetailsByAccountSummary(accountSummary);
+        AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(defendantAccountId);
 
         if (response == null) {
             return ResponseEntity.noContent().build();

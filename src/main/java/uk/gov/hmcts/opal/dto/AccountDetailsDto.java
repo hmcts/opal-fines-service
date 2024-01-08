@@ -51,12 +51,6 @@ public class AccountDetailsDto implements ToJsonString {
     //defendant_accounts.prosecutor_case_reference
     private String pcr;
 
-    //debtor_detail.document_language
-    private String documentLanguage;
-
-    //debtor_detail.hearing_language
-    private String hearingLanguage;
-
     //payment_terms.installment_amount / payment_terms.installment_period
     private String paymentDetails;
 
@@ -68,9 +62,6 @@ public class AccountDetailsDto implements ToJsonString {
 
     //payment_terms.jail_days
     private int daysInDefault;
-
-    //defendant_accounts.suspended_committal_date
-    private LocalDate sentencedDate;
 
     //defendant_accounts.last_enforcement
     private String lastEnforcement;
