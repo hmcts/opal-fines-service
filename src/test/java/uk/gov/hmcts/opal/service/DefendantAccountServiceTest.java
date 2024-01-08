@@ -150,7 +150,7 @@ class DefendantAccountServiceTest {
         assertEquals(100, result.getTotalCount());
     }
 
-    /*@Test
+    @Test
     void testGetAccountDetailsByAccountSummaryTemporary() {
 
         DefendantAccountEntity mockDefendantAccount = new DefendantAccountEntity();
@@ -186,14 +186,14 @@ class DefendantAccountServiceTest {
         List<NoteEntity> mockNotes = List.of(NoteEntity.builder().build());
         when(noteRepository.findByAssociatedRecordIdAndNoteType(any(), any())).thenReturn(mockNotes);
 
-        defendantAccountService.getAccountDetailsByAccountSummary(constructTestAccountSummaryDto(LocalDate.now()));
-    }*/
+        defendantAccountService.getAccountDetailsByDefendantAccountId(constructTestAccountSummaryDto(LocalDate.now()));
+    }
 
-    /*@Test
+    @Test
     void testGetAccountDetailsByAccountSummaryTemporary2() {
         var testAccountSummary = AccountSummaryDto.builder().court("test").build();
-        defendantAccountService.getAccountDetailsByAccountSummary(testAccountSummary);
-    }*/
+        defendantAccountService.getAccountDetailsByDefendantAccountId(testAccountSummary);
+    }
 
     private AccountSummaryDto constructTestAccountSummaryDto(final LocalDate today) {
         return AccountSummaryDto.builder()

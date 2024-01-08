@@ -82,7 +82,7 @@ public class DefendantAccountController {
     public ResponseEntity<AccountDetailsDto> getAccountDetailsByAccountSummary(
         @RequestParam(name = "defendantAccountId") Long DefendantAccountId) {
 
-        AccountDetailsDto response = defendantAccountService.getAccountDetailsByAccountSummary(DefendantAccountId);
+        AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(DefendantAccountId);
 
         if (response == null) {
             return ResponseEntity.noContent().build();

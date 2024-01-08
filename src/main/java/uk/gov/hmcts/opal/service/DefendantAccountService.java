@@ -92,7 +92,7 @@ public class DefendantAccountService {
             .build();
     }
 
-    public AccountDetailsDto getAccountDetailsByAccountSummary(Long defendantAccountId) {
+    public AccountDetailsDto getAccountDetailsByDefendantAccountId(Long defendantAccountId) {
 
 
         if (defendantAccountId.equals(0L)) {
@@ -104,35 +104,22 @@ public class DefendantAccountService {
                 ObjectMapper mapper = newObjectMapper();
                 AccountDetailsDto dto = mapper.readValue(in, AccountDetailsDto.class);
                 log.info(
-                    ":getAccountDetailsByAccountSummary: temporary Hack for Front End testing. Read JSON file: \n{}",
+                    ":getAccountDetailsByDefendantAccountId: temporary Hack for Front End testing. Read JSON file: \n{}",
                          dto.toPrettyJsonString());
                 return dto;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
-        /*
-        //split name into parts for db query
-        final String[] nameParts = NamesUtil.splitFullName(accountSummary.getName());
+
 
         //query db for defendantAccountPartiesEntity
         DefendantAccountPartiesEntity defendantAccountPartiesEntity = defendantAccountPartiesRepository
-            .findByDefendantAccountDetailsCustomQuery(
-                                                                            accountSummary.getAccountNo(),
-                                                                            accountSummary.getDateOfBirth(),
-                                                                            nameParts[0],
-                                                                            nameParts[1],
-                                                                            nameParts[2],
-                                                                            accountSummary.getAddressLine1(),
-                                                                            accountSummary.getBalance(),
-                                                                            accountSummary.getCourt());
+            .findByDefendantAccountId(defendantAccountId);
 
         //Extract unique defendantAccount and party entities
         final DefendantAccountEntity defendantAccountEntity = defendantAccountPartiesEntity.getDefendantAccount();
         final PartyEntity partyEntity = defendantAccountPartiesEntity.getParty();
-
-        //query DB for debtorDetailsEntity
-        DebtorDetailEntity debtorDetailEntity = debtorDetailRepository.findByParty_PartyId(partyEntity);
 
         //query DB for PaymentTermsEntity
         PaymentTermsEntity paymentTermsEntity = paymentTermsRepository.findByDefendantAccount_DefendantAccountId(
@@ -174,13 +161,10 @@ public class DefendantAccountService {
             .lastMovement(defendantAccountEntity.getLastMovementDate())
             .commentField(comments)
             .pcr(defendantAccountEntity.getProsecutorCaseReference())
-            .documentLanguage(debtorDetailEntity.getDocumentLanguage())
-            .hearingLanguage(debtorDetailEntity.getHearingLanguage())
             .paymentDetails(paymentDetails)
             .lumpSum(paymentTermsEntity.getInstalmentLumpSum())
             .commencing(paymentTermsEntity.getEffectiveDate())
             .daysInDefault(paymentTermsEntity.getJailDays())
-            .sentencedDate(defendantAccountEntity.getImposedHearingDate())
             .lastEnforcement(defendantAccountEntity.getLastEnforcement())
             .override(defendantAccountEntity.getEnforcementOverrideResultId())
             .enforcer(enforcersEntity.getEnforcerCode())
@@ -190,9 +174,6 @@ public class DefendantAccountService {
             .arrears(defendantAccountEntity.getAccountBalance())
             .balance(defendantAccountEntity.getAccountBalance())
             .build();
-            */
-
-        return null;
     }
 
     private String buildFullAddress(PartyEntity partyEntity) {
