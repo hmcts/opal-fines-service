@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
@@ -13,7 +15,6 @@ import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountSummary;
 import uk.gov.hmcts.opal.entity.EnforcersEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -24,6 +25,7 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcersRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.util.NamesUtil;
 
 import java.io.InputStream;
@@ -82,13 +84,16 @@ public class DefendantAccountService {
                 throw new RuntimeException(e);
             }
         }
-        List<DefendantAccountSummary> summaries = defendantAccountRepository.findByOriginatorNameContaining(
-            accountSearchDto.getSurname());
+
+        Page<AccountSummaryDto> summariesPage = defendantAccountRepository
+            .findBy(DefendantAccountSpecs.findByAccountSearch(accountSearchDto),
+                    ffq -> ffq.as(AccountSummaryDto.class).page(Pageable.unpaged()));
+
 
         return AccountSearchResultsDto.builder()
-            .searchResults(List.of(AccountSummaryDto.builder().build()))
-            .totalCount(999)
-            .cursor(0)
+            .searchResults(summariesPage.getContent())
+            .totalCount(summariesPage.getTotalElements())
+            .cursor(summariesPage.getNumber())
             .build();
     }
 
