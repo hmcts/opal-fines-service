@@ -2,3 +2,5 @@
 java:
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
+  environment:
+    OPAL_FRONTEND_URL: https://opal-frontend.staging.platform.hmcts.net

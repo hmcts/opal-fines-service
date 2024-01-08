@@ -193,4 +193,5 @@ class AuthenticationServiceImplTest {
 
         assertEquals(DUMMY_AUTH_URI, uri);
     }
+
 }
