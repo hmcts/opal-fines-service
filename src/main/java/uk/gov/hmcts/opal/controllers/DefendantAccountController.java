@@ -17,7 +17,6 @@ import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 
@@ -31,7 +30,7 @@ public class DefendantAccountController {
 
     private final DefendantAccountService defendantAccountService;
 
-    @GetMapping(value= "/hello-world")
+    @GetMapping
     @Operation(summary = "Searches for a defendant account in the Opal DB")
     public ResponseEntity<DefendantAccountEntity> getDefendantAccount(
         @RequestParam(name = "businessUnitId") Short businessUnitId,
@@ -80,9 +79,9 @@ public class DefendantAccountController {
     @GetMapping(value = "/details")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     public ResponseEntity<AccountDetailsDto> getAccountDetailsByAccountSummary(
-        @RequestParam(name = "defendantAccountId") Long DefendantAccountId) {
+        @RequestParam(name = "defendantAccountId") Long defendantAccountId) {
 
-        AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(DefendantAccountId);
+        AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(defendantAccountId);
 
         if (response == null) {
             return ResponseEntity.noContent().build();

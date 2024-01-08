@@ -10,7 +10,6 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AccountSummaryDto;
-import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummary;
@@ -24,7 +23,6 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcersRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
-import uk.gov.hmcts.opal.util.NamesUtil;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -104,7 +102,10 @@ public class DefendantAccountService {
                 ObjectMapper mapper = newObjectMapper();
                 AccountDetailsDto dto = mapper.readValue(in, AccountDetailsDto.class);
                 log.info(
-                    ":getAccountDetailsByDefendantAccountId: temporary Hack for Front End testing. Read JSON file: \n{}",
+                        """
+                        :getAccountDetailsByDefendantAccountId:
+                        " temporary Hack for Front End testing. Read JSON file: \n{}
+                        """,
                          dto.toPrettyJsonString());
                 return dto;
             } catch (Exception e) {

@@ -32,7 +32,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -166,8 +165,8 @@ class DefendantAccountServiceTest {
         PartyEntity mockPartyEntity = PartyEntity.builder().build();
         mockAccountPartyEntity.setParty(mockPartyEntity);
 
-        when(defendantAccountPartiesRepository.findByDefendantAccountDetailsCustomQuery(
-            any(), any(), any(), any(), any(), any(), any(), any()))
+        when(defendantAccountPartiesRepository.findByDefendantAccountId(
+            any()))
             .thenReturn(mockAccountPartyEntity);
 
         DebtorDetailEntity mockDebtorDetail = new DebtorDetailEntity();
@@ -186,23 +185,12 @@ class DefendantAccountServiceTest {
         List<NoteEntity> mockNotes = List.of(NoteEntity.builder().build());
         when(noteRepository.findByAssociatedRecordIdAndNoteType(any(), any())).thenReturn(mockNotes);
 
-        defendantAccountService.getAccountDetailsByDefendantAccountId(constructTestAccountSummaryDto(LocalDate.now()));
+        defendantAccountService.getAccountDetailsByDefendantAccountId(1L);
     }
 
     @Test
     void testGetAccountDetailsByAccountSummaryTemporary2() {
-        var testAccountSummary = AccountSummaryDto.builder().court("test").build();
-        defendantAccountService.getAccountDetailsByDefendantAccountId(testAccountSummary);
+        defendantAccountService.getAccountDetailsByDefendantAccountId(0L);
     }
 
-    private AccountSummaryDto constructTestAccountSummaryDto(final LocalDate today) {
-        return AccountSummaryDto.builder()
-            .accountNo("accountNameNo")
-            .name("Smith, Mr JJ")
-            .dateOfBirth(today)
-            .addressLine1("Scotland")
-            .balance(BigDecimal.valueOf(1000))
-            .court("London")
-            .build();
-    }
 }

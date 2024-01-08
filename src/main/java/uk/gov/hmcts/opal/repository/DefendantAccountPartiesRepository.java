@@ -6,9 +6,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-
 @Repository
 public interface DefendantAccountPartiesRepository extends JpaRepository<DefendantAccountPartiesEntity, Long> {
 
