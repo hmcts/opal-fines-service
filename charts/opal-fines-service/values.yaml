@@ -25,3 +25,4 @@ java:
           alias: AAD_CLIENT_SECRET
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true
+    OPAL_FRONTEND_URL: https://opal-frontend.{{ .Values.global.environment }}.platform.hmcts.net

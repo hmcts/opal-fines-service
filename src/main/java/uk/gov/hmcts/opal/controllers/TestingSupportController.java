@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import uk.gov.hmcts.opal.service.DynamicConfigService;
 @RestController
 @RequestMapping("/api/testing-support")
 @RequiredArgsConstructor
+@Tag(name = "Testing Support Controller")
 public class TestingSupportController {
 
     private final DynamicConfigService dynamicConfigService;
