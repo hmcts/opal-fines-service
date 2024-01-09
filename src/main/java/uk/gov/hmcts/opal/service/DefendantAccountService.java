@@ -10,7 +10,6 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AccountSummaryDto;
-import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummary;
@@ -24,7 +23,6 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcersRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
-import uk.gov.hmcts.opal.util.NamesUtil;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -92,10 +90,10 @@ public class DefendantAccountService {
             .build();
     }
 
-    public AccountDetailsDto getAccountDetailsByAccountSummary(AccountSummaryDto accountSummary) {
+    public AccountDetailsDto getAccountDetailsByDefendantAccountId(Long defendantAccountId) {
 
 
-        if ("test".equalsIgnoreCase(accountSummary.getCourt())) {
+        if (defendantAccountId.equals(0L)) {
 
 
             try (InputStream in = Thread.currentThread().getContextClassLoader()
@@ -104,7 +102,10 @@ public class DefendantAccountService {
                 ObjectMapper mapper = newObjectMapper();
                 AccountDetailsDto dto = mapper.readValue(in, AccountDetailsDto.class);
                 log.info(
-                    ":getAccountDetailsByAccountSummary: temporary Hack for Front End testing. Read JSON file: \n{}",
+                        """
+                        :getAccountDetailsByDefendantAccountId:
+                        " temporary Hack for Front End testing. Read JSON file: \n{}
+                        """,
                          dto.toPrettyJsonString());
                 return dto;
             } catch (Exception e) {
@@ -112,27 +113,14 @@ public class DefendantAccountService {
             }
         }
 
-        //split name into parts for db query
-        final String[] nameParts = NamesUtil.splitFullName(accountSummary.getName());
 
         //query db for defendantAccountPartiesEntity
         DefendantAccountPartiesEntity defendantAccountPartiesEntity = defendantAccountPartiesRepository
-            .findByDefendantAccountDetailsCustomQuery(
-                                                                            accountSummary.getAccountNo(),
-                                                                            accountSummary.getDateOfBirth(),
-                                                                            nameParts[0],
-                                                                            nameParts[1],
-                                                                            nameParts[2],
-                                                                            accountSummary.getAddressLine1(),
-                                                                            accountSummary.getBalance(),
-                                                                            accountSummary.getCourt());
+            .findByDefendantAccountId(defendantAccountId);
 
         //Extract unique defendantAccount and party entities
         final DefendantAccountEntity defendantAccountEntity = defendantAccountPartiesEntity.getDefendantAccount();
         final PartyEntity partyEntity = defendantAccountPartiesEntity.getParty();
-
-        //query DB for debtorDetailsEntity
-        DebtorDetailEntity debtorDetailEntity = debtorDetailRepository.findByParty_PartyId(partyEntity);
 
         //query DB for PaymentTermsEntity
         PaymentTermsEntity paymentTermsEntity = paymentTermsRepository.findByDefendantAccount_DefendantAccountId(
@@ -174,13 +162,10 @@ public class DefendantAccountService {
             .lastMovement(defendantAccountEntity.getLastMovementDate())
             .commentField(comments)
             .pcr(defendantAccountEntity.getProsecutorCaseReference())
-            .documentLanguage(debtorDetailEntity.getDocumentLanguage())
-            .hearingLanguage(debtorDetailEntity.getHearingLanguage())
             .paymentDetails(paymentDetails)
             .lumpSum(paymentTermsEntity.getInstalmentLumpSum())
             .commencing(paymentTermsEntity.getEffectiveDate())
             .daysInDefault(paymentTermsEntity.getJailDays())
-            .sentencedDate(defendantAccountEntity.getImposedHearingDate())
             .lastEnforcement(defendantAccountEntity.getLastEnforcement())
             .override(defendantAccountEntity.getEnforcementOverrideResultId())
             .enforcer(enforcersEntity.getEnforcerCode())
