@@ -154,8 +154,8 @@ public class DefendantAccountService {
         //build fullAddress
         final String fullAddress = buildFullAddress(partyEntity);
 
-        //build fullName
-        final String fullName = buildFullName(partyEntity);
+        //build organisationOrFullName
+        final String organisationOrFullName = getOrganisationOrFullName(partyEntity);
 
         //build paymentDetails
         final String paymentDetails = buildPaymentDetails(paymentTermsEntity);
@@ -167,7 +167,7 @@ public class DefendantAccountService {
         return AccountDetailsDto.builder()
             .defendantAccountId(defendantAccountEntity.getDefendantAccountId())
             .accountNumber(defendantAccountEntity.getAccountNumber())
-            .fullName(fullName)
+            .fullName(organisationOrFullName)
             .accountCT(defendantAccountEntity.getBusinessUnitId().getBusinessUnitName())
             .accountType(defendantAccountEntity.getOriginatorType())
             .address(fullAddress)
@@ -211,23 +211,14 @@ public class DefendantAccountService {
     }
 
 
-    private String buildFullName(PartyEntity partyEntity) {
+    private String getOrganisationOrFullName(PartyEntity partyEntity) {
 
         if (partyEntity.getOrganisationName() != null) {
 
             return partyEntity.getOrganisationName();
         }
 
-        List<String> nameParts = new ArrayList<>();
-
-        nameParts.add(partyEntity.getTitle());
-        nameParts.add(partyEntity.getForenames());
-        nameParts.add(partyEntity.getInitials());
-        nameParts.add(partyEntity.getSurname());
-
-        nameParts.removeIf(Objects::isNull);
-
-        return String.join(" ", nameParts);
+        return partyEntity.getFullName();
     }
 
     private String buildPaymentDetails(PaymentTermsEntity paymentTermsEntity) {
@@ -267,7 +258,7 @@ public class DefendantAccountService {
             .accountNo(summary.getAccountNumber())
             .court(summary.getImposingCourtId())
             .balance(summary.getAccountBalance())
-            .name(party.map(PartyDefendantAccountSummary::getName).orElse(""))
+            .name(party.map(PartyDefendantAccountSummary::getFullName).orElse(""))
             .addressLine1(party.map(PartyDefendantAccountSummary::getAddressLine1).orElse(""))
             .dateOfBirth(party.map(PartyDefendantAccountSummary::getDateOfBirth).orElse(null))
             .build();

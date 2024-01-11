@@ -27,7 +27,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PartyEntity {
+public class PartyEntity implements FullNameBuilder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "party_id_seq")

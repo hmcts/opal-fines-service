@@ -87,50 +87,50 @@ public class DefendantAccountSpecs {
 
     public static Specification<DefendantAccountEntity> likeSurname(String surname) {
         return (root, query, builder) -> {
-            return builder.like(joinPartyOnAssociationType(root, builder, "Defendant")
-                                    .get(PartyEntity_.surname), "%" + surname + "%");
+            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, "Defendant")
+                          .get(PartyEntity_.surname)), "%" + surname.toLowerCase() + "%");
         };
     }
 
     public static Specification<DefendantAccountEntity> likeForename(String forename) {
         return (root, query, builder) -> {
-            return builder.like(joinPartyOnAssociationType(root, builder, "Defendant")
-                                    .get(PartyEntity_.forenames), "%" + forename + "%");
+            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, "Defendant")
+                          .get(PartyEntity_.forenames)), "%" + forename.toLowerCase() + "%");
         };
     }
 
     public static Specification<DefendantAccountEntity> likeOrganisationName(String organisation) {
         return (root, query, builder) -> {
-            return builder.like(joinPartyOnAssociationType(root, builder, "Defendant")
-                                    .get(PartyEntity_.organisationName), "%" + organisation + "%");
+            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, "Defendant")
+                          .get(PartyEntity_.organisationName)), "%" + organisation.toLowerCase() + "%");
         };
     }
 
     public static Specification<DefendantAccountEntity> equalsDateOfBirth(LocalDate dob) {
         return (root, query, builder) -> {
             return builder.equal(joinPartyOnAssociationType(root, builder, "Defendant")
-                                     .get(PartyEntity_.dateOfBirth), dob);
+                          .get(PartyEntity_.dateOfBirth), dob);
         };
     }
 
     public static Specification<DefendantAccountEntity> likeNiNumber(String niNumber) {
         return (root, query, builder) -> {
-            return builder.like(joinPartyOnAssociationType(root, builder, "Defendant")
-                                     .get(PartyEntity_.niNumber), "%" + niNumber + "%");
+            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, "Defendant")
+                          .get(PartyEntity_.niNumber)), "%" + niNumber.toLowerCase() + "%");
         };
     }
 
     public static Specification<DefendantAccountEntity> likeAddressLine1(String addressLine) {
         return (root, query, builder) -> {
-            return builder.like(joinPartyOnAssociationType(root, builder, "Defendant")
-                                     .get(PartyEntity_.addressLine1), "%" + addressLine + "%");
+            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, "Defendant")
+                          .get(PartyEntity_.addressLine1)), "%" + addressLine.toLowerCase() + "%");
         };
     }
 
     public static Specification<DefendantAccountEntity> likeInitials(String initials) {
         return (root, query, builder) -> {
-            return builder.like(joinPartyOnAssociationType(root, builder, "Defendant")
-                                    .get(PartyEntity_.initials), "%" + initials + "%");
+            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, "Defendant")
+                          .get(PartyEntity_.initials)), "%" + initials.toLowerCase() + "%");
         };
     }
 
