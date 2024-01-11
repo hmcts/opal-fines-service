@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.Set;
 
 public interface DefendantAccountSummary {
@@ -25,21 +24,7 @@ public interface DefendantAccountSummary {
         PartyDefendantAccountSummary getParty();
     }
 
-    public interface PartyDefendantAccountSummary {
-
-        String getTitle();
-
-        String getForenames();
-
-        String getSurname();
-
-        /** The name of the defendant, being an aggregation of surname, firstnames and title. */
-        default String getName() {
-            String title = Optional.ofNullable(getTitle()).map(s -> s.concat(" ")).orElse("");
-            String forenames = Optional.ofNullable(getForenames()).map(s -> s.concat(" ")).orElse("");
-            String surname = Optional.ofNullable(getSurname()).orElse("");
-            return title.concat(forenames).concat(surname);
-        }
+    public interface PartyDefendantAccountSummary extends FullNameBuilder {
 
         /** The date of birth of the defendant. */
         LocalDate getDateOfBirth();

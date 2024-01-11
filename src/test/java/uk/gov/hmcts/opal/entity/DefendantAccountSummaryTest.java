@@ -17,9 +17,9 @@ public class DefendantAccountSummaryTest {
         when(mockSummary.getTitle()).thenReturn("Mr");
         when(mockSummary.getForenames()).thenReturn("JJ");
         when(mockSummary.getSurname()).thenReturn("Smith");
-        when(mockSummary.getName()).thenCallRealMethod();
+        when(mockSummary.getFullName()).thenCallRealMethod();
 
-        assertEquals("Mr JJ Smith", mockSummary.getName());
+        assertEquals("Mr JJ Smith", mockSummary.getFullName());
     }
 
 }
