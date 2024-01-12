@@ -12,4 +12,8 @@ public class AccountEnquiryDto implements ToJsonString {
     private Short businessUnitId;
     @JsonProperty("accountNumber")
     private String accountNumber;
+
+    public String toString() {
+        return toJson();
+    }
 }

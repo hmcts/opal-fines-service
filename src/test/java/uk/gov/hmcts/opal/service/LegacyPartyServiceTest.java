@@ -129,7 +129,7 @@ class LegacyPartyServiceTest {
         String jsonBody = createJsonBody1();
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
-        when(restTemplate.getForEntity(any(String.class), any(Class.class)))
+        when(restTemplate.getForEntity(any(String.class), any(Class.class), any(Long.class)))
             .thenReturn(successfulResponseEntity);
 
         // Act
@@ -148,7 +148,7 @@ class LegacyPartyServiceTest {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             null, HttpStatus.OK);
-        when(restTemplate.getForEntity(any(String.class), any(Class.class)))
+        when(restTemplate.getForEntity(any(String.class), any(Class.class), any(Long.class)))
             .thenReturn(unsuccessfulResponseEntity);
 
         // Act
@@ -170,7 +170,7 @@ class LegacyPartyServiceTest {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
-        when(restTemplate.getForEntity(any(String.class), any(Class.class)))
+        when(restTemplate.getForEntity(any(String.class), any(Class.class), any(Long.class)))
             .thenReturn(unsuccessfulResponseEntity);
 
         // Act
@@ -190,7 +190,7 @@ class LegacyPartyServiceTest {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.OK);
-        when(restTemplate.getForEntity(any(String.class), any(Class.class)))
+        when(restTemplate.getForEntity(any(String.class), any(Class.class), any(Long.class)))
             .thenReturn(unsuccessfulResponseEntity);
 
         // Act

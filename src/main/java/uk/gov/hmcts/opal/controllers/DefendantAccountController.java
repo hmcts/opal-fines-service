@@ -2,8 +2,8 @@ package uk.gov.hmcts.opal.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,18 +19,22 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/defendant-account")
 @Slf4j
-@RequiredArgsConstructor
 @Tag(name = "Defendant Account Controller")
 public class DefendantAccountController {
 
-    private final DefendantAccountService defendantAccountService;
+    private final DefendantAccountServiceInterface defendantAccountService;
+
+    public DefendantAccountController(@Qualifier("defendantAccountServiceProxy")
+                                      DefendantAccountServiceInterface defendantAccountService) {
+        this.defendantAccountService = defendantAccountService;
+    }
 
     @GetMapping
     @Operation(summary = "Searches for a defendant account in the Opal DB")
