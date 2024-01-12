@@ -43,7 +43,7 @@ import static uk.gov.hmcts.opal.dto.ToJsonString.newObjectMapper;
 @Transactional
 @Slf4j
 @RequiredArgsConstructor
-public class DefendantAccountService {
+public class DefendantAccountService implements DefendantAccountServiceInterface {
 
     private final DefendantAccountRepository defendantAccountRepository;
 
@@ -57,23 +57,27 @@ public class DefendantAccountService {
 
     private final NoteRepository noteRepository;
 
+    @Override
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
 
         return defendantAccountRepository.findByBusinessUnitId_BusinessUnitIdAndAccountNumber(
             request.getBusinessUnitId(), request.getAccountNumber());
     }
 
+    @Override
     public DefendantAccountEntity putDefendantAccount(DefendantAccountEntity defendantAccountEntity) {
 
         return defendantAccountRepository.save(defendantAccountEntity);
     }
 
+    @Override
     public List<DefendantAccountEntity> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
 
         log.info(":getDefendantAccountsByBusinessUnit: busUnit: {}", businessUnitId);
         return defendantAccountRepository.findAllByBusinessUnitId_BusinessUnitId(businessUnitId);
     }
 
+    @Override
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
 
         if ("test".equalsIgnoreCase(accountSearchDto.getCourt())) {

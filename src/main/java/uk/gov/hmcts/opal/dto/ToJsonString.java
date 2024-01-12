@@ -12,10 +12,26 @@ public interface ToJsonString {
             .writeValueAsString(this);
     }
 
+    default String toJson() {
+        try {
+            return toJsonString();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     default String toPrettyJsonString() throws JsonProcessingException {
         return newObjectMapper()
             .writerWithDefaultPrettyPrinter()
             .writeValueAsString(this);
+    }
+
+    default String toPrettyJson() {
+        try {
+            return toPrettyJsonString();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     default JsonNode toJsonNode() throws JsonProcessingException {
