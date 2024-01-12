@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.steps;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.restassured.response.Response;
 import net.serenitybdd.rest.SerenityRest;
 import org.hamcrest.Matchers;
 import org.json.JSONException;
@@ -13,28 +12,30 @@ import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 
-public class defendantSearchApiStepDef extends BaseStepDef {
+public class DefendantSearchApiStepDef extends BaseStepDef {
 
-    private ThreadLocal<Response> apiResponse = new ThreadLocal<>();
     @When("I make a call to the defendant search API using the parameters")
     public void postToDefendantSearchAPI(DataTable searchCriteria) throws JSONException {
         Map<String, String> dataToPost = searchCriteria.asMap(String.class, String.class);
 
         JSONObject requestBody = new JSONObject();
-        JSONObject dateOfBirth = new JSONObject();
 
         requestBody.put("forename", dataToPost.get("forename") != null ? dataToPost.get("forename") : "");
         requestBody.put("surname", dataToPost.get("surname") != null ? dataToPost.get("surname") : "");
         requestBody.put("initials", dataToPost.get("initials") != null ? dataToPost.get("initials") : "");
 
+        JSONObject dateOfBirth = new JSONObject();
         dateOfBirth.put("dayOfMonth", dataToPost.get("dayOfMonth") != null ? dataToPost.get("dayOfMonth") : "");
         dateOfBirth.put("monthOfYear", dataToPost.get("monthOfYear") != null ? dataToPost.get("monthOfYear") : "");
         dateOfBirth.put("year", dataToPost.get("year") != null ? dataToPost.get("year") : "");
         requestBody.put("dateOfBirth", dateOfBirth);
 
-        requestBody.put("addressLineOne", dataToPost.get("addressLineOne") != null ? dataToPost.get("addressLineOne") : "");
+        requestBody.put(
+            "addressLineOne",
+            dataToPost.get("addressLineOne") != null ? dataToPost.get("addressLineOne") : ""
+        );
 
-            SerenityRest.given()
+        SerenityRest.given()
             .accept("*/*")
             .contentType("application/json")
             .body(requestBody.toString())
@@ -80,17 +81,19 @@ public class defendantSearchApiStepDef extends BaseStepDef {
             }
             if (expectedResult.get("dateOfBirth") != null) {
                 then().assertThat()
-                .body(
-                    "searchResults.dateOfBirth[" + index + "]",
-                    Matchers.containsString(expectedResult.get("dateOfBirth")));
-        }
+                    .body(
+                        "searchResults.dateOfBirth[" + index + "]",
+                        Matchers.containsString(expectedResult.get("dateOfBirth"))
+                );
+            }
             if (expectedResult.get("addressLine1") != null) {
                 then().assertThat()
-            .body(
-                "searchResults.addressLine1[" + index + "]",
-                Matchers.containsString(expectedResult.get("addressLine1")));
-    }
-        index++;
-    }
+                    .body(
+                        "searchResults.addressLine1[" + index + "]",
+                        Matchers.containsString(expectedResult.get("addressLine1"))
+                );
+            }
+            index++;
+        }
     }
 }
