@@ -63,6 +63,9 @@ public class AccountDetailsDto implements ToJsonString {
     //payment_terms.jail_days
     private int daysInDefault;
 
+    //defendant_account.imposed_hearing_date
+    private LocalDate sentencedDate;
+
     //defendant_accounts.last_enforcement
     private String lastEnforcement;
 
