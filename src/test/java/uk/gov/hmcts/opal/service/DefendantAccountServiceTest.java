@@ -317,7 +317,6 @@ class DefendantAccountServiceTest {
             .accountNumber("100")
             .fullName("Mr John Smith")
             .accountCT("CT")
-            .accountType("ACC")
             .address("1 High Street, Westminster, London")
             .postCode("W1 1AA")
             .dob(LocalDate.of(1979,12,12))
@@ -337,7 +336,6 @@ class DefendantAccountServiceTest {
             .enforcementCourt(1)
             .imposed(BigDecimal.valueOf(200.00))
             .amountPaid(BigDecimal.valueOf(100.00))
-            .arrears(BigDecimal.valueOf(100.00))
             .balance(BigDecimal.valueOf(100.00))
             .build();
     }

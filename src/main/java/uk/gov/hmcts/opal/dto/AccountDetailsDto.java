@@ -27,9 +27,6 @@ public class AccountDetailsDto implements ToJsonString {
     // business_units.business_unit_type
     private String accountCT;
 
-    //defendant_accounts.originator_reference
-    private String accountType;
-
     //parties.address_line_(*)
     private String address;
 
@@ -83,9 +80,6 @@ public class AccountDetailsDto implements ToJsonString {
 
     //defendant_accounts.amount_paid
     private BigDecimal amountPaid;
-
-    //defendant_accounts.account_balance
-    private BigDecimal arrears;
 
     //defendant_accounts.account_balance
     private BigDecimal balance;

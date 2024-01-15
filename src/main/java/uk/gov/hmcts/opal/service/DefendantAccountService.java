@@ -173,7 +173,6 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .accountNumber(defendantAccountEntity.getAccountNumber())
             .fullName(organisationOrFullName)
             .accountCT(defendantAccountEntity.getBusinessUnitId().getBusinessUnitName())
-            .accountType(defendantAccountEntity.getOriginatorType())
             .address(fullAddress)
             .postCode(partyEntity.getPostcode())
             .dob(partyEntity.getDateOfBirth())
@@ -195,7 +194,6 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .enforcementCourt(defendantAccountEntity.getEnforcingCourtId().getCourtCode())
             .imposed(defendantAccountEntity.getAmountImposed())
             .amountPaid(defendantAccountEntity.getAmountPaid())
-            .arrears(defendantAccountEntity.getAccountBalance())
             .balance(defendantAccountEntity.getAccountBalance())
             .build();
     }
