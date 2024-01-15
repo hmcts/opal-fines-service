@@ -103,7 +103,7 @@ class LegacyPartyServiceTest {
         final PartyDto inputPartyDto = new PartyDto();
 
 
-        String jsonBody = createJsonBody2();
+        String jsonBody = createBrokenJson();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.OK);
@@ -186,7 +186,7 @@ class LegacyPartyServiceTest {
     void getParty_ErrorResponse() throws Exception {
         // Arrange
 
-        String jsonBody = createJsonBody2();
+        String jsonBody = createBrokenJson();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.OK);
@@ -237,7 +237,7 @@ class LegacyPartyServiceTest {
             """;
     }
 
-    private static String createJsonBody2() {
+    private static String createBrokenJson() {
         return """
             {
               "organisation" : false,
