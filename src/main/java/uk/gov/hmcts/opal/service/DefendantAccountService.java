@@ -188,6 +188,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                             ? paymentTermsEntity.getEffectiveDate()
                             : null)
             .daysInDefault(paymentTermsEntity.getJailDays())
+            .sentencedDate(defendantAccountEntity.getImposedHearingDate())
             .lastEnforcement(defendantAccountEntity.getLastEnforcement())
             .override(defendantAccountEntity.getEnforcementOverrideResultId())
             .enforcer(enforcersEntity.getEnforcerCode())
