@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:element name="defendantAccountSearchResults">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="defendantAccountsSearchResult" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="defendant_account_id" type="xsd:long" minOccurs="1" maxOccurs="1"/>
+                            <xsd:element name="account_number" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                            <xsd:element name="business_unit_id" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+                            <xsd:element name="business_unit_name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                            <xsd:element name="organisation" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+                            <xsd:element name="organisation_name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                            <xsd:element name="surname" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                            <xsd:element name="forenames" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                            <xsd:element name="initials" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+                            <xsd:element name="birth_date" type="xsd:dateTime" minOccurs="0" maxOccurs="1"/>
+                            <xsd:element name="address_line_1" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+                            <xsd:element name="account_balance" type="xsd:double" minOccurs="1" maxOccurs="1"/>
+                            <xsd:element name="rowNumber" type="xsd:long" minOccurs="1" maxOccurs="1"/>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+</xsd:schema>
