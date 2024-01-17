@@ -39,4 +39,10 @@ public class DefendantAccountDetailsStefDef extends BaseStepDef {
         }
 
     }
+
+    @Then("the response from the defendant account details api is empty")
+    public void responseFromTheDefendantAccountDetailsApiIsInvalid() {
+        then().assertThat()
+            .statusCode(403);
+    }
 }
