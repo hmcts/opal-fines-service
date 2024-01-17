@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:element name="note">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="associated_record_id" type="xsd:string"/>
+                <xsd:element name="associated_record_type" type="recordType"/>
+                <xsd:element name="note_text" type="xsd:string"/>
+                <xsd:element name="posted_by" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+    <xsd:simpleType name="recordType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="defendant_accounts"/>
+            <xsd:enumeration value="creditor_accounts"/>
+            <xsd:enumeration value="suspense_accounts"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>
