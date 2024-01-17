@@ -11,6 +11,8 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountSearchCriteria;
+import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountsSearchResults;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,9 +22,9 @@ import java.util.List;
 public class LegacyDefendantAccountService extends LegacyService implements DefendantAccountServiceInterface {
 
     public static final String GET_DEFENDANT_ACCOUNT_BY_ID = "getDefendantAccountById";
-    public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
     public static final String PUT_DEFENDANT_ACCOUNT = "putDefendantAccount";
     public static final String GET_DEFENDANT_ACCOUNT = "getDefendantAccount";
+    public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
 
     @Autowired
     protected LegacyDefendantAccountService(@Value("${legacy-gateway-url}") String gatewayUrl,
@@ -55,7 +57,9 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
     @Override
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.info("Search for defendantAccounts with criteria {} via gateway {}", accountSearchDto.toJson(), gatewayUrl);
-        return postToGateway(SEARCH_DEFENDANT_ACCOUNTS, AccountSearchResultsDto.class, accountSearchDto);
+        return postToGateway(SEARCH_DEFENDANT_ACCOUNTS, DefendantAccountsSearchResults.class,
+                             DefendantAccountSearchCriteria.fromAccountSearchDto(accountSearchDto))
+            .toAccountSearchResultsDto();
     }
 
     @Override
