@@ -21,10 +21,10 @@ import java.util.List;
 @Slf4j
 public class LegacyDefendantAccountService extends LegacyService implements DefendantAccountServiceInterface {
 
-    public static final String GET_DEFENDANT_ACCOUNT_BY_ID = "getDefendantAccountById";
+    public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
     public static final String PUT_DEFENDANT_ACCOUNT = "putDefendantAccount";
     public static final String GET_DEFENDANT_ACCOUNT = "getDefendantAccount";
-    public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
+    public static final String GET_ACCOUNT_DETAILS = "getAccountDetails";
 
     @Autowired
     protected LegacyDefendantAccountService(@Value("${legacy-gateway-url}") String gatewayUrl,
