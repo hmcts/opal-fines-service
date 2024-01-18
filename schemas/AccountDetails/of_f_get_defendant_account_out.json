@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "defendant_account": {
+      "type": "object",
+      "properties": {
+        "defendant_account_id": { "type": "integer" },
+        "account_number": { "type": "string" },
+        "amount_imposed": { "type": "number" },
+        "amount_paid": { "type": "number" },
+        "account_balance": { "type": "number" },
+        "business_unit_id": { "type": "integer" },
+        "business_unit_name": { "type": "string" },
+        "account_status": { "type": "string" },
+        "originator_name": { "type": "string" },
+        "imposed_hearing_date": { "type": "string", "format": "date-time" },
+        "imposing_court_code": { "type": "integer" },
+        "last_hearing_date": { "type": "string", "format": "date-time" },
+        "last_hearing_court_code": { "type": "integer" },
+        "last_changed_date": { "type": "string", "format": "date-time" },
+        "last_movement_date": { "type": "string", "format": "date-time" },
+        "collection_order": { "type": "boolean" },
+        "enforcing_court_code": { "type": "integer" },
+        "last_enforcement": { "type": "integer" },
+        "enf_override_result_id": { "type": "string" },
+        "enf_override_enforcer_code": { "type": "integer" },
+        "enf_override_tfo_lja_code": { "type": "integer" },
+        "prosecutor_case_reference": { "type": "string" },
+        "account_comments": { "type": "string" },
+        "payment_terms": {
+          "type": "object",
+          "properties": {
+            "terms_date": { "type": "string", "format": "date-time" },
+            "terms_type_code": { "type": "string" },
+            "instalment_amount": { "type": "number" },
+            "instalment_period": { "type": "string" },
+            "instalment_lump_sum": { "type": "number" },
+            "jail_days": { "type": "integer" },
+            "wording": { "type": "string" }
+          }
+        },
+        "parties": {
+          "type": "object",
+          "properties": {
+            "party": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "party_id": { "type": "integer" },
+                  "association_type": { "type": "string" },
+                  "debtor": { "type": "boolean" },
+                  "organisation": { "type": "boolean" },
+                  "organisation_name": { "type": "string" },
+                  "surname": { "type": "string" },
+                  "forenames": { "type": "string" },
+                  "initials": { "type": "string" },
+                  "title": { "type": "string" },
+                  "birth_date": { "type": "string", "format": "date-time" },
+                  "age": { "type": "integer" },
+                  "national_insurance_number": { "type": "string" },
+                  "last_changed_date": { "type": "string", "format": "date-time" },
+                  "full_name": { "type": "string" },
+                  "address_line_1": { "type": "string" },
+                  "address_line_2": { "type": "string" },
+                  "address_line_3": { "type": "string" },
+                  "address_line_4": { "type": "string" },
+                  "address_line_5": { "type": "string" },
+                  "postcode": { "type": "string" }
+                },
+                "required": ["party_id", "association_type", "debtor", "organisation", "address_line_1", "postcode"]
+              }
+            }
+          }
+        },
+        "impositions": {
+          "type": "object",
+          "properties": {
+            "imposition": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "imposition_id": { "type": "integer" },
+                  "posted_date": { "type": "string", "format": "date-time" },
+                  "result_id": { "type": "string" },
+                  "imposed_date": { "type": "string", "format": "date-time" },
+                  "imposing_court_code": { "type": "integer" },
+                  "imposed_amount": { "type": "number" },
+                  "paid_amount": { "type": "number" },
+                  "offence_title": { "type": "string" },
+                  "creditor_account_number": { "type": "string" },
+                  "creditor_name": { "type": "string" }
+                },
+                "required": ["imposition_id", "posted_date", "result_id", "imposed_date", "offence_title"]
+              }
+            }
+          }
+        },
+        "account_activities": {
+          "type": "object",
+          "properties": {
+            "account_activity": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "activity_id": { "type": "integer" },
+                  "activity_type": { "type": "string" },
+                  "activity_type_code": { "type": "string" },
+                  "activity_text": { "type": "string" },
+                  "posted_date": { "type": "string", "format": "date-time" },
+                  "posted_by": { "type": "string" },
+                  "amount": { "type": "number" }
+                },
+                "required": ["activity_id", "activity_type", "posted_date", "activity_text"]
+              }
+            }
+          }
+        }
+      },
+      "required": ["defendant_account_id", "account_number", "amount_imposed", "amount_paid", "account_balance", "business_unit_id", "business_unit_name", "account_status", "originator_name", "imposing_court_code", "last_hearing_date", "last_hearing_court_code", "last_changed_date", "last_movement_date", "collection_order", "enforcing_court_code", "last_enforcement", "prosecutor_case_reference"]
+    }
+  }
+}
