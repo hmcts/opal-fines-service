@@ -6,10 +6,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.authentication.service.AzureJwtService;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
-import uk.gov.hmcts.opal.service.JwtService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,7 +28,7 @@ class TestingSupportControllerTest {
     private FeatureToggleService featureToggleService;
 
     @MockBean
-    private JwtService jwtService;
+    private AzureJwtService azureJwtService;
 
     @Test
     void getAppMode() {
