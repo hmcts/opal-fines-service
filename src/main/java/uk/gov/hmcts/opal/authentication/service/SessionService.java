@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.authentication.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.authentication.component.SessionCache;
 import uk.gov.hmcts.opal.authentication.model.Session;
 
 @Service

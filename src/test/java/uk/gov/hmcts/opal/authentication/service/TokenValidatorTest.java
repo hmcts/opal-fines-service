@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.authentication.component.impl;
+package uk.gov.hmcts.opal.authentication.service;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
@@ -19,10 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.authentication.component.TokenValidator;
 import uk.gov.hmcts.opal.authentication.config.AuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.AuthProviderConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.model.JwtValidationResult;
+import uk.gov.hmcts.opal.authentication.service.TokenValidator;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings({"PMD.ExcessiveImports"})
-class TokenValidatorImplTest {
+class TokenValidatorTest {
 
     private static final String KEY_ID_VALUE = "123456";
     private static final String VALID_ISSUER_VALUE = "VALID ISSUER VALUE";
@@ -71,7 +71,7 @@ class TokenValidatorImplTest {
         when(authenticationConfiguration.getIssuerUri()).thenReturn(VALID_ISSUER_VALUE);
         when(authenticationConfiguration.getClientId()).thenReturn(VALID_AUDIENCE_VALUE);
 
-        tokenValidator = new TokenValidatorImpl();
+        tokenValidator = new TokenValidator();
     }
 
     @Test
@@ -91,9 +91,11 @@ class TokenValidatorImplTest {
 
         SignedJWT jwt = createSignedJwt(jwtClaimsSet);
 
-        JwtValidationResult validationResult = tokenValidator.validate(jwt.serialize(),
-                                                                       authenticationProviderConfiguration,
-                                                                       authenticationConfiguration);
+        JwtValidationResult validationResult = tokenValidator.validate(
+            jwt.serialize(),
+            authenticationProviderConfiguration,
+            authenticationConfiguration
+        );
 
         assertTrue(validationResult.valid());
         assertNull(validationResult.reason());
@@ -112,9 +114,11 @@ class TokenValidatorImplTest {
 
         SignedJWT jwt = createSignedJwt(jwtClaimsSet);
 
-        JwtValidationResult validationResult = tokenValidator.validate(jwt.serialize(),
-                                                                       authenticationProviderConfiguration,
-                                                                       authenticationConfiguration);
+        JwtValidationResult validationResult = tokenValidator.validate(
+            jwt.serialize(),
+            authenticationProviderConfiguration,
+            authenticationConfiguration
+        );
 
         assertFalse(validationResult.valid());
         assertEquals("JWT missing required claims: [emails]", validationResult.reason());
@@ -133,9 +137,11 @@ class TokenValidatorImplTest {
 
         SignedJWT jwt = createSignedJwt(jwtClaimsSet);
 
-        JwtValidationResult validationResult = tokenValidator.validate(jwt.serialize(),
-                                                                       authenticationProviderConfiguration,
-                                                                       authenticationConfiguration);
+        JwtValidationResult validationResult = tokenValidator.validate(
+            jwt.serialize(),
+            authenticationProviderConfiguration,
+            authenticationConfiguration
+        );
 
         assertFalse(validationResult.valid());
         assertEquals("JWT missing required claims: [sub]", validationResult.reason());
@@ -154,9 +160,11 @@ class TokenValidatorImplTest {
 
         SignedJWT jwt = createSignedJwt(jwtClaimsSet);
 
-        JwtValidationResult validationResult = tokenValidator.validate(jwt.serialize(),
-                                                                       authenticationProviderConfiguration,
-                                                                       authenticationConfiguration);
+        JwtValidationResult validationResult = tokenValidator.validate(
+            jwt.serialize(),
+            authenticationProviderConfiguration,
+            authenticationConfiguration
+        );
 
         assertFalse(validationResult.valid());
         assertEquals("JWT missing required claims: [iat]", validationResult.reason());
@@ -175,9 +183,11 @@ class TokenValidatorImplTest {
 
         SignedJWT jwt = createSignedJwt(jwtClaimsSet);
 
-        JwtValidationResult validationResult = tokenValidator.validate(jwt.serialize(),
-                                                                       authenticationProviderConfiguration,
-                                                                       authenticationConfiguration);
+        JwtValidationResult validationResult = tokenValidator.validate(
+            jwt.serialize(),
+            authenticationProviderConfiguration,
+            authenticationConfiguration
+        );
 
         assertFalse(validationResult.valid());
         assertEquals("JWT audience rejected: [INVALID AUDIENCE VALUE]", validationResult.reason());
@@ -197,9 +207,11 @@ class TokenValidatorImplTest {
 
         SignedJWT jwt = createSignedJwt(jwtClaimsSet);
 
-        JwtValidationResult validationResult = tokenValidator.validate(jwt.serialize(),
-                                                                       authenticationProviderConfiguration,
-                                                                       authenticationConfiguration);
+        JwtValidationResult validationResult = tokenValidator.validate(
+            jwt.serialize(),
+            authenticationProviderConfiguration,
+            authenticationConfiguration
+        );
 
         assertFalse(validationResult.valid());
         assertEquals(
@@ -222,9 +234,11 @@ class TokenValidatorImplTest {
 
         SignedJWT jwt = createSignedJwt(jwtClaimsSet);
 
-        JwtValidationResult validationResult = tokenValidator.validate(jwt.serialize(),
-                                                                       authenticationProviderConfiguration,
-                                                                       authenticationConfiguration);
+        JwtValidationResult validationResult = tokenValidator.validate(
+            jwt.serialize(),
+            authenticationProviderConfiguration,
+            authenticationConfiguration
+        );
 
         assertFalse(validationResult.valid());
         assertEquals("Expired JWT", validationResult.reason());
@@ -249,9 +263,11 @@ class TokenValidatorImplTest {
             .add("I AM A MANGLED SIGNATURE")
             .toString();
 
-        JwtValidationResult validationResult = tokenValidator.validate(jwtWithMangledSignature,
-                                                                       authenticationProviderConfiguration,
-                                                                       authenticationConfiguration);
+        JwtValidationResult validationResult = tokenValidator.validate(
+            jwtWithMangledSignature,
+            authenticationProviderConfiguration,
+            authenticationConfiguration
+        );
 
         assertFalse(validationResult.valid());
         assertEquals("Signed JWT rejected: Invalid signature", validationResult.reason());
@@ -261,9 +277,11 @@ class TokenValidatorImplTest {
     void validateShouldThrowExceptionWhenNonParsableTokenIsPresented() {
         String jwt = "I AM NOT PARSABLE AS A JWT";
 
-        JwtValidationResult validationResult = tokenValidator.validate(jwt,
-                                                                       authenticationProviderConfiguration,
-                                                                       authenticationConfiguration);
+        JwtValidationResult validationResult = tokenValidator.validate(
+            jwt,
+            authenticationProviderConfiguration,
+            authenticationConfiguration
+        );
 
         assertFalse(validationResult.valid());
         assertEquals(

@@ -6,7 +6,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.authentication.component.TokenValidator;
 import uk.gov.hmcts.opal.authentication.config.AuthStrategySelector;
 import uk.gov.hmcts.opal.authentication.config.AuthenticationConfigurationPropertiesStrategy;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;

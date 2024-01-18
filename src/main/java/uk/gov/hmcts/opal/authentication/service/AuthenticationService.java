@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.authentication.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.authentication.component.TokenValidator;
 import uk.gov.hmcts.opal.authentication.config.AuthStrategySelector;
 import uk.gov.hmcts.opal.authentication.config.AuthenticationConfigurationPropertiesStrategy;
 import uk.gov.hmcts.opal.authentication.dao.AzureDao;
