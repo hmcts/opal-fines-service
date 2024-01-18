@@ -29,8 +29,7 @@
         <xsd:element name="payment_terms">
           <xsd:complexType>
             <xsd:sequence>
-              <xsd:element type="xsd:long" name="payment_terms_id" minOccurs="0"/>
-              <xsd:element type="xsd:dateTime" name="effective_date" minOccurs="0"/>
+              <xsd:element type="xsd:dateTime" name="terms_date" minOccurs="0"/>
               <xsd:element type="xsd:string" name="terms_type_code"/>
               <xsd:element type="xsd:double" name="instalment_amount" minOccurs="0"/>
               <xsd:element type="xsd:string" name="instalment_period" minOccurs="0"/>
@@ -80,7 +79,7 @@
                   <xsd:sequence>
                     <xsd:element type="xsd:long" name="imposition_id"/>
                     <xsd:element type="xsd:dateTime" name="posted_date"/>
-                    <xsd:element type="xsd:string" name="result_code"/>
+                    <xsd:element type="xsd:string" name="result_id"/>
                     <xsd:element type="xsd:dateTime" name="imposed_date"/>
                     <xsd:element type="xsd:int" name="imposing_court_code"/>
                     <xsd:element type="xsd:double" name="imposed_amount"/>
@@ -103,6 +102,7 @@
                     <xsd:element type="xsd:long" name="activity_id"/>
                     <xsd:element type="xsd:string" name="activity_type"/>
                     <xsd:element type="xsd:string" name="activity_type_code"/>
+                    <xsd:element type="xsd:string" name="activity_text"/>
                     <xsd:element type="xsd:dateTime" name="posted_date"/>
                     <xsd:element type="xsd:string" name="posted_by" minOccurs="0"/>
                     <xsd:element type="xsd:double" name="amount" minOccurs="0"/>

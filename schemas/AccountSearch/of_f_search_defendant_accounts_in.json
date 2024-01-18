@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "defendantAccountSearchCriteria": {
+      "type": "object",
+      "properties": {
+        "account_number": { "type": "string" },
+        "business_unit_id": { "type": "integer" },
+        "organisation": { "type": "boolean" },
+        "organisation_name": { "type": "string" },
+        "surname": { "type": "string" },
+        "forenames": { "type": "string" },
+        "initials": { "type": "string" },
+        "birth_date": { "type": "string", "format": "date-time" },
+        "national_insurance_number": { "type": "string" },
+        "prosecutor_case_reference": { "type": "string" },
+        "address_line_1": { "type": "string" },
+        "searchAliases": { "type": "boolean" },
+        "liveOnly": { "type": "boolean" },
+        "firstRowNumber": { "type": "integer" },
+        "lastRowNumber": { "type": "integer" }
+      },
+      "required": ["firstRowNumber", "lastRowNumber"]
+    }
+  }
+}
