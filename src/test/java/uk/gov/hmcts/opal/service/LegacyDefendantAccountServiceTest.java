@@ -13,6 +13,8 @@ import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountSearchCriteria;
+import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountsSearchResults;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -202,11 +204,12 @@ class LegacyDefendantAccountServiceTest {
     @SuppressWarnings("unchecked")
     void searchForParty_SuccessfulResponse() throws Exception {
         // Arrange
-        AccountSearchResultsDto resultsDto = AccountSearchResultsDto.builder().totalCount(9L).build();
+        DefendantAccountsSearchResults resultsDto = DefendantAccountsSearchResults.builder()
+            .totalCount(9L).build();
         String jsonBody = ToJsonString.newObjectMapper().writeValueAsString(resultsDto);
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
-        when(restTemplate.postForEntity(any(String.class), any(AccountSearchDto.class), any(Class.class)))
+        when(restTemplate.postForEntity(any(String.class), any(DefendantAccountSearchCriteria.class), any(Class.class)))
             .thenReturn(successfulResponseEntity);
         // Act
         AccountSearchResultsDto searchResultsDto = legacyDefendantAccountService
