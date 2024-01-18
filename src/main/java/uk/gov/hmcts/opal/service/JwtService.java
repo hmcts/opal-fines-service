@@ -14,7 +14,7 @@ public class JwtService {
     private static final long EXPIRATION_TIME_MS = 3600000; // 1 hour in milliseconds
 
     public JwtService(
-        @Value("spring.security.oauth2.client.registration.internal-azure-ad.client-secret") String secretKey) {
+        @Value("${spring.security.oauth2.client.registration.internal-azure-ad.client-secret}") String secretKey) {
         this.secretKey = secretKey;
     }
 
@@ -26,7 +26,7 @@ public class JwtService {
             .setSubject(username)
             .setIssuedAt(now)
             .setExpiration(expiration)
-            .signWith(SignatureAlgorithm.HS256, this.secretKey)
+//            .signWith(SignatureAlgorithm.HS256, this.secretKey)
             .compact();
     }
 }
