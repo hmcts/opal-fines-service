@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j(topic = "DefendantAccountServiceProxy")
 @Qualifier("defendantAccountServiceProxy")
 public class DefendantAccountServiceProxy implements DefendantAccountServiceInterface, LegacyProxy {
 
@@ -41,6 +43,7 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
 
     @Override
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
+        log.info(":searchDefendantAccounts: isLegacyMode: {}", isLegacyMode(dynamicConfigService));
         return getCurrentModeService().searchDefendantAccounts(accountSearchDto);
     }
 
