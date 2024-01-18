@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.authentication.service.impl;
+package uk.gov.hmcts.opal.authentication.service;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verify;
@@ -14,13 +14,13 @@ import uk.gov.hmcts.opal.authentication.component.SessionCache;
 import uk.gov.hmcts.opal.authentication.model.Session;
 
 @ExtendWith(MockitoExtension.class)
-class SessionServiceImplTest {
+class SessionServiceTest {
 
     @Mock
     private SessionCache sessionCache;
 
     @InjectMocks
-    private SessionServiceImpl sessionService;
+    private SessionService sessionService;
 
     @Test
     void testGetSession() {
