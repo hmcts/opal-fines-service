@@ -31,6 +31,8 @@ import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyLink;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyDefendantAccountSummary;
 
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -156,13 +158,17 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
 
         //build fullAddress
-        final String fullAddress = buildFullAddress(partyEntity);
-
-        //build organisationOrFullName
-        final String organisationOrFullName = getOrganisationOrFullName(partyEntity);
+        final String fullAddress = buildFullAddress(partyEntity.getAddressLine1(),
+                                                    partyEntity.getAddressLine2(),
+                                                    partyEntity.getAddressLine3(),
+                                                    partyEntity.getAddressLine4(),
+                                                    partyEntity.getAddressLine5());
 
         //build paymentDetails
-        final String paymentDetails = buildPaymentDetails(paymentTermsEntity);
+        final String paymentDetails = buildPaymentDetails(paymentTermsEntity.getTermsTypeCode(),
+                                                          paymentTermsEntity.getInstalmentAmount(),
+                                                          paymentTermsEntity.getInstalmentPeriod(),
+                                                          paymentTermsEntity.getEffectiveDate());
 
         //build comments
         final List<String> comments = buildCommentsFromAssociatedNotes(noteEntity);
@@ -171,7 +177,9 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
         return AccountDetailsDto.builder()
             .defendantAccountId(defendantAccountEntity.getDefendantAccountId())
             .accountNumber(defendantAccountEntity.getAccountNumber())
-            .fullName(organisationOrFullName)
+            .fullName(partyEntity.getOrganisationName() == null
+                          ? partyEntity.getFullName()
+                          : partyEntity.getOrganisationName())
             .accountCT(defendantAccountEntity.getBusinessUnitId().getBusinessUnitName())
             .address(fullAddress)
             .postCode(partyEntity.getPostcode())
@@ -199,50 +207,46 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .build();
     }
 
-    private String buildFullAddress(PartyEntity partyEntity) {
+    public static String buildFullAddress(String addressLine1,
+                                          String addressLine2,
+                                          String addressLine3,
+                                          String addressLine4,
+                                          String addressLine5) {
+
         List<String> addressLines = new ArrayList<>();
 
-        addressLines.add(partyEntity.getAddressLine1());
-        addressLines.add(partyEntity.getAddressLine2());
-        addressLines.add(partyEntity.getAddressLine3());
-        addressLines.add(partyEntity.getAddressLine4());
-        addressLines.add(partyEntity.getAddressLine5());
+        addressLines.add(addressLine1);
+        addressLines.add(addressLine2);
+        addressLines.add(addressLine3);
+        addressLines.add(addressLine4);
+        addressLines.add(addressLine5);
 
         addressLines.removeIf(Objects::isNull);
 
         return String.join(", ", addressLines);
     }
 
+    public static String buildPaymentDetails(String termsTypeCode,
+                                             BigDecimal installmentAmount,
+                                             String instalmentPeriod,
+                                             LocalDate effectiveDate) {
 
-    private String getOrganisationOrFullName(PartyEntity partyEntity) {
-
-        if (partyEntity.getOrganisationName() != null) {
-
-            return partyEntity.getOrganisationName();
-        }
-
-        return partyEntity.getFullName();
-    }
-
-    private String buildPaymentDetails(PaymentTermsEntity paymentTermsEntity) {
-        final String paymentType = paymentTermsEntity.getTermsTypeCode();
-
-        return switch (paymentType) {
-            case "I" -> buildInstalmentDetails(paymentTermsEntity);
-            case "B" -> buildByDateDetails(paymentTermsEntity);
+        return switch (termsTypeCode) {
+            case "I" -> buildInstalmentDetails(installmentAmount, instalmentPeriod);
+            case "B" -> buildByDateDetails(effectiveDate);
             default -> "Paid";
         };
     }
 
-    private String buildInstalmentDetails(PaymentTermsEntity paymentTermsEntity) {
-        return paymentTermsEntity.getInstalmentAmount() + " / " + paymentTermsEntity.getInstalmentPeriod();
+    public static String buildInstalmentDetails(BigDecimal installmentAmount, String installmentPeriod) {
+        return installmentAmount + " / " + installmentPeriod;
     }
 
-    private String buildByDateDetails(PaymentTermsEntity paymentTermsEntity) {
-        return paymentTermsEntity.getEffectiveDate() + " By Date";
+    public static String buildByDateDetails(LocalDate effectiveDate) {
+        return effectiveDate + " By Date";
     }
 
-    private List<String> buildCommentsFromAssociatedNotes(List<NoteEntity> notes) {
+    public static List<String> buildCommentsFromAssociatedNotes(List<NoteEntity> notes) {
 
         List<String> comments = new ArrayList<>();
 
