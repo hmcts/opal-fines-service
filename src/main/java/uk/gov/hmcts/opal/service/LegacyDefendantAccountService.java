@@ -56,9 +56,9 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
 
     @Override
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
-        log.info("Search for defendantAccounts with criteria {} via gateway {}", accountSearchDto.toJson(), gatewayUrl);
-        return postToGateway(SEARCH_DEFENDANT_ACCOUNTS, DefendantAccountsSearchResults.class,
-                             DefendantAccountSearchCriteria.fromAccountSearchDto(accountSearchDto))
+        DefendantAccountSearchCriteria criteria = DefendantAccountSearchCriteria.fromAccountSearchDto(accountSearchDto);
+        log.info(":searchDefendantAccounts: criteria: {} via gateway {}", criteria.toJson(), gatewayUrl);
+        return postToGateway(SEARCH_DEFENDANT_ACCOUNTS, DefendantAccountsSearchResults.class, criteria)
             .toAccountSearchResultsDto();
     }
 
