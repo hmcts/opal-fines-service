@@ -65,7 +65,7 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
     @Override
     public AccountDetailsDto getAccountDetailsByDefendantAccountId(Long defendantAccountId) {
         log.info("Get defendant account for id: {}", defendantAccountId);
-        return getFromGateway(GET_DEFENDANT_ACCOUNT_BY_ID, AccountDetailsDto.class, defendantAccountId);
+        return getFromGateway(GET_ACCOUNT_DETAILS, AccountDetailsDto.class, defendantAccountId);
     }
 
 }
