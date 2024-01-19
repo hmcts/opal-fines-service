@@ -1,14 +1,21 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 @Builder
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@JsonRootName(value = "party")
 class PartyDto {
+
     @JsonProperty("party_id")
     private Integer partyId;
 

@@ -10,6 +10,8 @@ import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsRequestDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountsSearchResults;
@@ -65,7 +67,16 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
     @Override
     public AccountDetailsDto getAccountDetailsByDefendantAccountId(Long defendantAccountId) {
         log.info("Get defendant account for id: {}", defendantAccountId);
-        return getFromGateway(GET_ACCOUNT_DETAILS, AccountDetailsDto.class, defendantAccountId);
+
+        LegacyAccountDetailsRequestDto request = LegacyAccountDetailsRequestDto.builder()
+            .defendantAccountId(defendantAccountId)
+            .build();
+
+        LegacyAccountDetailsResponseDto response = getFromGateway(GET_ACCOUNT_DETAILS,
+                                                                  LegacyAccountDetailsResponseDto.class,
+                                                                  defendantAccountId);
+
+        return LegacyAccountDetailsResponseDto.toAccountDetailsDto(response);
     }
 
 }

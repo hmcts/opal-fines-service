@@ -26,7 +26,7 @@ public class LegacyAccountDetailsResponseDto implements ToJsonString {
     public static AccountDetailsDto toAccountDetailsDto(LegacyAccountDetailsResponseDto legacy) {
 
         DefendantAccountDto defendantAccountDto = legacy.getDefendantAccount();
-        PartyDto partyDto = defendantAccountDto.getParties().get(0);
+        PartyDto partyDto = defendantAccountDto.getParties().getParty().get(0);
         PaymentTermsDto paymentTermsDto = defendantAccountDto.getPaymentTerms();
 
         return AccountDetailsDto.builder()

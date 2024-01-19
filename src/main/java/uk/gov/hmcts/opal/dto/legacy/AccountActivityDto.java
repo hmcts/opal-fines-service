@@ -1,12 +1,19 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Builder
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@JsonRootName(value = "account_activity")
 class AccountActivityDto {
+
     @JsonProperty("activity_id")
     private Integer activityId;
 

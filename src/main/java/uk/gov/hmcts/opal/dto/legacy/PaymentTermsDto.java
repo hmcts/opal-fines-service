@@ -1,15 +1,20 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Builder
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 class PaymentTermsDto {
+
     @JsonProperty("terms_date")
     private LocalDate termsDate;
 
