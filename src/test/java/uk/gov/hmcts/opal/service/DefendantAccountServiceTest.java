@@ -23,7 +23,6 @@ import uk.gov.hmcts.opal.entity.EnforcersEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
-import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcersRepository;
@@ -51,9 +50,6 @@ class DefendantAccountServiceTest {
 
     @Mock
     DefendantAccountPartiesRepository defendantAccountPartiesRepository;
-
-    @Mock
-    DebtorDetailRepository debtorDetailRepository;
 
     @Mock
     PaymentTermsRepository paymentTermsRepository;

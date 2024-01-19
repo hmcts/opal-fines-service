@@ -1,5 +1,13 @@
 package uk.gov.hmcts.opal.service;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.github.fge.jackson.JsonLoader;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.github.fge.jsonschema.core.report.ProcessingReport;
+import com.github.fge.jsonschema.main.JsonSchema;
+import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,11 +20,21 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsRequestDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountsSearchResults;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDate;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.any;
@@ -219,6 +237,61 @@ class LegacyDefendantAccountServiceTest {
         assertEquals(9L, searchResultsDto.getTotalCount());
     }
 
+    @Test
+    void getAccountDetailsByDefendantAccountId_ValidateRequest() throws IOException, ProcessingException {
+        //Arrange
+
+        LegacyAccountDetailsRequestDto legacyAccountDetailsDto = LegacyAccountDetailsRequestDto.builder()
+            .defendantAccountId(1L)
+            .build();
+
+        // Serialize the DTO to JSON using Jackson
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = objectMapper.writeValueAsString(legacyAccountDetailsDto);
+
+        String content = Files.readString(
+            Paths.get("src/test/resources/schemas/AccountDetails/of_f_get_defendant_account_in.json"),
+            StandardCharsets.UTF_8);
+
+        // Parse the JSON schema
+        JsonSchemaFactory schemaFactory = JsonSchemaFactory.byDefault();
+        JsonSchema schema = schemaFactory.getJsonSchema(JsonLoader.fromString(content));
+
+        // Validate the serialized JSON against the schema
+        assertTrue(schema.validInstance(JsonLoader.fromString(json)));
+    }
+
+    @Test
+    void getAccountDetailsByDefendantAccountId_ValidateResponse() throws IOException, ProcessingException {
+
+        DefendantAccountDto defendantAccountDto = buildDefendantAccountDto();
+
+        LegacyAccountDetailsResponseDto legacyAccountDetailsDto = LegacyAccountDetailsResponseDto.builder()
+            .defendantAccount(defendantAccountDto)
+            .build();
+
+        // Serialize the DTO to JSON using Jackson
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.registerModule(new JavaTimeModule());
+        String json = objectMapper.writeValueAsString(legacyAccountDetailsDto);
+
+        String content = Files.readString(
+            Paths.get("src/test/resources/schemas/AccountDetails/of_f_get_defendant_account_out.json"),
+            StandardCharsets.UTF_8);
+
+        // Parse the JSON schema
+        JsonSchemaFactory schemaFactory = JsonSchemaFactory.byDefault();
+        JsonSchema schema = schemaFactory.getJsonSchema(JsonLoader.fromString(content));
+
+        // Generate validation report
+        ProcessingReport report = schema.validate(JsonLoader.fromString(json));
+
+        // Validate the serialized JSON against the schema
+        assertTrue(report.isSuccess());
+
+    }
+
 
     private static String createBrokenJson() {
         return """
@@ -242,5 +315,29 @@ class LegacyDefendantAccountServiceTest {
               "lastChangedDate" : [ 2023, 12, 5, 15, 45 ]
             }
             """;
+    }
+
+    private DefendantAccountDto buildDefendantAccountDto() {
+
+        return DefendantAccountDto.builder()
+            .defendantAccountId(1L)
+            .accountNumber("AA11")
+            .amountPaid(BigDecimal.valueOf(100.00))
+            .amountImposed(BigDecimal.valueOf(100.00))
+            .accountBalance(BigDecimal.valueOf(100.00))
+            .businessUnitId(200)
+            .businessUnitName("A Business")
+            .accountStatus("OPEN")
+            .originatorName("Originator")
+            .imposingCourtCode(10)
+            .lastHearingDate("2020-01-01")
+            .lastHearingCourtCode(10)
+            .lastChangedDate(LocalDate.of(2012, 1,1))
+            .lastMovementDate(LocalDate.of(2012, 1,1))
+            .collectionOrder(true)
+            .enforcingCourtCode(10)
+            .lastEnforcement("ENF")
+            .prosecutorCaseReference("1234")
+            .build();
     }
 }
