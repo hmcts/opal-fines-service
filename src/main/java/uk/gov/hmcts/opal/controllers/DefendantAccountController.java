@@ -25,7 +25,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/defendant-account")
-@Slf4j
+@Slf4j(topic = "DefendantAccountController")
 @Tag(name = "Defendant Account Controller")
 public class DefendantAccountController {
 
@@ -100,8 +100,14 @@ public class DefendantAccountController {
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
     public ResponseEntity<AccountSearchResultsDto> postDefendantAccountSearch(
         @RequestBody AccountSearchDto accountSearchDto) {
+        log.info(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
         AccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
+
+        if (response == null) {
+            return ResponseEntity.noContent().build();
+        }
+
         return ResponseEntity.ok(response);
     }
 }

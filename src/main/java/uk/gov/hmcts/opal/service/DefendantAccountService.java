@@ -43,7 +43,7 @@ import static uk.gov.hmcts.opal.dto.ToJsonString.newObjectMapper;
 
 @Service
 @Transactional
-@Slf4j
+@Slf4j(topic = "DefendantAccountService")
 @RequiredArgsConstructor
 public class DefendantAccountService implements DefendantAccountServiceInterface {
 
@@ -81,6 +81,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
     @Override
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
+        log.info(":searchDefendantAccounts: criteria: {}", accountSearchDto.toJson());
 
         if ("test".equalsIgnoreCase(accountSearchDto.getCourt())) {
 
