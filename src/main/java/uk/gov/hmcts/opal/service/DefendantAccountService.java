@@ -39,7 +39,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static uk.gov.hmcts.opal.dto.ToJsonString.newObjectMapper;
+import static uk.gov.hmcts.opal.dto.ToJsonString.getObjectMapper;
 
 @Service
 @Transactional
@@ -87,7 +87,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
             try (InputStream in = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream("tempSearchData.json")) {
-                ObjectMapper mapper = newObjectMapper();
+                ObjectMapper mapper = getObjectMapper();
                 AccountSearchResultsDto dto = mapper.readValue(in, AccountSearchResultsDto.class);
                 log.info(":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
                          dto.toPrettyJsonString());
@@ -121,7 +121,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             try (InputStream in = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream("tempDetailsData.json")) {
 
-                ObjectMapper mapper = newObjectMapper();
+                ObjectMapper mapper = getObjectMapper();
                 AccountDetailsDto dto = mapper.readValue(in, AccountDetailsDto.class);
                 log.info(
                         """

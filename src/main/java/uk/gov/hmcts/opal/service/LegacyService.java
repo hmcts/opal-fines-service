@@ -28,7 +28,7 @@ public abstract class LegacyService {
             getLog().info("extractResponse: Raw JSON response: {}", rawJson);
 
             try {
-                ObjectMapper objectMapper = ToJsonString.newObjectMapper();
+                ObjectMapper objectMapper = ToJsonString.getObjectMapper();
                 JsonNode root = objectMapper.readTree(rawJson);
 
                 return objectMapper.treeToValue(root, clzz);

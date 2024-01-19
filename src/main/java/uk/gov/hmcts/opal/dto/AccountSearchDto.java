@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.dto;
 
 import lombok.Builder;
 import lombok.Data;
+import java.util.Optional;
 
 @Data
 @Builder
@@ -29,4 +30,11 @@ public class AccountSearchDto implements ToJsonString {
     private String majorCreditor;
     /** Unsure. */
     private String tillNumber;
+
+    public Long getNumericCourt() {
+        return Optional.ofNullable(getCourt())
+            .filter(s -> s.matches("[0-9]+"))
+            .map(Long::parseLong)
+            .orElse(null);
+    }
 }

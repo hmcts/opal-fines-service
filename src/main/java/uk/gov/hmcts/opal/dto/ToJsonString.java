@@ -7,9 +7,11 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 public interface ToJsonString {
 
+    static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+        .registerModule(new JavaTimeModule());
+
     default String toJsonString() throws JsonProcessingException {
-        return newObjectMapper()
-            .writeValueAsString(this);
+        return OBJECT_MAPPER.writeValueAsString(this);
     }
 
     default String toJson() {
@@ -21,9 +23,7 @@ public interface ToJsonString {
     }
 
     default String toPrettyJsonString() throws JsonProcessingException {
-        return newObjectMapper()
-            .writerWithDefaultPrettyPrinter()
-            .writeValueAsString(this);
+        return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(this);
     }
 
     default String toPrettyJson() {
@@ -35,12 +35,10 @@ public interface ToJsonString {
     }
 
     default JsonNode toJsonNode() throws JsonProcessingException {
-        return newObjectMapper()
-            .readTree(this.toJsonString());
+        return OBJECT_MAPPER.readTree(this.toJsonString());
     }
 
-    static ObjectMapper newObjectMapper() {
-        return new ObjectMapper()
-            .registerModule(new JavaTimeModule());
+    static ObjectMapper getObjectMapper() {
+        return OBJECT_MAPPER;
     }
 }
