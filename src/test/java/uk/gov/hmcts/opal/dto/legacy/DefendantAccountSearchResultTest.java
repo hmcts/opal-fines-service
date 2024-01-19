@@ -1,8 +1,12 @@
-package uk.gov.hmcts.opal.service.legacy.dto;
+package uk.gov.hmcts.opal.dto.legacy;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSummaryDto;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchResult;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -10,13 +14,14 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@Slf4j
 public class DefendantAccountSearchResultTest {
 
     @Test
     public void testBuilder() {
         DefendantAccountSearchResult accountEnquiryDto = constructTestDefendantAccountSearchResult();
 
-        assertEquals("accountNameNo", accountEnquiryDto.getAccountNumber());
+        assertEquals("accountNo", accountEnquiryDto.getAccountNumber());
         assertEquals("Mr John Smith", accountEnquiryDto.getFullName());
         assertEquals("Scotland", accountEnquiryDto.getAddressLine1());
         assertEquals("1977-06-26", accountEnquiryDto.getBirthDate());
@@ -27,11 +32,15 @@ public class DefendantAccountSearchResultTest {
     }
 
     @Test
-    public void testToJsonString() throws Exception {
-        DefendantAccountSearchResult accountEnquiryDto = constructTestDefendantAccountSearchResult();
+    public void testJsonString() throws Exception {
+        DefendantAccountSearchResult model = constructTestDefendantAccountSearchResult();
+        assertNotNull(model.toJsonString());
 
-        assertNotNull(accountEnquiryDto.toJsonString());
+        DefendantAccountsSearchResults parsed = ToJsonString.getObjectMapper()
+            .readValue(getJsonRepresentation(), DefendantAccountsSearchResults.class);
+        assertNotNull(parsed);
     }
+
 
     @Test
     public void testControllerModelEqualsAndHashCode() {
@@ -59,7 +68,7 @@ public class DefendantAccountSearchResultTest {
 
         AccountSummaryDto dto = model2.toAccountSummaryDto();
         assertEquals("Mr John Smith", dto.getName());
-        assertEquals("accountNameNo", dto.getAccountNo());
+        assertEquals("accountNo", dto.getAccountNo());
         assertEquals("Cardiff", dto.getCourt());
         assertEquals(12345L, dto.getDefendantAccountId());
         assertEquals(BigDecimal.valueOf(1000), dto.getBalance());
@@ -68,9 +77,9 @@ public class DefendantAccountSearchResultTest {
 
     }
 
-    private DefendantAccountSearchResult constructTestDefendantAccountSearchResult() {
+    public static DefendantAccountSearchResult constructTestDefendantAccountSearchResult() {
         return DefendantAccountSearchResult.builder()
-            .accountNumber("accountNameNo")
+            .accountNumber("accountNo")
             .defendantAccountId(12345L)
             .surname("Smith")
             .forenames("John")
@@ -81,5 +90,29 @@ public class DefendantAccountSearchResultTest {
             .businessUnitId(9)
             .businessUnitName("Cardiff")
             .build();
+    }
+
+    private String getJsonRepresentation() {
+        return """
+            {
+              "defendantAccountsSearchResult" : [ {
+                "accountNumber" : "accountNo",
+                "organisation" : null,
+                "title" : "Mr",
+                "surname" : "Smith",
+                "forenames" : "John",
+                "initials" : null,
+                "rowNumber" : null,
+                "defendant_account_id" : 12345,
+                "business_unit_id" : 9,
+                "business_unit_name" : "Cardiff",
+                "organisation_name" : null,
+                "birth_date" : "1977-06-26",
+                "address_line_1" : "Scotland",
+                "account_balance" : 1000
+              } ],
+              "totalCount" : 1
+            }
+            """;
     }
 }

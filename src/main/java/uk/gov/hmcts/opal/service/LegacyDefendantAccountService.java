@@ -13,8 +13,8 @@ import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsRequestDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountSearchCriteria;
-import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountsSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
 
 import java.util.Collections;
 import java.util.List;

@@ -23,14 +23,15 @@ import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountDto;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchResult;
 import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsRequestDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
 import uk.gov.hmcts.opal.dto.legacy.PartiesDto;
 import uk.gov.hmcts.opal.dto.legacy.PartyDto;
 import uk.gov.hmcts.opal.dto.legacy.PaymentTermsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountSearchCriteria;
-import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountsSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -40,7 +41,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.eq;
@@ -64,7 +65,7 @@ class LegacyDefendantAccountServiceTest {
 
         DefendantAccountEntity expectedAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
-        String jsonBody = ToJsonString.newObjectMapper().writeValueAsString(inputAccountEntity);
+        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
         when(restTemplate.postForEntity(any(String.class), any(DefendantAccountEntity.class), any(Class.class)))
@@ -102,7 +103,7 @@ class LegacyDefendantAccountServiceTest {
         // Arrange
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
-        String jsonBody = ToJsonString.newObjectMapper().writeValueAsString(inputAccountEntity);
+        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -146,7 +147,7 @@ class LegacyDefendantAccountServiceTest {
 
         DefendantAccountEntity expectedAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
-        String jsonBody = ToJsonString.newObjectMapper().writeValueAsString(inputAccountEntity);
+        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
         when(restTemplate.getForEntity(any(String.class), any(Class.class), any(AccountEnquiryDto.class)))
@@ -188,7 +189,7 @@ class LegacyDefendantAccountServiceTest {
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
 
-        String jsonBody = ToJsonString.newObjectMapper().writeValueAsString(inputAccountEntity);
+        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -231,7 +232,7 @@ class LegacyDefendantAccountServiceTest {
         // Arrange
         DefendantAccountsSearchResults resultsDto = DefendantAccountsSearchResults.builder()
             .totalCount(9L).build();
-        String jsonBody = ToJsonString.newObjectMapper().writeValueAsString(resultsDto);
+        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(resultsDto);
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
         when(restTemplate.postForEntity(any(String.class), any(DefendantAccountSearchCriteria.class), any(Class.class)))
@@ -304,7 +305,7 @@ class LegacyDefendantAccountServiceTest {
     void getAccountDetailsByDefendantAccountId_Success() {
 
         // Arrange
-        String jsonBody = ToJsonString.newObjectMapper().writeValueAsString(buildLegacyAccountDto());
+        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(buildLegacyAccountDto());
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
         when(restTemplate.getForEntity(any(String.class), eq(String.class), any(Object.class)))
@@ -318,6 +319,53 @@ class LegacyDefendantAccountServiceTest {
         assertEquals(buildAccountDetailsDto(), detailsResponseDto);
     }
 
+    @Test
+    void searchDefendantAccounts_ValidateRequest() throws IOException, ProcessingException {
+
+        DefendantAccountSearchCriteria legacyAccountSearchCriteria = constructDefendantAccountSearchCriteria();
+
+        // Serialize the DTO to JSON using Jackson
+        String json = ToJsonString.getObjectMapper().writeValueAsString(legacyAccountSearchCriteria);
+
+        String content = Files.readString(
+            Paths.get("src/test/resources/schemas/AccountSearch/of_f_search_defendant_accounts_in.json"),
+            StandardCharsets.UTF_8);
+
+        // Parse the JSON schema
+        JsonSchemaFactory schemaFactory = JsonSchemaFactory.byDefault();
+        JsonSchema schema = schemaFactory.getJsonSchema(JsonLoader.fromString(content));
+
+        // Validate the serialized JSON against the schema
+        assertTrue(schema.validInstance(JsonLoader.fromString(json)));
+    }
+
+    @Test
+    void searchDefendantAccounts_ValidateResponse() throws IOException, ProcessingException {
+
+        DefendantAccountsSearchResults legacyAccountsSearchResults = DefendantAccountsSearchResults.builder()
+            .totalCount(1L)
+            .defendantAccountsSearchResult(List.of(constructDefendantAccountSearchResult()))
+            .build();
+
+        // Serialize the DTO to JSON using Jackson
+        ObjectMapper objectMapper = ToJsonString.getObjectMapper();
+        String json = objectMapper.writeValueAsString(legacyAccountsSearchResults);
+
+        String content = Files.readString(
+            Paths.get("src/test/resources/schemas/AccountSearch/of_f_search_defendant_accounts_out.json"),
+            StandardCharsets.UTF_8);
+
+        // Parse the JSON schema
+        JsonSchemaFactory schemaFactory = JsonSchemaFactory.byDefault();
+        JsonSchema schema = schemaFactory.getJsonSchema(JsonLoader.fromString(content));
+
+        // Generate validation report
+        ProcessingReport report = schema.validate(JsonLoader.fromString(json));
+
+        // Validate the serialized JSON against the schema
+        assertTrue(report.isSuccess());
+
+    }
 
     private static String createBrokenJson() {
         return """
@@ -418,5 +466,34 @@ class LegacyDefendantAccountServiceTest {
     private AccountDetailsDto buildAccountDetailsDto() {
 
         return DefendantAccountServiceTest.buildAccountDetailsDto();
+    }
+
+    private DefendantAccountSearchCriteria constructDefendantAccountSearchCriteria() {
+        return DefendantAccountSearchCriteria.builder()
+            .accountNumber("accountNo")
+            .addressLine1("Glasgow")
+            .firstRowNumber(4)
+            .lastRowNumber(44)
+            .surname("Smith")
+            .forenames("John")
+            .initials("D")
+            .birthDate("1977-06-26")
+            .nationalInsuranceNumber("XX123456C")
+            .build();
+    }
+
+    public static DefendantAccountSearchResult constructDefendantAccountSearchResult() {
+        return DefendantAccountSearchResult.builder()
+            .accountNumber("accountNo")
+            .defendantAccountId(12345L)
+            .surname("Smith")
+            .forenames("John")
+            .title("Mr")
+            .birthDate("1977-06-26")
+            .addressLine1("Scotland")
+            .accountBalance(BigDecimal.valueOf(1000))
+            .businessUnitId(9)
+            .businessUnitName("Cardiff")
+            .build();
     }
 }
