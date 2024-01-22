@@ -10,7 +10,7 @@ import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 
-import java.util.Collections;
+import java.util.List;
 
 @Data
 @Builder
@@ -49,7 +49,7 @@ public class LegacyAccountDetailsResponseDto implements ToJsonString {
             .lastCourtAppAndCourtCode(defendantAccountDto.getLastHearingDate()
                                           + " " + defendantAccountDto.getLastHearingCourtCode())
             .lastMovement(defendantAccountDto.getLastMovementDate())
-            .commentField(Collections.singletonList(defendantAccountDto.getAccountComments()))
+            .commentField(List.of(defendantAccountDto.getAccountComments()))
             .pcr(defendantAccountDto.getProsecutorCaseReference())
             .paymentDetails(DefendantAccountService.buildPaymentDetails(
                 paymentTermsDto.getTermsTypeCode(),

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonRootName(value = "imposition")
-class ImpositionDto {
+public class ImpositionDto {
     @JsonProperty("imposition_id")
     private Integer impositionId;
 

@@ -320,7 +320,7 @@ class DefendantAccountServiceTest {
             .lastCourtAppAndCourtCode(LocalDate.of(2012, 1,1).toString()
                                           + " " + 1212)
             .lastMovement(LocalDate.of(2012, 1,1))
-            .commentField(List.of("Comment1", "Comment2"))
+            .commentField(List.of("Comment1"))
             .pcr("123456")
             .paymentDetails("100.0 / PCM")
             .lumpSum(BigDecimal.valueOf(100.00))
@@ -412,11 +412,6 @@ class DefendantAccountServiceTest {
         notes.add(NoteEntity.builder()
                       .noteType("AC")
                       .noteText("Comment1")
-                      .build());
-
-        notes.add(NoteEntity.builder()
-                      .noteType("AC")
-                      .noteText("Comment2")
                       .build());
         return notes;
     }

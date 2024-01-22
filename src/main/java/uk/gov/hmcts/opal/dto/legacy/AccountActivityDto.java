@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonRootName(value = "account_activity")
-class AccountActivityDto {
+public class AccountActivityDto {
 
     @JsonProperty("activity_id")
     private Integer activityId;

@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-class AccountActivitiesDto {
+public class AccountActivitiesDto {
 
     @JsonProperty(value = "account_activity")
     private List<AccountActivityDto> accountActivity;

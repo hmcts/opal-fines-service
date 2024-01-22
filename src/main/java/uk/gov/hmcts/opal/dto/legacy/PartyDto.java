@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonRootName(value = "party")
-class PartyDto {
+public class PartyDto {
 
     @JsonProperty("party_id")
     private Integer partyId;

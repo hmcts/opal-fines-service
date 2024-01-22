@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-class PartiesDto {
+public class PartiesDto {
 
     @JsonProperty(value = "party")
     private List<PartyDto> party;

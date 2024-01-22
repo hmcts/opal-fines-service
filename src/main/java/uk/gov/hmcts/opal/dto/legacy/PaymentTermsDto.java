@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-class PaymentTermsDto {
+public class PaymentTermsDto {
 
     @JsonProperty("terms_date")
     private LocalDate termsDate;
