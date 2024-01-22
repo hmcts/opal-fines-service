@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import lombok.AllArgsConstructor;
@@ -44,6 +45,7 @@ public class PartyDto {
     private String title;
 
     @JsonProperty("birth_date")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthDate;
 
     @JsonProperty("age")

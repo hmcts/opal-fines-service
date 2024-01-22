@@ -35,6 +35,7 @@ public class DefendantAccountDto {
     @JsonProperty("originator_name")
     private String originatorName;
     @JsonProperty("imposed_hearing_date")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate imposedHearingDate;
     @JsonProperty("imposing_court_code")
     private int imposingCourtCode;

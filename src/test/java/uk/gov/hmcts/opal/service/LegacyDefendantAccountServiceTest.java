@@ -17,9 +17,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.hmcts.opal.dto.*;
-import uk.gov.hmcts.opal.dto.legacy.*;
+import uk.gov.hmcts.opal.dto.AccountDetailsDto;
+import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
+import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsRequestDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
+import uk.gov.hmcts.opal.dto.legacy.PartiesDto;
 import uk.gov.hmcts.opal.dto.legacy.PartyDto;
+import uk.gov.hmcts.opal.dto.legacy.PaymentTermsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.service.legacy.dto.DefendantAccountsSearchResults;
@@ -30,7 +38,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
@@ -376,11 +383,15 @@ class LegacyDefendantAccountServiceTest {
     private PartyDto buildPartyDto() {
 
         return PartyDto.builder()
+            .partyId(1)
+            .debtor(true)
+            .associationType("A_type")
             .addressLine1("1 High Street")
             .addressLine2("Westminster")
             .addressLine3("London")
             .postcode("W1 1AA")
             .fullName("Mr John Smith")
+            .organisation(false)
             .birthDate(LocalDate.of(1979,12,12))
             .build();
     }
