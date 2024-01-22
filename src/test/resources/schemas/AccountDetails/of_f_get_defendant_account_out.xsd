@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:element name="defendant_account">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element type="xsd:long" name="defendant_account_id"/>
+        <xsd:element type="xsd:string" name="account_number"/>
+        <xsd:element type="xsd:double" name="amount_imposed"/>
+        <xsd:element type="xsd:double" name="amount_paid"/>
+        <xsd:element type="xsd:double" name="account_balance"/>
+        <xsd:element type="xsd:int" name="business_unit_id"/>
+        <xsd:element type="xsd:string" name="business_unit_name"/>
+        <xsd:element type="xsd:string" name="account_status"/>
+        <xsd:element type="xsd:string" name="originator_name"/>
+        <xsd:element type="xsd:dateTime" name="imposed_hearing_date"/>
+        <xsd:element type="xsd:int" name="imposing_court_code"/>
+        <xsd:element type="xsd:dateTime" name="last_hearing_date"/>
+        <xsd:element type="xsd:int" name="last_hearing_court_code"/>
+        <xsd:element type="xsd:dateTime" name="last_changed_date"/>
+        <xsd:element type="xsd:dateTime" name="last_movement_date"/>
+        <xsd:element type="xsd:boolean" name="collection_order"/>
+        <xsd:element type="xsd:int" name="enforcing_court_code"/>
+        <xsd:element type="xsd:int" name="last_enforcement"/>
+        <xsd:element type="xsd:string" name="enf_override_result_id"/>
+        <xsd:element type="xsd:int" name="enf_override_enforcer_code"/>
+        <xsd:element type="xsd:int" name="enf_override_tfo_lja_code"/>
+        <xsd:element type="xsd:string" name="prosecutor_case_reference"/>
+        <xsd:element type="xsd:string" name="account_comments"/>
+        <xsd:element name="payment_terms">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element type="xsd:dateTime" name="terms_date" minOccurs="0"/>
+              <xsd:element type="xsd:string" name="terms_type_code"/>
+              <xsd:element type="xsd:double" name="instalment_amount" minOccurs="0"/>
+              <xsd:element type="xsd:string" name="instalment_period" minOccurs="0"/>
+              <xsd:element type="xsd:double" name="instalment_lump_sum" minOccurs="0"/>
+              <xsd:element type="xsd:int" name="jail_days" minOccurs="0"/>
+              <xsd:element type="xsd:string" name="wording"/>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="parties">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="party" maxOccurs="2" minOccurs="1">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element type="xsd:long" name="party_id"/>  
+                    <xsd:element type="xsd:string" name="association_type"/>
+                    <xsd:element type="xsd:boolean" name="debtor"/>
+                    <xsd:element type="xsd:boolean" name="organisation"/>
+                    <xsd:element type="xsd:string" name="organisation_name" minOccurs="0"/>
+                    <xsd:element type="xsd:string" name="surname" minOccurs="0"/>
+                    <xsd:element type="xsd:string" name="forenames" minOccurs="0"/>
+                    <xsd:element type="xsd:string" name="initials" minOccurs="0"/>
+                    <xsd:element type="xsd:string" name="title" minOccurs="0"/>
+                    <xsd:element type="xsd:dateTime" name="birth_date" minOccurs="0"/>
+                    <xsd:element type="xsd:int" name="age" minOccurs="0"/>
+                    <xsd:element type="xsd:string" name="national_insurance_number" minOccurs="0"/>
+                    <xsd:element type="xsd:dateTime" name="last_changed_date"/>
+                    <xsd:element type="xsd:string" name="full_name"/>
+                    <xsd:element type="xsd:string" name="address_line_1"/>
+                    <xsd:element type="xsd:string" name="address_line_2" minOccurs="0"/>
+                    <xsd:element type="xsd:string" name="address_line_3" minOccurs="0"/>
+                    <xsd:element type="xsd:string" name="address_line_4" minOccurs="0"/>
+                    <xsd:element type="xsd:string" name="address_line_5" minOccurs="0"/>
+                    <xsd:element type="xsd:string" name="postcode"/>
+                  </xsd:sequence>
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="impositions">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="imposition" maxOccurs="unbounded" minOccurs="1">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element type="xsd:long" name="imposition_id"/>
+                    <xsd:element type="xsd:dateTime" name="posted_date"/>
+                    <xsd:element type="xsd:string" name="result_id"/>
+                    <xsd:element type="xsd:dateTime" name="imposed_date"/>
+                    <xsd:element type="xsd:int" name="imposing_court_code"/>
+                    <xsd:element type="xsd:double" name="imposed_amount"/>
+                    <xsd:element type="xsd:double" name="paid_amount"/>
+                    <xsd:element type="xsd:string" name="offence_title"/>
+                    <xsd:element type="xsd:string" name="creditor_account_number"/>
+                    <xsd:element type="xsd:string" name="creditor_name"/>
+                  </xsd:sequence>
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="account_activities">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="account_activity" maxOccurs="unbounded" minOccurs="0">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element type="xsd:long" name="activity_id"/>
+                    <xsd:element type="xsd:string" name="activity_type"/>
+                    <xsd:element type="xsd:string" name="activity_type_code"/>
+                    <xsd:element type="xsd:string" name="activity_text"/>
+                    <xsd:element type="xsd:dateTime" name="posted_date"/>
+                    <xsd:element type="xsd:string" name="posted_by" minOccurs="0"/>
+                    <xsd:element type="xsd:double" name="amount" minOccurs="0"/>
+                  </xsd:sequence>
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:sequence>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>
