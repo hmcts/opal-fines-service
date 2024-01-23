@@ -80,20 +80,51 @@ task integration(type: Test) {
   failFast = true
 }
 
-task functional(type: Test) {
-  description = "Runs functional tests"
+task functionalOpal(type: Test) {
+  failFast = false
+  doFirst {
+    tasks.clearReports.clearReports()
+  }
+  description = "Runs functional tests against Opal mode"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
   testLogging.showStandardStreams = true
-  systemProperty "cucumber.filter.tags", "not @Smoke and not @Ignore"
+  systemProperty "cucumber.filter.tags", "@Opal and not @Smoke and not @Ignore"
   doLast {
     tasks.aggregate.aggregate()
-    delete "${rootDir}/functional-test-report/"
-    new File("${rootDir}/functional-test-report").mkdirs()
-    file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/functional-test-report"))
-    logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
+    delete "${rootDir}/functionalOpal-test-report/"
+    new File("${rootDir}/functionalOpal-test-report").mkdirs()
+    file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/functionalOpal-test-report"))
+    logger.quiet("Functional Test Report available at - file://${rootDir}/functionalOpal-test-report/index.html")
   }
+}
+task functionalLegacy(type: Test) {
+  failFast = false
+  doFirst {
+    tasks.clearReports.clearReports()
+  }
+  description = "Runs functional tests against Legacy mode"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  testLogging.showStandardStreams = true
+  systemProperty "cucumber.filter.tags", "@Legacy and not @Smoke and not @Ignore"
+  doLast {
+    tasks.aggregate.aggregate()
+    delete "${rootDir}/functionalLegacy-test-report/"
+    new File("${rootDir}/functionalLegacy-test-report").mkdirs()
+    file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/functionalLegacy-test-report"))
+    logger.quiet("Functional Test Report available at - file://${rootDir}/functionalLegacy-test-report/index.html")
+  }
+}
+task functional(type: Test) {
+  description = "Runs functional tests"
+  group = "Verification"
+  testLogging.showStandardStreams = true
+
+  dependsOn('functionalOpal', 'functionalLegacy')
+  tasks.functionalLegacy.mustRunAfter functionalOpal
 }
 
 task smoke(type: Test) {

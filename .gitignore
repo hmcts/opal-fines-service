@@ -4,7 +4,9 @@
 *.class
 bin/main/application.yaml
 smoke-test-report
-functional-test-report
+functionalOpal-test-report
+functionalLegacy-test-report
+
 target
 
 ### Generated Source ###

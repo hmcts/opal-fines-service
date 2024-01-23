@@ -1,5 +1,7 @@
-@PO-130
+@PO-130 @Opal
 Feature: Test the defendant account details API
+  Background:
+    Given this test is ran in "opal" mode
 
   Scenario: Correct data returned when an existing account ID is used
     When I make a request to the defendant account details api with
