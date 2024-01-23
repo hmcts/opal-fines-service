@@ -9,23 +9,28 @@ import java.util.Objects;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 
-public class ModeSwitchStepDef extends BaseStepDef{
+public class ModeSwitchStepDef extends BaseStepDef {
     @Given("this test is ran in {string} mode")
     public void runTestAgainstMode(String mode) throws JSONException {
-    switch(mode) {
-        case "opal":
-            if(!Objects.equals(getMode(), "opal")){
-                toggleMode(mode);
-            }else {System.out.println("mode is already: "+ mode);}
-            break;
-        case "legacy":
-            if(!Objects.equals(getMode(), "legacy")){
-                toggleMode(mode);
-            }else{System.out.println("mode is already: "+ mode);}
-            break;
+        switch (mode) {
+            case "opal":
+                if (!Objects.equals(getMode(), "opal")) {
+                    toggleMode(mode);
+                } else {
+                    System.out.println("mode is already: " + mode);
+                }
+                break;
+            case "legacy":
+                if (!Objects.equals(getMode(), "legacy")) {
+                    toggleMode(mode);
+                } else {
+                    System.out.println("mode is already: " + mode);
+                }
+                break;
         }
     }
-    public String getMode(){
+
+    public String getMode() {
         SerenityRest.given()
             .accept("*/*")
             .contentType("application/json")
@@ -35,6 +40,7 @@ public class ModeSwitchStepDef extends BaseStepDef{
         System.out.println("The mode is :" + mode);
         return mode;
     }
+
     public void toggleMode(String toggleTo) throws JSONException {
         JSONObject requestBody = new JSONObject();
         requestBody.put("mode", toggleTo);
