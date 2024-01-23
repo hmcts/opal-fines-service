@@ -15,52 +15,40 @@ import java.util.Optional;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DefendantAccountSearchCriteria implements ToJsonString {
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("account_number")
     private String accountNumber;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("business_unit_id")
     private Long businessUnitId;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Boolean organisation;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("organisation_name")
     private String organisationName;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String surname;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String forenames;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String initials;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("birth_date")
     private String birthDate;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("national_insurance_number")
     private String nationalInsuranceNumber;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("prosecutor_case_reference")
     private String prosecutorCaseReference;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("address_line_1")
     private String addressLine1;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Boolean searchAliases;
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Boolean liveOnly;
 
     private Integer firstRowNumber;
@@ -77,7 +65,7 @@ public class DefendantAccountSearchCriteria implements ToJsonString {
             .addressLine1(dto.getAddressLineOne())
             .nationalInsuranceNumber(dto.getNiNumber())
             .prosecutorCaseReference(dto.getPcr())
-            .businessUnitId(dto.getNumericCourt())
+            .businessUnitId(dto.getNumericCourt().orElse(null))
             //.organisation_name(no organisation name)
             //.searchAliases( dunno )
             //.liveOnly( dunno )
