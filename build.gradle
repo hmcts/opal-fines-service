@@ -81,7 +81,6 @@ task integration(type: Test) {
 }
 
 task functionalOpal(type: Test) {
-  failFast = false
   doFirst {
     tasks.clearReports.clearReports()
   }
@@ -100,7 +99,6 @@ task functionalOpal(type: Test) {
   }
 }
 task functionalLegacy(type: Test) {
-  failFast = false
   doFirst {
     tasks.clearReports.clearReports()
   }
