@@ -50,7 +50,7 @@ import java.util.Map;
 
 @Slf4j
 @Configuration
-@EnableWebSecurity(debug = true)
+@EnableWebSecurity
 @RequiredArgsConstructor
 @Profile("!integration")
 public class SecurityConfig {
