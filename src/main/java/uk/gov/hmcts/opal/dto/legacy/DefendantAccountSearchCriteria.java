@@ -1,5 +1,6 @@
-package uk.gov.hmcts.opal.service.legacy.dto;
+package uk.gov.hmcts.opal.dto.legacy;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,19 +9,21 @@ import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DefendantAccountSearchCriteria implements ToJsonString {
 
     @JsonProperty("account_number")
     private String accountNumber;
 
     @JsonProperty("business_unit_id")
-    private Integer businessUnitId;
+    private Long businessUnitId;
 
     private Boolean organisation;
 
@@ -59,11 +62,14 @@ public class DefendantAccountSearchCriteria implements ToJsonString {
             .surname(dto.getSurname())
             .forenames(dto.getForename())
             .initials(dto.getInitials())
-            .birthDate(Optional.ofNullable(dto.getDateOfBirth()).map(d -> d.toLocalDate().toString()).orElse(null))
+            .birthDate(Optional.ofNullable(dto.getDateOfBirth())
+                           .map(d -> d.toLocalDate())
+                           .map(Objects::toString)
+                           .orElse(null))
             .addressLine1(dto.getAddressLineOne())
             .nationalInsuranceNumber(dto.getNiNumber())
             .prosecutorCaseReference(dto.getPcr())
-            .businessUnitId(Optional.ofNullable(dto.getCourt()).map(s -> 1).orElse(1))
+            .businessUnitId(dto.getNumericCourt().orElse(null))
             //.organisation_name(no organisation name)
             //.searchAliases( dunno )
             //.liveOnly( dunno )

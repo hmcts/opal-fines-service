@@ -32,8 +32,7 @@ public class DefendantAccountSpecs {
             notBlank(accountSearchDto.getNiNumber()).map(DefendantAccountSpecs::likeNiNumber),
             notBlank(accountSearchDto.getAddressLineOne()).map(DefendantAccountSpecs::likeAddressLine1),
             notNullLocalDate(accountSearchDto.getDateOfBirth()).map(DefendantAccountSpecs::equalsDateOfBirth),
-            Optional.ofNullable(accountSearchDto.getCourt()).filter(s -> s.matches("[0-9]+")).map(Long::parseLong)
-                .map(DefendantAccountSpecs::equalsAnyCourtId)
+            accountSearchDto.getNumericCourt().map(DefendantAccountSpecs::equalsAnyCourtId)
         ));
     }
 

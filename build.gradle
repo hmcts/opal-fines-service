@@ -2,8 +2,8 @@ plugins {
   id 'application'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.4'
-  id 'org.springframework.boot' version '3.2.1'
-  id 'com.github.ben-manes.versions' version '0.50.0'
+  id 'org.springframework.boot' version '3.2.2'
+  id 'com.github.ben-manes.versions' version '0.51.0'
   id 'org.sonarqube' version '4.4.1.3373'
   id 'uk.gov.hmcts.java' version '0.12.56'
   id 'org.flywaydb.flyway' version '10.6.0'
@@ -193,7 +193,7 @@ repositories {
 
 ext {
   log4JVersion = "2.22.1"
-  serenityVersion = "4.0.30"
+  serenityVersion = "4.0.43"
 }
 
 ext['snakeyaml.version'] = '2.0'
@@ -232,10 +232,14 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
   compileOnly 'org.projectlombok:lombok:1.18.30'
   annotationProcessor 'org.projectlombok:lombok:1.18.30'
-  annotationProcessor 'org.hibernate:hibernate-jpamodelgen:6.4.1.Final'
+  annotationProcessor 'org.hibernate:hibernate-jpamodelgen:6.4.2.Final'
 
   testCompileOnly 'org.projectlombok:lombok:1.18.30'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+
+  testImplementation 'com.github.fge:json-schema-validator:2.2.14'
+  testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'

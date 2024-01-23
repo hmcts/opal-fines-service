@@ -1,10 +1,11 @@
-package uk.gov.hmcts.opal.service.legacy.dto;
+package uk.gov.hmcts.opal.dto.legacy;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DefendantAccountsSearchResults {
+public class DefendantAccountsSearchResults implements ToJsonString {
 
     List<DefendantAccountSearchResult> defendantAccountsSearchResult;
 

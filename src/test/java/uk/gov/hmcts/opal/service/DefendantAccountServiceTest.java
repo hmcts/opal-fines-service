@@ -23,7 +23,6 @@ import uk.gov.hmcts.opal.entity.EnforcersEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
-import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcersRepository;
@@ -51,9 +50,6 @@ class DefendantAccountServiceTest {
 
     @Mock
     DefendantAccountPartiesRepository defendantAccountPartiesRepository;
-
-    @Mock
-    DebtorDetailRepository debtorDetailRepository;
 
     @Mock
     PaymentTermsRepository paymentTermsRepository;
@@ -324,7 +320,7 @@ class DefendantAccountServiceTest {
             .lastCourtAppAndCourtCode(LocalDate.of(2012, 1,1).toString()
                                           + " " + 1212)
             .lastMovement(LocalDate.of(2012, 1,1))
-            .commentField(List.of("Comment1", "Comment2"))
+            .commentField(List.of("Comment1"))
             .pcr("123456")
             .paymentDetails("100.0 / PCM")
             .lumpSum(BigDecimal.valueOf(100.00))
@@ -416,11 +412,6 @@ class DefendantAccountServiceTest {
         notes.add(NoteEntity.builder()
                       .noteType("AC")
                       .noteText("Comment1")
-                      .build());
-
-        notes.add(NoteEntity.builder()
-                      .noteType("AC")
-                      .noteText("Comment2")
                       .build());
         return notes;
     }
