@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.dto;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
 import java.util.Optional;
@@ -31,10 +32,10 @@ public class AccountSearchDto implements ToJsonString {
     /** Unsure. */
     private String tillNumber;
 
-    public Long getNumericCourt() {
+    @JsonIgnore
+    public Optional<Long> getNumericCourt() {
         return Optional.ofNullable(getCourt())
             .filter(s -> s.matches("[0-9]+"))
-            .map(Long::parseLong)
-            .orElse(null);
+            .map(Long::parseLong);
     }
 }
