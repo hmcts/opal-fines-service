@@ -193,7 +193,7 @@ repositories {
 
 ext {
   log4JVersion = "2.22.1"
-  serenityVersion = "4.0.43"
+  serenityVersion = "4.0.44"
 }
 
 ext['snakeyaml.version'] = '2.0'
