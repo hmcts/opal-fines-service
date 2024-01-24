@@ -3,8 +3,9 @@ package uk.gov.hmcts.opal.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
@@ -13,11 +14,11 @@ public abstract class LegacyService {
     public static final String ACTION_TYPE = "actionType";
     final String gatewayUrl;
 
-    final RestTemplate restTemplate;
+    final RestClient restClient;
 
-    protected LegacyService(String gatewayUrl, RestTemplate restTemplate) {
+    protected LegacyService(String gatewayUrl, RestClient restTemplate) {
         this.gatewayUrl = gatewayUrl;
-        this.restTemplate = restTemplate;
+        this.restClient = restTemplate;
     }
 
     protected abstract Logger getLog();
@@ -49,8 +50,10 @@ public abstract class LegacyService {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
             .queryParam(ACTION_TYPE, actionType);
 
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(gatewayUrl
-                   + builder.toUriString(), String.class, uriVariables);
+        ResponseEntity<String> responseEntity = restClient.get()
+            .uri(gatewayUrl + builder.toUriString(), uriVariables)
+            .retrieve()
+            .toEntity(String.class);
 
         return extractResponse(responseEntity, responseType);
 
@@ -63,8 +66,12 @@ public abstract class LegacyService {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
             .queryParam(ACTION_TYPE, actionType);
 
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(
-            gatewayUrl + builder.toUriString(), request, String.class);
+        ResponseEntity<String> responseEntity = restClient.post()
+            .uri(gatewayUrl + builder.toUriString())
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(request)
+            .retrieve()
+            .toEntity(String.class);
 
         return extractResponse(responseEntity, responseType);
     }

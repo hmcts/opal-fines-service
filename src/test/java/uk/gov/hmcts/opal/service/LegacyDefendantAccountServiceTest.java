@@ -12,11 +12,9 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
@@ -44,15 +42,11 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class LegacyDefendantAccountServiceTest {
-
-    @Mock
-    private RestTemplate restTemplate;
+class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @InjectMocks
     private LegacyDefendantAccountService legacyDefendantAccountService;
@@ -60,7 +54,10 @@ class LegacyDefendantAccountServiceTest {
     @Test
     @SuppressWarnings("unchecked")
     void putDefendantAccount_SuccessfulResponse() throws Exception {
+
         // Arrange
+        mockRestClientPost();
+
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
         DefendantAccountEntity expectedAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
@@ -68,8 +65,8 @@ class LegacyDefendantAccountServiceTest {
         String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
-        when(restTemplate.postForEntity(any(String.class), any(DefendantAccountEntity.class), any(Class.class)))
-            .thenReturn(successfulResponseEntity);
+        when(requestBodySpec.body(any(DefendantAccountEntity.class))).thenReturn(requestBodySpec);
+        when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 
         // Act
         DefendantAccountEntity resultPartyDto = legacyDefendantAccountService.putDefendantAccount(inputAccountEntity);
@@ -82,12 +79,13 @@ class LegacyDefendantAccountServiceTest {
     @SuppressWarnings("unchecked")
     void putDefendantAccount_FailureBodyResponse() throws Exception {
         // Arrange
+        mockRestClientPost();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             null, HttpStatus.OK);
-        when(restTemplate.postForEntity(any(String.class), any(DefendantAccountEntity.class), any(Class.class)))
-            .thenReturn(unsuccessfulResponseEntity);
+        when(requestBodySpec.body(any(DefendantAccountEntity.class))).thenReturn(requestBodySpec);
+        when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
         DefendantAccountEntity resultPartyDto = legacyDefendantAccountService.putDefendantAccount(inputAccountEntity);
@@ -101,14 +99,15 @@ class LegacyDefendantAccountServiceTest {
     @SuppressWarnings("unchecked")
     void putDefendantAccount_FailureCodeResponse() throws Exception {
         // Arrange
+        mockRestClientPost();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
         String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
-        when(restTemplate.postForEntity(any(String.class), any(DefendantAccountEntity.class), any(Class.class)))
-            .thenReturn(unsuccessfulResponseEntity);
+        when(requestBodySpec.body(any(DefendantAccountEntity.class))).thenReturn(requestBodySpec);
+        when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
         DefendantAccountEntity resultPartyDto = legacyDefendantAccountService.putDefendantAccount(inputAccountEntity);
@@ -122,14 +121,15 @@ class LegacyDefendantAccountServiceTest {
     @SuppressWarnings("unchecked")
     void putDefendantAccount_ErrorResponse() throws Exception {
         // Arrange
+        mockRestClientPost();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
         String jsonBody = createBrokenJson();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.OK);
-        when(restTemplate.postForEntity(any(String.class), any(DefendantAccountEntity.class), any(Class.class)))
-            .thenReturn(unsuccessfulResponseEntity);
+        when(requestBodySpec.body(any(DefendantAccountEntity.class))).thenReturn(requestBodySpec);
+        when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
         DefendantAccountEntity resultPartyDto = legacyDefendantAccountService.putDefendantAccount(inputAccountEntity);
@@ -143,6 +143,7 @@ class LegacyDefendantAccountServiceTest {
     @SuppressWarnings("unchecked")
     void getParty_SuccessfulResponse() throws Exception {
         // Arrange
+        mockRestClientGet();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
         DefendantAccountEntity expectedAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
@@ -150,8 +151,7 @@ class LegacyDefendantAccountServiceTest {
         String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
-        when(restTemplate.getForEntity(any(String.class), any(Class.class), any(AccountEnquiryDto.class)))
-            .thenReturn(successfulResponseEntity);
+        when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
@@ -165,13 +165,12 @@ class LegacyDefendantAccountServiceTest {
     @SuppressWarnings("unchecked")
     void getParty_FailureBodyResponse() throws Exception {
         // Arrange
+        mockRestClientGet();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
-
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             null, HttpStatus.OK);
-        when(restTemplate.getForEntity(any(String.class), any(Class.class), any(AccountEnquiryDto.class)))
-            .thenReturn(unsuccessfulResponseEntity);
+        when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
@@ -186,6 +185,7 @@ class LegacyDefendantAccountServiceTest {
     @SuppressWarnings("unchecked")
     void getParty_FailureCodeResponse() throws Exception {
         // Arrange
+        mockRestClientGet();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
 
@@ -193,8 +193,8 @@ class LegacyDefendantAccountServiceTest {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
-        when(restTemplate.getForEntity(any(String.class), any(Class.class), any(AccountEnquiryDto.class)))
-            .thenReturn(unsuccessfulResponseEntity);
+        when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
+
 
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
@@ -209,13 +209,13 @@ class LegacyDefendantAccountServiceTest {
     @SuppressWarnings("unchecked")
     void getParty_ErrorResponse() throws Exception {
         // Arrange
-
+        mockRestClientGet();
         String jsonBody = createBrokenJson();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.OK);
-        when(restTemplate.getForEntity(any(String.class), any(Class.class), any(AccountEnquiryDto.class)))
-            .thenReturn(unsuccessfulResponseEntity);
+        when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
+
 
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
@@ -226,24 +226,7 @@ class LegacyDefendantAccountServiceTest {
         assertNull(resultAccountEntity);
     }
 
-    @Test
-    @SuppressWarnings("unchecked")
-    void searchForParty_SuccessfulResponse() throws Exception {
-        // Arrange
-        DefendantAccountsSearchResults resultsDto = DefendantAccountsSearchResults.builder()
-            .totalCount(9L).build();
-        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(resultsDto);
 
-        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
-        when(restTemplate.postForEntity(any(String.class), any(DefendantAccountSearchCriteria.class), any(Class.class)))
-            .thenReturn(successfulResponseEntity);
-        // Act
-        AccountSearchResultsDto searchResultsDto = legacyDefendantAccountService
-            .searchDefendantAccounts(AccountSearchDto.builder().build());
-
-        // Assert
-        assertEquals(9L, searchResultsDto.getTotalCount());
-    }
 
     @Test
     void getAccountDetailsByDefendantAccountId_ValidateRequest() throws IOException, ProcessingException {
@@ -302,14 +285,15 @@ class LegacyDefendantAccountServiceTest {
 
     @SneakyThrows
     @Test
+    @SuppressWarnings("unchecked")
     void getAccountDetailsByDefendantAccountId_Success() {
 
         // Arrange
+        mockRestClientGet();
         String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(buildLegacyAccountDto());
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
-        when(restTemplate.getForEntity(any(String.class), eq(String.class), any(Object.class)))
-            .thenReturn(successfulResponseEntity);
+        when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 
         // Act
         AccountDetailsDto detailsResponseDto = legacyDefendantAccountService
@@ -320,7 +304,30 @@ class LegacyDefendantAccountServiceTest {
     }
 
     @Test
-    void searchDefendantAccounts_ValidateRequest() throws IOException, ProcessingException {
+    @SuppressWarnings("unchecked")
+    void searchForDefendantAccounts_SuccessfulResponse() throws Exception {
+
+        mockRestClientPost();
+
+        // Arrange
+        DefendantAccountsSearchResults resultsDto = DefendantAccountsSearchResults.builder()
+            .totalCount(9L).build();
+        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(resultsDto);
+
+        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        when(requestBodySpec.body(any(DefendantAccountSearchCriteria.class))).thenReturn(requestBodySpec);
+        when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
+
+        // Act
+        AccountSearchResultsDto searchResultsDto = legacyDefendantAccountService
+            .searchDefendantAccounts(AccountSearchDto.builder().build());
+
+        // Assert
+        assertEquals(9L, searchResultsDto.getTotalCount());
+    }
+
+    @Test
+    void searchForDefendantAccounts_ValidateRequest() throws IOException, ProcessingException {
 
         DefendantAccountSearchCriteria legacyAccountSearchCriteria = constructDefendantAccountSearchCriteria();
 
@@ -340,7 +347,7 @@ class LegacyDefendantAccountServiceTest {
     }
 
     @Test
-    void searchDefendantAccounts_ValidateResponse() throws IOException, ProcessingException {
+    void searchForDefendantAccounts_ValidateResponse() throws IOException, ProcessingException {
 
         DefendantAccountsSearchResults legacyAccountsSearchResults = DefendantAccountsSearchResults.builder()
             .totalCount(1L)

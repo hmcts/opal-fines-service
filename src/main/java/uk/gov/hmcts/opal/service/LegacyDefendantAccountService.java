@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-@Slf4j
+@Slf4j(topic = "LegacyDefendantAccountService")
 public class LegacyDefendantAccountService extends LegacyService implements DefendantAccountServiceInterface {
 
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
@@ -30,8 +30,8 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
 
     @Autowired
     protected LegacyDefendantAccountService(@Value("${legacy-gateway-url}") String gatewayUrl,
-                                            RestTemplate restTemplate) {
-        super(gatewayUrl, restTemplate);
+                                            RestClient restClient) {
+        super(gatewayUrl, restClient);
     }
 
     @Override
