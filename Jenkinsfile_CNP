@@ -16,10 +16,14 @@ withPipeline(type, product, component) {
   }
 
   afterAlways('functionalTest:dev') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functionalOpal-test-report/**/*'
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functionalLegacy-test-report/**/*'
+
   }
 
   afterAlways('functionalTest:stg') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functionalOpal-test-report/**/*'
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functionalLegacy-test-report/**/*'
+
   }
 }
