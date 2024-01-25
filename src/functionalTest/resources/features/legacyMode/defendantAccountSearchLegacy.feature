@@ -1,59 +1,25 @@
 @PO-118 @PO-120 @Legacy
-Feature: Test the defendant account search API
+Feature: Test the defendant account search API Legacy
+
   Background:
     Given this test is ran in "legacy" mode
 
-  Scenario: exact search with correct parameters - exact result match
+  Scenario: data is returned from the stub when in legacy mode
     When I make a call to the defendant search API using the parameters
-      | forename       | Smart          |
-      | surname        | John           |
-      | initials       | D              |
-      | dayOfMonth     | 23             |
-      | monthOfYear    | 11             |
-      | year           | 1999           |
-      | addressLineOne | 10 Brooks Lake |
+      | forename       |  |
+      | surname        |  |
+      | initials       |  |
+      | dayOfMonth     |  |
+      | monthOfYear    |  |
+      | year           |  |
+      | addressLineOne |  |
     Then there is one result returned matching
-      | name         | Mr Smart D John |
-      | dateOfBirth  | 1999-11-23      |
-      | addressLine1 | 10 Brooks Lake  |
-
-  Scenario: exact search with incorrect parameters - no result match
-    When I make a call to the defendant search API using the parameters
-      | forename       | Smart          |
-      | surname        | John           |
-      | initials       | D              |
-      | dayOfMonth     | 22             |
-      | monthOfYear    | 11             |
-      | year           | 1999           |
-      | addressLineOne | 10 Brooks Lake |
-    Then there are no results returned
+      | name         | Sir Albert MBE Jones |
+      | dateOfBirth  | 1988-08-28           |
+      | addressLine1 | Wales                |
 
 
-  Scenario: partial search on surname - results contain partial surname
-    When I make a call to the defendant search API using the parameters
-      | forename       | Smart          |
-      | surname        | Joh            |
-      | initials       | D              |
-      | dayOfMonth     | 23             |
-      | monthOfYear    | 11             |
-      | year           | 1999           |
-      | addressLineOne | 10 Brooks Lake |
-    Then the returned results match
-      | name         | Mr Smart D John |
-      | dateOfBirth  | 1999-11-23      |
-      | addressLine1 | 10 Brooks Lake  |
 
 
-  Scenario: broad search - all relevant results returned
-    When I make a call to the defendant search API using the parameters
-      | forename       |      |
-      | surname        |      |
-      | initials       |      |
-      | dayOfMonth     |      |
-      | monthOfYear    |      |
-      | year           |      |
-      | addressLineOne | Road |
-    Then the returned results match
-      | name         |      |
-      | dateOfBirth  |      |
-      | addressLine1 | Road |
+
+
