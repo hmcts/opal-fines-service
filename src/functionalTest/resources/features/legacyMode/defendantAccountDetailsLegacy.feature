@@ -1,9 +1,6 @@
 @PO-129 @PO-131 @Legacy
 Feature: Test the defendant account details API Legacy
 
-  Background:
-    Given this test is ran in "legacy" mode
-
   Scenario: Correct data returned when an existing account ID is used
     When I make a request to the defendant account details api with
       | defendantID | 12345 |

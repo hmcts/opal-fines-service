@@ -1,9 +1,6 @@
 @PO-118 @PO-120 @Legacy
 Feature: Test the defendant account search API Legacy
 
-  Background:
-    Given this test is ran in "legacy" mode
-
   Scenario: data is returned from the stub when in legacy mode
     When I make a call to the defendant search API using the parameters
       | forename       |  |
