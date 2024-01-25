@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.authentication.dao.impl;
+package uk.gov.hmcts.opal.authentication.dao;
 
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
 import org.apache.http.HttpStatus;
@@ -25,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AzureDaoImplTest {
+class AzureDaoTest {
 
     @Mock
     private AuthConfigurationProperties authenticationConfiguration;
@@ -37,7 +37,7 @@ class AzureDaoImplTest {
     private OAuthClient azureActiveDirectoryB2CClient;
 
     @InjectMocks
-    private AzureDaoImpl azureDaoImpl;
+    private AzureDao azureDao;
 
 
     @Test
@@ -46,7 +46,7 @@ class AzureDaoImplTest {
         when(azureActiveDirectoryB2CClient.fetchAccessToken(any(), any(), any(), any(), any(), any())).thenReturn(
             response);
 
-        OAuthProviderRawResponse rawResponse = azureDaoImpl.fetchAccessToken(
+        OAuthProviderRawResponse rawResponse = azureDao.fetchAccessToken(
             "CODE",
             authenticationProviderConfiguration,
             authenticationConfiguration
@@ -64,7 +64,7 @@ class AzureDaoImplTest {
     @ValueSource(strings = {" "})
     @NullAndEmptySource
     void fetchAccessTokenShouldThrowExceptionWhenProvidedCodeIsBlankOrNull(String code) {
-        AzureDaoException exception = assertThrows(AzureDaoException.class, () -> azureDaoImpl.fetchAccessToken(
+        AzureDaoException exception = assertThrows(AzureDaoException.class, () -> azureDao.fetchAccessToken(
             code, authenticationProviderConfiguration, authenticationConfiguration));
 
         assertEquals("Null code not permitted", exception.getMessage());
@@ -78,7 +78,7 @@ class AzureDaoImplTest {
 
         AzureDaoException exception = assertThrows(
             AzureDaoException.class,
-            () -> azureDaoImpl.fetchAccessToken(
+            () -> azureDao.fetchAccessToken(
                 "CODE",
                 authenticationProviderConfiguration,
                 authenticationConfiguration

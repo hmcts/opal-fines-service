@@ -1,9 +1,8 @@
-package uk.gov.hmcts.opal.authentication.component.impl;
+package uk.gov.hmcts.opal.authentication.service;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.opal.authentication.component.SessionCache;
 import uk.gov.hmcts.opal.authentication.model.Session;
 
 import java.util.Map;
@@ -11,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Slf4j
-public class SimpleInMemorySessionCacheImpl implements SessionCache {
+public class SessionCache {
 
     private final Map<String, Session> cache = new ConcurrentHashMap<>();
 
@@ -22,7 +21,6 @@ public class SimpleInMemorySessionCacheImpl implements SessionCache {
         );
     }
 
-    @Override
     public void put(String sessionId, Session session) {
         if (session == null) {
             throw new IllegalArgumentException("Null session is not permitted");
@@ -32,12 +30,10 @@ public class SimpleInMemorySessionCacheImpl implements SessionCache {
         log.debug("Added session to cache: {}:{}", sessionId, session);
     }
 
-    @Override
     public Session get(String sessionId) {
         return cache.get(sessionId);
     }
 
-    @Override
     public Session remove(String sessionId) {
         return cache.remove(sessionId);
     }

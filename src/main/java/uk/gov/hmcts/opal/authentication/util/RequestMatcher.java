@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.common.util;
+package uk.gov.hmcts.opal.authentication.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 

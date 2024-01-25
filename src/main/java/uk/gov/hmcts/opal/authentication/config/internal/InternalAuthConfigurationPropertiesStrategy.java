@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import uk.gov.hmcts.opal.authentication.config.AuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.AuthProviderConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.AuthenticationConfigurationPropertiesStrategy;
-import uk.gov.hmcts.opal.common.util.RequestMatcher;
+import uk.gov.hmcts.opal.authentication.util.RequestMatcher;
 
 @Configuration
 @RequiredArgsConstructor

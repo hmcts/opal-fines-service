@@ -1,12 +1,28 @@
 package uk.gov.hmcts.opal.authentication.service;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authentication.model.Session;
 
-public interface SessionService {
+@Service
+@RequiredArgsConstructor
+public class SessionService {
 
-    Session getSession(String sessionId);
+    private final SessionCache sessionCache;
 
-    void putSession(String sessionId, Session session);
 
-    Session dropSession(String sessionId);
+    public Session getSession(String sessionId) {
+        return sessionCache.get(sessionId);
+    }
+
+
+    public void putSession(String sessionId, Session session) {
+        sessionCache.put(sessionId, session);
+    }
+
+
+    public Session dropSession(String sessionId) {
+        return sessionCache.remove(sessionId);
+    }
+
 }

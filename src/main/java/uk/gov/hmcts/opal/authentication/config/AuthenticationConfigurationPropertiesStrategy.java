@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.authentication.config;
 
 import lombok.SneakyThrows;
 import org.apache.http.client.utils.URIBuilder;
-import uk.gov.hmcts.opal.common.util.RequestMatcher;
+import uk.gov.hmcts.opal.authentication.util.RequestMatcher;
 
 import java.net.URI;
 import java.net.URISyntaxException;

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.authentication.component.impl;
+package uk.gov.hmcts.opal.authentication.service;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -12,7 +12,6 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.opal.authentication.component.TokenValidator;
 import uk.gov.hmcts.opal.authentication.config.AuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.AuthProviderConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.model.JwtValidationResult;
@@ -24,9 +23,8 @@ import java.util.HashSet;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class TokenValidatorImpl implements TokenValidator {
+public class TokenValidator {
 
-    @Override
     public JwtValidationResult validate(String accessToken,
                                         AuthProviderConfigurationProperties providerConfig,
                                         AuthConfigurationProperties configuration
