@@ -1,4 +1,4 @@
-@PO-119 @Legacy
+@PO-118 @PO-120 @Legacy
 Feature: Test the defendant account search API
   Background:
     Given this test is ran in "legacy" mode
