@@ -96,7 +96,7 @@ task functionalOpal(type: Test) {
     delete "${rootDir}/functionalOpal-test-report/"
     new File("${rootDir}/functionalOpal-test-report").mkdirs()
     file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/functionalOpal-test-report"))
-    logger.quiet("Functional Test Report available at - file://${rootDir}/functionalOpal-test-report/index.html")
+    logger.quiet("FunctionalOpal Test Report available at - file://${rootDir}/functionalOpal-test-report/index.html")
   }
 }
 task functionalLegacy(type: Test) {
@@ -115,14 +115,13 @@ task functionalLegacy(type: Test) {
     delete "${rootDir}/functionalLegacy-test-report/"
     new File("${rootDir}/functionalLegacy-test-report").mkdirs()
     file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/functionalLegacy-test-report"))
-    logger.quiet("Functional Test Report available at - file://${rootDir}/functionalLegacy-test-report/index.html")
+    logger.quiet("FunctionalLegacy Test Report available at - file://${rootDir}/functionalLegacy-test-report/index.html")
   }
 }
 task functional(type: Test) {
   description = "Runs functional tests"
   group = "Verification"
   testLogging.showStandardStreams = true
-
   dependsOn('functionalOpal', 'functionalLegacy')
   tasks.functionalLegacy.mustRunAfter functionalOpal
 }
