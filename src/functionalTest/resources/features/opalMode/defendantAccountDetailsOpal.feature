@@ -1,5 +1,5 @@
 @PO-130 @Opal
-Feature: Test the defendant account details API
+Feature: Test the defendant account details API Opal
 
   Scenario: Correct data returned when an existing account ID is used
     When I make a request to the defendant account details api with
