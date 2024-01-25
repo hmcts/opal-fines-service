@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.authentication.service.impl;
+package uk.gov.hmcts.opal.authentication.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -6,7 +6,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.authentication.component.TokenValidator;
 import uk.gov.hmcts.opal.authentication.config.AuthStrategySelector;
 import uk.gov.hmcts.opal.authentication.config.AuthenticationConfigurationPropertiesStrategy;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
@@ -28,7 +27,7 @@ import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AuthenticationServiceImplTest {
+class AuthenticationServiceTest {
 
     private static final URI DUMMY_AUTH_URI = URI.create("DUMMY_AUTH_URI");
     private static final URI DUMMY_LOGOUT_URI = URI.create("DUMMY_LOGOUT_URI");
@@ -37,7 +36,7 @@ class AuthenticationServiceImplTest {
     private static final String DUMMY_ID_TOKEN = "DUMMY ID TOKEN";
 
     @InjectMocks
-    private AuthenticationServiceImpl authenticationService;
+    private AuthenticationService authenticationService;
 
     @Mock
     private TokenValidator tokenValidator;

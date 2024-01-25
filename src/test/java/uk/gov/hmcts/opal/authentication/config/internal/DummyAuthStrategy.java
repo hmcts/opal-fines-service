@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.authentication.component.impl;
+package uk.gov.hmcts.opal.authentication.config.internal;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;

@@ -1,15 +1,15 @@
-package uk.gov.hmcts.opal.authentication.component.impl;
+package uk.gov.hmcts.opal.authentication.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.authentication.component.SessionCache;
 import uk.gov.hmcts.opal.authentication.model.Session;
+import uk.gov.hmcts.opal.authentication.service.SessionCache;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class SimpleInMemorySessionCacheImplTest {
+class SessionCacheTest {
 
     private static final String DUMMY_SESSION_ID = "9D65049E1787A924E269747222F60CAA";
 
@@ -17,7 +17,7 @@ class SimpleInMemorySessionCacheImplTest {
 
     @BeforeEach
     void setUp() {
-        sessionCache = new SimpleInMemorySessionCacheImpl();
+        sessionCache = new SessionCache();
     }
 
     @Test
