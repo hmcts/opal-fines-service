@@ -18,24 +18,16 @@ public class ModeSwitchStepDef extends BaseStepDef {
             requestBody.put("mode", "opal");
 
             System.out.println("Test mode equals " + testMode + " setting to: opal");
-            SerenityRest.given()
-                .accept("*/*")
-                .contentType("application/json")
-                .body(requestBody.toString())
-                .when()
-                .put(getTestUrl() + "/api/testing-support/app-mode");
+            SerenityRest.given().accept("*/*").contentType("application/json").body(requestBody.toString()).when().put(
+                getTestUrl() + "/api/testing-support/app-mode");
         }
         if (Objects.equals(testMode, "legacy")) {
             JSONObject requestBody = new JSONObject();
             requestBody.put("mode", "legacy");
 
             System.out.println("Test mode equals " + testMode + " setting to: legacy");
-            SerenityRest.given()
-                .accept("*/*")
-                .contentType("application/json")
-                .body(requestBody.toString())
-                .when()
-                .put(getTestUrl() + "/api/testing-support/app-mode");
+            SerenityRest.given().accept("*/*").contentType("application/json").body(requestBody.toString()).when().put(
+                getTestUrl() + "/api/testing-support/app-mode");
         }
     }
 
@@ -46,12 +38,8 @@ public class ModeSwitchStepDef extends BaseStepDef {
         requestBody.put("mode", "opal");
 
         System.out.println("All tests ran setting back to: opal");
-        SerenityRest.given()
-            .accept("*/*")
-            .contentType("application/json")
-            .body(requestBody.toString())
-            .when()
-            .put(getTestUrl() + "/api/testing-support/app-mode");
+        SerenityRest.given().accept("*/*").contentType("application/json").body(requestBody.toString()).when().put(
+            getTestUrl() + "/api/testing-support/app-mode");
     }
 
 }
