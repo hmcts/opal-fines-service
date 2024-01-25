@@ -1,7 +1,5 @@
 @PO-119 @Opal
 Feature: Test the defendant account search API
-  Background:
-    Given this test is ran in "opal" mode
 
   Scenario: exact search with correct parameters - exact result match
     When I make a call to the defendant search API using the parameters
