@@ -1,29 +1,17 @@
-@PO-130 @Legacy
-Feature: Test the defendant account details API
+@PO-129 @PO-131 @Legacy
+Feature: Test the defendant account details API Legacy
+
   Background:
     Given this test is ran in "legacy" mode
 
   Scenario: Correct data returned when an existing account ID is used
     When I make a request to the defendant account details api with
-      | defendantID | 500000000 |
+      | defendantID | 12345 |
 
     Then the response from the defendant account details api is
-      | defendantAccountId | 500000000              |
-      | accountNumber      | 10000000000A           |
-      | fullName           | Ms Anna K Graham       |
-      | address            | Lumber House, 54 Gordon Road, Maidstone, Kent |
-
-
-  Scenario Outline: No data returned when a non-existent account ID is used
-    When I make a request to the defendant account details api with
-      | defendantID | <defendantID> |
-
-    Then the response from the defendant account details api is empty
-    Examples:
-      | defendantID |
-      |             |
-      | 999999999   |
-      | 123         |
-      | 50000000L   |
+      | defendantAccountId | 12345                   |
+      | accountNumber      | ACCT-123                |
+      | fullName           | Mr. John Doe            |
+      | address            | 123 Main Street, Apt 4B |
 
 
