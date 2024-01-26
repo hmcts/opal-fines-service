@@ -143,7 +143,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void getParty_SuccessfulResponse() throws Exception {
         // Arrange
-        mockRestClientGet();
+        mockRestClientPost();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
         DefendantAccountEntity expectedAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
@@ -151,6 +151,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        when(requestBodySpec.body(any(AccountEnquiryDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 
         // Act
@@ -165,13 +166,13 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void getParty_FailureBodyResponse() throws Exception {
         // Arrange
-        mockRestClientGet();
+        mockRestClientPost();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             null, HttpStatus.OK);
+        when(requestBodySpec.body(any(AccountEnquiryDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
-
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
         DefendantAccountEntity resultAccountEntity = legacyDefendantAccountService.getDefendantAccount(enquiry);
@@ -185,7 +186,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void getParty_FailureCodeResponse() throws Exception {
         // Arrange
-        mockRestClientGet();
+        mockRestClientPost();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
 
@@ -193,8 +194,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
+        when(requestBodySpec.body(any(AccountEnquiryDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
-
 
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
@@ -209,13 +210,13 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void getParty_ErrorResponse() throws Exception {
         // Arrange
-        mockRestClientGet();
+        mockRestClientPost();
         String jsonBody = createBrokenJson();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.OK);
+        when(requestBodySpec.body(any(AccountEnquiryDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
-
 
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
@@ -289,10 +290,11 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     void getAccountDetailsByDefendantAccountId_Success() {
 
         // Arrange
-        mockRestClientGet();
+        mockRestClientPost();
         String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(buildLegacyAccountDto());
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        when(requestBodySpec.body(any(LegacyAccountDetailsRequestDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 
         // Act

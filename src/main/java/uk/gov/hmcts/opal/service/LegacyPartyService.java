@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.PartySummary;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -33,7 +34,7 @@ public class LegacyPartyService extends LegacyService implements PartyServiceInt
     @Override
     public PartyDto getParty(long partyId) {
         log.info("Get party for id: {}", partyId);
-        return getFromGateway(GET_PARTY, PartyDto.class, partyId);
+        return postParamsToGateway(GET_PARTY, PartyDto.class, Map.of("party_id", partyId));
     }
 
     @Override

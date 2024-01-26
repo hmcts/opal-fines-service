@@ -121,7 +121,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void getParty_SuccessfulResponse() throws Exception {
         // Arrange
-        mockRestClientGet();
+        mockRestClientPost();
         final PartyDto inputPartyDto = new PartyDto();
 
         PartyDto expectedPartyDto = PartyServiceTest.buildPartyDto();
@@ -129,6 +129,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         String jsonBody = createJsonBody1();
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        when(requestBodySpec.body(any(String.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 
         // Act
@@ -142,12 +143,13 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void getParty_FailureBodyResponse() throws Exception {
         // Arrange
-        mockRestClientGet();
+        mockRestClientPost();
         final PartyDto inputPartyDto = new PartyDto();
 
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             null, HttpStatus.OK);
+        when(requestBodySpec.body(any(String.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
@@ -162,7 +164,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void getParty_FailureCodeResponse() throws Exception {
         // Arrange
-        mockRestClientGet();
+        mockRestClientPost();
         final PartyDto inputPartyDto = new PartyDto();
 
 
@@ -170,6 +172,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
+        when(requestBodySpec.body(any(String.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
@@ -184,11 +187,12 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void getParty_ErrorResponse() throws Exception {
         // Arrange
-        mockRestClientGet();
+        mockRestClientPost();
         String jsonBody = createBrokenJson();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.OK);
+        when(requestBodySpec.body(any(String.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
