@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service;
 
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
@@ -39,7 +38,7 @@ public abstract class LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void mockRestClientGet() {
         when(restClient.get()).thenReturn(requestHeaderUriSpec);
-        when(requestHeaderUriSpec.uri(anyString(), ArgumentMatchers.<Object>any())).thenReturn(requestHeaderSpec);
+        when(requestHeaderUriSpec.uri(anyString())).thenReturn(requestHeaderSpec);
         when(requestHeaderSpec.retrieve()).thenReturn(responseSpec);
     }
 

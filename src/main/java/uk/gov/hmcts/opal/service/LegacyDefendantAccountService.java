@@ -42,7 +42,7 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
     @Override
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
         log.info("Get defendant account for {} from {}", request.toJson(), gatewayUrl);
-        return getFromGateway(GET_DEFENDANT_ACCOUNT, DefendantAccountEntity.class, request);
+        return postToGateway(GET_DEFENDANT_ACCOUNT, DefendantAccountEntity.class, request);
     }
 
     @Override
@@ -72,9 +72,9 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
             .defendantAccountId(defendantAccountId)
             .build();
 
-        LegacyAccountDetailsResponseDto response = getFromGateway(GET_ACCOUNT_DETAILS,
+        LegacyAccountDetailsResponseDto response = postToGateway(GET_ACCOUNT_DETAILS,
                                                                   LegacyAccountDetailsResponseDto.class,
-                                                                  defendantAccountId);
+                                                                  request);
 
         return LegacyAccountDetailsResponseDto.toAccountDetailsDto(response);
     }
