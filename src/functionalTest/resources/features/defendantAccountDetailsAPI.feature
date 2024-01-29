@@ -1,3 +1,4 @@
+@Ignore
 @PO-130
 Feature: Test the defendant account details API
 

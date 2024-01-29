@@ -14,7 +14,6 @@ import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -23,7 +22,6 @@ import org.springframework.security.config.annotation.web.configurers.FormLoginC
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
-import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -42,6 +40,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationPropertiesStrategy;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthProviderConfigurationProperties;
+import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
+import uk.gov.hmcts.opal.exception.OpalApiException;
 
 import java.io.IOException;
 import java.util.List;
@@ -70,36 +70,25 @@ public class SecurityConfig {
         "/health/**",
         "/mappings",
         "/info",
-        "/api/**",
         "/metrics",
         "/metrics/**",
         "/internal-user/login-or-refresh",
         "/internal-user/logout",
         "/internal-user/handle-oauth-code",
+        "/api/testing-support",
         "/"
     };
 
     @Bean
-    @Order(1)
-    @SuppressWarnings("PMD.SignatureDeclareThrowsException")
-    public SecurityFilterChain patternFilterChain(HttpSecurity http) throws Exception {
-
+    @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "squid:S4502"})
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         applyCommonConfig(http)
             .authorizeHttpRequests(authorize ->
                                        authorize.requestMatchers(PathRequest.toStaticResources().atCommonLocations())
                                            .permitAll()
                                            .requestMatchers(AUTH_WHITELIST)
                                            .permitAll()
-            );
-
-        return http.build();
-    }
-
-    @Bean
-    @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "squid:S4502"})
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        applyCommonConfig(http)
-            .addFilterBefore(new AuthorisationTokenExistenceFilter(), OAuth2LoginAuthenticationFilter.class)
+            )
             .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
             .oauth2ResourceServer(oauth2 ->
                                       oauth2.authenticationManagerResolver(jwtIssuerAuthenticationManagerResolver())
@@ -154,8 +143,7 @@ public class SecurityConfig {
                 return;
             }
 
-            response.sendRedirect(locator.locateAuthenticationConfiguration(req -> fallbackConfiguration).getLoginUri(
-                null).toString());
+            throw new OpalApiException(AuthenticationError.FAILED_TO_OBTAIN_ACCESS_TOKEN);
         }
     }
 

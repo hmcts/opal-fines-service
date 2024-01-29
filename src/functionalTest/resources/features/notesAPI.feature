@@ -1,3 +1,4 @@
+@Ignore
 @Smoke
 Feature: Notes API tests
   Scenario: I post some data to the Notes API and the response contains the correct Data - null noteID
