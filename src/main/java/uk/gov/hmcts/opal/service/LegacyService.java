@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
@@ -27,23 +28,35 @@ public abstract class LegacyService {
     protected abstract Logger getLog();
 
     public <T> T extractResponse(ResponseEntity<String> responseEntity, Class<T> clzz) {
-        if (responseEntity.getStatusCode().is2xxSuccessful() && responseEntity.getBody() != null) {
-            String rawJson = responseEntity.getBody();
-            getLog().info("extractResponse: Raw JSON response: {}", rawJson);
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+            if (responseEntity.getBody() != null) {
 
-            try {
-                ObjectMapper objectMapper = ToJsonString.getObjectMapper();
-                JsonNode root = objectMapper.readTree(rawJson);
+                String rawJson = responseEntity.getBody();
+                getLog().info("extractResponse: Raw JSON response: {}", rawJson);
 
-                return objectMapper.treeToValue(root, clzz);
+                try {
+                    ObjectMapper objectMapper = ToJsonString.getObjectMapper();
+                    JsonNode root = objectMapper.readTree(rawJson);
 
-            } catch (Exception e) {
-                getLog().error("extractResponse: Error deserializing response: {}", e.getMessage(), e);
+                    return objectMapper.treeToValue(root, clzz);
+
+                } catch (Exception e) {
+                    getLog().error("extractResponse: Error deserializing response: {}", e.getMessage(), e);
+                    throw new LegacyGatewayResponseException(e);
+                }
+            } else {
+                String msg = "Received an empty body in the response from the Legacy Gateway.";
+                getLog().warn("extractResponse: {}", msg);
+                throw new LegacyGatewayResponseException(msg);
             }
         } else {
-            getLog().warn("extractResponse: Received non-2xx response: {}", responseEntity.getStatusCode());
+            String msg = MessageFormatter.format(
+                "Received a non-2xx response from the Legacy Gateway: {}",
+                responseEntity.getStatusCode()
+            ).getMessage();
+            getLog().warn("extractResponse: {}", msg);
+            throw new LegacyGatewayResponseException(msg);
         }
-        return null;
     }
 
     public <T> T getFromGateway(String actionType, Class<T> responseType) {
@@ -87,5 +100,6 @@ public abstract class LegacyService {
 
         return extractResponse(responseEntity, responseType);
     }
+
 
 }
