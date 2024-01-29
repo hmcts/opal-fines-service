@@ -12,7 +12,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-//@ConditionalOnProperty(name = "app-mode", havingValue = "opal", matchIfMissing = true)
 public class PartyService implements PartyServiceInterface {
 
     private final PartyRepository partyRepository;
