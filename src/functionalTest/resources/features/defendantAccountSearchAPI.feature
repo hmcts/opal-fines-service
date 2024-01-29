@@ -1,4 +1,4 @@
-@ignore
+@Ignore
 @PO-119
 Feature: Test the defendant account search API
 
