@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-@Slf4j
+@Slf4j(topic = "LegacyDefendantAccountService")
 public class LegacyDefendantAccountService extends LegacyService implements DefendantAccountServiceInterface {
 
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
@@ -30,8 +30,8 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
 
     @Autowired
     protected LegacyDefendantAccountService(@Value("${legacy-gateway-url}") String gatewayUrl,
-                                            RestTemplate restTemplate) {
-        super(gatewayUrl, restTemplate);
+                                            RestClient restClient) {
+        super(gatewayUrl, restClient);
     }
 
     @Override
@@ -42,7 +42,7 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
     @Override
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
         log.info("Get defendant account for {} from {}", request.toJson(), gatewayUrl);
-        return getFromGateway(GET_DEFENDANT_ACCOUNT, DefendantAccountEntity.class, request);
+        return postToGateway(GET_DEFENDANT_ACCOUNT, DefendantAccountEntity.class, request);
     }
 
     @Override
@@ -72,9 +72,9 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
             .defendantAccountId(defendantAccountId)
             .build();
 
-        LegacyAccountDetailsResponseDto response = getFromGateway(GET_ACCOUNT_DETAILS,
+        LegacyAccountDetailsResponseDto response = postToGateway(GET_ACCOUNT_DETAILS,
                                                                   LegacyAccountDetailsResponseDto.class,
-                                                                  defendantAccountId);
+                                                                  request);
 
         return LegacyAccountDetailsResponseDto.toAccountDetailsDto(response);
     }

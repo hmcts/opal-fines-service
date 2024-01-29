@@ -1,23 +1,27 @@
 package uk.gov.hmcts.opal.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+
+import java.util.Map;
 
 public abstract class LegacyService {
 
     public static final String ACTION_TYPE = "actionType";
     final String gatewayUrl;
 
-    final RestTemplate restTemplate;
+    final RestClient restClient;
 
-    protected LegacyService(String gatewayUrl, RestTemplate restTemplate) {
+    protected LegacyService(String gatewayUrl, RestClient restTemplate) {
         this.gatewayUrl = gatewayUrl;
-        this.restTemplate = restTemplate;
+        this.restClient = restTemplate;
     }
 
     protected abstract Logger getLog();
@@ -42,18 +46,29 @@ public abstract class LegacyService {
         return null;
     }
 
-    public <T> T getFromGateway(String actionType, Class<T> responseType, Object... uriVariables) {
-        getLog().info("getFromGateway: GET from Gateway: {}",  gatewayUrl);
+    public <T> T getFromGateway(String actionType, Class<T> responseType) {
+        getLog().info("getFromGateway: GET from Gateway: {}", gatewayUrl);
 
         // Create a UriComponentsBuilder and add parameters
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
             .queryParam(ACTION_TYPE, actionType);
 
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(gatewayUrl
-                   + builder.toUriString(), String.class, uriVariables);
+        ResponseEntity<String> responseEntity = restClient.get()
+            .uri(gatewayUrl + builder.toUriString())
+            .retrieve()
+            .toEntity(String.class);
 
         return extractResponse(responseEntity, responseType);
 
+    }
+
+    public <T> T postParamsToGateway(String actionType, Class<T> responseType, Map<String, Object> requestParams) {
+        try {
+            return postToGateway(actionType, responseType,
+                                 ToJsonString.getObjectMapper().writeValueAsString(requestParams));
+        } catch (JsonProcessingException jpe) {
+            throw new RuntimeException(jpe);
+        }
     }
 
     public <T> T postToGateway(String actionType, Class<T> responseType, Object request) {
@@ -63,8 +78,12 @@ public abstract class LegacyService {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
             .queryParam(ACTION_TYPE, actionType);
 
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(
-            gatewayUrl + builder.toUriString(), request, String.class);
+        ResponseEntity<String> responseEntity = restClient.post()
+            .uri(gatewayUrl + builder.toUriString())
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(request)
+            .retrieve()
+            .toEntity(String.class);
 
         return extractResponse(responseEntity, responseType);
     }

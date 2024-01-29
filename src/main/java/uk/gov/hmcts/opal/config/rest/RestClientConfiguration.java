@@ -2,14 +2,14 @@ package uk.gov.hmcts.opal.config.rest;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 @Configuration
-public class RestTemplateConfiguration {
+public class RestClientConfiguration {
 
     @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
+    public RestClient restClient() {
+        return RestClient.create();
     }
 
 }
