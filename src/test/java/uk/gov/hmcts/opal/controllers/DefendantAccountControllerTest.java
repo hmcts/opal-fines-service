@@ -14,6 +14,7 @@ import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
+import uk.gov.hmcts.opal.dto.NotesSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.NoteService;
@@ -183,5 +184,39 @@ class DefendantAccountControllerTest {
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
         verify(noteService, times(1)).saveNote(any(
             NoteDto.class));
+    }
+
+    @Test
+    public void testNotes_Success() {
+        // Arrange
+        NoteDto mockNote = new NoteDto();
+        List<NoteDto> mockResponse = List.of(mockNote);
+
+        when(noteService.searchNotes(any(NotesSearchDto.class))).thenReturn(mockResponse);
+
+        // Act
+        AddNoteDto addNote = AddNoteDto.builder().build();
+        ResponseEntity<List<NoteDto>> responseEntity = defendantAccountController.getNotesForDefendantAccount("1");
+
+        // Assert
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(mockResponse, responseEntity.getBody());
+        verify(noteService, times(1)).searchNotes(any(
+            NotesSearchDto.class));
+
+    }
+
+    @Test
+    public void testNotes_NoContent() {
+        when(noteService.searchNotes(any(NotesSearchDto.class))).thenReturn(null);
+
+        // Act
+        AddNoteDto addNote = AddNoteDto.builder().build();
+        ResponseEntity<List<NoteDto>> responseEntity = defendantAccountController.getNotesForDefendantAccount("1");
+
+        // Assert
+        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+        verify(noteService, times(1)).searchNotes(any(
+            NotesSearchDto.class));
     }
 }

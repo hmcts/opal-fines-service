@@ -22,7 +22,8 @@ public class DefendantAccountSpecsTest {
         assertNotNull(DefendantAccountSpecs.likeOrganisationName("test"));
         assertNotNull(DefendantAccountSpecs.likeInitials("test"));
 
-        assertNotNull(DefendantAccountSpecs.findByAccountSearch(AccountSearchDto.builder().build()));
+        DefendantAccountSpecs specs = new DefendantAccountSpecs();
+        assertNotNull(specs.findByAccountSearch(AccountSearchDto.builder().build()));
 
     }
 

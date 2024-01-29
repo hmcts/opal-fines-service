@@ -60,6 +60,8 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
     private final NoteRepository noteRepository;
 
+    private final DefendantAccountSpecs specs = new DefendantAccountSpecs();
+
     @Override
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
 
@@ -99,7 +101,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
         }
 
         Page<DefendantAccountSummary> summariesPage = defendantAccountRepository
-            .findBy(DefendantAccountSpecs.findByAccountSearch(accountSearchDto),
+            .findBy(specs.findByAccountSearch(accountSearchDto),
                     ffq -> ffq.as(DefendantAccountSummary.class).page(Pageable.unpaged()));
 
         List<AccountSummaryDto> dtos = summariesPage.getContent().stream()
