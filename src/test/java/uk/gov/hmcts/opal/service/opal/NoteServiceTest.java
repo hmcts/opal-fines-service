@@ -6,12 +6,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.NoteDto;
+import uk.gov.hmcts.opal.dto.NotesSearchDto;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.repository.NoteRepository;
-import uk.gov.hmcts.opal.service.opal.NoteService;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -92,6 +97,23 @@ class NoteServiceTest {
                        && savedNoteDto.getPostedDate().isAfter(LocalDateTime.now().minusMinutes(1)),
                    "Posted date should be around the current time");
         verify(noteRepository, times(1)).save(any(NoteEntity.class));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testSearchNotes() {
+        // Arrange
+
+        NoteEntity noteEntity = NoteEntity.builder().build();
+        Page<NoteEntity> mockPage = new PageImpl<>(List.of(noteEntity), Pageable.unpaged(), 999L);
+        when(noteRepository.findBy(any(Specification.class), any())).thenReturn(mockPage);
+
+        // Act
+        List<NoteDto> result = noteService.searchNotes(NotesSearchDto.builder().build());
+
+        // Assert
+        assertEquals(1, result.size());
+
     }
 
 

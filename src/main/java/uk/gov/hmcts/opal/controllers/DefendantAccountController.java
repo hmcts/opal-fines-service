@@ -22,6 +22,7 @@ import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
+import uk.gov.hmcts.opal.dto.NotesSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;
@@ -146,5 +147,25 @@ public class DefendantAccountController {
         }
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @GetMapping(value = "/notes/{defendantId}")
+    @Operation(summary = "Returns all notes for an associated defendant account id.")
+    public ResponseEntity<List<NoteDto>> getNotesForDefendantAccount(@PathVariable String defendantId) {
+
+        log.info(":GET:getNotesForDefendantAccount: defendant account id: {}", defendantId);
+
+        NotesSearchDto criteria = NotesSearchDto.builder()
+            .associatedType(NOTE_ASSOC_REC_TYPE)
+            .associatedId(defendantId)
+            .build();
+
+        List<NoteDto> response = noteService.searchNotes(criteria);
+
+        if (response == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(response);
     }
 }
