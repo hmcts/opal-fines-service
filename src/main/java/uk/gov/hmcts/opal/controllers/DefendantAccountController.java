@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,9 +19,13 @@ import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.AddNoteDto;
+import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.service.NoteServiceInterface;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -29,11 +34,18 @@ import java.util.List;
 @Tag(name = "Defendant Account Controller")
 public class DefendantAccountController {
 
+    public static final String NOTE_ASSOC_REC_TYPE = "defendant_accounts";
+
     private final DefendantAccountServiceInterface defendantAccountService;
 
-    public DefendantAccountController(@Qualifier("defendantAccountServiceProxy")
-                                      DefendantAccountServiceInterface defendantAccountService) {
+    private final NoteServiceInterface noteService;
+
+    public DefendantAccountController(
+        @Qualifier("defendantAccountServiceProxy") DefendantAccountServiceInterface defendantAccountService,
+        @Qualifier("noteServiceProxy") NoteServiceInterface noteService) {
+
         this.defendantAccountService = defendantAccountService;
+        this.noteService = noteService;
     }
 
     @GetMapping
@@ -109,5 +121,29 @@ public class DefendantAccountController {
         }
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(value = "/addNote", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Adds a single note associated with the defendant account")
+    public ResponseEntity<NoteDto> addNote(
+        @RequestBody AddNoteDto addNote) {
+        log.info(":POST:addNote: {}", addNote.toPrettyJson());
+
+        NoteDto noteDto = NoteDto.builder()
+            .associatedRecordId(addNote.getAssociatedRecordId())
+            .noteText(addNote.getNoteText())
+            .associatedRecordType(NOTE_ASSOC_REC_TYPE)
+            .noteType("AA") // TODO - This will probably need to part of the AddNoteDto in future
+            .postedBy("USER")   // TODO - need to get this from the logged in user
+            .postedDate(LocalDateTime.now())
+            .build();
+
+        NoteDto response = noteService.saveNote(noteDto);
+
+        if (response == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 }
