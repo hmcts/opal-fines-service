@@ -22,7 +22,6 @@ import org.springframework.security.config.annotation.web.configurers.FormLoginC
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
-import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -89,7 +88,6 @@ public class SecurityConfig {
                                            .requestMatchers(AUTH_WHITELIST)
                                            .permitAll()
             )
-            .addFilterBefore(new AuthorisationTokenExistenceFilter(), OAuth2LoginAuthenticationFilter.class)
             .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
             .oauth2ResourceServer(oauth2 ->
                                       oauth2.authenticationManagerResolver(jwtIssuerAuthenticationManagerResolver())
