@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,7 +16,8 @@ import uk.gov.hmcts.opal.entity.PartySummary;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -64,11 +66,15 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
-        PartyDto resultPartyDto = legacyPartyService.saveParty(inputPartyDto);
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyPartyService.saveParty(inputPartyDto));
 
         // Assert
 
-        assertNull(resultPartyDto);
+        assertNotNull(lgre);
+        assertEquals("Received an empty body in the response from the Legacy Gateway.",
+                     lgre.getMessage());
     }
 
     @Test
@@ -87,11 +93,15 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
-        PartyDto resultPartyDto = legacyPartyService.saveParty(inputPartyDto);
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyPartyService.saveParty(inputPartyDto));
 
         // Assert
 
-        assertNull(resultPartyDto);
+        assertNotNull(lgre);
+        assertEquals("Received a non-2xx response from the Legacy Gateway: 500 INTERNAL_SERVER_ERROR",
+                     lgre.getMessage());
     }
 
     @Test
@@ -110,11 +120,16 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
-        PartyDto resultPartyDto = legacyPartyService.saveParty(inputPartyDto);
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyPartyService.saveParty(inputPartyDto));
 
         // Assert
 
-        assertNull(resultPartyDto);
+        assertNotNull(lgre);
+        Throwable cause = lgre.getCause();
+        assertNotNull(cause);
+        assertEquals(UnrecognizedPropertyException.class, cause.getClass());
     }
 
     @Test
@@ -153,11 +168,15 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
-        PartyDto resultPartyDto = legacyPartyService.getParty(1L);
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyPartyService.getParty(1L));
 
         // Assert
 
-        assertNull(resultPartyDto);
+        assertNotNull(lgre);
+        assertEquals("Received an empty body in the response from the Legacy Gateway.",
+                     lgre.getMessage());
     }
 
     @Test
@@ -176,11 +195,15 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
-        PartyDto resultPartyDto = legacyPartyService.getParty(1L);
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyPartyService.getParty(1L));
 
         // Assert
 
-        assertNull(resultPartyDto);
+        assertNotNull(lgre);
+        assertEquals("Received a non-2xx response from the Legacy Gateway: 500 INTERNAL_SERVER_ERROR",
+                     lgre.getMessage());
     }
 
     @Test
@@ -196,11 +219,16 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
-        PartyDto resultPartyDto = legacyPartyService.getParty(1L);
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyPartyService.getParty(1L));
 
         // Assert
 
-        assertNull(resultPartyDto);
+        assertNotNull(lgre);
+        Throwable cause = lgre.getCause();
+        assertNotNull(cause);
+        assertEquals(UnrecognizedPropertyException.class, cause.getClass());
     }
 
     @Test

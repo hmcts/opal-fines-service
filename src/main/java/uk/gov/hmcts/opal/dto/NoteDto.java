@@ -10,7 +10,7 @@ import lombok.extern.jackson.Jacksonized;
 import java.time.LocalDateTime;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Jacksonized
