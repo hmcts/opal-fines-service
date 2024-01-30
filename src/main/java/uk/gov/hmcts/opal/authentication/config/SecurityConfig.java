@@ -75,7 +75,7 @@ public class SecurityConfig {
         "/internal-user/login-or-refresh",
         "/internal-user/logout",
         "/internal-user/handle-oauth-code",
-        "/api/testing-support",
+        "/api/testing-support/**",
         "/"
     };
 
