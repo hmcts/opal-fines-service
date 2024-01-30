@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -126,7 +127,7 @@ public class DefendantAccountController {
     @PostMapping(value = "/addNote", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Adds a single note associated with the defendant account")
     public ResponseEntity<NoteDto> addNote(
-        @RequestBody AddNoteDto addNote) {
+        @RequestBody AddNoteDto addNote, HttpServletRequest request) {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
         NoteDto noteDto = NoteDto.builder()
@@ -134,7 +135,7 @@ public class DefendantAccountController {
             .noteText(addNote.getNoteText())
             .associatedRecordType(NOTE_ASSOC_REC_TYPE)
             .noteType("AA") // TODO - This will probably need to part of the AddNoteDto in future
-            .postedBy("USER")   // TODO - need to get this from the logged in user
+            .postedBy(request.getRemoteUser())
             .postedDate(LocalDateTime.now())
             .build();
 

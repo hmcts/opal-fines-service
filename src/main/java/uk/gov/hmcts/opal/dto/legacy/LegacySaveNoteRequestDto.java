@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -28,6 +29,7 @@ public class LegacySaveNoteRequestDto {
     private String noteText;
 
     @JsonProperty("posted_by")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private String postedBy;
 
     public static LegacySaveNoteRequestDto fromNoteDto(NoteDto dto) {
