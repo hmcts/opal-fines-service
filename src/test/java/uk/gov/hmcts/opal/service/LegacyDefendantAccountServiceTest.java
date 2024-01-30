@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -44,9 +45,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -93,11 +95,15 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
-        DefendantAccountEntity resultPartyDto = legacyDefendantAccountService.putDefendantAccount(inputAccountEntity);
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyDefendantAccountService.putDefendantAccount(inputAccountEntity));
 
         // Assert
 
-        assertNull(resultPartyDto);
+        assertNotNull(lgre);
+        assertEquals("Received an empty body in the response from the Legacy Gateway.",
+                     lgre.getMessage());
     }
 
     @Test
@@ -115,11 +121,16 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
-        DefendantAccountEntity resultPartyDto = legacyDefendantAccountService.putDefendantAccount(inputAccountEntity);
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyDefendantAccountService.putDefendantAccount(inputAccountEntity));
 
         // Assert
 
-        assertNull(resultPartyDto);
+        assertNotNull(lgre);
+        assertEquals("Received a non-2xx response from the Legacy Gateway: 500 INTERNAL_SERVER_ERROR",
+                     lgre.getMessage());
+
     }
 
     @Test
@@ -137,11 +148,16 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
-        DefendantAccountEntity resultPartyDto = legacyDefendantAccountService.putDefendantAccount(inputAccountEntity);
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyDefendantAccountService.putDefendantAccount(inputAccountEntity));
 
         // Assert
 
-        assertNull(resultPartyDto);
+        assertNotNull(lgre);
+        Throwable cause = lgre.getCause();
+        assertNotNull(cause);
+        assertEquals(UnrecognizedPropertyException.class, cause.getClass());
     }
 
     @Test
@@ -180,11 +196,17 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
-        DefendantAccountEntity resultAccountEntity = legacyDefendantAccountService.getDefendantAccount(enquiry);
+
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyDefendantAccountService.getDefendantAccount(enquiry));
 
         // Assert
 
-        assertNull(resultAccountEntity);
+        assertNotNull(lgre);
+        assertEquals("Received an empty body in the response from the Legacy Gateway.", lgre.getMessage());
+        // Assert
+
     }
 
     @Test
@@ -204,11 +226,16 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
-        DefendantAccountEntity resultAccountEntity = legacyDefendantAccountService.getDefendantAccount(enquiry);
+
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyDefendantAccountService.getDefendantAccount(enquiry));
 
         // Assert
+        assertNotNull(lgre);
+        assertEquals("Received a non-2xx response from the Legacy Gateway: 500 INTERNAL_SERVER_ERROR",
+                     lgre.getMessage());
 
-        assertNull(resultAccountEntity);
     }
 
     @Test
@@ -225,11 +252,16 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
-        DefendantAccountEntity resultAccountEntity = legacyDefendantAccountService.getDefendantAccount(enquiry);
+
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyDefendantAccountService.getDefendantAccount(enquiry));
 
         // Assert
-
-        assertNull(resultAccountEntity);
+        assertNotNull(lgre);
+        Throwable cause = lgre.getCause();
+        assertNotNull(cause);
+        assertEquals(UnrecognizedPropertyException.class, cause.getClass());
     }
 
 

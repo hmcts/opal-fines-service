@@ -7,20 +7,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 
-import java.time.LocalDateTime;
-
 @Data
-@Builder(toBuilder = true)
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Jacksonized
-public class NoteDto {
-    private Long noteId;
-    private String noteType;
-    private String associatedRecordType;
+public class AddNoteDto implements ToJsonString {
     private String associatedRecordId;
     private String noteText;
-    private LocalDateTime postedDate;
-    private String postedBy;
-
 }

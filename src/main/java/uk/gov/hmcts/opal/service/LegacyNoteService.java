@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.dto.NoteDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacySaveNoteRequestDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacySaveNoteResponseDto;
 
 @Service
 @Slf4j
@@ -25,7 +27,10 @@ public class LegacyNoteService extends LegacyService implements NoteServiceInter
     @Override
     public NoteDto saveNote(NoteDto noteDto) {
         log.info("Saving Note: {}", noteDto);
-        return postToGateway(POST_ACCOUNT_NOTES, NoteDto.class, noteDto);
+
+        return postToGateway(POST_ACCOUNT_NOTES,
+                    LegacySaveNoteResponseDto.class, LegacySaveNoteRequestDto.fromNoteDto(noteDto))
+            .createClonedAndUpdatedDto(noteDto);
     }
 
 
