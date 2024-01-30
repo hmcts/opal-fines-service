@@ -20,7 +20,7 @@
         <xsd:element type="xsd:dateTime" name="last_movement_date"/>
         <xsd:element type="xsd:boolean" name="collection_order"/>
         <xsd:element type="xsd:int" name="enforcing_court_code"/>
-        <xsd:element type="xsd:int" name="last_enforcement"/>
+        <xsd:element type="xsd:string" name="last_enforcement"/>
         <xsd:element type="xsd:string" name="enf_override_result_id"/>
         <xsd:element type="xsd:int" name="enf_override_enforcer_code"/>
         <xsd:element type="xsd:int" name="enf_override_tfo_lja_code"/>
@@ -64,7 +64,7 @@
                     <xsd:element type="xsd:string" name="address_line_3" minOccurs="0"/>
                     <xsd:element type="xsd:string" name="address_line_4" minOccurs="0"/>
                     <xsd:element type="xsd:string" name="address_line_5" minOccurs="0"/>
-                    <xsd:element type="xsd:string" name="postcode"/>
+                    <xsd:element type="xsd:string" name="postcode" minOccurs="0"/>
                   </xsd:sequence>
                 </xsd:complexType>
               </xsd:element>
@@ -102,7 +102,7 @@
                     <xsd:element type="xsd:long" name="activity_id"/>
                     <xsd:element type="xsd:string" name="activity_type"/>
                     <xsd:element type="xsd:string" name="activity_type_code"/>
-                    <xsd:element type="xsd:string" name="activity_text"/>
+                    <xsd:element type="xsd:string" name="activity_text" minOccurs="0"/>
                     <xsd:element type="xsd:dateTime" name="posted_date"/>
                     <xsd:element type="xsd:string" name="posted_by" minOccurs="0"/>
                     <xsd:element type="xsd:double" name="amount" minOccurs="0"/>

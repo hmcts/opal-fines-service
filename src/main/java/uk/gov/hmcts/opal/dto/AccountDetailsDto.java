@@ -45,8 +45,11 @@ public class AccountDetailsDto implements ToJsonString {
     //defendant_accounts.last_movement_date
     private LocalDate lastMovement;
 
-    //notes.note_text
+    //notes.note_text = AC
     private List<String> commentField;
+
+    //notes.note_text = AA
+    private String accountNotes;
 
     //defendant_accounts.prosecutor_case_reference
     private String pcr;

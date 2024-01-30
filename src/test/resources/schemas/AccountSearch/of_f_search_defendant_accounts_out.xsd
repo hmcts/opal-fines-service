@@ -3,7 +3,7 @@
     <xsd:element name="defendantAccountSearchResults">
         <xsd:complexType>
             <xsd:sequence>
-                <xsd:element name="defendantAccountsSearchResult" minOccurs="0" maxOccurs="unbounded">
+                <xsd:element name="defendantAccountSearchResult" minOccurs="0" maxOccurs="unbounded">
                     <xsd:complexType>
                         <xsd:sequence>
                             <xsd:element name="defendant_account_id" type="xsd:long" minOccurs="1" maxOccurs="1"/>

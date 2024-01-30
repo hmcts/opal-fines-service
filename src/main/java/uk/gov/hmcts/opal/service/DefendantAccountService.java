@@ -154,9 +154,13 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                                                                                    .getEnforcementOverrideEnforcerId());
 
         //query DB for NoteEntity by associatedRecordId (defendantAccountId) and noteType ("AC")
-        List<NoteEntity> noteEntity = noteRepository.findByAssociatedRecordIdAndNoteType(
+        List<NoteEntity> noteEntityAC = noteRepository.findByAssociatedRecordIdAndNoteType(
             defendantAccountEntity.getDefendantAccountId().toString(), "AC");
 
+        //query DB for NoteEntity by associatedRecordId (defendantAccountId) and noteType ("AA")
+        // returning only latest (postedDate)
+        NoteEntity noteEntityAA = noteRepository.findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(
+            defendantAccountEntity.getDefendantAccountId().toString(), "AA");
 
         //build fullAddress
         final String fullAddress = buildFullAddress(partyEntity.getAddressLine1(),
@@ -172,7 +176,8 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                                                           paymentTermsEntity.getEffectiveDate());
 
         //build comments
-        final List<String> comments = buildCommentsFromAssociatedNotes(noteEntity);
+        final List<String> comments = buildCommentsFromAssociatedNotes(noteEntityAC);
+
 
         //populate accountDetailsDto and return
         return AccountDetailsDto.builder()
@@ -190,6 +195,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                                           + " " + defendantAccountEntity.getLastHearingCourtId().getCourtCode())
             .lastMovement(defendantAccountEntity.getLastMovementDate())
             .commentField(comments)
+            .accountNotes(noteEntityAA.getNoteText())
             .pcr(defendantAccountEntity.getProsecutorCaseReference())
             .paymentDetails(paymentDetails)
             .lumpSum(paymentTermsEntity.getInstalmentLumpSum())

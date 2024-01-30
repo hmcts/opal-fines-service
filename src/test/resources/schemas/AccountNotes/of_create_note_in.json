@@ -1,16 +1,31 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "properties": {
-    "note": {
-      "type": "object",
-      "properties": {
-        "associated_record_id": { "type": "string" },
-        "associated_record_type": { "type": "string", "enum": ["defendant_accounts", "creditor_accounts", "suspense_accounts"] },
-        "note_text": { "type": "string" },
-        "posted_by": { "type": "string" }
-      },
-      "required": ["associated_record_id", "associated_record_type", "note_text", "posted_by"]
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "note": {
+            "type": "object",
+            "required": [
+                "associated_record_id",
+                "associated_record_type",
+                "note_text",
+                "posted_by"
+            ],
+            "properties": {
+                "associated_record_id": {"type": "string"},
+                "associated_record_type": {"$ref": "#/definitions/recordType"},
+                "note_text": {"type": "string"},
+                "posted_by": {"type": "string"}
+            }
+        },
+        "recordType": {
+            "type": "string",
+            "enum": [
+                "defendant_accounts",
+                "creditor_accounts",
+                "suspense_accounts"
+            ]
+        }
+    },
+    "properties": {
+        "note": {"$ref": "#/definitions/note"}
     }
-  }
 }

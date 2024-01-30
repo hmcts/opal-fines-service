@@ -1,44 +1,49 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "properties": {
-    "defendantAccountSearchResults": {
-      "type": "object",
-      "properties": {
-        "defendantAccountsSearchResult": {
-          "type": "array",
-          "items": {
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "defendantAccountSearchResults.defendantAccountSearchResult": {
+            "type": "object",
+            "required": [
+                "defendant_account_id",
+                "account_number",
+                "business_unit_id",
+                "business_unit_name",
+                "organisation",
+                "address_line_1",
+                "account_balance",
+                "rowNumber"
+            ],
+            "properties": {
+                "defendant_account_id": {"type": "integer"},
+                "account_number": {"type": "string"},
+                "business_unit_id": {"type": "integer"},
+                "business_unit_name": {"type": "string"},
+                "organisation": {"type": "boolean"},
+                "organisation_name": {"type": "string"},
+                "surname": {"type": "string"},
+                "forenames": {"type": "string"},
+                "initials": {"type": "string"},
+                "title": {"type": "string"},
+                "birth_date": {
+                    "type": "string"
+                },
+                "address_line_1": {"type": "string"},
+                "account_balance": {"type": "number"},
+                "rowNumber": {"type": "integer"}
+            }
+        },
+        "defendantAccountSearchResults": {
             "type": "object",
             "properties": {
-              "defendant_account_id": { "type": "integer" },
-              "account_number": { "type": "string" },
-              "business_unit_id": { "type": "integer" },
-              "business_unit_name": { "type": "string" },
-              "organisation": { "type": "boolean" },
-              "organisation_name": { "type": "string" },
-              "surname": { "type": "string" },
-              "forenames": { "type": "string" },
-              "initials": { "type": "string" },
-              "title": { "type": "string" },
-              "birth_date": { "type": "string", "format": "date-time" },
-              "address_line_1": { "type": "string" },
-              "account_balance": { "type": "number" },
-              "rowNumber": { "type": "integer" }
-            },
-            "required": [
-              "defendant_account_id",
-              "account_number",
-              "business_unit_id",
-              "business_unit_name",
-              "organisation",
-              "address_line_1",
-              "account_balance",
-              "rowNumber"
-            ]
-          }
+                "defendantAccountSearchResult": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/defendantAccountSearchResults.defendantAccountSearchResult"},
+                    "minItems": 0
+                }
+            }
         }
-      },
-      "required": ["defendantAccountsSearchResult"]
+    },
+    "properties": {
+        "defendantAccountSearchResults": {"$ref": "#/definitions/defendantAccountSearchResults"}
     }
-  }
 }

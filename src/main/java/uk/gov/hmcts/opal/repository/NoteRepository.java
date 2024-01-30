@@ -11,4 +11,7 @@ public interface NoteRepository extends JpaRepository<NoteEntity, Long> {
 
     List<NoteEntity> findByAssociatedRecordIdAndNoteType(String associatedRecordId, String noteType);
 
+    NoteEntity findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(
+        String associatedRecordId, String noteType);
+
 }
