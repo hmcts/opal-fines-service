@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,6 +22,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -149,29 +151,33 @@ class DefendantAccountControllerTest {
     @Test
     public void testAddNote_Success() {
         // Arrange
+        HttpServletRequest request = mock(HttpServletRequest.class);
         NoteDto mockResponse = new NoteDto();
 
+        when(request.getRemoteUser()).thenReturn("REMOTE_USER");
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(mockResponse);
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();
-        ResponseEntity<NoteDto> responseEntity = defendantAccountController.addNote(addNote);
+        ResponseEntity<NoteDto> responseEntity = defendantAccountController.addNote(addNote, request);
 
         // Assert
         assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
         verify(noteService, times(1)).saveNote(any(
             NoteDto.class));
+        
     }
 
     @Test
     public void testAddNote_NoContent() {
-
+        HttpServletRequest request = mock(HttpServletRequest.class);
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(null);
+        when(request.getRemoteUser()).thenReturn("REMOTE_USER");
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();
-        ResponseEntity<NoteDto> responseEntity = defendantAccountController.addNote(addNote);
+        ResponseEntity<NoteDto> responseEntity = defendantAccountController.addNote(addNote, request);
 
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());

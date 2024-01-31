@@ -10,7 +10,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacySaveNoteRequestDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacySaveNoteResponseDto;
 
 @Service
-@Slf4j
+@Slf4j(topic = "LegacyNoteService")
 public class LegacyNoteService extends LegacyService implements NoteServiceInterface {
 
     public static final String POST_ACCOUNT_NOTES = "postAccountNotes";
