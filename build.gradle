@@ -81,49 +81,43 @@ task integration(type: Test) {
 }
 
 task functionalOpal(type: Test) {
-  doFirst {
-    tasks.clearReports.clearReports()
-  }
+
   description = "Runs functional tests against Opal mode"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
   testLogging.showStandardStreams = true
+  gradle.startParameter.continueOnFailure = true
   systemProperty "cucumber.filter.tags", "@Opal and not @Smoke and not @Ignore"
   systemProperty "test.mode", "opal"
-  doLast {
-    tasks.aggregate.aggregate()
-    delete "${rootDir}/functionalOpal-test-report/"
-    new File("${rootDir}/functionalOpal-test-report").mkdirs()
-    file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/functionalOpal-test-report"))
-    logger.quiet("FunctionalOpal Test Report available at - file://${rootDir}/functionalOpal-test-report/index.html")
-  }
 }
 task functionalLegacy(type: Test) {
-  doFirst {
-    tasks.clearReports.clearReports()
-  }
   description = "Runs functional tests against Legacy mode"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
+  gradle.startParameter.continueOnFailure = true
   testLogging.showStandardStreams = true
   systemProperty "cucumber.filter.tags", "@Legacy and not @Smoke and not @Ignore"
   systemProperty "test.mode", "legacy"
-  doLast {
-    tasks.aggregate.aggregate()
-    delete "${rootDir}/functionalLegacy-test-report/"
-    new File("${rootDir}/functionalLegacy-test-report").mkdirs()
-    file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/functionalLegacy-test-report"))
-    logger.quiet("FunctionalLegacy Test Report available at - file://${rootDir}/functionalLegacy-test-report/index.html")
-  }
 }
+task copyFunctionalReport(type: Copy){
+  from("${rootDir}/target/site/serenity")
+  into("${rootDir}/functional-test-report")
+  logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
+}
+
 task functional(type: Test) {
   description = "Runs functional tests"
   group = "Verification"
   testLogging.showStandardStreams = true
-  dependsOn('functionalOpal', 'functionalLegacy')
+  gradle.startParameter.continueOnFailure = true
+  dependsOn('clearReports','functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport')
+  tasks.functionalOpal.mustRunAfter clearReports
   tasks.functionalLegacy.mustRunAfter functionalOpal
+  tasks.aggregate.mustRunAfter functionalLegacy
+  tasks.copyFunctionalReport.mustRunAfter aggregate
+
 }
 
 task smoke(type: Test) {
@@ -223,7 +217,7 @@ repositories {
 
 ext {
   log4JVersion = "2.22.1"
-  serenityVersion = "4.0.46"
+  serenityVersion = "4.0.44"
 }
 
 ext['snakeyaml.version'] = '2.0'
@@ -314,7 +308,7 @@ rootProject.tasks.named("processIntegrationTestResources") {
 }
 
 wrapper {
-    distributionType = Wrapper.DistributionType.ALL
+  distributionType = Wrapper.DistributionType.ALL
 }
 
 flyway {

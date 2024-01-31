@@ -17,6 +17,7 @@ public class DefendantAccountDetailsStefDef extends BaseStepDef {
         Map<String, String> idToSend = id.asMap(String.class, String.class);
         SerenityRest.given()
             .accept("*/*")
+            .header("Authorization", "Bearer " + getToken())
             .contentType("application/json")
             .when()
             .get(getTestUrl() + "/api/defendant-account/details?defendantAccountId=" + idToSend.get("defendantID"));

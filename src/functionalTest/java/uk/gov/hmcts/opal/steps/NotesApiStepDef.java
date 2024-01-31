@@ -29,6 +29,7 @@ public class NotesApiStepDef extends BaseStepDef {
         }
         SerenityRest.given()
             .accept("*/*")
+            .header("Authorization", "Bearer " + getToken())
             .contentType("application/json")
             .body(body.toString())
             .when()

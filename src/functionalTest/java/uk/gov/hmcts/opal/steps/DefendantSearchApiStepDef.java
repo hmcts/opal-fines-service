@@ -35,7 +35,9 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
             dataToPost.get("addressLineOne") != null ? dataToPost.get("addressLineOne") : ""
         );
 
-        SerenityRest.given()
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
             .accept("*/*")
             .contentType("application/json")
             .body(requestBody.toString())
