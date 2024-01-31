@@ -41,6 +41,7 @@ spring:
             issuer-uri: https://sts.windows.net/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/
             claims: preferred_username
             provider: internal-azure-ad-provider
+            tenant-id: ${AAD_TENANT_ID}
         provider:
           internal-azure-ad-provider:
             authorization-uri: ${opal.azure.active-directory-justice-auth-uri}/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/oauth2/v2.0/authorize

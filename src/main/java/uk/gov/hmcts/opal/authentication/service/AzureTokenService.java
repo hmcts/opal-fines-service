@@ -3,12 +3,11 @@ package uk.gov.hmcts.opal.authentication.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authentication.client.AzureTokenClient;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
-import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthProviderConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
+import uk.gov.hmcts.opal.authentication.model.AzureTokenRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -16,39 +15,22 @@ public class AzureTokenService {
 
     private final AzureTokenClient azureTokenClient;
     private final InternalAuthConfigurationProperties configuration;
-    private final InternalAuthProviderConfigurationProperties provider;
     private final ObjectMapper objectMapper;
 
-    @Value("${azuread.clientId}")
-    private String clientId;
+    public String getAccessToken(String userName, String password) {
 
-    @Value("${azuread.clientSecret}")
-    private String clientSecret;
-
-    @Value("${azuread.username}")
-    private String username;
-
-    @Value("${azuread.password}")
-    private String password;
-
-    @Value("${azuread.resource}")
-    private String resource;
-
-    public String getAccessToken() {
-        // Assuming the "password" grant type
-        String accessTokenResponse = azureTokenClient.getAccessToken(
-            "password",
-            clientId,
-            clientSecret,
-            "api://" + clientId + "/opalinternaluser",
-            username,
-            password
+        var accessTokenResponse = azureTokenClient.getAccessToken(
+            AzureTokenRequest.builder()
+                .grantType("password")
+                .clientId(configuration.getClientId())
+                .clientSecret(configuration.getClientSecret())
+                .scope(configuration.getScope())
+                .username(userName)
+                .password(password)
+                .build()
         );
 
-        // Extract the access token from the response (you may need a JSON library for this)
-        String accessToken = extractAccessToken(accessTokenResponse);
-
-        return accessToken;
+        return extractAccessToken(accessTokenResponse);
     }
 
     private String extractAccessToken(String responseBody) {
