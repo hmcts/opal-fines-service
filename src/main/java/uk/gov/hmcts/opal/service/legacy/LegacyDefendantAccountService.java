@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.legacy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -15,6 +15,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
+import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 
 import java.util.Collections;
 import java.util.List;

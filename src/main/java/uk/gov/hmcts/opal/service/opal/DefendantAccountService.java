@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.opal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -29,6 +29,7 @@ import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 
 import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyLink;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyDefendantAccountSummary;
+import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 
 import java.io.InputStream;
 import java.math.BigDecimal;

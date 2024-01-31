@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.legacy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -8,6 +8,7 @@ import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacySaveNoteRequestDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacySaveNoteResponseDto;
+import uk.gov.hmcts.opal.service.NoteServiceInterface;
 
 @Service
 @Slf4j(topic = "LegacyNoteService")
