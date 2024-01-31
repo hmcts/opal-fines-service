@@ -159,8 +159,9 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
         //query DB for NoteEntity by associatedRecordId (defendantAccountId) and noteType ("AA")
         // returning only latest (postedDate)
-        NoteEntity noteEntityAA = noteRepository.findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(
-            defendantAccountEntity.getDefendantAccountId().toString(), "AA");
+        Optional<NoteEntity> noteEntityAA = Optional.ofNullable(
+            noteRepository.findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(
+            defendantAccountEntity.getDefendantAccountId().toString(), "AA"));
 
         //build fullAddress
         final String fullAddress = buildFullAddress(partyEntity.getAddressLine1(),
@@ -195,7 +196,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                                           + " " + defendantAccountEntity.getLastHearingCourtId().getCourtCode())
             .lastMovement(defendantAccountEntity.getLastMovementDate())
             .commentField(comments)
-            .accountNotes(noteEntityAA.getNoteText())
+            .accountNotes(noteEntityAA.map(NoteEntity::getNoteText).orElse(null))
             .pcr(defendantAccountEntity.getProsecutorCaseReference())
             .paymentDetails(paymentDetails)
             .lumpSum(paymentTermsEntity.getInstalmentLumpSum())
