@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.legacy;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.NoteDto;
+import uk.gov.hmcts.opal.service.legacy.LegacyService;
+import uk.gov.hmcts.opal.service.legacy.LegacyTestsBase;
 
 import java.util.Collection;
 import java.util.Map;

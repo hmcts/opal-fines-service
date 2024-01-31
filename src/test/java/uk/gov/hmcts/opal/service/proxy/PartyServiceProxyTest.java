@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.proxy;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -11,6 +11,10 @@ import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.PartyDto;
 import uk.gov.hmcts.opal.entity.PartySummary;
+import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.legacy.LegacyPartyService;
+import uk.gov.hmcts.opal.service.opal.PartyService;
+import uk.gov.hmcts.opal.service.proxy.PartyServiceProxy;
 
 import java.util.Collections;
 import java.util.List;

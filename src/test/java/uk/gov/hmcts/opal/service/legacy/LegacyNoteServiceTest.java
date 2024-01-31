@@ -1,7 +1,8 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.legacy;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -193,4 +194,41 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
         assertTrue(report.isSuccess());
 
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void saveNote_ErrorResponse() throws Exception {
+        // Arrange
+        mockRestClientPost();
+        final NoteDto inputNoteDto = new NoteDto();
+
+
+        String jsonBody = """
+            {
+            "noteTypeFOOBAR": "AC",
+            "associatedRecordType": "defendants_accounts",
+            "associatedRecordId": "123456",
+            "noteText": "This is a sample note text.",
+            "postedBy": "user123"
+            }
+            """;
+
+
+        ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
+            jsonBody, HttpStatus.OK);
+        when(requestBodySpec.body(any(LegacySaveNoteRequestDto.class))).thenReturn(requestBodySpec);
+        when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
+        // Act
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyNoteService.saveNote(inputNoteDto));
+
+        // Assert
+
+        assertNotNull(lgre);
+        Throwable cause = lgre.getCause();
+        assertNotNull(cause);
+        assertEquals(UnrecognizedPropertyException.class, cause.getClass());
+    }
+
 }

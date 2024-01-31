@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.legacy;
 
 import org.mockito.Mock;
 import org.springframework.http.MediaType;

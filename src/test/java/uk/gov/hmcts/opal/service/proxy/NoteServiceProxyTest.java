@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.proxy;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -12,6 +12,10 @@ import org.mockito.MockitoAnnotations;
 
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.AppMode;
+import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.legacy.LegacyNoteService;
+import uk.gov.hmcts.opal.service.opal.NoteService;
+import uk.gov.hmcts.opal.service.proxy.NoteServiceProxy;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;

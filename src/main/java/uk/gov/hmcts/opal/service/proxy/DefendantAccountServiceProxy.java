@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.proxy;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +9,10 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
 
 import java.util.List;
 
@@ -16,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j(topic = "DefendantAccountServiceProxy")
 @Qualifier("defendantAccountServiceProxy")
-public class DefendantAccountServiceProxy implements DefendantAccountServiceInterface, LegacyProxy {
+public class DefendantAccountServiceProxy implements DefendantAccountServiceInterface, ProxyInterface {
 
     private final DefendantAccountService opalDefendantAccountService;
     private final LegacyDefendantAccountService legacyDefendantAccountService;

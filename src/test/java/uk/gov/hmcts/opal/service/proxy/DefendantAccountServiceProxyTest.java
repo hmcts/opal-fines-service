@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.proxy;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +12,10 @@ import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
+import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;

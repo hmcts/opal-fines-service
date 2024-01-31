@@ -6,6 +6,7 @@ import uk.gov.hmcts.opal.dto.AppMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DynamicConfigServiceTest {
+
     @Test
     void shouldReturnOpal_whenInvokedWithDefaultValue() {
         DynamicConfigService configService = new DynamicConfigService("legacy");
