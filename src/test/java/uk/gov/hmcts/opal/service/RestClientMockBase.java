@@ -14,36 +14,36 @@ import static org.springframework.web.client.RestClient.RequestBodyUriSpec;
 import static org.springframework.web.client.RestClient.RequestHeadersSpec;
 import static org.springframework.web.client.RestClient.RequestHeadersUriSpec;
 
-public abstract class LegacyTestsBase {
+public abstract class RestClientMockBase {
 
     @Mock
-    RestClient restClient;
+    protected RestClient restClient;
 
     @Mock
-    RequestHeadersUriSpec requestHeaderUriSpec;
+    protected RequestHeadersUriSpec requestHeaderUriSpec;
 
     @Mock
-    RequestBodyUriSpec requestBodyUriSpec;
+    protected RequestBodyUriSpec requestBodyUriSpec;
 
     @Mock
-    RequestHeadersSpec requestHeaderSpec;
+    protected RequestHeadersSpec requestHeaderSpec;
 
     @Mock
-    RequestBodySpec requestBodySpec;
+    protected RequestBodySpec requestBodySpec;
 
     @Mock
-    ResponseSpec responseSpec;
+    protected ResponseSpec responseSpec;
 
 
     @SuppressWarnings("unchecked")
-    void mockRestClientGet() {
+    protected void mockRestClientGet() {
         when(restClient.get()).thenReturn(requestHeaderUriSpec);
         when(requestHeaderUriSpec.uri(anyString())).thenReturn(requestHeaderSpec);
         when(requestHeaderSpec.retrieve()).thenReturn(responseSpec);
     }
 
     @SuppressWarnings("unchecked")
-    void mockRestClientPost() {
+    protected void mockRestClientPost() {
         when(restClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.contentType(any(MediaType.class))).thenReturn(requestBodySpec);

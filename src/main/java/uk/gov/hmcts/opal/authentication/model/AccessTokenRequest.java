@@ -12,7 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AzureTokenRequest {
+public class AccessTokenRequest {
 
     @JsonProperty("grant_type")
     String grantType;

@@ -46,7 +46,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
+class LegacyDefendantAccountServiceTest extends RestClientMockBase {
 
     @InjectMocks
     private LegacyDefendantAccountService legacyDefendantAccountService;

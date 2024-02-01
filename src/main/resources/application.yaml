@@ -95,10 +95,6 @@ opal:
       url: ${OPAL_FRONTEND_URL:http://localhost:4200}
   azure:
     active-directory-justice-auth-uri: https://login.microsoftonline.com
-
-logging:
-  level:
-    org:
-      springframework:
-        security: TRACE
-
+  test-user:
+    email: ${OPAL_TEST_USER_EMAIL:opal-test@HMCTS.NET}
+    password: ${OPAL_TEST_USER_PASSWORD}

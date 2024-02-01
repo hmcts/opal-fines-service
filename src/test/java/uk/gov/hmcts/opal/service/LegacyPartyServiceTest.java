@@ -20,7 +20,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class LegacyPartyServiceTest extends LegacyTestsBase {
+class LegacyPartyServiceTest extends RestClientMockBase {
 
     @Mock
     private Logger log;

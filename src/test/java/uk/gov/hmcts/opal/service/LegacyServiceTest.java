@@ -25,7 +25,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class LegacyServiceTest extends LegacyTestsBase {
+class LegacyServiceTest extends RestClientMockBase {
 
     private LegacyService legacy;
 

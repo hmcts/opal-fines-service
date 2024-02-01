@@ -16,7 +16,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class LegacyProxyNoteServiceTest extends LegacyTestsBase {
+class LegacyProxyNoteServiceTest extends RestClientMockBase {
 
     @Mock
     private Logger log;

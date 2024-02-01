@@ -13,13 +13,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AzureJwtServiceTest {
+class AzureDummyTokenServiceTest {
 
     @Mock
     private InternalAuthConfigurationProperties config;
 
     @InjectMocks
-    private AzureJwtService jwtService;
+    private AzureDummyTokenService jwtService;
 
     @Test
     void testGenerateAzureJwtToken() throws Exception {

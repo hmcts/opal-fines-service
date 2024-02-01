@@ -19,7 +19,7 @@ import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
-public class AzureJwtService {
+public class AzureDummyTokenService {
 
     private final InternalAuthConfigurationProperties configuration;
 
