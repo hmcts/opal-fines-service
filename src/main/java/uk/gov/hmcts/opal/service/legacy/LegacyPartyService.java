@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.legacy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -9,6 +9,7 @@ import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.PartyDto;
 import uk.gov.hmcts.opal.entity.PartySummary;
+import uk.gov.hmcts.opal.service.PartyServiceInterface;
 
 import java.util.Collections;
 import java.util.List;

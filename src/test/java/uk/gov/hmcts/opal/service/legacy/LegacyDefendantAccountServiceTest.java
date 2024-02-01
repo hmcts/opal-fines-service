@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.legacy;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +35,7 @@ import uk.gov.hmcts.opal.dto.legacy.PaymentTermsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountServiceTest;
 
 import java.io.IOException;
 import java.math.BigDecimal;

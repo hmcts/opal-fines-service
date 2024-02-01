@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.proxy;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -6,13 +6,17 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.PartyDto;
 import uk.gov.hmcts.opal.entity.PartySummary;
+import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.PartyServiceInterface;
+import uk.gov.hmcts.opal.service.legacy.LegacyPartyService;
+import uk.gov.hmcts.opal.service.opal.PartyService;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Qualifier("partyServiceProxy")
-public class PartyServiceProxy implements PartyServiceInterface, LegacyProxy {
+public class PartyServiceProxy implements PartyServiceInterface, ProxyInterface {
 
     private final PartyService opalPartyService;
     private final LegacyPartyService legacyPartyService;

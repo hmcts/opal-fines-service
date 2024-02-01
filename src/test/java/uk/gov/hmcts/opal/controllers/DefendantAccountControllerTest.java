@@ -15,8 +15,8 @@ import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.service.DefendantAccountService;
-import uk.gov.hmcts.opal.service.NoteService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
+import uk.gov.hmcts.opal.service.opal.NoteService;
 
 import java.util.List;
 
@@ -166,7 +166,7 @@ class DefendantAccountControllerTest {
         assertEquals(mockResponse, responseEntity.getBody());
         verify(noteService, times(1)).saveNote(any(
             NoteDto.class));
-        
+
     }
 
     @Test
