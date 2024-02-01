@@ -7,8 +7,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
-import uk.gov.hmcts.opal.authentication.service.AzureJwtService;
+import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.authentication.service.AzureDummyTokenService;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
@@ -34,7 +36,10 @@ class TestingSupportControllerTest {
     private FeatureToggleService featureToggleService;
 
     @MockBean
-    private AzureJwtService azureJwtService;
+    private AzureDummyTokenService azureDummyTokenService;
+
+    @MockBean
+    private AccessTokenService accessTokenService;
 
     @Test
     void getAppMode() {
@@ -85,26 +90,53 @@ class TestingSupportControllerTest {
         String username = "opal-test";
         String token = "abc123";
 
-        when(azureJwtService.generateAzureJwtToken(anyString()))
+        when(azureDummyTokenService.generateAzureJwtToken(anyString()))
             .thenReturn(token);
 
         SecurityToken result = controller.handleOauthCode(username);
 
         assertEquals(token, result.getAccessToken());
-        verify(azureJwtService).generateAzureJwtToken(username);
+        verify(azureDummyTokenService).generateAzureJwtToken(username);
     }
 
     @SneakyThrows
     @Test
     void testHandleOauthCode_error() {
-        when(azureJwtService.generateAzureJwtToken(anyString()))
+        when(azureDummyTokenService.generateAzureJwtToken(anyString()))
             .thenThrow(new RuntimeException("Error!"));
 
         assertThrows(OpalApiException.class, () -> {
             controller.handleOauthCode(null);
         });
 
-        verify(azureJwtService).generateAzureJwtToken(anyString());
+        verify(azureDummyTokenService).generateAzureJwtToken(anyString());
     }
 
+    @Test
+    public void getToken_shouldReturnResponse() {
+        // Arrange
+        AccessTokenResponse expectedResponse = AccessTokenResponse.builder().build();
+        when(accessTokenService.getTestUserToken())
+            .thenReturn(expectedResponse);
+
+        // Act
+        ResponseEntity<AccessTokenResponse> response = controller.getToken();
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expectedResponse, response.getBody());
+    }
+
+    @Test
+    public void getToken_shouldHandleExceptions() {
+        // Arrange
+        when(accessTokenService.getTestUserToken())
+            .thenThrow(new RuntimeException("Error!"));
+
+        // Act and Assert
+        assertThrows(
+            RuntimeException.class,
+            () -> controller.getToken()
+        );
+    }
 }

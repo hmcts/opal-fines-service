@@ -69,13 +69,16 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         // Act
         LegacyGatewayResponseException lgre = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyPartyService.saveParty(inputPartyDto));
+            () -> legacyPartyService.saveParty(inputPartyDto)
+        );
 
         // Assert
 
         assertNotNull(lgre);
-        assertEquals("Received an empty body in the response from the Legacy Gateway.",
-                     lgre.getMessage());
+        assertEquals(
+            "Received an empty body in the response from the Legacy Gateway.",
+            lgre.getMessage()
+        );
     }
 
     @Test
@@ -96,13 +99,16 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         // Act
         LegacyGatewayResponseException lgre = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyPartyService.saveParty(inputPartyDto));
+            () -> legacyPartyService.saveParty(inputPartyDto)
+        );
 
         // Assert
 
         assertNotNull(lgre);
-        assertEquals("Received a non-2xx response from the Legacy Gateway: 500 INTERNAL_SERVER_ERROR",
-                     lgre.getMessage());
+        assertEquals(
+            "Received a non-2xx response from the Legacy Gateway: 500 INTERNAL_SERVER_ERROR",
+            lgre.getMessage()
+        );
     }
 
     @Test
@@ -123,7 +129,8 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         // Act
         LegacyGatewayResponseException lgre = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyPartyService.saveParty(inputPartyDto));
+            () -> legacyPartyService.saveParty(inputPartyDto)
+        );
 
         // Assert
 
@@ -171,13 +178,16 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         // Act
         LegacyGatewayResponseException lgre = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyPartyService.getParty(1L));
+            () -> legacyPartyService.getParty(1L)
+        );
 
         // Assert
 
         assertNotNull(lgre);
-        assertEquals("Received an empty body in the response from the Legacy Gateway.",
-                     lgre.getMessage());
+        assertEquals(
+            "Received an empty body in the response from the Legacy Gateway.",
+            lgre.getMessage()
+        );
     }
 
     @Test
@@ -198,13 +208,16 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         // Act
         LegacyGatewayResponseException lgre = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyPartyService.getParty(1L));
+            () -> legacyPartyService.getParty(1L)
+        );
 
         // Assert
 
         assertNotNull(lgre);
-        assertEquals("Received a non-2xx response from the Legacy Gateway: 500 INTERNAL_SERVER_ERROR",
-                     lgre.getMessage());
+        assertEquals(
+            "Received a non-2xx response from the Legacy Gateway: 500 INTERNAL_SERVER_ERROR",
+            lgre.getMessage()
+        );
     }
 
     @Test
@@ -222,7 +235,8 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         // Act
         LegacyGatewayResponseException lgre = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyPartyService.getParty(1L));
+            () -> legacyPartyService.getParty(1L)
+        );
 
         // Assert
 
