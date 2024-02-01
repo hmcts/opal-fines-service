@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
+import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
-import uk.gov.hmcts.opal.authentication.service.AzureJwtService;
+import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.authentication.service.AzureDummyTokenService;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
@@ -28,7 +30,8 @@ public class TestingSupportController {
 
     private final DynamicConfigService dynamicConfigService;
     private final FeatureToggleService featureToggleService;
-    private final AzureJwtService azureJwtService;
+    private final AzureDummyTokenService azureDummyTokenService;
+    private final AccessTokenService accessTokenService;
 
     @GetMapping("/app-mode")
     @Operation(summary = "Retrieves the value for app mode.")
@@ -57,7 +60,7 @@ public class TestingSupportController {
     public SecurityToken handleOauthCode(@RequestParam(value = "code", required = false) String code) {
         String userName = "opal-test";
         try {
-            String accessToken = this.azureJwtService.generateAzureJwtToken(userName);
+            String accessToken = this.azureDummyTokenService.generateAzureJwtToken(userName);
             var securityTokenBuilder = SecurityToken.builder()
                 .accessToken(accessToken);
 
@@ -68,4 +71,8 @@ public class TestingSupportController {
 
     }
 
+    @GetMapping("/token/test-user")
+    public ResponseEntity<AccessTokenResponse> getToken() {
+        return ResponseEntity.ok(this.accessTokenService.getTestUserToken());
+    }
 }
