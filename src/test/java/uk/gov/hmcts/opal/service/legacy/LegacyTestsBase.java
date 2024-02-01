@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.legacy;
 
 import org.mockito.Mock;
 import org.springframework.http.MediaType;
@@ -14,36 +14,36 @@ import static org.springframework.web.client.RestClient.RequestBodyUriSpec;
 import static org.springframework.web.client.RestClient.RequestHeadersSpec;
 import static org.springframework.web.client.RestClient.RequestHeadersUriSpec;
 
-public abstract class RestClientMockBase {
+public abstract class LegacyTestsBase {
 
     @Mock
-    protected RestClient restClient;
+    RestClient restClient;
 
     @Mock
-    protected RequestHeadersUriSpec requestHeaderUriSpec;
+    RequestHeadersUriSpec requestHeaderUriSpec;
 
     @Mock
-    protected RequestBodyUriSpec requestBodyUriSpec;
+    RequestBodyUriSpec requestBodyUriSpec;
 
     @Mock
-    protected RequestHeadersSpec requestHeaderSpec;
+    RequestHeadersSpec requestHeaderSpec;
 
     @Mock
-    protected RequestBodySpec requestBodySpec;
+    RequestBodySpec requestBodySpec;
 
     @Mock
-    protected ResponseSpec responseSpec;
+    ResponseSpec responseSpec;
 
 
     @SuppressWarnings("unchecked")
-    protected void mockRestClientGet() {
+    void mockRestClientGet() {
         when(restClient.get()).thenReturn(requestHeaderUriSpec);
         when(requestHeaderUriSpec.uri(anyString())).thenReturn(requestHeaderSpec);
         when(requestHeaderSpec.retrieve()).thenReturn(responseSpec);
     }
 
     @SuppressWarnings("unchecked")
-    protected void mockRestClientPost() {
+    void mockRestClientPost() {
         when(restClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.contentType(any(MediaType.class))).thenReturn(requestBodySpec);

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.opal;
 
 
 import lombok.RequiredArgsConstructor;
@@ -7,12 +7,12 @@ import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.PartyDto;
 import uk.gov.hmcts.opal.entity.PartySummary;
 import uk.gov.hmcts.opal.repository.PartyRepository;
+import uk.gov.hmcts.opal.service.PartyServiceInterface;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-//@ConditionalOnProperty(name = "app-mode", havingValue = "opal", matchIfMissing = true)
 public class PartyService implements PartyServiceInterface {
 
     private final PartyRepository partyRepository;

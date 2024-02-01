@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.legacy;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class LegacyServiceTest extends RestClientMockBase {
+class LegacyServiceTest extends LegacyTestsBase {
 
     private LegacyService legacy;
 

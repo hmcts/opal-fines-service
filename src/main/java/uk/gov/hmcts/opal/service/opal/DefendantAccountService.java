@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.opal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -29,6 +29,7 @@ import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 
 import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyLink;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyDefendantAccountSummary;
+import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -154,9 +155,14 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                                                                                    .getEnforcementOverrideEnforcerId());
 
         //query DB for NoteEntity by associatedRecordId (defendantAccountId) and noteType ("AC")
-        List<NoteEntity> noteEntity = noteRepository.findByAssociatedRecordIdAndNoteType(
+        List<NoteEntity> noteEntityAC = noteRepository.findByAssociatedRecordIdAndNoteType(
             defendantAccountEntity.getDefendantAccountId().toString(), "AC");
 
+        //query DB for NoteEntity by associatedRecordId (defendantAccountId) and noteType ("AA")
+        // returning only latest (postedDate)
+        Optional<NoteEntity> noteEntityAA = Optional.ofNullable(
+            noteRepository.findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(
+            defendantAccountEntity.getDefendantAccountId().toString(), "AA"));
 
         //build fullAddress
         final String fullAddress = buildFullAddress(partyEntity.getAddressLine1(),
@@ -172,7 +178,8 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                                                           paymentTermsEntity.getEffectiveDate());
 
         //build comments
-        final List<String> comments = buildCommentsFromAssociatedNotes(noteEntity);
+        final List<String> comments = buildCommentsFromAssociatedNotes(noteEntityAC);
+
 
         //populate accountDetailsDto and return
         return AccountDetailsDto.builder()
@@ -190,6 +197,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                                           + " " + defendantAccountEntity.getLastHearingCourtId().getCourtCode())
             .lastMovement(defendantAccountEntity.getLastMovementDate())
             .commentField(comments)
+            .accountNotes(noteEntityAA.map(NoteEntity::getNoteText).orElse(null))
             .pcr(defendantAccountEntity.getProsecutorCaseReference())
             .paymentDetails(paymentDetails)
             .lumpSum(paymentTermsEntity.getInstalmentLumpSum())

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.opal;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +28,7 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcersRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -43,7 +44,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-class DefendantAccountServiceTest {
+public class DefendantAccountServiceTest {
 
     @Mock
     private DefendantAccountRepository defendantAccountRepository;
@@ -181,7 +182,10 @@ class DefendantAccountServiceTest {
             .thenReturn(buildEnforcersEntity());
 
         when(noteRepository.findByAssociatedRecordIdAndNoteType(any(),any()))
-            .thenReturn(buildNotesEntity());
+            .thenReturn(buildNotesEntityComment());
+
+        when(noteRepository.findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(any(),any()))
+            .thenReturn(buildNotesEntityActivity());
 
         //act
         AccountDetailsDto result = defendantAccountService.getAccountDetailsByDefendantAccountId(1L);
@@ -215,7 +219,10 @@ class DefendantAccountServiceTest {
             .thenReturn(buildEnforcersEntity());
 
         when(noteRepository.findByAssociatedRecordIdAndNoteType(any(),any()))
-            .thenReturn(buildNotesEntity());
+            .thenReturn(buildNotesEntityComment());
+
+        when(noteRepository.findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(any(),any()))
+            .thenReturn(buildNotesEntityActivity());
 
         AccountDetailsDto expectedDetails = buildAccountDetailsDto();
         expectedDetails.setPaymentDetails(LocalDate.of(2012, 1,1).toString() + " By Date");
@@ -252,7 +259,10 @@ class DefendantAccountServiceTest {
             .thenReturn(buildEnforcersEntity());
 
         when(noteRepository.findByAssociatedRecordIdAndNoteType(any(),any()))
-            .thenReturn(buildNotesEntity());
+            .thenReturn(buildNotesEntityComment());
+
+        when(noteRepository.findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(any(),any()))
+            .thenReturn(buildNotesEntityActivity());
 
         AccountDetailsDto expectedDetails = buildAccountDetailsDto();
         expectedDetails.setPaymentDetails("Paid");
@@ -289,7 +299,10 @@ class DefendantAccountServiceTest {
             .thenReturn(buildEnforcersEntity());
 
         when(noteRepository.findByAssociatedRecordIdAndNoteType(any(),any()))
-            .thenReturn(buildNotesEntity());
+            .thenReturn(buildNotesEntityComment());
+
+        when(noteRepository.findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(any(),any()))
+            .thenReturn(buildNotesEntityActivity());
 
         AccountDetailsDto expectedDetails = buildAccountDetailsDto();
         expectedDetails.setFullName("The Bank of England");
@@ -321,6 +334,7 @@ class DefendantAccountServiceTest {
                                           + " " + 1212)
             .lastMovement(LocalDate.of(2012, 1,1))
             .commentField(List.of("Comment1"))
+            .accountNotes("Activity")
             .pcr("123456")
             .paymentDetails("100.0 / PCM")
             .lumpSum(BigDecimal.valueOf(100.00))
@@ -405,7 +419,7 @@ class DefendantAccountServiceTest {
             .build();
     }
 
-    public static List<NoteEntity> buildNotesEntity() {
+    public static List<NoteEntity> buildNotesEntityComment() {
 
         List<NoteEntity> notes = new ArrayList<>();
 
@@ -414,6 +428,14 @@ class DefendantAccountServiceTest {
                       .noteText("Comment1")
                       .build());
         return notes;
+    }
+
+    public static NoteEntity buildNotesEntityActivity() {
+
+        return NoteEntity.builder()
+            .noteType("AA")
+            .noteText("Activity")
+            .build();
     }
 
     private class TestDefendantAccountSummary implements DefendantAccountSummary {

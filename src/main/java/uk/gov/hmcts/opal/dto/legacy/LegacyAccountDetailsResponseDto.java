@@ -8,8 +8,9 @@ import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Data
@@ -28,6 +29,8 @@ public class LegacyAccountDetailsResponseDto implements ToJsonString {
         DefendantAccountDto defendantAccountDto = legacy.getDefendantAccount();
         PartyDto partyDto = defendantAccountDto.getParties().getParty().get(0);
         PaymentTermsDto paymentTermsDto = defendantAccountDto.getPaymentTerms();
+        AccountActivityDto accountActivityDto = getLatestAccountActivity(defendantAccountDto.getAccountActivities()
+                                                                             .getAccountActivity());
 
         return AccountDetailsDto.builder()
             .defendantAccountId(defendantAccountDto.getDefendantAccountId())
@@ -50,6 +53,7 @@ public class LegacyAccountDetailsResponseDto implements ToJsonString {
                                           + " " + defendantAccountDto.getLastHearingCourtCode())
             .lastMovement(defendantAccountDto.getLastMovementDate())
             .commentField(List.of(defendantAccountDto.getAccountComments()))
+            .accountNotes(accountActivityDto.getActivityText())
             .pcr(defendantAccountDto.getProsecutorCaseReference())
             .paymentDetails(DefendantAccountService.buildPaymentDetails(
                 paymentTermsDto.getTermsTypeCode(),
@@ -73,4 +77,10 @@ public class LegacyAccountDetailsResponseDto implements ToJsonString {
             .build();
     }
 
+    private static AccountActivityDto getLatestAccountActivity(List<AccountActivityDto> accountActivities) {
+
+        return accountActivities.stream()
+            .max(Comparator.comparing(AccountActivityDto::getPostedDate))
+            .orElse(new AccountActivityDto());
+    }
 }

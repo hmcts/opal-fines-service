@@ -1,7 +1,8 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.legacy;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -20,16 +21,21 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.legacy.AccountActivitiesDto;
+import uk.gov.hmcts.opal.dto.legacy.AccountActivityDto;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountDto;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchResult;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.ImpositionDto;
+import uk.gov.hmcts.opal.dto.legacy.ImpositionsDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsRequestDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
 import uk.gov.hmcts.opal.dto.legacy.PartiesDto;
 import uk.gov.hmcts.opal.dto.legacy.PartyDto;
 import uk.gov.hmcts.opal.dto.legacy.PaymentTermsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountServiceTest;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -37,16 +43,18 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class LegacyDefendantAccountServiceTest extends RestClientMockBase {
+class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @InjectMocks
     private LegacyDefendantAccountService legacyDefendantAccountService;
@@ -88,11 +96,18 @@ class LegacyDefendantAccountServiceTest extends RestClientMockBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
-        DefendantAccountEntity resultPartyDto = legacyDefendantAccountService.putDefendantAccount(inputAccountEntity);
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyDefendantAccountService.putDefendantAccount(inputAccountEntity)
+        );
 
         // Assert
 
-        assertNull(resultPartyDto);
+        assertNotNull(lgre);
+        assertEquals(
+            "Received an empty body in the response from the Legacy Gateway.",
+            lgre.getMessage()
+        );
     }
 
     @Test
@@ -110,11 +125,19 @@ class LegacyDefendantAccountServiceTest extends RestClientMockBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
-        DefendantAccountEntity resultPartyDto = legacyDefendantAccountService.putDefendantAccount(inputAccountEntity);
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyDefendantAccountService.putDefendantAccount(inputAccountEntity)
+        );
 
         // Assert
 
-        assertNull(resultPartyDto);
+        assertNotNull(lgre);
+        assertEquals(
+            "Received a non-2xx response from the Legacy Gateway: 500 INTERNAL_SERVER_ERROR",
+            lgre.getMessage()
+        );
+
     }
 
     @Test
@@ -132,11 +155,17 @@ class LegacyDefendantAccountServiceTest extends RestClientMockBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
         // Act
-        DefendantAccountEntity resultPartyDto = legacyDefendantAccountService.putDefendantAccount(inputAccountEntity);
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyDefendantAccountService.putDefendantAccount(inputAccountEntity)
+        );
 
         // Assert
 
-        assertNull(resultPartyDto);
+        assertNotNull(lgre);
+        Throwable cause = lgre.getCause();
+        assertNotNull(cause);
+        assertEquals(UnrecognizedPropertyException.class, cause.getClass());
     }
 
     @Test
@@ -175,11 +204,18 @@ class LegacyDefendantAccountServiceTest extends RestClientMockBase {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
-        DefendantAccountEntity resultAccountEntity = legacyDefendantAccountService.getDefendantAccount(enquiry);
+
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyDefendantAccountService.getDefendantAccount(enquiry)
+        );
 
         // Assert
 
-        assertNull(resultAccountEntity);
+        assertNotNull(lgre);
+        assertEquals("Received an empty body in the response from the Legacy Gateway.", lgre.getMessage());
+        // Assert
+
     }
 
     @Test
@@ -199,11 +235,19 @@ class LegacyDefendantAccountServiceTest extends RestClientMockBase {
 
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
-        DefendantAccountEntity resultAccountEntity = legacyDefendantAccountService.getDefendantAccount(enquiry);
+
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyDefendantAccountService.getDefendantAccount(enquiry)
+        );
 
         // Assert
+        assertNotNull(lgre);
+        assertEquals(
+            "Received a non-2xx response from the Legacy Gateway: 500 INTERNAL_SERVER_ERROR",
+            lgre.getMessage()
+        );
 
-        assertNull(resultAccountEntity);
     }
 
     @Test
@@ -220,13 +264,18 @@ class LegacyDefendantAccountServiceTest extends RestClientMockBase {
 
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
-        DefendantAccountEntity resultAccountEntity = legacyDefendantAccountService.getDefendantAccount(enquiry);
+
+        LegacyGatewayResponseException lgre = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyDefendantAccountService.getDefendantAccount(enquiry)
+        );
 
         // Assert
-
-        assertNull(resultAccountEntity);
+        assertNotNull(lgre);
+        Throwable cause = lgre.getCause();
+        assertNotNull(cause);
+        assertEquals(UnrecognizedPropertyException.class, cause.getClass());
     }
-
 
 
     @Test
@@ -243,7 +292,8 @@ class LegacyDefendantAccountServiceTest extends RestClientMockBase {
 
         String content = Files.readString(
             Paths.get("src/test/resources/schemas/AccountDetails/of_f_get_defendant_account_in.json"),
-            StandardCharsets.UTF_8);
+            StandardCharsets.UTF_8
+        );
 
         // Parse the JSON schema
         JsonSchemaFactory schemaFactory = JsonSchemaFactory.byDefault();
@@ -270,7 +320,8 @@ class LegacyDefendantAccountServiceTest extends RestClientMockBase {
 
         String content = Files.readString(
             Paths.get("src/test/resources/schemas/AccountDetails/of_f_get_defendant_account_out.json"),
-            StandardCharsets.UTF_8);
+            StandardCharsets.UTF_8
+        );
 
         // Parse the JSON schema
         JsonSchemaFactory schemaFactory = JsonSchemaFactory.byDefault();
@@ -338,7 +389,8 @@ class LegacyDefendantAccountServiceTest extends RestClientMockBase {
 
         String content = Files.readString(
             Paths.get("src/test/resources/schemas/AccountSearch/of_f_search_defendant_accounts_in.json"),
-            StandardCharsets.UTF_8);
+            StandardCharsets.UTF_8
+        );
 
         // Parse the JSON schema
         JsonSchemaFactory schemaFactory = JsonSchemaFactory.byDefault();
@@ -362,7 +414,8 @@ class LegacyDefendantAccountServiceTest extends RestClientMockBase {
 
         String content = Files.readString(
             Paths.get("src/test/resources/schemas/AccountSearch/of_f_search_defendant_accounts_out.json"),
-            StandardCharsets.UTF_8);
+            StandardCharsets.UTF_8
+        );
 
         // Parse the JSON schema
         JsonSchemaFactory schemaFactory = JsonSchemaFactory.byDefault();
@@ -417,16 +470,18 @@ class LegacyDefendantAccountServiceTest extends RestClientMockBase {
             .imposingCourtCode(10)
             .lastHearingDate("2012-01-01")
             .lastHearingCourtCode(1212)
-            .lastChangedDate(LocalDate.of(2012, 1,1))
-            .lastMovementDate(LocalDate.of(2012, 1,1))
-            .imposedHearingDate(LocalDate.of(2012, 1,1))
+            .lastChangedDate(LocalDate.of(2012, 1, 1))
+            .lastMovementDate(LocalDate.of(2012, 1, 1))
+            .imposedHearingDate(LocalDate.of(2012, 1, 1))
             .enfOverrideResultId("OVER")
             .collectionOrder(true)
             .enforcingCourtCode(1)
-            .enfOverrideEnforcerCode((short)123)
+            .enfOverrideEnforcerCode((short) 123)
             .lastEnforcement("ENF")
             .prosecutorCaseReference("123456")
             .accountComments("Comment1")
+            .accountActivities(buildAccountActivitiesDto())
+            .impositions(buildImpositionsDto())
             .build();
     }
 
@@ -449,7 +504,8 @@ class LegacyDefendantAccountServiceTest extends RestClientMockBase {
             .postcode("W1 1AA")
             .fullName("Mr John Smith")
             .organisation(false)
-            .birthDate(LocalDate.of(1979,12,12))
+            .birthDate(LocalDate.of(1979, 12, 12))
+            .lastChangedDate("2020-02-02")
             .build();
     }
 
@@ -459,9 +515,62 @@ class LegacyDefendantAccountServiceTest extends RestClientMockBase {
             .termsTypeCode("I")
             .instalmentAmount(BigDecimal.valueOf(100.00))
             .instalmentPeriod("PCM")
-            .termsDate(LocalDate.of(2012, 1,1))
+            .termsDate(LocalDate.of(2012, 1, 1))
             .jailDays(10)
             .instalmentLumpSum(BigDecimal.valueOf(100.00))
+            .wording("wording")
+            .build();
+    }
+
+    private AccountActivitiesDto buildAccountActivitiesDto() {
+
+        return AccountActivitiesDto.builder()
+            .accountActivity(List.of(buildAccountActivityDto(), buildAccountActivityDtoOlder()))
+            .build();
+    }
+
+    private AccountActivityDto buildAccountActivityDto() {
+
+        return AccountActivityDto.builder()
+            .activityId(1)
+            .activityText("Activity")
+            .activityType("Activity")
+            .activityTypeCode("AA")
+            .postedDate(LocalDateTime.of(2021, 1, 1, 21, 0, 0))
+            .build();
+    }
+
+    private ImpositionsDto buildImpositionsDto() {
+
+        return ImpositionsDto.builder()
+            .imposition(List.of(buildImpositionDto()))
+            .build();
+    }
+
+    private ImpositionDto buildImpositionDto() {
+
+        return ImpositionDto.builder()
+            .creditorAccountNumber("123")
+            .creditorName("John")
+            .imposedAmount(1000.00)
+            .imposedDate("2020-01-01")
+            .imposingCourtCode(12)
+            .impositionId(1)
+            .offenceTitle("A title")
+            .paidAmount(100.00)
+            .postedDate("2020-01-01")
+            .resultId("1")
+            .build();
+    }
+
+    private AccountActivityDto buildAccountActivityDtoOlder() {
+
+        return AccountActivityDto.builder()
+            .activityId(2)
+            .activityText("Activity OLD")
+            .activityType("Activity")
+            .activityTypeCode("AA")
+            .postedDate(LocalDateTime.of(2020, 1, 1, 21, 0, 0))
             .build();
     }
 
