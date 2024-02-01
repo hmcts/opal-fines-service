@@ -119,21 +119,31 @@ task functional(type: Test) {
   tasks.copyFunctionalReport.mustRunAfter aggregate
 
 }
-
-task smoke(type: Test) {
+task smokeOpal(type: Test) {
   description = "Runs Smoke Tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
   testLogging.showStandardStreams = true
+  gradle.startParameter.continueOnFailure = true
   systemProperty "cucumber.filter.tags", "@Smoke and not @Ignore"
-  doLast {
-    tasks.aggregate.aggregate()
-    delete "${rootDir}/smoke-test-report/"
-    new File("${rootDir}/smoke-test-report").mkdirs()
-    file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/smoke-test-report"))
-    logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
-  }
+}
+task copySmokeReport(type: Copy){
+  from("${rootDir}/target/site/serenity")
+  into("${rootDir}/smoke-test-report")
+  logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
+}
+
+task smoke(type: Test) {
+  description = "Runs Smoke Tests"
+  group = "Verification"
+  testLogging.showStandardStreams = true
+  gradle.startParameter.continueOnFailure = true
+  dependsOn('clearReports','smokeOpal', 'aggregate', 'copySmokeReport')
+  tasks.smokeOpal.mustRunAfter clearReports
+  tasks.aggregate.mustRunAfter smokeOpal
+  tasks.copySmokeReport.mustRunAfter aggregate
+
 }
 
 def coverageExclusions = [
