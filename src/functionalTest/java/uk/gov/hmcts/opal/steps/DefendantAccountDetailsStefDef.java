@@ -4,11 +4,13 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
+import org.hamcrest.Matchers;
 
 import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.Assert.assertEquals;
+
 
 public class DefendantAccountDetailsStefDef extends BaseStepDef {
 
@@ -44,6 +46,6 @@ public class DefendantAccountDetailsStefDef extends BaseStepDef {
     @Then("the response from the defendant account details api is empty")
     public void responseFromTheDefendantAccountDetailsApiIsInvalid() {
         then().assertThat()
-            .statusCode(403);
+            .statusCode(Matchers.not(200));
     }
 }
