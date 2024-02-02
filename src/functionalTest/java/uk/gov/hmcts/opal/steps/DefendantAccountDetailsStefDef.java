@@ -35,6 +35,7 @@ public class DefendantAccountDetailsStefDef extends BaseStepDef {
             .when()
             .get(getTestUrl() + "/api/defendant-account/details?defendantAccountId=" + idToSend.get("defendantID"));
     }
+
     @When("I make a request to the defendant account details api with an invalid token")
     public void getDefendantAccountDetailsByIDInvalidToken(DataTable id) {
         Map<String, String> idToSend = id.asMap(String.class, String.class);
