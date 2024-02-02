@@ -19,6 +19,8 @@ import uk.gov.hmcts.opal.service.NoteServiceInterface;
 
 import java.util.List;
 
+import static uk.gov.hmcts.opal.util.ResponseUtil.buildResponse;
+
 
 @RestController
 @RequestMapping("/api/notes")
@@ -54,11 +56,7 @@ public class NoteController {
         List<NoteDto> response = noteService
             .searchNotes(criteria);
 
-        if (response == null) {
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(response);
+        return buildResponse(response);
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -70,13 +68,8 @@ public class NoteController {
         List<NoteDto> response = noteService
             .searchNotes(criteria);
 
-        if (response == null) {
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(response);
+        return buildResponse(response);
     }
-
 
 
 }
