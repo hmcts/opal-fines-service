@@ -26,6 +26,25 @@ public class DefendantAccountDetailsStefDef extends BaseStepDef {
             .get(getTestUrl() + "/api/defendant-account/details?defendantAccountId=" + idToSend.get("defendantID"));
     }
 
+    @When("I make an unauthenticated request to the defendant account details api with")
+    public void getDefendantAccountDetailsByIDUnauthenticated(DataTable id) {
+        Map<String, String> idToSend = id.asMap(String.class, String.class);
+        SerenityRest.given()
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + "/api/defendant-account/details?defendantAccountId=" + idToSend.get("defendantID"));
+    }
+    @When("I make a request to the defendant account details api with an invalid token")
+    public void getDefendantAccountDetailsByIDInvalidToken(DataTable id) {
+        Map<String, String> idToSend = id.asMap(String.class, String.class);
+        SerenityRest.given()
+            .accept("*/*")
+            .header("Authorization", "Bearer invalidToken")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + "/api/defendant-account/details?defendantAccountId=" + idToSend.get("defendantID"));
+    }
 
     @Then("the response from the defendant account details api is")
     public void assertDefendantAccountDetailsResponseMatches(DataTable fields) {
@@ -42,6 +61,12 @@ public class DefendantAccountDetailsStefDef extends BaseStepDef {
             assertEquals("Values are not equal : ", apiResponseValue, response.get(key));
         }
 
+    }
+
+    @Then("the response from the defendant account details api is unauthorised")
+    public void assertDefendantAccountDetailsResponseUnauthorised() {
+        then().assertThat()
+            .statusCode(401);
     }
 
     @Then("the response from the defendant account details api is empty")
