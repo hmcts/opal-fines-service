@@ -30,6 +30,8 @@ import uk.gov.hmcts.opal.service.NoteServiceInterface;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static uk.gov.hmcts.opal.util.ResponseUtil.buildResponse;
+
 @RestController
 @RequestMapping("/api/defendant-account")
 @Slf4j(topic = "DefendantAccountController")
@@ -89,11 +91,7 @@ public class DefendantAccountController {
         List<DefendantAccountEntity> response = defendantAccountService
             .getDefendantAccountsByBusinessUnit(businessUnit);
 
-        if (response == null) {
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(response);
+        return buildResponse(response);
     }
 
     @GetMapping(value = "/details")
@@ -162,10 +160,6 @@ public class DefendantAccountController {
 
         List<NoteDto> response = noteService.searchNotes(criteria);
 
-        if (response == null) {
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(response);
+        return buildResponse(response);
     }
 }
