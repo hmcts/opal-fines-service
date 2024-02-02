@@ -7,6 +7,6 @@ import lombok.Value;
 @Value
 public class SecurityToken {
 
-    private String accessToken;
+    String accessToken;
 
 }

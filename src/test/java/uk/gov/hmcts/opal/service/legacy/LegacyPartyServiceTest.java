@@ -55,7 +55,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void saveParty_FailureBodyResponse() throws Exception {
+    void saveParty_FailureBodyResponse() {
         // Arrange
         mockRestClientPost();
         final PartyDto inputPartyDto = new PartyDto();
@@ -83,7 +83,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void saveParty_FailureCodeResponse() throws Exception {
+    void saveParty_FailureCodeResponse() {
         // Arrange
         mockRestClientPost();
         final PartyDto inputPartyDto = new PartyDto();
@@ -113,7 +113,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void saveParty_ErrorResponse() throws Exception {
+    void saveParty_ErrorResponse() {
         // Arrange
         mockRestClientPost();
         final PartyDto inputPartyDto = new PartyDto();
@@ -164,7 +164,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void getParty_FailureBodyResponse() throws Exception {
+    void getParty_FailureBodyResponse() {
         // Arrange
         mockRestClientPost();
         final PartyDto inputPartyDto = new PartyDto();
@@ -192,11 +192,9 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void getParty_FailureCodeResponse() throws Exception {
+    void getParty_FailureCodeResponse() {
         // Arrange
         mockRestClientPost();
-        final PartyDto inputPartyDto = new PartyDto();
-
 
         String jsonBody = createJsonBody1();
 
@@ -222,7 +220,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void getParty_ErrorResponse() throws Exception {
+    void getParty_ErrorResponse() {
         // Arrange
         mockRestClientPost();
         String jsonBody = createBrokenJson();
@@ -248,7 +246,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void searchForParty_SuccessfulResponse() throws Exception {
+    void searchForParty_SuccessfulResponse() {
         // Arrange
 
         // Act

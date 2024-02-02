@@ -45,7 +45,7 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void saveNote_SuccessfulResponse() throws Exception {
+    void saveNote_SuccessfulResponse() {
         // Arrange
         mockRestClientPost();
 
@@ -79,7 +79,7 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void saveNote_FailureBodyResponse() throws Exception {
+    void saveNote_FailureBodyResponse() {
         // Arrange
         mockRestClientPost();
         final NoteDto inputNoteDto = new NoteDto();
@@ -104,7 +104,7 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void saveNote_FailureCodeResponse() throws Exception {
+    void saveNote_FailureCodeResponse() {
         // Arrange
         mockRestClientPost();
         final NoteDto inputNoteDto = new NoteDto();
@@ -197,7 +197,7 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void saveNote_ErrorResponse() throws Exception {
+    void saveNote_ErrorResponse() {
         // Arrange
         mockRestClientPost();
         final NoteDto inputNoteDto = new NoteDto();

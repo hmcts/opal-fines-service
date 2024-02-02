@@ -15,20 +15,18 @@ import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummary;
+import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyDefendantAccountSummary;
+import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyLink;
 import uk.gov.hmcts.opal.entity.EnforcersEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
-import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcersRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
-
-import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyLink;
-import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyDefendantAccountSummary;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 
 import java.io.InputStream;
@@ -53,8 +51,6 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
     private final DefendantAccountPartiesRepository defendantAccountPartiesRepository;
 
     private final PaymentTermsRepository paymentTermsRepository;
-
-    private final DebtorDetailRepository debtorDetailRepository;
 
     private final EnforcersRepository enforcersRepository;
 
@@ -92,8 +88,10 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                 .getResourceAsStream("tempSearchData.json")) {
                 ObjectMapper mapper = getObjectMapper();
                 AccountSearchResultsDto dto = mapper.readValue(in, AccountSearchResultsDto.class);
-                log.info(":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
-                         dto.toPrettyJsonString());
+                log.info(
+                    ":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
+                    dto.toPrettyJsonString()
+                );
                 return dto;
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -101,8 +99,10 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
         }
 
         Page<DefendantAccountSummary> summariesPage = defendantAccountRepository
-            .findBy(specs.findByAccountSearch(accountSearchDto),
-                    ffq -> ffq.as(DefendantAccountSummary.class).page(Pageable.unpaged()));
+            .findBy(
+                specs.findByAccountSearch(accountSearchDto),
+                ffq -> ffq.as(DefendantAccountSummary.class).page(Pageable.unpaged())
+            );
 
         List<AccountSummaryDto> dtos = summariesPage.getContent().stream()
             .map(this::toDto)
@@ -127,11 +127,12 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                 ObjectMapper mapper = getObjectMapper();
                 AccountDetailsDto dto = mapper.readValue(in, AccountDetailsDto.class);
                 log.info(
-                        """
+                    """
                         :getAccountDetailsByDefendantAccountId:
                         " temporary Hack for Front End testing. Read JSON file: \n{}
                         """,
-                         dto.toPrettyJsonString());
+                    dto.toPrettyJsonString()
+                );
                 return dto;
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -164,20 +165,24 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
         // returning only latest (postedDate)
         Optional<NoteEntity> noteEntityAA = Optional.ofNullable(
             noteRepository.findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(
-            defendantAccountEntity.getDefendantAccountId().toString(), "AA"));
+                defendantAccountEntity.getDefendantAccountId().toString(), "AA"));
 
         //build fullAddress
-        final String fullAddress = buildFullAddress(partyEntity.getAddressLine1(),
-                                                    partyEntity.getAddressLine2(),
-                                                    partyEntity.getAddressLine3(),
-                                                    partyEntity.getAddressLine4(),
-                                                    partyEntity.getAddressLine5());
+        final String fullAddress = buildFullAddress(
+            partyEntity.getAddressLine1(),
+            partyEntity.getAddressLine2(),
+            partyEntity.getAddressLine3(),
+            partyEntity.getAddressLine4(),
+            partyEntity.getAddressLine5()
+        );
 
         //build paymentDetails
-        final String paymentDetails = buildPaymentDetails(paymentTermsEntity.getTermsTypeCode(),
-                                                          paymentTermsEntity.getInstalmentAmount(),
-                                                          paymentTermsEntity.getInstalmentPeriod(),
-                                                          paymentTermsEntity.getEffectiveDate());
+        final String paymentDetails = buildPaymentDetails(
+            paymentTermsEntity.getTermsTypeCode(),
+            paymentTermsEntity.getInstalmentAmount(),
+            paymentTermsEntity.getInstalmentPeriod(),
+            paymentTermsEntity.getEffectiveDate()
+        );
 
         //build comments
         final List<String> comments = buildCommentsFromAssociatedNotes(noteEntityAC);

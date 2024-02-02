@@ -115,9 +115,7 @@ class TestingSupportControllerTest {
         when(azureDummyTokenService.generateAzureJwtToken(anyString()))
             .thenThrow(new RuntimeException("Error!"));
 
-        assertThrows(OpalApiException.class, () -> {
-            controller.handleOauthCode(null);
-        });
+        assertThrows(OpalApiException.class, () -> controller.handleOauthCode(null));
 
         verify(azureDummyTokenService).generateAzureJwtToken(anyString());
     }

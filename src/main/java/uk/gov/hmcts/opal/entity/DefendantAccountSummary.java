@@ -24,7 +24,7 @@ public interface DefendantAccountSummary {
         PartyDefendantAccountSummary getParty();
     }
 
-    public interface PartyDefendantAccountSummary extends FullNameBuilder {
+    interface PartyDefendantAccountSummary extends FullNameBuilder {
 
         /** The date of birth of the defendant. */
         LocalDate getDateOfBirth();
