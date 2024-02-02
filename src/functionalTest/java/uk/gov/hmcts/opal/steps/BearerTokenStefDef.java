@@ -3,12 +3,12 @@ package uk.gov.hmcts.opal.steps;
 import io.cucumber.java.BeforeAll;
 import net.serenitybdd.rest.SerenityRest;
 
-
 import static net.serenitybdd.rest.SerenityRest.then;
 
 
 public class BearerTokenStefDef extends BaseStepDef {
     protected static String TOKEN;
+
     @BeforeAll
     public static void setToken() {
         SerenityRest.given()
@@ -17,8 +17,9 @@ public class BearerTokenStefDef extends BaseStepDef {
             .when()
             .get(getTestUrl() + "/api/testing-support/token/test-user");
         TOKEN = then().extract().body().jsonPath().getString("access_token");
-        System.out.println("Token - "+ TOKEN);
+        System.out.println("Token - " + TOKEN);
     }
+
     protected static String getToken() {
         return TOKEN;
     }
