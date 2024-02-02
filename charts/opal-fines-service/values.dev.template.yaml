@@ -22,5 +22,6 @@ java:
     OPAL_FINES_DB_PORT: 5432
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: https://opal-frontend.staging.platform.hmcts.net
+    TESTING_SUPPORT_ENDPOINTS_ENABLED: true
   postgresql:
     enabled: true
