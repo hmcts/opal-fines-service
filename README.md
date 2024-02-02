@@ -21,6 +21,7 @@ The following environment variables are required to run the service.
 AAD_CLIENT_ID= <Ask Team Memebers>
 AAD_CLIENT_SECRET=<Ask Team Memebers>
 AAD_TENANT_ID=<Ask Team Memebers>
+OPAL_TEST_USER_PASSWORD=<Ask Team Memebers>
 
 LAUNCH_DARKLY_SDK_KEY=<Ask Team Memebers>
 ```
