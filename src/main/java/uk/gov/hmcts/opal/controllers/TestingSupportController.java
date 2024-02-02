@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +27,7 @@ import uk.gov.hmcts.opal.service.DynamicConfigService;
 @RequestMapping("/api/testing-support")
 @RequiredArgsConstructor
 @Tag(name = "Testing Support Controller")
+@ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
 public class TestingSupportController {
 
     private final DynamicConfigService dynamicConfigService;
