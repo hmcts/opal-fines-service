@@ -10,6 +10,7 @@ import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.Assert.assertEquals;
+import static uk.gov.hmcts.opal.steps.BearerTokenStefDef.getToken;
 
 
 public class DefendantAccountDetailsStefDef extends BaseStepDef {
