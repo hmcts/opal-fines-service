@@ -6,9 +6,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.dto.NoteDto;
+import uk.gov.hmcts.opal.dto.NotesSearchDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacySaveNoteRequestDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacySaveNoteResponseDto;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;
+
+import java.util.List;
 
 @Service
 @Slf4j(topic = "LegacyNoteService")
@@ -32,6 +35,11 @@ public class LegacyNoteService extends LegacyService implements NoteServiceInter
         return postToGateway(POST_ACCOUNT_NOTES,
                     LegacySaveNoteResponseDto.class, LegacySaveNoteRequestDto.fromNoteDto(noteDto))
             .createClonedAndUpdatedDto(noteDto);
+    }
+
+    @Override
+    public List<NoteDto> searchNotes(NotesSearchDto searchCriteria) {
+        throw new LegacyGatewayResponseException("Not Yet Implemented");
     }
 
 

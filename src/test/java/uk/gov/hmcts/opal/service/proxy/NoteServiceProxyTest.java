@@ -12,11 +12,15 @@ import org.mockito.MockitoAnnotations;
 
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.AppMode;
+import uk.gov.hmcts.opal.dto.NotesSearchDto;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyNoteService;
 import uk.gov.hmcts.opal.service.opal.NoteService;
-import uk.gov.hmcts.opal.service.proxy.NoteServiceProxy;
 
+import java.util.Collections;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -56,12 +60,25 @@ class NoteServiceProxyTest {
         when(opalNoteService.saveNote(noteDto)).thenReturn(noteDto);
 
         // When: saveNote is called on the proxy
-        NoteDto result = noteServiceProxy.saveNote(noteDto);
+        NoteDto noteResult = noteServiceProxy.saveNote(noteDto);
 
         // Then: opalNoteService should be used, and the returned note should be as expected
         verify(opalNoteService).saveNote(noteDto);
         verifyNoInteractions(legacyNoteService);
-        Assertions.assertEquals(noteDto, result);
+        Assertions.assertEquals(noteDto, noteResult);
+
+        // Given: a notes list result and the app mode is set to "opal"
+        List<NoteDto> notesList = List.of(noteDto);
+        when(opalNoteService.searchNotes(any())).thenReturn(notesList);
+
+        // When: searchNotes is called on the proxy
+        NotesSearchDto criteria = NotesSearchDto.builder().build();
+        List<NoteDto> listResult = noteServiceProxy.searchNotes(criteria);
+
+        // Then: opalNoteService should be used, and the returned list should be as expected
+        verify(opalNoteService).searchNotes(criteria);
+        verifyNoInteractions(legacyNoteService);
+        Assertions.assertEquals(notesList, listResult);
     }
 
     @Test
@@ -80,5 +97,18 @@ class NoteServiceProxyTest {
         verify(legacyNoteService).saveNote(noteDto);
         verifyNoInteractions(opalNoteService);
         Assertions.assertEquals(noteDto, result);
+
+        // Given: a notes list result and the app mode is set to "legacy"
+        List<NoteDto> notesList = List.of(noteDto);
+        when(opalNoteService.searchNotes(any())).thenReturn(notesList);
+
+        // When: searchNotes is called on the proxy
+        NotesSearchDto criteria = NotesSearchDto.builder().build();
+        List<NoteDto> listResult = noteServiceProxy.searchNotes(criteria);
+
+        // Then: opalNoteService should be used, and the returned list should be as expected
+        verify(legacyNoteService).searchNotes(criteria);
+        verifyNoInteractions(opalNoteService);
+        Assertions.assertEquals(Collections.emptyList(), listResult); // Not yet implemented in Legacy mode
     }
 }

@@ -22,12 +22,15 @@ import uk.gov.hmcts.opal.dto.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
+import uk.gov.hmcts.opal.dto.NotesSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static uk.gov.hmcts.opal.util.ResponseUtil.buildResponse;
 
 @RestController
 @RequestMapping("/api/defendant-account")
@@ -88,11 +91,7 @@ public class DefendantAccountController {
         List<DefendantAccountEntity> response = defendantAccountService
             .getDefendantAccountsByBusinessUnit(businessUnit);
 
-        if (response == null) {
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(response);
+        return buildResponse(response);
     }
 
     @GetMapping(value = "/details")
@@ -146,5 +145,21 @@ public class DefendantAccountController {
         }
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @GetMapping(value = "/notes/{defendantId}")
+    @Operation(summary = "Returns all notes for an associated defendant account id.")
+    public ResponseEntity<List<NoteDto>> getNotesForDefendantAccount(@PathVariable String defendantId) {
+
+        log.info(":GET:getNotesForDefendantAccount: defendant account id: {}", defendantId);
+
+        NotesSearchDto criteria = NotesSearchDto.builder()
+            .associatedType(NOTE_ASSOC_REC_TYPE)
+            .associatedId(defendantId)
+            .build();
+
+        List<NoteDto> response = noteService.searchNotes(criteria);
+
+        return buildResponse(response);
     }
 }
