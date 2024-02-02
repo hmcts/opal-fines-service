@@ -23,7 +23,17 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = {TestingSupportController.class, DynamicConfigService.class, FeatureToggleService.class})
+@SpringBootTest(
+    classes =
+        {
+            TestingSupportController.class,
+            DynamicConfigService.class,
+            FeatureToggleService.class
+        },
+    properties = {
+        "opal.testing-support-endpoints.enabled=true"
+    }
+)
 class TestingSupportControllerTest {
 
     @Autowired
