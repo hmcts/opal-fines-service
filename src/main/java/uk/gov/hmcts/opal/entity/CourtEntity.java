@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CourtsEntity extends EnforcersCourtsBaseEntity {
+public class CourtEntity extends EnforcerCourtBaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
