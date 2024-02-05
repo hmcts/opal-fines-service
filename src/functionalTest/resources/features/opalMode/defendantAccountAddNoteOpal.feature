@@ -19,4 +19,4 @@ Feature: Test the add note endpoint for Opal
     When I make a request to the defendant account details api with
       | defendantID | 500000000 |
     Then the following account note is returned in the ac details request
-      | accountNotes | test account note2 Opal1 |
+      | accountNotes | test account note2 Opal |
