@@ -15,14 +15,14 @@ import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.EnforcersEntity;
+import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.EnforcersRepository;
+import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
@@ -56,7 +56,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
     private final DebtorDetailRepository debtorDetailRepository;
 
-    private final EnforcersRepository enforcersRepository;
+    private final EnforcerRepository enforcerRepository;
 
     private final NoteRepository noteRepository;
 
@@ -65,7 +65,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
     @Override
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
 
-        return defendantAccountRepository.findByBusinessUnitId_BusinessUnitIdAndAccountNumber(
+        return defendantAccountRepository.findByBusinessUnit_BusinessUnitIdAndAccountNumber(
             request.getBusinessUnitId(), request.getAccountNumber());
     }
 
@@ -79,7 +79,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
     public List<DefendantAccountEntity> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
 
         log.info(":getDefendantAccountsByBusinessUnit: busUnit: {}", businessUnitId);
-        return defendantAccountRepository.findAllByBusinessUnitId_BusinessUnitId(businessUnitId);
+        return defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId(businessUnitId);
     }
 
     @Override
@@ -153,7 +153,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             defendantAccountEntity.getDefendantAccountId());
 
         //query DB for EnforcementEntity
-        EnforcersEntity enforcersEntity = enforcersRepository.findByEnforcerId(defendantAccountEntity
+        EnforcerEntity enforcerEntity = enforcerRepository.findByEnforcerId(defendantAccountEntity
                                                                                    .getEnforcementOverrideEnforcerId());
 
         //query DB for NoteEntity by associatedRecordId (defendantAccountId) and noteType ("AC")
@@ -190,13 +190,13 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .fullName(partyEntity.getOrganisationName() == null
                           ? partyEntity.getFullName()
                           : partyEntity.getOrganisationName())
-            .accountCT(defendantAccountEntity.getBusinessUnitId().getBusinessUnitName())
+            .accountCT(defendantAccountEntity.getBusinessUnit().getBusinessUnitName())
             .address(fullAddress)
             .postCode(partyEntity.getPostcode())
             .dob(partyEntity.getDateOfBirth())
             .detailsChanged(defendantAccountEntity.getLastChangedDate())
             .lastCourtAppAndCourtCode(defendantAccountEntity.getLastHearingDate().toString()
-                                          + " " + defendantAccountEntity.getLastHearingCourtId().getCourtCode())
+                                          + " " + defendantAccountEntity.getLastHearingCourt().getCourtCode())
             .lastMovement(defendantAccountEntity.getLastMovementDate())
             .commentField(comments)
             .accountNotes(noteEntityAA.map(NoteEntity::getNoteText).orElse(null))
@@ -210,8 +210,8 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .sentencedDate(defendantAccountEntity.getImposedHearingDate())
             .lastEnforcement(defendantAccountEntity.getLastEnforcement())
             .override(defendantAccountEntity.getEnforcementOverrideResultId())
-            .enforcer(enforcersEntity.getEnforcerCode())
-            .enforcementCourt(defendantAccountEntity.getEnforcingCourtId().getCourtCode())
+            .enforcer(enforcerEntity.getEnforcerCode())
+            .enforcementCourt(defendantAccountEntity.getEnforcingCourt().getCourtCode())
             .imposed(defendantAccountEntity.getAmountImposed())
             .amountPaid(defendantAccountEntity.getAmountPaid())
             .balance(defendantAccountEntity.getAccountBalance())

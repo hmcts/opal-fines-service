@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BusinessUnitsEntity {
+public class BusinessUnitEntity {
 
     @Id
     @Column(name = "business_unit_id")

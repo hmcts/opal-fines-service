@@ -19,7 +19,7 @@ public class DefendantAccountEntityTest {
 
         // Set values using setters
         defendantAccount.setDefendantAccountId(1L);
-        defendantAccount.setBusinessUnitId(new BusinessUnitsEntity());
+        defendantAccount.setBusinessUnit(new BusinessUnitEntity());
         defendantAccount.setAccountNumber("123456");
         defendantAccount.setImposedHearingDate(now);
         defendantAccount.setImposingCourtId(1L);
@@ -28,8 +28,8 @@ public class DefendantAccountEntityTest {
         defendantAccount.setAccountBalance(BigDecimal.valueOf(1.1));
         defendantAccount.setAccountStatus("status");
         defendantAccount.setCompletedDate(now);
-        defendantAccount.setEnforcingCourtId(new CourtsEntity());
-        defendantAccount.setLastHearingCourtId(new CourtsEntity());
+        defendantAccount.setEnforcingCourt(new CourtEntity());
+        defendantAccount.setLastHearingCourt(new CourtEntity());
         defendantAccount.setLastHearingDate(now);
         defendantAccount.setLastMovementDate(now);
         defendantAccount.setLastEnforcement("123456");
@@ -61,7 +61,7 @@ public class DefendantAccountEntityTest {
 
         // Test getters
         assertEquals(Long.valueOf(1L), defendantAccount.getDefendantAccountId());
-        assertEquals(new BusinessUnitsEntity(), defendantAccount.getBusinessUnitId());
+        assertEquals(new BusinessUnitEntity(), defendantAccount.getBusinessUnit());
         assertEquals("123456", defendantAccount.getAccountNumber());
         assertEquals(now, defendantAccount.getImposedHearingDate());
         assertEquals(Long.valueOf(1L), defendantAccount.getImposingCourtId());
@@ -70,8 +70,8 @@ public class DefendantAccountEntityTest {
         assertEquals(new BigDecimal("1.1"), defendantAccount.getAccountBalance());
         assertEquals("status", defendantAccount.getAccountStatus());
         assertEquals(now, defendantAccount.getCompletedDate());
-        assertEquals(new CourtsEntity(), defendantAccount.getEnforcingCourtId());
-        assertEquals(new CourtsEntity(), defendantAccount.getLastHearingCourtId());
+        assertEquals(new CourtEntity(), defendantAccount.getEnforcingCourt());
+        assertEquals(new CourtEntity(), defendantAccount.getLastHearingCourt());
         assertEquals(now, defendantAccount.getLastHearingDate());
         assertEquals(now, defendantAccount.getLastMovementDate());
         assertEquals("123456", defendantAccount.getLastEnforcement());
