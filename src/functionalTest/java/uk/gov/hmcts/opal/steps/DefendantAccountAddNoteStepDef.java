@@ -40,7 +40,16 @@ public class DefendantAccountAddNoteStepDef extends BaseStepDef {
 
         for (String key : response.keySet()) {
             String apiResponseValue = then().extract().body().jsonPath().getString(key);
-            assertEquals("Values are not equal : ", apiResponseValue, response.get(key));
+            assertEquals("Values are not equal : ", response.get(key), apiResponseValue);
+        }
+    }
+
+    @Then("the following account note is returned in the ac details request")
+    public void theFollowingAccountNoteIsReturnedInTheAcDetailsRequest(DataTable data) {
+        Map<String, String> response = data.asMap(String.class, String.class);
+        for (String key : response.keySet()) {
+            String apiResponseValue = then().extract().body().jsonPath().getString(key);
+            assertEquals("Values are not equal : ", response.get(key), apiResponseValue);
         }
     }
 }
