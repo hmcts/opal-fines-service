@@ -3,11 +3,11 @@ package uk.gov.hmcts.opal.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.PaymentInEntity;
 
 @Repository
-public interface EnforcerRepository extends JpaRepository<EnforcerEntity, Long>,
-    JpaSpecificationExecutor<EnforcerEntity> {
+public interface PaymentInRepository extends JpaRepository<PaymentInEntity, Long>,
+    JpaSpecificationExecutor<PaymentInEntity> {
 
-    EnforcerEntity findByEnforcerId(Long enforcerId);
+    PaymentInEntity findByPaymentInId(Long paymentInId);
 }
