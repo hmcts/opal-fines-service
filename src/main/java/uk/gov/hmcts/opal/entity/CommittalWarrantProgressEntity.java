@@ -27,9 +27,8 @@ import java.time.LocalDateTime;
 public class CommittalWarrantProgressEntity {
 
     @Id
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "defendant_account_id", nullable = false)
-    private DefendantAccountEntity defendantAccount;
+    @Column(name = "defendant_account_id")
+    private Long defendantAccountId;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "enforcement_id", nullable = false)
