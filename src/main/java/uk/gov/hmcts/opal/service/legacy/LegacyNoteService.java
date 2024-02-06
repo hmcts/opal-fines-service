@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.dto.NoteDto;
-import uk.gov.hmcts.opal.dto.NotesSearchDto;
+import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacySaveNoteRequestDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacySaveNoteResponseDto;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;
@@ -38,7 +38,7 @@ public class LegacyNoteService extends LegacyService implements NoteServiceInter
     }
 
     @Override
-    public List<NoteDto> searchNotes(NotesSearchDto searchCriteria) {
+    public List<NoteDto> searchNotes(NoteSearchDto searchCriteria) {
         throw new LegacyGatewayResponseException("Not Yet Implemented");
     }
 
