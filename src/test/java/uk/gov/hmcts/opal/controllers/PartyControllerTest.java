@@ -8,7 +8,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.PartyDto;
+import uk.gov.hmcts.opal.dto.search.PartySearchDto;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.service.opal.PartyService;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -56,6 +60,24 @@ class PartyControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(partyDtoResponse, response.getBody());
         verify(partyService, times(1)).getParty(any(Long.class));
+    }
+
+    @Test
+    void testSearchParties_Success() {
+        // Arrange
+        PartyEntity entity = PartyEntity.builder().build();
+        List<PartyEntity> partyList = List.of(entity);
+
+        when(partyService.searchParties(any())).thenReturn(partyList);
+
+        // Act
+        PartySearchDto searchDto = PartySearchDto.builder().build();
+        ResponseEntity<List<PartyEntity>> response = partyController.postPartiesSearch(searchDto);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(partyList, response.getBody());
+        verify(partyService, times(1)).searchParties(any());
     }
 
 }

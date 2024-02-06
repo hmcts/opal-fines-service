@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.NoteDto;
-import uk.gov.hmcts.opal.dto.NotesSearchDto;
+import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyNoteService;
@@ -31,7 +31,7 @@ public class NoteServiceProxy implements NoteServiceInterface, ProxyInterface {
     }
 
     @Override
-    public List<NoteDto> searchNotes(NotesSearchDto searchCriteria) {
+    public List<NoteDto> searchNotes(NoteSearchDto searchCriteria) {
         return getCurrentModeService().searchNotes(searchCriteria);
     }
 }

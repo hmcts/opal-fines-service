@@ -8,14 +8,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
-import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;

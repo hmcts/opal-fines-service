@@ -16,6 +16,8 @@ import static org.springframework.web.client.RestClient.RequestHeadersUriSpec;
 
 public abstract class LegacyTestsBase {
 
+    public static final String NOT_YET_IMPLEMENTED = "Not Yet Implemented";
+
     @Mock
     RestClient restClient;
 

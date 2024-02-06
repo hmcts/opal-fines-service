@@ -7,14 +7,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.PartyDto;
+import uk.gov.hmcts.opal.dto.search.PartySearchDto;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartySummary;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyPartyService;
 import uk.gov.hmcts.opal.service.opal.PartyService;
-import uk.gov.hmcts.opal.service.proxy.PartyServiceProxy;
 
 import java.util.Collections;
 import java.util.List;
@@ -82,6 +83,20 @@ class PartyServiceProxyTest {
         // Then
         verify(opalPartyService).searchForParty(any());
         verifyNoInteractions(legacyPartyService);
+
+        // Given: a courts list result and the app mode is set to "opal"
+        PartyEntity entity = PartyEntity.builder().build();
+        List<PartyEntity> courtsList = List.of(entity);
+        when(opalPartyService.searchParties(any())).thenReturn(courtsList);
+
+        // When: searchCourts is called on the proxy
+        PartySearchDto criteria = PartySearchDto.builder().build();
+        List<PartyEntity> listResult = partyServiceProxy.searchParties(criteria);
+
+        // Then: opalCourtService should be used, and the returned list should be as expected
+        verify(opalPartyService).searchParties(criteria);
+        verifyNoInteractions(legacyPartyService);
+        Assertions.assertEquals(courtsList, listResult);
     }
 
     @Test
@@ -118,5 +133,19 @@ class PartyServiceProxyTest {
         // Then
         verify(legacyPartyService).searchForParty(any());
         verifyNoInteractions(opalPartyService);
+
+        // Given: a courts list result and the app mode is set to "legacy"
+        PartyEntity entity = PartyEntity.builder().build();
+        List<PartyEntity> courtsList = List.of(entity);
+        when(legacyPartyService.searchParties(any())).thenReturn(courtsList);
+
+        // When: searchCourts is called on the proxy
+        PartySearchDto criteria = PartySearchDto.builder().build();
+        List<PartyEntity> listResult = partyServiceProxy.searchParties(criteria);
+
+        // Then: opalCourtService should be used, and the returned list should be as expected
+        verify(legacyPartyService).searchParties(criteria);
+        verifyNoInteractions(opalPartyService);
+        Assertions.assertEquals(courtsList, listResult); // Not yet implemented in Legacy mode
     }
 }

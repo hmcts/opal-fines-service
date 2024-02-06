@@ -5,12 +5,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.PartyDto;
+import uk.gov.hmcts.opal.dto.search.PartySearchDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartySummary;
 import uk.gov.hmcts.opal.repository.PartyRepository;
-import uk.gov.hmcts.opal.service.opal.PartyService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -77,6 +81,22 @@ public class PartyServiceTest {
         // Assert
         assertEquals(partyEntity.size(), partySummaries.size());
         verify(partyRepository, times(1)).findBySurnameContaining(any());
+    }
+
+    @Test
+    void testSearchParties() {
+        // Arrange
+
+        PartyEntity partyEntity = PartyEntity.builder().build();
+        Page<PartyEntity> mockPage = new PageImpl<>(List.of(partyEntity), Pageable.unpaged(), 999L);
+        // when(partyRepository.findBy(any(Specification.class), any())).thenReturn(mockPage);
+
+        // Act
+        List<PartyEntity> result = partyService.searchParties(PartySearchDto.builder().build());
+
+        // Assert
+        assertNull(result);
+
     }
 
     public static PartyDto buildPartyDto() {

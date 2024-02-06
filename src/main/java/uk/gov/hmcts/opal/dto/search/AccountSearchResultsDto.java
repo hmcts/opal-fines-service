@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.dto;
+package uk.gov.hmcts.opal.dto.search;
 
 
 import java.util.List;
@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.dto.AccountSummaryDto;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 
 
 @Builder
