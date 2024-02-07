@@ -7,19 +7,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
 import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
-import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.authentication.service.AzureDummyTokenService;
 import uk.gov.hmcts.opal.dto.AppMode;
-import uk.gov.hmcts.opal.exception.OpalApiException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 
@@ -32,7 +26,6 @@ public class TestingSupportController {
 
     private final DynamicConfigService dynamicConfigService;
     private final FeatureToggleService featureToggleService;
-    private final AzureDummyTokenService azureDummyTokenService;
     private final AccessTokenService accessTokenService;
 
     @GetMapping("/app-mode")
@@ -55,22 +48,6 @@ public class TestingSupportController {
     @GetMapping("/launchdarkly/string/{featureKey}")
     public ResponseEntity<String> getFeatureValue(@PathVariable String featureKey) {
         return ResponseEntity.ok(this.featureToggleService.getFeatureValue(featureKey));
-    }
-
-    @PostMapping("/handle-oauth-code")
-    @Operation(summary = "Generates dummy JWT token for tests on PRs")
-    public SecurityToken handleOauthCode(@RequestParam(value = "code", required = false) String code) {
-        String userName = "opal-test";
-        try {
-            String accessToken = this.azureDummyTokenService.generateAzureJwtToken(userName);
-            var securityTokenBuilder = SecurityToken.builder()
-                .accessToken(accessToken);
-
-            return securityTokenBuilder.build();
-        } catch (Exception e) {
-            throw new OpalApiException(AuthenticationError.FAILED_TO_OBTAIN_ACCESS_TOKEN, e);
-        }
-
     }
 
     @GetMapping("/token/test-user")
