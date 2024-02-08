@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 
 import java.time.LocalDate;
 

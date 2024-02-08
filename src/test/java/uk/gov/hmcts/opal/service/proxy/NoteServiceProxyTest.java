@@ -12,7 +12,7 @@ import org.mockito.MockitoAnnotations;
 
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.AppMode;
-import uk.gov.hmcts.opal.dto.NotesSearchDto;
+import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyNoteService;
 import uk.gov.hmcts.opal.service.opal.NoteService;
@@ -72,7 +72,7 @@ class NoteServiceProxyTest {
         when(opalNoteService.searchNotes(any())).thenReturn(notesList);
 
         // When: searchNotes is called on the proxy
-        NotesSearchDto criteria = NotesSearchDto.builder().build();
+        NoteSearchDto criteria = NoteSearchDto.builder().build();
         List<NoteDto> listResult = noteServiceProxy.searchNotes(criteria);
 
         // Then: opalNoteService should be used, and the returned list should be as expected
@@ -103,7 +103,7 @@ class NoteServiceProxyTest {
         when(opalNoteService.searchNotes(any())).thenReturn(notesList);
 
         // When: searchNotes is called on the proxy
-        NotesSearchDto criteria = NotesSearchDto.builder().build();
+        NoteSearchDto criteria = NoteSearchDto.builder().build();
         List<NoteDto> listResult = noteServiceProxy.searchNotes(criteria);
 
         // Then: opalNoteService should be used, and the returned list should be as expected

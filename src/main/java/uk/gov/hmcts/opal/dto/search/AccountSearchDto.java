@@ -1,9 +1,12 @@
-package uk.gov.hmcts.opal.dto;
+package uk.gov.hmcts.opal.dto.search;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
+import uk.gov.hmcts.opal.dto.DateDto;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+
 import java.util.Optional;
 
 @Data
