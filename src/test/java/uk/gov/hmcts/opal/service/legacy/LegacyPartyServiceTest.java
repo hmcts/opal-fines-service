@@ -9,8 +9,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.PartyDto;
+import uk.gov.hmcts.opal.dto.search.PartySearchDto;
+import uk.gov.hmcts.opal.entity.CourtEntity;
 import uk.gov.hmcts.opal.entity.PartySummary;
 import uk.gov.hmcts.opal.service.opal.PartyServiceTest;
 
@@ -256,6 +258,24 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
 
         // Assert
         assertEquals(0, resultPartyDto.size());
+    }
+
+    @Test
+    void testSearchCourts() {
+        // Arrange
+
+        CourtEntity courtEntity = CourtEntity.builder().build();
+
+        // Act
+        LegacyGatewayResponseException exception = assertThrows(
+            LegacyGatewayResponseException.class,
+            () -> legacyPartyService.searchParties(PartySearchDto.builder().build())
+        );
+
+        // Assert
+        assertNotNull(exception);
+        assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
+
     }
 
     private static String createJsonBody1() {

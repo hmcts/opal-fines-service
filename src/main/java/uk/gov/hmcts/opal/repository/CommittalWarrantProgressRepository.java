@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.CommittalWarrantProgressEntity;
 
 @Repository
-public interface CommittalWarrentProgressRepository extends JpaRepository<CommittalWarrantProgressEntity, Long>,
+public interface CommittalWarrantProgressRepository extends JpaRepository<CommittalWarrantProgressEntity, Long>,
     JpaSpecificationExecutor<CommittalWarrantProgressEntity> {
 
     CommittalWarrantProgressEntity findByDefendantAccountId(Long defendantAccountId);

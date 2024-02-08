@@ -18,11 +18,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
-import uk.gov.hmcts.opal.dto.NotesSearchDto;
+import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;
@@ -153,7 +153,7 @@ public class DefendantAccountController {
 
         log.info(":GET:getNotesForDefendantAccount: defendant account id: {}", defendantId);
 
-        NotesSearchDto criteria = NotesSearchDto.builder()
+        NoteSearchDto criteria = NoteSearchDto.builder()
             .associatedType(NOTE_ASSOC_REC_TYPE)
             .associatedId(defendantId)
             .build();
