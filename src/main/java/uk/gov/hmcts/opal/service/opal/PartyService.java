@@ -3,8 +3,10 @@ package uk.gov.hmcts.opal.service.opal;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.PartyDto;
+import uk.gov.hmcts.opal.dto.search.PartySearchDto;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartySummary;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.service.PartyServiceInterface;
@@ -29,6 +31,11 @@ public class PartyService implements PartyServiceInterface {
 
     public List<PartySummary> searchForParty(AccountSearchDto accountSearchDto) {
         return partyRepository.findBySurnameContaining(accountSearchDto.getSurname());
+    }
+
+    @Override
+    public List<PartyEntity> searchParties(PartySearchDto criteria) {
+        return null;
     }
 
 

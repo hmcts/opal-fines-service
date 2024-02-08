@@ -11,7 +11,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.NoteDto;
-import uk.gov.hmcts.opal.dto.NotesSearchDto;
+import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 
@@ -109,7 +109,7 @@ class NoteServiceTest {
         when(noteRepository.findBy(any(Specification.class), any())).thenReturn(mockPage);
 
         // Act
-        List<NoteDto> result = noteService.searchNotes(NotesSearchDto.builder().build());
+        List<NoteDto> result = noteService.searchNotes(NoteSearchDto.builder().build());
 
         // Assert
         assertEquals(1, result.size());

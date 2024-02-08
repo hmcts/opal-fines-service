@@ -8,7 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.NoteDto;
-import uk.gov.hmcts.opal.dto.NotesSearchDto;
+import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.service.opal.NoteService;
 
 import java.util.List;
@@ -51,7 +51,7 @@ class NoteControllerTest {
         NoteDto mockNote = new NoteDto();
         List<NoteDto> mockResponse = List.of(mockNote);
 
-        when(noteService.searchNotes(any(NotesSearchDto.class))).thenReturn(mockResponse);
+        when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(mockResponse);
 
         // Act
         ResponseEntity<List<NoteDto>> responseEntity = noteController.getNotesByAssociatedRecord("type", "1");
@@ -60,13 +60,13 @@ class NoteControllerTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
         verify(noteService, times(1)).searchNotes(any(
-            NotesSearchDto.class));
+            NoteSearchDto.class));
 
     }
 
     @Test
     public void testFindNoteByAssociated_NoContent() {
-        when(noteService.searchNotes(any(NotesSearchDto.class))).thenReturn(null);
+        when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(null);
 
         // Act
         ResponseEntity<List<NoteDto>> responseEntity = noteController.getNotesByAssociatedRecord("type", "1");
@@ -74,7 +74,7 @@ class NoteControllerTest {
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
         verify(noteService, times(1)).searchNotes(any(
-            NotesSearchDto.class));
+            NoteSearchDto.class));
     }
 
 
@@ -84,31 +84,31 @@ class NoteControllerTest {
         NoteDto mockNote = new NoteDto();
         List<NoteDto> mockResponse = List.of(mockNote);
 
-        when(noteService.searchNotes(any(NotesSearchDto.class))).thenReturn(mockResponse);
+        when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(mockResponse);
 
         // Act
-        NotesSearchDto criteria = NotesSearchDto.builder().build();
+        NoteSearchDto criteria = NoteSearchDto.builder().build();
         ResponseEntity<List<NoteDto>> responseEntity = noteController.postNotesSearch(criteria);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
         verify(noteService, times(1)).searchNotes(any(
-            NotesSearchDto.class));
+            NoteSearchDto.class));
 
     }
 
     @Test
     public void testNotesSearch_NoContent() {
-        when(noteService.searchNotes(any(NotesSearchDto.class))).thenReturn(null);
+        when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(null);
 
         // Act
-        NotesSearchDto criteria = NotesSearchDto.builder().build();
+        NoteSearchDto criteria = NoteSearchDto.builder().build();
         ResponseEntity<List<NoteDto>> responseEntity = noteController.postNotesSearch(criteria);
 
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
         verify(noteService, times(1)).searchNotes(any(
-            NotesSearchDto.class));
+            NoteSearchDto.class));
     }
 }

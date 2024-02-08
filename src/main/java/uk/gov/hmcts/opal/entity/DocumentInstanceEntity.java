@@ -1,0 +1,54 @@
+package uk.gov.hmcts.opal.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "documents")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class DocumentInstanceEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "document_instance_id_seq_generator")
+    @SequenceGenerator(name = "document_instance_id_seq_generator", sequenceName = "document_instance_id_seq",
+        allocationSize = 1)
+    @Column(name = "document_instance_id", nullable = false)
+    private Long documentInstanceId;
+
+    @ManyToOne
+    @JoinColumn(name = "document_id", nullable = false)
+    private DocumentEntity document;
+
+    @ManyToOne
+    @JoinColumn(name = "business_unit_id", nullable = false)
+    private BusinessUnitEntity businessUnit;
+
+    @Column(name = "generated_date", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime generatedDate;
+
+    @Column(name = "generated_by", length = 20, nullable = false)
+    private String generatedBy;
+
+    @Column(name = "content", columnDefinition = "xml", nullable = false)
+    private String content;
+
+}

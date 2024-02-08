@@ -3,8 +3,10 @@ package uk.gov.hmcts.opal.service.proxy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.PartyDto;
+import uk.gov.hmcts.opal.dto.search.PartySearchDto;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartySummary;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.PartyServiceInterface;
@@ -39,5 +41,10 @@ public class PartyServiceProxy implements PartyServiceInterface, ProxyInterface 
     @Override
     public List<PartySummary> searchForParty(AccountSearchDto accountSearchDto) {
         return getCurrentModeService().searchForParty(accountSearchDto);
+    }
+
+    @Override
+    public List<PartyEntity> searchParties(PartySearchDto criteria) {
+        return getCurrentModeService().searchParties(criteria);
     }
 }

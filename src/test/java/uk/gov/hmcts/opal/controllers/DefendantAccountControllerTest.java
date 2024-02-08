@@ -10,11 +10,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
-import uk.gov.hmcts.opal.dto.NotesSearchDto;
+import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.NoteService;
@@ -192,7 +192,7 @@ class DefendantAccountControllerTest {
         NoteDto mockNote = new NoteDto();
         List<NoteDto> mockResponse = List.of(mockNote);
 
-        when(noteService.searchNotes(any(NotesSearchDto.class))).thenReturn(mockResponse);
+        when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(mockResponse);
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();
@@ -202,13 +202,13 @@ class DefendantAccountControllerTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
         verify(noteService, times(1)).searchNotes(any(
-            NotesSearchDto.class));
+            NoteSearchDto.class));
 
     }
 
     @Test
     public void testNotes_NoContent() {
-        when(noteService.searchNotes(any(NotesSearchDto.class))).thenReturn(null);
+        when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(null);
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();
@@ -217,6 +217,6 @@ class DefendantAccountControllerTest {
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
         verify(noteService, times(1)).searchNotes(any(
-            NotesSearchDto.class));
+            NoteSearchDto.class));
     }
 }

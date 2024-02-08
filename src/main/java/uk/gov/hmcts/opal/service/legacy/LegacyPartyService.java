@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.PartyDto;
+import uk.gov.hmcts.opal.dto.search.PartySearchDto;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartySummary;
 import uk.gov.hmcts.opal.service.PartyServiceInterface;
 
@@ -16,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@Slf4j
+@Slf4j(topic = "LegacyPartyService")
 public class LegacyPartyService extends LegacyService implements PartyServiceInterface {
 
     public static final String GET_PARTY = "getParty";
@@ -47,6 +49,11 @@ public class LegacyPartyService extends LegacyService implements PartyServiceInt
     @Override
     public List<PartySummary> searchForParty(AccountSearchDto accountSearchDto) {
         return Collections.<PartySummary>emptyList();
+    }
+
+    @Override
+    public List<PartyEntity> searchParties(PartySearchDto criteria) {
+        throw new LegacyGatewayResponseException("Not Yet Implemented");
     }
 
 

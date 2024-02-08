@@ -11,9 +11,9 @@ import java.util.List;
 public interface DefendantAccountRepository extends JpaRepository<DefendantAccountEntity, Long>,
         JpaSpecificationExecutor<DefendantAccountEntity> {
 
-    DefendantAccountEntity findByBusinessUnitId_BusinessUnitIdAndAccountNumber(Short businessUnitId,
+    DefendantAccountEntity findByBusinessUnit_BusinessUnitIdAndAccountNumber(Short businessUnitId,
                                                                                String accountNumber);
 
-    List<DefendantAccountEntity> findAllByBusinessUnitId_BusinessUnitId(Short businessUnitId);
+    List<DefendantAccountEntity> findAllByBusinessUnit_BusinessUnitId(Short businessUnitId);
 
 }

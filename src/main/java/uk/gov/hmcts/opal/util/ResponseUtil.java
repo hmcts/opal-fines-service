@@ -13,4 +13,12 @@ public class ResponseUtil {
 
         return ResponseEntity.ok(contents);
     }
+
+    public static <T> ResponseEntity<T> buildResponse(T contents) {
+        if (contents == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(contents);
+    }
 }
