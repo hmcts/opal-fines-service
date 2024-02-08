@@ -54,7 +54,7 @@ class PaymentTermsControllerTest {
 
         // Act
         PaymentTermsSearchDto searchDto = PaymentTermsSearchDto.builder().build();
-        ResponseEntity<List<PaymentTermsEntity>> response = paymentTermsController.postPaymentTermssSearch(searchDto);
+        ResponseEntity<List<PaymentTermsEntity>> response = paymentTermsController.postPaymentTermsSearch(searchDto);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

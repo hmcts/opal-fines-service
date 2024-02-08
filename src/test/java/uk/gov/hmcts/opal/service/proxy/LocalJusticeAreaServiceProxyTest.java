@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -54,13 +54,13 @@ class LocalJusticeAreaServiceProxyTest {
         LocalJusticeAreaEntity entity = LocalJusticeAreaEntity.builder().build();
         AppMode appMode = AppMode.builder().mode("opal").build();
         when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalLocalJusticeAreaService.getLocalJusticeArea(anyLong())).thenReturn(entity);
+        when(opalLocalJusticeAreaService.getLocalJusticeArea(anyShort())).thenReturn(entity);
 
         // When: saveLocalJusticeArea is called on the proxy
-        LocalJusticeAreaEntity localJusticeAreaResult = localJusticeAreaServiceProxy.getLocalJusticeArea(1);
+        LocalJusticeAreaEntity localJusticeAreaResult = localJusticeAreaServiceProxy.getLocalJusticeArea((short)1);
 
         // Then: opalLocalJusticeAreaService should be used, and the returned localJusticeArea should be as expected
-        verify(opalLocalJusticeAreaService).getLocalJusticeArea(1);
+        verify(opalLocalJusticeAreaService).getLocalJusticeArea((short)1);
         verifyNoInteractions(legacyLocalJusticeAreaService);
         Assertions.assertEquals(entity, localJusticeAreaResult);
 
@@ -84,13 +84,13 @@ class LocalJusticeAreaServiceProxyTest {
         LocalJusticeAreaEntity entity = LocalJusticeAreaEntity.builder().build();
         AppMode appMode = AppMode.builder().mode("legacy").build();
         when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyLocalJusticeAreaService.getLocalJusticeArea(anyLong())).thenReturn(entity);
+        when(legacyLocalJusticeAreaService.getLocalJusticeArea(anyShort())).thenReturn(entity);
 
         // When: saveLocalJusticeArea is called on the proxy
-        LocalJusticeAreaEntity result = localJusticeAreaServiceProxy.getLocalJusticeArea(1);
+        LocalJusticeAreaEntity result = localJusticeAreaServiceProxy.getLocalJusticeArea((short)1);
 
         // Then: legacyLocalJusticeAreaService should be used, and the returned localJusticeArea should be as expected
-        verify(legacyLocalJusticeAreaService).getLocalJusticeArea(1);
+        verify(legacyLocalJusticeAreaService).getLocalJusticeArea((short)1);
         verifyNoInteractions(opalLocalJusticeAreaService);
         Assertions.assertEquals(entity, result);
 

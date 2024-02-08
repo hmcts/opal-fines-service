@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.service.opal.DocumentService;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -54,13 +54,13 @@ class DocumentServiceProxyTest {
         DocumentEntity entity = DocumentEntity.builder().build();
         AppMode appMode = AppMode.builder().mode("opal").build();
         when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalDocumentService.getDocument(anyLong())).thenReturn(entity);
+        when(opalDocumentService.getDocument(anyString())).thenReturn(entity);
 
         // When: saveDocument is called on the proxy
-        DocumentEntity documentResult = documentServiceProxy.getDocument(1);
+        DocumentEntity documentResult = documentServiceProxy.getDocument("ID1");
 
         // Then: opalDocumentService should be used, and the returned document should be as expected
-        verify(opalDocumentService).getDocument(1);
+        verify(opalDocumentService).getDocument("ID1");
         verifyNoInteractions(legacyDocumentService);
         Assertions.assertEquals(entity, documentResult);
 
@@ -84,13 +84,13 @@ class DocumentServiceProxyTest {
         DocumentEntity entity = DocumentEntity.builder().build();
         AppMode appMode = AppMode.builder().mode("legacy").build();
         when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyDocumentService.getDocument(anyLong())).thenReturn(entity);
+        when(legacyDocumentService.getDocument(anyString())).thenReturn(entity);
 
         // When: saveDocument is called on the proxy
-        DocumentEntity result = documentServiceProxy.getDocument(1);
+        DocumentEntity result = documentServiceProxy.getDocument("ID1");
 
         // Then: legacyDocumentService should be used, and the returned document should be as expected
-        verify(legacyDocumentService).getDocument(1);
+        verify(legacyDocumentService).getDocument("ID1");
         verifyNoInteractions(opalDocumentService);
         Assertions.assertEquals(entity, result);
 

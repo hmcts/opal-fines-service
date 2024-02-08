@@ -31,7 +31,7 @@ class LegacyDocumentServiceTest extends LegacyTestsBase {
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyDocumentService.getDocument(1)
+            () -> legacyDocumentService.getDocument("ID1")
         );
 
         // Assert

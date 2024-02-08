@@ -15,6 +15,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,15 +34,15 @@ class LocalJusticeAreaControllerTest {
         // Arrange
         LocalJusticeAreaEntity entity = LocalJusticeAreaEntity.builder().build(); //some id assigned by db sequence
 
-        when(localJusticeAreaService.getLocalJusticeArea(any(Long.class))).thenReturn(entity);
+        when(localJusticeAreaService.getLocalJusticeArea(anyShort())).thenReturn(entity);
 
         // Act
-        ResponseEntity<LocalJusticeAreaEntity> response = localJusticeAreaController.getLocalJusticeAreaById(1L);
+        ResponseEntity<LocalJusticeAreaEntity> response = localJusticeAreaController.getLocalJusticeAreaById((short)1);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
-        verify(localJusticeAreaService, times(1)).getLocalJusticeArea(any(Long.class));
+        verify(localJusticeAreaService, times(1)).getLocalJusticeArea(anyShort());
     }
 
     @Test

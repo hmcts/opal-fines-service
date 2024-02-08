@@ -36,7 +36,7 @@ public class LocalJusticeAreaController {
 
     @GetMapping(value = "/{localJusticeAreaId}")
     @Operation(summary = "Returns the LocalJusticeArea for the given localJusticeAreaId.")
-    public ResponseEntity<LocalJusticeAreaEntity> getLocalJusticeAreaById(@PathVariable Long localJusticeAreaId) {
+    public ResponseEntity<LocalJusticeAreaEntity> getLocalJusticeAreaById(@PathVariable Short localJusticeAreaId) {
 
         log.info(":GET:getLocalJusticeAreaById: localJusticeAreaId: {}", localJusticeAreaId);
 
