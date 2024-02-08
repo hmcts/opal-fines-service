@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 
 public class AccountSearchResultsDtoTest {
 

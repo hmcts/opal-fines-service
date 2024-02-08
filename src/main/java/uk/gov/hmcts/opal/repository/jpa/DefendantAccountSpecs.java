@@ -5,9 +5,9 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.ListJoin;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
-import uk.gov.hmcts.opal.entity.CourtsEntity;
-import uk.gov.hmcts.opal.entity.CourtsEntity_;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.entity.CourtEntity;
+import uk.gov.hmcts.opal.entity.CourtEntity_;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity_;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
@@ -54,13 +54,13 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
 
     public static Specification<DefendantAccountEntity> equalsEnforcingCourtId(Long courtId) {
         return (root, query, builder) -> {
-            return builder.equal(joinEnforcingCourt(root).get(CourtsEntity_.courtId), courtId);
+            return builder.equal(joinEnforcingCourt(root).get(CourtEntity_.courtId), courtId);
         };
     }
 
     public static Specification<DefendantAccountEntity> equalsLastHearingCourtId(Long courtId) {
         return (root, query, builder) -> {
-            return builder.equal(joinLastHearingCourt(root).get(CourtsEntity_.courtId), courtId);
+            return builder.equal(joinLastHearingCourt(root).get(CourtEntity_.courtId), courtId);
         };
     }
 
@@ -113,12 +113,12 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
         };
     }
 
-    public static Join<DefendantAccountEntity, CourtsEntity> joinEnforcingCourt(Root<DefendantAccountEntity> root) {
-        return root.join(DefendantAccountEntity_.enforcingCourtId);
+    public static Join<DefendantAccountEntity, CourtEntity> joinEnforcingCourt(Root<DefendantAccountEntity> root) {
+        return root.join(DefendantAccountEntity_.enforcingCourt);
     }
 
-    public static Join<DefendantAccountEntity, CourtsEntity> joinLastHearingCourt(Root<DefendantAccountEntity> root) {
-        return root.join(DefendantAccountEntity_.lastHearingCourtId);
+    public static Join<DefendantAccountEntity, CourtEntity> joinLastHearingCourt(Root<DefendantAccountEntity> root) {
+        return root.join(DefendantAccountEntity_.lastHearingCourt);
     }
 
     public static Join<DefendantAccountPartiesEntity, PartyEntity> joinPartyOnAssociationType(

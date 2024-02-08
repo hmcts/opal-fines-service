@@ -50,5 +50,31 @@ class ResponseUtilTest {
         assertEquals(204, responseEntity.getStatusCode().value());
         assertNull(responseEntity.getBody());
     }
-}
 
+    @Test
+    void buildResponse_withNonNullString_returnsOkResponse() {
+        // Arrange
+        String response = "item1";
+
+        // Act
+        ResponseEntity<String> responseEntity = ResponseUtil.buildResponse(response);
+
+        // Assert
+        assertEquals(200, responseEntity.getStatusCode().value());
+        assertEquals(response, responseEntity.getBody());
+    }
+
+
+    @Test
+    void buildResponse_withNullString_returnsNoContentResponse() {
+        // Arrange
+        String response = null;
+
+        // Act
+        ResponseEntity<String> responseEntity = ResponseUtil.buildResponse(response);
+
+        // Assert
+        assertEquals(204, responseEntity.getStatusCode().value());
+        assertNull(responseEntity.getBody());
+    }
+}

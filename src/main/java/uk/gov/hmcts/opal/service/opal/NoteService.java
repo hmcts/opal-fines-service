@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.NoteDto;
-import uk.gov.hmcts.opal.dto.NotesSearchDto;
+import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity_;
 import uk.gov.hmcts.opal.repository.NoteRepository;
@@ -41,7 +41,7 @@ public class NoteService implements NoteServiceInterface {
     }
 
     @Override
-    public List<NoteDto> searchNotes(NotesSearchDto criteria) {
+    public List<NoteDto> searchNotes(NoteSearchDto criteria) {
 
         Sort dateSort = Sort.by(Sort.Direction.DESC, NoteEntity_.POSTED_DATE);
 
