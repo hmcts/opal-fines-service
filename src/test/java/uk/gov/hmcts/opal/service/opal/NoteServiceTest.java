@@ -5,11 +5,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.NoteEntity;
@@ -17,6 +19,7 @@ import uk.gov.hmcts.opal.repository.NoteRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -103,10 +106,15 @@ class NoteServiceTest {
     @Test
     void testSearchNotes() {
         // Arrange
+        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        when(ffq.sortBy(any())).thenReturn(ffq);
 
         NoteEntity noteEntity = NoteEntity.builder().build();
         Page<NoteEntity> mockPage = new PageImpl<>(List.of(noteEntity), Pageable.unpaged(), 999L);
-        when(noteRepository.findBy(any(Specification.class), any())).thenReturn(mockPage);
+        when(noteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(ffq);
+            return mockPage;
+        });
 
         // Act
         List<NoteDto> result = noteService.searchNotes(NoteSearchDto.builder().build());

@@ -26,7 +26,7 @@ public class DocumentServiceProxy implements DocumentServiceInterface, ProxyInte
     }
 
     @Override
-    public DocumentEntity getDocument(long documentId) {
+    public DocumentEntity getDocument(String documentId) {
         return getCurrentModeService().getDocument(documentId);
     }
 

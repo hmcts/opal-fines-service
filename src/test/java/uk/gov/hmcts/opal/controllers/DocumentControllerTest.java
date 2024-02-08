@@ -33,15 +33,15 @@ class DocumentControllerTest {
         // Arrange
         DocumentEntity entity = DocumentEntity.builder().build(); //some id assigned by db sequence
 
-        when(documentService.getDocument(any(Long.class))).thenReturn(entity);
+        when(documentService.getDocument(any(String.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<DocumentEntity> response = documentController.getDocumentById(1L);
+        ResponseEntity<DocumentEntity> response = documentController.getDocumentById("ID1");
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
-        verify(documentService, times(1)).getDocument(any(Long.class));
+        verify(documentService, times(1)).getDocument(any(String.class));
     }
 
     @Test

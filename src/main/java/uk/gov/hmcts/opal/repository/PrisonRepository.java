@@ -8,6 +8,4 @@ import uk.gov.hmcts.opal.entity.PrisonEntity;
 @Repository
 public interface PrisonRepository extends JpaRepository<PrisonEntity, Long>,
     JpaSpecificationExecutor<PrisonEntity> {
-
-    PrisonEntity findByPrisonId(Long prisonId);
 }

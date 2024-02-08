@@ -4,10 +4,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.PartyDto;
 import uk.gov.hmcts.opal.dto.search.PartySearchDto;
@@ -19,9 +22,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -83,19 +86,24 @@ public class PartyServiceTest {
         verify(partyRepository, times(1)).findBySurnameContaining(any());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testSearchParties() {
         // Arrange
+        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
 
         PartyEntity partyEntity = PartyEntity.builder().build();
         Page<PartyEntity> mockPage = new PageImpl<>(List.of(partyEntity), Pageable.unpaged(), 999L);
-        // when(partyRepository.findBy(any(Specification.class), any())).thenReturn(mockPage);
+        when(partyRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(ffq);
+            return mockPage;
+        });
 
         // Act
         List<PartyEntity> result = partyService.searchParties(PartySearchDto.builder().build());
 
         // Assert
-        assertNull(result);
+        assertEquals(List.of(partyEntity), result);
 
     }
 

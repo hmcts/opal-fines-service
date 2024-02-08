@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface LocalJusticeAreaServiceInterface {
 
-    LocalJusticeAreaEntity getLocalJusticeArea(long localJusticeAreaId);
+    LocalJusticeAreaEntity getLocalJusticeArea(short localJusticeAreaId);
 
     List<LocalJusticeAreaEntity> searchLocalJusticeAreas(LocalJusticeAreaSearchDto criteria);
 }

@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface DocumentServiceInterface {
 
-    DocumentEntity getDocument(long documentId);
+    DocumentEntity getDocument(String documentId);
 
     List<DocumentEntity> searchDocuments(DocumentSearchDto criteria);
 }
