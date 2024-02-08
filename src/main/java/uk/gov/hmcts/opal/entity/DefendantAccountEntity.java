@@ -39,7 +39,7 @@ public class DefendantAccountEntity {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", referencedColumnName = "business_unit_id", nullable = false)
-    private BusinessUnitsEntity businessUnitId;
+    private BusinessUnitEntity businessUnit;
 
     @Column(name = "account_number", length = 20)
     private String accountNumber;
@@ -69,11 +69,11 @@ public class DefendantAccountEntity {
 
     @ManyToOne
     @JoinColumn(name = "enforcing_court_id", referencedColumnName = "court_id", nullable = false)
-    private CourtsEntity enforcingCourtId;
+    private CourtEntity enforcingCourt;
 
     @ManyToOne
     @JoinColumn(name = "last_hearing_court_id", referencedColumnName = "court_id", nullable = false)
-    private CourtsEntity lastHearingCourtId;
+    private CourtEntity lastHearingCourt;
 
     @Column(name = "last_hearing_date")
     @Temporal(TemporalType.DATE)

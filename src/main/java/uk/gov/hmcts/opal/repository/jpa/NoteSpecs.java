@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
 import org.springframework.data.jpa.domain.Specification;
-import uk.gov.hmcts.opal.dto.NotesSearchDto;
+import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity_;
 
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 public class NoteSpecs extends EntitySpecs<NoteEntity> {
 
-    public Specification<NoteEntity> findBySearchCriteria(NotesSearchDto criteria) {
+    public Specification<NoteEntity> findBySearchCriteria(NoteSearchDto criteria) {
         return Specification.allOf(specificationList(
             notBlank(criteria.getAssociatedType()).map(NoteSpecs::equalsAssociatedType),
             notBlank(criteria.getAssociatedId()).map(NoteSpecs::equalsAssociatedId),

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.NoteDto;
-import uk.gov.hmcts.opal.dto.NotesSearchDto;
+import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;
 
 import java.util.List;
@@ -48,7 +48,7 @@ public class NoteController {
 
         log.info(":GET:getNotesByAssociatedRecord: associated record type: '{}'; id: {}", associatedType, associatedId);
 
-        NotesSearchDto criteria = NotesSearchDto.builder()
+        NoteSearchDto criteria = NoteSearchDto.builder()
             .associatedType(associatedType)
             .associatedId(associatedId)
             .build();
@@ -62,7 +62,7 @@ public class NoteController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches notes based upon criteria in request body")
     public ResponseEntity<List<NoteDto>> postNotesSearch(
-        @RequestBody NotesSearchDto criteria) {
+        @RequestBody NoteSearchDto criteria) {
         log.info(":POST:postNotesSearch: query: \n{}", criteria.toPrettyJson());
 
         List<NoteDto> response = noteService

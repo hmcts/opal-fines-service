@@ -9,24 +9,26 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyDefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyLink;
-import uk.gov.hmcts.opal.entity.EnforcersEntity;
+import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.EnforcersRepository;
+import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
+
+import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyLink;
+import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyDefendantAccountSummary;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 
 import java.io.InputStream;
@@ -52,7 +54,9 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
     private final PaymentTermsRepository paymentTermsRepository;
 
-    private final EnforcersRepository enforcersRepository;
+    private final DebtorDetailRepository debtorDetailRepository;
+
+    private final EnforcerRepository enforcerRepository;
 
     private final NoteRepository noteRepository;
 
@@ -61,7 +65,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
     @Override
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
 
-        return defendantAccountRepository.findByBusinessUnitId_BusinessUnitIdAndAccountNumber(
+        return defendantAccountRepository.findByBusinessUnit_BusinessUnitIdAndAccountNumber(
             request.getBusinessUnitId(), request.getAccountNumber());
     }
 
@@ -75,7 +79,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
     public List<DefendantAccountEntity> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
 
         log.info(":getDefendantAccountsByBusinessUnit: busUnit: {}", businessUnitId);
-        return defendantAccountRepository.findAllByBusinessUnitId_BusinessUnitId(businessUnitId);
+        return defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId(businessUnitId);
     }
 
     @Override
@@ -88,10 +92,8 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                 .getResourceAsStream("tempSearchData.json")) {
                 ObjectMapper mapper = getObjectMapper();
                 AccountSearchResultsDto dto = mapper.readValue(in, AccountSearchResultsDto.class);
-                log.info(
-                    ":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
-                    dto.toPrettyJsonString()
-                );
+                log.info(":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
+                         dto.toPrettyJsonString());
                 return dto;
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -99,10 +101,8 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
         }
 
         Page<DefendantAccountSummary> summariesPage = defendantAccountRepository
-            .findBy(
-                specs.findByAccountSearch(accountSearchDto),
-                ffq -> ffq.as(DefendantAccountSummary.class).page(Pageable.unpaged())
-            );
+            .findBy(specs.findByAccountSearch(accountSearchDto),
+                    ffq -> ffq.as(DefendantAccountSummary.class).page(Pageable.unpaged()));
 
         List<AccountSummaryDto> dtos = summariesPage.getContent().stream()
             .map(this::toDto)
@@ -127,12 +127,11 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                 ObjectMapper mapper = getObjectMapper();
                 AccountDetailsDto dto = mapper.readValue(in, AccountDetailsDto.class);
                 log.info(
-                    """
+                        """
                         :getAccountDetailsByDefendantAccountId:
                         " temporary Hack for Front End testing. Read JSON file: \n{}
                         """,
-                    dto.toPrettyJsonString()
-                );
+                         dto.toPrettyJsonString());
                 return dto;
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -154,7 +153,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             defendantAccountEntity.getDefendantAccountId());
 
         //query DB for EnforcementEntity
-        EnforcersEntity enforcersEntity = enforcersRepository.findByEnforcerId(defendantAccountEntity
+        EnforcerEntity enforcerEntity = enforcerRepository.findByEnforcerId(defendantAccountEntity
                                                                                    .getEnforcementOverrideEnforcerId());
 
         //query DB for NoteEntity by associatedRecordId (defendantAccountId) and noteType ("AC")
@@ -165,24 +164,20 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
         // returning only latest (postedDate)
         Optional<NoteEntity> noteEntityAA = Optional.ofNullable(
             noteRepository.findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(
-                defendantAccountEntity.getDefendantAccountId().toString(), "AA"));
+            defendantAccountEntity.getDefendantAccountId().toString(), "AA"));
 
         //build fullAddress
-        final String fullAddress = buildFullAddress(
-            partyEntity.getAddressLine1(),
-            partyEntity.getAddressLine2(),
-            partyEntity.getAddressLine3(),
-            partyEntity.getAddressLine4(),
-            partyEntity.getAddressLine5()
-        );
+        final String fullAddress = buildFullAddress(partyEntity.getAddressLine1(),
+                                                    partyEntity.getAddressLine2(),
+                                                    partyEntity.getAddressLine3(),
+                                                    partyEntity.getAddressLine4(),
+                                                    partyEntity.getAddressLine5());
 
         //build paymentDetails
-        final String paymentDetails = buildPaymentDetails(
-            paymentTermsEntity.getTermsTypeCode(),
-            paymentTermsEntity.getInstalmentAmount(),
-            paymentTermsEntity.getInstalmentPeriod(),
-            paymentTermsEntity.getEffectiveDate()
-        );
+        final String paymentDetails = buildPaymentDetails(paymentTermsEntity.getTermsTypeCode(),
+                                                          paymentTermsEntity.getInstalmentAmount(),
+                                                          paymentTermsEntity.getInstalmentPeriod(),
+                                                          paymentTermsEntity.getEffectiveDate());
 
         //build comments
         final List<String> comments = buildCommentsFromAssociatedNotes(noteEntityAC);
@@ -195,13 +190,13 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .fullName(partyEntity.getOrganisationName() == null
                           ? partyEntity.getFullName()
                           : partyEntity.getOrganisationName())
-            .accountCT(defendantAccountEntity.getBusinessUnitId().getBusinessUnitName())
+            .accountCT(defendantAccountEntity.getBusinessUnit().getBusinessUnitName())
             .address(fullAddress)
             .postCode(partyEntity.getPostcode())
             .dob(partyEntity.getDateOfBirth())
             .detailsChanged(defendantAccountEntity.getLastChangedDate())
             .lastCourtAppAndCourtCode(defendantAccountEntity.getLastHearingDate().toString()
-                                          + " " + defendantAccountEntity.getLastHearingCourtId().getCourtCode())
+                                          + " " + defendantAccountEntity.getLastHearingCourt().getCourtCode())
             .lastMovement(defendantAccountEntity.getLastMovementDate())
             .commentField(comments)
             .accountNotes(noteEntityAA.map(NoteEntity::getNoteText).orElse(null))
@@ -215,8 +210,8 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .sentencedDate(defendantAccountEntity.getImposedHearingDate())
             .lastEnforcement(defendantAccountEntity.getLastEnforcement())
             .override(defendantAccountEntity.getEnforcementOverrideResultId())
-            .enforcer(enforcersEntity.getEnforcerCode())
-            .enforcementCourt(defendantAccountEntity.getEnforcingCourtId().getCourtCode())
+            .enforcer(enforcerEntity.getEnforcerCode())
+            .enforcementCourt(defendantAccountEntity.getEnforcingCourt().getCourtCode())
             .imposed(defendantAccountEntity.getAmountImposed())
             .amountPaid(defendantAccountEntity.getAmountPaid())
             .balance(defendantAccountEntity.getAccountBalance())

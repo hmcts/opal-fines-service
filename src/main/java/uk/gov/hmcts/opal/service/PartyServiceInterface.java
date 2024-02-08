@@ -1,7 +1,8 @@
 package uk.gov.hmcts.opal.service;
 
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.PartyDto;
+import uk.gov.hmcts.opal.dto.search.PartySearchDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartySummary;
 
@@ -60,4 +61,6 @@ public interface PartyServiceInterface {
             .lastChangedDate(entity.getLastChangedDate())
             .build();
     }
+
+    List<PartyEntity> searchParties(PartySearchDto criteria);
 }
