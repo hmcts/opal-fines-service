@@ -233,7 +233,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
   compileOnly 'org.projectlombok:lombok:1.18.30'
   annotationProcessor 'org.projectlombok:lombok:1.18.30'
-  annotationProcessor 'org.hibernate:hibernate-jpamodelgen:6.4.3.Final'
+  annotationProcessor 'org.hibernate:hibernate-jpamodelgen:6.4.4.Final'
 
   testCompileOnly 'org.projectlombok:lombok:1.18.30'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
