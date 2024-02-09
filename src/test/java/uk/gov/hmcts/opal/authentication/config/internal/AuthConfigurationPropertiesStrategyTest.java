@@ -124,13 +124,11 @@ class AuthConfigurationPropertiesStrategyTest {
         );
     }
 
-    private AuthConfigurationProperties commonMocksForAuthorisation() {
+    private void commonMocksForAuthorisation() {
         when(authConfiguration.getClientId()).thenReturn("ClientId");
         when(authConfiguration.getRedirectUri()).thenReturn("RedirectId");
         when(authConfiguration.getScope()).thenReturn("Scope");
         when(authConfiguration.getPrompt()).thenReturn("Prompt");
-
-        return authConfiguration;
     }
 }
 

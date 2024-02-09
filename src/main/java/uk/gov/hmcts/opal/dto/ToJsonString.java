@@ -7,7 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 public interface ToJsonString {
 
-    static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+    ObjectMapper OBJECT_MAPPER = new ObjectMapper()
         .registerModule(new JavaTimeModule());
 
     default String toJsonString() throws JsonProcessingException {

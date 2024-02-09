@@ -71,7 +71,7 @@ public class PartyServiceTest {
     @Test
     void testSearchForParty() {
 
-        List<PartySummary> partyEntity = Collections.<PartySummary>emptyList();
+        List<PartySummary> partyEntity = Collections.emptyList();
 
         when(partyRepository.findBySurnameContaining(any())).thenReturn(partyEntity);
 

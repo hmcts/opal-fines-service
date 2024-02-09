@@ -20,36 +20,26 @@ public class NoteSpecs extends EntitySpecs<NoteEntity> {
     }
 
     public static Specification<NoteEntity> equalsAssociatedType(String associatedType) {
-        return (root, query, builder) -> {
-            return builder.equal(builder.lower(root.get(NoteEntity_.associatedRecordType)),
-                                 associatedType.toLowerCase());
-        };
+        return (root, query, builder) -> builder.equal(builder.lower(root.get(NoteEntity_.associatedRecordType)),
+                             associatedType.toLowerCase());
     }
 
     public static Specification<NoteEntity> equalsAssociatedId(String associatedId) {
-        return (root, query, builder) -> {
-            return builder.equal(root.get(NoteEntity_.associatedRecordId), associatedId);
-        };
+        return (root, query, builder) -> builder.equal(root.get(NoteEntity_.associatedRecordId), associatedId);
     }
 
     public static Specification<NoteEntity> equalsNoteType(String noteType) {
-        return (root, query, builder) -> {
-            return builder.equal(builder.lower(root.get(NoteEntity_.noteType)),
-                                 noteType.toLowerCase());
-        };
+        return (root, query, builder) -> builder.equal(builder.lower(root.get(NoteEntity_.noteType)),
+                             noteType.toLowerCase());
     }
 
     public static Specification<NoteEntity> equalsPostedBy(String postedBy) {
-        return (root, query, builder) -> {
-            return builder.equal(builder.lower(root.get(NoteEntity_.postedBy)),
-                                 postedBy.toLowerCase());
-        };
+        return (root, query, builder) -> builder.equal(builder.lower(root.get(NoteEntity_.postedBy)),
+                             postedBy.toLowerCase());
     }
 
     public static Specification<NoteEntity> equalsPostedDate(LocalDateTime posted) {
-        return (root, query, builder) -> {
-            return builder.equal(root.get(NoteEntity_.postedDate), posted);
-        };
+        return (root, query, builder) -> builder.equal(root.get(NoteEntity_.postedDate), posted);
     }
 
 
