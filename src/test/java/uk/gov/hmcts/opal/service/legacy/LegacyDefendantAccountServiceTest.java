@@ -85,7 +85,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void putDefendantAccount_FailureBodyResponse() throws Exception {
+    void putDefendantAccount_FailureBodyResponse() {
         // Arrange
         mockRestClientPost();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
@@ -142,7 +142,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void putDefendantAccount_ErrorResponse() throws Exception {
+    void putDefendantAccount_ErrorResponse() {
         // Arrange
         mockRestClientPost();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
@@ -193,7 +193,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void getParty_FailureBodyResponse() throws Exception {
+    void getParty_FailureBodyResponse() {
         // Arrange
         mockRestClientPost();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
@@ -252,7 +252,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
-    void getParty_ErrorResponse() throws Exception {
+    void getParty_ErrorResponse() {
         // Arrange
         mockRestClientPost();
         String jsonBody = createBrokenJson();

@@ -224,7 +224,7 @@ public class DefendantAccountServiceTest {
             .thenReturn(buildNotesEntityActivity());
 
         AccountDetailsDto expectedDetails = buildAccountDetailsDto();
-        expectedDetails.setPaymentDetails(LocalDate.of(2012, 1,1).toString() + " By Date");
+        expectedDetails.setPaymentDetails(LocalDate.of(2012, 1,1) + " By Date");
         expectedDetails.setCommencing(null);
 
         //act

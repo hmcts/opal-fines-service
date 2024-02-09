@@ -14,7 +14,7 @@ import static uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria.Defend
 public class DefendantAccountSearchCriteriaTest {
 
     @Test
-    public void testBuilder() throws InterruptedException {
+    public void testBuilder() {
         DefendantAccountSearchCriteria criteria = constructDefendantAccountSearchCriteria();
 
         assertEquals("accountNo", criteria.getAccountNumber());

@@ -48,7 +48,7 @@ public class LegacyPartyService extends LegacyService implements PartyServiceInt
 
     @Override
     public List<PartySummary> searchForParty(AccountSearchDto accountSearchDto) {
-        return Collections.<PartySummary>emptyList();
+        return Collections.emptyList();
     }
 
     @Override

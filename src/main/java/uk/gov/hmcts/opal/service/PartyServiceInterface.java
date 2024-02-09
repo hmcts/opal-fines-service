@@ -14,7 +14,7 @@ public interface PartyServiceInterface {
 
     PartyDto saveParty(PartyDto party);
 
-    public List<PartySummary> searchForParty(AccountSearchDto accountSearchDto);
+    List<PartySummary> searchForParty(AccountSearchDto accountSearchDto);
 
     default PartyEntity toEntity(PartyDto dto) {
         return PartyEntity.builder()
