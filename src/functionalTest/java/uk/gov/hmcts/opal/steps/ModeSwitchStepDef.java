@@ -13,6 +13,7 @@ import java.util.Objects;
 
 public class ModeSwitchStepDef extends BaseStepDef {
     static Logger log = LoggerFactory.getLogger(ModeSwitchStepDef.class.getName());
+
     @BeforeAll
     public static void beforeAll() throws JSONException {
         String testMode = System.getProperty("test.mode");
