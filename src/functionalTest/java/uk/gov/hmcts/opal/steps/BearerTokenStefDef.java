@@ -18,7 +18,6 @@ public class BearerTokenStefDef extends BaseStepDef {
             .get(getTestUrl() + "/api/testing-support/token/test-user");
         then().assertThat().statusCode(200);
         TOKEN = then().extract().body().jsonPath().getString("access_token");
-        System.out.println("Token - " + TOKEN);
     }
 
     protected static String getToken() {
