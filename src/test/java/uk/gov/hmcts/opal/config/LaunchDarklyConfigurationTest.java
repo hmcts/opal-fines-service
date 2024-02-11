@@ -19,10 +19,10 @@ public class LaunchDarklyConfigurationTest {
         String key = "sdkkey";
         Boolean offline = false;
         LDClient client = configuration.ldClient(key, offline, null);
-        Assertions.assertEquals(client.isOffline(), offline.booleanValue());
+        Assertions.assertEquals(client.isOffline(), offline);
 
         client = configuration.ldClient(key, offline, new String[0]);
-        Assertions.assertEquals(client.isOffline(), offline.booleanValue());
+        Assertions.assertEquals(client.isOffline(), offline);
     }
 
     @Test
@@ -32,7 +32,7 @@ public class LaunchDarklyConfigurationTest {
         LDClient client = configuration.ldClient(key, offline, new String[]{
             "AFileThatDoesNotExist"
         });
-        Assertions.assertEquals(client.isOffline(), offline.booleanValue());
+        Assertions.assertEquals(client.isOffline(), offline);
     }
 
     @Test
@@ -44,7 +44,7 @@ public class LaunchDarklyConfigurationTest {
             LDClient client = configuration.ldClient(key, offline, new String[]{
                 "AFileThatDoesNotExist"
             });
-            Assertions.assertEquals(client.isOffline(), offline.booleanValue());
+            Assertions.assertEquals(client.isOffline(), offline);
         }
     }
 }

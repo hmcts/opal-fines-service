@@ -94,3 +94,8 @@ opal:
       url: ${OPAL_FRONTEND_URL:http://localhost:4200}
   azure:
     active-directory-justice-auth-uri: https://login.microsoftonline.com
+  testing-support-endpoints:
+    enabled: ${TESTING_SUPPORT_ENDPOINTS_ENABLED:true}
+  test-user:
+    email: ${OPAL_TEST_USER_EMAIL:opal-test@HMCTS.NET}
+    password: ${OPAL_TEST_USER_PASSWORD}

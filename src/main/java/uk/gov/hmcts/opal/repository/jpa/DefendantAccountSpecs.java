@@ -5,10 +5,9 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.ListJoin;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.DateDto;
-import uk.gov.hmcts.opal.entity.CourtsEntity;
-import uk.gov.hmcts.opal.entity.CourtsEntity_;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.entity.CourtEntity;
+import uk.gov.hmcts.opal.entity.CourtEntity_;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity_;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
@@ -17,14 +16,12 @@ import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity_;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
-public class DefendantAccountSpecs {
+public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
 
-    public static Specification<DefendantAccountEntity> findByAccountSearch(AccountSearchDto accountSearchDto) {
+    public static final String DEFENDANT_ASSOC_TYPE = "Defendant";
+
+    public Specification<DefendantAccountEntity> findByAccountSearch(AccountSearchDto accountSearchDto) {
         return Specification.allOf(specificationList(
             notBlank(accountSearchDto.getSurname()).map(DefendantAccountSpecs::likeSurname),
             notBlank(accountSearchDto.getForename()).map(DefendantAccountSpecs::likeForename),
@@ -34,23 +31,6 @@ public class DefendantAccountSpecs {
             notNullLocalDate(accountSearchDto.getDateOfBirth()).map(DefendantAccountSpecs::equalsDateOfBirth),
             accountSearchDto.getNumericCourt().map(DefendantAccountSpecs::equalsAnyCourtId)
         ));
-    }
-
-    @SafeVarargs
-    public static List<Specification<DefendantAccountEntity>> specificationList(
-        Optional<Specification<DefendantAccountEntity>>... optionalSpecs) {
-        return Arrays.stream(optionalSpecs)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .collect(Collectors.toList());
-    }
-
-    public static Optional<String> notBlank(String candidate) {
-        return Optional.ofNullable(candidate).filter(s -> !s.isBlank());
-    }
-
-    public static Optional<LocalDate> notNullLocalDate(DateDto candidate) {
-        return Optional.ofNullable(candidate).map(DateDto::toLocalDate);
     }
 
     public static Specification<DefendantAccountEntity> equalsAccountNumber(String accountNo) {
@@ -74,76 +54,76 @@ public class DefendantAccountSpecs {
 
     public static Specification<DefendantAccountEntity> equalsEnforcingCourtId(Long courtId) {
         return (root, query, builder) -> {
-            return builder.equal(joinEnforcingCourt(root).get(CourtsEntity_.courtId), courtId);
+            return builder.equal(joinEnforcingCourt(root).get(CourtEntity_.courtId), courtId);
         };
     }
 
     public static Specification<DefendantAccountEntity> equalsLastHearingCourtId(Long courtId) {
         return (root, query, builder) -> {
-            return builder.equal(joinLastHearingCourt(root).get(CourtsEntity_.courtId), courtId);
+            return builder.equal(joinLastHearingCourt(root).get(CourtEntity_.courtId), courtId);
         };
     }
 
     public static Specification<DefendantAccountEntity> likeSurname(String surname) {
         return (root, query, builder) -> {
-            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, "Defendant")
+            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, DEFENDANT_ASSOC_TYPE)
                           .get(PartyEntity_.surname)), "%" + surname.toLowerCase() + "%");
         };
     }
 
     public static Specification<DefendantAccountEntity> likeForename(String forename) {
         return (root, query, builder) -> {
-            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, "Defendant")
+            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, DEFENDANT_ASSOC_TYPE)
                           .get(PartyEntity_.forenames)), "%" + forename.toLowerCase() + "%");
         };
     }
 
     public static Specification<DefendantAccountEntity> likeOrganisationName(String organisation) {
         return (root, query, builder) -> {
-            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, "Defendant")
+            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, DEFENDANT_ASSOC_TYPE)
                           .get(PartyEntity_.organisationName)), "%" + organisation.toLowerCase() + "%");
         };
     }
 
     public static Specification<DefendantAccountEntity> equalsDateOfBirth(LocalDate dob) {
         return (root, query, builder) -> {
-            return builder.equal(joinPartyOnAssociationType(root, builder, "Defendant")
+            return builder.equal(joinPartyOnAssociationType(root, builder, DEFENDANT_ASSOC_TYPE)
                           .get(PartyEntity_.dateOfBirth), dob);
         };
     }
 
     public static Specification<DefendantAccountEntity> likeNiNumber(String niNumber) {
         return (root, query, builder) -> {
-            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, "Defendant")
+            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, DEFENDANT_ASSOC_TYPE)
                           .get(PartyEntity_.niNumber)), "%" + niNumber.toLowerCase() + "%");
         };
     }
 
     public static Specification<DefendantAccountEntity> likeAddressLine1(String addressLine) {
         return (root, query, builder) -> {
-            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, "Defendant")
+            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, DEFENDANT_ASSOC_TYPE)
                           .get(PartyEntity_.addressLine1)), "%" + addressLine.toLowerCase() + "%");
         };
     }
 
     public static Specification<DefendantAccountEntity> likeInitials(String initials) {
         return (root, query, builder) -> {
-            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, "Defendant")
+            return builder.like(builder.lower(joinPartyOnAssociationType(root, builder, DEFENDANT_ASSOC_TYPE)
                           .get(PartyEntity_.initials)), "%" + initials.toLowerCase() + "%");
         };
     }
 
-    public static Join<DefendantAccountEntity, CourtsEntity> joinEnforcingCourt(Root<DefendantAccountEntity> root) {
-        return root.join(DefendantAccountEntity_.enforcingCourtId);
+    public static Join<DefendantAccountEntity, CourtEntity> joinEnforcingCourt(Root<DefendantAccountEntity> root) {
+        return root.join(DefendantAccountEntity_.enforcingCourt);
     }
 
-    public static Join<DefendantAccountEntity, CourtsEntity> joinLastHearingCourt(Root<DefendantAccountEntity> root) {
-        return root.join(DefendantAccountEntity_.lastHearingCourtId);
+    public static Join<DefendantAccountEntity, CourtEntity> joinLastHearingCourt(Root<DefendantAccountEntity> root) {
+        return root.join(DefendantAccountEntity_.lastHearingCourt);
     }
 
     public static Join<DefendantAccountPartiesEntity, PartyEntity> joinPartyOnAssociationType(
-        Root<DefendantAccountEntity> root, CriteriaBuilder builder, String type) {
-        return onAssociationType(builder, root.join(DefendantAccountEntity_.parties), type)
+        Root<DefendantAccountEntity> root, CriteriaBuilder builder, String assocType) {
+        return onAssociationType(builder, root.join(DefendantAccountEntity_.parties), assocType)
             .join(DefendantAccountPartiesEntity_.party);
     }
 
@@ -151,7 +131,7 @@ public class DefendantAccountSpecs {
     public static ListJoin<DefendantAccountEntity, DefendantAccountPartiesEntity> onAssociationType(
         CriteriaBuilder builder,
         ListJoin<DefendantAccountEntity, DefendantAccountPartiesEntity> parties,
-        String type) {
-        return parties.on(builder.equal(parties.get(DefendantAccountPartiesEntity_.associationType), type));
+        String assocType) {
+        return parties.on(builder.equal(parties.get(DefendantAccountPartiesEntity_.associationType), assocType));
     }
 }

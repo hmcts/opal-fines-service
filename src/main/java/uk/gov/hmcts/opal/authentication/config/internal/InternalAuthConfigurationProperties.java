@@ -35,4 +35,5 @@ public class InternalAuthConfigurationProperties implements AuthConfigurationPro
     private String issuerUri;
 
     private String claims;
+
 }

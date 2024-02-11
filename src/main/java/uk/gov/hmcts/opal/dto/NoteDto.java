@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.dto;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,17 +11,25 @@ import lombok.extern.jackson.Jacksonized;
 import java.time.LocalDateTime;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Jacksonized
 public class NoteDto {
+
     private Long noteId;
+
     private String noteType;
+
     private String associatedRecordType;
+
     private String associatedRecordId;
+
     private String noteText;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime postedDate;
+
     private String postedBy;
 
 }

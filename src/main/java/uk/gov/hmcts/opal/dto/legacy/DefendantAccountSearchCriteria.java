@@ -6,7 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.dto.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.DateDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
 import java.util.Objects;
@@ -63,7 +64,7 @@ public class DefendantAccountSearchCriteria implements ToJsonString {
             .forenames(dto.getForename())
             .initials(dto.getInitials())
             .birthDate(Optional.ofNullable(dto.getDateOfBirth())
-                           .map(d -> d.toLocalDate())
+                           .map(DateDto::toLocalDate)
                            .map(Objects::toString)
                            .orElse(null))
             .addressLine1(dto.getAddressLineOne())

@@ -1,27 +1,33 @@
 package uk.gov.hmcts.opal.controllers;
 
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.authentication.model.SecurityToken;
-import uk.gov.hmcts.opal.authentication.service.AzureJwtService;
+import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
+import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.dto.AppMode;
-import uk.gov.hmcts.opal.exception.OpalApiException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = {TestingSupportController.class, DynamicConfigService.class, FeatureToggleService.class})
+@SpringBootTest(
+    classes =
+        {
+            TestingSupportController.class,
+            DynamicConfigService.class,
+            FeatureToggleService.class
+        },
+    properties = {
+        "opal.testing-support-endpoints.enabled=true"
+    }
+)
 class TestingSupportControllerTest {
 
     @Autowired
@@ -33,8 +39,9 @@ class TestingSupportControllerTest {
     @MockBean
     private FeatureToggleService featureToggleService;
 
+
     @MockBean
-    private AzureJwtService azureJwtService;
+    private AccessTokenService accessTokenService;
 
     @Test
     void getAppMode() {
@@ -79,32 +86,31 @@ class TestingSupportControllerTest {
         assertEquals("value", response.getBody());
     }
 
-    @SneakyThrows
     @Test
-    void testHandleOauthCode() {
-        String username = "opal-test";
-        String token = "abc123";
+    public void getToken_shouldReturnResponse() {
+        // Arrange
+        AccessTokenResponse expectedResponse = AccessTokenResponse.builder().build();
+        when(accessTokenService.getTestUserToken())
+            .thenReturn(expectedResponse);
 
-        when(azureJwtService.generateAzureJwtToken(anyString()))
-            .thenReturn(token);
+        // Act
+        ResponseEntity<AccessTokenResponse> response = controller.getToken();
 
-        SecurityToken result = controller.handleOauthCode(username);
-
-        assertEquals(token, result.getAccessToken());
-        verify(azureJwtService).generateAzureJwtToken(username);
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expectedResponse, response.getBody());
     }
 
-    @SneakyThrows
     @Test
-    void testHandleOauthCode_error() {
-        when(azureJwtService.generateAzureJwtToken(anyString()))
+    public void getToken_shouldHandleExceptions() {
+        // Arrange
+        when(accessTokenService.getTestUserToken())
             .thenThrow(new RuntimeException("Error!"));
 
-        assertThrows(OpalApiException.class, () -> {
-            controller.handleOauthCode(null);
-        });
-
-        verify(azureJwtService).generateAzureJwtToken(anyString());
+        // Act and Assert
+        assertThrows(
+            RuntimeException.class,
+            () -> controller.getToken()
+        );
     }
-
 }

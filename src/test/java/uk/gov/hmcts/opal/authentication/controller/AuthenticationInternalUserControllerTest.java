@@ -120,7 +120,7 @@ class AuthenticationInternalUserControllerTest {
 
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
             .claim("ver", "1.0")
-            .issuer(String.format("https://<tenant-name>.b2clogin.com/%s/v2.0/", UUID.randomUUID().toString()))
+            .issuer(String.format("https://<tenant-name>.b2clogin.com/%s/v2.0/", UUID.randomUUID()))
             .subject(UUID.randomUUID().toString())
             .audience(UUID.randomUUID().toString())
             .expirationTime(new Date(1690973493))

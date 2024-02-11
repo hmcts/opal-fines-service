@@ -27,6 +27,7 @@ public class NoteEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "note_id_seq_generator")
     @SequenceGenerator(name = "note_id_seq_generator", sequenceName = "note_id_seq", allocationSize = 1)
+    @Column(name = "note_id")
     private Long noteId;
 
     @Column(name = "note_type", length = 2)

@@ -1,15 +1,11 @@
 package uk.gov.hmcts.opal.authentication.config;
 
-import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +17,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.FormLoginConfigurer;
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -29,13 +24,7 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
-import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer;
-import org.springframework.security.web.debug.DebugFilter;
-import org.springframework.security.web.firewall.HttpFirewall;
-import org.springframework.security.web.firewall.RequestRejectedHandler;
-import org.springframework.web.filter.CompositeFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationPropertiesStrategy;
@@ -44,7 +33,6 @@ import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 
@@ -75,7 +63,7 @@ public class SecurityConfig {
         "/internal-user/login-or-refresh",
         "/internal-user/logout",
         "/internal-user/handle-oauth-code",
-        "/api/testing-support",
+        "/api/testing-support/**",
         "/"
     };
 
@@ -145,91 +133,6 @@ public class SecurityConfig {
 
             throw new OpalApiException(AuthenticationError.FAILED_TO_OBTAIN_ACCESS_TOKEN);
         }
-    }
-
-    // TODO - remove this temporary fix with next Spring upgrade. This allows @EnableWebSecurity(debug = true)
-    @Bean
-    static BeanDefinitionRegistryPostProcessor beanDefinitionRegistryPostProcessor() {
-        return registry -> registry.getBeanDefinition(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME)
-            .setBeanClassName(CompositeFilterChainProxy.class.getName());
-    }
-
-    // TODO - remove this temporary fix with next Spring upgrade. This allows @EnableWebSecurity(debug = true)
-    static class CompositeFilterChainProxy extends FilterChainProxy {
-
-        private final Filter doFilterDelegate;
-
-        private final FilterChainProxy springSecurityFilterChain;
-
-        CompositeFilterChainProxy(List<? extends Filter> filters) {
-            this.doFilterDelegate = createDoFilterDelegate(filters);
-            this.springSecurityFilterChain = findFilterChainProxy(filters);
-        }
-
-        @Override
-        public void afterPropertiesSet() {
-            this.springSecurityFilterChain.afterPropertiesSet();
-        }
-
-        @Override
-        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-            this.doFilterDelegate.doFilter(request, response, chain);
-        }
-
-        @Override
-        public List<Filter> getFilters(String url) {
-            return this.springSecurityFilterChain.getFilters(url);
-        }
-
-        @Override
-        public List<SecurityFilterChain> getFilterChains() {
-            return this.springSecurityFilterChain.getFilterChains();
-        }
-
-        @Override
-        public void setSecurityContextHolderStrategy(SecurityContextHolderStrategy securityContextHolderStrategy) {
-            this.springSecurityFilterChain.setSecurityContextHolderStrategy(securityContextHolderStrategy);
-        }
-
-        @Override
-        public void setFilterChainValidator(FilterChainValidator filterChainValidator) {
-            this.springSecurityFilterChain.setFilterChainValidator(filterChainValidator);
-        }
-
-        @Override
-        public void setFilterChainDecorator(FilterChainDecorator filterChainDecorator) {
-            this.springSecurityFilterChain.setFilterChainDecorator(filterChainDecorator);
-        }
-
-        @Override
-        public void setFirewall(HttpFirewall firewall) {
-            this.springSecurityFilterChain.setFirewall(firewall);
-        }
-
-        @Override
-        public void setRequestRejectedHandler(RequestRejectedHandler requestRejectedHandler) {
-            this.springSecurityFilterChain.setRequestRejectedHandler(requestRejectedHandler);
-        }
-
-        private static Filter createDoFilterDelegate(List<? extends Filter> filters) {
-            CompositeFilter delegate = new CompositeFilter();
-            delegate.setFilters(filters);
-            return delegate;
-        }
-
-        private static FilterChainProxy findFilterChainProxy(List<? extends Filter> filters) {
-            for (Filter filter : filters) {
-                if (filter instanceof FilterChainProxy fcp) {
-                    return fcp;
-                }
-                if (filter instanceof DebugFilter debugFilter) {
-                    return debugFilter.getFilterChainProxy();
-                }
-            }
-            throw new IllegalStateException("Couldn't find FilterChainProxy in " + filters);
-        }
-
     }
 
 }

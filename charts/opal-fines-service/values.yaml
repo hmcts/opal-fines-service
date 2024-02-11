@@ -23,6 +23,10 @@ java:
           alias: AAD_CLIENT_ID
         - name: AzureADClientSecret
           alias: AAD_CLIENT_SECRET
+        - name: OpalTestUserPassword
+          alias: OPAL_TEST_USER_PASSWORD
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: https://opal-frontend.{{ .Values.global.environment }}.platform.hmcts.net
+    TESTING_SUPPORT_ENDPOINTS_ENABLED: true
+    OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.{{ .Values.global.environment }}.platform.hmcts.net
