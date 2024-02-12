@@ -8,17 +8,33 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public abstract class EntitySpecs<E> {
 
     @SafeVarargs
-    public final List<Specification<E>> specificationList(
-        Optional<Specification<E>>... optionalSpecs) {
+    public final List<Specification<E>> specificationList(Optional<Specification<E>>... optionalSpecs) {
         return Arrays.stream(optionalSpecs)
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .collect(Collectors.toList());
+            .toList();
+    }
+
+    @SafeVarargs
+    public final List<Specification<E>> specificationList(List<Optional<Specification<E>>> specsList,
+                                                          Optional<Specification<E>>... optionalSpecs) {
+        return combine(specsList, optionalSpecs)
+            .stream().filter(Optional::isPresent)
+            .map(Optional::get)
+            .toList();
+    }
+
+    @SafeVarargs
+    public final List<Optional<Specification<E>>> combine(List<Optional<Specification<E>>> specsList,
+                                                          Optional<Specification<E>>... optionalSpecs) {
+        for (Optional<Specification<E>> spec: optionalSpecs) {
+            specsList.add(spec);
+        }
+        return specsList;
     }
 
     public Optional<String> notBlank(String candidate) {

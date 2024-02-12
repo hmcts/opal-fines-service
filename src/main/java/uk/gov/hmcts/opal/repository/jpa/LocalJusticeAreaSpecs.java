@@ -5,10 +5,11 @@ import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity_;
 
-public class LocalJusticeAreaSpecs extends EntitySpecs<LocalJusticeAreaEntity> {
+public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaEntity> {
 
     public Specification<LocalJusticeAreaEntity> findBySearchCriteria(LocalJusticeAreaSearchDto criteria) {
         return Specification.allOf(specificationList(
+            findByAddressCriteria(criteria),
             notBlank(criteria.getLocalJusticeAreaId()).map(LocalJusticeAreaSpecs::equalsLocalJusticeAreaId)
         ));
     }
