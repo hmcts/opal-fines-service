@@ -17,7 +17,7 @@ import java.util.List;
 public class LegacyLocalJusticeAreaService extends LegacyService implements LocalJusticeAreaServiceInterface {
 
     @Autowired
-    protected LegacyLocalJusticeAreaService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyLocalJusticeAreaService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 

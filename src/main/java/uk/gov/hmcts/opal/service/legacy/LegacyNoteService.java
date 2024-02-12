@@ -19,7 +19,7 @@ public class LegacyNoteService extends LegacyService implements NoteServiceInter
 
     public static final String POST_ACCOUNT_NOTES = "postAccountNotes";
 
-    protected LegacyNoteService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyNoteService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 

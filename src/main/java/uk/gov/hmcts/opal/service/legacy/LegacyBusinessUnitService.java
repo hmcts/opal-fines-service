@@ -17,7 +17,7 @@ import java.util.List;
 public class LegacyBusinessUnitService extends LegacyService implements BusinessUnitServiceInterface {
 
     @Autowired
-    protected LegacyBusinessUnitService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyBusinessUnitService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 

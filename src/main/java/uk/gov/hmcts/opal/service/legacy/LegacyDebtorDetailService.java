@@ -17,7 +17,7 @@ import java.util.List;
 public class LegacyDebtorDetailService extends LegacyService implements DebtorDetailServiceInterface {
 
     @Autowired
-    protected LegacyDebtorDetailService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyDebtorDetailService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 

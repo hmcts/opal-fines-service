@@ -17,7 +17,7 @@ import java.util.List;
 public class LegacyMisDebtorService extends LegacyService implements MisDebtorServiceInterface {
 
     @Autowired
-    protected LegacyMisDebtorService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyMisDebtorService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 

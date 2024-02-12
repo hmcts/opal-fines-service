@@ -17,7 +17,7 @@ import java.util.List;
 public class LegacyPaymentTermsService extends LegacyService implements PaymentTermsServiceInterface {
 
     @Autowired
-    protected LegacyPaymentTermsService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyPaymentTermsService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 
