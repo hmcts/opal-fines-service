@@ -10,15 +10,28 @@ public class CommittalWarrantProgressSpecs extends EntitySpecs<CommittalWarrantP
     public Specification<CommittalWarrantProgressEntity> findBySearchCriteria(
         CommittalWarrantProgressSearchDto criteria) {
         return Specification.allOf(specificationList(
-            notBlank(criteria.getDefendantAccountId())
-                .map(CommittalWarrantProgressSpecs::equalsCommittalWarrantProgressId)
+            notBlank(criteria.getDefendantAccountId()).map(CommittalWarrantProgressSpecs::equalsDefendantAccountId),
+            notBlank(criteria.getEnforcementId()).map(CommittalWarrantProgressSpecs::equalsEnforcement),
+            notBlank(criteria.getPrisonId()).map(CommittalWarrantProgressSpecs::equalsPrison)
         ));
     }
 
-    public static Specification<CommittalWarrantProgressEntity> equalsCommittalWarrantProgressId(
-        String committalWarrantProgressId) {
+    public static Specification<CommittalWarrantProgressEntity> equalsDefendantAccountId(
+        String defendantAccountId) {
         return (root, query, builder) -> builder.equal(root.get(CommittalWarrantProgressEntity_.defendantAccountId),
-                                                   committalWarrantProgressId);
+                                                       defendantAccountId);
+    }
+
+    public static Specification<CommittalWarrantProgressEntity> equalsEnforcement(
+        String enforcement) {
+        return (root, query, builder) -> builder.equal(root.get(CommittalWarrantProgressEntity_.enforcement),
+                                                       enforcement);
+    }
+
+    public static Specification<CommittalWarrantProgressEntity> equalsPrison(
+        String prison) {
+        return (root, query, builder) -> builder.equal(root.get(CommittalWarrantProgressEntity_.prison),
+                                                       prison);
     }
 
 }
