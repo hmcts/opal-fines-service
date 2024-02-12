@@ -27,7 +27,7 @@ public class LegacyLocalJusticeAreaService extends LegacyService implements Loca
     }
 
     @Override
-    public LocalJusticeAreaEntity getLocalJusticeArea(long localJusticeAreaId) {
+    public LocalJusticeAreaEntity getLocalJusticeArea(short localJusticeAreaId) {
         throw new LegacyGatewayResponseException("Not Yet Implemented");
     }
 

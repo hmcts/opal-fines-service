@@ -4,18 +4,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 
 import java.util.List;
+import java.util.function.Function;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -36,28 +40,33 @@ class LocalJusticeAreaServiceTest {
         when(localJusticeAreaRepository.getReferenceById(any())).thenReturn(localJusticeAreaEntity);
 
         // Act
-        LocalJusticeAreaEntity result = localJusticeAreaService.getLocalJusticeArea(1);
+        LocalJusticeAreaEntity result = localJusticeAreaService.getLocalJusticeArea((short)1);
 
         // Assert
         assertNotNull(result);
 
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testSearchLocalJusticeAreas() {
         // Arrange
+        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
 
         LocalJusticeAreaEntity localJusticeAreaEntity = LocalJusticeAreaEntity.builder().build();
         Page<LocalJusticeAreaEntity> mockPage = new PageImpl<>(List.of(localJusticeAreaEntity),
                                                                Pageable.unpaged(), 999L);
-        // when(localJusticeAreaRepository.findBy(any(Specification.class), any())).thenReturn(mockPage);
+        when(localJusticeAreaRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(ffq);
+            return mockPage;
+        });
 
         // Act
         List<LocalJusticeAreaEntity> result = localJusticeAreaService
             .searchLocalJusticeAreas(LocalJusticeAreaSearchDto.builder().build());
 
         // Assert
-        assertNull(result);
+        assertEquals(List.of(localJusticeAreaEntity), result);
 
     }
 

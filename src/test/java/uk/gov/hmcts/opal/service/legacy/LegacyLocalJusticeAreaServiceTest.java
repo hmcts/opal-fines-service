@@ -31,7 +31,7 @@ class LegacyLocalJusticeAreaServiceTest extends LegacyTestsBase {
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyLocalJusticeAreaService.getLocalJusticeArea(1)
+            () -> legacyLocalJusticeAreaService.getLocalJusticeArea((short)1)
         );
 
         // Assert

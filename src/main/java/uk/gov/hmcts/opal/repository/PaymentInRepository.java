@@ -8,6 +8,4 @@ import uk.gov.hmcts.opal.entity.PaymentInEntity;
 @Repository
 public interface PaymentInRepository extends JpaRepository<PaymentInEntity, Long>,
     JpaSpecificationExecutor<PaymentInEntity> {
-
-    PaymentInEntity findByPaymentInId(Long paymentInId);
 }

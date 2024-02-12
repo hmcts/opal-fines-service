@@ -27,7 +27,7 @@ public class LegacyDocumentService extends LegacyService implements DocumentServ
     }
 
     @Override
-    public DocumentEntity getDocument(long documentId) {
+    public DocumentEntity getDocument(String documentId) {
         throw new LegacyGatewayResponseException("Not Yet Implemented");
     }
 

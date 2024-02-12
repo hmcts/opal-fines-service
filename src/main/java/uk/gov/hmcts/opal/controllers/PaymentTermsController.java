@@ -46,10 +46,10 @@ public class PaymentTermsController {
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches PaymentTermss based upon criteria in request body")
-    public ResponseEntity<List<PaymentTermsEntity>> postPaymentTermssSearch(
+    @Operation(summary = "Searches PaymentTerms based upon criteria in request body")
+    public ResponseEntity<List<PaymentTermsEntity>> postPaymentTermsSearch(
         @RequestBody PaymentTermsSearchDto criteria) {
-        log.info(":POST:postPaymentTermssSearch: query: \n{}", criteria);
+        log.info(":POST:postPaymentTermsSearch: query: \n{}", criteria);
 
         List<PaymentTermsEntity> response = paymentTermsService.searchPaymentTerms(criteria);
 

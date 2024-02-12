@@ -8,6 +8,4 @@ import uk.gov.hmcts.opal.entity.EnforcementEntity;
 @Repository
 public interface EnforcementRepository extends JpaRepository<EnforcementEntity, Long>,
     JpaSpecificationExecutor<EnforcementEntity> {
-
-    EnforcementEntity findByEnforcementId(Long enforcementId);
 }

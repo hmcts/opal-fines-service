@@ -4,18 +4,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 
 import java.util.List;
+import java.util.function.Function;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -43,20 +47,25 @@ class BusinessUnitServiceTest {
 
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testSearchBusinessUnits() {
         // Arrange
+        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
 
         BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder().build();
         Page<BusinessUnitEntity> mockPage = new PageImpl<>(List.of(businessUnitEntity), Pageable.unpaged(), 999L);
-        // when(businessUnitRepository.findBy(any(Specification.class), any())).thenReturn(mockPage);
+        when(businessUnitRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(ffq);
+            return mockPage;
+        });
 
         // Act
         List<BusinessUnitEntity> result = businessUnitService
             .searchBusinessUnits(BusinessUnitSearchDto.builder().build());
 
         // Assert
-        assertNull(result);
+        assertEquals(List.of(businessUnitEntity), result);
 
     }
 
