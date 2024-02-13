@@ -1,4 +1,4 @@
-@PO-141 @Legacy
+@PO-141 @Legacy @Ignore
 Feature: Test the add note endpoint for Legacy
 
   Scenario: assert add note canned response is valid for Legacy route

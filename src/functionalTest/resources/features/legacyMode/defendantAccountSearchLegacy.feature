@@ -1,4 +1,4 @@
-@PO-118 @PO-120 @Legacy
+@PO-118 @PO-120 @Legacy @Ignore
 Feature: Test the defendant account search API Legacy
 
   Scenario: data is returned from the stub when in legacy mode

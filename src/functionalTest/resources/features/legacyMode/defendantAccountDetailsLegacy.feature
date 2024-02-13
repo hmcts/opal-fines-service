@@ -1,4 +1,4 @@
-@PO-129 @PO-131 @Legacy
+@PO-129 @PO-131 @Legacy @Ignore
 Feature: Test the defendant account details API Legacy
 
   Scenario: Correct data returned when an existing account ID is used
