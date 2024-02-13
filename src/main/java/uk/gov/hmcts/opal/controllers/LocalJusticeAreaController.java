@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.ResponseUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/localJusticeAreas")
+@RequestMapping("/api/local-justice-area")
 @Slf4j(topic = "LocalJusticeAreaController")
 @Tag(name = "LocalJusticeArea Controller")
 public class LocalJusticeAreaController {
