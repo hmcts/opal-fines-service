@@ -17,7 +17,7 @@ import java.util.List;
 public class LegacyAccountTransferService extends LegacyService implements AccountTransferServiceInterface {
 
     @Autowired
-    protected LegacyAccountTransferService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyAccountTransferService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 

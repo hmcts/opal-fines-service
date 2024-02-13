@@ -17,7 +17,7 @@ import java.util.List;
 public class LegacyCourtService extends LegacyService implements CourtServiceInterface {
 
     @Autowired
-    protected LegacyCourtService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyCourtService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 

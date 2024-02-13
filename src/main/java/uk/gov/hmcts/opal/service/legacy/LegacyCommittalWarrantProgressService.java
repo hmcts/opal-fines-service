@@ -18,7 +18,7 @@ public class LegacyCommittalWarrantProgressService extends LegacyService
     implements CommittalWarrantProgressServiceInterface {
 
     @Autowired
-    protected LegacyCommittalWarrantProgressService(@Value("${legacy-gateway-url}") String gatewayUrl,
+    protected LegacyCommittalWarrantProgressService(@Value("${legacy-gateway.url}") String gatewayUrl,
                                                     RestClient restClient) {
         super(gatewayUrl, restClient);
     }

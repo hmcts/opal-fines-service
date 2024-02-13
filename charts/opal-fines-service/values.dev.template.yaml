@@ -13,6 +13,10 @@ java:
           alias: AAD_CLIENT_ID
         - name: AzureADClientSecret
           alias: AAD_CLIENT_SECRET
+        - name: OpalLegacyGatewayUsername
+          alias: OPAL_LEGACY_GATEWAY_USERNAME
+        - name: OpalLegacyGatewayPassword
+          alias: OPAL_LEGACY_GATEWAY_PASSWORD
   environment:
     OPAL_FINES_DB_HOST: "{{ .Release.Name }}-postgresql"
     OPAL_FINES_DB_NAME: "{{ .Values.postgresql.auth.database}}"
@@ -22,7 +26,7 @@ java:
     OPAL_FINES_DB_PORT: 5432
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: https://opal-frontend.staging.platform.hmcts.net
-    OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.staging.platform.hmcts.net
+    OPAL_LEGACY_GATEWAY_URL: https://opal.clouddev.online/opal
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
   postgresql:
     enabled: true

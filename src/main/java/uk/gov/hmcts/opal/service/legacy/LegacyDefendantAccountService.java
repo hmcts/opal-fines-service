@@ -30,9 +30,9 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
     public static final String GET_ACCOUNT_DETAILS = "getAccountDetails";
 
     @Autowired
-    protected LegacyDefendantAccountService(@Value("${legacy-gateway-url}") String gatewayUrl,
-                                            RestClient restClient) {
-        super(gatewayUrl, restClient);
+    protected LegacyDefendantAccountService(@Value("${legacy-gateway.url}") String gatewayUrl,
+                                            RestClient legacyRestClient) {
+        super(gatewayUrl, legacyRestClient);
     }
 
     @Override
