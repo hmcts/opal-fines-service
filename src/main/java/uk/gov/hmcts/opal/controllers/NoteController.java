@@ -23,7 +23,7 @@ import static uk.gov.hmcts.opal.util.ResponseUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/notes")
+@RequestMapping("/api/note")
 @Slf4j(topic = "NoteController")
 @Tag(name = "Notes Controller")
 public class NoteController {

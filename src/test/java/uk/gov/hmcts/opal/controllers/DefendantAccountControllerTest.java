@@ -93,25 +93,6 @@ class DefendantAccountControllerTest {
     }
 
     @Test
-    public void testGetDefendantAccounts_Success() {
-        // Arrange
-        List<DefendantAccountEntity> mockResponse = List.of(new DefendantAccountEntity());
-
-        when(defendantAccountService.getDefendantAccountsByBusinessUnit(any(Short.class))).thenReturn(mockResponse);
-
-        // Act
-        ResponseEntity<List<DefendantAccountEntity>> responseEntity = defendantAccountController
-            .getDefendantAccountsByBusinessUnit(any(Short.class));
-
-        // Assert
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(mockResponse, responseEntity.getBody());
-        verify(defendantAccountService, times(1)).getDefendantAccountsByBusinessUnit(any(
-            Short.class));
-
-    }
-
-    @Test
     public void testGetDefendantAccountDetails_Success() {
         // Arrange
         AccountDetailsDto mockResponse = new AccountDetailsDto();

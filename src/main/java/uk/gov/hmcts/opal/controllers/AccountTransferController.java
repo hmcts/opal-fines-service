@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.ResponseUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/accountTransfers")
+@RequestMapping("/api/account-transfer")
 @Slf4j(topic = "AccountTransferController")
 @Tag(name = "AccountTransfer Controller")
 public class AccountTransferController {
