@@ -17,7 +17,7 @@ import java.util.List;
 public class LegacyEnforcerService extends LegacyService implements EnforcerServiceInterface {
 
     @Autowired
-    protected LegacyEnforcerService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyEnforcerService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 

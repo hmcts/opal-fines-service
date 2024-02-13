@@ -17,7 +17,7 @@ import java.util.List;
 public class LegacyPaymentInService extends LegacyService implements PaymentInServiceInterface {
 
     @Autowired
-    protected LegacyPaymentInService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyPaymentInService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 

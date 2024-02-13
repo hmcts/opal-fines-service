@@ -1,12 +1,11 @@
 package uk.gov.hmcts.opal.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -23,15 +22,13 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class DebtorDetailEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long debtorId;
-
-    @ManyToOne
-    @JoinColumn(name = "party_id", referencedColumnName = "party_id", nullable = false)
-    private PartyEntity party;
+    @Column(name = "party_id")
+    private Long partyId;
 
     @Column(name = "telephone_home")
     private String telephoneHome;

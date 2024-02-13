@@ -8,6 +8,4 @@ import uk.gov.hmcts.opal.entity.DocumentInstanceEntity;
 @Repository
 public interface DocumentInstanceRepository extends JpaRepository<DocumentInstanceEntity, Long>,
     JpaSpecificationExecutor<DocumentInstanceEntity> {
-
-    DocumentInstanceEntity findByDocumentInstanceId(Long documentInstanceId);
 }

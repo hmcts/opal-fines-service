@@ -17,7 +17,7 @@ import java.util.List;
 public class LegacyDocumentService extends LegacyService implements DocumentServiceInterface {
 
     @Autowired
-    protected LegacyDocumentService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyDocumentService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 
@@ -27,7 +27,7 @@ public class LegacyDocumentService extends LegacyService implements DocumentServ
     }
 
     @Override
-    public DocumentEntity getDocument(long documentId) {
+    public DocumentEntity getDocument(String documentId) {
         throw new LegacyGatewayResponseException("Not Yet Implemented");
     }
 

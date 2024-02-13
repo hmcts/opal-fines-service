@@ -8,6 +8,4 @@ import uk.gov.hmcts.opal.entity.MisDebtorEntity;
 @Repository
 public interface MisDebtorRepository extends JpaRepository<MisDebtorEntity, Long>,
     JpaSpecificationExecutor<MisDebtorEntity> {
-
-    MisDebtorEntity findByMisDebtorId(Long misDebtorId);
 }

@@ -26,7 +26,7 @@ public class LocalJusticeAreaServiceProxy implements LocalJusticeAreaServiceInte
     }
 
     @Override
-    public LocalJusticeAreaEntity getLocalJusticeArea(long localJusticeAreaId) {
+    public LocalJusticeAreaEntity getLocalJusticeArea(short localJusticeAreaId) {
         return getCurrentModeService().getLocalJusticeArea(localJusticeAreaId);
     }
 

@@ -25,7 +25,7 @@ public class LegacyPartyService extends LegacyService implements PartyServiceInt
     public static final String POST_PARTY = "postParty";
 
     @Autowired
-    protected LegacyPartyService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyPartyService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 

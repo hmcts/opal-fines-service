@@ -17,7 +17,7 @@ import java.util.List;
 public class LegacyPrisonService extends LegacyService implements PrisonServiceInterface {
 
     @Autowired
-    protected LegacyPrisonService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyPrisonService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 
