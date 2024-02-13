@@ -15,22 +15,43 @@ public abstract class AddressSpecs<E extends AddressEntity> extends EntitySpecs<
     @SuppressWarnings("unchecked")
     public List<Optional<Specification<E>>> findByAddressCriteria(AddressSearch criteria) {
         return new ArrayList(Arrays.asList(
-            notBlank(criteria.getName()).map(this::equalsName),
-            notBlank(criteria.getAddressLine()).map(this::equalsAddressLine),
-            notBlank(criteria.getPostcode()).map(this::equalsPostcode)
+            notBlank(criteria.getName()).map(this::likeName),
+            notBlank(criteria.getAddressLine()).map(this::likeAnyAddressLine),
+            notBlank(criteria.getPostcode()).map(this::likePostcode)
         ));
     }
 
-    public Specification<E> equalsName(String name) {
-        return (root, query, builder) -> builder.equal(root.get(AddressEntity_.name), name);
+    public Specification<E> likeName(String name) {
+        return (root, query, builder) -> builder.like(builder.lower(root.get(AddressEntity_.name)),
+                                                      "%" + name.toLowerCase() + "%");
     }
 
-    public Specification<E> equalsAddressLine(String addressLine) {
-        return (root, query, builder) -> builder.equal(root.get(AddressEntity_.addressLine1), addressLine);
+    public Specification<E> likeAnyAddressLine(String addressLine) {
+        String addressLinePattern = "%" + addressLine.toLowerCase() + "%";
+        return Specification.anyOf(
+            likeAddressLine1(addressLinePattern),
+            likeAddressLine2(addressLinePattern),
+            likeAddressLine3(addressLinePattern));
     }
 
-    public Specification<E> equalsPostcode(String postcode) {
-        return (root, query, builder) -> builder.equal(root.get(AddressEntity_.postcode), postcode);
+    private Specification<E> likeAddressLine1(String addressLinePattern) {
+        return (root, query, builder) -> builder.like(builder.lower(root.get(AddressEntity_.addressLine1)),
+                                                      addressLinePattern);
+    }
+
+    private Specification<E> likeAddressLine2(String addressLinePattern) {
+        return (root, query, builder) -> builder.like(builder.lower(root.get(AddressEntity_.addressLine2)),
+                                                      addressLinePattern);
+    }
+
+    private Specification<E> likeAddressLine3(String addressLinePattern) {
+        return (root, query, builder) -> builder.like(builder.lower(root.get(AddressEntity_.addressLine3)),
+                                                      addressLinePattern);
+    }
+
+    public Specification<E> likePostcode(String postcode) {
+        return (root, query, builder) -> builder.like(builder.lower(root.get(AddressEntity_.postcode)),
+                                                      "%" + postcode.toLowerCase() + "%");
     }
 
 }
