@@ -13,6 +13,8 @@ java:
           alias: AAD_CLIENT_ID
         - name: AzureADClientSecret
           alias: AAD_CLIENT_SECRET
+        - name: OpalTestUserPassword
+          alias: OPAL_TEST_USER_PASSWORD
         - name: OpalLegacyGatewayUsername
           alias: OPAL_LEGACY_GATEWAY_USERNAME
         - name: OpalLegacyGatewayPassword
