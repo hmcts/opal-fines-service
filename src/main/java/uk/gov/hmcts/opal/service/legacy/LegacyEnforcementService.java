@@ -2,10 +2,9 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.search.EnforcementSearchDto;
 import uk.gov.hmcts.opal.entity.EnforcementEntity;
 import uk.gov.hmcts.opal.service.EnforcementServiceInterface;
@@ -16,9 +15,8 @@ import java.util.List;
 @Slf4j(topic = "LegacyEnforcementService")
 public class LegacyEnforcementService extends LegacyService implements EnforcementServiceInterface {
 
-    @Autowired
-    protected LegacyEnforcementService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
-        super(gatewayUrl, restClient);
+    public LegacyEnforcementService(LegacyGatewayProperties legacyGateway, RestClient restClient) {
+        super(legacyGateway, restClient);
     }
 
     @Override

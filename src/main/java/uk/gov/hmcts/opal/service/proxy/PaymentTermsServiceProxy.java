@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.PaymentTermsSearchDto;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
-import uk.gov.hmcts.opal.service.PaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.PaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyPaymentTermsService;
 import uk.gov.hmcts.opal.service.opal.PaymentTermsService;
 
