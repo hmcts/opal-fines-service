@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
+import static uk.gov.hmcts.opal.steps.BearerTokenStefDef.getToken;
 
 public class NotesApiStepDef extends BaseStepDef {
 
@@ -29,6 +30,7 @@ public class NotesApiStepDef extends BaseStepDef {
         }
         SerenityRest.given()
             .accept("*/*")
+            .header("Authorization", "Bearer " + getToken())
             .contentType("application/json")
             .body(body.toString())
             .when()
