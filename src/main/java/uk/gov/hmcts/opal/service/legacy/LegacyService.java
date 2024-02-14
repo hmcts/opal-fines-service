@@ -3,27 +3,27 @@ package uk.gov.hmcts.opal.service.legacy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
 import java.util.Map;
 
+@Component
+@RequiredArgsConstructor
 public abstract class LegacyService {
 
     public static final String ACTION_TYPE = "actionType";
-    final String gatewayUrl;
 
-    final RestClient restClient;
-
-    protected LegacyService(String gatewayUrl, RestClient restTemplate) {
-        this.gatewayUrl = gatewayUrl;
-        this.restClient = restTemplate;
-    }
+    protected final LegacyGatewayProperties legacyGateway;
+    protected final RestClient restClient;
 
     protected abstract Logger getLog();
 
@@ -60,14 +60,14 @@ public abstract class LegacyService {
     }
 
     public <T> T getFromGateway(String actionType, Class<T> responseType) {
-        getLog().info("getFromGateway: GET from Gateway: {}", gatewayUrl);
+        getLog().info("getFromGateway: GET from Gateway: {}", legacyGateway.getUrl());
 
         // Create a UriComponentsBuilder and add parameters
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
             .queryParam(ACTION_TYPE, actionType);
 
         ResponseEntity<String> responseEntity = restClient.get()
-            .uri(gatewayUrl + builder.toUriString())
+            .uri(legacyGateway.getUrl() + builder.toUriString())
             .retrieve()
             .toEntity(String.class);
 
@@ -78,21 +78,22 @@ public abstract class LegacyService {
     public <T> T postParamsToGateway(String actionType, Class<T> responseType, Map<String, Object> requestParams) {
         try {
             return postToGateway(actionType, responseType,
-                                 ToJsonString.getObjectMapper().writeValueAsString(requestParams));
+                                 ToJsonString.getObjectMapper().writeValueAsString(requestParams)
+            );
         } catch (JsonProcessingException jpe) {
             throw new RuntimeException(jpe);
         }
     }
 
     public <T> T postToGateway(String actionType, Class<T> responseType, Object request) {
-        getLog().info("postToGateway: POST to Gateway: {}", gatewayUrl);
+        getLog().info("postToGateway: POST to Gateway: {}", legacyGateway.getUrl());
 
         // Create a UriComponentsBuilder and add parameters
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
             .queryParam(ACTION_TYPE, actionType);
 
         ResponseEntity<String> responseEntity = restClient.post()
-            .uri(gatewayUrl + builder.toUriString())
+            .uri(legacyGateway.getUrl() + builder.toUriString())
             .contentType(MediaType.APPLICATION_JSON)
             .body(request)
             .retrieve()

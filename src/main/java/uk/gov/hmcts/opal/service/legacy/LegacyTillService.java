@@ -2,10 +2,9 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.search.TillSearchDto;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.service.TillServiceInterface;
@@ -16,9 +15,8 @@ import java.util.List;
 @Slf4j(topic = "LegacyTillService")
 public class LegacyTillService extends LegacyService implements TillServiceInterface {
 
-    @Autowired
-    protected LegacyTillService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
-        super(gatewayUrl, restClient);
+    public LegacyTillService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
+        super(legacyGatewayProperties, restClient);
     }
 
     @Override

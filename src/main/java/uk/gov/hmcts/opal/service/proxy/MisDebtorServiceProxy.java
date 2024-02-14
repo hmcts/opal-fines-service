@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.MisDebtorSearchDto;
 import uk.gov.hmcts.opal.entity.MisDebtorEntity;
-import uk.gov.hmcts.opal.service.MisDebtorServiceInterface;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.MisDebtorServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyMisDebtorService;
 import uk.gov.hmcts.opal.service.opal.MisDebtorService;
 
