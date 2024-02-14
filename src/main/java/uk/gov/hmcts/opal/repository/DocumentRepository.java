@@ -6,8 +6,6 @@ import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.DocumentEntity;
 
 @Repository
-public interface DocumentRepository extends JpaRepository<DocumentEntity, Long>,
+public interface DocumentRepository extends JpaRepository<DocumentEntity, String>,
     JpaSpecificationExecutor<DocumentEntity> {
-
-    DocumentEntity findByDocumentId(Long documentId);
 }

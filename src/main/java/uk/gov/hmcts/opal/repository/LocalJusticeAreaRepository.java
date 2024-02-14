@@ -6,8 +6,6 @@ import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 
 @Repository
-public interface LocalJusticeAreaRepository extends JpaRepository<LocalJusticeAreaEntity, Long>,
+public interface LocalJusticeAreaRepository extends JpaRepository<LocalJusticeAreaEntity, Short>,
     JpaSpecificationExecutor<LocalJusticeAreaEntity> {
-
-    LocalJusticeAreaEntity findByLocalJusticeAreaId(Long localJusticeAreaId);
 }

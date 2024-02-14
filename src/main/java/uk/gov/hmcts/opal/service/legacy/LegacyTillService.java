@@ -17,7 +17,7 @@ import java.util.List;
 public class LegacyTillService extends LegacyService implements TillServiceInterface {
 
     @Autowired
-    protected LegacyTillService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyTillService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 

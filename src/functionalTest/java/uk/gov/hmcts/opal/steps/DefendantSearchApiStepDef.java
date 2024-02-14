@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
+import static uk.gov.hmcts.opal.steps.BearerTokenStefDef.getToken;
 
 public class DefendantSearchApiStepDef extends BaseStepDef {
 
@@ -35,7 +36,9 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
             dataToPost.get("addressLineOne") != null ? dataToPost.get("addressLineOne") : ""
         );
 
-        SerenityRest.given()
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
             .accept("*/*")
             .contentType("application/json")
             .body(requestBody.toString())
@@ -66,13 +69,13 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
     @Then("the returned results match")
     public void theReturnedResultsMatch(DataTable expectedData) {
         Map<String, String> expectedResult = expectedData.asMap(String.class, String.class);
+        then().assertThat()
+            .statusCode(200);
 
         int totalCount = then().extract().jsonPath().getInt("totalCount");
         System.out.println("total count is : " + totalCount);
 
         int index = 0;
-        then().assertThat()
-            .statusCode(200);
 
         while (index < totalCount) {
             if (expectedResult.get("name") != null) {

@@ -17,7 +17,7 @@ import java.util.List;
 public class LegacyDocumentInstanceService extends LegacyService implements DocumentInstanceServiceInterface {
 
     @Autowired
-    protected LegacyDocumentInstanceService(@Value("${legacy-gateway-url}") String gatewayUrl, RestClient restClient) {
+    protected LegacyDocumentInstanceService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
         super(gatewayUrl, restClient);
     }
 

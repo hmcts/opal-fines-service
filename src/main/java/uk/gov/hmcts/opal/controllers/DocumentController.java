@@ -35,7 +35,7 @@ public class DocumentController {
 
     @GetMapping(value = "/{documentId}")
     @Operation(summary = "Returns the Document for the given documentId.")
-    public ResponseEntity<DocumentEntity> getDocumentById(@PathVariable Long documentId) {
+    public ResponseEntity<DocumentEntity> getDocumentById(@PathVariable String documentId) {
 
         log.info(":GET:getDocumentById: documentId: {}", documentId);
 

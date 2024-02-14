@@ -2,10 +2,13 @@ package uk.gov.hmcts.opal.service.opal;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.PrisonSearchDto;
 import uk.gov.hmcts.opal.entity.PrisonEntity;
 import uk.gov.hmcts.opal.repository.PrisonRepository;
+import uk.gov.hmcts.opal.repository.jpa.PrisonSpecs;
 import uk.gov.hmcts.opal.service.PrisonServiceInterface;
 
 import java.util.List;
@@ -16,6 +19,8 @@ public class PrisonService implements PrisonServiceInterface {
 
     private final PrisonRepository prisonRepository;
 
+    private final PrisonSpecs specs = new PrisonSpecs();
+
     @Override
     public PrisonEntity getPrison(long prisonId) {
         return prisonRepository.getReferenceById(prisonId);
@@ -23,7 +28,11 @@ public class PrisonService implements PrisonServiceInterface {
 
     @Override
     public List<PrisonEntity> searchPrisons(PrisonSearchDto criteria) {
-        return null;
+        Page<PrisonEntity> page = prisonRepository
+            .findBy(specs.findBySearchCriteria(criteria),
+                    ffq -> ffq.page(Pageable.unpaged()));
+
+        return page.getContent();
     }
 
 }

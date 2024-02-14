@@ -8,6 +8,4 @@ import uk.gov.hmcts.opal.entity.TillEntity;
 @Repository
 public interface TillRepository extends JpaRepository<TillEntity, Long>,
     JpaSpecificationExecutor<TillEntity> {
-
-    TillEntity findByTillId(Long tillId);
 }

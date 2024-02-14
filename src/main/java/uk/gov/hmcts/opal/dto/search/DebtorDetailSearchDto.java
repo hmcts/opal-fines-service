@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 @Builder
 public class DebtorDetailSearchDto implements ToJsonString {
 
-    private String debtorId;
+    private String partyId;
     private String email;
     private String vehicleMake;
     private String vehicleRegistration;

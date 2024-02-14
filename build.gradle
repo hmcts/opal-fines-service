@@ -80,36 +80,70 @@ task integration(type: Test) {
   failFast = true
 }
 
-task functional(type: Test) {
-  description = "Runs functional tests"
+task functionalOpal(type: Test) {
+
+  description = "Runs functional tests against Opal mode"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
   testLogging.showStandardStreams = true
-  systemProperty "cucumber.filter.tags", "not @Smoke and not @Ignore"
-  doLast {
-    tasks.aggregate.aggregate()
-    delete "${rootDir}/functional-test-report/"
-    new File("${rootDir}/functional-test-report").mkdirs()
-    file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/functional-test-report"))
-    logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
-  }
+  gradle.startParameter.continueOnFailure = true
+  systemProperty "cucumber.filter.tags", "@Opal and not @Smoke and not @Ignore"
+  systemProperty "test.mode", "opal"
+}
+task functionalLegacy(type: Test) {
+  description = "Runs functional tests against Legacy mode"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  gradle.startParameter.continueOnFailure = true
+  testLogging.showStandardStreams = true
+  systemProperty "cucumber.filter.tags", "@Legacy and not @Smoke and not @Ignore"
+  systemProperty "test.mode", "legacy"
+}
+task copyFunctionalReport(type: Copy){
+  from("${rootDir}/target/site/serenity")
+  into("${rootDir}/functional-test-report")
+  logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
 }
 
-task smoke(type: Test) {
+task functional(type: Test) {
+  description = "Runs functional tests"
+  group = "Verification"
+  testLogging.showStandardStreams = true
+  gradle.startParameter.continueOnFailure = true
+  dependsOn('clearReports','functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport')
+  tasks.functionalOpal.mustRunAfter clearReports
+  tasks.functionalLegacy.mustRunAfter functionalOpal
+  tasks.aggregate.mustRunAfter functionalLegacy
+  tasks.copyFunctionalReport.mustRunAfter aggregate
+
+}
+task smokeOpal(type: Test) {
   description = "Runs Smoke Tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
   testLogging.showStandardStreams = true
+  gradle.startParameter.continueOnFailure = true
   systemProperty "cucumber.filter.tags", "@Smoke and not @Ignore"
-  doLast {
-    tasks.aggregate.aggregate()
-    delete "${rootDir}/smoke-test-report/"
-    new File("${rootDir}/smoke-test-report").mkdirs()
-    file("${rootDir}/target/site/serenity").renameTo(file("${rootDir}/smoke-test-report"))
-    logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
-  }
+}
+task copySmokeReport(type: Copy){
+  from("${rootDir}/target/site/serenity")
+  into("${rootDir}/smoke-test-report")
+  logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
+}
+
+task smoke(type: Test) {
+  description = "Runs Smoke Tests"
+  group = "Verification"
+  testLogging.showStandardStreams = true
+  gradle.startParameter.continueOnFailure = true
+  dependsOn('clearReports','smokeOpal', 'aggregate', 'copySmokeReport')
+  tasks.smokeOpal.mustRunAfter clearReports
+  tasks.aggregate.mustRunAfter smokeOpal
+  tasks.copySmokeReport.mustRunAfter aggregate
+
 }
 
 def coverageExclusions = [
@@ -224,7 +258,7 @@ dependencies {
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
   implementation group: 'com.google.guava', name: 'guava', version: '33.0.0-jre'
 
-  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.1.1'
+  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.2.6'
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
@@ -285,7 +319,7 @@ rootProject.tasks.named("processIntegrationTestResources") {
 }
 
 wrapper {
-    distributionType = Wrapper.DistributionType.ALL
+  distributionType = Wrapper.DistributionType.ALL
 }
 
 flyway {
