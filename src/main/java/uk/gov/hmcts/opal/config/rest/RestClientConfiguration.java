@@ -1,33 +1,34 @@
 package uk.gov.hmcts.opal.config.rest;
 
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestClient;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 
 import java.util.Base64;
 
 @Configuration
+@RequiredArgsConstructor
 public class RestClientConfiguration {
 
-    @Value("${legacy-gateway.username}")
-    String legacyUsername;
-
-    @Value("${legacy-gateway.password}")
-    String legacyPassword;
+    private final LegacyGatewayProperties properties;
 
     @Bean
     public RestClient restClient() {
         return RestClient.create();
     }
 
-    @Bean RestClient legacyRestClient() {
+    @Bean
+    RestClient legacyRestClient() {
         return RestClient.builder()
             .defaultHeader(
                 HttpHeaders.AUTHORIZATION,
-                encodeBasic(legacyUsername,
-                            legacyPassword)
+                encodeBasic(
+                    properties.getUsername(),
+                    properties.getPassword()
+                )
             ).build();
     }
 
