@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.search.CommittalWarrantProgressSearchDto;
 import uk.gov.hmcts.opal.entity.CommittalWarrantProgressEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.CommittalWarrantProgressServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyCommittalWarrantProgressService;
 import uk.gov.hmcts.opal.service.opal.CommittalWarrantProgressService;
 
@@ -22,18 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class CommittalWarrantProgressServiceProxyTest {
+class CommittalWarrantProgressServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private CommittalWarrantProgressService opalCommittalWarrantProgressService;
+    private CommittalWarrantProgressService opalService;
 
     @Mock
-    private LegacyCommittalWarrantProgressService legacyCommittalWarrantProgressService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyCommittalWarrantProgressService legacyService;
 
     @InjectMocks
     private CommittalWarrantProgressServiceProxy committalWarrantProgressServiceProxy;
@@ -48,69 +44,59 @@ class CommittalWarrantProgressServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalCommittalWarrantProgressServiceWhenModeIsNotLegacy() {
-        // Given: a CommittalWarrantProgressEntity and the app mode is set to "opal"
-        CommittalWarrantProgressEntity entity = CommittalWarrantProgressEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalCommittalWarrantProgressService.getCommittalWarrantProgress(anyLong())).thenReturn(entity);
+    void testMode(CommittalWarrantProgressServiceInterface targetService,
+                  CommittalWarrantProgressServiceInterface otherService) {
+        testGetCommittalWarrantProgress(targetService, otherService);
+        testSearchCommittalWarrantProgresss(targetService, otherService);
+    }
 
-        // When: saveCommittalWarrantProgress is called on the proxy
+    void testGetCommittalWarrantProgress(CommittalWarrantProgressServiceInterface targetService,
+                                         CommittalWarrantProgressServiceInterface otherService) {
+        // Given: a CommittalWarrantProgressEntity is returned from the target service
+        CommittalWarrantProgressEntity entity = CommittalWarrantProgressEntity.builder().build();
+        when(targetService.getCommittalWarrantProgress(anyLong())).thenReturn(entity);
+
+        // When: getCommittalWarrantProgress is called on the proxy
         CommittalWarrantProgressEntity committalWarrantProgressResult = committalWarrantProgressServiceProxy
             .getCommittalWarrantProgress(1);
 
-        // Then: opalCommittalWarrantProgressService should be used
-        verify(opalCommittalWarrantProgressService).getCommittalWarrantProgress(1);
-        verifyNoInteractions(legacyCommittalWarrantProgressService);
+        // Then: target service should be used, and the returned committalWarrantProgress should be as expected
+        verify(targetService).getCommittalWarrantProgress(1);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, committalWarrantProgressResult);
+    }
 
-        // Given: a committalWarrantProgresss list result and the app mode is set to "opal"
+    void testSearchCommittalWarrantProgresss(CommittalWarrantProgressServiceInterface targetService,
+                                             CommittalWarrantProgressServiceInterface otherService) {
+        // Given: a committalWarrantProgresss list result is returned from the target service
+        CommittalWarrantProgressEntity entity = CommittalWarrantProgressEntity.builder().build();
         List<CommittalWarrantProgressEntity> committalWarrantProgresssList = List.of(entity);
-        when(opalCommittalWarrantProgressService.searchCommittalWarrantProgresss(any()))
-            .thenReturn(committalWarrantProgresssList);
+        when(targetService.searchCommittalWarrantProgresss(any())).thenReturn(committalWarrantProgresssList);
 
         // When: searchCommittalWarrantProgresss is called on the proxy
         CommittalWarrantProgressSearchDto criteria = CommittalWarrantProgressSearchDto.builder().build();
         List<CommittalWarrantProgressEntity> listResult = committalWarrantProgressServiceProxy
             .searchCommittalWarrantProgresss(criteria);
 
-        // Then: opalCommittalWarrantProgressService should be used, and the returned list should be as expected
-        verify(opalCommittalWarrantProgressService).searchCommittalWarrantProgresss(criteria);
-        verifyNoInteractions(legacyCommittalWarrantProgressService);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchCommittalWarrantProgresss(criteria);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(committalWarrantProgresssList, listResult);
     }
 
     @Test
+    void shouldUseOpalCommittalWarrantProgressServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
+    }
+
+    @Test
     void shouldUseLegacyCommittalWarrantProgressServiceWhenModeIsLegacy() {
-        // Given: a CommittalWarrantProgressEntity and the app mode is set to "legacy"
-        CommittalWarrantProgressEntity entity = CommittalWarrantProgressEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyCommittalWarrantProgressService.getCommittalWarrantProgress(anyLong())).thenReturn(entity);
-
-        // When: saveCommittalWarrantProgress is called on the proxy
-        CommittalWarrantProgressEntity result = committalWarrantProgressServiceProxy
-            .getCommittalWarrantProgress(1);
-
-        // Then: legacyCommittalWarrantProgressService should be used
-        verify(legacyCommittalWarrantProgressService).getCommittalWarrantProgress(1);
-        verifyNoInteractions(opalCommittalWarrantProgressService);
-        Assertions.assertEquals(entity, result);
-
-        // Given: a committalWarrantProgresss list result and the app mode is set to "legacy"
-        List<CommittalWarrantProgressEntity> committalWarrantProgresssList = List.of(entity);
-        when(legacyCommittalWarrantProgressService.searchCommittalWarrantProgresss(any()))
-            .thenReturn(committalWarrantProgresssList);
-
-        // When: searchCommittalWarrantProgresss is called on the proxy
-        CommittalWarrantProgressSearchDto criteria = CommittalWarrantProgressSearchDto.builder().build();
-        List<CommittalWarrantProgressEntity> listResult = committalWarrantProgressServiceProxy
-            .searchCommittalWarrantProgresss(criteria);
-
-        // Then: opalCommittalWarrantProgressService should be used, and the returned list should be as expected
-        verify(legacyCommittalWarrantProgressService).searchCommittalWarrantProgresss(criteria);
-        verifyNoInteractions(opalCommittalWarrantProgressService);
-        Assertions.assertEquals(committalWarrantProgresssList, listResult); // Not yet implemented in Legacy mode
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }

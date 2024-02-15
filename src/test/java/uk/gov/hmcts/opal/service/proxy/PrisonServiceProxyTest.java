@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.search.PrisonSearchDto;
 import uk.gov.hmcts.opal.entity.PrisonEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.PrisonServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyPrisonService;
 import uk.gov.hmcts.opal.service.opal.PrisonService;
 
@@ -22,18 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class PrisonServiceProxyTest {
+class PrisonServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private PrisonService opalPrisonService;
+    private PrisonService opalService;
 
     @Mock
-    private LegacyPrisonService legacyPrisonService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyPrisonService legacyService;
 
     @InjectMocks
     private PrisonServiceProxy prisonServiceProxy;
@@ -48,63 +44,54 @@ class PrisonServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalPrisonServiceWhenModeIsNotLegacy() {
-        // Given: a PrisonEntity and the app mode is set to "opal"
-        PrisonEntity entity = PrisonEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalPrisonService.getPrison(anyLong())).thenReturn(entity);
+    void testMode(PrisonServiceInterface targetService, PrisonServiceInterface otherService) {
+        testGetPrison(targetService, otherService);
+        testSearchPrisons(targetService, otherService);
+    }
 
-        // When: savePrison is called on the proxy
+    void testGetPrison(PrisonServiceInterface targetService, PrisonServiceInterface otherService) {
+        // Given: a PrisonEntity is returned from the target service
+        PrisonEntity entity = PrisonEntity.builder().build();
+        when(targetService.getPrison(anyLong())).thenReturn(entity);
+
+        // When: getPrison is called on the proxy
         PrisonEntity prisonResult = prisonServiceProxy.getPrison(1);
 
-        // Then: opalPrisonService should be used, and the returned prison should be as expected
-        verify(opalPrisonService).getPrison(1);
-        verifyNoInteractions(legacyPrisonService);
+        // Then: target service should be used, and the returned prison should be as expected
+        verify(targetService).getPrison(1);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, prisonResult);
+    }
 
-        // Given: a prisons list result and the app mode is set to "opal"
+    void testSearchPrisons(PrisonServiceInterface targetService, PrisonServiceInterface otherService) {
+        // Given: a prisons list result is returned from the target service
+        PrisonEntity entity = PrisonEntity.builder().build();
         List<PrisonEntity> prisonsList = List.of(entity);
-        when(opalPrisonService.searchPrisons(any())).thenReturn(prisonsList);
+        when(targetService.searchPrisons(any())).thenReturn(prisonsList);
 
         // When: searchPrisons is called on the proxy
         PrisonSearchDto criteria = PrisonSearchDto.builder().build();
         List<PrisonEntity> listResult = prisonServiceProxy.searchPrisons(criteria);
 
-        // Then: opalPrisonService should be used, and the returned list should be as expected
-        verify(opalPrisonService).searchPrisons(criteria);
-        verifyNoInteractions(legacyPrisonService);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchPrisons(criteria);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(prisonsList, listResult);
     }
 
     @Test
+    void shouldUseOpalPrisonServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
+    }
+
+    @Test
     void shouldUseLegacyPrisonServiceWhenModeIsLegacy() {
-        // Given: a PrisonEntity and the app mode is set to "legacy"
-        PrisonEntity entity = PrisonEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyPrisonService.getPrison(anyLong())).thenReturn(entity);
-
-        // When: savePrison is called on the proxy
-        PrisonEntity result = prisonServiceProxy.getPrison(1);
-
-        // Then: legacyPrisonService should be used, and the returned prison should be as expected
-        verify(legacyPrisonService).getPrison(1);
-        verifyNoInteractions(opalPrisonService);
-        Assertions.assertEquals(entity, result);
-
-        // Given: a prisons list result and the app mode is set to "legacy"
-        List<PrisonEntity> prisonsList = List.of(entity);
-        when(legacyPrisonService.searchPrisons(any())).thenReturn(prisonsList);
-
-        // When: searchPrisons is called on the proxy
-        PrisonSearchDto criteria = PrisonSearchDto.builder().build();
-        List<PrisonEntity> listResult = prisonServiceProxy.searchPrisons(criteria);
-
-        // Then: opalPrisonService should be used, and the returned list should be as expected
-        verify(legacyPrisonService).searchPrisons(criteria);
-        verifyNoInteractions(opalPrisonService);
-        Assertions.assertEquals(prisonsList, listResult); // Not yet implemented in Legacy mode
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }

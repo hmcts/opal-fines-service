@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.search.AccountTransferSearchDto;
 import uk.gov.hmcts.opal.entity.AccountTransferEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.AccountTransferServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyAccountTransferService;
 import uk.gov.hmcts.opal.service.opal.AccountTransferService;
 
@@ -22,18 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class AccountTransferServiceProxyTest {
+class AccountTransferServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private AccountTransferService opalAccountTransferService;
+    private AccountTransferService opalService;
 
     @Mock
-    private LegacyAccountTransferService legacyAccountTransferService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyAccountTransferService legacyService;
 
     @InjectMocks
     private AccountTransferServiceProxy accountTransferServiceProxy;
@@ -48,63 +44,56 @@ class AccountTransferServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalAccountTransferServiceWhenModeIsNotLegacy() {
-        // Given: a AccountTransferEntity and the app mode is set to "opal"
-        AccountTransferEntity entity = AccountTransferEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalAccountTransferService.getAccountTransfer(anyLong())).thenReturn(entity);
+    void testMode(AccountTransferServiceInterface targetService, AccountTransferServiceInterface otherService) {
+        testGetAccountTransfer(targetService, otherService);
+        testSearchAccountTransfers(targetService, otherService);
+    }
 
-        // When: saveAccountTransfer is called on the proxy
+    void testGetAccountTransfer(AccountTransferServiceInterface targetService,
+                                AccountTransferServiceInterface otherService) {
+        // Given: an AccountTransferEntity is returned from the target service
+        AccountTransferEntity entity = AccountTransferEntity.builder().build();
+        when(targetService.getAccountTransfer(anyLong())).thenReturn(entity);
+
+        // When: getAccountTransfer is called on the proxy
         AccountTransferEntity accountTransferResult = accountTransferServiceProxy.getAccountTransfer(1);
 
-        // Then: opalAccountTransferService should be used, and the returned accountTransfer should be as expected
-        verify(opalAccountTransferService).getAccountTransfer(1);
-        verifyNoInteractions(legacyAccountTransferService);
+        // Then: target service should be used, and the returned accountTransfer should be as expected
+        verify(targetService).getAccountTransfer(1);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, accountTransferResult);
+    }
 
-        // Given: a accountTransfers list result and the app mode is set to "opal"
+    void testSearchAccountTransfers(AccountTransferServiceInterface targetService,
+                                    AccountTransferServiceInterface otherService) {
+        // Given: an accountTransfers list result is returned from the target service
+        AccountTransferEntity entity = AccountTransferEntity.builder().build();
         List<AccountTransferEntity> accountTransfersList = List.of(entity);
-        when(opalAccountTransferService.searchAccountTransfers(any())).thenReturn(accountTransfersList);
+        when(targetService.searchAccountTransfers(any())).thenReturn(accountTransfersList);
 
         // When: searchAccountTransfers is called on the proxy
         AccountTransferSearchDto criteria = AccountTransferSearchDto.builder().build();
         List<AccountTransferEntity> listResult = accountTransferServiceProxy.searchAccountTransfers(criteria);
 
-        // Then: opalAccountTransferService should be used, and the returned list should be as expected
-        verify(opalAccountTransferService).searchAccountTransfers(criteria);
-        verifyNoInteractions(legacyAccountTransferService);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchAccountTransfers(criteria);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(accountTransfersList, listResult);
     }
 
     @Test
+    void shouldUseOpalAccountTransferServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
+    }
+
+    @Test
     void shouldUseLegacyAccountTransferServiceWhenModeIsLegacy() {
-        // Given: a AccountTransferEntity and the app mode is set to "legacy"
-        AccountTransferEntity entity = AccountTransferEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyAccountTransferService.getAccountTransfer(anyLong())).thenReturn(entity);
-
-        // When: saveAccountTransfer is called on the proxy
-        AccountTransferEntity result = accountTransferServiceProxy.getAccountTransfer(1);
-
-        // Then: legacyAccountTransferService should be used, and the returned accountTransfer should be as expected
-        verify(legacyAccountTransferService).getAccountTransfer(1);
-        verifyNoInteractions(opalAccountTransferService);
-        Assertions.assertEquals(entity, result);
-
-        // Given: a accountTransfers list result and the app mode is set to "legacy"
-        List<AccountTransferEntity> accountTransfersList = List.of(entity);
-        when(legacyAccountTransferService.searchAccountTransfers(any())).thenReturn(accountTransfersList);
-
-        // When: searchAccountTransfers is called on the proxy
-        AccountTransferSearchDto criteria = AccountTransferSearchDto.builder().build();
-        List<AccountTransferEntity> listResult = accountTransferServiceProxy.searchAccountTransfers(criteria);
-
-        // Then: opalAccountTransferService should be used, and the returned list should be as expected
-        verify(legacyAccountTransferService).searchAccountTransfers(criteria);
-        verifyNoInteractions(opalAccountTransferService);
-        Assertions.assertEquals(accountTransfersList, listResult); // Not yet implemented in Legacy mode
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }
