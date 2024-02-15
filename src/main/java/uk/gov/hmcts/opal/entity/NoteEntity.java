@@ -49,4 +49,7 @@ public class NoteEntity {
     @Column(name = "posted_by", length = 20)
     private String postedBy;
 
+    @Column(name = "posted_by_aad", length = 100)
+    private String postedByAad;
+
 }
