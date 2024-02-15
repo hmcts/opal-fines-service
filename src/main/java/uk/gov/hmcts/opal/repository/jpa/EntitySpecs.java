@@ -6,6 +6,7 @@ import uk.gov.hmcts.opal.dto.DateDto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,9 +32,7 @@ public abstract class EntitySpecs<E> {
     @SafeVarargs
     public final List<Optional<Specification<E>>> combine(List<Optional<Specification<E>>> specsList,
                                                           Optional<Specification<E>>... optionalSpecs) {
-        for (Optional<Specification<E>> spec: optionalSpecs) {
-            specsList.add(spec);
-        }
+        Collections.addAll(specsList, optionalSpecs);
         return specsList;
     }
 

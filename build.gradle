@@ -171,11 +171,11 @@ jacocoTestReport {
 
 static String[] jacocoExclusionArray(ArrayList<String> exclusions)
 {
-  final def lst = new ArrayList<String>();
+  final def lst = new ArrayList<String>()
 
   exclusions.stream().forEach {it.endsWith(".java") ? lst.add(it.replace(".java", ".class")) : lst.add(it)}
 
-  return lst.toArray();
+  return lst.toArray()
 }
 
 project.tasks['sonarqube'].dependsOn jacocoTestReport
