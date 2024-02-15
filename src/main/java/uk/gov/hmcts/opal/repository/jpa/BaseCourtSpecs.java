@@ -14,8 +14,8 @@ public abstract class BaseCourtSpecs<E extends EnforcerCourtBaseEntity> extends 
     public List<Optional<Specification<E>>> findByBaseCourtCriteria(BaseCourtSearch criteria) {
         return combine(findByAddressCriteria(criteria),
                 notBlank(criteria.getBusinessUnitId()).map(this::equalsBusinessUnitId),
-                notBlank(criteria.getNameCy()).map(this::equalsNameCy),
-                notBlank(criteria.getAddressLineCy()).map(this::equalsAddressLineCy));
+                notBlank(criteria.getNameCy()).map(this::likeNameCy),
+                notBlank(criteria.getAddressLineCy()).map(this::likeAnyAddressLineCy));
     }
 
 
@@ -24,13 +24,32 @@ public abstract class BaseCourtSpecs<E extends EnforcerCourtBaseEntity> extends 
                                                        businessUnitId);
     }
 
-    public Specification<E> equalsNameCy(String nameCy) {
-        return (root, query, builder) -> builder.equal(root.get(EnforcerCourtBaseEntity_.nameCy), nameCy);
+    public Specification<E> likeNameCy(String nameCy) {
+        return (root, query, builder) -> builder.like(builder.lower(root.get(EnforcerCourtBaseEntity_.nameCy)),
+                                                       "%" + nameCy.toLowerCase() + "%");
     }
 
-    public Specification<E> equalsAddressLineCy(String addressLineCy) {
-        return (root, query, builder) -> builder.equal(root.get(EnforcerCourtBaseEntity_.addressLine1Cy),
-                                                       addressLineCy);
+    public Specification<E> likeAnyAddressLineCy(String addressLine) {
+        String addressLinePattern = "%" + addressLine.toLowerCase() + "%";
+        return Specification.anyOf(
+            likeAddressLine1Cy(addressLinePattern),
+            likeAddressLine2Cy(addressLinePattern),
+            likeAddressLine3Cy(addressLinePattern));
+    }
+
+    private Specification<E> likeAddressLine1Cy(String addressLinePattern) {
+        return (root, query, builder) -> builder.like(builder.lower(root.get(EnforcerCourtBaseEntity_.addressLine1Cy)),
+                                                      addressLinePattern);
+    }
+
+    private Specification<E> likeAddressLine2Cy(String addressLinePattern) {
+        return (root, query, builder) -> builder.like(builder.lower(root.get(EnforcerCourtBaseEntity_.addressLine2Cy)),
+                                                      addressLinePattern);
+    }
+
+    private Specification<E> likeAddressLine3Cy(String addressLinePattern) {
+        return (root, query, builder) -> builder.like(builder.lower(root.get(EnforcerCourtBaseEntity_.addressLine3Cy)),
+                                                      addressLinePattern);
     }
 
 }
