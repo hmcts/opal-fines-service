@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.search.EnforcementSearchDto;
 import uk.gov.hmcts.opal.entity.EnforcementEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.EnforcementServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyEnforcementService;
 import uk.gov.hmcts.opal.service.opal.EnforcementService;
 
@@ -22,18 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class EnforcementServiceProxyTest {
+class EnforcementServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private EnforcementService opalEnforcementService;
+    private EnforcementService opalService;
 
     @Mock
-    private LegacyEnforcementService legacyEnforcementService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyEnforcementService legacyService;
 
     @InjectMocks
     private EnforcementServiceProxy enforcementServiceProxy;
@@ -48,63 +44,54 @@ class EnforcementServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalEnforcementServiceWhenModeIsNotLegacy() {
-        // Given: a EnforcementEntity and the app mode is set to "opal"
-        EnforcementEntity entity = EnforcementEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalEnforcementService.getEnforcement(anyLong())).thenReturn(entity);
+    void testMode(EnforcementServiceInterface targetService, EnforcementServiceInterface otherService) {
+        testGetEnforcement(targetService, otherService);
+        testSearchEnforcements(targetService, otherService);
+    }
 
-        // When: saveEnforcement is called on the proxy
+    void testGetEnforcement(EnforcementServiceInterface targetService, EnforcementServiceInterface otherService) {
+        // Given: an EnforcementEntity is returned from the target service
+        EnforcementEntity entity = EnforcementEntity.builder().build();
+        when(targetService.getEnforcement(anyLong())).thenReturn(entity);
+
+        // When: getEnforcement is called on the proxy
         EnforcementEntity enforcementResult = enforcementServiceProxy.getEnforcement(1);
 
-        // Then: opalEnforcementService should be used, and the returned enforcement should be as expected
-        verify(opalEnforcementService).getEnforcement(1);
-        verifyNoInteractions(legacyEnforcementService);
+        // Then: target service should be used, and the returned enforcement should be as expected
+        verify(targetService).getEnforcement(1);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, enforcementResult);
+    }
 
-        // Given: a enforcements list result and the app mode is set to "opal"
+    void testSearchEnforcements(EnforcementServiceInterface targetService, EnforcementServiceInterface otherService) {
+        // Given: an enforcements list result is returned from the target service
+        EnforcementEntity entity = EnforcementEntity.builder().build();
         List<EnforcementEntity> enforcementsList = List.of(entity);
-        when(opalEnforcementService.searchEnforcements(any())).thenReturn(enforcementsList);
+        when(targetService.searchEnforcements(any())).thenReturn(enforcementsList);
 
         // When: searchEnforcements is called on the proxy
         EnforcementSearchDto criteria = EnforcementSearchDto.builder().build();
         List<EnforcementEntity> listResult = enforcementServiceProxy.searchEnforcements(criteria);
 
-        // Then: opalEnforcementService should be used, and the returned list should be as expected
-        verify(opalEnforcementService).searchEnforcements(criteria);
-        verifyNoInteractions(legacyEnforcementService);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchEnforcements(criteria);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(enforcementsList, listResult);
     }
 
     @Test
+    void shouldUseOpalEnforcementServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
+    }
+
+    @Test
     void shouldUseLegacyEnforcementServiceWhenModeIsLegacy() {
-        // Given: a EnforcementEntity and the app mode is set to "legacy"
-        EnforcementEntity entity = EnforcementEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyEnforcementService.getEnforcement(anyLong())).thenReturn(entity);
-
-        // When: saveEnforcement is called on the proxy
-        EnforcementEntity result = enforcementServiceProxy.getEnforcement(1);
-
-        // Then: legacyEnforcementService should be used, and the returned enforcement should be as expected
-        verify(legacyEnforcementService).getEnforcement(1);
-        verifyNoInteractions(opalEnforcementService);
-        Assertions.assertEquals(entity, result);
-
-        // Given: a enforcements list result and the app mode is set to "legacy"
-        List<EnforcementEntity> enforcementsList = List.of(entity);
-        when(legacyEnforcementService.searchEnforcements(any())).thenReturn(enforcementsList);
-
-        // When: searchEnforcements is called on the proxy
-        EnforcementSearchDto criteria = EnforcementSearchDto.builder().build();
-        List<EnforcementEntity> listResult = enforcementServiceProxy.searchEnforcements(criteria);
-
-        // Then: opalEnforcementService should be used, and the returned list should be as expected
-        verify(legacyEnforcementService).searchEnforcements(criteria);
-        verifyNoInteractions(opalEnforcementService);
-        Assertions.assertEquals(enforcementsList, listResult); // Not yet implemented in Legacy mode
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }

@@ -8,12 +8,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.PartyDto;
 import uk.gov.hmcts.opal.dto.search.PartySearchDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartySummary;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.PartyServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyPartyService;
 import uk.gov.hmcts.opal.service.opal.PartyService;
 
@@ -21,22 +20,20 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class PartyServiceProxyTest {
+class PartyServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private PartyService opalPartyService;
+    private PartyService opalService;
 
     @Mock
-    private LegacyPartyService legacyPartyService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyPartyService legacyService;
 
     @InjectMocks
     private PartyServiceProxy partyServiceProxy;
@@ -51,101 +48,84 @@ class PartyServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalPartyServiceWhenModeIsNotLegacy() {
-        // Given: a PartyDto and the app mode is set to "opal"
-        PartyDto partyDto = new PartyDto();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalPartyService.saveParty(partyDto)).thenReturn(partyDto);
-        when(opalPartyService.getParty(1L)).thenReturn(partyDto);
-        when(opalPartyService.searchForParty(any())).thenReturn(Collections.emptyList());
+    void testMode(PartyServiceInterface targetService, PartyServiceInterface otherService) {
+        testGetParty(targetService, otherService);
+        testSearchParties(targetService, otherService);
+        testSaveParty(targetService, otherService);
+        testSearchForParty(targetService, otherService);
+    }
 
-        // When: saveParty is called on the proxy
-        PartyDto result1 = partyServiceProxy.saveParty(partyDto);
-
-        // Then: opalPartyService should be used, and the returned party should be as expected
-        verify(opalPartyService).saveParty(partyDto);
-        verifyNoInteractions(legacyPartyService);
-        Assertions.assertEquals(partyDto, result1);
+    void testGetParty(PartyServiceInterface targetService, PartyServiceInterface otherService) {
+        // Given: a PartyEntity is returned from the target service
+        // PartyEntity entity = PartyEntity.builder().build();
+        PartyDto partyDto = PartyDto.builder().build();
+        when(targetService.getParty(anyLong())).thenReturn(partyDto);
 
         // When: getParty is called on the proxy
-        PartyDto result2 = partyServiceProxy.getParty(1L);
+        PartyDto partyResult = partyServiceProxy.getParty(1);
 
-        // Then: opalPartyService should be used, and the returned party should be as expected
-        verify(opalPartyService).getParty(1L);
-        verifyNoInteractions(legacyPartyService);
-        Assertions.assertEquals(partyDto, result2);
+        // Then: target service should be used, and the returned party should be as expected
+        verify(targetService).getParty(1);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(partyDto, partyResult);
+    }
 
-        // When
-        List<PartySummary> result3 = partyServiceProxy.searchForParty(AccountSearchDto.builder().build());
-
-        // Then
-        verify(opalPartyService).searchForParty(any());
-        verifyNoInteractions(legacyPartyService);
-
-        // Given: a courts list result and the app mode is set to "opal"
+    void testSearchParties(PartyServiceInterface targetService, PartyServiceInterface otherService) {
+        // Given: a party list result is returned from the target service
         PartyEntity entity = PartyEntity.builder().build();
-        List<PartyEntity> courtsList = List.of(entity);
-        when(opalPartyService.searchParties(any())).thenReturn(courtsList);
+        List<PartyEntity> partysList = List.of(entity);
+        when(targetService.searchParties(any())).thenReturn(partysList);
 
-        // When: searchCourts is called on the proxy
+        // When: searchParties is called on the proxy
         PartySearchDto criteria = PartySearchDto.builder().build();
         List<PartyEntity> listResult = partyServiceProxy.searchParties(criteria);
 
-        // Then: opalCourtService should be used, and the returned list should be as expected
-        verify(opalPartyService).searchParties(criteria);
-        verifyNoInteractions(legacyPartyService);
-        Assertions.assertEquals(courtsList, listResult);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchParties(criteria);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(partysList, listResult);
+    }
+
+    void testSaveParty(PartyServiceInterface targetService, PartyServiceInterface otherService) {
+        // Given: a PartyDto is returned from the target service
+        PartyDto partyDto = PartyDto.builder().build();
+        when(targetService.saveParty(any(PartyDto.class))).thenReturn(partyDto);
+
+        // When: saveParty is called on the proxy
+        PartyDto partyResult = partyServiceProxy.saveParty(partyDto);
+
+        // Then: target service should be used, and the returned party should be as expected
+        verify(targetService).saveParty(partyDto);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(partyDto, partyResult);
+    }
+
+    void testSearchForParty(PartyServiceInterface targetService, PartyServiceInterface otherService) {
+        // Given: a party list summary result is returned from the target service
+        when(targetService.searchForParty(any())).thenReturn(Collections.emptyList());
+
+        // When: searchForParty is called on the proxy
+        PartySearchDto criteria = PartySearchDto.builder().build();
+        List<PartySummary> listResult = partyServiceProxy.searchForParty(AccountSearchDto.builder().build());
+
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchForParty(any());
+        verifyNoInteractions(otherService);
+    }
+
+    @Test
+    void shouldUseOpalPartyServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
     }
 
     @Test
     void shouldUseLegacyPartyServiceWhenModeIsLegacy() {
-        // Given: a PartyDto and the app mode is set to "legacy"
-        PartyDto partyDto = new PartyDto();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyPartyService.saveParty(partyDto)).thenReturn(partyDto);
-        when(legacyPartyService.getParty(1L)).thenReturn(partyDto);
-        when(legacyPartyService.searchForParty(any())).thenReturn(Collections.emptyList());
-
-        // When: saveParty is called on the proxy
-        PartyDto result1 = partyServiceProxy.saveParty(partyDto);
-
-        // Then: legacyPartyService should be used, and the returned party should be as expected
-        verify(legacyPartyService).saveParty(partyDto);
-        verifyNoInteractions(opalPartyService);
-        Assertions.assertEquals(partyDto, result1);
-
-        // When: getParty is called on the proxy
-        PartyDto result2 = partyServiceProxy.getParty(1L);
-
-        // Then: opalPartyService should be used, and the returned party should be as expected
-        verify(legacyPartyService).getParty(1L);
-        verifyNoInteractions(opalPartyService);
-        Assertions.assertEquals(partyDto, result2);
-
-
-        // When
-        List<PartySummary> result3 = partyServiceProxy.searchForParty(AccountSearchDto.builder().build());
-
-        // Then
-        verify(legacyPartyService).searchForParty(any());
-        verifyNoInteractions(opalPartyService);
-
-        // Given: a courts list result and the app mode is set to "legacy"
-        PartyEntity entity = PartyEntity.builder().build();
-        List<PartyEntity> courtsList = List.of(entity);
-        when(legacyPartyService.searchParties(any())).thenReturn(courtsList);
-
-        // When: searchCourts is called on the proxy
-        PartySearchDto criteria = PartySearchDto.builder().build();
-        List<PartyEntity> listResult = partyServiceProxy.searchParties(criteria);
-
-        // Then: opalCourtService should be used, and the returned list should be as expected
-        verify(legacyPartyService).searchParties(criteria);
-        verifyNoInteractions(opalPartyService);
-        Assertions.assertEquals(courtsList, listResult); // Not yet implemented in Legacy mode
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }
