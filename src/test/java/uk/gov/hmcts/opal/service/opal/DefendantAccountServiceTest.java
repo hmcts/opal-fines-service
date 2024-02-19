@@ -329,7 +329,7 @@ public class DefendantAccountServiceTest {
             .postCode("W1 1AA")
             .dob(LocalDate.of(1979,12,12))
             .detailsChanged(LocalDate.of(2012, 1,1))
-            .lastCourtAppAndCourtCode(LocalDate.of(2012, 1,1).toString()
+            .lastCourtAppAndCourtCode(LocalDate.of(2012, 1,1)
                                           + " " + 1212)
             .lastMovement(LocalDate.of(2012, 1,1))
             .commentField(List.of("Comment1"))
