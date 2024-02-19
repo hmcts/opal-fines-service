@@ -25,8 +25,8 @@ public abstract class BaseCourtSpecs<E extends EnforcerCourtBaseEntity> extends 
     }
 
     public Specification<E> likeNameCy(String nameCy) {
-        return (root, query, builder) -> builder.like(builder.lower(root.get(EnforcerCourtBaseEntity_.nameCy)),
-                                                       "%" + nameCy.toLowerCase() + "%");
+        return (root, query, builder) ->
+            likeWildcardPredicate(root.get(EnforcerCourtBaseEntity_.nameCy), builder, nameCy);
     }
 
     public Specification<E> likeAnyAddressLineCy(String addressLine) {
@@ -38,18 +38,18 @@ public abstract class BaseCourtSpecs<E extends EnforcerCourtBaseEntity> extends 
     }
 
     private Specification<E> likeAddressLine1Cy(String addressLinePattern) {
-        return (root, query, builder) -> builder.like(builder.lower(root.get(EnforcerCourtBaseEntity_.addressLine1Cy)),
-                                                      addressLinePattern);
+        return (root, query, builder) ->
+            likeLowerCasePredicate(root.get(EnforcerCourtBaseEntity_.addressLine1Cy), builder, addressLinePattern);
     }
 
     private Specification<E> likeAddressLine2Cy(String addressLinePattern) {
-        return (root, query, builder) -> builder.like(builder.lower(root.get(EnforcerCourtBaseEntity_.addressLine2Cy)),
-                                                      addressLinePattern);
+        return (root, query, builder) ->
+            likeLowerCasePredicate(root.get(EnforcerCourtBaseEntity_.addressLine2Cy), builder, addressLinePattern);
     }
 
     private Specification<E> likeAddressLine3Cy(String addressLinePattern) {
-        return (root, query, builder) -> builder.like(builder.lower(root.get(EnforcerCourtBaseEntity_.addressLine3Cy)),
-                                                      addressLinePattern);
+        return (root, query, builder) ->
+            likeLowerCasePredicate(root.get(EnforcerCourtBaseEntity_.addressLine3Cy), builder, addressLinePattern);
     }
 
 }
