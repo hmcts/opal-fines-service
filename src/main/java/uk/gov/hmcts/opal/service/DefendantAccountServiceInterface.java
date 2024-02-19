@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import java.util.List;
 
 public interface DefendantAccountServiceInterface {
+    
     DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request);
 
     DefendantAccountEntity putDefendantAccount(DefendantAccountEntity defendantAccountEntity);

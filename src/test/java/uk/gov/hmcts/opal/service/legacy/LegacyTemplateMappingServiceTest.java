@@ -7,7 +7,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import uk.gov.hmcts.opal.dto.search.TemplateMappingSearchDto;
-import uk.gov.hmcts.opal.entity.TemplateMappingEntity.MappingId;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -24,12 +23,10 @@ class LegacyTemplateMappingServiceTest extends LegacyTestsBase {
 
     @Test
     void testGetTemplateMapping() {
-        // Arrange
-        MappingId key = new MappingId(1L, 1L);
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
-            LegacyGatewayResponseException.class, () -> legacyTemplateMappingService.getTemplateMapping(key)
+            LegacyGatewayResponseException.class, () -> legacyTemplateMappingService.getTemplateMapping(1L, 1L)
         );
 
         // Assert

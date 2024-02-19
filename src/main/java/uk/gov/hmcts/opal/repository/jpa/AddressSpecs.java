@@ -22,8 +22,7 @@ public abstract class AddressSpecs<E extends AddressEntity> extends EntitySpecs<
     }
 
     public Specification<E> likeName(String name) {
-        return (root, query, builder) -> builder.like(builder.lower(root.get(AddressEntity_.name)),
-                                                      "%" + name.toLowerCase() + "%");
+        return (root, query, builder) -> likeWildcardPredicate(root.get(AddressEntity_.name), builder, name);
     }
 
     public Specification<E> likeAnyAddressLine(String addressLine) {
@@ -35,23 +34,23 @@ public abstract class AddressSpecs<E extends AddressEntity> extends EntitySpecs<
     }
 
     private Specification<E> likeAddressLine1(String addressLinePattern) {
-        return (root, query, builder) -> builder.like(builder.lower(root.get(AddressEntity_.addressLine1)),
-                                                      addressLinePattern);
+        return (root, query, builder) ->
+            likeLowerCasePredicate(root.get(AddressEntity_.addressLine1), builder, addressLinePattern);
     }
 
     private Specification<E> likeAddressLine2(String addressLinePattern) {
-        return (root, query, builder) -> builder.like(builder.lower(root.get(AddressEntity_.addressLine2)),
-                                                      addressLinePattern);
+        return (root, query, builder) ->
+            likeLowerCasePredicate(root.get(AddressEntity_.addressLine2), builder, addressLinePattern);
     }
 
     private Specification<E> likeAddressLine3(String addressLinePattern) {
-        return (root, query, builder) -> builder.like(builder.lower(root.get(AddressEntity_.addressLine3)),
-                                                      addressLinePattern);
+        return (root, query, builder) ->
+            likeLowerCasePredicate(root.get(AddressEntity_.addressLine3), builder, addressLinePattern);
     }
 
     public Specification<E> likePostcode(String postcode) {
-        return (root, query, builder) -> builder.like(builder.lower(root.get(AddressEntity_.postcode)),
-                                                      "%" + postcode.toLowerCase() + "%");
+        return (root, query, builder) ->
+            likeWildcardPredicate(root.get(AddressEntity_.postcode), builder, postcode);
     }
 
 }

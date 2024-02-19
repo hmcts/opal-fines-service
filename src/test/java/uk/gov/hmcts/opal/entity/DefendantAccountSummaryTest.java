@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.entity;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
