@@ -7,6 +7,8 @@ java:
       secrets:
         - name: app-insights-connection-string
           alias: app-insights-connection-string
+        - name: launch-darkly-sdk-key
+          alias: LAUNCH_DARKLY_SDK_KEY
         - name: fines-service-POSTGRES-HOST
           alias: OPAL_FINES_DB_HOST
         - name: fines-service-POSTGRES-PASS
