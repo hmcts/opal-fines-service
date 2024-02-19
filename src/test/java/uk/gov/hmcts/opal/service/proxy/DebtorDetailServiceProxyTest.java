@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.search.DebtorDetailSearchDto;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.DebtorDetailServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDebtorDetailService;
 import uk.gov.hmcts.opal.service.opal.DebtorDetailService;
 
@@ -22,18 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class DebtorDetailServiceProxyTest {
+class DebtorDetailServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private DebtorDetailService opalDebtorDetailService;
+    private DebtorDetailService opalService;
 
     @Mock
-    private LegacyDebtorDetailService legacyDebtorDetailService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyDebtorDetailService legacyService;
 
     @InjectMocks
     private DebtorDetailServiceProxy debtorDetailServiceProxy;
@@ -48,63 +44,55 @@ class DebtorDetailServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalDebtorDetailServiceWhenModeIsNotLegacy() {
-        // Given: a DebtorDetailEntity and the app mode is set to "opal"
-        DebtorDetailEntity entity = DebtorDetailEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalDebtorDetailService.getDebtorDetail(anyLong())).thenReturn(entity);
+    void testMode(DebtorDetailServiceInterface targetService, DebtorDetailServiceInterface otherService) {
+        testGetDebtorDetail(targetService, otherService);
+        testSearchDebtorDetails(targetService, otherService);
+    }
 
-        // When: saveDebtorDetail is called on the proxy
+    void testGetDebtorDetail(DebtorDetailServiceInterface targetService, DebtorDetailServiceInterface otherService) {
+        // Given: a DebtorDetailEntity is returned from the target service
+        DebtorDetailEntity entity = DebtorDetailEntity.builder().build();
+        when(targetService.getDebtorDetail(anyLong())).thenReturn(entity);
+
+        // When: getDebtorDetail is called on the proxy
         DebtorDetailEntity debtorDetailResult = debtorDetailServiceProxy.getDebtorDetail(1);
 
-        // Then: opalDebtorDetailService should be used, and the returned debtorDetail should be as expected
-        verify(opalDebtorDetailService).getDebtorDetail(1);
-        verifyNoInteractions(legacyDebtorDetailService);
+        // Then: target service should be used, and the returned debtorDetail should be as expected
+        verify(targetService).getDebtorDetail(1);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, debtorDetailResult);
+    }
 
-        // Given: a debtorDetails list result and the app mode is set to "opal"
+    void testSearchDebtorDetails(DebtorDetailServiceInterface targetService,
+                                 DebtorDetailServiceInterface otherService) {
+        // Given: a debtorDetails list result is returned from the target service
+        DebtorDetailEntity entity = DebtorDetailEntity.builder().build();
         List<DebtorDetailEntity> debtorDetailsList = List.of(entity);
-        when(opalDebtorDetailService.searchDebtorDetails(any())).thenReturn(debtorDetailsList);
+        when(targetService.searchDebtorDetails(any())).thenReturn(debtorDetailsList);
 
         // When: searchDebtorDetails is called on the proxy
         DebtorDetailSearchDto criteria = DebtorDetailSearchDto.builder().build();
         List<DebtorDetailEntity> listResult = debtorDetailServiceProxy.searchDebtorDetails(criteria);
 
-        // Then: opalDebtorDetailService should be used, and the returned list should be as expected
-        verify(opalDebtorDetailService).searchDebtorDetails(criteria);
-        verifyNoInteractions(legacyDebtorDetailService);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchDebtorDetails(criteria);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(debtorDetailsList, listResult);
     }
 
     @Test
+    void shouldUseOpalDebtorDetailServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
+    }
+
+    @Test
     void shouldUseLegacyDebtorDetailServiceWhenModeIsLegacy() {
-        // Given: a DebtorDetailEntity and the app mode is set to "legacy"
-        DebtorDetailEntity entity = DebtorDetailEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyDebtorDetailService.getDebtorDetail(anyLong())).thenReturn(entity);
-
-        // When: saveDebtorDetail is called on the proxy
-        DebtorDetailEntity result = debtorDetailServiceProxy.getDebtorDetail(1);
-
-        // Then: legacyDebtorDetailService should be used, and the returned debtorDetail should be as expected
-        verify(legacyDebtorDetailService).getDebtorDetail(1);
-        verifyNoInteractions(opalDebtorDetailService);
-        Assertions.assertEquals(entity, result);
-
-        // Given: a debtorDetails list result and the app mode is set to "legacy"
-        List<DebtorDetailEntity> debtorDetailsList = List.of(entity);
-        when(legacyDebtorDetailService.searchDebtorDetails(any())).thenReturn(debtorDetailsList);
-
-        // When: searchDebtorDetails is called on the proxy
-        DebtorDetailSearchDto criteria = DebtorDetailSearchDto.builder().build();
-        List<DebtorDetailEntity> listResult = debtorDetailServiceProxy.searchDebtorDetails(criteria);
-
-        // Then: opalDebtorDetailService should be used, and the returned list should be as expected
-        verify(legacyDebtorDetailService).searchDebtorDetails(criteria);
-        verifyNoInteractions(opalDebtorDetailService);
-        Assertions.assertEquals(debtorDetailsList, listResult); // Not yet implemented in Legacy mode
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }

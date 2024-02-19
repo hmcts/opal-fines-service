@@ -6,7 +6,7 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.51.0'
   id 'org.sonarqube' version '4.4.1.3373'
   id 'uk.gov.hmcts.java' version '0.12.56'
-  id 'org.flywaydb.flyway' version '10.7.2'
+  id 'org.flywaydb.flyway' version '10.8.1'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.0.46'
 }
 

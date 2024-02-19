@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.proxy;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -10,31 +11,28 @@ import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
 
+
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
-class DefendantAccountServiceProxyTest {
+class DefendantAccountServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private DefendantAccountService opalDefendantAccountService;
+    private DefendantAccountService opalService;
 
     @Mock
-    private LegacyDefendantAccountService legacyDefendantAccountService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyDefendantAccountService legacyService;
 
     @InjectMocks
     private DefendantAccountServiceProxy defendantAccountServiceProxy;
@@ -49,118 +47,89 @@ class DefendantAccountServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalDefendantAccountServiceWhenModeIsNotLegacy() {
-        // Given: a AccountSearchDto and the app mode is set to "opal"
-        AccountSearchDto searchDto = AccountSearchDto.builder().build();
+    void testMode(DefendantAccountServiceInterface targetService, DefendantAccountServiceInterface otherService) {
+        testGetDefendantAccount(targetService, otherService);
+        testSearchDefendantAccounts(targetService, otherService);
+        testGetAccountDetails(targetService, otherService);
+        testPutDefendantAccount(targetService, otherService);
+    }
+
+    void testGetDefendantAccount(DefendantAccountServiceInterface targetService,
+                                 DefendantAccountServiceInterface otherService) {
+        // Given: a DefendantAccountEntity is returned from the target service
+        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+        AccountEnquiryDto enquiryDto = AccountEnquiryDto.builder().build();
+        when(targetService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(entity);
+
+        // When: getDefendantAccount is called on the proxy
+        DefendantAccountEntity defendantAccountResult = defendantAccountServiceProxy.getDefendantAccount(enquiryDto);
+
+        // Then: target service should be used, and the returned defendantAccount should be as expected
+        verify(targetService).getDefendantAccount(enquiryDto);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(entity, defendantAccountResult);
+    }
+
+    void testSearchDefendantAccounts(DefendantAccountServiceInterface targetService,
+                                     DefendantAccountServiceInterface otherService) {
+        // Given: a defendantAccounts results dto result is returned from the target service
         AccountSearchResultsDto resultsDto = AccountSearchResultsDto.builder().build();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalDefendantAccountService.searchDefendantAccounts(searchDto)).thenReturn(resultsDto);
+        when(targetService.searchDefendantAccounts(any())).thenReturn(resultsDto);
 
         // When: searchDefendantAccounts is called on the proxy
-        AccountSearchResultsDto result = defendantAccountServiceProxy.searchDefendantAccounts(searchDto);
+        AccountSearchDto criteria = AccountSearchDto.builder().build();
+        AccountSearchResultsDto listResult = defendantAccountServiceProxy.searchDefendantAccounts(criteria);
 
-        // Then: opalDefendantAccountService should be used, and the returned note should be as expected
-        verify(opalDefendantAccountService).searchDefendantAccounts(searchDto);
-        verifyNoInteractions(legacyDefendantAccountService);
-        assertEquals(resultsDto, result);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchDefendantAccounts(criteria);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(resultsDto, listResult);
+    }
 
-        // Given
-        AccountEnquiryDto enquiryDto = AccountEnquiryDto.builder().build();
-        DefendantAccountEntity accountEntity = DefendantAccountEntity.builder().build();
-        when(opalDefendantAccountService.getDefendantAccount(enquiryDto)).thenReturn(accountEntity);
-
-        // When
-        DefendantAccountEntity resultEntity = defendantAccountServiceProxy.getDefendantAccount(enquiryDto);
-
-        // Then
-        verify(opalDefendantAccountService).getDefendantAccount(enquiryDto);
-        verifyNoInteractions(legacyDefendantAccountService);
-        assertEquals(resultEntity, accountEntity);
-
-        // Given
+    void testGetAccountDetails(DefendantAccountServiceInterface targetService,
+                               DefendantAccountServiceInterface otherService) {
+        // Given: a DefendantAccountEntity is returned from the target service
         AccountDetailsDto accountDetails = AccountDetailsDto.builder().build();
-        when(opalDefendantAccountService.getAccountDetailsByDefendantAccountId(any(Long.class)))
-            .thenReturn(accountDetails);
+        when(targetService.getAccountDetailsByDefendantAccountId(anyLong())).thenReturn(accountDetails);
 
-        // When
-        AccountDetailsDto resultDetails = defendantAccountServiceProxy.getAccountDetailsByDefendantAccountId(1L);
+        // When: getDefendantAccount is called on the proxy
+        AccountDetailsDto defendantAccountResult = defendantAccountServiceProxy
+            .getAccountDetailsByDefendantAccountId(1L);
 
-        // Then
-        verify(opalDefendantAccountService).getAccountDetailsByDefendantAccountId(1L);
-        verifyNoInteractions(legacyDefendantAccountService);
-        assertEquals(accountDetails, resultDetails);
+        // Then: target service should be used, and the returned defendantAccount should be as expected
+        verify(targetService).getAccountDetailsByDefendantAccountId(1L);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(accountDetails, defendantAccountResult);
+    }
 
+    void testPutDefendantAccount(DefendantAccountServiceInterface targetService,
+                                 DefendantAccountServiceInterface otherService) {
+        // Given: a DefendantAccountEntity is returned from the target service
+        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+        when(targetService.putDefendantAccount(any(DefendantAccountEntity.class))).thenReturn(entity);
 
-        // Given
-        when(opalDefendantAccountService.putDefendantAccount(accountEntity))
-            .thenReturn(accountEntity);
+        // When: putDefendantAccount is called on the proxy
+        DefendantAccountEntity defendantAccountResult = defendantAccountServiceProxy.putDefendantAccount(entity);
 
-        // When
-        DefendantAccountEntity resultEntity2 = defendantAccountServiceProxy.putDefendantAccount(accountEntity);
+        // Then: target service should be used, and the returned defendantAccount should be as expected
+        verify(targetService).putDefendantAccount(entity);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(entity, defendantAccountResult);
+    }
 
-        // Then
-        verify(opalDefendantAccountService).putDefendantAccount(accountEntity);
-        verifyNoInteractions(legacyDefendantAccountService);
-        assertEquals(accountEntity, resultEntity2);
+    @Test
+    void shouldUseOpalDefendantAccountServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
     }
 
     @Test
     void shouldUseLegacyDefendantAccountServiceWhenModeIsLegacy() {
-        // Given: a AccountSearchDto and the app mode is set to "legacy"
-        AccountSearchDto searchDto = AccountSearchDto.builder().build();
-        AccountSearchResultsDto resultsDto = AccountSearchResultsDto.builder().build();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyDefendantAccountService.searchDefendantAccounts(searchDto)).thenReturn(resultsDto);
-
-        // When: searchDefendantAccounts is called on the proxy
-        AccountSearchResultsDto result = defendantAccountServiceProxy.searchDefendantAccounts(searchDto);
-
-        // Then: legacyDefendantAccountService should be used, and the returned note should be as expected
-        verify(legacyDefendantAccountService).searchDefendantAccounts(searchDto);
-        verifyNoInteractions(opalDefendantAccountService);
-        assertEquals(resultsDto, result);
-
-        // Given
-        AccountEnquiryDto enquiryDto = AccountEnquiryDto.builder().build();
-        DefendantAccountEntity accountEntity = DefendantAccountEntity.builder().build();
-        when(legacyDefendantAccountService.getDefendantAccount(enquiryDto)).thenReturn(accountEntity);
-
-        // When
-        DefendantAccountEntity resultEntity = defendantAccountServiceProxy.getDefendantAccount(enquiryDto);
-
-        // Then
-        verify(legacyDefendantAccountService).getDefendantAccount(enquiryDto);
-        verifyNoInteractions(opalDefendantAccountService);
-        assertEquals(resultEntity, accountEntity);
-
-        // Given
-        AccountDetailsDto accountDetails = AccountDetailsDto.builder().build();
-        when(legacyDefendantAccountService.getAccountDetailsByDefendantAccountId(any(Long.class)))
-            .thenReturn(accountDetails);
-
-        // When
-        AccountDetailsDto resultDetails = defendantAccountServiceProxy.getAccountDetailsByDefendantAccountId(1L);
-
-        // Then
-        verify(legacyDefendantAccountService).getAccountDetailsByDefendantAccountId(1L);
-        verifyNoInteractions(opalDefendantAccountService);
-        assertEquals(accountDetails, resultDetails);
-
-
-        // Given
-        when(legacyDefendantAccountService.putDefendantAccount(accountEntity))
-            .thenReturn(accountEntity);
-
-        // When
-        DefendantAccountEntity resultEntity2 = defendantAccountServiceProxy.putDefendantAccount(accountEntity);
-
-        // Then
-        verify(legacyDefendantAccountService).putDefendantAccount(accountEntity);
-        verifyNoInteractions(opalDefendantAccountService);
-        assertEquals(accountEntity, resultEntity2);
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }

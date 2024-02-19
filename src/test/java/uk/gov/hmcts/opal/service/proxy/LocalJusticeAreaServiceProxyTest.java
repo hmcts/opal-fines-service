@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.LocalJusticeAreaServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyLocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 
@@ -22,18 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class LocalJusticeAreaServiceProxyTest {
+class LocalJusticeAreaServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private LocalJusticeAreaService opalLocalJusticeAreaService;
+    private LocalJusticeAreaService opalService;
 
     @Mock
-    private LegacyLocalJusticeAreaService legacyLocalJusticeAreaService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyLocalJusticeAreaService legacyService;
 
     @InjectMocks
     private LocalJusticeAreaServiceProxy localJusticeAreaServiceProxy;
@@ -48,63 +44,56 @@ class LocalJusticeAreaServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalLocalJusticeAreaServiceWhenModeIsNotLegacy() {
-        // Given: a LocalJusticeAreaEntity and the app mode is set to "opal"
-        LocalJusticeAreaEntity entity = LocalJusticeAreaEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalLocalJusticeAreaService.getLocalJusticeArea(anyShort())).thenReturn(entity);
+    void testMode(LocalJusticeAreaServiceInterface targetService, LocalJusticeAreaServiceInterface otherService) {
+        testGetLocalJusticeArea(targetService, otherService);
+        testSearchLocalJusticeAreas(targetService, otherService);
+    }
 
-        // When: saveLocalJusticeArea is called on the proxy
+    void testGetLocalJusticeArea(LocalJusticeAreaServiceInterface targetService,
+                                 LocalJusticeAreaServiceInterface otherService) {
+        // Given: a LocalJusticeAreaEntity is returned from the target service
+        LocalJusticeAreaEntity entity = LocalJusticeAreaEntity.builder().build();
+        when(targetService.getLocalJusticeArea(anyShort())).thenReturn(entity);
+
+        // When: getLocalJusticeArea is called on the proxy
         LocalJusticeAreaEntity localJusticeAreaResult = localJusticeAreaServiceProxy.getLocalJusticeArea((short)1);
 
-        // Then: opalLocalJusticeAreaService should be used, and the returned localJusticeArea should be as expected
-        verify(opalLocalJusticeAreaService).getLocalJusticeArea((short)1);
-        verifyNoInteractions(legacyLocalJusticeAreaService);
+        // Then: target service should be used, and the returned localJusticeArea should be as expected
+        verify(targetService).getLocalJusticeArea((short)1);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, localJusticeAreaResult);
+    }
 
-        // Given: a localJusticeAreas list result and the app mode is set to "opal"
+    void testSearchLocalJusticeAreas(LocalJusticeAreaServiceInterface targetService,
+                                     LocalJusticeAreaServiceInterface otherService) {
+        // Given: a localJusticeAreas list result is returned from the target service
+        LocalJusticeAreaEntity entity = LocalJusticeAreaEntity.builder().build();
         List<LocalJusticeAreaEntity> localJusticeAreasList = List.of(entity);
-        when(opalLocalJusticeAreaService.searchLocalJusticeAreas(any())).thenReturn(localJusticeAreasList);
+        when(targetService.searchLocalJusticeAreas(any())).thenReturn(localJusticeAreasList);
 
         // When: searchLocalJusticeAreas is called on the proxy
         LocalJusticeAreaSearchDto criteria = LocalJusticeAreaSearchDto.builder().build();
         List<LocalJusticeAreaEntity> listResult = localJusticeAreaServiceProxy.searchLocalJusticeAreas(criteria);
 
-        // Then: opalLocalJusticeAreaService should be used, and the returned list should be as expected
-        verify(opalLocalJusticeAreaService).searchLocalJusticeAreas(criteria);
-        verifyNoInteractions(legacyLocalJusticeAreaService);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchLocalJusticeAreas(criteria);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(localJusticeAreasList, listResult);
     }
 
     @Test
+    void shouldUseOpalLocalJusticeAreaServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
+    }
+
+    @Test
     void shouldUseLegacyLocalJusticeAreaServiceWhenModeIsLegacy() {
-        // Given: a LocalJusticeAreaEntity and the app mode is set to "legacy"
-        LocalJusticeAreaEntity entity = LocalJusticeAreaEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyLocalJusticeAreaService.getLocalJusticeArea(anyShort())).thenReturn(entity);
-
-        // When: saveLocalJusticeArea is called on the proxy
-        LocalJusticeAreaEntity result = localJusticeAreaServiceProxy.getLocalJusticeArea((short)1);
-
-        // Then: legacyLocalJusticeAreaService should be used, and the returned localJusticeArea should be as expected
-        verify(legacyLocalJusticeAreaService).getLocalJusticeArea((short)1);
-        verifyNoInteractions(opalLocalJusticeAreaService);
-        Assertions.assertEquals(entity, result);
-
-        // Given: a localJusticeAreas list result and the app mode is set to "legacy"
-        List<LocalJusticeAreaEntity> localJusticeAreasList = List.of(entity);
-        when(legacyLocalJusticeAreaService.searchLocalJusticeAreas(any())).thenReturn(localJusticeAreasList);
-
-        // When: searchLocalJusticeAreas is called on the proxy
-        LocalJusticeAreaSearchDto criteria = LocalJusticeAreaSearchDto.builder().build();
-        List<LocalJusticeAreaEntity> listResult = localJusticeAreaServiceProxy.searchLocalJusticeAreas(criteria);
-
-        // Then: opalLocalJusticeAreaService should be used, and the returned list should be as expected
-        verify(legacyLocalJusticeAreaService).searchLocalJusticeAreas(criteria);
-        verifyNoInteractions(opalLocalJusticeAreaService);
-        Assertions.assertEquals(localJusticeAreasList, listResult); // Not yet implemented in Legacy mode
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }
