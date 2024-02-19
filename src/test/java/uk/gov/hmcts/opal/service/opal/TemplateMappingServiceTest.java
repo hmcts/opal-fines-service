@@ -13,7 +13,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.TemplateMappingSearchDto;
 import uk.gov.hmcts.opal.entity.TemplateMappingEntity;
-import uk.gov.hmcts.opal.entity.TemplateMappingEntity.MappingId;
 import uk.gov.hmcts.opal.repository.TemplateMappingRepository;
 
 import java.util.List;
@@ -22,6 +21,7 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,11 +38,12 @@ class TemplateMappingServiceTest {
         // Arrange
 
         TemplateMappingEntity templateMappingEntity = TemplateMappingEntity.builder().build();
-        when(templateMappingRepository.getReferenceById(any())).thenReturn(templateMappingEntity);
+        when(templateMappingRepository
+                 .findDistinctByTemplate_TemplateIdAndApplicationFunction_ApplicationFunctionId(anyLong(), anyLong()))
+            .thenReturn(templateMappingEntity);
 
         // Act
-        TemplateMappingEntity result = templateMappingService.getTemplateMapping(
-            new MappingId(1L, 1L));
+        TemplateMappingEntity result = templateMappingService.getTemplateMapping(1L, 1L);
 
         // Assert
         assertNotNull(result);

@@ -14,9 +14,9 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyDefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.DefendantAccountSummary.PartyLink;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyDefendantAccountSummary;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyLink;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -140,7 +140,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
         //query db for defendantAccountPartiesEntity
         DefendantAccountPartiesEntity defendantAccountPartiesEntity = defendantAccountPartiesRepository
-            .findByDefendantAccountDefendantAccountId(defendantAccountId);
+            .findByDefendantAccount_DefendantAccountId(defendantAccountId);
 
         //Extract unique defendantAccount and party entities
         final DefendantAccountEntity defendantAccountEntity = defendantAccountPartiesEntity.getDefendantAccount();
