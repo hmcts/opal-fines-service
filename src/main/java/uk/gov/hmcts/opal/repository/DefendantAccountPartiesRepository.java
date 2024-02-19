@@ -8,5 +8,5 @@ import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 public interface DefendantAccountPartiesRepository extends JpaRepository<DefendantAccountPartiesEntity, Long> {
 
 
-    DefendantAccountPartiesEntity findByDefendantAccountDefendantAccountId(Long defendantAccountId);
+    DefendantAccountPartiesEntity findByDefendantAccount_DefendantAccountId(Long defendantAccountId);
 }
