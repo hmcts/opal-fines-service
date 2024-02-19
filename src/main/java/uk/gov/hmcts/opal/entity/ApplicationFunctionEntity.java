@@ -12,13 +12,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Entity
 @Table(name = "application_functions")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ApplicationFunctionEntity {
+public class ApplicationFunctionEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "application_function_id_seq_generator")
