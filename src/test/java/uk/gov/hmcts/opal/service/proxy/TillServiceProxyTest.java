@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.search.TillSearchDto;
 import uk.gov.hmcts.opal.entity.TillEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.TillServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyTillService;
 import uk.gov.hmcts.opal.service.opal.TillService;
 
@@ -22,18 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class TillServiceProxyTest {
+class TillServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private TillService opalTillService;
+    private TillService opalService;
 
     @Mock
-    private LegacyTillService legacyTillService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyTillService legacyService;
 
     @InjectMocks
     private TillServiceProxy tillServiceProxy;
@@ -48,63 +44,54 @@ class TillServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalTillServiceWhenModeIsNotLegacy() {
-        // Given: a TillEntity and the app mode is set to "opal"
-        TillEntity entity = TillEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalTillService.getTill(anyLong())).thenReturn(entity);
+    void testMode(TillServiceInterface targetService, TillServiceInterface otherService) {
+        testGetTill(targetService, otherService);
+        testSearchTills(targetService, otherService);
+    }
 
-        // When: saveTill is called on the proxy
+    void testGetTill(TillServiceInterface targetService, TillServiceInterface otherService) {
+        // Given: a TillEntity is returned from the target service
+        TillEntity entity = TillEntity.builder().build();
+        when(targetService.getTill(anyLong())).thenReturn(entity);
+
+        // When: getTill is called on the proxy
         TillEntity tillResult = tillServiceProxy.getTill(1);
 
-        // Then: opalTillService should be used, and the returned till should be as expected
-        verify(opalTillService).getTill(1);
-        verifyNoInteractions(legacyTillService);
+        // Then: target service should be used, and the returned till should be as expected
+        verify(targetService).getTill(1);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, tillResult);
+    }
 
-        // Given: a tills list result and the app mode is set to "opal"
+    void testSearchTills(TillServiceInterface targetService, TillServiceInterface otherService) {
+        // Given: a tills list result is returned from the target service
+        TillEntity entity = TillEntity.builder().build();
         List<TillEntity> tillsList = List.of(entity);
-        when(opalTillService.searchTills(any())).thenReturn(tillsList);
+        when(targetService.searchTills(any())).thenReturn(tillsList);
 
         // When: searchTills is called on the proxy
         TillSearchDto criteria = TillSearchDto.builder().build();
         List<TillEntity> listResult = tillServiceProxy.searchTills(criteria);
 
-        // Then: opalTillService should be used, and the returned list should be as expected
-        verify(opalTillService).searchTills(criteria);
-        verifyNoInteractions(legacyTillService);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchTills(criteria);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(tillsList, listResult);
     }
 
     @Test
+    void shouldUseOpalTillServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
+    }
+
+    @Test
     void shouldUseLegacyTillServiceWhenModeIsLegacy() {
-        // Given: a TillEntity and the app mode is set to "legacy"
-        TillEntity entity = TillEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyTillService.getTill(anyLong())).thenReturn(entity);
-
-        // When: saveTill is called on the proxy
-        TillEntity result = tillServiceProxy.getTill(1);
-
-        // Then: legacyTillService should be used, and the returned till should be as expected
-        verify(legacyTillService).getTill(1);
-        verifyNoInteractions(opalTillService);
-        Assertions.assertEquals(entity, result);
-
-        // Given: a tills list result and the app mode is set to "legacy"
-        List<TillEntity> tillsList = List.of(entity);
-        when(legacyTillService.searchTills(any())).thenReturn(tillsList);
-
-        // When: searchTills is called on the proxy
-        TillSearchDto criteria = TillSearchDto.builder().build();
-        List<TillEntity> listResult = tillServiceProxy.searchTills(criteria);
-
-        // Then: opalTillService should be used, and the returned list should be as expected
-        verify(legacyTillService).searchTills(criteria);
-        verifyNoInteractions(opalTillService);
-        Assertions.assertEquals(tillsList, listResult); // Not yet implemented in Legacy mode
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }

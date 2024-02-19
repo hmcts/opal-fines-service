@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.CourtEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.CourtServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyCourtService;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 
@@ -22,18 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class CourtServiceProxyTest {
+class CourtServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private CourtService opalCourtService;
+    private CourtService opalService;
 
     @Mock
-    private LegacyCourtService legacyCourtService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyCourtService legacyService;
 
     @InjectMocks
     private CourtServiceProxy courtServiceProxy;
@@ -48,63 +44,54 @@ class CourtServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalCourtServiceWhenModeIsNotLegacy() {
-        // Given: a CourtEntity and the app mode is set to "opal"
-        CourtEntity entity = CourtEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalCourtService.getCourt(anyLong())).thenReturn(entity);
+    void testMode(CourtServiceInterface targetService, CourtServiceInterface otherService) {
+        testGetCourt(targetService, otherService);
+        testSearchCourts(targetService, otherService);
+    }
 
-        // When: saveCourt is called on the proxy
+    void testGetCourt(CourtServiceInterface targetService, CourtServiceInterface otherService) {
+        // Given: a CourtEntity is returned from the target service
+        CourtEntity entity = CourtEntity.builder().build();
+        when(targetService.getCourt(anyLong())).thenReturn(entity);
+
+        // When: getCourt is called on the proxy
         CourtEntity courtResult = courtServiceProxy.getCourt(1);
 
-        // Then: opalCourtService should be used, and the returned court should be as expected
-        verify(opalCourtService).getCourt(1);
-        verifyNoInteractions(legacyCourtService);
+        // Then: target service should be used, and the returned court should be as expected
+        verify(targetService).getCourt(1);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, courtResult);
+    }
 
-        // Given: a courts list result and the app mode is set to "opal"
+    void testSearchCourts(CourtServiceInterface targetService, CourtServiceInterface otherService) {
+        // Given: a courts list result is returned from the target service
+        CourtEntity entity = CourtEntity.builder().build();
         List<CourtEntity> courtsList = List.of(entity);
-        when(opalCourtService.searchCourts(any())).thenReturn(courtsList);
+        when(targetService.searchCourts(any())).thenReturn(courtsList);
 
         // When: searchCourts is called on the proxy
         CourtSearchDto criteria = CourtSearchDto.builder().build();
         List<CourtEntity> listResult = courtServiceProxy.searchCourts(criteria);
 
-        // Then: opalCourtService should be used, and the returned list should be as expected
-        verify(opalCourtService).searchCourts(criteria);
-        verifyNoInteractions(legacyCourtService);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchCourts(criteria);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(courtsList, listResult);
     }
 
     @Test
+    void shouldUseOpalCourtServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
+    }
+
+    @Test
     void shouldUseLegacyCourtServiceWhenModeIsLegacy() {
-        // Given: a CourtEntity and the app mode is set to "legacy"
-        CourtEntity entity = CourtEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyCourtService.getCourt(anyLong())).thenReturn(entity);
-
-        // When: saveCourt is called on the proxy
-        CourtEntity result = courtServiceProxy.getCourt(1);
-
-        // Then: legacyCourtService should be used, and the returned court should be as expected
-        verify(legacyCourtService).getCourt(1);
-        verifyNoInteractions(opalCourtService);
-        Assertions.assertEquals(entity, result);
-
-        // Given: a courts list result and the app mode is set to "legacy"
-        List<CourtEntity> courtsList = List.of(entity);
-        when(legacyCourtService.searchCourts(any())).thenReturn(courtsList);
-
-        // When: searchCourts is called on the proxy
-        CourtSearchDto criteria = CourtSearchDto.builder().build();
-        List<CourtEntity> listResult = courtServiceProxy.searchCourts(criteria);
-
-        // Then: opalCourtService should be used, and the returned list should be as expected
-        verify(legacyCourtService).searchCourts(criteria);
-        verifyNoInteractions(opalCourtService);
-        Assertions.assertEquals(courtsList, listResult); // Not yet implemented in Legacy mode
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }
