@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.DateDto;
 
@@ -40,11 +43,27 @@ public abstract class EntitySpecs<E> {
         return Optional.ofNullable(candidate).filter(s -> !s.isBlank());
     }
 
+    public Optional<String> numeric(String candidate) {
+        return notBlank(candidate).filter(s -> s.matches("\\d+"));
+    }
+
+    public Optional<Long> numericLong(String candidate) {
+        return numeric(candidate).map(Long::parseLong);
+    }
+
     public Optional<LocalDate> notNullLocalDate(DateDto candidate) {
         return Optional.ofNullable(candidate).map(DateDto::toLocalDate);
     }
 
     public Optional<LocalDateTime> notNullLocalDateTime(DateDto candidate) {
         return Optional.ofNullable(candidate).map(DateDto::toLocalDate).map(d -> d.atTime(0, 0, 0));
+    }
+
+    public static Predicate likeWildcardPredicate(Path<String> path, CriteriaBuilder builder, String candidate) {
+        return likeLowerCasePredicate(path, builder, "%" + candidate + "%");
+    }
+
+    public static Predicate likeLowerCasePredicate(Path<String> path, CriteriaBuilder builder, String candidate) {
+        return builder.like(builder.lower(path),candidate.toLowerCase());
     }
 }

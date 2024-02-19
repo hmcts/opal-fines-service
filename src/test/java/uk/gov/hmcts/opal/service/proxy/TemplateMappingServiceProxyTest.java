@@ -9,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.search.TemplateMappingSearchDto;
 import uk.gov.hmcts.opal.entity.TemplateMappingEntity;
-import uk.gov.hmcts.opal.entity.TemplateMappingEntity.MappingId;
 import uk.gov.hmcts.opal.service.TemplateMappingServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyTemplateMappingService;
 import uk.gov.hmcts.opal.service.opal.TemplateMappingService;
@@ -17,6 +16,7 @@ import uk.gov.hmcts.opal.service.opal.TemplateMappingService;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -53,14 +53,13 @@ class TemplateMappingServiceProxyTest extends ProxyTestsBase {
                                 TemplateMappingServiceInterface otherService) {
         // Given: a TemplateMappingEntity is returned from the target service
         TemplateMappingEntity entity = TemplateMappingEntity.builder().build();
-        when(targetService.getTemplateMapping(any(MappingId.class))).thenReturn(entity);
+        when(targetService.getTemplateMapping(anyLong(), anyLong())).thenReturn(entity);
 
         // When: getTemplateMapping is called on the proxy
-        MappingId key = new MappingId(1L, 1L);
-        TemplateMappingEntity templateMappingResult = templateMappingServiceProxy.getTemplateMapping(key);
+        TemplateMappingEntity templateMappingResult = templateMappingServiceProxy.getTemplateMapping(1L, 1L);
 
         // Then: target service should be used, and the returned templateMapping should be as expected
-        verify(targetService).getTemplateMapping(key);
+        verify(targetService).getTemplateMapping(anyLong(), anyLong());
         verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, templateMappingResult);
     }
