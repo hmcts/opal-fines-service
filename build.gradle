@@ -227,7 +227,7 @@ repositories {
 }
 
 ext {
-  log4JVersion = "2.22.1"
+  log4JVersion = "2.23.0"
   serenityVersion = "4.1.0"
 }
 
