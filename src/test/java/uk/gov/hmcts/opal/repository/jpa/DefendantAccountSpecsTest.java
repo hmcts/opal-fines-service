@@ -15,7 +15,7 @@ public class DefendantAccountSpecsTest {
         assertNotNull(DefendantAccountSpecs.equalsImposingCourtId(1L));
         assertNotNull(DefendantAccountSpecs.equalsAccountNumber("test"));
         assertNotNull(DefendantAccountSpecs.equalsDateOfBirth(LocalDate.now()));
-        assertNotNull(DefendantAccountSpecs.likeAddressLine1("test"));
+        assertNotNull(DefendantAccountSpecs.likeAnyAddressLine("test"));
         assertNotNull(DefendantAccountSpecs.likeForename("test"));
         assertNotNull(DefendantAccountSpecs.likeNiNumber("test"));
         assertNotNull(DefendantAccountSpecs.likeSurname("test"));

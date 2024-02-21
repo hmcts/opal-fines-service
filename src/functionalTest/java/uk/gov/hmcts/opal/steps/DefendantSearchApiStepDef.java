@@ -32,8 +32,8 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
         requestBody.put("dateOfBirth", dateOfBirth);
 
         requestBody.put(
-            "addressLineOne",
-            dataToPost.get("addressLineOne") != null ? dataToPost.get("addressLineOne") : ""
+            "addressLine",
+            dataToPost.get("addressLine") != null ? dataToPost.get("addressLine") : ""
         );
 
         SerenityRest
