@@ -9,14 +9,8 @@ Feature: Test the defendant account search API Legacy
       | dayOfMonth     |  |
       | monthOfYear    |  |
       | year           |  |
-      | addressLineOne |  |
+      | addressLine    |  |
     Then there is one result returned matching
       | name         | Sir Albert MBE Jones |
       | dateOfBirth  | 1988-08-28           |
       | addressLine1 | Wales                |
-
-
-
-
-
-

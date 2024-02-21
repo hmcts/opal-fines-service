@@ -67,7 +67,7 @@ public class DefendantAccountSearchCriteria implements ToJsonString {
                            .map(DateDto::toLocalDate)
                            .map(Objects::toString)
                            .orElse(null))
-            .addressLine1(dto.getAddressLineOne())
+            .addressLine1(dto.getAddressLine())
             .nationalInsuranceNumber(dto.getNiNumber())
             .prosecutorCaseReference(dto.getPcr())
             .businessUnitId(dto.getNumericCourt().orElse(null))
