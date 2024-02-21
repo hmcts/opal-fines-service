@@ -53,8 +53,6 @@ public class BusinessUnitUserController {
 
         List<BusinessUnitUserEntity> response = businessUnitUserService.searchBusinessUnitUsers(criteria);
 
-        log.info(":POST:postBusinessUnitUsersSearch: response count: {}", response.size());
-
         return buildResponse(response);
     }
 

@@ -1,12 +1,9 @@
 package uk.gov.hmcts.opal.entity;
 
-import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,21 +22,21 @@ import java.io.Serializable;
 public class TemplateMappingEntity {
 
     @Id
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "template_id", nullable = false)
-    private TemplateEntity template;
+    @Column(name = "template_id")
+    private Long templateId;
 
     @Id
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_function_id", nullable = false)
-    private ApplicationFunctionEntity applicationFunction;
+    @Column(name = "application_function_id")
+    private Long applicationFunctionId;
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class MappingId implements Serializable {
-        private TemplateEntity template;
-        private ApplicationFunctionEntity applicationFunction;
+
+        private Long templateId;
+
+        private Long applicationFunctionId;
     }
 
 }

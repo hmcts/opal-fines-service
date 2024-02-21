@@ -1,8 +1,5 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.TemplateSearchDto;
 import uk.gov.hmcts.opal.entity.TemplateEntity;
@@ -12,26 +9,12 @@ public class TemplateSpecs extends EntitySpecs<TemplateEntity> {
 
     public Specification<TemplateEntity> findBySearchCriteria(TemplateSearchDto criteria) {
         return Specification.allOf(specificationList(
-            numericLong(criteria.getTemplateId()).map(TemplateSpecs::equalsTemplateId),
-            notBlank(criteria.getTemplateName()).map(TemplateSpecs::likeTemplateName)
+            notBlank(criteria.getTemplateId()).map(TemplateSpecs::equalsTemplateId)
         ));
     }
 
-    public static Specification<TemplateEntity> equalsTemplateId(Long templateId) {
-        return (root, query, builder) -> templateIdPredicate(root, builder, templateId);
+    public static Specification<TemplateEntity> equalsTemplateId(String templateId) {
+        return (root, query, builder) -> builder.equal(root.get(TemplateEntity_.templateId), templateId);
     }
 
-    public static Predicate templateIdPredicate(From<?, TemplateEntity> from, CriteriaBuilder builder,
-                                                Long templateId) {
-        return builder.equal(from.get(TemplateEntity_.templateId), templateId);
-    }
-
-    public static Specification<TemplateEntity> likeTemplateName(String templateName) {
-        return (root, query, builder) -> templateNamePredicate(root, builder, templateName);
-    }
-
-    public static Predicate templateNamePredicate(From<?, TemplateEntity> from, CriteriaBuilder builder,
-                                                  String templateName) {
-        return likeWildcardPredicate(from.get(TemplateEntity_.templateName), builder, templateName);
-    }
 }

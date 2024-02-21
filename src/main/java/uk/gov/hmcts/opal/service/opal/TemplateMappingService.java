@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.TemplateMappingSearchDto;
 import uk.gov.hmcts.opal.entity.TemplateMappingEntity;
+import uk.gov.hmcts.opal.entity.TemplateMappingEntity.MappingId;
 import uk.gov.hmcts.opal.repository.TemplateMappingRepository;
 import uk.gov.hmcts.opal.repository.jpa.TemplateMappingSpecs;
 import uk.gov.hmcts.opal.service.TemplateMappingServiceInterface;
@@ -22,10 +23,8 @@ public class TemplateMappingService implements TemplateMappingServiceInterface {
     private final TemplateMappingSpecs specs = new TemplateMappingSpecs();
 
     @Override
-    public TemplateMappingEntity getTemplateMapping(Long templateId, Long applicationFunctionId) {
-        return templateMappingRepository
-            .findDistinctByTemplate_TemplateIdAndApplicationFunction_ApplicationFunctionId(
-                templateId, applicationFunctionId);
+    public TemplateMappingEntity getTemplateMapping(MappingId templateMappingId) {
+        return templateMappingRepository.getReferenceById(templateMappingId);
     }
 
     @Override

@@ -1,6 +1,4 @@
-package uk.gov.hmcts.opal.entity.projection;
-
-import uk.gov.hmcts.opal.entity.FullNameBuilder;
+package uk.gov.hmcts.opal.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

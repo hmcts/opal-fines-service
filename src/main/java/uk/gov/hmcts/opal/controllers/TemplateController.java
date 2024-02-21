@@ -51,8 +51,6 @@ public class TemplateController {
 
         List<TemplateEntity> response = templateService.searchTemplates(criteria);
 
-        log.info(":POST:postTemplatesSearch: response count: {}", response.size());
-
         return buildResponse(response);
     }
 

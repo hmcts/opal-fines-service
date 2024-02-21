@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.TemplateMappingSearchDto;
 import uk.gov.hmcts.opal.entity.TemplateMappingEntity;
+import uk.gov.hmcts.opal.entity.TemplateMappingEntity.MappingId;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.TemplateMappingServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyTemplateMappingService;
@@ -26,8 +27,8 @@ public class TemplateMappingServiceProxy implements TemplateMappingServiceInterf
     }
 
     @Override
-    public TemplateMappingEntity getTemplateMapping(Long templateId, Long applicationFunctionId) {
-        return getCurrentModeService().getTemplateMapping(templateId, applicationFunctionId);
+    public TemplateMappingEntity getTemplateMapping(MappingId templateMappingId) {
+        return getCurrentModeService().getTemplateMapping(templateMappingId);
     }
 
     @Override

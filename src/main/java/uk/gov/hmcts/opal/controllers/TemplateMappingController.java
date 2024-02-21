@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.search.TemplateMappingSearchDto;
 import uk.gov.hmcts.opal.entity.TemplateMappingEntity;
+import uk.gov.hmcts.opal.entity.TemplateMappingEntity.MappingId;
 import uk.gov.hmcts.opal.service.TemplateMappingServiceInterface;
 
 import java.util.List;
@@ -39,10 +40,10 @@ public class TemplateMappingController {
     public ResponseEntity<TemplateMappingEntity> getTemplateMappingById(@PathVariable Long templateId,
                                                                         @PathVariable Long applicationFunctionId) {
 
-        log.info(":GET:getTemplateMappingById: templateId: {}, applicationFunctionId: {}",
-                 templateId, applicationFunctionId);
+        MappingId mappingId = new MappingId(templateId, applicationFunctionId);
+        log.info(":GET:getTemplateMappingById: mappingId: {}", mappingId);
 
-        TemplateMappingEntity response = templateMappingService.getTemplateMapping(templateId, applicationFunctionId);
+        TemplateMappingEntity response = templateMappingService.getTemplateMapping(mappingId);
 
         return buildResponse(response);
     }
@@ -54,8 +55,6 @@ public class TemplateMappingController {
         log.info(":POST:postTemplateMappingsSearch: query: \n{}", criteria);
 
         List<TemplateMappingEntity> response = templateMappingService.searchTemplateMappings(criteria);
-
-        log.info(":POST:postTemplateMappingsSearch: response count: {}", response.size());
 
         return buildResponse(response);
     }

@@ -54,8 +54,6 @@ public class ApplicationFunctionController {
 
         List<ApplicationFunctionEntity> response = applicationFunctionService.searchApplicationFunctions(criteria);
 
-        log.info(":POST:postApplicationFunctionsSearch: response count: {}", response.size());
-
         return buildResponse(response);
     }
 

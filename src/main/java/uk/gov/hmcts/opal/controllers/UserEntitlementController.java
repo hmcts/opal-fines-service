@@ -53,8 +53,6 @@ public class UserEntitlementController {
 
         List<UserEntitlementEntity> response = userEntitlementService.searchUserEntitlements(criteria);
 
-        log.info(":POST:postUserEntitlementsSearch: response count: {}", response.size());
-
         return buildResponse(response);
     }
 
