@@ -9,13 +9,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.search.TemplateMappingSearchDto;
 import uk.gov.hmcts.opal.entity.TemplateMappingEntity;
+import uk.gov.hmcts.opal.entity.TemplateMappingEntity.MappingId;
 import uk.gov.hmcts.opal.service.opal.TemplateMappingService;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,7 +34,7 @@ class TemplateMappingControllerTest {
         // Arrange
         TemplateMappingEntity entity = TemplateMappingEntity.builder().build();
 
-        when(templateMappingService.getTemplateMapping(anyLong(), anyLong())).thenReturn(entity);
+        when(templateMappingService.getTemplateMapping(any(MappingId.class))).thenReturn(entity);
 
         // Act
         ResponseEntity<TemplateMappingEntity> response = templateMappingController
@@ -43,7 +43,7 @@ class TemplateMappingControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
-        verify(templateMappingService, times(1)).getTemplateMapping(anyLong(), anyLong());
+        verify(templateMappingService, times(1)).getTemplateMapping(any(MappingId.class));
     }
 
     @Test

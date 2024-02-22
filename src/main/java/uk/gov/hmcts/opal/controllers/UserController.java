@@ -51,8 +51,6 @@ public class UserController {
 
         List<UserEntity> response = userService.searchUsers(criteria);
 
-        log.info(":POST:postUsersSearch: response count: {}", response.size());
-
         return buildResponse(response);
     }
 

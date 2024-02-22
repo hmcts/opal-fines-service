@@ -9,8 +9,4 @@ import uk.gov.hmcts.opal.entity.TemplateMappingEntity.MappingId;
 @Repository
 public interface TemplateMappingRepository extends JpaRepository<TemplateMappingEntity,
     MappingId>, JpaSpecificationExecutor<TemplateMappingEntity> {
-
-    TemplateMappingEntity findDistinctByTemplate_TemplateIdAndApplicationFunction_ApplicationFunctionId(
-        Long templateId, Long applicationFunctionId);
-
 }

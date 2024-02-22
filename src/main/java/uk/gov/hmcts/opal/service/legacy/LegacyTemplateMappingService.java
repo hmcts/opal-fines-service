@@ -25,7 +25,7 @@ public class LegacyTemplateMappingService extends LegacyService implements Templ
     }
 
     @Override
-    public TemplateMappingEntity getTemplateMapping(Long templateId, Long applicationFunctionId) {
+    public TemplateMappingEntity getTemplateMapping(TemplateMappingEntity.MappingId templateMappingId) {
         throw new LegacyGatewayResponseException("Not Yet Implemented");
     }
 
