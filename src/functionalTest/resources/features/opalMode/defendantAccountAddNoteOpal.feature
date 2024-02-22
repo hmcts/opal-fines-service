@@ -11,12 +11,12 @@ Feature: Test the add note endpoint for Opal
 
   Scenario: latest added note response is returned in ac details request
     When I make a request to the defendant account add notes api with
-      | associatedRecordId | 500000000               |
+      | associatedRecordId | 500000001               |
       | noteText           | test account note2 Opal |
     And the add notes response contains
-      | associatedRecordId | 500000000               |
+      | associatedRecordId | 500000001               |
       | noteText           | test account note2 Opal |
     When I make a request to the defendant account details api with
-      | defendantID | 500000000 |
+      | defendantID | 500000001 |
     Then the following account note is returned in the ac details request
       | accountNotes | test account note2 Opal |
