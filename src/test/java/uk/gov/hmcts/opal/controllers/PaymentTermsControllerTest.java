@@ -31,7 +31,7 @@ class PaymentTermsControllerTest {
     @Test
     void testGetPaymentTerms_Success() {
         // Arrange
-        PaymentTermsEntity entity = PaymentTermsEntity.builder().build(); //some id assigned by db sequence
+        PaymentTermsEntity entity = PaymentTermsEntity.builder().build();
 
         when(paymentTermsService.getPaymentTerms(any(Long.class))).thenReturn(entity);
 

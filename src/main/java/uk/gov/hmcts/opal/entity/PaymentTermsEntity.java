@@ -67,4 +67,7 @@ public class PaymentTermsEntity {
     @Column(name = "account_balance")
     private BigDecimal accountBalance;
 
+    @Column(name = "posted_by_aad", length = 100)
+    private String postedByAad;
+
 }

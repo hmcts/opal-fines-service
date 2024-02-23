@@ -31,7 +31,7 @@ class TillControllerTest {
     @Test
     void testGetTill_Success() {
         // Arrange
-        TillEntity entity = TillEntity.builder().build(); //some id assigned by db sequence
+        TillEntity entity = TillEntity.builder().build();
 
         when(tillService.getTill(any(Long.class))).thenReturn(entity);
 

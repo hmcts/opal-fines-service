@@ -31,7 +31,7 @@ class DocumentControllerTest {
     @Test
     void testGetDocument_Success() {
         // Arrange
-        DocumentEntity entity = DocumentEntity.builder().build(); //some id assigned by db sequence
+        DocumentEntity entity = DocumentEntity.builder().build();
 
         when(documentService.getDocument(any(String.class))).thenReturn(entity);
 
