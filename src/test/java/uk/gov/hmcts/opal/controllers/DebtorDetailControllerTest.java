@@ -31,7 +31,7 @@ class DebtorDetailControllerTest {
     @Test
     void testGetDebtorDetail_Success() {
         // Arrange
-        DebtorDetailEntity entity = DebtorDetailEntity.builder().build(); //some id assigned by db sequence
+        DebtorDetailEntity entity = DebtorDetailEntity.builder().build();
 
         when(debtorDetailService.getDebtorDetail(any(Long.class))).thenReturn(entity);
 

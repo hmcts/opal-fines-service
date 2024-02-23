@@ -32,7 +32,7 @@ class NoteControllerTest {
     void testCreateNote_Success() {
         // Arrange
         NoteDto noteDtoRequest = NoteDto.builder().build();
-        NoteDto noteDtoResponse = NoteDto.builder().noteId(1L).build(); //some id assigned by db sequence
+        NoteDto noteDtoResponse = NoteDto.builder().noteId(1L).build();
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(noteDtoResponse);
 

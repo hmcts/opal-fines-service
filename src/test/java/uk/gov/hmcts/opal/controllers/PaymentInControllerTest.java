@@ -31,7 +31,7 @@ class PaymentInControllerTest {
     @Test
     void testGetPaymentIn_Success() {
         // Arrange
-        PaymentInEntity entity = PaymentInEntity.builder().build(); //some id assigned by db sequence
+        PaymentInEntity entity = PaymentInEntity.builder().build();
 
         when(paymentInService.getPaymentIn(any(Long.class))).thenReturn(entity);
 

@@ -31,7 +31,7 @@ class AccountTransferControllerTest {
     @Test
     void testGetAccountTransfer_Success() {
         // Arrange
-        AccountTransferEntity entity = AccountTransferEntity.builder().build(); //some id assigned by db sequence
+        AccountTransferEntity entity = AccountTransferEntity.builder().build();
 
         when(accountTransferService.getAccountTransfer(any(Long.class))).thenReturn(entity);
 

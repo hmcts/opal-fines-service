@@ -31,7 +31,7 @@ class CourtControllerTest {
     @Test
     void testGetCourt_Success() {
         // Arrange
-        CourtEntity entity = CourtEntity.builder().build(); //some id assigned by db sequence
+        CourtEntity entity = CourtEntity.builder().build();
 
         when(courtService.getCourt(any(Long.class))).thenReturn(entity);
 

@@ -78,4 +78,7 @@ public class EnforcementEntity {
     @Column(name = "account_type", length = 20)
     private String accountType;
 
+    @Column(name = "posted_by_aad", length = 100)
+    private String postedByAad;
+
 }

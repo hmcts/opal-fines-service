@@ -31,7 +31,7 @@ class BusinessUnitControllerTest {
     @Test
     void testGetBusinessUnit_Success() {
         // Arrange
-        BusinessUnitEntity entity = BusinessUnitEntity.builder().build(); //some id assigned by db sequence
+        BusinessUnitEntity entity = BusinessUnitEntity.builder().build();
 
         when(businessUnitService.getBusinessUnit(any(Long.class))).thenReturn(entity);
 
