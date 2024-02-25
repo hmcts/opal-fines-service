@@ -19,7 +19,7 @@ public class AccountSearchDtoTest {
         AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto(today);
         assertEquals("Bath", accountEnquiryDto.getCourt());
         assertEquals("Smith", accountEnquiryDto.getSurname());
-        assertEquals("Scotland", accountEnquiryDto.getAddressLineOne());
+        assertEquals("Scotland", accountEnquiryDto.getAddressLine());
         assertEquals("case001", accountEnquiryDto.getPcr());
         assertEquals(fromLocalDate(today), accountEnquiryDto.getDateOfBirth());
         assertEquals("Dave", accountEnquiryDto.getForename());
@@ -94,7 +94,7 @@ public class AccountSearchDtoTest {
         return AccountSearchDto.builder()
             .court("Bath")
             .surname("Smith")
-            .addressLineOne("Scotland")
+            .addressLine("Scotland")
             .pcr("case001")
             .dateOfBirth(fromLocalDate(today))
             .forename("Dave")

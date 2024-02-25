@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.search.PaymentTermsSearchDto;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.PaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyPaymentTermsService;
 import uk.gov.hmcts.opal.service.opal.PaymentTermsService;
 
@@ -22,18 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class PaymentTermsServiceProxyTest {
+class PaymentTermsServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private PaymentTermsService opalPaymentTermsService;
+    private PaymentTermsService opalService;
 
     @Mock
-    private LegacyPaymentTermsService legacyPaymentTermsService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyPaymentTermsService legacyService;
 
     @InjectMocks
     private PaymentTermsServiceProxy paymentTermsServiceProxy;
@@ -48,63 +44,55 @@ class PaymentTermsServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalPaymentTermsServiceWhenModeIsNotLegacy() {
-        // Given: a PaymentTermsEntity and the app mode is set to "opal"
-        PaymentTermsEntity entity = PaymentTermsEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalPaymentTermsService.getPaymentTerms(anyLong())).thenReturn(entity);
+    void testMode(PaymentTermsServiceInterface targetService, PaymentTermsServiceInterface otherService) {
+        testGetPaymentTerms(targetService, otherService);
+        testSearchPaymentTermss(targetService, otherService);
+    }
 
-        // When: savePaymentTerms is called on the proxy
+    void testGetPaymentTerms(PaymentTermsServiceInterface targetService, PaymentTermsServiceInterface otherService) {
+        // Given: a PaymentTermsEntity is returned from the target service
+        PaymentTermsEntity entity = PaymentTermsEntity.builder().build();
+        when(targetService.getPaymentTerms(anyLong())).thenReturn(entity);
+
+        // When: getPaymentTerms is called on the proxy
         PaymentTermsEntity paymentTermsResult = paymentTermsServiceProxy.getPaymentTerms(1);
 
-        // Then: opalPaymentTermsService should be used, and the returned paymentTerms should be as expected
-        verify(opalPaymentTermsService).getPaymentTerms(1);
-        verifyNoInteractions(legacyPaymentTermsService);
+        // Then: target service should be used, and the returned paymentTerms should be as expected
+        verify(targetService).getPaymentTerms(1);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, paymentTermsResult);
+    }
 
-        // Given: a paymentTermss list result and the app mode is set to "opal"
+    void testSearchPaymentTermss(PaymentTermsServiceInterface targetService,
+                                 PaymentTermsServiceInterface otherService) {
+        // Given: a paymentTermss list result is returned from the target service
+        PaymentTermsEntity entity = PaymentTermsEntity.builder().build();
         List<PaymentTermsEntity> paymentTermssList = List.of(entity);
-        when(opalPaymentTermsService.searchPaymentTerms(any())).thenReturn(paymentTermssList);
+        when(targetService.searchPaymentTerms(any())).thenReturn(paymentTermssList);
 
         // When: searchPaymentTermss is called on the proxy
         PaymentTermsSearchDto criteria = PaymentTermsSearchDto.builder().build();
         List<PaymentTermsEntity> listResult = paymentTermsServiceProxy.searchPaymentTerms(criteria);
 
-        // Then: opalPaymentTermsService should be used, and the returned list should be as expected
-        verify(opalPaymentTermsService).searchPaymentTerms(criteria);
-        verifyNoInteractions(legacyPaymentTermsService);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchPaymentTerms(criteria);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(paymentTermssList, listResult);
     }
 
     @Test
+    void shouldUseOpalPaymentTermsServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
+    }
+
+    @Test
     void shouldUseLegacyPaymentTermsServiceWhenModeIsLegacy() {
-        // Given: a PaymentTermsEntity and the app mode is set to "legacy"
-        PaymentTermsEntity entity = PaymentTermsEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyPaymentTermsService.getPaymentTerms(anyLong())).thenReturn(entity);
-
-        // When: savePaymentTerms is called on the proxy
-        PaymentTermsEntity result = paymentTermsServiceProxy.getPaymentTerms(1);
-
-        // Then: legacyPaymentTermsService should be used, and the returned paymentTerms should be as expected
-        verify(legacyPaymentTermsService).getPaymentTerms(1);
-        verifyNoInteractions(opalPaymentTermsService);
-        Assertions.assertEquals(entity, result);
-
-        // Given: a paymentTermss list result and the app mode is set to "legacy"
-        List<PaymentTermsEntity> paymentTermssList = List.of(entity);
-        when(legacyPaymentTermsService.searchPaymentTerms(any())).thenReturn(paymentTermssList);
-
-        // When: searchPaymentTermss is called on the proxy
-        PaymentTermsSearchDto criteria = PaymentTermsSearchDto.builder().build();
-        List<PaymentTermsEntity> listResult = paymentTermsServiceProxy.searchPaymentTerms(criteria);
-
-        // Then: opalPaymentTermsService should be used, and the returned list should be as expected
-        verify(legacyPaymentTermsService).searchPaymentTerms(criteria);
-        verifyNoInteractions(opalPaymentTermsService);
-        Assertions.assertEquals(paymentTermssList, listResult); // Not yet implemented in Legacy mode
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }

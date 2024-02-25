@@ -35,7 +35,7 @@ class LegacyServiceTest extends LegacyTestsBase {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        legacy = spy(new LegacyService("Gateway", restClient) {
+        legacy = spy(new LegacyService(properties, restClient) {
             @Override
             protected Logger getLog() {
                 return log;

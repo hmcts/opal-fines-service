@@ -2,12 +2,11 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.PartyDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.PartySearchDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PartySummary;
@@ -24,9 +23,8 @@ public class LegacyPartyService extends LegacyService implements PartyServiceInt
     public static final String GET_PARTY = "getParty";
     public static final String POST_PARTY = "postParty";
 
-    @Autowired
-    protected LegacyPartyService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
-        super(gatewayUrl, restClient);
+    public LegacyPartyService(LegacyGatewayProperties legacyGateway, RestClient restClient) {
+        super(legacyGateway, restClient);
     }
 
     @Override
@@ -42,7 +40,7 @@ public class LegacyPartyService extends LegacyService implements PartyServiceInt
 
     @Override
     public PartyDto saveParty(PartyDto partyDto) {
-        log.info("Sending party to {}", gatewayUrl);
+        log.info("Sending party to {}", legacyGateway.getUrl());
         return postToGateway(POST_PARTY, PartyDto.class, partyDto);
     }
 

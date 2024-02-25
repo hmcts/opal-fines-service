@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.EnforcementSearchDto;
 import uk.gov.hmcts.opal.entity.EnforcementEntity;
-import uk.gov.hmcts.opal.service.EnforcementServiceInterface;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.EnforcementServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyEnforcementService;
 import uk.gov.hmcts.opal.service.opal.EnforcementService;
 

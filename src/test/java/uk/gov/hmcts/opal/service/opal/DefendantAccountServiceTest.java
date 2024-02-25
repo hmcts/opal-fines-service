@@ -18,7 +18,7 @@ import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.CourtEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountSummary;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -169,7 +169,7 @@ public class DefendantAccountServiceTest {
         mockDefendantAccountPartiesEntity.setDefendantAccount(buildDefendantAccountEntity());
         mockDefendantAccountPartiesEntity.setParty(buildPartyEntity());
 
-        when(defendantAccountPartiesRepository.findByDefendantAccountDefendantAccountId(
+        when(defendantAccountPartiesRepository.findByDefendantAccount_DefendantAccountId(
             any()))
             .thenReturn(mockDefendantAccountPartiesEntity);
 
@@ -204,7 +204,7 @@ public class DefendantAccountServiceTest {
         mockDefendantAccountPartiesEntity.setDefendantAccount(buildDefendantAccountEntity());
         mockDefendantAccountPartiesEntity.setParty(buildPartyEntity());
 
-        when(defendantAccountPartiesRepository.findByDefendantAccountDefendantAccountId(
+        when(defendantAccountPartiesRepository.findByDefendantAccount_DefendantAccountId(
             any()))
             .thenReturn(mockDefendantAccountPartiesEntity);
 
@@ -244,7 +244,7 @@ public class DefendantAccountServiceTest {
         mockDefendantAccountPartiesEntity.setDefendantAccount(buildDefendantAccountEntity());
         mockDefendantAccountPartiesEntity.setParty(buildPartyEntity());
 
-        when(defendantAccountPartiesRepository.findByDefendantAccountDefendantAccountId(
+        when(defendantAccountPartiesRepository.findByDefendantAccount_DefendantAccountId(
             any()))
             .thenReturn(mockDefendantAccountPartiesEntity);
 
@@ -287,7 +287,7 @@ public class DefendantAccountServiceTest {
 
         mockDefendantAccountPartiesEntity.setParty(partyEntity);
 
-        when(defendantAccountPartiesRepository.findByDefendantAccountDefendantAccountId(
+        when(defendantAccountPartiesRepository.findByDefendantAccount_DefendantAccountId(
             any()))
             .thenReturn(mockDefendantAccountPartiesEntity);
 
@@ -329,7 +329,7 @@ public class DefendantAccountServiceTest {
             .postCode("W1 1AA")
             .dob(LocalDate.of(1979,12,12))
             .detailsChanged(LocalDate.of(2012, 1,1))
-            .lastCourtAppAndCourtCode(LocalDate.of(2012, 1,1).toString()
+            .lastCourtAppAndCourtCode(LocalDate.of(2012, 1,1)
                                           + " " + 1212)
             .lastMovement(LocalDate.of(2012, 1,1))
             .commentField(List.of("Comment1"))

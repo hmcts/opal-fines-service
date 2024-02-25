@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.legacy;
 import org.mockito.Mock;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -20,6 +21,9 @@ public abstract class LegacyTestsBase {
 
     @Mock
     RestClient restClient;
+
+    @Mock
+    LegacyGatewayProperties properties;
 
     @Mock
     RequestHeadersUriSpec requestHeaderUriSpec;

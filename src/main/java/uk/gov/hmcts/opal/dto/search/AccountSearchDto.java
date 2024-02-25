@@ -24,8 +24,10 @@ public class AccountSearchDto implements ToJsonString {
     private String initials;
     /** Defendant Date of Birth. */
     private DateDto dateOfBirth;
-    /** Defendant Address, typically just first line. */
-    private String addressLineOne;
+    /** Defendant Address. */
+    private String addressLine;
+    /** Defendant Postcode. */
+    private String postcode;
     /** National Insurance Number. */
     private String niNumber;
     /** Prosecutor Case Reference. */

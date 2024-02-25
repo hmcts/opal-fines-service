@@ -2,13 +2,13 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.NoteDto;
-import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacySaveNoteRequestDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacySaveNoteResponseDto;
+import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;
 
 import java.util.List;
@@ -19,9 +19,10 @@ public class LegacyNoteService extends LegacyService implements NoteServiceInter
 
     public static final String POST_ACCOUNT_NOTES = "postAccountNotes";
 
-    protected LegacyNoteService(@Value("${legacy-gateway.url}") String gatewayUrl, RestClient restClient) {
-        super(gatewayUrl, restClient);
+    protected LegacyNoteService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
+        super(legacyGatewayProperties, restClient);
     }
+
 
     @Override
     protected Logger getLog() {

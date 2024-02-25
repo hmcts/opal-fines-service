@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.search.MisDebtorSearchDto;
 import uk.gov.hmcts.opal.entity.MisDebtorEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.MisDebtorServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyMisDebtorService;
 import uk.gov.hmcts.opal.service.opal.MisDebtorService;
 
@@ -22,18 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class MisDebtorServiceProxyTest {
+class MisDebtorServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private MisDebtorService opalMisDebtorService;
+    private MisDebtorService opalService;
 
     @Mock
-    private LegacyMisDebtorService legacyMisDebtorService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyMisDebtorService legacyService;
 
     @InjectMocks
     private MisDebtorServiceProxy misDebtorServiceProxy;
@@ -48,63 +44,54 @@ class MisDebtorServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalMisDebtorServiceWhenModeIsNotLegacy() {
-        // Given: a MisDebtorEntity and the app mode is set to "opal"
-        MisDebtorEntity entity = MisDebtorEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalMisDebtorService.getMisDebtor(anyLong())).thenReturn(entity);
+    void testMode(MisDebtorServiceInterface targetService, MisDebtorServiceInterface otherService) {
+        testGetMisDebtor(targetService, otherService);
+        testSearchMisDebtors(targetService, otherService);
+    }
 
-        // When: saveMisDebtor is called on the proxy
+    void testGetMisDebtor(MisDebtorServiceInterface targetService, MisDebtorServiceInterface otherService) {
+        // Given: a MisDebtorEntity is returned from the target service
+        MisDebtorEntity entity = MisDebtorEntity.builder().build();
+        when(targetService.getMisDebtor(anyLong())).thenReturn(entity);
+
+        // When: getMisDebtor is called on the proxy
         MisDebtorEntity misDebtorResult = misDebtorServiceProxy.getMisDebtor(1);
 
-        // Then: opalMisDebtorService should be used, and the returned misDebtor should be as expected
-        verify(opalMisDebtorService).getMisDebtor(1);
-        verifyNoInteractions(legacyMisDebtorService);
+        // Then: target service should be used, and the returned misDebtor should be as expected
+        verify(targetService).getMisDebtor(1);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, misDebtorResult);
+    }
 
-        // Given: a misDebtors list result and the app mode is set to "opal"
+    void testSearchMisDebtors(MisDebtorServiceInterface targetService, MisDebtorServiceInterface otherService) {
+        // Given: a misDebtors list result is returned from the target service
+        MisDebtorEntity entity = MisDebtorEntity.builder().build();
         List<MisDebtorEntity> misDebtorsList = List.of(entity);
-        when(opalMisDebtorService.searchMisDebtors(any())).thenReturn(misDebtorsList);
+        when(targetService.searchMisDebtors(any())).thenReturn(misDebtorsList);
 
         // When: searchMisDebtors is called on the proxy
         MisDebtorSearchDto criteria = MisDebtorSearchDto.builder().build();
         List<MisDebtorEntity> listResult = misDebtorServiceProxy.searchMisDebtors(criteria);
 
-        // Then: opalMisDebtorService should be used, and the returned list should be as expected
-        verify(opalMisDebtorService).searchMisDebtors(criteria);
-        verifyNoInteractions(legacyMisDebtorService);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchMisDebtors(criteria);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(misDebtorsList, listResult);
     }
 
     @Test
+    void shouldUseOpalMisDebtorServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
+    }
+
+    @Test
     void shouldUseLegacyMisDebtorServiceWhenModeIsLegacy() {
-        // Given: a MisDebtorEntity and the app mode is set to "legacy"
-        MisDebtorEntity entity = MisDebtorEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyMisDebtorService.getMisDebtor(anyLong())).thenReturn(entity);
-
-        // When: saveMisDebtor is called on the proxy
-        MisDebtorEntity result = misDebtorServiceProxy.getMisDebtor(1);
-
-        // Then: legacyMisDebtorService should be used, and the returned misDebtor should be as expected
-        verify(legacyMisDebtorService).getMisDebtor(1);
-        verifyNoInteractions(opalMisDebtorService);
-        Assertions.assertEquals(entity, result);
-
-        // Given: a misDebtors list result and the app mode is set to "legacy"
-        List<MisDebtorEntity> misDebtorsList = List.of(entity);
-        when(legacyMisDebtorService.searchMisDebtors(any())).thenReturn(misDebtorsList);
-
-        // When: searchMisDebtors is called on the proxy
-        MisDebtorSearchDto criteria = MisDebtorSearchDto.builder().build();
-        List<MisDebtorEntity> listResult = misDebtorServiceProxy.searchMisDebtors(criteria);
-
-        // Then: opalMisDebtorService should be used, and the returned list should be as expected
-        verify(legacyMisDebtorService).searchMisDebtors(criteria);
-        verifyNoInteractions(opalMisDebtorService);
-        Assertions.assertEquals(misDebtorsList, listResult); // Not yet implemented in Legacy mode
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }

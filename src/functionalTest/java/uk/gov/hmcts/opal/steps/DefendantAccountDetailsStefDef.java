@@ -23,7 +23,7 @@ public class DefendantAccountDetailsStefDef extends BaseStepDef {
             .header("Authorization", "Bearer " + getToken())
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + "/api/defendant-account/details?defendantAccountId=" + idToSend.get("defendantID"));
+            .get(getTestUrl() + "/api/defendant-account/" + idToSend.get("defendantID"));
     }
 
     @When("I make an unauthenticated request to the defendant account details api with")
@@ -33,7 +33,7 @@ public class DefendantAccountDetailsStefDef extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + "/api/defendant-account/details?defendantAccountId=" + idToSend.get("defendantID"));
+            .get(getTestUrl() + "/api/defendant-account/" + idToSend.get("defendantID"));
     }
 
     @When("I make a request to the defendant account details api with an invalid token")
@@ -44,7 +44,7 @@ public class DefendantAccountDetailsStefDef extends BaseStepDef {
             .header("Authorization", "Bearer invalidToken")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + "/api/defendant-account/details?defendantAccountId=" + idToSend.get("defendantID"));
+            .get(getTestUrl() + "/api/defendant-account/" + idToSend.get("defendantID"));
     }
 
     @Then("the response from the defendant account details api is")

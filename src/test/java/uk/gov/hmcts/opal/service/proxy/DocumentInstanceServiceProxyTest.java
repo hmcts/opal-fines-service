@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.search.DocumentInstanceSearchDto;
 import uk.gov.hmcts.opal.entity.DocumentInstanceEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.DocumentInstanceServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDocumentInstanceService;
 import uk.gov.hmcts.opal.service.opal.DocumentInstanceService;
 
@@ -22,18 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class DocumentInstanceServiceProxyTest {
+class DocumentInstanceServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private DocumentInstanceService opalDocumentInstanceService;
+    private DocumentInstanceService opalService;
 
     @Mock
-    private LegacyDocumentInstanceService legacyDocumentInstanceService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyDocumentInstanceService legacyService;
 
     @InjectMocks
     private DocumentInstanceServiceProxy documentInstanceServiceProxy;
@@ -48,63 +44,56 @@ class DocumentInstanceServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalDocumentInstanceServiceWhenModeIsNotLegacy() {
-        // Given: a DocumentInstanceEntity and the app mode is set to "opal"
-        DocumentInstanceEntity entity = DocumentInstanceEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalDocumentInstanceService.getDocumentInstance(anyLong())).thenReturn(entity);
+    void testMode(DocumentInstanceServiceInterface targetService, DocumentInstanceServiceInterface otherService) {
+        testGetDocumentInstance(targetService, otherService);
+        testSearchDocumentInstances(targetService, otherService);
+    }
 
-        // When: saveDocumentInstance is called on the proxy
+    void testGetDocumentInstance(DocumentInstanceServiceInterface targetService,
+                                 DocumentInstanceServiceInterface otherService) {
+        // Given: a DocumentInstanceEntity is returned from the target service
+        DocumentInstanceEntity entity = DocumentInstanceEntity.builder().build();
+        when(targetService.getDocumentInstance(anyLong())).thenReturn(entity);
+
+        // When: getDocumentInstance is called on the proxy
         DocumentInstanceEntity documentInstanceResult = documentInstanceServiceProxy.getDocumentInstance(1);
 
-        // Then: opalDocumentInstanceService should be used, and the returned documentInstance should be as expected
-        verify(opalDocumentInstanceService).getDocumentInstance(1);
-        verifyNoInteractions(legacyDocumentInstanceService);
+        // Then: target service should be used, and the returned documentInstance should be as expected
+        verify(targetService).getDocumentInstance(1);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, documentInstanceResult);
+    }
 
-        // Given: a documentInstances list result and the app mode is set to "opal"
+    void testSearchDocumentInstances(DocumentInstanceServiceInterface targetService,
+                                     DocumentInstanceServiceInterface otherService) {
+        // Given: a documentInstances list result is returned from the target service
+        DocumentInstanceEntity entity = DocumentInstanceEntity.builder().build();
         List<DocumentInstanceEntity> documentInstancesList = List.of(entity);
-        when(opalDocumentInstanceService.searchDocumentInstances(any())).thenReturn(documentInstancesList);
+        when(targetService.searchDocumentInstances(any())).thenReturn(documentInstancesList);
 
         // When: searchDocumentInstances is called on the proxy
         DocumentInstanceSearchDto criteria = DocumentInstanceSearchDto.builder().build();
         List<DocumentInstanceEntity> listResult = documentInstanceServiceProxy.searchDocumentInstances(criteria);
 
-        // Then: opalDocumentInstanceService should be used, and the returned list should be as expected
-        verify(opalDocumentInstanceService).searchDocumentInstances(criteria);
-        verifyNoInteractions(legacyDocumentInstanceService);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchDocumentInstances(criteria);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(documentInstancesList, listResult);
     }
 
     @Test
+    void shouldUseOpalDocumentInstanceServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
+    }
+
+    @Test
     void shouldUseLegacyDocumentInstanceServiceWhenModeIsLegacy() {
-        // Given: a DocumentInstanceEntity and the app mode is set to "legacy"
-        DocumentInstanceEntity entity = DocumentInstanceEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyDocumentInstanceService.getDocumentInstance(anyLong())).thenReturn(entity);
-
-        // When: saveDocumentInstance is called on the proxy
-        DocumentInstanceEntity result = documentInstanceServiceProxy.getDocumentInstance(1);
-
-        // Then: legacyDocumentInstanceService should be used, and the returned documentInstance should be as expected
-        verify(legacyDocumentInstanceService).getDocumentInstance(1);
-        verifyNoInteractions(opalDocumentInstanceService);
-        Assertions.assertEquals(entity, result);
-
-        // Given: a documentInstances list result and the app mode is set to "legacy"
-        List<DocumentInstanceEntity> documentInstancesList = List.of(entity);
-        when(legacyDocumentInstanceService.searchDocumentInstances(any())).thenReturn(documentInstancesList);
-
-        // When: searchDocumentInstances is called on the proxy
-        DocumentInstanceSearchDto criteria = DocumentInstanceSearchDto.builder().build();
-        List<DocumentInstanceEntity> listResult = documentInstanceServiceProxy.searchDocumentInstances(criteria);
-
-        // Then: opalDocumentInstanceService should be used, and the returned list should be as expected
-        verify(legacyDocumentInstanceService).searchDocumentInstances(criteria);
-        verifyNoInteractions(opalDocumentInstanceService);
-        Assertions.assertEquals(documentInstancesList, listResult); // Not yet implemented in Legacy mode
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }

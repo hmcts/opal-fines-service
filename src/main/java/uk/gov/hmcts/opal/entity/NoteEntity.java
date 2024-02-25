@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class NoteEntity {
 
     @Id
@@ -48,5 +50,8 @@ public class NoteEntity {
 
     @Column(name = "posted_by", length = 20)
     private String postedBy;
+
+    @Column(name = "posted_by_aad", length = 100)
+    private String postedByAad;
 
 }

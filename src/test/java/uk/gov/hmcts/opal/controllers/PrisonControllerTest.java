@@ -31,7 +31,7 @@ class PrisonControllerTest {
     @Test
     void testGetPrison_Success() {
         // Arrange
-        PrisonEntity entity = PrisonEntity.builder().build(); //some id assigned by db sequence
+        PrisonEntity entity = PrisonEntity.builder().build();
 
         when(prisonService.getPrison(any(Long.class))).thenReturn(entity);
 

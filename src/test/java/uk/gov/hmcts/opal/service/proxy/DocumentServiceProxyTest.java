@@ -7,10 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.dto.search.DocumentSearchDto;
 import uk.gov.hmcts.opal.entity.DocumentEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.DocumentServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDocumentService;
 import uk.gov.hmcts.opal.service.opal.DocumentService;
 
@@ -22,18 +21,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class DocumentServiceProxyTest {
+class DocumentServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
 
     @Mock
-    private DocumentService opalDocumentService;
+    private DocumentService opalService;
 
     @Mock
-    private LegacyDocumentService legacyDocumentService;
-
-    @Mock
-    private DynamicConfigService dynamicConfigService;
+    private LegacyDocumentService legacyService;
 
     @InjectMocks
     private DocumentServiceProxy documentServiceProxy;
@@ -48,63 +44,54 @@ class DocumentServiceProxyTest {
         closeable.close();
     }
 
-    @Test
-    void shouldUseOpalDocumentServiceWhenModeIsNotLegacy() {
-        // Given: a DocumentEntity and the app mode is set to "opal"
+    void testMode(DocumentServiceInterface targetService, DocumentServiceInterface otherService) {
+        testGetDocument(targetService, otherService);
+        testSearchDocuments(targetService, otherService);
+    }
+
+    void testGetDocument(DocumentServiceInterface targetService, DocumentServiceInterface otherService) {
+        // Given: a DocumentEntity is returned from the target service
         DocumentEntity entity = DocumentEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("opal").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(opalDocumentService.getDocument(anyString())).thenReturn(entity);
+        when(targetService.getDocument(anyString())).thenReturn(entity);
 
-        // When: saveDocument is called on the proxy
-        DocumentEntity documentResult = documentServiceProxy.getDocument("ID1");
+        // When: getDocument is called on the proxy
+        DocumentEntity documentResult = documentServiceProxy.getDocument("1");
 
-        // Then: opalDocumentService should be used, and the returned document should be as expected
-        verify(opalDocumentService).getDocument("ID1");
-        verifyNoInteractions(legacyDocumentService);
+        // Then: target service should be used, and the returned document should be as expected
+        verify(targetService).getDocument("1");
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, documentResult);
+    }
 
-        // Given: a documents list result and the app mode is set to "opal"
+    void testSearchDocuments(DocumentServiceInterface targetService, DocumentServiceInterface otherService) {
+        // Given: a documents list result is returned from the target service
+        DocumentEntity entity = DocumentEntity.builder().build();
         List<DocumentEntity> documentsList = List.of(entity);
-        when(opalDocumentService.searchDocuments(any())).thenReturn(documentsList);
+        when(targetService.searchDocuments(any())).thenReturn(documentsList);
 
         // When: searchDocuments is called on the proxy
         DocumentSearchDto criteria = DocumentSearchDto.builder().build();
         List<DocumentEntity> listResult = documentServiceProxy.searchDocuments(criteria);
 
-        // Then: opalDocumentService should be used, and the returned list should be as expected
-        verify(opalDocumentService).searchDocuments(criteria);
-        verifyNoInteractions(legacyDocumentService);
+        // Then: target service should be used, and the returned list should be as expected
+        verify(targetService).searchDocuments(criteria);
+        verifyNoInteractions(otherService);
         Assertions.assertEquals(documentsList, listResult);
     }
 
     @Test
+    void shouldUseOpalDocumentServiceWhenModeIsNotLegacy() {
+        // Given: app mode is set
+        setMode(OPAL);
+        // Then: the target service is called, but the other service is not
+        testMode(opalService, legacyService);
+    }
+
+    @Test
     void shouldUseLegacyDocumentServiceWhenModeIsLegacy() {
-        // Given: a DocumentEntity and the app mode is set to "legacy"
-        DocumentEntity entity = DocumentEntity.builder().build();
-        AppMode appMode = AppMode.builder().mode("legacy").build();
-        when(dynamicConfigService.getAppMode()).thenReturn(appMode);
-        when(legacyDocumentService.getDocument(anyString())).thenReturn(entity);
-
-        // When: saveDocument is called on the proxy
-        DocumentEntity result = documentServiceProxy.getDocument("ID1");
-
-        // Then: legacyDocumentService should be used, and the returned document should be as expected
-        verify(legacyDocumentService).getDocument("ID1");
-        verifyNoInteractions(opalDocumentService);
-        Assertions.assertEquals(entity, result);
-
-        // Given: a documents list result and the app mode is set to "legacy"
-        List<DocumentEntity> documentsList = List.of(entity);
-        when(legacyDocumentService.searchDocuments(any())).thenReturn(documentsList);
-
-        // When: searchDocuments is called on the proxy
-        DocumentSearchDto criteria = DocumentSearchDto.builder().build();
-        List<DocumentEntity> listResult = documentServiceProxy.searchDocuments(criteria);
-
-        // Then: opalDocumentService should be used, and the returned list should be as expected
-        verify(legacyDocumentService).searchDocuments(criteria);
-        verifyNoInteractions(opalDocumentService);
-        Assertions.assertEquals(documentsList, listResult); // Not yet implemented in Legacy mode
+        // Given: app mode is set
+        setMode(LEGACY);
+        // Then: the target service is called, but the other service is not
+        testMode(legacyService, opalService);
     }
 }

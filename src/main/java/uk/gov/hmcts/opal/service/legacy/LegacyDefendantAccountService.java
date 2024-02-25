@@ -2,19 +2,18 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsRequestDto;
-import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsRequestDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 
 import java.util.Collections;
@@ -29,11 +28,10 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
     public static final String GET_DEFENDANT_ACCOUNT = "getDefendantAccount";
     public static final String GET_ACCOUNT_DETAILS = "getAccountDetails";
 
-    @Autowired
-    protected LegacyDefendantAccountService(@Value("${legacy-gateway.url}") String gatewayUrl,
-                                            RestClient legacyRestClient) {
-        super(gatewayUrl, legacyRestClient);
+    public LegacyDefendantAccountService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
+        super(legacyGatewayProperties, restClient);
     }
+
 
     @Override
     public Logger getLog() {
@@ -42,13 +40,13 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
 
     @Override
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
-        log.info("Get defendant account for {} from {}", request.toJson(), gatewayUrl);
+        log.info("Get defendant account for {} from {}", request.toJson(), legacyGateway.getUrl());
         return postToGateway(GET_DEFENDANT_ACCOUNT, DefendantAccountEntity.class, request);
     }
 
     @Override
     public DefendantAccountEntity putDefendantAccount(DefendantAccountEntity defendantAccountEntity) {
-        log.info("Sending defendantAccount to {}", gatewayUrl);
+        log.info("Sending defendantAccount to {}", legacyGateway.getUrl());
         return postToGateway(PUT_DEFENDANT_ACCOUNT, DefendantAccountEntity.class, defendantAccountEntity);
     }
 
@@ -60,7 +58,7 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
     @Override
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         DefendantAccountSearchCriteria criteria = DefendantAccountSearchCriteria.fromAccountSearchDto(accountSearchDto);
-        log.info(":searchDefendantAccounts: criteria: {} via gateway {}", criteria.toJson(), gatewayUrl);
+        log.info(":searchDefendantAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway(SEARCH_DEFENDANT_ACCOUNTS, DefendantAccountsSearchResults.class, criteria)
             .toAccountSearchResultsDto();
     }
@@ -73,9 +71,11 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
             .defendantAccountId(defendantAccountId)
             .build();
 
-        LegacyAccountDetailsResponseDto response = postToGateway(GET_ACCOUNT_DETAILS,
-                                                                  LegacyAccountDetailsResponseDto.class,
-                                                                  request);
+        LegacyAccountDetailsResponseDto response = postToGateway(
+            GET_ACCOUNT_DETAILS,
+            LegacyAccountDetailsResponseDto.class,
+            request
+        );
 
         return LegacyAccountDetailsResponseDto.toAccountDetailsDto(response);
     }

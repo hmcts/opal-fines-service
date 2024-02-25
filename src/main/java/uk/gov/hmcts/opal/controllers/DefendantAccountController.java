@@ -82,22 +82,9 @@ public class DefendantAccountController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(value = "/{businessUnit}")
-    @Operation(summary = "Returns all defendant accounts within a business unit")
-    public ResponseEntity<List<DefendantAccountEntity>> getDefendantAccountsByBusinessUnit(
-        @PathVariable short businessUnit) {
-
-        log.info(":GET:getDefendantAccountsByBusinessUnit: busUnit: {}", businessUnit);
-        List<DefendantAccountEntity> response = defendantAccountService
-            .getDefendantAccountsByBusinessUnit(businessUnit);
-
-        return buildResponse(response);
-    }
-
-    @GetMapping(value = "/details")
+    @GetMapping(value = "/{defendantAccountId}")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
-    public ResponseEntity<AccountDetailsDto> getAccountDetailsByAccountSummary(
-        @RequestParam(name = "defendantAccountId") Long defendantAccountId) {
+    public ResponseEntity<AccountDetailsDto> getAccountDetailsByAccountSummary(@PathVariable Long defendantAccountId) {
 
         AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(defendantAccountId);
 
