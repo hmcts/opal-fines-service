@@ -14,6 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
+import java.util.Base64;
 import java.util.Map;
 
 @Component
@@ -23,6 +24,7 @@ public abstract class LegacyService {
     public static final String ACTION_TYPE = "actionType";
 
     protected final LegacyGatewayProperties legacyGateway;
+
     protected final RestClient restClient;
 
     protected abstract Logger getLog();
@@ -68,6 +70,7 @@ public abstract class LegacyService {
 
         ResponseEntity<String> responseEntity = restClient.get()
             .uri(legacyGateway.getUrl() + builder.toUriString())
+            .header("AUTHORIZATION", encodeBasic(legacyGateway.getUsername(), legacyGateway.getPassword()))
             .retrieve()
             .toEntity(String.class);
 
@@ -94,6 +97,7 @@ public abstract class LegacyService {
 
         ResponseEntity<String> responseEntity = restClient.post()
             .uri(legacyGateway.getUrl() + builder.toUriString())
+            .header("AUTHORIZATION", encodeBasic(legacyGateway.getUsername(), legacyGateway.getPassword()))
             .contentType(MediaType.APPLICATION_JSON)
             .body(request)
             .retrieve()
@@ -102,5 +106,10 @@ public abstract class LegacyService {
         return extractResponse(responseEntity, responseType);
     }
 
+    private String encodeBasic(String username, String password) {
+        return "Basic " + Base64
+            .getEncoder()
+            .encodeToString((username + ":" + password).getBytes());
+    }
 
 }
