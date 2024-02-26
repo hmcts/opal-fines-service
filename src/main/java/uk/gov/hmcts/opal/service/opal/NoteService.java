@@ -64,6 +64,7 @@ public class NoteService implements NoteServiceInterface {
             .noteText(noteDto.getNoteText())
             .postedDate(noteDto.getPostedDate() == null ? LocalDateTime.now() : noteDto.getPostedDate())
             .postedBy(noteDto.getPostedBy())
+            .postedByAad(noteDto.getPostedByAAD())
             .build();
     }
 
@@ -76,6 +77,7 @@ public class NoteService implements NoteServiceInterface {
             .noteText(entity.getNoteText())
             .postedDate(entity.getPostedDate())
             .postedBy(entity.getPostedBy())
+            .postedByAAD(entity.getPostedByAad())
             .build();
     }
 }

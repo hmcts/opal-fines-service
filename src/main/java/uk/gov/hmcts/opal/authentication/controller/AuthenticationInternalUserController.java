@@ -51,11 +51,12 @@ public class AuthenticationInternalUserController {
         String accessToken = authenticationService.handleOauthCode(code);
         var securityTokenBuilder = SecurityToken.builder()
             .accessToken(accessToken);
-        Optional<String> emailAddressOptional = Optional.ofNullable(accessTokenService.extractUserEmail(accessToken));
+        Optional<String> preferredUsernameOptional = Optional.ofNullable(
+            accessTokenService.extractPreferredUsername(accessToken));
 
-        if (emailAddressOptional.isPresent()) {
-            Optional<UserState> userStateOptional = authorisationService.getAuthorisation(emailAddressOptional.get());
-            securityTokenBuilder.userState(userStateOptional.orElse(null));
+        if (preferredUsernameOptional.isPresent()) {
+            UserState userStateOptional = authorisationService.getAuthorisation(preferredUsernameOptional.get());
+            securityTokenBuilder.userState(userStateOptional);
         }
         return securityTokenBuilder.build();
     }

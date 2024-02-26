@@ -8,4 +8,6 @@ import uk.gov.hmcts.opal.entity.UserEntity;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, String>,
     JpaSpecificationExecutor<UserEntity> {
+
+    UserEntity findByUsername(String username);
 }

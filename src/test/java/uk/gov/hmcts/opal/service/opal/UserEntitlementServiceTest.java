@@ -11,11 +11,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
+import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.dto.search.UserEntitlementSearchDto;
+import uk.gov.hmcts.opal.entity.ApplicationFunctionEntity;
 import uk.gov.hmcts.opal.entity.UserEntitlementEntity;
 import uk.gov.hmcts.opal.repository.UserEntitlementRepository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -70,5 +73,23 @@ class UserEntitlementServiceTest {
 
     }
 
+    @Test
+    void testGetPermissionsByBusinessUnitUserId() {
+        // Arrange
+        ApplicationFunctionEntity afe = ApplicationFunctionEntity.builder()
+            .applicationFunctionId(100L).functionName("Add_Note").build();
+        UserEntitlementEntity userEntitlementEntity = UserEntitlementEntity.builder()
+            .userEntitlementId(1L).applicationFunction(afe).build();
+        List<UserEntitlementEntity> list = List.of(userEntitlementEntity);
+        when(userEntitlementRepository.findAllByBusinessUnitUser_BusinessUnitUserId(any())).thenReturn(list);
+
+        // Act
+        Set<Permission> result = userEntitlementService.getPermissionsByBusinessUnitUserId("");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+
+    }
 
 }

@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Jacksonized
-public class NoteDto {
+public class NoteDto implements ToJsonString {
 
     private Long noteId;
 
@@ -31,5 +31,7 @@ public class NoteDto {
     private LocalDateTime postedDate;
 
     private String postedBy;
+
+    private String postedByAAD;
 
 }

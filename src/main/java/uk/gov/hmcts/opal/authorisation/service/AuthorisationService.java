@@ -4,20 +4,16 @@ import groovy.util.logging.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
-
-import java.util.Optional;
+import uk.gov.hmcts.opal.service.opal.UserService;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthorisationService {
 
+    private final UserService userService;
 
-    public Optional<UserState> getAuthorisation(String emailAddress) {
-        //TODO: populate user state from the database.
-        return Optional.of(UserState.builder()
-                               .userId(emailAddress)
-                               .userName("some name")
-                               .build());
+    public UserState getAuthorisation(String username) {
+        return userService.getUserStateByUsername(username);
     }
 }

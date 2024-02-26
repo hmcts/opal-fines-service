@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -26,11 +27,14 @@ import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;
+import uk.gov.hmcts.opal.service.opal.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static uk.gov.hmcts.opal.util.ResponseUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 
 @RestController
 @RequestMapping("/api/defendant-account")
@@ -44,12 +48,19 @@ public class DefendantAccountController {
 
     private final NoteServiceInterface noteService;
 
+    private final AccessTokenService tokenService;
+
+    private final UserService userService;
+
     public DefendantAccountController(
         @Qualifier("defendantAccountServiceProxy") DefendantAccountServiceInterface defendantAccountService,
-        @Qualifier("noteServiceProxy") NoteServiceInterface noteService) {
+        @Qualifier("noteServiceProxy") NoteServiceInterface noteService, AccessTokenService tokenService,
+        UserService userService) {
 
         this.defendantAccountService = defendantAccountService;
         this.noteService = noteService;
+        this.tokenService = tokenService;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -65,11 +76,7 @@ public class DefendantAccountController {
 
         DefendantAccountEntity response = defendantAccountService.getDefendantAccount(request);
 
-        if (response == null) {
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(response);
+        return buildResponse(response);
     }
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -79,7 +86,7 @@ public class DefendantAccountController {
 
         DefendantAccountEntity response = defendantAccountService.putDefendantAccount(defendantAccountEntity);
 
-        return ResponseEntity.ok(response);
+        return buildResponse(response);
     }
 
     @GetMapping(value = "/{defendantAccountId}")
@@ -88,11 +95,7 @@ public class DefendantAccountController {
 
         AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(defendantAccountId);
 
-        if (response == null) {
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(response);
+        return buildResponse(response);
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -103,11 +106,7 @@ public class DefendantAccountController {
 
         AccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
 
-        if (response == null) {
-            return ResponseEntity.noContent().build();
-        }
-
-        return ResponseEntity.ok(response);
+        return buildResponse(response);
     }
 
     @PostMapping(value = "/addNote", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -116,22 +115,25 @@ public class DefendantAccountController {
         @RequestBody AddNoteDto addNote, HttpServletRequest request) {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
+        String preferredUsername = extractPreferredUsername(request, tokenService);
+        UserState userState = userService.getUserStateByUsername(preferredUsername);
+
         NoteDto noteDto = NoteDto.builder()
             .associatedRecordId(addNote.getAssociatedRecordId())
             .noteText(addNote.getNoteText())
             .associatedRecordType(NOTE_ASSOC_REC_TYPE)
             .noteType("AA") // TODO - This will probably need to part of the AddNoteDto in future
-            .postedBy(request.getRemoteUser())
+            .postedBy(userState.getFirstRoleBusinessUserId().orElse(preferredUsername)) // TODO - not always 'first'?
+            .postedByAAD(userState.getUserId())
             .postedDate(LocalDateTime.now())
             .build();
 
         NoteDto response = noteService.saveNote(noteDto);
 
-        if (response == null) {
-            return ResponseEntity.noContent().build();
-        }
+        log.info(":POST:addNote: response: {}", response);
 
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return buildCreatedResponse(response);
+
     }
 
     @GetMapping(value = "/notes/{defendantId}")

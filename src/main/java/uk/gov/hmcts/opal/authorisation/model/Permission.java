@@ -9,7 +9,7 @@ import lombok.Value;
 public class Permission {
 
     @NonNull
-    Integer permissionId;
+    Long permissionId;
 
     @NonNull
     String permissionName;

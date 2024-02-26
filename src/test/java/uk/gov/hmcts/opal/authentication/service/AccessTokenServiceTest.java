@@ -111,7 +111,7 @@ class AccessTokenServiceTest {
     @Nested
     class ExtractUserEmail {
         @Test
-        void testExtractUserEmail_invalidToken() throws Exception {
+        void testExtractPreferredUsername_invalidToken() throws Exception {
             // Given
             String invalidToken = "invalidToken";
 
@@ -119,35 +119,90 @@ class AccessTokenServiceTest {
 
             assertThrows(
                 OpalApiException.class,
-                () -> accessTokenService.extractUserEmail("Bearer " + invalidToken)
+                () -> accessTokenService.extractPreferredUsername("Bearer " + invalidToken)
             );
         }
 
 
         @Test
-        void testExtractUserEmail_validToken() throws Exception {
+        void testExtractPreferredUsername_validToken() throws Exception {
             String token = "validToken";
             String expectedEmail = "test@example.com";
 
-            JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder();
-
-            claimsSetBuilder.issuer("example.com")
-                .subject("john.doe@example.com")
-                .audience("client123")
-                .claim("preferred_username", "test@example.com");
-
-            JWTClaimsSet claimsSet = claimsSetBuilder.build();
-
-            PlainJWT jwt = new PlainJWT(claimsSet);
+            PlainJWT jwt = new PlainJWT(buildJwt());
 
             when(tokenValidator.parse(token)).thenReturn(jwt);
 
             // When
-            String email = accessTokenService.extractUserEmail("Bearer " + token);
+            String username = accessTokenService.extractPreferredUsername("Bearer " + token);
 
             // Then
-            assertEquals(expectedEmail, email);
+            assertEquals(expectedEmail, username);
+        }
+
+        @Test
+        void testExtractNameClaim_validToken() throws Exception {
+            // Given
+            PlainJWT jwt = new PlainJWT(buildJwt());
+            when(tokenValidator.parse(any())).thenReturn(jwt);
+
+            // When
+            String claim = accessTokenService.extractName("Bearer encryptedToken");
+
+            // Then
+            assertEquals("opal-test", claim);
+        }
+
+        @Test
+        void testExtractScpClaim_validToken() throws Exception {
+            // Given
+            PlainJWT jwt = new PlainJWT(buildJwt());
+            when(tokenValidator.parse(any())).thenReturn(jwt);
+
+            // When
+            String claim = accessTokenService.extractScp("Bearer encryptedToken");
+
+            // Then
+            assertEquals("opalinternaluser", claim);
+        }
+
+        @Test
+        void testExtractUniqueNameClaim_validToken() throws Exception {
+            // Given
+            PlainJWT jwt = new PlainJWT(buildJwt());
+            when(tokenValidator.parse(any())).thenReturn(jwt);
+
+            // When
+            String claim = accessTokenService.extractUniqueName("Bearer encryptedToken");
+
+            // Then
+            assertEquals("opal-test@example.com", claim);
+        }
+
+        @Test
+        void testExtractUpnClaim_validToken() throws Exception {
+            // Given
+            PlainJWT jwt = new PlainJWT(buildJwt());
+            when(tokenValidator.parse(any())).thenReturn(jwt);
+
+            // When
+            String claim = accessTokenService.extractUpn("Bearer encryptedToken");
+
+            // Then
+            assertEquals("opal-test@example.com", claim);
+        }
+
+        private JWTClaimsSet buildJwt() {
+            return new JWTClaimsSet.Builder()
+                .issuer("example.com")
+                .subject("john.doe@example.com")
+                .audience("client123")
+                .claim("preferred_username", "test@example.com")
+                .claim("name", "opal-test")
+                .claim("scp", "opalinternaluser")
+                .claim("unique_name", "opal-test@example.com")
+                .claim("upn", "opal-test@example.com")
+                .build();
         }
     }
 }
-
