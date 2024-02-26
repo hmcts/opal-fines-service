@@ -31,7 +31,7 @@ class MisDebtorControllerTest {
     @Test
     void testGetMisDebtor_Success() {
         // Arrange
-        MisDebtorEntity entity = MisDebtorEntity.builder().build(); //some id assigned by db sequence
+        MisDebtorEntity entity = MisDebtorEntity.builder().build();
 
         when(misDebtorService.getMisDebtor(any(Long.class))).thenReturn(entity);
 
