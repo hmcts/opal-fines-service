@@ -67,5 +67,20 @@ class AccessTokenServiceTest {
         // Assert
         assertEquals(expectedResponse, result);
     }
+
+    @Test
+    void getTestUserTokenForGivenUser_shouldReturnTestUserToken() {
+        // Arrange
+        AccessTokenResponse expectedResponse = AccessTokenResponse.builder().accessToken("test token").build();
+
+        when(testUser.getPassword()).thenReturn("password");
+        when(azureTokenClient.getAccessToken(any(AccessTokenRequest.class))).thenReturn(expectedResponse);
+
+        // Act
+        AccessTokenResponse result = accessTokenService.getTestUserToken("test email");
+
+        // Assert
+        assertEquals(expectedResponse, result);
+    }
 }
 
