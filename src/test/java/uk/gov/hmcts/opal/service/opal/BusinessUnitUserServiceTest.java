@@ -11,11 +11,15 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
+import uk.gov.hmcts.opal.authorisation.model.Role;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitUserSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitUserRepository;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,6 +32,9 @@ class BusinessUnitUserServiceTest {
 
     @Mock
     private BusinessUnitUserRepository businessUnitUserRepository;
+
+    @Mock
+    private UserEntitlementService userEntitlementService;
 
     @InjectMocks
     private BusinessUnitUserService businessUnitUserService;
@@ -70,5 +77,23 @@ class BusinessUnitUserServiceTest {
 
     }
 
+    @Test
+    void testGetAuthorisationRolesByUserId() {
+        // Arrange
+        BusinessUnitEntity bue = BusinessUnitEntity.builder().businessUnitId((short)100).build();
+        BusinessUnitUserEntity businessUnitUserEntity = BusinessUnitUserEntity.builder()
+            .businessUnitUserId("BUUserABCD").businessUnit(bue).build();
+        List<BusinessUnitUserEntity> list = List.of(businessUnitUserEntity);
+        when(businessUnitUserRepository.findAllByUser_UserId(any())).thenReturn(list);
+        when(userEntitlementService.getPermissionsByBusinessUnitUserId(any())).thenReturn(Collections.emptySet());
+
+        // Act
+        Set<Role> result = businessUnitUserService.getAuthorisationRolesByUserId("");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+
+    }
 
 }

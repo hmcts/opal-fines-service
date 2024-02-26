@@ -147,7 +147,7 @@ class TestingSupportControllerTest {
     @Test
     void parseToken_shouldReturnEmail() {
         String bearerToken = "Bearer token";
-        when(accessTokenService.extractUserEmail(bearerToken)).thenReturn("my@email.com");
+        when(accessTokenService.extractPreferredUsername(bearerToken)).thenReturn("my@email.com");
 
         ResponseEntity<String> response = controller.parseToken(bearerToken);
 

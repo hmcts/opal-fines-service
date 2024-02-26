@@ -23,7 +23,6 @@ import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 
 import java.net.URI;
 import java.util.Date;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -114,8 +113,8 @@ class AuthenticationInternalUserControllerTest {
             UserState userState = UserState.builder().userId(userEmail).userName("some name").build();
 
             when(authenticationService.handleOauthCode(code)).thenReturn(accessToken);
-            when(accessTokenService.extractUserEmail(accessToken)).thenReturn(userEmail);
-            when(authorisationService.getAuthorisation(userEmail)).thenReturn(Optional.of(userState));
+            when(accessTokenService.extractPreferredUsername(accessToken)).thenReturn(userEmail);
+            when(authorisationService.getAuthorisation(userEmail)).thenReturn(userState);
 
             // Act
             SecurityToken result = controller.handleOauthCode(code);
@@ -127,7 +126,7 @@ class AuthenticationInternalUserControllerTest {
 
             // Verify interactions
             verify(authenticationService).handleOauthCode(code);
-            verify(accessTokenService).extractUserEmail(accessToken);
+            verify(accessTokenService).extractPreferredUsername(accessToken);
             verify(authorisationService).getAuthorisation(userEmail);
         }
 
@@ -138,7 +137,7 @@ class AuthenticationInternalUserControllerTest {
             String accessToken = "accessToken";
 
             when(authenticationService.handleOauthCode(code)).thenReturn(accessToken);
-            when(accessTokenService.extractUserEmail(accessToken)).thenReturn(null);
+            when(accessTokenService.extractPreferredUsername(accessToken)).thenReturn(null);
 
             // Act
             SecurityToken result = controller.handleOauthCode(code);
@@ -150,7 +149,7 @@ class AuthenticationInternalUserControllerTest {
 
             // Verify interactions
             verify(authenticationService).handleOauthCode(code);
-            verify(accessTokenService).extractUserEmail(accessToken);
+            verify(accessTokenService).extractPreferredUsername(accessToken);
             verifyNoInteractions(authorisationService);
         }
 

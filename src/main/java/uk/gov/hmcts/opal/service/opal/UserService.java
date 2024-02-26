@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.search.UserSearchDto;
 import uk.gov.hmcts.opal.entity.UserEntity;
 import uk.gov.hmcts.opal.repository.UserRepository;
@@ -18,6 +19,8 @@ import java.util.List;
 public class UserService implements UserServiceInterface {
 
     private final UserRepository userRepository;
+
+    private final BusinessUnitUserService businessUnitUserService;
 
     private final UserSpecs specs = new UserSpecs();
 
@@ -33,6 +36,15 @@ public class UserService implements UserServiceInterface {
                     ffq -> ffq.page(Pageable.unpaged()));
 
         return page.getContent();
+    }
+
+    public UserState getUserStateByUsername(String username) {
+        UserEntity user = userRepository.findByUsername(username);
+        return UserState.builder()
+            .userId(user.getUserId())
+            .userName(user.getUsername())
+            .roles(businessUnitUserService.getAuthorisationRolesByUserId(user.getUserId()))
+            .build();
     }
 
 }

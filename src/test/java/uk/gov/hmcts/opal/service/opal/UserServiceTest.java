@@ -11,10 +11,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.search.UserSearchDto;
 import uk.gov.hmcts.opal.entity.UserEntity;
 import uk.gov.hmcts.opal.repository.UserRepository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -28,6 +30,9 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private BusinessUnitUserService businessUnitUserService;
 
     @InjectMocks
     private UserService userService;
@@ -68,5 +73,20 @@ class UserServiceTest {
 
     }
 
+    @Test
+    void testGetUserStateByUsername() {
+        // Arrange
+        UserEntity userEntity = UserEntity.builder().userId("UID_001").username("John Smith").build();
+        when(userRepository.findByUsername(any())).thenReturn(userEntity);
+        when(businessUnitUserService.getAuthorisationRolesByUserId(any())).thenReturn(Collections.emptySet());
 
+        // Act
+        UserState result = userService.getUserStateByUsername("");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("UID_001", result.getUserId());
+        assertEquals("John Smith", result.getUserName());
+
+    }
 }

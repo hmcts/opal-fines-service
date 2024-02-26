@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -7,14 +8,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.service.opal.NoteService;
+import uk.gov.hmcts.opal.service.opal.UserService;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,19 +31,29 @@ class NoteControllerTest {
     @Mock
     private NoteService noteService;
 
+    @Mock
+    private AccessTokenService accessTokenService; // Injected to avoid NPE
+
+    @Mock
+    private UserService userService;
+
     @InjectMocks
     private NoteController noteController;
 
     @Test
     void testCreateNote_Success() {
         // Arrange
+        HttpServletRequest request = mock(HttpServletRequest.class);
         NoteDto noteDtoRequest = NoteDto.builder().build();
         NoteDto noteDtoResponse = NoteDto.builder().noteId(1L).build();
+        UserState userState = UserState.builder()
+            .userId("JS001").userName("John Smith").roles(Collections.emptySet()).build();
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(noteDtoResponse);
+        when(userService.getUserStateByUsername(any())).thenReturn(userState);
 
         // Act
-        ResponseEntity<NoteDto> response = noteController.createNote(noteDtoRequest);
+        ResponseEntity<NoteDto> response = noteController.createNote(noteDtoRequest, request);
 
         // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());

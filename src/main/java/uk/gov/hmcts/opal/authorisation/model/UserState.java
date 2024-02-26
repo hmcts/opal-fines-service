@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.Value;
 
+import java.util.Optional;
 import java.util.Set;
 
 @Value
@@ -20,4 +21,11 @@ public class UserState {
     @EqualsAndHashCode.Exclude
     Set<Role> roles;
 
+    public Optional<Role> getFirstRole() {
+        return roles.stream().findFirst();
+    }
+
+    public Optional<String> getFirstRoleBusinessUserId() {
+        return getFirstRole().map(Role::getBusinessUserId);
+    }
 }
