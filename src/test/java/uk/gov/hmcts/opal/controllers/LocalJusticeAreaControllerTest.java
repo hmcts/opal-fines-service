@@ -32,7 +32,7 @@ class LocalJusticeAreaControllerTest {
     @Test
     void testGetLocalJusticeArea_Success() {
         // Arrange
-        LocalJusticeAreaEntity entity = LocalJusticeAreaEntity.builder().build(); //some id assigned by db sequence
+        LocalJusticeAreaEntity entity = LocalJusticeAreaEntity.builder().build();
 
         when(localJusticeAreaService.getLocalJusticeArea(anyShort())).thenReturn(entity);
 

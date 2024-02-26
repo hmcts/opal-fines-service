@@ -31,7 +31,7 @@ class EnforcementControllerTest {
     @Test
     void testGetEnforcement_Success() {
         // Arrange
-        EnforcementEntity entity = EnforcementEntity.builder().build(); //some id assigned by db sequence
+        EnforcementEntity entity = EnforcementEntity.builder().build();
 
         when(enforcementService.getEnforcement(any(Long.class))).thenReturn(entity);
 

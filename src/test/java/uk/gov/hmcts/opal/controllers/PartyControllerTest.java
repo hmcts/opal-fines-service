@@ -33,7 +33,7 @@ class PartyControllerTest {
     void testCreateParty_Success() {
         // Arrange
         PartyDto partyDtoRequest = PartyDto.builder().build();
-        PartyDto partyDtoResponse = PartyDto.builder().partyId(1L).build(); //some id assigned by db sequence
+        PartyDto partyDtoResponse = PartyDto.builder().partyId(1L).build();
 
         when(partyService.saveParty(any(PartyDto.class))).thenReturn(partyDtoResponse);
 
