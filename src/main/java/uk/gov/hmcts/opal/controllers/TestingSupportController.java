@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
@@ -53,5 +54,10 @@ public class TestingSupportController {
     @GetMapping("/token/test-user")
     public ResponseEntity<AccessTokenResponse> getToken() {
         return ResponseEntity.ok(this.accessTokenService.getTestUserToken());
+    }
+
+    @GetMapping("/token/parse")
+    public ResponseEntity<String> parseToken(@RequestHeader("Authorization") String authorization) {
+        return ResponseEntity.ok(this.accessTokenService.extractUserEmail(authorization));
     }
 }
