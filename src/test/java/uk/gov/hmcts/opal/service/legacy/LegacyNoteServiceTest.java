@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -58,7 +59,7 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
             .postedBy("user123")
             .build();
 
-        NoteDto expectedNoteDto = inputNoteDto.toBuilder().noteId(12345L).build();
+        final NoteDto expectedNoteDto = inputNoteDto.toBuilder().noteId(12345L).build();
 
         String jsonBody = """
             {
@@ -67,6 +68,7 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
             """;
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(LegacySaveNoteRequestDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 
@@ -87,6 +89,7 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             null, HttpStatus.OK);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(LegacySaveNoteRequestDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
@@ -118,6 +121,7 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(LegacySaveNoteRequestDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
@@ -216,6 +220,7 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.OK);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(LegacySaveNoteRequestDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
         // Act
