@@ -50,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -68,11 +69,12 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
-        DefendantAccountEntity expectedAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
+        final DefendantAccountEntity expectedAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
         String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(DefendantAccountEntity.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 
@@ -92,6 +94,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             null, HttpStatus.OK);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(DefendantAccountEntity.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
@@ -121,6 +124,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(DefendantAccountEntity.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
@@ -151,6 +155,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.OK);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(DefendantAccountEntity.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
@@ -175,11 +180,12 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         mockRestClientPost();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
-        DefendantAccountEntity expectedAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
+        final DefendantAccountEntity expectedAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
         String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(AccountEnquiryDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 
@@ -200,6 +206,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             null, HttpStatus.OK);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(AccountEnquiryDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
         // Act
@@ -230,6 +237,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(AccountEnquiryDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
@@ -259,6 +267,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.OK);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(AccountEnquiryDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
 
@@ -345,6 +354,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(buildLegacyAccountDto());
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(LegacyAccountDetailsRequestDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 
@@ -368,6 +378,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(resultsDto);
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(DefendantAccountSearchCriteria.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 
