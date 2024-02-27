@@ -51,6 +51,10 @@ public abstract class EntitySpecs<E> {
         return numeric(candidate).map(Long::parseLong);
     }
 
+    public Optional<Short> numericShort(String candidate) {
+        return numeric(candidate).map(Short::parseShort);
+    }
+
     public Optional<LocalDate> notNullLocalDate(DateDto candidate) {
         return Optional.ofNullable(candidate).map(DateDto::toLocalDate);
     }
