@@ -15,7 +15,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.ModelAndView;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
+import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authentication.service.AuthenticationService;
+import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 
 import java.net.URI;
 import java.util.Date;
@@ -42,6 +44,12 @@ class AuthenticationInternalUserControllerTest {
 
     @Mock
     private AuthenticationService authenticationService;
+
+    @Mock
+    private AuthorisationService authorisationService;
+
+    @Mock
+    private AccessTokenService accessTokenService;
 
     @Test
     void loginAndRefreshShouldReturnLoginPageAsRedirectWhenAuthHeaderIsNotSet() {
