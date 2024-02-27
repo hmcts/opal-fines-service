@@ -10,9 +10,11 @@ import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfiguratio
 import uk.gov.hmcts.opal.authentication.model.AccessTokenRequest;
 import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.config.properties.TestUser;
+import uk.gov.hmcts.opal.exception.OpalApiException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -66,6 +68,28 @@ class AccessTokenServiceTest {
 
         // Assert
         assertEquals(expectedResponse, result);
+    }
+
+    @Test
+    public void testExtractToken_ValidAuthorizationHeader_ReturnsToken() {
+        // Given
+        String authorizationHeader = "Bearer sampleToken123";
+
+        // When
+        String extractedToken = accessTokenService.extractToken(authorizationHeader);
+
+        // Then
+        assertEquals("sampleToken123", extractedToken);
+    }
+
+    @Test
+    public void testExtractToken_NullAuthorizationHeader_ThrowsException() {
+        assertThrows(OpalApiException.class, () -> accessTokenService.extractToken(null));
+    }
+
+    @Test
+    public void testExtractToken_InvalidAuthorizationHeader_ThrowsException() {
+        assertThrows(OpalApiException.class, () -> accessTokenService.extractToken("InvalidHeader"));
     }
 }
 
