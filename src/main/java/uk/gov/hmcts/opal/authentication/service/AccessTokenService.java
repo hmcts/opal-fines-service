@@ -28,6 +28,10 @@ public class AccessTokenService {
         return getAccessToken(testUser.getEmail(), testUser.getPassword());
     }
 
+    public AccessTokenResponse getTestUserToken(String userEmail) {
+        return getAccessToken(userEmail, testUser.getPassword());
+    }
+
     public AccessTokenResponse getAccessToken(String userName, String password) {
 
         AccessTokenRequest tokenRequest = AccessTokenRequest.builder()

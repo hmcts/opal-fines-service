@@ -30,6 +30,8 @@ import static org.mockito.Mockito.when;
 )
 class TestingSupportControllerTest {
 
+    private static final String TEST_USER_EMAIL = "test@example.com";
+
     @Autowired
     private TestingSupportController controller;
 
@@ -111,6 +113,34 @@ class TestingSupportControllerTest {
         assertThrows(
             RuntimeException.class,
             () -> controller.getToken()
+        );
+    }
+
+    @Test
+    public void getTokenForUser_shouldReturnResponse() {
+        // Arrange
+        AccessTokenResponse expectedResponse = AccessTokenResponse.builder().build();
+        when(accessTokenService.getTestUserToken(TEST_USER_EMAIL))
+            .thenReturn(expectedResponse);
+
+        // Act
+        ResponseEntity<AccessTokenResponse> response = controller.getTokenForUser(TEST_USER_EMAIL);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expectedResponse, response.getBody());
+    }
+
+    @Test
+    public void getTokenForUser_shouldHandleExceptions() {
+        // Arrange
+        when(accessTokenService.getTestUserToken(TEST_USER_EMAIL))
+            .thenThrow(new RuntimeException("Error!"));
+
+        // Act and Assert
+        assertThrows(
+            RuntimeException.class,
+            () -> controller.getTokenForUser(TEST_USER_EMAIL)
         );
     }
 

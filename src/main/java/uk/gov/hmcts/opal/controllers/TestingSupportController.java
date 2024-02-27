@@ -25,6 +25,8 @@ import uk.gov.hmcts.opal.service.DynamicConfigService;
 @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
 public class TestingSupportController {
 
+    private static final String X_USER_EMAIL = "X-User-Email";
+
     private final DynamicConfigService dynamicConfigService;
     private final FeatureToggleService featureToggleService;
     private final AccessTokenService accessTokenService;
@@ -52,8 +54,15 @@ public class TestingSupportController {
     }
 
     @GetMapping("/token/test-user")
+    @Operation(summary = "Retrieves the token for default test user")
     public ResponseEntity<AccessTokenResponse> getToken() {
         return ResponseEntity.ok(this.accessTokenService.getTestUserToken());
+    }
+
+    @GetMapping("/token/user")
+    @Operation(summary = "Retrieves the token for a given user")
+    public ResponseEntity<AccessTokenResponse> getTokenForUser(@RequestHeader(value = X_USER_EMAIL) String userEmail) {
+        return ResponseEntity.ok(accessTokenService.getTestUserToken(userEmail));
     }
 
     @GetMapping("/token/parse")
