@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
@@ -23,6 +24,8 @@ import uk.gov.hmcts.opal.service.DynamicConfigService;
 @Tag(name = "Testing Support Controller")
 @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
 public class TestingSupportController {
+
+    private static final String X_USER_EMAIL = "X-User-Email";
 
     private final DynamicConfigService dynamicConfigService;
     private final FeatureToggleService featureToggleService;
@@ -51,7 +54,14 @@ public class TestingSupportController {
     }
 
     @GetMapping("/token/test-user")
+    @Operation(summary = "Retrieves the token for default test user")
     public ResponseEntity<AccessTokenResponse> getToken() {
         return ResponseEntity.ok(this.accessTokenService.getTestUserToken());
+    }
+
+    @GetMapping("/token/user")
+    @Operation(summary = "Retrieves the token for a given user")
+    public ResponseEntity<AccessTokenResponse> getTokenForUser(@RequestHeader(value = X_USER_EMAIL) String userEmail) {
+        return ResponseEntity.ok(accessTokenService.getTestUserToken(userEmail));
     }
 }
