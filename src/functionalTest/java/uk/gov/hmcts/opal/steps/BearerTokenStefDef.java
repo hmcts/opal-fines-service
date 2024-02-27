@@ -25,7 +25,9 @@ public class BearerTokenStefDef extends BaseStepDef {
     protected static String getToken() {
         if (ALT_TOKEN.get() == null) {
             return TOKEN;
-        } else return ALT_TOKEN.get();
+        } else {
+            return ALT_TOKEN.get();
+        }
     }
 
     @When("I am testing as the {string} user")
