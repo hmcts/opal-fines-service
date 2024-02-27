@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.authentication.service;
 
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.PlainJWT;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,6 +14,8 @@ import uk.gov.hmcts.opal.authentication.model.AccessTokenRequest;
 import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.config.properties.TestUser;
 import uk.gov.hmcts.opal.exception.OpalApiException;
+
+import java.text.ParseException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -26,6 +31,9 @@ class AccessTokenServiceTest {
 
     @Mock
     private AzureTokenClient azureTokenClient;
+
+    @Mock
+    private TokenValidator tokenValidator;
 
     @Mock
     private TestUser testUser;
@@ -70,26 +78,71 @@ class AccessTokenServiceTest {
         assertEquals(expectedResponse, result);
     }
 
-    @Test
-    public void testExtractToken_ValidAuthorizationHeader_ReturnsToken() {
-        // Given
-        String authorizationHeader = "Bearer sampleToken123";
+    @Nested
+    class ExtractToken {
+        @Test
+        public void testExtractToken_ValidAuthorizationHeader_ReturnsToken() {
+            // Given
+            String authorizationHeader = "Bearer sampleToken123";
 
-        // When
-        String extractedToken = accessTokenService.extractToken(authorizationHeader);
+            // When
+            String extractedToken = accessTokenService.extractToken(authorizationHeader);
 
-        // Then
-        assertEquals("sampleToken123", extractedToken);
+            // Then
+            assertEquals("sampleToken123", extractedToken);
+        }
+
+        @Test
+        public void testExtractToken_NullAuthorizationHeader_ThrowsException() {
+            assertThrows(OpalApiException.class, () -> accessTokenService.extractToken(null));
+        }
+
+        @Test
+        public void testExtractToken_InvalidAuthorizationHeader_ThrowsException() {
+            assertThrows(OpalApiException.class, () -> accessTokenService.extractToken("InvalidHeader"));
+        }
     }
 
-    @Test
-    public void testExtractToken_NullAuthorizationHeader_ThrowsException() {
-        assertThrows(OpalApiException.class, () -> accessTokenService.extractToken(null));
-    }
+    @Nested
+    class ExtractUserEmail {
+        @Test
+        void testExtractUserEmail_invalidToken() throws Exception {
+            // Given
+            String invalidToken = "invalidToken";
 
-    @Test
-    public void testExtractToken_InvalidAuthorizationHeader_ThrowsException() {
-        assertThrows(OpalApiException.class, () -> accessTokenService.extractToken("InvalidHeader"));
+            when(tokenValidator.parse(invalidToken)).thenThrow(ParseException.class);
+
+            assertThrows(
+                OpalApiException.class,
+                () -> accessTokenService.extractUserEmail("Bearer " + invalidToken)
+            );
+        }
+
+
+        @Test
+        void testExtractUserEmail_validToken() throws Exception {
+            String token = "validToken";
+            String expectedEmail = "test@example.com";
+
+            JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder();
+
+            claimsSetBuilder.issuer("example.com")
+                .subject("john.doe@example.com")
+                .audience("client123")
+                .claim("preferred_username", "test@example.com");
+
+            JWTClaimsSet claimsSet = claimsSetBuilder.build();
+
+            PlainJWT jwt = new PlainJWT(claimsSet);
+
+            when(tokenValidator.parse(token)).thenReturn(jwt);
+
+            // When
+            String email = accessTokenService.extractUserEmail("Bearer " + token);
+
+            // Then
+            assertEquals(expectedEmail, email);
+        }
     }
 }
 

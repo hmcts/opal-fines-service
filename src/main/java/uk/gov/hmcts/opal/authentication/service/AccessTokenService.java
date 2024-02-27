@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.authentication.service;
 
 import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +21,7 @@ public class AccessTokenService {
 
     private final InternalAuthConfigurationProperties configuration;
     private final AzureTokenClient azureTokenClient;
+    private final TokenValidator tokenValidator;
     private final TestUser testUser;
 
     public AccessTokenResponse getTestUserToken() {
@@ -47,7 +47,7 @@ public class AccessTokenService {
     public String extractUserEmail(String authorizationHeader) {
         try {
             String token = extractToken(authorizationHeader);
-            JWT parsedJwt = JWTParser.parse(token);
+            JWT parsedJwt = tokenValidator.parse(token);
             return parsedJwt.getJWTClaimsSet().getClaim("preferred_username").toString();
         } catch (ParseException e) {
             log.error("Unable to parse token: " + e.getMessage());
