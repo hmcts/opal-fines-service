@@ -86,6 +86,7 @@ task functionalOpal(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional"))
   testLogging.showStandardStreams = true
   gradle.startParameter.continueOnFailure = true
   systemProperty "cucumber.filter.tags", "@Opal and not @Smoke and not @Ignore"
@@ -96,6 +97,7 @@ task functionalLegacy(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional"))
   gradle.startParameter.continueOnFailure = true
   testLogging.showStandardStreams = true
   systemProperty "cucumber.filter.tags", "@Legacy and not @Smoke and not @Ignore"
@@ -123,6 +125,7 @@ task smokeOpal(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/smoke"))
   testLogging.showStandardStreams = true
   gradle.startParameter.continueOnFailure = true
   systemProperty "cucumber.filter.tags", "@Smoke and not @Ignore"
