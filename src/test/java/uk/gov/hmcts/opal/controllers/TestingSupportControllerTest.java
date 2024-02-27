@@ -143,4 +143,15 @@ class TestingSupportControllerTest {
             () -> controller.getTokenForUser(TEST_USER_EMAIL)
         );
     }
+
+    @Test
+    void parseToken_shouldReturnEmail() {
+        String bearerToken = "Bearer token";
+        when(accessTokenService.extractUserEmail(bearerToken)).thenReturn("my@email.com");
+
+        ResponseEntity<String> response = controller.parseToken(bearerToken);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("my@email.com", response.getBody());
+    }
 }

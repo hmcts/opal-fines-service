@@ -64,4 +64,9 @@ public class TestingSupportController {
     public ResponseEntity<AccessTokenResponse> getTokenForUser(@RequestHeader(value = X_USER_EMAIL) String userEmail) {
         return ResponseEntity.ok(accessTokenService.getTestUserToken(userEmail));
     }
+
+    @GetMapping("/token/parse")
+    public ResponseEntity<String> parseToken(@RequestHeader("Authorization") String authorization) {
+        return ResponseEntity.ok(this.accessTokenService.extractUserEmail(authorization));
+    }
 }
