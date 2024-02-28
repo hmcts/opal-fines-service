@@ -12,9 +12,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
+import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authentication.service.AuthenticationService;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 
 import java.net.URI;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -24,6 +28,8 @@ import java.net.URI;
 public class AuthenticationInternalUserController {
 
     private final AuthenticationService authenticationService;
+    private final AccessTokenService accessTokenService;
+    private final AuthorisationService authorisationService;
 
     @GetMapping("/login-or-refresh")
     @Operation(summary = "Handles login for the front end API calls")
@@ -45,7 +51,12 @@ public class AuthenticationInternalUserController {
         String accessToken = authenticationService.handleOauthCode(code);
         var securityTokenBuilder = SecurityToken.builder()
             .accessToken(accessToken);
+        Optional<String> emailAddressOptional = Optional.ofNullable(accessTokenService.extractUserEmail(accessToken));
 
+        if (emailAddressOptional.isPresent()) {
+            Optional<UserState> userStateOptional = authorisationService.getAuthorisation(emailAddressOptional.get());
+            securityTokenBuilder.userState(userStateOptional.orElse(null));
+        }
         return securityTokenBuilder.build();
     }
 
