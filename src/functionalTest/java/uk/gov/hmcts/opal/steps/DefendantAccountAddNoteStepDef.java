@@ -11,7 +11,7 @@ import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.Assert.assertEquals;
-import static uk.gov.hmcts.opal.steps.BearerTokenStefDef.getToken;
+import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class DefendantAccountAddNoteStepDef extends BaseStepDef {
     @When("I make a request to the defendant account add notes api with")

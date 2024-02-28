@@ -6,7 +6,7 @@ import io.cucumber.java.en.Then;
 import net.serenitybdd.rest.SerenityRest;
 import org.hamcrest.Matchers;
 
-import static uk.gov.hmcts.opal.steps.BearerTokenStefDef.getToken;
+import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class HealthApiStepDef extends BaseStepDef {
 

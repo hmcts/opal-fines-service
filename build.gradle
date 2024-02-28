@@ -86,6 +86,7 @@ task functionalOpal(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional"))
   testLogging.showStandardStreams = true
   gradle.startParameter.continueOnFailure = true
   systemProperty "cucumber.filter.tags", "@Opal and not @Smoke and not @Ignore"
@@ -96,6 +97,7 @@ task functionalLegacy(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional"))
   gradle.startParameter.continueOnFailure = true
   testLogging.showStandardStreams = true
   systemProperty "cucumber.filter.tags", "@Legacy and not @Smoke and not @Ignore"
@@ -107,10 +109,9 @@ task copyFunctionalReport(type: Copy){
   logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
 }
 
-task functional(type: Test) {
+task functional() {
   description = "Runs functional tests"
   group = "Verification"
-  testLogging.showStandardStreams = true
   gradle.startParameter.continueOnFailure = true
   dependsOn('clearReports','functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport')
   tasks.functionalOpal.mustRunAfter clearReports
@@ -124,6 +125,7 @@ task smokeOpal(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/smoke"))
   testLogging.showStandardStreams = true
   gradle.startParameter.continueOnFailure = true
   systemProperty "cucumber.filter.tags", "@Smoke and not @Ignore"
@@ -134,10 +136,9 @@ task copySmokeReport(type: Copy){
   logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
 }
 
-task smoke(type: Test) {
+task smoke() {
   description = "Runs Smoke Tests"
   group = "Verification"
-  testLogging.showStandardStreams = true
   gradle.startParameter.continueOnFailure = true
   dependsOn('clearReports','smokeOpal', 'aggregate', 'copySmokeReport')
   tasks.smokeOpal.mustRunAfter clearReports
