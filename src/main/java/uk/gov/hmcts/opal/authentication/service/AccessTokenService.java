@@ -59,12 +59,11 @@ public class AccessTokenService {
         }
     }
 
-    public String extractToken(String authorizationHeader) {
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            return authorizationHeader.substring(7);
+    public String extractToken(String accessToken) {
+        if (accessToken != null && accessToken.startsWith("Bearer ")) {
+            return accessToken.substring(7);
         }
-        log.error("Unable to extract bearer token: ");
-        throw new OpalApiException(AuthenticationError.FAILED_TO_PARSE_ACCESS_TOKEN);
+        return accessToken;
     }
 }
 

@@ -106,16 +106,6 @@ class AccessTokenServiceTest {
             // Then
             assertEquals("sampleToken123", extractedToken);
         }
-
-        @Test
-        public void testExtractToken_NullAuthorizationHeader_ThrowsException() {
-            assertThrows(OpalApiException.class, () -> accessTokenService.extractToken(null));
-        }
-
-        @Test
-        public void testExtractToken_InvalidAuthorizationHeader_ThrowsException() {
-            assertThrows(OpalApiException.class, () -> accessTokenService.extractToken("InvalidHeader"));
-        }
     }
 
     @Nested
