@@ -15,6 +15,9 @@ public class AuthorisationService {
 
     public Optional<UserState> getAuthorisation(String emailAddress) {
         //TODO: populate user state from the database.
-        return Optional.of(UserState.builder().build());
+        return Optional.of(UserState.builder()
+                               .userId(emailAddress)
+                               .userName("some name")
+                               .build());
     }
 }
