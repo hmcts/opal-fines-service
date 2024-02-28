@@ -10,7 +10,7 @@ import org.json.JSONObject;
 import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
-import static uk.gov.hmcts.opal.steps.BearerTokenStefDef.getToken;
+import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class NotesApiStepDef extends BaseStepDef {
 

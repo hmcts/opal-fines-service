@@ -7,7 +7,7 @@ import net.serenitybdd.rest.SerenityRest;
 import static net.serenitybdd.rest.SerenityRest.then;
 
 
-public class BearerTokenStefDef extends BaseStepDef {
+public class BearerTokenStepDef extends BaseStepDef {
     protected static String TOKEN;
     protected static ThreadLocal<String> ALT_TOKEN = new ThreadLocal<>();
 
