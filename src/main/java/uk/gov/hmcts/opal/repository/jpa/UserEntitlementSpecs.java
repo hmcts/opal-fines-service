@@ -17,6 +17,7 @@ import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.parentBusinessU
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitUserSpecs.businessUnitUserIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitUserSpecs.joinBusinessUnit;
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitUserSpecs.joinUser;
+import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.equalsUsernamePredicate;
 import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.userDescriptionPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.userIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.usernamePredicate;
@@ -74,6 +75,11 @@ public class UserEntitlementSpecs extends EntitySpecs<UserEntitlementEntity> {
 
     public static Specification<UserEntitlementEntity> likeUsername(String username) {
         return (root, query, builder) -> usernamePredicate(joinUser(joinBusinessUnitUser(root)), builder, username);
+    }
+
+    public static Specification<UserEntitlementEntity> equalsUsername(String username) {
+        return (root, query, builder) -> equalsUsernamePredicate(
+            joinUser(joinBusinessUnitUser(root)), builder, username);
     }
 
     public static Specification<UserEntitlementEntity> likeUserDescription(String description) {

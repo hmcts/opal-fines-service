@@ -38,7 +38,12 @@ public class UserSpecs extends EntitySpecs<UserEntity> {
     }
 
     public static Specification<UserEntity> equalsUsername(String username) {
-        return (root, query, builder) -> builder.equal(root.get(UserEntity_.username), username);
+        return (root, query, builder) -> equalsUsernamePredicate(root, builder, username);
+    }
+
+    public static Predicate equalsUsernamePredicate(From<?, UserEntity> from, CriteriaBuilder builder,
+                                                    String username) {
+        return builder.equal(from.get(UserEntity_.username), username);
     }
 
     public static Specification<UserEntity> likeUsername(String username) {

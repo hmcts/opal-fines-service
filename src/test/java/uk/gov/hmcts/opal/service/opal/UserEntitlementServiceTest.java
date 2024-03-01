@@ -12,17 +12,23 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.search.UserEntitlementSearchDto;
 import uk.gov.hmcts.opal.entity.ApplicationFunctionEntity;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity;
 import uk.gov.hmcts.opal.entity.UserEntitlementEntity;
+import uk.gov.hmcts.opal.entity.UserEntity;
 import uk.gov.hmcts.opal.repository.UserEntitlementRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -89,6 +95,36 @@ class UserEntitlementServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
+
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetUserStateByUsername() {
+        // Arrange
+        UserEntitlementEntity entitlement = UserEntitlementEntity.builder()
+            .businessUnitUser(BusinessUnitUserEntity.builder()
+                                  .businessUnitUserId("BUU_001")
+                                  .user(UserEntity.builder()
+                                            .userId("UID_001").username("John Smith").build())
+                                  .businessUnit(BusinessUnitEntity.builder()
+                                            .businessUnitId((short)101).build())
+                                  .build())
+            .applicationFunction(ApplicationFunctionEntity.builder()
+                                  .applicationFunctionId(23L)
+                                  .functionName("Read_Notes").build())
+            .build();
+        List<UserEntitlementEntity> list = List.of(entitlement);
+        when(userEntitlementRepository.findAll(any(Specification.class))).thenReturn(list);
+
+        // Act
+        Optional<UserState> result = userEntitlementService.getUserStateByUsername("");
+
+        // Assert
+        assertNotNull(result);
+        assertTrue(result.isPresent());
+        assertEquals("UID_001", result.get().getUserId());
+        assertEquals("John Smith", result.get().getUserName());
 
     }
 

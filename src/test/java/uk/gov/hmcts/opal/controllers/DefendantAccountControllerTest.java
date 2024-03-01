@@ -8,7 +8,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
@@ -20,7 +19,7 @@ import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.NoteService;
-import uk.gov.hmcts.opal.service.opal.UserService;
+import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.Collections;
 import java.util.List;
@@ -42,10 +41,7 @@ class DefendantAccountControllerTest {
     private NoteService noteService;
 
     @Mock
-    private AccessTokenService accessTokenService; // Injected to avoid NPE
-
-    @Mock
-    private UserService userService;
+    private UserStateService userStateService;
 
     @InjectMocks
     private DefendantAccountController defendantAccountController;
@@ -149,7 +145,7 @@ class DefendantAccountControllerTest {
             .userId("JS001").userName("John Smith").roles(Collections.emptySet()).build();
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(mockResponse);
-        when(userService.getUserStateByUsername(any())).thenReturn(userState);
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(userState);
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();
@@ -169,7 +165,7 @@ class DefendantAccountControllerTest {
         UserState userState = UserState.builder()
             .userId("JS001").userName("John Smith").roles(Collections.emptySet()).build();
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(null);
-        when(userService.getUserStateByUsername(any())).thenReturn(userState);
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(userState);
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();

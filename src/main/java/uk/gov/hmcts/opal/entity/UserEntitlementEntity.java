@@ -17,7 +17,10 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
+import java.util.Optional;
 
 @Entity
 @Table(name = "user_entitlements")
@@ -38,9 +41,28 @@ public class UserEntitlementEntity {
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "business_unit_user_id", nullable = false)
+    @EqualsAndHashCode.Exclude
     private BusinessUnitUserEntity businessUnitUser;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "application_function_id", nullable = false)
+    @EqualsAndHashCode.Exclude
     private ApplicationFunctionEntity applicationFunction;
+
+    public String getBusinessUnitUserId() {
+        return Optional.ofNullable(businessUnitUser)
+            .map(BusinessUnitUserEntity::getBusinessUnitUserId).orElse(null);
+    }
+
+    public Long getApplicationFunctionId() {
+        return Optional.ofNullable(applicationFunction)
+            .map(ApplicationFunctionEntity::getApplicationFunctionId).orElse(null);
+    }
+
+    public String getFunctionName() {
+        return Optional.ofNullable(applicationFunction)
+            .map(ApplicationFunctionEntity::getFunctionName).orElse(null);
+    }
+
+
 }

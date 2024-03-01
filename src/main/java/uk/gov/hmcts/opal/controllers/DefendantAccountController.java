@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
@@ -27,14 +26,13 @@ import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;
-import uk.gov.hmcts.opal.service.opal.UserService;
+import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
-import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 
 @RestController
 @RequestMapping("/api/defendant-account")
@@ -48,19 +46,15 @@ public class DefendantAccountController {
 
     private final NoteServiceInterface noteService;
 
-    private final AccessTokenService tokenService;
-
-    private final UserService userService;
+    private final UserStateService userStateService;
 
     public DefendantAccountController(
         @Qualifier("defendantAccountServiceProxy") DefendantAccountServiceInterface defendantAccountService,
-        @Qualifier("noteServiceProxy") NoteServiceInterface noteService, AccessTokenService tokenService,
-        UserService userService) {
+        @Qualifier("noteServiceProxy") NoteServiceInterface noteService, UserStateService userStateService) {
 
         this.defendantAccountService = defendantAccountService;
         this.noteService = noteService;
-        this.tokenService = tokenService;
-        this.userService = userService;
+        this.userStateService = userStateService;
     }
 
     @GetMapping
@@ -115,15 +109,14 @@ public class DefendantAccountController {
         @RequestBody AddNoteDto addNote, HttpServletRequest request) {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
-        String preferredUsername = extractPreferredUsername(request, tokenService);
-        UserState userState = userService.getUserStateByUsername(preferredUsername);
+        UserState userState = userStateService.getUserStateUsingServletRequest(request);
 
         NoteDto noteDto = NoteDto.builder()
             .associatedRecordId(addNote.getAssociatedRecordId())
             .noteText(addNote.getNoteText())
             .associatedRecordType(NOTE_ASSOC_REC_TYPE)
             .noteType("AA") // TODO - This will probably need to part of the AddNoteDto in future
-            .postedBy(userState.getFirstRoleBusinessUserId().orElse(preferredUsername)) // TODO - not always 'first'?
+            .postedBy(userState.getFirstRoleBusinessUserId().orElse(userState.getUserName())) // TODO - always first?
             .postedByAAD(userState.getUserId())
             .postedDate(LocalDateTime.now())
             .build();
@@ -151,4 +144,5 @@ public class DefendantAccountController {
 
         return buildResponse(response);
     }
+
 }

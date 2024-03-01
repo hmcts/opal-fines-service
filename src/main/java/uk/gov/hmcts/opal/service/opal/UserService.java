@@ -38,12 +38,34 @@ public class UserService implements UserServiceInterface {
         return page.getContent();
     }
 
+    /**
+     * Retrieves a UserState object by starting with multiple queries against 3 different repositories.
+     * During some limited developer testing, this method was less performant than the similar method
+     * in the UserEntitlementService, but will still return a UserState even if no Entitlements exist for that user,
+     * but the User <i>does</i> exist in the table.
+     */
     public UserState getUserStateByUsername(String username) {
         UserEntity user = userRepository.findByUsername(username);
         return UserState.builder()
             .userId(user.getUserId())
             .userName(user.getUsername())
             .roles(businessUnitUserService.getAuthorisationRolesByUserId(user.getUserId()))
+            .build();
+    }
+
+    /**
+     * Return a 'cut down' UserState object that that only tries to populate Roles but not Permissions.
+     * The assumption is that previous code has attempted to retrieve a UserState object via a query against
+     * the UserEntitlementService, but failed. This could be because of a lack of Entitlements associated with
+     * a BusinessUnitUnit, or a lack of BusinessUnitUsers associated with this user. So assuming there
+     * is a valid User for the given username, then this method will return a non-null object.
+     */
+    public UserState getLimitedUserStateByUsername(String username) {
+        UserEntity user = userRepository.findByUsername(username);
+        return UserState.builder()
+            .userId(user.getUserId())
+            .userName(user.getUsername())
+            .roles(businessUnitUserService.getLimitedRolesByUserId(user.getUserId()))
             .build();
     }
 
