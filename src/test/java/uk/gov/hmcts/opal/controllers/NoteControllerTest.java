@@ -8,12 +8,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.service.opal.NoteService;
-import uk.gov.hmcts.opal.service.opal.UserService;
+import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,10 +31,7 @@ class NoteControllerTest {
     private NoteService noteService;
 
     @Mock
-    private AccessTokenService accessTokenService; // Injected to avoid NPE
-
-    @Mock
-    private UserService userService;
+    private UserStateService userStateService;
 
     @InjectMocks
     private NoteController noteController;
@@ -50,7 +46,7 @@ class NoteControllerTest {
             .userId("JS001").userName("John Smith").roles(Collections.emptySet()).build();
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(noteDtoResponse);
-        when(userService.getUserStateByUsername(any())).thenReturn(userState);
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(userState);
 
         // Act
         ResponseEntity<NoteDto> response = noteController.createNote(noteDtoRequest, request);

@@ -89,4 +89,20 @@ class UserServiceTest {
         assertEquals("John Smith", result.getUserName());
 
     }
+
+    @Test
+    void testGetLimitedUserStateByUsername() {
+        // Arrange
+        UserEntity userEntity = UserEntity.builder().userId("UID_001").username("John Smith").build();
+        when(userRepository.findByUsername(any())).thenReturn(userEntity);
+
+        // Act
+        UserState result = userService.getLimitedUserStateByUsername("");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("UID_001", result.getUserId());
+        assertEquals("John Smith", result.getUserName());
+
+    }
 }

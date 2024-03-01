@@ -96,4 +96,22 @@ class BusinessUnitUserServiceTest {
 
     }
 
+    @Test
+    void testGetLimitedRolesByUserId() {
+        // Arrange
+        BusinessUnitEntity bue = BusinessUnitEntity.builder().businessUnitId((short)100).build();
+        BusinessUnitUserEntity businessUnitUserEntity = BusinessUnitUserEntity.builder()
+            .businessUnitUserId("BUUserABCD").businessUnit(bue).build();
+        List<BusinessUnitUserEntity> list = List.of(businessUnitUserEntity);
+        when(businessUnitUserRepository.findAllByUser_UserId(any())).thenReturn(list);
+
+        // Act
+        Set<Role> result = businessUnitUserService.getLimitedRolesByUserId("");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+
+    }
+
 }
