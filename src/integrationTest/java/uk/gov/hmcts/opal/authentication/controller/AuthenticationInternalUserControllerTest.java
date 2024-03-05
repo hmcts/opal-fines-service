@@ -1,0 +1,108 @@
+package uk.gov.hmcts.opal.authentication.controller;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import uk.gov.hmcts.opal.authentication.model.SecurityToken;
+import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.authentication.service.AuthenticationService;
+import uk.gov.hmcts.opal.authorisation.model.Permission;
+import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
+
+import java.net.URI;
+import java.util.Set;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+@WebMvcTest
+@ContextConfiguration(classes = AuthenticationInternalUserController.class)
+@ActiveProfiles({"integration"})
+public class AuthenticationInternalUserControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private AuthenticationService authenticationService;
+
+    @MockBean
+    private AccessTokenService accessTokenService;
+
+    @MockBean
+    private AuthorisationService authorisationService;
+
+    @Test
+    public void testLoginOrRefresh() throws Exception {
+        String redirectUri = "http://example.com/redirect";
+        when(authenticationService.loginOrRefresh(any(), any())).thenReturn(new URI(redirectUri));
+
+        mockMvc.perform(get("/internal-user/login-or-refresh")
+                            .param("redirect_uri", redirectUri))
+            .andExpect(status().isFound())
+            .andExpect(view().name("redirect:" + redirectUri));
+    }
+
+    @Test
+    public void testHandleOauthCode() throws Exception {
+        when(authenticationService.handleOauthCode(anyString())).thenReturn("accessToken");
+
+        SecurityToken securityToken = SecurityToken.builder().accessToken("accessToken").build();
+        when(accessTokenService.extractPreferredUsername(anyString())).thenReturn("username");
+        UserState userState = UserState.builder()
+            .userName("name")
+            .userId("123")
+            .roles(Set.of(Role.builder()
+                              .businessUnit("B123")
+                              .businessUserId("BU123")
+                              .permissions(Set.of(
+                                  Permission.builder()
+                                      .permissionId(1L)
+                                      .permissionName("Notes")
+                                      .build()))
+                              .build()))
+            .build();
+        when(authorisationService.getAuthorisation(anyString())).thenReturn(userState);
+
+        mockMvc.perform(post("/internal-user/handle-oauth-code")
+                            .param("code", "code")
+                            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testLogout() throws Exception {
+        String redirectUri = "http://example.com/redirect";
+        when(authenticationService.logout(any(), any())).thenReturn(new URI(redirectUri));
+
+        mockMvc.perform(get("/internal-user/logout")
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer access_token")
+                            .param("redirect_uri", redirectUri))
+            .andExpect(status().isFound())
+            .andExpect(view().name("redirect:" + redirectUri));
+    }
+
+    @Test
+    public void testResetPassword() throws Exception {
+        String redirectUri = "http://example.com/redirect";
+        when(authenticationService.resetPassword(any())).thenReturn(new URI(redirectUri));
+
+        mockMvc.perform(get("/internal-user/reset-password")
+                            .param("redirect_uri", redirectUri))
+            .andExpect(status().isFound())
+            .andExpect(view().name("redirect:" + redirectUri));
+    }
+}
