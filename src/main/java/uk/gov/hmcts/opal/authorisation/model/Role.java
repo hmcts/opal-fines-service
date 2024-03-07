@@ -15,7 +15,7 @@ public class Role {
     String businessUserId;
 
     @NonNull
-    String businessUnit;
+    Short businessUnitId;
 
     @EqualsAndHashCode.Exclude
     @NonNull

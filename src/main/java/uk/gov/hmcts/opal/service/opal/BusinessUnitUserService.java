@@ -49,7 +49,7 @@ public class BusinessUnitUserService implements BusinessUnitUserServiceInterface
 
         return buuList.stream().map(buu -> Role.builder()
             .businessUserId(buu.getBusinessUnitUserId())
-            .businessUnit(buu.getBusinessUnit().getBusinessUnitId().toString())
+            .businessUnitId(buu.getBusinessUnit().getBusinessUnitId())
             .permissions(userEntitlementService.getPermissionsByBusinessUnitUserId(buu.getBusinessUnitUserId()))
             .build()).collect(Collectors.toSet());
 
@@ -65,7 +65,7 @@ public class BusinessUnitUserService implements BusinessUnitUserServiceInterface
 
         return buuList.stream().map(buu -> Role.builder()
             .businessUserId(buu.getBusinessUnitUserId())
-            .businessUnit(buu.getBusinessUnit().getBusinessUnitId().toString())
+            .businessUnitId(buu.getBusinessUnit().getBusinessUnitId())
             .permissions(Collections.emptySet()) // We are assuming that Permissions exist for this Role.
             .build()).collect(Collectors.toSet());
 

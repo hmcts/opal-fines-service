@@ -24,8 +24,11 @@ public class AccountDetailsDto implements ToJsonString {
     // parties.surname, parties,initials, parties.forenames, parties.title
     private String fullName;
 
-    // business_units.business_unit_type
+    // business_units.business_unit_name
     private String accountCT;
+
+    // business_units.business_unit_id
+    private Short businessUnitId;
 
     //parties.address_line_(*)
     private String address;

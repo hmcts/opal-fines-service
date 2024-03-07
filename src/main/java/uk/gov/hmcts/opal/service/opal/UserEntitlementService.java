@@ -82,7 +82,7 @@ public class UserEntitlementService implements UserEntitlementServiceInterface {
             .userName(u.getUsername())
             .roles(businessUnitUsers.stream().map(buu -> Role.builder()
                 .businessUserId(buu.getBusinessUnitUserId())
-                .businessUnit(buu.getBusinessUnit().getBusinessUnitId().toString())
+                .businessUnitId(buu.getBusinessUnit().getBusinessUnitId())
                 .permissions(toPermissions(entitlementsMap.get(buu.getBusinessUnitUserId())))
                 .build()).collect(toSet()))
             .build());
