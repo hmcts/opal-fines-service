@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.authorisation.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
@@ -21,10 +22,12 @@ public class UserState {
     @EqualsAndHashCode.Exclude
     Set<Role> roles;
 
+    @JsonIgnore
     public Optional<Role> getFirstRole() {
         return roles.stream().findFirst();
     }
 
+    @JsonIgnore
     public Optional<String> getFirstRoleBusinessUserId() {
         return getFirstRole().map(Role::getBusinessUserId);
     }
