@@ -66,7 +66,7 @@ public class AuthenticationInternalUserControllerTest {
             .userName("name")
             .userId("123")
             .roles(Set.of(Role.builder()
-                              .businessUnit("B123")
+                              .businessUnitId((short)123)
                               .businessUserId("BU123")
                               .permissions(Set.of(
                                   Permission.builder()

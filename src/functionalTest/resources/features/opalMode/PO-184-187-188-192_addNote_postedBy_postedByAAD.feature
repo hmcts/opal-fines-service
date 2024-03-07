@@ -9,7 +9,7 @@ Feature: tests for changes to postedBy and postedByAAD
     And the add notes response contains
       | associatedRecordId | 500000010                                |
       | noteText           | test postedBy and PostedByAAD Opal user1 |
-      | postedBy           | L070KG                                   |
+      | postedBy           | L017KG                                   |
       | postedByAAD        | gl.userfour                              |
 
     Given I am testing as the "opal-test-2@hmcts.net" user
@@ -39,5 +39,5 @@ Feature: tests for changes to postedBy and postedByAAD
     And the add notes response contains
       | associatedRecordId | 500000010                                |
       | noteText           | test postedBy and PostedByAAD Opal user4 |
-      | postedBy           | L096GH                                   |
+      | postedBy           | L095GH                                   |
       | postedByAAD        | humber.usertwo                           |

@@ -85,7 +85,7 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/{defendantAccountId}")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
-    public ResponseEntity<AccountDetailsDto> getAccountDetailsByAccountSummary(@PathVariable Long defendantAccountId) {
+    public ResponseEntity<AccountDetailsDto> getAccountDetails(@PathVariable Long defendantAccountId) {
 
         AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(defendantAccountId);
 

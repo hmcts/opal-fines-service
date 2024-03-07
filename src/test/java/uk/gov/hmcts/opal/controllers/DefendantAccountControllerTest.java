@@ -108,7 +108,7 @@ class DefendantAccountControllerTest {
 
         // Act
         ResponseEntity<AccountDetailsDto> responseEntity = defendantAccountController
-            .getAccountDetailsByAccountSummary(1L);
+            .getAccountDetails(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
