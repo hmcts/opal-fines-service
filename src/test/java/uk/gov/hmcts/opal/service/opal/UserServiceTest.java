@@ -18,10 +18,12 @@ import uk.gov.hmcts.opal.repository.UserRepository;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -97,12 +99,14 @@ class UserServiceTest {
         when(userRepository.findByUsername(any())).thenReturn(userEntity);
 
         // Act
-        UserState result = userService.getLimitedUserStateByUsername("");
+        Optional<UserState> result = userService.getLimitedUserStateByUsername("");
+        // UserState result = userService.getLimitedUserStateByUsername("");
 
         // Assert
         assertNotNull(result);
-        assertEquals("UID_001", result.getUserId());
-        assertEquals("John Smith", result.getUserName());
+        assertTrue(result.isPresent());
+        assertEquals("UID_001", result.get().getUserId());
+        assertEquals("John Smith", result.get().getUserName());
 
     }
 }

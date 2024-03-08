@@ -103,3 +103,6 @@ opal:
   test-user:
     email: ${OPAL_TEST_USER_EMAIL:opal-test@HMCTS.NET}
     password: ${OPAL_TEST_USER_PASSWORD}
+
+be-developer-config:
+  user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.authorisation.model.Role;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
@@ -23,6 +24,7 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 import java.util.List;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredRole;
 
 
 @RestController
@@ -47,8 +49,9 @@ public class NoteController {
         log.info(":POST:createNote: {}", noteDto.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        Role role = getRequiredRole(userState, noteDto.getBusinessUnitId());
 
-        noteDto.setPostedBy(userState.getFirstRoleBusinessUserId().orElse(userState.getUserName())); // TODO - 'first'?
+        noteDto.setPostedBy(role.getBusinessUserId());
         noteDto.setPostedByAAD(userState.getUserId());
         NoteDto savedNoteDto = noteService.saveNote(noteDto);
         return new ResponseEntity<>(savedNoteDto, HttpStatus.CREATED);

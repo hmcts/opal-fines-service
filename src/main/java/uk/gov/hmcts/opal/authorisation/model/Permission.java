@@ -13,4 +13,8 @@ public class Permission {
 
     @NonNull
     String permissionName;
+
+    boolean matches(Permissions candidate) {
+        return candidate.id == permissionId;
+    }
 }
