@@ -10,7 +10,9 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
 
 @Entity
 @Table(name = "users")
@@ -27,12 +29,15 @@ public class UserEntity {
     private String userId;
 
     @Column(name = "username", length = 100)
+    @EqualsAndHashCode.Exclude
     private String username;
 
     @Column(name = "password", length = 1000)
+    @EqualsAndHashCode.Exclude
     private String password;
 
     @Column(name = "description", length = 100)
+    @EqualsAndHashCode.Exclude
     private String description;
 
 }

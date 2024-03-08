@@ -18,7 +18,7 @@ class ResponseUtilTest {
         List<String> responseList = Arrays.asList("item1", "item2", "item3");
 
         // Act
-        ResponseEntity<List<String>> responseEntity = ResponseUtil.buildResponse(responseList);
+        ResponseEntity<List<String>> responseEntity = HttpUtil.buildResponse(responseList);
 
         // Assert
         assertEquals(200, responseEntity.getStatusCode().value());
@@ -31,7 +31,7 @@ class ResponseUtilTest {
         List<String> responseList = Collections.emptyList();
 
         // Act
-        ResponseEntity<List<String>> responseEntity = ResponseUtil.buildResponse(responseList);
+        ResponseEntity<List<String>> responseEntity = HttpUtil.buildResponse(responseList);
 
         // Assert
         assertEquals(204, responseEntity.getStatusCode().value());
@@ -44,7 +44,7 @@ class ResponseUtilTest {
         List<String> responseList = null;
 
         // Act
-        ResponseEntity<List<String>> responseEntity = ResponseUtil.buildResponse(responseList);
+        ResponseEntity<List<String>> responseEntity = HttpUtil.buildResponse(responseList);
 
         // Assert
         assertEquals(204, responseEntity.getStatusCode().value());
@@ -57,7 +57,7 @@ class ResponseUtilTest {
         String response = "item1";
 
         // Act
-        ResponseEntity<String> responseEntity = ResponseUtil.buildResponse(response);
+        ResponseEntity<String> responseEntity = HttpUtil.buildResponse(response);
 
         // Assert
         assertEquals(200, responseEntity.getStatusCode().value());
@@ -71,7 +71,7 @@ class ResponseUtilTest {
         String response = null;
 
         // Act
-        ResponseEntity<String> responseEntity = ResponseUtil.buildResponse(response);
+        ResponseEntity<String> responseEntity = HttpUtil.buildResponse(response);
 
         // Assert
         assertEquals(204, responseEntity.getStatusCode().value());

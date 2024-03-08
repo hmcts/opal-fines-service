@@ -18,12 +18,32 @@ public class UserSpecs extends EntitySpecs<UserEntity> {
         ));
     }
 
+    public Specification<UserEntity> findByUserIdOrName(String userIdOrName) {
+        return Specification.allOf(specificationList(
+            notBlank(userIdOrName).map(UserSpecs::equalsUserId),
+            notBlank(userIdOrName).map(UserSpecs::equalsUsername)
+        ));
+    }
+
+    public static Specification<UserEntity> equalsUserId(String userId) {
+        return (root, query, builder) -> builder.equal(root.get(UserEntity_.userId), userId);
+    }
+
     public static Specification<UserEntity> likeUserId(String userId) {
         return (root, query, builder) -> userIdPredicate(root, builder, userId);
     }
 
     public static Predicate userIdPredicate(From<?, UserEntity> from, CriteriaBuilder builder, String userId) {
         return likeWildcardPredicate(from.get(UserEntity_.userId), builder, userId);
+    }
+
+    public static Specification<UserEntity> equalsUsername(String username) {
+        return (root, query, builder) -> equalsUsernamePredicate(root, builder, username);
+    }
+
+    public static Predicate equalsUsernamePredicate(From<?, UserEntity> from, CriteriaBuilder builder,
+                                                    String username) {
+        return builder.equal(from.get(UserEntity_.username), username);
     }
 
     public static Specification<UserEntity> likeUsername(String username) {

@@ -18,7 +18,7 @@ import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;
 
 import java.util.List;
 
-import static uk.gov.hmcts.opal.util.ResponseUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController

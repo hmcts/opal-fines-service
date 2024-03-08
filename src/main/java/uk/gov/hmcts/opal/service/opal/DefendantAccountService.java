@@ -190,6 +190,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                           ? partyEntity.getFullName()
                           : partyEntity.getOrganisationName())
             .accountCT(defendantAccountEntity.getBusinessUnit().getBusinessUnitName())
+            .businessUnitId(defendantAccountEntity.getBusinessUnit().getBusinessUnitId())
             .address(fullAddress)
             .postCode(partyEntity.getPostcode())
             .dob(partyEntity.getDateOfBirth())

@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -18,7 +19,9 @@ import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.NoteService;
+import uk.gov.hmcts.opal.service.opal.UserStateService;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,6 +39,9 @@ class DefendantAccountControllerTest {
 
     @Mock
     private NoteService noteService;
+
+    @Mock
+    private UserStateService userStateService;
 
     @InjectMocks
     private DefendantAccountController defendantAccountController;
@@ -102,7 +108,7 @@ class DefendantAccountControllerTest {
 
         // Act
         ResponseEntity<AccountDetailsDto> responseEntity = defendantAccountController
-            .getAccountDetailsByAccountSummary(1L);
+            .getAccountDetails(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -135,9 +141,11 @@ class DefendantAccountControllerTest {
         // Arrange
         HttpServletRequest request = mock(HttpServletRequest.class);
         NoteDto mockResponse = new NoteDto();
+        UserState userState = UserState.builder()
+            .userId("JS001").userName("John Smith").roles(Collections.emptySet()).build();
 
-        when(request.getRemoteUser()).thenReturn("REMOTE_USER");
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(mockResponse);
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(userState);
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();
@@ -154,8 +162,10 @@ class DefendantAccountControllerTest {
     @Test
     public void testAddNote_NoContent() {
         HttpServletRequest request = mock(HttpServletRequest.class);
+        UserState userState = UserState.builder()
+            .userId("JS001").userName("John Smith").roles(Collections.emptySet()).build();
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(null);
-        when(request.getRemoteUser()).thenReturn("REMOTE_USER");
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(userState);
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();

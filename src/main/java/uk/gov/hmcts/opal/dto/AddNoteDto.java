@@ -14,5 +14,6 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class AddNoteDto implements ToJsonString {
     private String associatedRecordId;
+    private Short businessUnitId;
     private String noteText;
 }
