@@ -8,20 +8,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.NoteService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,6 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.controllers.UserStateBuilder.createUserState;
 
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountControllerTest {
@@ -120,14 +119,16 @@ class DefendantAccountControllerTest {
     @Test
     public void testPostDefendantAccountSearch_Success() {
         // Arrange
+        HttpServletRequest request = mock(HttpServletRequest.class);
         AccountSearchDto requestEntity = AccountSearchDto.builder().build();
         AccountSearchResultsDto mockResponse = AccountSearchResultsDto.builder().build();
 
         when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class))).thenReturn(mockResponse);
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
         ResponseEntity<AccountSearchResultsDto> responseEntity = defendantAccountController.postDefendantAccountSearch(
-            requestEntity);
+            requestEntity, request);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -141,14 +142,12 @@ class DefendantAccountControllerTest {
         // Arrange
         HttpServletRequest request = mock(HttpServletRequest.class);
         NoteDto mockResponse = new NoteDto();
-        UserState userState = UserState.builder()
-            .userId("JS001").userName("John Smith").roles(Collections.emptySet()).build();
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(mockResponse);
-        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(userState);
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
-        AddNoteDto addNote = AddNoteDto.builder().build();
+        AddNoteDto addNote = AddNoteDto.builder().businessUnitId((short)50).build();
         ResponseEntity<NoteDto> responseEntity = defendantAccountController.addNote(addNote, request);
 
         // Assert
@@ -162,13 +161,11 @@ class DefendantAccountControllerTest {
     @Test
     public void testAddNote_NoContent() {
         HttpServletRequest request = mock(HttpServletRequest.class);
-        UserState userState = UserState.builder()
-            .userId("JS001").userName("John Smith").roles(Collections.emptySet()).build();
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(null);
-        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(userState);
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
-        AddNoteDto addNote = AddNoteDto.builder().build();
+        AddNoteDto addNote = AddNoteDto.builder().businessUnitId((short)50).build();
         ResponseEntity<NoteDto> responseEntity = defendantAccountController.addNote(addNote, request);
 
         // Assert
@@ -210,4 +207,6 @@ class DefendantAccountControllerTest {
         verify(noteService, times(1)).searchNotes(any(
             NoteSearchDto.class));
     }
+
+
 }

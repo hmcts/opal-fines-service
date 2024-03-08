@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.Role;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
@@ -33,6 +35,9 @@ import java.util.List;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.PermissionUtil.checkAnyRoleHasPermission;
+import static uk.gov.hmcts.opal.util.PermissionUtil.checkRoleHasPermission;
+import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredRole;
 
 @RestController
 @RequestMapping("/api/defendant-account")
@@ -95,8 +100,11 @@ public class DefendantAccountController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
     public ResponseEntity<AccountSearchResultsDto> postDefendantAccountSearch(
-        @RequestBody AccountSearchDto accountSearchDto) {
+        @RequestBody AccountSearchDto accountSearchDto, HttpServletRequest request) {
         log.info(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
+
+        UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         AccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
 
@@ -110,13 +118,16 @@ public class DefendantAccountController {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        Role role = getRequiredRole(userState, addNote.getBusinessUnitId());
+        checkRoleHasPermission(role, Permissions.ACCOUNT_ENQUIRY_NOTES);
 
         NoteDto noteDto = NoteDto.builder()
             .associatedRecordId(addNote.getAssociatedRecordId())
             .noteText(addNote.getNoteText())
             .associatedRecordType(NOTE_ASSOC_REC_TYPE)
             .noteType("AA") // TODO - This will probably need to part of the AddNoteDto in future
-            .postedBy(userState.getFirstRoleBusinessUserId().orElse(userState.getUserName())) // TODO - always first?
+            .businessUnitId(addNote.getBusinessUnitId())
+            .postedBy(role.getBusinessUserId())
             .postedByAAD(userState.getUserId())
             .postedDate(LocalDateTime.now())
             .build();

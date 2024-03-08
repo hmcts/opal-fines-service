@@ -41,4 +41,5 @@ public class HttpUtil {
             .map(tokenService::extractPreferredUsername)
             .orElse(null);
     }
+
 }
