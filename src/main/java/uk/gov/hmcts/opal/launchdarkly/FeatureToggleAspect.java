@@ -18,9 +18,15 @@ public class FeatureToggleAspect {
     @Around("execution(* *(*)) && @annotation(featureToggle)")
     public void checkFeatureEnabled(ProceedingJoinPoint joinPoint, FeatureToggle featureToggle) throws Throwable {
 
-        if (featureToggle.value() && featureToggleApi.isFeatureEnabled(featureToggle.feature())) {
+        if (featureToggle.value() && featureToggleApi.isFeatureEnabled(
+            featureToggle.feature(),
+            featureToggle.defaultValue()
+        )) {
             joinPoint.proceed();
-        } else if (!featureToggle.value() && !featureToggleApi.isFeatureEnabled(featureToggle.feature())) {
+        } else if (!featureToggle.value() && !featureToggleApi.isFeatureEnabled(
+            featureToggle.feature(),
+            featureToggle.defaultValue()
+        )) {
             joinPoint.proceed();
         } else {
             log.warn(
