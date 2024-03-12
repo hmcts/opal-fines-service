@@ -36,4 +36,7 @@ public @interface FeatureToggle {
      * @return boolean value
      */
     boolean value() default true;
+
+    Class<? extends Throwable> throwException() default FeatureDisabledException.class;
+
 }

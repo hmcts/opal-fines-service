@@ -28,6 +28,17 @@ public class FeatureToggleAspect {
                 featureToggle.feature(),
                 joinPoint.getSignature().getName()
             );
+            // Check if an exception is specified in the annotation
+            if (featureToggle.throwException() != null) {
+                // Throw the specified exception
+                throw featureToggle.throwException()
+                    .getConstructor(String.class)
+                    .newInstance(String.format(
+                        "Feature %s is not enabled for method %s",
+                        featureToggle.feature(),
+                        joinPoint.getSignature().getName()
+                    ));
+            }
         }
     }
 }
