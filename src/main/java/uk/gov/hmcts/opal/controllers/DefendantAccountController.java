@@ -25,7 +25,7 @@ import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
-import uk.gov.hmcts.opal.service.NoteServiceInterface;
+import uk.gov.hmcts.opal.service.opal.NoteService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.time.LocalDateTime;
@@ -44,16 +44,16 @@ public class DefendantAccountController {
 
     private final DefendantAccountServiceInterface defendantAccountService;
 
-    private final NoteServiceInterface noteService;
+    private final NoteService opalNoteService;
 
     private final UserStateService userStateService;
 
     public DefendantAccountController(
         @Qualifier("defendantAccountServiceProxy") DefendantAccountServiceInterface defendantAccountService,
-        @Qualifier("noteServiceProxy") NoteServiceInterface noteService, UserStateService userStateService) {
+        NoteService opalNoteService, UserStateService userStateService) {
 
         this.defendantAccountService = defendantAccountService;
-        this.noteService = noteService;
+        this.opalNoteService = opalNoteService;
         this.userStateService = userStateService;
     }
 
@@ -121,7 +121,7 @@ public class DefendantAccountController {
             .postedDate(LocalDateTime.now())
             .build();
 
-        NoteDto response = noteService.saveNote(noteDto);
+        NoteDto response = opalNoteService.saveNote(noteDto);
 
         log.info(":POST:addNote: response: {}", response);
 
@@ -140,7 +140,7 @@ public class DefendantAccountController {
             .associatedId(defendantId)
             .build();
 
-        List<NoteDto> response = noteService.searchNotes(criteria);
+        List<NoteDto> response = opalNoteService.searchNotes(criteria);
 
         return buildResponse(response);
     }
