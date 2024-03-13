@@ -27,7 +27,7 @@ public class NoteServiceProxy implements NoteServiceInterface, ProxyInterface {
     }
 
     @Override
-    @FeatureToggle(feature = "add-notes", value = true)
+    @FeatureToggle(feature = "add-note", value = true)
     public NoteDto saveNote(NoteDto noteDto) {
         return getCurrentModeService().saveNote(noteDto);
     }
