@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
+import uk.gov.hmcts.opal.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyNoteService;
@@ -26,6 +27,7 @@ public class NoteServiceProxy implements NoteServiceInterface, ProxyInterface {
     }
 
     @Override
+    @FeatureToggle(feature = "add-notes", value = true)
     public NoteDto saveNote(NoteDto noteDto) {
         return getCurrentModeService().saveNote(noteDto);
     }
