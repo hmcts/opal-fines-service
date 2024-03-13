@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.CourtEntity;
 import uk.gov.hmcts.opal.service.CourtServiceInterface;
+import uk.gov.hmcts.opal.service.opal.CourtService;
 
 import java.util.List;
 
@@ -27,9 +28,13 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 @Tag(name = "Court Controller")
 public class CourtController {
 
-    private final CourtServiceInterface courtService;
+    private final CourtServiceInterface courtServiceProxy;
 
-    public CourtController(@Qualifier("courtServiceProxy") CourtServiceInterface courtService) {
+    private final CourtService courtService;
+
+    public CourtController(@Qualifier("courtServiceProxy") CourtServiceInterface courtServiceProxy,
+                           CourtService courtService) {
+        this.courtServiceProxy = courtServiceProxy;
         this.courtService = courtService;
     }
 
@@ -39,7 +44,7 @@ public class CourtController {
 
         log.info(":GET:getCourtById: courtId: {}", courtId);
 
-        CourtEntity response = courtService.getCourt(courtId);
+        CourtEntity response = courtServiceProxy.getCourt(courtId);
 
         return buildResponse(response);
     }
@@ -49,6 +54,7 @@ public class CourtController {
     public ResponseEntity<List<CourtEntity>> postCourtsSearch(@RequestBody CourtSearchDto criteria) {
         log.info(":POST:postCourtsSearch: query: \n{}", criteria);
 
+        // TODO - hard coded 'Opal' Court Service for now, as otherwise this will break in staging.
         List<CourtEntity> response = courtService.searchCourts(criteria);
 
         return buildResponse(response);
