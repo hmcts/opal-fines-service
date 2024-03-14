@@ -37,6 +37,7 @@ public class AuthenticationInternalUserController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestParam(value = "redirect_uri", required = false) String redirectUri
     ) {
+        log.info("Login attempt received.");
         String accessToken = null;
         if (authHeaderValue != null) {
             accessToken = authHeaderValue.replace("Bearer ", "");
@@ -48,11 +49,16 @@ public class AuthenticationInternalUserController {
     @PostMapping("/handle-oauth-code")
     @Operation(summary = "Handles Oauth code for the front end API calls")
     public SecurityToken handleOauthCode(@RequestParam("code") String code) {
+
         String accessToken = authenticationService.handleOauthCode(code);
         var securityTokenBuilder = SecurityToken.builder()
             .accessToken(accessToken);
         Optional<String> preferredUsernameOptional = Optional.ofNullable(
             accessTokenService.extractPreferredUsername(accessToken));
+        log.info(
+            "Login successful received for user {} from Azure AD.",
+            preferredUsernameOptional.orElse("unknown")
+        );
 
         if (preferredUsernameOptional.isPresent()) {
             UserState userStateOptional = authorisationService.getAuthorisation(preferredUsernameOptional.get());
@@ -68,6 +74,12 @@ public class AuthenticationInternalUserController {
         @RequestParam(value = "redirect_uri", required = false) String redirectUri
     ) {
         String accessToken = authHeaderValue.replace("Bearer ", "");
+        Optional<String> preferredUsernameOptional = Optional.ofNullable(
+            accessTokenService.extractPreferredUsername(accessToken));
+        log.info(
+            "Logout successful received for user {}",
+            preferredUsernameOptional.orElse("unknown")
+        );
         URI url = authenticationService.logout(accessToken, redirectUri);
         return new ModelAndView("redirect:" + url.toString());
     }
