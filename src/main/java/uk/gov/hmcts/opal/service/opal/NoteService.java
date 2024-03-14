@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity_;
+import uk.gov.hmcts.opal.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.jpa.NoteSpecs;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;
@@ -31,6 +32,7 @@ public class NoteService implements NoteServiceInterface {
     private final NoteSpecs specs = new NoteSpecs();
 
     @Override
+    @FeatureToggle(feature = "add-note", value = true)
     public NoteDto saveNote(NoteDto noteDto) {
         // Restrict the 'postedBy' to 20 characters length
         String postedBy = Optional.ofNullable(noteDto.getPostedBy())
