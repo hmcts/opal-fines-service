@@ -75,6 +75,19 @@ class FeatureToggleAspectTest {
     void shouldNotProceedToMethodInvocation_whenFeatureToggleIsDisabled(Boolean state) {
         when(featureToggle.value()).thenReturn(state);
         givenToggle(NEW_FEATURE, !state);
+        when(properties.getEnabled()).thenReturn(true);
+
+        featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
+
+        verify(proceedingJoinPoint, never()).proceed();
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldNotProceedToMethodInvocation_whenLaunchDarklyIsDisabled(Boolean state) {
+        when(featureToggle.value()).thenReturn(state);
+        givenToggle(NEW_FEATURE, !state);
 
         featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
 
