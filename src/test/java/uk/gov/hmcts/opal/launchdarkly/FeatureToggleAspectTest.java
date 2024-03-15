@@ -74,8 +74,8 @@ class FeatureToggleAspectTest {
     @ValueSource(booleans = {true, false})
     void shouldNotProceedToMethodInvocation_whenFeatureToggleIsDisabled(Boolean state) {
         when(featureToggle.value()).thenReturn(state);
-        givenToggle(NEW_FEATURE, !state);
-        when(properties.getEnabled()).thenReturn(true);
+        givenToggle(NEW_FEATURE, state);
+        when(properties.getEnabled()).thenReturn(false);
 
         featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
 
