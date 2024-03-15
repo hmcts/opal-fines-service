@@ -43,5 +43,6 @@ public class FeatureToggleAspect {
                     .newInstance(message);
             }
         }
+        return null;
     }
 }
