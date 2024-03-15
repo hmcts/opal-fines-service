@@ -79,7 +79,7 @@ class FeatureToggleAspectTest {
 
         featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
 
-        verify(proceedingJoinPoint, never()).proceed();
+        verify(proceedingJoinPoint).proceed();
     }
 
     @SneakyThrows

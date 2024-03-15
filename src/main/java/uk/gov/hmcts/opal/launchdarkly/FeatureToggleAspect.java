@@ -24,7 +24,7 @@ public class FeatureToggleAspect {
         if (!properties.getEnabled()) {
             log.info("Launch darkly is disabled:: so feature toggle is ignoring launch darkly flag "
                          + featureToggle.feature());
-            return;
+            return joinPoint.proceed();
         }
 
         if (featureToggle.value() && featureToggleApi.isFeatureEnabled(
