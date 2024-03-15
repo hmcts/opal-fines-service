@@ -25,7 +25,7 @@ public class UserStateBuilder {
 
     public static UserState createUserState(Set<Role> roles) {
         return UserState.builder()
-            .userId("JS001")
+            .userId(345L)
             .userName("John Smith")
             .roles(roles)
             .build();

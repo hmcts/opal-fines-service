@@ -21,7 +21,7 @@ import java.util.Set;
 public class UserState {
 
     @NonNull
-    String userId;
+    Long userId;
 
     @NonNull
     String userName;
@@ -55,7 +55,7 @@ public class UserState {
         private static final Optional<Role> DEV_ROLE = Optional.of(new DeveloperRole());
 
         public DeveloperUserState() {
-            super("", "", Collections.emptySet());
+            super(0L, "Developer_User", Collections.emptySet());
         }
 
         @Override

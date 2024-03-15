@@ -44,7 +44,7 @@ public class BusinessUnitUserService implements BusinessUnitUserServiceInterface
     /**
      * Return a Set of Authorisation Roles mapped from BusinessUnitUsers keyed on the user id from the Users table.
      */
-    public Set<Role> getAuthorisationRolesByUserId(String userId) {
+    public Set<Role> getAuthorisationRolesByUserId(Long userId) {
         List<BusinessUnitUserEntity> buuList =  businessUnitUserRepository.findAllByUser_UserId(userId);
 
         return buuList.stream().map(buu -> Role.builder()
@@ -60,7 +60,7 @@ public class BusinessUnitUserService implements BusinessUnitUserServiceInterface
      * This method is assuming that there are no Permissions for the Roles and so skips performing the additional
      * repository queries that <i>do</i> get performed in the method above.
      */
-    public Set<Role> getLimitedRolesByUserId(String userId) {
+    public Set<Role> getLimitedRolesByUserId(Long userId) {
         List<BusinessUnitUserEntity> buuList =  businessUnitUserRepository.findAllByUser_UserId(userId);
 
         return buuList.stream().map(buu -> Role.builder()

@@ -12,7 +12,7 @@ public class UserSpecs extends EntitySpecs<UserEntity> {
 
     public Specification<UserEntity> findBySearchCriteria(UserSearchDto criteria) {
         return Specification.allOf(specificationList(
-            notBlank(criteria.getUserId()).map(UserSpecs::likeUserId),
+            numericLong(criteria.getUserId()).map(UserSpecs::likeUserId),
             notBlank(criteria.getUsername()).map(UserSpecs::likeUsername),
             notBlank(criteria.getDescription()).map(UserSpecs::likeUserDescription)
         ));
@@ -29,12 +29,12 @@ public class UserSpecs extends EntitySpecs<UserEntity> {
         return (root, query, builder) -> builder.equal(root.get(UserEntity_.userId), userId);
     }
 
-    public static Specification<UserEntity> likeUserId(String userId) {
+    public static Specification<UserEntity> likeUserId(Long userId) {
         return (root, query, builder) -> userIdPredicate(root, builder, userId);
     }
 
-    public static Predicate userIdPredicate(From<?, UserEntity> from, CriteriaBuilder builder, String userId) {
-        return likeWildcardPredicate(from.get(UserEntity_.userId), builder, userId);
+    public static Predicate userIdPredicate(From<?, UserEntity> from, CriteriaBuilder builder, Long userId) {
+        return builder.equal(from.get(UserEntity_.userId), userId);
     }
 
     public static Specification<UserEntity> equalsUsername(String username) {

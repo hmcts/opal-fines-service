@@ -25,7 +25,7 @@ class AuthorisationServiceTest {
     void getAuthorisation_ReturnsUserState_WhenUserFound() {
         // Arrange
         String emailAddress = "test@example.com";
-        UserState userState = UserState.builder().userId("JS001").userName("John Smith").build();
+        UserState userState = UserState.builder().userId(123L).userName("John Smith").build();
         when(userService.getUserStateByUsername(any())).thenReturn(userState);
 
         // Act
