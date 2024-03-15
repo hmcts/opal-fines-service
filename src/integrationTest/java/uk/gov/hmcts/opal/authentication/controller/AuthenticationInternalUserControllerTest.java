@@ -64,7 +64,7 @@ public class AuthenticationInternalUserControllerTest {
         when(accessTokenService.extractPreferredUsername(anyString())).thenReturn("username");
         UserState userState = UserState.builder()
             .userName("name")
-            .userId("123")
+            .userId(123L)
             .roles(Set.of(Role.builder()
                               .businessUnitId((short)123)
                               .businessUserId("BU123")

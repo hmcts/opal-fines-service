@@ -44,7 +44,7 @@ class UserStateServiceTest {
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
 
         // Arrange
-        UserState userState = UserState.builder().userId("UID_001").userName("John Smith").build();
+        UserState userState = UserState.builder().userId(123L).userName("John Smith").build();
         when(userEntitlementService.getUserStateByUsername(any())).thenReturn(Optional.of(userState));
 
         // Act
@@ -52,7 +52,7 @@ class UserStateServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals("UID_001", result.getUserId());
+        assertEquals(123L, result.getUserId());
         assertEquals("John Smith", result.getUserName());
 
     }
@@ -63,7 +63,7 @@ class UserStateServiceTest {
 
         // Arrange
         Optional<UserState> userState = Optional.of(UserState.builder()
-                                                        .userId("UID_001").userName("John Smith").build());
+                                                        .userId(123L).userName("John Smith").build());
         when(userEntitlementService.getUserStateByUsername(any())).thenReturn(Optional.empty());
         when(userService.getLimitedUserStateByUsername(any())).thenReturn((userState));
 
@@ -72,7 +72,7 @@ class UserStateServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals("UID_001", result.getUserId());
+        assertEquals(123L, result.getUserId());
         assertEquals("John Smith", result.getUserName());
 
     }
@@ -92,8 +92,8 @@ class UserStateServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals("", result.getUserId());
-        assertEquals("", result.getUserName());
+        assertEquals(0L, result.getUserId());
+        assertEquals("Developer_User", result.getUserName());
 
     }
 

@@ -86,7 +86,7 @@ public class DefendantTransactionEntity {
     @Column(name = "imposed_amount", precision = 18, scale = 2)
     private BigDecimal imposedAmount;
 
-    @Column(name = "posted_by_aad", length = 100)
-    private String postedByAad;
+    @Column(name = "posted_by_user_id")
+    private Long postedByUserId;
 
 }

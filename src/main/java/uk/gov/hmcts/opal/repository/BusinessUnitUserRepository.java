@@ -11,5 +11,5 @@ import java.util.List;
 public interface BusinessUnitUserRepository extends JpaRepository<BusinessUnitUserEntity, String>,
     JpaSpecificationExecutor<BusinessUnitUserEntity> {
 
-    List<BusinessUnitUserEntity> findAllByUser_UserId(String userId);
+    List<BusinessUnitUserEntity> findAllByUser_UserId(Long userId);
 }

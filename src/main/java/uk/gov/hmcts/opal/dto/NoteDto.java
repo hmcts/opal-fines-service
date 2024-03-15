@@ -34,6 +34,6 @@ public class NoteDto implements ToJsonString {
 
     private String postedBy;
 
-    private String postedByAAD;
+    private Long postedByUserId;
 
 }
