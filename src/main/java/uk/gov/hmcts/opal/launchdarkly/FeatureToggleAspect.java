@@ -19,7 +19,7 @@ public class FeatureToggleAspect {
 
 
     @Around("execution(* *(*)) && @annotation(featureToggle)")
-    public void checkFeatureEnabled(ProceedingJoinPoint joinPoint, FeatureToggle featureToggle) throws Throwable {
+    public Object checkFeatureEnabled(ProceedingJoinPoint joinPoint, FeatureToggle featureToggle) throws Throwable {
 
         if (!properties.getEnabled()) {
             log.info("Launch darkly is disabled:: so feature toggle is ignoring launch darkly flag "
@@ -31,12 +31,12 @@ public class FeatureToggleAspect {
             featureToggle.feature(),
             featureToggle.defaultValue()
         )) {
-            joinPoint.proceed();
+            return joinPoint.proceed();
         } else if (!featureToggle.value() && !featureToggleApi.isFeatureEnabled(
             featureToggle.feature(),
             featureToggle.defaultValue()
         )) {
-            joinPoint.proceed();
+            return joinPoint.proceed();
         } else {
             String message = String.format(
                 "Feature %s is not enabled for method %s",
@@ -52,5 +52,6 @@ public class FeatureToggleAspect {
                     .newInstance(message);
             }
         }
+        return null;
     }
 }
