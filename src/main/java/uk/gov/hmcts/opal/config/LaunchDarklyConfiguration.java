@@ -7,9 +7,9 @@ import com.launchdarkly.sdk.server.subsystems.ComponentConfigurer;
 import com.launchdarkly.sdk.server.subsystems.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import uk.gov.hmcts.opal.config.properties.LaunchDarklyProperties;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,21 +24,15 @@ public class LaunchDarklyConfiguration {
     /**
      * Builds the client for Launch Darkly.
      *
-     * @param sdkKey      sdk key to connect to launchdarkly.
-     * @param offlineMode true to use launchdarkly offline mode.
-     * @param flagFiles   (optional) a list of paths to json or yaml files containing flags for launchdarkly.
-     *                    If there are duplicate keys, the first files have precedence.
      * @return Launch Darkly Client.
      */
     @Bean
-    public LDClient ldClient(@Value("${launchdarkly.sdk-key}") String sdkKey,
-                             @Value("${launchdarkly.offline-mode:false}") Boolean offlineMode,
-                             @Value("${launchdarkly.file:''}") String[] flagFiles) {
-        LDConfig.Builder builder = new LDConfig.Builder().offline(offlineMode);
-        getExistingFiles(flagFiles)
+    public LDClient ldClient(LaunchDarklyProperties launchDarklyProperties) {
+        LDConfig.Builder builder = new LDConfig.Builder().offline(launchDarklyProperties.getOfflineMode());
+        getExistingFiles(launchDarklyProperties.getFile())
             .map(this::getDataSource)
             .ifPresent(builder::dataSource);
-        return new LDClient(sdkKey, builder.build());
+        return new LDClient(launchDarklyProperties.getSdkKey(), builder.build());
     }
 
     /**
