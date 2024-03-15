@@ -2,6 +2,11 @@
 java:
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
+  keyVaults:
+    opal:
+      secrets:
+        - name: launch-darkly-sdk-key
+          alias: LAUNCH_DARKLY_SDK_KEY
   environment:
     OPAL_FRONTEND_URL: https://opal-frontend-staging.staging.platform.hmcts.net
     OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.staging.platform.hmcts.net
