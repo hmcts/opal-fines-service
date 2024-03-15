@@ -6,6 +6,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.opal.config.properties.LaunchDarklyProperties;
 
 @Slf4j
 @Aspect
@@ -14,9 +15,17 @@ import org.springframework.stereotype.Component;
 public class FeatureToggleAspect {
 
     private final FeatureToggleApi featureToggleApi;
+    private final LaunchDarklyProperties properties;
+
 
     @Around("execution(* *(*)) && @annotation(featureToggle)")
     public void checkFeatureEnabled(ProceedingJoinPoint joinPoint, FeatureToggle featureToggle) throws Throwable {
+
+        if (!properties.getEnabled()) {
+            log.info("Launch darkly is disabled:: so feature toggle is ignoring launch darkly flag "
+                         + featureToggle.feature());
+            return;
+        }
 
         if (featureToggle.value() && featureToggleApi.isFeatureEnabled(
             featureToggle.feature(),

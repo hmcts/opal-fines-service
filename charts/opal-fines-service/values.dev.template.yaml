@@ -32,5 +32,6 @@ java:
     OPAL_FRONTEND_URL: https://opal-frontend.staging.platform.hmcts.net
     OPAL_LEGACY_GATEWAY_URL: https://opal.clouddev.online/opal
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
+    LAUNCH_DARKLY_ENABLED: false
   postgresql:
     enabled: true

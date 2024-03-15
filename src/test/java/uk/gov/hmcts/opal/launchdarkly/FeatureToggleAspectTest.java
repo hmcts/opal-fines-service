@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import uk.gov.hmcts.opal.config.properties.LaunchDarklyProperties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,6 +38,9 @@ class FeatureToggleAspectTest {
     FeatureToggleAspect featureToggleAspect;
 
     @MockBean
+    LaunchDarklyProperties properties;
+
+    @MockBean
     LDClient ldClient;
     @MockBean
     ProceedingJoinPoint proceedingJoinPoint;
@@ -50,6 +54,7 @@ class FeatureToggleAspectTest {
         when(featureToggle.feature()).thenReturn(NEW_FEATURE);
         when(proceedingJoinPoint.getSignature()).thenReturn(methodSignature);
         when(methodSignature.getName()).thenReturn("myFeatureToggledMethod");
+        when(properties.getEnabled()).thenReturn(true);
     }
 
     @SneakyThrows
