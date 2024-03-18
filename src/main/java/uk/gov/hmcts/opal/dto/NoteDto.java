@@ -25,6 +25,8 @@ public class NoteDto implements ToJsonString {
 
     private String associatedRecordId;
 
+    private Short businessUnitId;
+
     private String noteText;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

@@ -4,6 +4,7 @@ Feature: Test the add note endpoint for Opal
   Scenario: assert add note response is valid for opal route
     When I make a request to the defendant account add notes api with
       | associatedRecordId | 500000000              |
+      | businessUnitId     | 17                     |
       | noteText           | test account note Opal |
     Then the add notes response contains
       | associatedRecordId | 500000000              |
@@ -12,6 +13,7 @@ Feature: Test the add note endpoint for Opal
   Scenario: latest added note response is returned in ac details request
     When I make a request to the defendant account add notes api with
       | associatedRecordId | 500000001               |
+      | businessUnitId     | 17                     |
       | noteText           | test account note2 Opal |
     And the add notes response contains
       | associatedRecordId | 500000001               |

@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -13,9 +14,11 @@ import uk.gov.hmcts.opal.repository.jpa.UserSpecs;
 import uk.gov.hmcts.opal.service.UserServiceInterface;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j(topic = "UserService")
 public class UserService implements UserServiceInterface {
 
     private final UserRepository userRepository;
@@ -60,13 +63,13 @@ public class UserService implements UserServiceInterface {
      * a BusinessUnitUnit, or a lack of BusinessUnitUsers associated with this user. So assuming there
      * is a valid User for the given username, then this method will return a non-null object.
      */
-    public UserState getLimitedUserStateByUsername(String username) {
-        UserEntity user = userRepository.findByUsername(username);
-        return UserState.builder()
-            .userId(user.getUserId())
-            .userName(user.getUsername())
-            .roles(businessUnitUserService.getLimitedRolesByUserId(user.getUserId()))
-            .build();
-    }
+    public Optional<UserState> getLimitedUserStateByUsername(String username) {
+        Optional<UserEntity> userEntity = Optional.ofNullable(userRepository.findByUsername(username));
 
+        return userEntity.map(u -> UserState.builder()
+            .userId(u.getUserId())
+            .userName(u.getUsername())
+            .roles(businessUnitUserService.getLimitedRolesByUserId(u.getUserId()))
+            .build());
+    }
 }
