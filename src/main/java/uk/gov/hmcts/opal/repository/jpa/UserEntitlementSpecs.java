@@ -32,7 +32,7 @@ public class UserEntitlementSpecs extends EntitySpecs<UserEntitlementEntity> {
             notBlank(criteria.getBusinessUnitName()).map(UserEntitlementSpecs::likeBusinessUnitName),
             notBlank(criteria.getBusinessUnitType()).map(UserEntitlementSpecs::likeBusinessUnitType),
             notBlank(criteria.getParentBusinessUnitId()).map(UserEntitlementSpecs::equalsParentBusinessUnitId),
-            notBlank(criteria.getUserId()).map(UserEntitlementSpecs::likeUserId),
+            numericLong(criteria.getUserId()).map(UserEntitlementSpecs::likeUserId),
             notBlank(criteria.getUsername()).map(UserEntitlementSpecs::likeUsername),
             notBlank(criteria.getUserDescription()).map(UserEntitlementSpecs::likeUserDescription),
             notBlank(criteria.getFunctionName()).map(UserEntitlementSpecs::likeFunctionName)
@@ -69,7 +69,7 @@ public class UserEntitlementSpecs extends EntitySpecs<UserEntitlementEntity> {
             parentBusinessUnitIdPredicate(joinBusinessUnit(joinBusinessUnitUser(root)), builder, parentBusinessUnitId);
     }
 
-    public static Specification<UserEntitlementEntity> likeUserId(String userId) {
+    public static Specification<UserEntitlementEntity> likeUserId(Long userId) {
         return (root, query, builder) -> userIdPredicate(joinUser(joinBusinessUnitUser(root)), builder, userId);
     }
 

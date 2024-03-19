@@ -52,7 +52,7 @@ public class NoteController {
         Role role = getRequiredRole(userState, noteDto.getBusinessUnitId());
 
         noteDto.setPostedBy(role.getBusinessUserId());
-        noteDto.setPostedByAAD(userState.getUserId());
+        noteDto.setPostedByUserId(userState.getUserId());
         NoteDto savedNoteDto = noteService.saveNote(noteDto);
         return new ResponseEntity<>(savedNoteDto, HttpStatus.CREATED);
     }

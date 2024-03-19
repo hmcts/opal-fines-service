@@ -25,8 +25,8 @@ import lombok.NoArgsConstructor;
 public class UserEntity {
 
     @Id
-    @Column(name = "user_id", length = 100)
-    private String userId;
+    @Column(name = "user_id")
+    private Long userId;
 
     @Column(name = "username", length = 100)
     @EqualsAndHashCode.Exclude

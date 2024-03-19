@@ -78,7 +78,7 @@ class UserServiceTest {
     @Test
     void testGetUserStateByUsername() {
         // Arrange
-        UserEntity userEntity = UserEntity.builder().userId("UID_001").username("John Smith").build();
+        UserEntity userEntity = UserEntity.builder().userId(123L).username("John Smith").build();
         when(userRepository.findByUsername(any())).thenReturn(userEntity);
         when(businessUnitUserService.getAuthorisationRolesByUserId(any())).thenReturn(Collections.emptySet());
 
@@ -87,7 +87,7 @@ class UserServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals("UID_001", result.getUserId());
+        assertEquals(123L, result.getUserId());
         assertEquals("John Smith", result.getUserName());
 
     }
@@ -95,7 +95,7 @@ class UserServiceTest {
     @Test
     void testGetLimitedUserStateByUsername() {
         // Arrange
-        UserEntity userEntity = UserEntity.builder().userId("UID_001").username("John Smith").build();
+        UserEntity userEntity = UserEntity.builder().userId(123L).username("John Smith").build();
         when(userRepository.findByUsername(any())).thenReturn(userEntity);
 
         // Act
@@ -105,7 +105,7 @@ class UserServiceTest {
         // Assert
         assertNotNull(result);
         assertTrue(result.isPresent());
-        assertEquals("UID_001", result.get().getUserId());
+        assertEquals(123L, result.get().getUserId());
         assertEquals("John Smith", result.get().getUserName());
 
     }

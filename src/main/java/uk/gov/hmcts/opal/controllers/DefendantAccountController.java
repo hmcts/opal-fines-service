@@ -128,7 +128,7 @@ public class DefendantAccountController {
             .noteType("AA") // TODO - This will probably need to part of the AddNoteDto in future
             .businessUnitId(addNote.getBusinessUnitId())
             .postedBy(role.getBusinessUserId())
-            .postedByAAD(userState.getUserId())
+            .postedByUserId(userState.getUserId())
             .postedDate(LocalDateTime.now())
             .build();
 

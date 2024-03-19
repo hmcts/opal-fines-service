@@ -38,8 +38,9 @@ public class NoteService implements NoteServiceInterface {
         String postedBy = Optional.ofNullable(noteDto.getPostedBy())
             .map(s -> StringUtils.substring(s, 0, 20)).orElse(null);
         noteDto.setPostedBy(postedBy);
+        Short businessUnitId = noteDto.getBusinessUnitId();
 
-        return toNoteDto(noteRepository.save(toNoteEntity(noteDto)));
+        return toNoteDto(noteRepository.save(toNoteEntity(noteDto)), businessUnitId);
     }
 
     @Override
@@ -52,7 +53,7 @@ public class NoteService implements NoteServiceInterface {
                     ffq -> ffq.sortBy(dateSort).page(Pageable.unpaged()));
 
         List<NoteDto> noteDtos = notesPage.getContent().stream()
-            .map(this::toNoteDto)
+            .map(entity -> toNoteDto(entity, null))
             .collect(Collectors.toList());
 
         return noteDtos;
@@ -66,20 +67,21 @@ public class NoteService implements NoteServiceInterface {
             .noteText(noteDto.getNoteText())
             .postedDate(noteDto.getPostedDate() == null ? LocalDateTime.now() : noteDto.getPostedDate())
             .postedBy(noteDto.getPostedBy())
-            .postedByAad(noteDto.getPostedByAAD())
+            .postedByUserId(noteDto.getPostedByUserId())
             .build();
     }
 
-    public NoteDto toNoteDto(NoteEntity entity) {
+    public NoteDto toNoteDto(NoteEntity entity, Short businessUnitId) {
         return NoteDto.builder()
             .noteId(entity.getNoteId()) // This will be the generated ID
             .noteType(entity.getNoteType())
             .associatedRecordType(entity.getAssociatedRecordType())
             .associatedRecordId(entity.getAssociatedRecordId())
+            .businessUnitId(businessUnitId)
             .noteText(entity.getNoteText())
             .postedDate(entity.getPostedDate())
             .postedBy(entity.getPostedBy())
-            .postedByAAD(entity.getPostedByAad())
+            .postedByUserId(entity.getPostedByUserId())
             .build();
     }
 }

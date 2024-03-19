@@ -110,7 +110,7 @@ class AuthenticationInternalUserControllerTest {
             String code = "validCode";
             String accessToken = "accessToken";
             String userEmail = "test@example.com";
-            UserState userState = UserState.builder().userId(userEmail).userName("some name").build();
+            UserState userState = UserState.builder().userId(234L).userName("some name").build();
 
             when(authenticationService.handleOauthCode(code)).thenReturn(accessToken);
             when(accessTokenService.extractPreferredUsername(accessToken)).thenReturn(userEmail);

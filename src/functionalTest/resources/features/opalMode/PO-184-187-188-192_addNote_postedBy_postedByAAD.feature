@@ -11,7 +11,7 @@ Feature: tests for changes to postedBy and postedByAAD
       | associatedRecordId | 500000010                                |
       | noteText           | test postedBy and PostedByAAD Opal user1 |
       | postedBy           | L017KG                                   |
-      | postedByAAD        | gl.userfour                              |
+      | postedByUserId     | 500000000                                |
 
     Given I am testing as the "opal-test-2@hmcts.net" user
     When I make a request to the defendant account add notes api with
@@ -29,7 +29,7 @@ Feature: tests for changes to postedBy and postedByAAD
       | associatedRecordId | 500000010                                |
       | noteText           | test postedBy and PostedByAAD Opal user3 |
       | postedBy           | L024US                                   |
-      | postedByAAD        | Suffolk.user                             |
+      | postedByUserId     | 500000002                                |
 
     Given I am testing as the "opal-test-4@hmcts.net" user
     When I make a request to the defendant account add notes api with
@@ -40,4 +40,4 @@ Feature: tests for changes to postedBy and postedByAAD
       | associatedRecordId | 500000010                                |
       | noteText           | test postedBy and PostedByAAD Opal user4 |
       | postedBy           | L095GH                                   |
-      | postedByAAD        | humber.usertwo                           |
+      | postedByUserId     | 500000003                                |
