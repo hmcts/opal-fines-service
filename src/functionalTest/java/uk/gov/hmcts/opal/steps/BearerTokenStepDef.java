@@ -19,7 +19,7 @@ public class BearerTokenStepDef extends BaseStepDef {
             .when()
             .get(getTestUrl() + "/api/testing-support/token/test-user");
         then().assertThat().statusCode(200);
-        TOKEN = then().extract().body().jsonPath().getString("access_token");
+        TOKEN = then().extract().body().jsonPath().getString("accessToken");
     }
 
     protected static String getToken() {
@@ -39,7 +39,7 @@ public class BearerTokenStepDef extends BaseStepDef {
             .when()
             .get(getTestUrl() + "/api/testing-support/token/user");
         then().assertThat().statusCode(200);
-        ALT_TOKEN.set(then().extract().body().jsonPath().getString("access_token"));
+        ALT_TOKEN.set(then().extract().body().jsonPath().getString("accessToken"));
     }
 
 }
