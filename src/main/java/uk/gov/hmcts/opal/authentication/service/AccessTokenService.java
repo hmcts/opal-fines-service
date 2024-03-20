@@ -93,7 +93,7 @@ public class AccessTokenService {
     }
 
     public String extractToken(String accessToken) {
-        if (accessToken != null && accessToken.startsWith("Bearer ")) {
+        if (accessToken != null && accessToken.startsWith(BEARER_PREFIX)) {
             return accessToken.substring(7);
         }
         return accessToken;
