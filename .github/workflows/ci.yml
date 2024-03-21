@@ -21,4 +21,4 @@ jobs:
       - name: Build
         run: ./gradlew check
       - name: Dependency check
-        run: ./gradlew dependencyCheckAggregate
+        run: ./gradlew -Dorg.gradle.jvmargs="-Xmx4g" dependencyCheckAggregate
