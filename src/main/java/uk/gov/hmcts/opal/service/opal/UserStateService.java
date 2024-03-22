@@ -30,6 +30,10 @@ public class UserStateService {
         return getUserStateByUsername(getPreferredUsername(request));
     }
 
+    public void checkForAuthorisedUser(HttpServletRequest request) {
+        getUserStateByUsername(getPreferredUsername(request));
+    }
+
     public String getPreferredUsername(HttpServletRequest request) {
         return extractPreferredUsername(request, tokenService);
     }

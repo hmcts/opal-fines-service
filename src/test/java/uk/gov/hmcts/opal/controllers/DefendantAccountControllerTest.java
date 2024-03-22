@@ -48,13 +48,15 @@ class DefendantAccountControllerTest {
     @Test
     public void testGetDefendantAccount_Success() {
         // Arrange
+        HttpServletRequest request = mock(HttpServletRequest.class);
         DefendantAccountEntity mockResponse = new DefendantAccountEntity();
 
         when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(mockResponse);
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
         ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
-            (short)1, "");
+            (short)1, "", request);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -66,11 +68,13 @@ class DefendantAccountControllerTest {
     @Test
     public void testGetDefendantAccount_NoContent() {
 
+        HttpServletRequest request = mock(HttpServletRequest.class);
         when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(null);
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
         ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
-            (short)1, "");
+            (short)1, "", request);
 
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
@@ -81,14 +85,16 @@ class DefendantAccountControllerTest {
     @Test
     public void testPutDefendantAccount_Success() {
         // Arrange
+        HttpServletRequest request = mock(HttpServletRequest.class);
         DefendantAccountEntity requestEntity = new DefendantAccountEntity();
         DefendantAccountEntity mockResponse = new DefendantAccountEntity();
 
         when(defendantAccountService.putDefendantAccount(any(DefendantAccountEntity.class))).thenReturn(mockResponse);
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
         ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.putDefendantAccount(
-            requestEntity);
+            requestEntity, request);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -100,14 +106,16 @@ class DefendantAccountControllerTest {
     @Test
     public void testGetDefendantAccountDetails_Success() {
         // Arrange
+        HttpServletRequest request = mock(HttpServletRequest.class);
         AccountDetailsDto mockResponse = new AccountDetailsDto();
 
         when(defendantAccountService.getAccountDetailsByDefendantAccountId(any(Long.class)))
             .thenReturn(mockResponse);
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
         ResponseEntity<AccountDetailsDto> responseEntity = defendantAccountController
-            .getAccountDetails(1L);
+            .getAccountDetails(1L, request);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -177,14 +185,17 @@ class DefendantAccountControllerTest {
     @Test
     public void testNotes_Success() {
         // Arrange
+        HttpServletRequest request = mock(HttpServletRequest.class);
         NoteDto mockNote = new NoteDto();
         List<NoteDto> mockResponse = List.of(mockNote);
 
         when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(mockResponse);
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();
-        ResponseEntity<List<NoteDto>> responseEntity = defendantAccountController.getNotesForDefendantAccount("1");
+        ResponseEntity<List<NoteDto>> responseEntity = defendantAccountController
+            .getNotesForDefendantAccount("1", request);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -196,11 +207,14 @@ class DefendantAccountControllerTest {
 
     @Test
     public void testNotes_NoContent() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
         when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(null);
+        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();
-        ResponseEntity<List<NoteDto>> responseEntity = defendantAccountController.getNotesForDefendantAccount("1");
+        ResponseEntity<List<NoteDto>> responseEntity = defendantAccountController
+            .getNotesForDefendantAccount("1", request);
 
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());

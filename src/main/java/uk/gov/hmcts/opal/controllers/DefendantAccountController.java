@@ -66,14 +66,17 @@ public class DefendantAccountController {
     @Operation(summary = "Searches for a defendant account in the Opal DB")
     public ResponseEntity<DefendantAccountEntity> getDefendantAccount(
         @RequestParam(name = "businessUnitId") Short businessUnitId,
-        @RequestParam(name = "accountNumber") String accountNumber) {
+        @RequestParam(name = "accountNumber") String accountNumber, HttpServletRequest request) {
 
-        AccountEnquiryDto request = AccountEnquiryDto.builder()
+        UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
+
+        AccountEnquiryDto enquiryDto = AccountEnquiryDto.builder()
             .businessUnitId(businessUnitId)
             .accountNumber(accountNumber)
             .build();
 
-        DefendantAccountEntity response = defendantAccountService.getDefendantAccount(request);
+        DefendantAccountEntity response = defendantAccountService.getDefendantAccount(enquiryDto);
 
         return buildResponse(response);
     }
@@ -81,7 +84,10 @@ public class DefendantAccountController {
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Updates defendant account information")
     public ResponseEntity<DefendantAccountEntity> putDefendantAccount(
-        @RequestBody DefendantAccountEntity defendantAccountEntity) {
+        @RequestBody DefendantAccountEntity defendantAccountEntity, HttpServletRequest request) {
+
+        UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         DefendantAccountEntity response = defendantAccountService.putDefendantAccount(defendantAccountEntity);
 
@@ -90,7 +96,11 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/{defendantAccountId}")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
-    public ResponseEntity<AccountDetailsDto> getAccountDetails(@PathVariable Long defendantAccountId) {
+    public ResponseEntity<AccountDetailsDto> getAccountDetails(@PathVariable Long defendantAccountId,
+                                                               HttpServletRequest request) {
+
+        UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(defendantAccountId);
 
@@ -142,9 +152,13 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/notes/{defendantId}")
     @Operation(summary = "Returns all notes for an associated defendant account id.")
-    public ResponseEntity<List<NoteDto>> getNotesForDefendantAccount(@PathVariable String defendantId) {
+    public ResponseEntity<List<NoteDto>> getNotesForDefendantAccount(@PathVariable String defendantId,
+                                                                     HttpServletRequest request) {
 
         log.info(":GET:getNotesForDefendantAccount: defendant account id: {}", defendantId);
+
+        UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         NoteSearchDto criteria = NoteSearchDto.builder()
             .associatedType(NOTE_ASSOC_REC_TYPE)

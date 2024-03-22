@@ -87,7 +87,6 @@ class UserStateServiceTest {
         when(developerConfiguration.getUserRolePermissions()).thenReturn(DEVELOPER_PERMISSIONS);
 
         // Act
-        // UserState result = userStateService.getUserStateUsingServletRequest(request);
         UserState result =  userStateService.getUserStateUsingServletRequest(request);
 
         // Assert
@@ -106,9 +105,39 @@ class UserStateServiceTest {
         when(userService.getLimitedUserStateByUsername(any())).thenReturn((Optional.empty()));
 
         // Act
-        // UserState result = userStateService.getUserStateUsingServletRequest(request);
         AccessDeniedException ex = assertThrows(AccessDeniedException.class,
                                                 () -> userStateService.getUserStateUsingServletRequest(request));
+
+        // Assert
+        assertNotNull(ex);
+        assertEquals("No authorised user with username 'null' found", ex.getMessage());
+
+    }
+
+    @Test
+    void testCheckForAuthorisedUser_success() {
+        final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+
+        // Arrange
+        when(userEntitlementService.getUserStateByUsername(any())).thenReturn(Optional.empty());
+        when(userService.getLimitedUserStateByUsername(any())).thenReturn((Optional.empty()));
+        when(developerConfiguration.getUserRolePermissions()).thenReturn(DEVELOPER_PERMISSIONS);
+
+        // Act
+        userStateService.checkForAuthorisedUser(request);
+    }
+
+    @Test
+    void testCheckForAuthorisedUser_failure() {
+        final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+
+        // Arrange
+        when(userEntitlementService.getUserStateByUsername(any())).thenReturn(Optional.empty());
+        when(userService.getLimitedUserStateByUsername(any())).thenReturn((Optional.empty()));
+
+        // Act
+        AccessDeniedException ex = assertThrows(AccessDeniedException.class,
+                                                () -> userStateService.checkForAuthorisedUser(request));
 
         // Assert
         assertNotNull(ex);
