@@ -90,4 +90,14 @@ class CourtControllerIntegrationTest {
             .andExpect(jsonPath("$[0].localJusticeAreaId").value(22))
             .andExpect(jsonPath("$[0].nationalCourtCode").value("Test Court"));
     }
+
+    @Test
+    public void testPostCourtsSearch_WhenCourtDoesNotExist() throws Exception {
+        when(courtService.getCourt(2L)).thenReturn(null);
+
+        mockMvc.perform(post("/api/court/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"criteria\":\"2\"}"))
+            .andExpect(status().isNoContent());
+    }
 }
