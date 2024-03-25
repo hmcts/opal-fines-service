@@ -16,6 +16,10 @@ springdoc:
   writer-with-order-by-keys: true
 
 spring:
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
   config:
     import: "optional:configtree:/mnt/secrets/opal/"
   application:
