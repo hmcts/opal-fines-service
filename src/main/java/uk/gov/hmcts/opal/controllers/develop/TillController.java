@@ -29,7 +29,7 @@ public class TillController {
 
     private final TillServiceInterface tillService;
 
-    public TillController(@Qualifier("tillServiceProxy") TillServiceInterface tillService) {
+    public TillController(@Qualifier("tillService") TillServiceInterface tillService) {
         this.tillService = tillService;
     }
 

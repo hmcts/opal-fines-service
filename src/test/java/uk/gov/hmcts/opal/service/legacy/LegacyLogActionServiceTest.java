@@ -6,50 +6,50 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
-import uk.gov.hmcts.opal.dto.search.TillSearchDto;
-import uk.gov.hmcts.opal.entity.TillEntity;
+import uk.gov.hmcts.opal.dto.search.LogActionSearchDto;
+import uk.gov.hmcts.opal.entity.LogActionEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-class LegacyTillServiceTest extends LegacyTestsBase {
+class LegacyLogActionServiceTest extends LegacyTestsBase {
 
     @Mock
     private Logger log;
 
     @InjectMocks
-    private LegacyTillService legacyTillService;
+    private LegacyLogActionService legacyLogActionService;
 
     @Test
-    void testGetTill() {
+    void testGetLogAction() {
         // Arrange
 
-        TillEntity tillEntity = TillEntity.builder().build();
+        LogActionEntity logActionEntity = LogActionEntity.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyTillService.getTill(1)
+            () -> legacyLogActionService.getLogAction((short)1)
         );
 
         // Assert
-        assertNotNull(legacyTillService.getLog());
+        assertNotNull(legacyLogActionService.getLog());
         assertNotNull(exception);
         assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
 
     }
 
     @Test
-    void testSearchTills() {
+    void testSearchLogActions() {
         // Arrange
-        TillSearchDto searchDto = TillSearchDto.builder().build();
+        LogActionSearchDto searchDto = LogActionSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyTillService.searchTills(searchDto)
+            () -> legacyLogActionService.searchLogActions(searchDto)
         );
 
         // Assert

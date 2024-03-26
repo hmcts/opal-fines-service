@@ -6,50 +6,50 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
-import uk.gov.hmcts.opal.dto.search.TillSearchDto;
-import uk.gov.hmcts.opal.entity.TillEntity;
+import uk.gov.hmcts.opal.dto.search.LogAuditDetailSearchDto;
+import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-class LegacyTillServiceTest extends LegacyTestsBase {
+class LegacyLogAuditDetailServiceTest extends LegacyTestsBase {
 
     @Mock
     private Logger log;
 
     @InjectMocks
-    private LegacyTillService legacyTillService;
+    private LegacyLogAuditDetailService legacyLogAuditDetailService;
 
     @Test
-    void testGetTill() {
+    void testGetLogAuditDetail() {
         // Arrange
 
-        TillEntity tillEntity = TillEntity.builder().build();
+        LogAuditDetailEntity logAuditDetailEntity = LogAuditDetailEntity.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyTillService.getTill(1)
+            () -> legacyLogAuditDetailService.getLogAuditDetail(1)
         );
 
         // Assert
-        assertNotNull(legacyTillService.getLog());
+        assertNotNull(legacyLogAuditDetailService.getLog());
         assertNotNull(exception);
         assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
 
     }
 
     @Test
-    void testSearchTills() {
+    void testSearchLogAuditDetails() {
         // Arrange
-        TillSearchDto searchDto = TillSearchDto.builder().build();
+        LogAuditDetailSearchDto searchDto = LogAuditDetailSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyTillService.searchTills(searchDto)
+            () -> legacyLogAuditDetailService.searchLogAuditDetails(searchDto)
         );
 
         // Assert

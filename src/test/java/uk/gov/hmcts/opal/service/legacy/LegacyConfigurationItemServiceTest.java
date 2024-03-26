@@ -6,50 +6,50 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
-import uk.gov.hmcts.opal.dto.search.TillSearchDto;
-import uk.gov.hmcts.opal.entity.TillEntity;
+import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
+import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-class LegacyTillServiceTest extends LegacyTestsBase {
+class LegacyConfigurationItemServiceTest extends LegacyTestsBase {
 
     @Mock
     private Logger log;
 
     @InjectMocks
-    private LegacyTillService legacyTillService;
+    private LegacyConfigurationItemService legacyConfigurationItemService;
 
     @Test
-    void testGetTill() {
+    void testGetConfigurationItem() {
         // Arrange
 
-        TillEntity tillEntity = TillEntity.builder().build();
+        ConfigurationItemEntity configurationItemEntity = ConfigurationItemEntity.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyTillService.getTill(1)
+            () -> legacyConfigurationItemService.getConfigurationItem(1)
         );
 
         // Assert
-        assertNotNull(legacyTillService.getLog());
+        assertNotNull(legacyConfigurationItemService.getLog());
         assertNotNull(exception);
         assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
 
     }
 
     @Test
-    void testSearchTills() {
+    void testSearchConfigurationItems() {
         // Arrange
-        TillSearchDto searchDto = TillSearchDto.builder().build();
+        ConfigurationItemSearchDto searchDto = ConfigurationItemSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyTillService.searchTills(searchDto)
+            () -> legacyConfigurationItemService.searchConfigurationItems(searchDto)
         );
 
         // Assert
