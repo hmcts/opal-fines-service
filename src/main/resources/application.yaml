@@ -94,6 +94,9 @@ launchdarkly:
   enabled: ${LAUNCH_DARKLY_ENABLED:true}
 
 opal:
+  schedule:
+    file-handler-job:
+      cron: ${OPAL_FILE_HANDLER_JOB_CRON:0 0/5 * * * ?}
   frontend:
       url: ${OPAL_FRONTEND_URL:http://localhost:4200}
   azure:
