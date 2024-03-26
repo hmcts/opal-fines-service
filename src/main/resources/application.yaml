@@ -93,6 +93,21 @@ launchdarkly:
   env: ${LAUNCH_DARKLY_ENV:default}
   enabled: ${LAUNCH_DARKLY_ENABLED:true}
 
+quartzProperties:
+  org.quartz:
+    scheduler:
+      instanceId: AUTO
+    jobStore:
+      isClustered: true
+      class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
+      driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      dataSource: dataSource
+      clusterCheckinInterval: 2000
+      misfireThreshold: 60000
+    threadPool:
+      class: org.quartz.simpl.SimpleThreadPool
+      threadCount: 8
+
 opal:
   schedule:
     file-handler-job:

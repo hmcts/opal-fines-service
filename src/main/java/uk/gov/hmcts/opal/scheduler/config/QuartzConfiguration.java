@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.scheduler.config;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.Properties;
 
 @Configuration
+@ConfigurationProperties
 @EnableScheduling
 public class QuartzConfiguration {
 
