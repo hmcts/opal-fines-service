@@ -111,7 +111,7 @@ quartzProperties:
 opal:
   schedule:
     file-handler-job:
-      cron: ${OPAL_FILE_HANDLER_JOB_CRON:0 0/5 * * * ?}
+      cron: ${OPAL_FILE_HANDLER_JOB_CRON:0 0/1 * * * ?}
   frontend:
       url: ${OPAL_FRONTEND_URL:http://localhost:4200}
   azure:

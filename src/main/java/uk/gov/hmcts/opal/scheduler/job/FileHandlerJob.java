@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.scheduler.job;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.DisallowConcurrentExecution;
-import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,11 +20,16 @@ public class FileHandlerJob implements CronJob {
 
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        JobDataMap jobDataMap = jobExecutionContext.getMergedJobDataMap();
+    public void execute(JobExecutionContext context) throws JobExecutionException {
 
-        String jobId = (String) jobDataMap.get("jobID");
-        log.info("Job Started-" + jobId + " at:" + System.currentTimeMillis());
+        log.info("Job ** {} ** starting @ {}", context.getJobDetail().getKey().getName(), context.getFireTime());
+        //TODO: Some logic here to perform the actual task
+        log.info(
+            "Job ** {} ** completed.  Next job scheduled @ {}",
+            context.getJobDetail().getKey().getName(),
+            context.getNextFireTime()
+        );
+
     }
 
 }
