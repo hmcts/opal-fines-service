@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.scheduler.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.CronScheduleBuilder;
@@ -26,14 +27,10 @@ import static org.quartz.TriggerKey.triggerKey;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class JobService {
 
     private final Scheduler scheduler;
-
-    @Autowired
-    public JobService(Scheduler scheduler) {
-        this.scheduler = scheduler;
-    }
 
     public JobKey scheduleJob(JobData jobData, ZonedDateTime startDateTime) {
         try {
