@@ -9,8 +9,6 @@ import uk.gov.hmcts.opal.scheduler.model.CronJob;
 import uk.gov.hmcts.opal.scheduler.model.JobData;
 import uk.gov.hmcts.opal.scheduler.service.JobService;
 
-import java.util.HashMap;
-
 @Slf4j
 @Configuration
 public class CronJobConfiguration {
