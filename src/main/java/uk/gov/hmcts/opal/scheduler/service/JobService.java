@@ -12,7 +12,6 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SimpleTrigger;
 import org.quartz.TriggerKey;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.scheduler.exception.JobException;
 import uk.gov.hmcts.opal.scheduler.model.JobData;

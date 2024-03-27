@@ -37,7 +37,7 @@ public class CronJobConfiguration {
             JobData jobData = JobData.builder()
                 .id(cronJob.getClass().getName())
                 .jobClass(cronJob.getClass())
-                .data(new HashMap<>())
+                .data(cronJob.getData())
                 .build();
 
             jobService.scheduleJob(jobData, cronJob.getCronExpression());
