@@ -30,7 +30,7 @@ public class BusinessUnitController {
     private final BusinessUnitServiceInterface businessUnitService;
 
     public BusinessUnitController(
-        @Qualifier("businessUnitServiceProxy") BusinessUnitServiceInterface businessUnitService) {
+        @Qualifier("businessUnitService") BusinessUnitServiceInterface businessUnitService) {
         this.businessUnitService = businessUnitService;
     }
 

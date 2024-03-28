@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -12,7 +13,6 @@ import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.CourtEntity;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
-import uk.gov.hmcts.opal.service.proxy.CourtServiceProxy;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,10 +32,8 @@ class CourtControllerIntegrationTest {
     MockMvc mockMvc;
 
     @MockBean
+    @Qualifier("courtService")
     CourtService courtService;
-
-    @MockBean
-    CourtServiceProxy courtServiceProxy;
 
     @MockBean
     UserStateService userStateService;
@@ -50,7 +48,7 @@ class CourtControllerIntegrationTest {
             .localJusticeAreaId((short) 22)
             .build();
 
-        when(courtServiceProxy.getCourt(1L)).thenReturn(courtEntity);
+        when(courtService.getCourt(1L)).thenReturn(courtEntity);
 
         mockMvc.perform(get("/api/court/1"))
             .andExpect(status().isOk())
@@ -65,7 +63,7 @@ class CourtControllerIntegrationTest {
 
     @Test
     void testGetCourtById_WhenCourtDoesNotExist() throws Exception {
-        when(courtServiceProxy.getCourt(2L)).thenReturn(null);
+        when(courtService.getCourt(2L)).thenReturn(null);
 
         mockMvc.perform(get("/api/court/2"))
             .andExpect(status().isNoContent());

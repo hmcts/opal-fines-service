@@ -29,7 +29,7 @@ public class DefendantTransactionController {
 
     private final DefendantTransactionServiceInterface defendantTransactionService;
 
-    public DefendantTransactionController(@Qualifier("defendantTransactionServiceProxy")
+    public DefendantTransactionController(@Qualifier("defendantTransactionService")
                                           DefendantTransactionServiceInterface defendantTransactionService) {
         this.defendantTransactionService = defendantTransactionService;
     }

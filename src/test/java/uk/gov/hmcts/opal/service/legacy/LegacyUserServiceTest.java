@@ -25,7 +25,6 @@ class LegacyUserServiceTest extends LegacyTestsBase {
     @Test
     void testGetUser() {
         // Arrange
-
         UserEntity userEntity = UserEntity.builder().build();
 
         // Act

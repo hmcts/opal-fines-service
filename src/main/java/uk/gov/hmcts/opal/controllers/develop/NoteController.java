@@ -37,7 +37,7 @@ public class NoteController {
 
     private final UserStateService userStateService;
 
-    public NoteController(@Qualifier("noteServiceProxy") NoteServiceInterface noteService,
+    public NoteController(@Qualifier("noteService") NoteServiceInterface noteService,
                           UserStateService userStateService) {
         this.noteService = noteService;
         this.userStateService = userStateService;

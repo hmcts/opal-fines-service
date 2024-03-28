@@ -30,7 +30,7 @@ public class LocalJusticeAreaController {
     private final LocalJusticeAreaServiceInterface localJusticeAreaService;
 
     public LocalJusticeAreaController(
-        @Qualifier("localJusticeAreaServiceProxy") LocalJusticeAreaServiceInterface localJusticeAreaService) {
+        @Qualifier("localJusticeAreaService") LocalJusticeAreaServiceInterface localJusticeAreaService) {
         this.localJusticeAreaService = localJusticeAreaService;
     }
 

@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ import static java.util.stream.Collectors.toSet;
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "UserEntitlementService")
+@Qualifier("userEntitlementService")
 public class UserEntitlementService implements UserEntitlementServiceInterface {
 
     private final UserEntitlementRepository userEntitlementRepository;

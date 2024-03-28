@@ -35,7 +35,7 @@ class LogActionControllerIntegrationTest {
     LogActionService logActionService;
 
     @Test
-    public void testGetLogActionById() throws Exception {
+    void testGetLogActionById() throws Exception {
         LogActionEntity logActionEntity = createLogActionEntity();
 
         when(logActionService.getLogAction((short)1)).thenReturn(logActionEntity);
@@ -49,7 +49,7 @@ class LogActionControllerIntegrationTest {
 
 
     @Test
-    public void testGetLogActionById_WhenLogActionDoesNotExist() throws Exception {
+    void testGetLogActionById_WhenLogActionDoesNotExist() throws Exception {
         when(logActionService.getLogAction((short)2)).thenReturn(null);
 
         mockMvc.perform(get("/api/log-action/2"))
@@ -57,7 +57,7 @@ class LogActionControllerIntegrationTest {
     }
 
     @Test
-    public void testPostLogActionsSearch() throws Exception {
+    void testPostLogActionsSearch() throws Exception {
         LogActionEntity logActionEntity = createLogActionEntity();
 
         when(logActionService.searchLogActions(any(LogActionSearchDto.class)))
@@ -73,7 +73,7 @@ class LogActionControllerIntegrationTest {
     }
 
     @Test
-    public void testPostLogActionsSearch_WhenLogActionDoesNotExist() throws Exception {
+    void testPostLogActionsSearch_WhenLogActionDoesNotExist() throws Exception {
         when(logActionService.getLogAction((short)2)).thenReturn(null);
 
         mockMvc.perform(post("/api/log-action/search")

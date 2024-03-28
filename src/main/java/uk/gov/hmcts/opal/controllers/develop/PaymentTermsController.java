@@ -30,7 +30,7 @@ public class PaymentTermsController {
     private final PaymentTermsServiceInterface paymentTermsService;
 
     public PaymentTermsController(
-        @Qualifier("paymentTermsServiceProxy") PaymentTermsServiceInterface paymentTermsService) {
+        @Qualifier("paymentTermsService") PaymentTermsServiceInterface paymentTermsService) {
         this.paymentTermsService = paymentTermsService;
     }
 
