@@ -134,7 +134,6 @@ class TestingSupportControllerTest {
             .andExpect(jsonPath("$.userState.userId").value("123"))
             .andExpect(jsonPath("$.userState.roles[0].businessUnitId").value("123"))
             .andExpect(jsonPath("$.userState.roles[0].businessUserId").value("BU123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUserId").value("BU123"))
             .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionId").value("1"))
             .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionName")
                            .value("Notes"));
@@ -162,7 +161,6 @@ class TestingSupportControllerTest {
             .andExpect(jsonPath("$.userState.userName").value("name"))
             .andExpect(jsonPath("$.userState.userId").value("123"))
             .andExpect(jsonPath("$.userState.roles[0].businessUnitId").value("123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUserId").value("BU123"))
             .andExpect(jsonPath("$.userState.roles[0].businessUserId").value("BU123"))
             .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionId").value("1"))
             .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionName")
