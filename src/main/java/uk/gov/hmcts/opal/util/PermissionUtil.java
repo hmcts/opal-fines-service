@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.authorisation.model.UserState;
 public class PermissionUtil {
 
 
-    public static Role getRequiredRole(UserState userState, short businessUnitId) {
+    public static Role getRequiredRole(UserState userState, Short businessUnitId) {
         return userState.getRoleForBusinessUnit(businessUnitId).orElseThrow(() -> new
             AccessDeniedException("User does not have an assigned role in business unit: " + businessUnitId));
     }

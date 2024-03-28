@@ -44,13 +44,12 @@ class LegacyAccountTransferServiceTest extends LegacyTestsBase {
     @Test
     void testSearchAccountTransfers() {
         // Arrange
-
-        AccountTransferEntity accountTransferEntity = AccountTransferEntity.builder().build();
+        AccountTransferSearchDto criteria = AccountTransferSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyAccountTransferService.searchAccountTransfers(AccountTransferSearchDto.builder().build())
+            () -> legacyAccountTransferService.searchAccountTransfers(criteria)
         );
 
         // Assert

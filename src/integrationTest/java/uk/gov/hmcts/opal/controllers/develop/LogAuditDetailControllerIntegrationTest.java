@@ -37,7 +37,7 @@ class LogAuditDetailControllerIntegrationTest {
     LogAuditDetailService logAuditDetailService;
 
     @Test
-    public void testGetLogAuditDetailById() throws Exception {
+    void testGetLogAuditDetailById() throws Exception {
         LogAuditDetailEntity logAuditDetailEntity = createLogAuditDetailEntity();
 
         when(logAuditDetailService.getLogAuditDetail(1L)).thenReturn(logAuditDetailEntity);
@@ -55,7 +55,7 @@ class LogAuditDetailControllerIntegrationTest {
 
 
     @Test
-    public void testGetLogAuditDetailById_WhenLogAuditDetailDoesNotExist() throws Exception {
+    void testGetLogAuditDetailById_WhenLogAuditDetailDoesNotExist() throws Exception {
         when(logAuditDetailService.getLogAuditDetail(2L)).thenReturn(null);
 
         mockMvc.perform(get("/api/log-audit-detail/2"))
@@ -63,7 +63,7 @@ class LogAuditDetailControllerIntegrationTest {
     }
 
     @Test
-    public void testPostLogAuditDetailsSearch() throws Exception {
+    void testPostLogAuditDetailsSearch() throws Exception {
         LogAuditDetailEntity logAuditDetailEntity = createLogAuditDetailEntity();
 
         when(logAuditDetailService.searchLogAuditDetails(any(LogAuditDetailSearchDto.class)))
@@ -83,7 +83,7 @@ class LogAuditDetailControllerIntegrationTest {
     }
 
     @Test
-    public void testPostLogAuditDetailsSearch_WhenLogAuditDetailDoesNotExist() throws Exception {
+    void testPostLogAuditDetailsSearch_WhenLogAuditDetailDoesNotExist() throws Exception {
         when(logAuditDetailService.getLogAuditDetail(2L)).thenReturn(null);
 
         mockMvc.perform(post("/api/log-audit-detail/search")

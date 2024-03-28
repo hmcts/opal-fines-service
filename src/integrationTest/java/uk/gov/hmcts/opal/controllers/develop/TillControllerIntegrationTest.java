@@ -35,7 +35,7 @@ class TillControllerIntegrationTest {
     TillService tillService;
 
     @Test
-    public void testGetTillById() throws Exception {
+    void testGetTillById() throws Exception {
         TillEntity tillEntity = createTillEntity();
 
         when(tillService.getTill(1L)).thenReturn(tillEntity);
@@ -51,7 +51,7 @@ class TillControllerIntegrationTest {
 
 
     @Test
-    public void testGetTillById_WhenTillDoesNotExist() throws Exception {
+    void testGetTillById_WhenTillDoesNotExist() throws Exception {
         when(tillService.getTill(2L)).thenReturn(null);
 
         mockMvc.perform(get("/api/till/2"))
@@ -59,7 +59,7 @@ class TillControllerIntegrationTest {
     }
 
     @Test
-    public void testPostTillsSearch() throws Exception {
+    void testPostTillsSearch() throws Exception {
         TillEntity tillEntity = createTillEntity();
 
         when(tillService.searchTills(any(TillSearchDto.class))).thenReturn(singletonList(tillEntity));
@@ -76,7 +76,7 @@ class TillControllerIntegrationTest {
     }
 
     @Test
-    public void testPostTillsSearch_WhenTillDoesNotExist() throws Exception {
+    void testPostTillsSearch_WhenTillDoesNotExist() throws Exception {
         when(tillService.getTill(2L)).thenReturn(null);
 
         mockMvc.perform(post("/api/till/search")

@@ -36,8 +36,8 @@ public class Role {
         return !hasPermission(permission);
     }
 
-    public boolean matchesBusinessUnitId(short roleBusinessUnitId) {
-        return roleBusinessUnitId == businessUnitId;
+    public boolean matchesBusinessUnitId(Short roleBusinessUnitId) {
+        return businessUnitId.equals(roleBusinessUnitId);
     }
 
     public static class DeveloperRole extends Role {
@@ -51,7 +51,7 @@ public class Role {
         }
 
         @Override
-        public boolean matchesBusinessUnitId(short roleBusinessUnitId) {
+        public boolean matchesBusinessUnitId(Short roleBusinessUnitId) {
             return true;
         }
     }

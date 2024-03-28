@@ -29,7 +29,7 @@ public class ResultController {
 
     private final ResultServiceInterface resultService;
 
-    public ResultController(@Qualifier("resultServiceProxy") ResultServiceInterface resultService) {
+    public ResultController(@Qualifier("resultService") ResultServiceInterface resultService) {
         this.resultService = resultService;
     }
 
