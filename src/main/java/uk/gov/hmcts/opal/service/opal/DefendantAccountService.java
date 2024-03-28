@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,7 @@ import static uk.gov.hmcts.opal.dto.ToJsonString.getObjectMapper;
 @Transactional
 @Slf4j(topic = "DefendantAccountService")
 @RequiredArgsConstructor
+@Qualifier("defendantAccountService")
 public class DefendantAccountService implements DefendantAccountServiceInterface {
 
     private final DefendantAccountRepository defendantAccountRepository;

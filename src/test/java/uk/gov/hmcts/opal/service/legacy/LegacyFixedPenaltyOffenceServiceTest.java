@@ -44,14 +44,12 @@ class LegacyFixedPenaltyOffenceServiceTest extends LegacyTestsBase {
     @Test
     void testSearchFixedPenaltyOffences() {
         // Arrange
-
-        FixedPenaltyOffenceEntity fixedPenaltyOffenceEntity = FixedPenaltyOffenceEntity.builder().build();
+        FixedPenaltyOffenceSearchDto criteria = FixedPenaltyOffenceSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyFixedPenaltyOffenceService.searchFixedPenaltyOffences(
-                FixedPenaltyOffenceSearchDto.builder().build())
+            () -> legacyFixedPenaltyOffenceService.searchFixedPenaltyOffences(criteria)
         );
 
         // Assert

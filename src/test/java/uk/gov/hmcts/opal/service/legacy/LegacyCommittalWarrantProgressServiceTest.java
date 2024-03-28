@@ -45,15 +45,13 @@ class LegacyCommittalWarrantProgressServiceTest extends LegacyTestsBase {
     @Test
     void testSearchCommittalWarrantProgresss() {
         // Arrange
-
-        CommittalWarrantProgressEntity committalWarrantProgressEntity =
-            CommittalWarrantProgressEntity.builder().build();
+        CommittalWarrantProgressSearchDto criteria = CommittalWarrantProgressSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
             () -> legacyCommittalWarrantProgressService
-                .searchCommittalWarrantProgresss(CommittalWarrantProgressSearchDto.builder().build())
+                .searchCommittalWarrantProgresss(criteria)
         );
 
         // Assert

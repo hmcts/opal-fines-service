@@ -29,7 +29,7 @@ public class PaymentInController {
 
     private final PaymentInServiceInterface paymentInService;
 
-    public PaymentInController(@Qualifier("paymentInServiceProxy") PaymentInServiceInterface paymentInService) {
+    public PaymentInController(@Qualifier("paymentInService") PaymentInServiceInterface paymentInService) {
         this.paymentInService = paymentInService;
     }
 

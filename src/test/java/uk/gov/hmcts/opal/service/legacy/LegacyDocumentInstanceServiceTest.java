@@ -44,13 +44,12 @@ class LegacyDocumentInstanceServiceTest extends LegacyTestsBase {
     @Test
     void testSearchDocumentInstances() {
         // Arrange
-
-        DocumentInstanceEntity documentInstanceEntity = DocumentInstanceEntity.builder().build();
+        DocumentInstanceSearchDto criteria = DocumentInstanceSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyDocumentInstanceService.searchDocumentInstances(DocumentInstanceSearchDto.builder().build())
+            () -> legacyDocumentInstanceService.searchDocumentInstances(criteria)
         );
 
         // Assert

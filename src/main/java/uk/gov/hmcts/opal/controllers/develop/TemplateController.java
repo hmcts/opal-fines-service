@@ -29,7 +29,7 @@ public class TemplateController {
 
     private final TemplateServiceInterface templateService;
 
-    public TemplateController(@Qualifier("templateServiceProxy") TemplateServiceInterface templateService) {
+    public TemplateController(@Qualifier("templateService") TemplateServiceInterface templateService) {
         this.templateService = templateService;
     }
 

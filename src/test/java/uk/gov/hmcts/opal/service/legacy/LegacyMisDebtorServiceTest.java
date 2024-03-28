@@ -44,13 +44,12 @@ class LegacyMisDebtorServiceTest extends LegacyTestsBase {
     @Test
     void testSearchMisDebtors() {
         // Arrange
-
-        MisDebtorEntity misDebtorEntity = MisDebtorEntity.builder().build();
+        MisDebtorSearchDto criteria = MisDebtorSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyMisDebtorService.searchMisDebtors(MisDebtorSearchDto.builder().build())
+            () -> legacyMisDebtorService.searchMisDebtors(criteria)
         );
 
         // Assert

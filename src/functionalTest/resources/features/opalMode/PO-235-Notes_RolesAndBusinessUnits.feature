@@ -40,4 +40,4 @@ Feature: tests for notes roles/permissions for accounts dependant on business un
       | associatedRecordId | 500000010                       |
       | noteText           | test roles and perms Opal user1 |
     #When error logging is looked at would be good to check the error message
-    Then the add notes request returns an Internal Server Error
+    Then the add notes request is forbidden

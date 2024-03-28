@@ -44,12 +44,12 @@ class LegacyConfigurationItemServiceTest extends LegacyTestsBase {
     @Test
     void testSearchConfigurationItems() {
         // Arrange
-        ConfigurationItemSearchDto searchDto = ConfigurationItemSearchDto.builder().build();
+        ConfigurationItemSearchDto criteria = ConfigurationItemSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyConfigurationItemService.searchConfigurationItems(searchDto)
+            () -> legacyConfigurationItemService.searchConfigurationItems(criteria)
         );
 
         // Assert

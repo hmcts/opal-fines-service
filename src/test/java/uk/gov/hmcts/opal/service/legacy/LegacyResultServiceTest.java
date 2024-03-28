@@ -45,12 +45,11 @@ class LegacyResultServiceTest extends LegacyTestsBase {
     void testSearchResults() {
         // Arrange
 
-        ResultEntity resultEntity = ResultEntity.builder().build();
-
+        ResultSearchDto criteria = ResultSearchDto.builder().build();
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyResultService.searchResults(ResultSearchDto.builder().build())
+            () -> legacyResultService.searchResults(criteria)
         );
 
         // Assert
