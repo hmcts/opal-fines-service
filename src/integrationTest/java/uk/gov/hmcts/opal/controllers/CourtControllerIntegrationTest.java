@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.CourtEntity;
 import uk.gov.hmcts.opal.service.opal.CourtService;
+import uk.gov.hmcts.opal.service.opal.UserStateService;
 import uk.gov.hmcts.opal.service.proxy.CourtServiceProxy;
 
 import static java.util.Collections.singletonList;
@@ -35,6 +36,9 @@ class CourtControllerIntegrationTest {
 
     @MockBean
     CourtServiceProxy courtServiceProxy;
+
+    @MockBean
+    UserStateService userStateService;
 
     @Test
     void testGetCourtById() throws Exception {
