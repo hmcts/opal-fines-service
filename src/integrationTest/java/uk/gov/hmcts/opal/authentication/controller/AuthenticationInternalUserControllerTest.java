@@ -25,13 +25,15 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @WebMvcTest
 @ContextConfiguration(classes = AuthenticationInternalUserController.class)
 @ActiveProfiles({"integration"})
-public class AuthenticationInternalUserControllerTest {
+class AuthenticationInternalUserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -46,7 +48,7 @@ public class AuthenticationInternalUserControllerTest {
     private AuthorisationService authorisationService;
 
     @Test
-    public void testLoginOrRefresh() throws Exception {
+    void testLoginOrRefresh() throws Exception {
         String redirectUri = "http://example.com/redirect";
         when(authenticationService.loginOrRefresh(any(), any())).thenReturn(new URI(redirectUri));
 
@@ -57,7 +59,7 @@ public class AuthenticationInternalUserControllerTest {
     }
 
     @Test
-    public void testHandleOauthCode() throws Exception {
+    void testHandleOauthCode() throws Exception {
         when(authenticationService.handleOauthCode(anyString())).thenReturn("accessToken");
 
         SecurityToken securityToken = SecurityToken.builder().accessToken("accessToken").build();
@@ -66,7 +68,7 @@ public class AuthenticationInternalUserControllerTest {
             .userName("name")
             .userId(123L)
             .roles(Set.of(Role.builder()
-                              .businessUnitId((short)123)
+                              .businessUnitId((short) 123)
                               .businessUserId("BU123")
                               .permissions(Set.of(
                                   Permission.builder()
@@ -80,11 +82,21 @@ public class AuthenticationInternalUserControllerTest {
         mockMvc.perform(post("/internal-user/handle-oauth-code")
                             .param("code", "code")
                             .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk());
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.accessToken").value("accessToken"))
+            .andExpect(jsonPath("$.userState.userName").value("name"))
+            .andExpect(jsonPath("$.userState.userId").value("123"))
+            .andExpect(jsonPath("$.userState.roles[0].businessUnitId").value("123"))
+            .andExpect(jsonPath("$.userState.roles[0].businessUserId").value("BU123"))
+            .andExpect(jsonPath("$.userState.roles[0].businessUserId").value("BU123"))
+            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionId").value("1"))
+            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionName")
+                           .value("Notes"));
     }
 
     @Test
-    public void testLogout() throws Exception {
+    void testLogout() throws Exception {
         String redirectUri = "http://example.com/redirect";
         when(authenticationService.logout(any(), any())).thenReturn(new URI(redirectUri));
 
@@ -96,7 +108,7 @@ public class AuthenticationInternalUserControllerTest {
     }
 
     @Test
-    public void testResetPassword() throws Exception {
+    void testResetPassword() throws Exception {
         String redirectUri = "http://example.com/redirect";
         when(authenticationService.resetPassword(any())).thenReturn(new URI(redirectUri));
 
