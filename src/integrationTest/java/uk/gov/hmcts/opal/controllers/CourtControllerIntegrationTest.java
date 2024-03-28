@@ -41,7 +41,7 @@ class CourtControllerIntegrationTest {
     UserStateService userStateService;
 
     @Test
-    public void testGetCourtById() throws Exception {
+    void testGetCourtById() throws Exception {
         CourtEntity courtEntity = CourtEntity.builder()
             .courtId(1L)
             .courtCode((short) 11)
@@ -64,7 +64,7 @@ class CourtControllerIntegrationTest {
 
 
     @Test
-    public void testGetCourtById_WhenCourtDoesNotExist() throws Exception {
+    void testGetCourtById_WhenCourtDoesNotExist() throws Exception {
         when(courtServiceProxy.getCourt(2L)).thenReturn(null);
 
         mockMvc.perform(get("/api/court/2"))
@@ -72,7 +72,7 @@ class CourtControllerIntegrationTest {
     }
 
     @Test
-    public void testPostCourtsSearch() throws Exception {
+    void testPostCourtsSearch() throws Exception {
         CourtEntity courtEntity = CourtEntity.builder()
             .courtId(1L)
             .courtCode((short) 11)
@@ -96,7 +96,7 @@ class CourtControllerIntegrationTest {
     }
 
     @Test
-    public void testPostCourtsSearch_WhenCourtDoesNotExist() throws Exception {
+    void testPostCourtsSearch_WhenCourtDoesNotExist() throws Exception {
         when(courtService.getCourt(2L)).thenReturn(null);
 
         mockMvc.perform(post("/api/court/search")
