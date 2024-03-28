@@ -44,14 +44,12 @@ class LegacyDefendantTransactionServiceTest extends LegacyTestsBase {
     @Test
     void testSearchDefendantTransactions() {
         // Arrange
-
-        DefendantTransactionEntity defendantTransactionEntity = DefendantTransactionEntity.builder().build();
+        DefendantTransactionSearchDto criteria = DefendantTransactionSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyDefendantTransactionService.searchDefendantTransactions(DefendantTransactionSearchDto
-                                                                                    .builder().build())
+            () -> legacyDefendantTransactionService.searchDefendantTransactions(criteria)
         );
 
         // Assert

@@ -30,7 +30,7 @@ public class DocumentInstanceController {
     private final DocumentInstanceServiceInterface documentInstanceService;
 
     public DocumentInstanceController(
-        @Qualifier("documentInstanceServiceProxy") DocumentInstanceServiceInterface documentInstanceService) {
+        @Qualifier("documentInstanceService") DocumentInstanceServiceInterface documentInstanceService) {
         this.documentInstanceService = documentInstanceService;
     }
 

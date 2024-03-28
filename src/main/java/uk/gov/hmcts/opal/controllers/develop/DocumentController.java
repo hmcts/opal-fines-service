@@ -29,7 +29,7 @@ public class DocumentController {
 
     private final DocumentServiceInterface documentService;
 
-    public DocumentController(@Qualifier("documentServiceProxy") DocumentServiceInterface documentService) {
+    public DocumentController(@Qualifier("documentService") DocumentServiceInterface documentService) {
         this.documentService = documentService;
     }
 

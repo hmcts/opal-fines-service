@@ -44,13 +44,12 @@ class LegacyPaymentInServiceTest extends LegacyTestsBase {
     @Test
     void testSearchPaymentIns() {
         // Arrange
-
-        PaymentInEntity paymentInEntity = PaymentInEntity.builder().build();
+        PaymentInSearchDto criteria = PaymentInSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyPaymentInService.searchPaymentIns(PaymentInSearchDto.builder().build())
+            () -> legacyPaymentInService.searchPaymentIns(criteria)
         );
 
         // Assert

@@ -44,13 +44,12 @@ class LegacyCourtServiceTest extends LegacyTestsBase {
     @Test
     void testSearchCourts() {
         // Arrange
-
-        CourtEntity courtEntity = CourtEntity.builder().build();
+        CourtSearchDto criteria = CourtSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyCourtService.searchCourts(CourtSearchDto.builder().build())
+            () -> legacyCourtService.searchCourts(criteria)
         );
 
         // Assert

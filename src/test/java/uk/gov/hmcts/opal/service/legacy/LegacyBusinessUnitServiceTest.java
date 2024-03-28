@@ -44,13 +44,12 @@ class LegacyBusinessUnitServiceTest extends LegacyTestsBase {
     @Test
     void testSearchBusinessUnits() {
         // Arrange
-
-        BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder().build();
+        BusinessUnitSearchDto criteria = BusinessUnitSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyBusinessUnitService.searchBusinessUnits(BusinessUnitSearchDto.builder().build())
+            () -> legacyBusinessUnitService.searchBusinessUnits(criteria)
         );
 
         // Assert

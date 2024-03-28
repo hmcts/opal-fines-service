@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.CourtEntity;
 import uk.gov.hmcts.opal.service.CourtServiceInterface;
-import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
@@ -30,15 +29,12 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 @Tag(name = "Court Controller")
 public class CourtController {
 
-    private final CourtServiceInterface courtServiceProxy;
-
-    private final CourtService courtService;
+    private final CourtServiceInterface courtService;
 
     private final UserStateService userStateService;
 
-    public CourtController(@Qualifier("courtServiceProxy") CourtServiceInterface courtServiceProxy,
-                           CourtService courtService, UserStateService userStateService) {
-        this.courtServiceProxy = courtServiceProxy;
+    public CourtController(@Qualifier("courtService") CourtServiceInterface courtService,
+                           UserStateService userStateService) {
         this.courtService = courtService;
         this.userStateService = userStateService;
     }
@@ -51,7 +47,7 @@ public class CourtController {
 
         userStateService.checkForAuthorisedUser(request);
 
-        CourtEntity response = courtServiceProxy.getCourt(courtId);
+        CourtEntity response = courtService.getCourt(courtId);
 
         return buildResponse(response);
     }
@@ -64,7 +60,6 @@ public class CourtController {
 
         userStateService.checkForAuthorisedUser(request);
 
-        // TODO - hard coded 'Opal' Court Service for now, as otherwise this will break in staging.
         List<CourtEntity> response = courtService.searchCourts(criteria);
 
         return buildResponse(response);

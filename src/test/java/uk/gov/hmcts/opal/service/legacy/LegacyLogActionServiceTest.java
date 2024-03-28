@@ -44,12 +44,12 @@ class LegacyLogActionServiceTest extends LegacyTestsBase {
     @Test
     void testSearchLogActions() {
         // Arrange
-        LogActionSearchDto searchDto = LogActionSearchDto.builder().build();
+        LogActionSearchDto criteria = LogActionSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyLogActionService.searchLogActions(searchDto)
+            () -> legacyLogActionService.searchLogActions(criteria)
         );
 
         // Assert

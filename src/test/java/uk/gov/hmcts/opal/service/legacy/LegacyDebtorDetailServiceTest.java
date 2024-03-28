@@ -44,13 +44,12 @@ class LegacyDebtorDetailServiceTest extends LegacyTestsBase {
     @Test
     void testSearchDebtorDetails() {
         // Arrange
-
-        DebtorDetailEntity debtorDetailEntity = DebtorDetailEntity.builder().build();
+        DebtorDetailSearchDto criteria = DebtorDetailSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyDebtorDetailService.searchDebtorDetails(DebtorDetailSearchDto.builder().build())
+            () -> legacyDebtorDetailService.searchDebtorDetails(criteria)
         );
 
         // Assert

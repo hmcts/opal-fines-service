@@ -29,7 +29,7 @@ public class PrisonController {
 
     private final PrisonServiceInterface prisonService;
 
-    public PrisonController(@Qualifier("prisonServiceProxy") PrisonServiceInterface prisonService) {
+    public PrisonController(@Qualifier("prisonService") PrisonServiceInterface prisonService) {
         this.prisonService = prisonService;
     }
 

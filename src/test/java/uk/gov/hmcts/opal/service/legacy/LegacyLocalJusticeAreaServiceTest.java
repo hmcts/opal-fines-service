@@ -44,13 +44,12 @@ class LegacyLocalJusticeAreaServiceTest extends LegacyTestsBase {
     @Test
     void testSearchLocalJusticeAreas() {
         // Arrange
-
-        LocalJusticeAreaEntity localJusticeAreaEntity = LocalJusticeAreaEntity.builder().build();
+        LocalJusticeAreaSearchDto criteria = LocalJusticeAreaSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyLocalJusticeAreaService.searchLocalJusticeAreas(LocalJusticeAreaSearchDto.builder().build())
+            () -> legacyLocalJusticeAreaService.searchLocalJusticeAreas(criteria)
         );
 
         // Assert

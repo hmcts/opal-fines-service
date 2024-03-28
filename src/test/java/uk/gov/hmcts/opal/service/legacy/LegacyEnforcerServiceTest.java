@@ -44,13 +44,12 @@ class LegacyEnforcerServiceTest extends LegacyTestsBase {
     @Test
     void testSearchEnforcers() {
         // Arrange
-
-        EnforcerEntity enforcerEntity = EnforcerEntity.builder().build();
+        EnforcerSearchDto criteria = EnforcerSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyEnforcerService.searchEnforcers(EnforcerSearchDto.builder().build())
+            () -> legacyEnforcerService.searchEnforcers(criteria)
         );
 
         // Assert

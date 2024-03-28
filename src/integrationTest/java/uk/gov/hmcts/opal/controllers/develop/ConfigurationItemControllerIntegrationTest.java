@@ -37,7 +37,7 @@ class ConfigurationItemControllerIntegrationTest {
     ConfigurationItemService configurationItemService;
 
     @Test
-    public void testGetConfigurationItemById() throws Exception {
+    void testGetConfigurationItemById() throws Exception {
         ConfigurationItemEntity configurationItemEntity = createConfigurationItemEntity();
 
         when(configurationItemService.getConfigurationItem(1L)).thenReturn(configurationItemEntity);
@@ -53,7 +53,7 @@ class ConfigurationItemControllerIntegrationTest {
 
 
     @Test
-    public void testGetConfigurationItemById_WhenConfigurationItemDoesNotExist() throws Exception {
+    void testGetConfigurationItemById_WhenConfigurationItemDoesNotExist() throws Exception {
         when(configurationItemService.getConfigurationItem(2L)).thenReturn(null);
 
         mockMvc.perform(get("/api/configuration-item/2"))
@@ -61,7 +61,7 @@ class ConfigurationItemControllerIntegrationTest {
     }
 
     @Test
-    public void testPostConfigurationItemsSearch() throws Exception {
+    void testPostConfigurationItemsSearch() throws Exception {
         ConfigurationItemEntity configurationItemEntity = createConfigurationItemEntity();
 
         when(configurationItemService.searchConfigurationItems(any(ConfigurationItemSearchDto.class)))
@@ -79,7 +79,7 @@ class ConfigurationItemControllerIntegrationTest {
     }
 
     @Test
-    public void testPostConfigurationItemsSearch_WhenConfigurationItemDoesNotExist() throws Exception {
+    void testPostConfigurationItemsSearch_WhenConfigurationItemDoesNotExist() throws Exception {
         when(configurationItemService.getConfigurationItem(2L)).thenReturn(null);
 
         mockMvc.perform(post("/api/configuration-item/search")

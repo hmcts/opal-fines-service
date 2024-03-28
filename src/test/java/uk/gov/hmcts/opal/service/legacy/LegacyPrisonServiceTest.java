@@ -44,13 +44,12 @@ class LegacyPrisonServiceTest extends LegacyTestsBase {
     @Test
     void testSearchPrisons() {
         // Arrange
-
-        PrisonEntity prisonEntity = PrisonEntity.builder().build();
+        PrisonSearchDto criteria = PrisonSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyPrisonService.searchPrisons(PrisonSearchDto.builder().build())
+            () -> legacyPrisonService.searchPrisons(criteria)
         );
 
         // Assert
