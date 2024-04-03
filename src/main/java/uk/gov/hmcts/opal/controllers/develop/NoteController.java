@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.controllers.develop;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.authorisation.model.Role;
@@ -45,10 +45,12 @@ public class NoteController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Creates a new note in the Opal Fines Notes table assigning an ID.")
-    public ResponseEntity<NoteDto> createNote(@RequestBody NoteDto noteDto, HttpServletRequest request) {
+    public ResponseEntity<NoteDto> createNote(
+        @RequestBody NoteDto noteDto,
+        @RequestHeader("Authorization") String authHeaderValue) {
         log.info(":POST:createNote: {}", noteDto.toPrettyJson());
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
         Role role = getRequiredRole(userState, noteDto.getBusinessUnitId());
 
         noteDto.setPostedBy(role.getBusinessUserId());

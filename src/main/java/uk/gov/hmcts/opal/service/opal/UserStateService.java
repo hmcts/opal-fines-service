@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,22 +25,22 @@ public class UserStateService {
 
     private final BeDeveloperConfiguration developerConfiguration;
 
-    public UserState getUserStateUsingServletRequest(HttpServletRequest request) {
-        return getUserStateByUsername(getPreferredUsername(request));
+    public UserState getUserStateUsingServletRequest(String authorization) {
+        return getUserStateByUsername(getPreferredUsername(authorization));
     }
 
-    public void checkForAuthorisedUser(HttpServletRequest request) {
-        getUserStateByUsername(getPreferredUsername(request));
+    public void checkForAuthorisedUser(String authorization) {
+        getUserStateByUsername(getPreferredUsername(authorization));
     }
 
-    public String getPreferredUsername(HttpServletRequest request) {
-        return extractPreferredUsername(request, tokenService);
+    public String getPreferredUsername(String authorization) {
+        return extractPreferredUsername(authorization, tokenService);
     }
 
     public UserState getUserStateByUsername(String username) {
         return userEntitlementService.getUserStateByUsername(username)
             .orElseGet(() -> userService.getLimitedUserStateByUsername(username)
-            .orElseGet(() -> getDeveloperUserStateOrError(username)));
+                .orElseGet(() -> getDeveloperUserStateOrError(username)));
     }
 
     private UserState getDeveloperUserStateOrError(String username) {
