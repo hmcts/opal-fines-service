@@ -12,8 +12,8 @@ public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
 
     public Specification<BusinessUnitEntity> findBySearchCriteria(BusinessUnitSearchDto criteria) {
         return Specification.allOf(specificationList(
-            notBlank(criteria.getBusinessUnitId()).map(BusinessUnitSpecs::equalsBusinessUnitId),
-            notBlank(criteria.getBusinessUnitName()).map(BusinessUnitSpecs::equalsBusinessUnitName),
+            numericShort(criteria.getBusinessUnitId()).map(BusinessUnitSpecs::equalsBusinessUnitId),
+            notBlank(criteria.getBusinessUnitName()).map(BusinessUnitSpecs::likeBusinessUnitName),
             notBlank(criteria.getBusinessUnitCode()).map(BusinessUnitSpecs::likeBusinessUnitCode),
             notBlank(criteria.getBusinessUnitType()).map(BusinessUnitSpecs::likeBusinessUnitType),
             notBlank(criteria.getAccountNumberPrefix()).map(BusinessUnitSpecs::equalsAccountNumberPrefix),
@@ -21,16 +21,16 @@ public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
         ));
     }
 
-    public static Specification<BusinessUnitEntity> equalsBusinessUnitId(String businessUnitId) {
+    public static Specification<BusinessUnitEntity> equalsBusinessUnitId(Short businessUnitId) {
         return (root, query, builder) -> businessUnitIdPredicate(root, builder, businessUnitId);
     }
 
     public static Predicate businessUnitIdPredicate(
-        From<?, BusinessUnitEntity> from, CriteriaBuilder builder, String businessUnitId) {
+        From<?, BusinessUnitEntity> from, CriteriaBuilder builder, Short businessUnitId) {
         return builder.equal(from.get(BusinessUnitEntity_.businessUnitId), businessUnitId);
     }
 
-    public static Specification<BusinessUnitEntity> equalsBusinessUnitName(String businessUnitName) {
+    public static Specification<BusinessUnitEntity> likeBusinessUnitName(String businessUnitName) {
         return (root, query, builder) -> businessUnitNamePredicate(root, builder, businessUnitName);
     }
 

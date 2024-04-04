@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,8 +12,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
+import uk.gov.hmcts.opal.authorisation.model.LogActions;
+import uk.gov.hmcts.opal.dto.AddLogAuditDetailDto;
 import uk.gov.hmcts.opal.dto.search.LogAuditDetailSearchDto;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
+import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.repository.LogActionRepository;
 import uk.gov.hmcts.opal.repository.LogAuditDetailRepository;
 
 import java.util.List;
@@ -28,6 +33,12 @@ class LogAuditDetailServiceTest {
 
     @Mock
     private LogAuditDetailRepository logAuditDetailRepository;
+
+    @Mock
+    private LogActionRepository logActionRepository;
+
+    @Mock
+    private BusinessUnitRepository businessUnitRepository;
 
     @InjectMocks
     private LogAuditDetailService logAuditDetailService;
@@ -67,6 +78,18 @@ class LogAuditDetailServiceTest {
         // Assert
         assertEquals(List.of(logAuditDetailEntity), result);
 
+    }
+
+    @Test
+    void testWriteLogAuditDetail() {
+        // Arrange
+        AddLogAuditDetailDto dto = AddLogAuditDetailDto.builder()
+            .userId(1L)
+            .logAction(LogActions.LOG_IN)
+            .jsonRequest("none").build();
+
+        // Act
+        Assertions.assertDoesNotThrow(() -> logAuditDetailService.writeLogAuditDetail(dto));
     }
 
 

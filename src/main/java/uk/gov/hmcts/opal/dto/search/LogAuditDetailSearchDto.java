@@ -11,7 +11,9 @@ public class LogAuditDetailSearchDto implements ToJsonString {
     private String logAuditDetailId;
     private String userId;
     private String logActionId;
+    private String logActionName;
     private String accountNumber;
     private String businessUnitId;
+    private String businessUnitName;
 
 }

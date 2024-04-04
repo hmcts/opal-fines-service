@@ -34,15 +34,15 @@ class BusinessUnitControllerTest {
         // Arrange
         BusinessUnitEntity entity = BusinessUnitEntity.builder().build();
 
-        when(businessUnitService.getBusinessUnit(any(Long.class))).thenReturn(entity);
+        when(businessUnitService.getBusinessUnit(any(Short.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<BusinessUnitEntity> response = businessUnitController.getBusinessUnitById(1L);
+        ResponseEntity<BusinessUnitEntity> response = businessUnitController.getBusinessUnitById((short)1);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
-        verify(businessUnitService, times(1)).getBusinessUnit(any(Long.class));
+        verify(businessUnitService, times(1)).getBusinessUnit(any(Short.class));
     }
 
     @Test

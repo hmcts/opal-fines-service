@@ -6,6 +6,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -40,14 +42,16 @@ public class LogAuditDetailEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime logTimestamp;
 
-    @Column(name = "log_action_id", nullable = false)
-    private Short logActionId;
+    @ManyToOne
+    @JoinColumn(name = "log_action_id", updatable = false)
+    private LogActionEntity logAction;
 
     @Column(name = "account_number", length = 20)
     private String accountNumber;
 
-    @Column(name = "business_unit_id")
-    private Short businessUnitId;
+    @ManyToOne
+    @JoinColumn(name = "business_unit_id", updatable = false)
+    private BusinessUnitEntity businessUnit;
 
     @Column(name = "json_request", nullable = false)
     private String jsonRequest;

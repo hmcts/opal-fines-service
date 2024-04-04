@@ -24,7 +24,7 @@ public class BusinessUnitUserSpecs extends EntitySpecs<BusinessUnitUserEntity> {
     public Specification<BusinessUnitUserEntity> findBySearchCriteria(BusinessUnitUserSearchDto criteria) {
         return Specification.allOf(specificationList(
             notBlank(criteria.getBusinessUnitUserId()).map(BusinessUnitUserSpecs::equalsBusinessUnitUserId),
-            numeric(criteria.getBusinessUnitId()).map(BusinessUnitUserSpecs::equalsBusinessUnitId),
+            numericShort(criteria.getBusinessUnitId()).map(BusinessUnitUserSpecs::equalsBusinessUnitId),
             notBlank(criteria.getBusinessUnitName()).map(BusinessUnitUserSpecs::likeBusinessUnitName),
             notBlank(criteria.getBusinessUnitType()).map(BusinessUnitUserSpecs::likeBusinessUnitType),
             numeric(criteria.getParentBusinessUnitId()).map(BusinessUnitUserSpecs::equalsParentBusinessUnitId),
@@ -43,7 +43,7 @@ public class BusinessUnitUserSpecs extends EntitySpecs<BusinessUnitUserEntity> {
         return likeWildcardPredicate(from.get(BusinessUnitUserEntity_.businessUnitUserId), builder, businessUnitUserId);
     }
 
-    public static Specification<BusinessUnitUserEntity> equalsBusinessUnitId(String businessUnitId) {
+    public static Specification<BusinessUnitUserEntity> equalsBusinessUnitId(Short businessUnitId) {
         return (root, query, builder) ->
             businessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
     }

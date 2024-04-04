@@ -69,7 +69,7 @@ public class DefendantAccountController {
         @RequestParam(name = "accountNumber") String accountNumber,
         @RequestHeader("Authorization") String authHeaderValue) {
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
+        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
         checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         AccountEnquiryDto enquiryDto = AccountEnquiryDto.builder()
@@ -88,7 +88,7 @@ public class DefendantAccountController {
         @RequestBody DefendantAccountEntity defendantAccountEntity,
         @RequestHeader("Authorization") String authHeaderValue) {
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
+        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
         checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         DefendantAccountEntity response = defendantAccountService.putDefendantAccount(defendantAccountEntity);
@@ -101,7 +101,7 @@ public class DefendantAccountController {
     public ResponseEntity<AccountDetailsDto> getAccountDetails(@PathVariable Long defendantAccountId,
                                                                @RequestHeader("Authorization") String authHeaderValue) {
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
+        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
         checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(defendantAccountId);
@@ -116,7 +116,7 @@ public class DefendantAccountController {
         @RequestHeader("Authorization") String authHeaderValue) {
         log.info(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
+        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
         checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         AccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
@@ -131,7 +131,7 @@ public class DefendantAccountController {
         @RequestHeader("Authorization") String authHeaderValue) {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
+        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
         Role role = getRequiredRole(userState, addNote.getBusinessUnitId());
         checkRoleHasPermission(role, Permissions.ACCOUNT_ENQUIRY_NOTES);
 
@@ -162,7 +162,7 @@ public class DefendantAccountController {
 
         log.info(":GET:getNotesForDefendantAccount: defendant account id: {}", defendantId);
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
+        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
         checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         NoteSearchDto criteria = NoteSearchDto.builder()

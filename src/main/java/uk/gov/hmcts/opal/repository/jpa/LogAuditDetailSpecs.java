@@ -1,19 +1,30 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.LogAuditDetailSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.LogActionEntity;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity_;
+
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.businessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.businessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.LogActionSpecs.logActionIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.LogActionSpecs.logActionNamePredicate;
 
 public class LogAuditDetailSpecs extends EntitySpecs<LogAuditDetailEntity> {
 
     public Specification<LogAuditDetailEntity> findBySearchCriteria(LogAuditDetailSearchDto criteria) {
         return Specification.allOf(specificationList(
             notBlank(criteria.getLogAuditDetailId()).map(LogAuditDetailSpecs::equalsLogAuditDetailId),
-            notBlank(criteria.getBusinessUnitId()).map(LogAuditDetailSpecs::equalsBusinessUnitId),
-            notBlank(criteria.getLogActionId()).map(LogAuditDetailSpecs::equalsLogActionId),
+            notBlank(criteria.getUserId()).map(LogAuditDetailSpecs::equalsUserId),
+            numericShort(criteria.getLogActionId()).map(LogAuditDetailSpecs::equalsLogActionId),
+            notBlank(criteria.getLogActionName()).map(LogAuditDetailSpecs::likeLogActionName),
             notBlank(criteria.getAccountNumber()).map(LogAuditDetailSpecs::equalsAccountNumber),
-            notBlank(criteria.getUserId()).map(LogAuditDetailSpecs::equalsUserId)
+            numericShort(criteria.getBusinessUnitId()).map(LogAuditDetailSpecs::equalsBusinessUnitId),
+            notBlank(criteria.getBusinessUnitName()).map(LogAuditDetailSpecs::likeBusinessUnitName)
         ));
     }
 
@@ -22,12 +33,24 @@ public class LogAuditDetailSpecs extends EntitySpecs<LogAuditDetailEntity> {
                                                        logAuditDetailId);
     }
 
-    public static Specification<LogAuditDetailEntity> equalsBusinessUnitId(String businessUnitId) {
-        return (root, query, builder) -> builder.equal(root.get(LogAuditDetailEntity_.businessUnitId), businessUnitId);
+    public static Specification<LogAuditDetailEntity> equalsBusinessUnitId(Short businessUnitId) {
+        return (root, query, builder) ->
+            businessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
     }
 
-    public static Specification<LogAuditDetailEntity> equalsLogActionId(String logActionId) {
-        return (root, query, builder) -> builder.equal(root.get(LogAuditDetailEntity_.logActionId), logActionId);
+    public static Specification<LogAuditDetailEntity> likeBusinessUnitName(String businessUnitName) {
+        return (root, query, builder) ->
+            businessUnitNamePredicate(joinBusinessUnit(root), builder, businessUnitName);
+    }
+
+    public static Specification<LogAuditDetailEntity> equalsLogActionId(Short logActionId) {
+        return (root, query, builder) ->
+            logActionIdPredicate(joinLogAction(root), builder, logActionId);
+    }
+
+    public static Specification<LogAuditDetailEntity> likeLogActionName(String logActionName) {
+        return (root, query, builder) ->
+            logActionNamePredicate(joinLogAction(root), builder, logActionName);
     }
 
     public static Specification<LogAuditDetailEntity> equalsAccountNumber(String accountNumber) {
@@ -38,4 +61,13 @@ public class LogAuditDetailSpecs extends EntitySpecs<LogAuditDetailEntity> {
         return (root, query, builder) -> builder.equal(root.get(LogAuditDetailEntity_.userId), userId);
     }
 
+    public static Join<LogAuditDetailEntity, BusinessUnitEntity> joinBusinessUnit(
+        From<?, LogAuditDetailEntity> from) {
+        return from.join(LogAuditDetailEntity_.businessUnit);
+    }
+
+    public static Join<LogAuditDetailEntity, LogActionEntity> joinLogAction(
+        From<?, LogAuditDetailEntity> from) {
+        return from.join(LogAuditDetailEntity_.logAction);
+    }
 }

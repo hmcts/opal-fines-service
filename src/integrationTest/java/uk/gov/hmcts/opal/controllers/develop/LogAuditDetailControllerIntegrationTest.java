@@ -10,6 +10,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.LogAuditDetailSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.LogActionEntity;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
 import uk.gov.hmcts.opal.service.opal.LogAuditDetailService;
 
@@ -47,9 +49,9 @@ class LogAuditDetailControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.logAuditDetailId").value(1))
             .andExpect(jsonPath("$.userId").value(4))
-            .andExpect(jsonPath("$.logActionId").value(2))
+            .andExpect(jsonPath("$.logAction.logActionId").value(2))
             .andExpect(jsonPath("$.accountNumber").value("1234ACC"))
-            .andExpect(jsonPath("$.businessUnitId").value(3))
+            .andExpect(jsonPath("$.businessUnit.businessUnitId").value(3))
             .andExpect(jsonPath("$.jsonRequest").value("{\"request\":\"processAudit\"}"));
     }
 
@@ -76,9 +78,9 @@ class LogAuditDetailControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$[0].logAuditDetailId").value(1))
             .andExpect(jsonPath("$[0].userId").value(4))
-            .andExpect(jsonPath("$[0].logActionId").value(2))
+            .andExpect(jsonPath("$[0].logAction.logActionId").value(2))
             .andExpect(jsonPath("$[0].accountNumber").value("1234ACC"))
-            .andExpect(jsonPath("$[0].businessUnitId").value(3))
+            .andExpect(jsonPath("$[0].businessUnit.businessUnitId").value(3))
             .andExpect(jsonPath("$[0].jsonRequest").value("{\"request\":\"processAudit\"}"));
     }
 
@@ -97,9 +99,9 @@ class LogAuditDetailControllerIntegrationTest {
             .logAuditDetailId(1L)
             .userId(4L)
             .logTimestamp(LocalDateTime.now())
-            .logActionId((short)2)
+            .logAction(LogActionEntity.builder().logActionId((short)2).logActionName("ActionX").build())
             .accountNumber("1234ACC")
-            .businessUnitId((short)3)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)3).businessUnitName("BU3").build())
             .jsonRequest("{\"request\":\"processAudit\"}")
             .build();
     }

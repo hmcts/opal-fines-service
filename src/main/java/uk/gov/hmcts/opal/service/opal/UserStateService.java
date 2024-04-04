@@ -25,7 +25,7 @@ public class UserStateService {
 
     private final BeDeveloperConfiguration developerConfiguration;
 
-    public UserState getUserStateUsingServletRequest(String authorization) {
+    public UserState getUserStateUsingAuthToken(String authorization) {
         return getUserStateByUsername(getPreferredUsername(authorization));
     }
 
