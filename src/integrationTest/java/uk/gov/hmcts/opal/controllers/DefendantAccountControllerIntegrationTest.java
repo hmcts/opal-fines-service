@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -29,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -58,11 +58,12 @@ class DefendantAccountControllerIntegrationTest {
     void testGetDefendantAccountById() throws Exception {
         AccountDetailsDto defendantAccountEntity = createAccountDetailsDto();
 
-        when(userStateService.getUserStateUsingServletRequest(any(HttpServletRequest.class)))
+        when(userStateService.getUserStateUsingServletRequest(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.getAccountDetailsByDefendantAccountId(1L)).thenReturn(defendantAccountEntity);
 
-        mockMvc.perform(get("/api/defendant-account/1"))
+        mockMvc.perform(get("/api/defendant-account/1")
+                            .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendantAccountId").value(1))
@@ -73,11 +74,12 @@ class DefendantAccountControllerIntegrationTest {
 
     @Test
     void testGetDefendantAccountById_WhenDefendantAccountDoesNotExist() throws Exception {
-        when(userStateService.getUserStateUsingServletRequest(any(HttpServletRequest.class)))
+        when(userStateService.getUserStateUsingServletRequest(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.getDefendantAccount(any())).thenReturn(null);
 
-        mockMvc.perform(get("/api/defendant-account/2"))
+        mockMvc.perform(get("/api/defendant-account/2")
+                            .header("authorization", "Bearer some_value"))
             .andExpect(status().isNoContent());
     }
 
@@ -86,11 +88,12 @@ class DefendantAccountControllerIntegrationTest {
         AccountSummaryDto dto = createAccountSummaryDto();
         AccountSearchResultsDto results = AccountSearchResultsDto.builder().searchResults(List.of(dto)).build();
 
-        when(userStateService.getUserStateUsingServletRequest(any(HttpServletRequest.class)))
+        when(userStateService.getUserStateUsingServletRequest(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class))).thenReturn(results);
 
         mockMvc.perform(post("/api/defendant-account/search")
+                            .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -107,11 +110,12 @@ class DefendantAccountControllerIntegrationTest {
     void testPostDefendantAccountsSearch_WhenDefendantAccountDoesNotExist() throws Exception {
         AccountEnquiryDto dto = AccountEnquiryDto.builder().build();
 
-        when(userStateService.getUserStateUsingServletRequest(any(HttpServletRequest.class)))
+        when(userStateService.getUserStateUsingServletRequest(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.getDefendantAccount(dto)).thenReturn(null);
 
         mockMvc.perform(post("/api/defendant-account/search")
+                            .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isNoContent());
@@ -121,11 +125,12 @@ class DefendantAccountControllerIntegrationTest {
     public void testGetDefendantAccount() throws Exception {
         DefendantAccountEntity entity = createDefendantAccountEntity();
 
-        when(userStateService.getUserStateUsingServletRequest(any(HttpServletRequest.class)))
+        when(userStateService.getUserStateUsingServletRequest(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.getDefendantAccount(any())).thenReturn(entity);
 
         mockMvc.perform(get("/api/defendant-account")
+                            .header("authorization", "Bearer some_value")
                             .param("businessUnitId", "1")
                             .param("accountNumber", "123"))
             .andExpect(status().isOk())
@@ -141,11 +146,12 @@ class DefendantAccountControllerIntegrationTest {
     public void testPutDefendantAccount() throws Exception {
         DefendantAccountEntity entity = createDefendantAccountEntity();
 
-        when(userStateService.getUserStateUsingServletRequest(any(HttpServletRequest.class)))
+        when(userStateService.getUserStateUsingServletRequest(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.putDefendantAccount(any())).thenReturn(entity);
 
         mockMvc.perform(put("/api/defendant-account")
+                            .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(new ObjectMapper().writeValueAsString(entity)))
             .andExpect(status().isOk())
@@ -161,17 +167,18 @@ class DefendantAccountControllerIntegrationTest {
     @Test
     public void testAddNote() throws Exception {
         NoteDto noteDto = createNoteDto();
-        AddNoteDto addNoteDto =  AddNoteDto.builder()
+        AddNoteDto addNoteDto = AddNoteDto.builder()
             .businessUnitId((short) 123)
             .associatedRecordId("abc123")
             .noteText("Non payment fine")
             .build();
 
-        when(userStateService.getUserStateUsingServletRequest(any(HttpServletRequest.class)))
+        when(userStateService.getUserStateUsingServletRequest(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(opalNoteService.saveNote(any())).thenReturn(noteDto);
 
         mockMvc.perform(post("/api/defendant-account/addNote")
+                            .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(new ObjectMapper().writeValueAsString(addNoteDto)))
             .andExpect(status().isCreated())
@@ -184,11 +191,12 @@ class DefendantAccountControllerIntegrationTest {
     public void testGetNotesForDefendantAccount_notePresent() throws Exception {
         List<NoteDto> notesList = List.of(createNoteDto());
 
-        when(userStateService.getUserStateUsingServletRequest(any(HttpServletRequest.class)))
+        when(userStateService.getUserStateUsingServletRequest(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(opalNoteService.searchNotes(any())).thenReturn(notesList);
 
-        mockMvc.perform(get("/api/defendant-account/notes/{defendantId}", "dummyDefendantId"))
+        mockMvc.perform(get("/api/defendant-account/notes/{defendantId}", "dummyDefendantId")
+                            .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$[0].noteType").value("quick"))
@@ -203,11 +211,12 @@ class DefendantAccountControllerIntegrationTest {
     public void testGetNotesForDefendantAccount_zeroNotes() throws Exception {
         List<NoteDto> notesList = Collections.emptyList();
 
-        when(userStateService.getUserStateUsingServletRequest(any(HttpServletRequest.class)))
+        when(userStateService.getUserStateUsingServletRequest(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(opalNoteService.searchNotes(any())).thenReturn(notesList);
 
-        mockMvc.perform(get("/api/defendant-account/notes/{defendantId}", "dummyDefendantId"))
+        mockMvc.perform(get("/api/defendant-account/notes/{defendantId}", "dummyDefendantId")
+                            .header("authorization", "Bearer some_value"))
             .andExpect(status().isNoContent());
     }
 
@@ -216,7 +225,7 @@ class DefendantAccountControllerIntegrationTest {
         return AccountDetailsDto.builder()
             .defendantAccountId(1L)
             .accountNumber("abc123")
-            .businessUnitId((short)6)
+            .businessUnitId((short) 6)
             .build();
     }
 
@@ -247,8 +256,8 @@ class DefendantAccountControllerIntegrationTest {
             .noteText("A reminder note")
             .postedBy("Vincent")
             .associatedRecordId("abc123")
-            .postedDate(LocalDateTime.of(2024, 3, 25,15,30))
-            .businessUnitId((short)123)
+            .postedDate(LocalDateTime.of(2024, 3, 25, 15, 30))
+            .businessUnitId((short) 123)
             .build();
     }
 }
