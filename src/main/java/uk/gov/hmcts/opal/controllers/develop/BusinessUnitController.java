@@ -36,7 +36,7 @@ public class BusinessUnitController {
 
     @GetMapping(value = "/{businessUnitId}")
     @Operation(summary = "Returns the BusinessUnit for the given businessUnitId.")
-    public ResponseEntity<BusinessUnitEntity> getBusinessUnitById(@PathVariable Long businessUnitId) {
+    public ResponseEntity<BusinessUnitEntity> getBusinessUnitById(@PathVariable Short businessUnitId) {
 
         log.info(":GET:getBusinessUnitById: businessUnitId: {}", businessUnitId);
 

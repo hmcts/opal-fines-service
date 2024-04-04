@@ -50,7 +50,7 @@ public class NoteController {
         @RequestHeader("Authorization") String authHeaderValue) {
         log.info(":POST:createNote: {}", noteDto.toPrettyJson());
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
+        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
         Role role = getRequiredRole(userState, noteDto.getBusinessUnitId());
 
         noteDto.setPostedBy(role.getBusinessUserId());

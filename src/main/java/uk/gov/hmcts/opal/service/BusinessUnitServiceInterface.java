@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface BusinessUnitServiceInterface {
 
-    BusinessUnitEntity getBusinessUnit(long businessUnitId);
+    BusinessUnitEntity getBusinessUnit(short businessUnitId);
 
     List<BusinessUnitEntity> searchBusinessUnits(BusinessUnitSearchDto criteria);
 }

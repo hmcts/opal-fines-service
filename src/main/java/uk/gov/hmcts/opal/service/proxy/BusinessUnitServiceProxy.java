@@ -26,7 +26,7 @@ public class BusinessUnitServiceProxy implements BusinessUnitServiceInterface, P
     }
 
     @Override
-    public BusinessUnitEntity getBusinessUnit(long businessUnitId) {
+    public BusinessUnitEntity getBusinessUnit(short businessUnitId) {
         return getCurrentModeService().getBusinessUnit(businessUnitId);
     }
 

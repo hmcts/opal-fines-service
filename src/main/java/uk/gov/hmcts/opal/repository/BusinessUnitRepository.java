@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 
 @Repository
-public interface BusinessUnitRepository extends JpaRepository<BusinessUnitEntity, Long>,
+public interface BusinessUnitRepository extends JpaRepository<BusinessUnitEntity, Short>,
     JpaSpecificationExecutor<BusinessUnitEntity> {
 }

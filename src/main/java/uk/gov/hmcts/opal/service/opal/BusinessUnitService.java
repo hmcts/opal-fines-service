@@ -24,7 +24,7 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
     private final BusinessUnitSpecs specs = new BusinessUnitSpecs();
 
     @Override
-    public BusinessUnitEntity getBusinessUnit(long businessUnitId) {
+    public BusinessUnitEntity getBusinessUnit(short businessUnitId) {
         return businessUnitRepository.getReferenceById(businessUnitId);
     }
 

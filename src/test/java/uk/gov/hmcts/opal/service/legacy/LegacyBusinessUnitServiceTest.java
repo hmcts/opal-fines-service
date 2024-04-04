@@ -31,7 +31,7 @@ class LegacyBusinessUnitServiceTest extends LegacyTestsBase {
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyBusinessUnitService.getBusinessUnit(1)
+            () -> legacyBusinessUnitService.getBusinessUnit((short)1)
         );
 
         // Assert
