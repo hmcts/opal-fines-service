@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,10 +20,10 @@ import uk.gov.hmcts.opal.authorisation.model.Role;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
@@ -66,9 +66,10 @@ public class DefendantAccountController {
     @Operation(summary = "Searches for a defendant account in the Opal DB")
     public ResponseEntity<DefendantAccountEntity> getDefendantAccount(
         @RequestParam(name = "businessUnitId") Short businessUnitId,
-        @RequestParam(name = "accountNumber") String accountNumber, HttpServletRequest request) {
+        @RequestParam(name = "accountNumber") String accountNumber,
+        @RequestHeader("Authorization") String authHeaderValue) {
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
         checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         AccountEnquiryDto enquiryDto = AccountEnquiryDto.builder()
@@ -84,9 +85,10 @@ public class DefendantAccountController {
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Updates defendant account information")
     public ResponseEntity<DefendantAccountEntity> putDefendantAccount(
-        @RequestBody DefendantAccountEntity defendantAccountEntity, HttpServletRequest request) {
+        @RequestBody DefendantAccountEntity defendantAccountEntity,
+        @RequestHeader("Authorization") String authHeaderValue) {
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
         checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         DefendantAccountEntity response = defendantAccountService.putDefendantAccount(defendantAccountEntity);
@@ -97,9 +99,9 @@ public class DefendantAccountController {
     @GetMapping(value = "/{defendantAccountId}")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     public ResponseEntity<AccountDetailsDto> getAccountDetails(@PathVariable Long defendantAccountId,
-                                                               HttpServletRequest request) {
+                                                               @RequestHeader("Authorization") String authHeaderValue) {
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
         checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(defendantAccountId);
@@ -110,10 +112,11 @@ public class DefendantAccountController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
     public ResponseEntity<AccountSearchResultsDto> postDefendantAccountSearch(
-        @RequestBody AccountSearchDto accountSearchDto, HttpServletRequest request) {
+        @RequestBody AccountSearchDto accountSearchDto,
+        @RequestHeader("Authorization") String authHeaderValue) {
         log.info(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
         checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         AccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
@@ -124,10 +127,11 @@ public class DefendantAccountController {
     @PostMapping(value = "/addNote", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Adds a single note associated with the defendant account")
     public ResponseEntity<NoteDto> addNote(
-        @RequestBody AddNoteDto addNote, HttpServletRequest request) {
+        @RequestBody AddNoteDto addNote,
+        @RequestHeader("Authorization") String authHeaderValue) {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
         Role role = getRequiredRole(userState, addNote.getBusinessUnitId());
         checkRoleHasPermission(role, Permissions.ACCOUNT_ENQUIRY_NOTES);
 
@@ -152,12 +156,13 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/notes/{defendantId}")
     @Operation(summary = "Returns all notes for an associated defendant account id.")
-    public ResponseEntity<List<NoteDto>> getNotesForDefendantAccount(@PathVariable String defendantId,
-                                                                     HttpServletRequest request) {
+    public ResponseEntity<List<NoteDto>> getNotesForDefendantAccount(
+        @PathVariable String defendantId,
+        @RequestHeader("Authorization") String authHeaderValue) {
 
         log.info(":GET:getNotesForDefendantAccount: defendant account id: {}", defendantId);
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
         checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         NoteSearchDto criteria = NoteSearchDto.builder()

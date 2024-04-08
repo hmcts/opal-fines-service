@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,7 +23,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,6 +30,8 @@ import static uk.gov.hmcts.opal.controllers.UserStateBuilder.createUserState;
 
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountControllerTest {
+
+    static final String BEARER_TOKEN = "Bearer a_token_here";
 
     @Mock
     private DefendantAccountService defendantAccountService;
@@ -48,7 +48,6 @@ class DefendantAccountControllerTest {
     @Test
     public void testGetDefendantAccount_Success() {
         // Arrange
-        HttpServletRequest request = mock(HttpServletRequest.class);
         DefendantAccountEntity mockResponse = new DefendantAccountEntity();
 
         when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(mockResponse);
@@ -56,7 +55,7 @@ class DefendantAccountControllerTest {
 
         // Act
         ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
-            (short)1, "", request);
+            (short) 1, "", BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -68,13 +67,12 @@ class DefendantAccountControllerTest {
     @Test
     public void testGetDefendantAccount_NoContent() {
 
-        HttpServletRequest request = mock(HttpServletRequest.class);
         when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(null);
         when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
         ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
-            (short)1, "", request);
+            (short) 1, "", BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
@@ -85,7 +83,6 @@ class DefendantAccountControllerTest {
     @Test
     public void testPutDefendantAccount_Success() {
         // Arrange
-        HttpServletRequest request = mock(HttpServletRequest.class);
         DefendantAccountEntity requestEntity = new DefendantAccountEntity();
         DefendantAccountEntity mockResponse = new DefendantAccountEntity();
 
@@ -94,7 +91,7 @@ class DefendantAccountControllerTest {
 
         // Act
         ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.putDefendantAccount(
-            requestEntity, request);
+            requestEntity, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -106,7 +103,6 @@ class DefendantAccountControllerTest {
     @Test
     public void testGetDefendantAccountDetails_Success() {
         // Arrange
-        HttpServletRequest request = mock(HttpServletRequest.class);
         AccountDetailsDto mockResponse = new AccountDetailsDto();
 
         when(defendantAccountService.getAccountDetailsByDefendantAccountId(any(Long.class)))
@@ -115,7 +111,7 @@ class DefendantAccountControllerTest {
 
         // Act
         ResponseEntity<AccountDetailsDto> responseEntity = defendantAccountController
-            .getAccountDetails(1L, request);
+            .getAccountDetails(1L, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -127,7 +123,6 @@ class DefendantAccountControllerTest {
     @Test
     public void testPostDefendantAccountSearch_Success() {
         // Arrange
-        HttpServletRequest request = mock(HttpServletRequest.class);
         AccountSearchDto requestEntity = AccountSearchDto.builder().build();
         AccountSearchResultsDto mockResponse = AccountSearchResultsDto.builder().build();
 
@@ -136,7 +131,7 @@ class DefendantAccountControllerTest {
 
         // Act
         ResponseEntity<AccountSearchResultsDto> responseEntity = defendantAccountController.postDefendantAccountSearch(
-            requestEntity, request);
+            requestEntity, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -148,15 +143,14 @@ class DefendantAccountControllerTest {
     @Test
     public void testAddNote_Success() {
         // Arrange
-        HttpServletRequest request = mock(HttpServletRequest.class);
         NoteDto mockResponse = new NoteDto();
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(mockResponse);
         when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
-        AddNoteDto addNote = AddNoteDto.builder().businessUnitId((short)50).build();
-        ResponseEntity<NoteDto> responseEntity = defendantAccountController.addNote(addNote, request);
+        AddNoteDto addNote = AddNoteDto.builder().businessUnitId((short) 50).build();
+        ResponseEntity<NoteDto> responseEntity = defendantAccountController.addNote(addNote, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
@@ -168,13 +162,12 @@ class DefendantAccountControllerTest {
 
     @Test
     public void testAddNote_NoContent() {
-        HttpServletRequest request = mock(HttpServletRequest.class);
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(null);
         when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
-        AddNoteDto addNote = AddNoteDto.builder().businessUnitId((short)50).build();
-        ResponseEntity<NoteDto> responseEntity = defendantAccountController.addNote(addNote, request);
+        AddNoteDto addNote = AddNoteDto.builder().businessUnitId((short) 50).build();
+        ResponseEntity<NoteDto> responseEntity = defendantAccountController.addNote(addNote, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
@@ -185,7 +178,6 @@ class DefendantAccountControllerTest {
     @Test
     public void testNotes_Success() {
         // Arrange
-        HttpServletRequest request = mock(HttpServletRequest.class);
         NoteDto mockNote = new NoteDto();
         List<NoteDto> mockResponse = List.of(mockNote);
 
@@ -195,7 +187,7 @@ class DefendantAccountControllerTest {
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();
         ResponseEntity<List<NoteDto>> responseEntity = defendantAccountController
-            .getNotesForDefendantAccount("1", request);
+            .getNotesForDefendantAccount("1", BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -207,20 +199,18 @@ class DefendantAccountControllerTest {
 
     @Test
     public void testNotes_NoContent() {
-        HttpServletRequest request = mock(HttpServletRequest.class);
         when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(null);
         when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();
         ResponseEntity<List<NoteDto>> responseEntity = defendantAccountController
-            .getNotesForDefendantAccount("1", request);
+            .getNotesForDefendantAccount("1", BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
         verify(noteService, times(1)).searchNotes(any(
             NoteSearchDto.class));
     }
-
 
 }

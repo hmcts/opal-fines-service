@@ -10,6 +10,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 
+import static uk.gov.hmcts.opal.authentication.service.AccessTokenService.AUTH_HEADER;
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 
 @Component
@@ -21,9 +22,10 @@ public class LoggingExceptionResolver implements HandlerExceptionResolver {
 
     @Override
     public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response,
-                                         Object handler, Exception ex) {
-        if (ex instanceof AccessDeniedException ade) {
-            String preferredName = extractPreferredUsername(request, tokenService);
+                                         Object handler, Exception exception) {
+        if (exception instanceof AccessDeniedException ade) {
+            String authorization = request.getHeader(AUTH_HEADER);
+            String preferredName = extractPreferredUsername(authorization, tokenService);
             log.warn(":resolveException: For user '{}', {}", preferredName, ade.getMessage());
         }
         return null;

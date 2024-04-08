@@ -8,7 +8,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.controllers.develop.NoteController;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.service.opal.NoteService;
@@ -27,6 +26,8 @@ import static uk.gov.hmcts.opal.controllers.UserStateBuilder.createUserState;
 @ExtendWith(MockitoExtension.class)
 class NoteControllerTest {
 
+    static final String BEARER_TOKEN = "Bearer a_token_here";
+
     @Mock
     private NoteService noteService;
 
@@ -40,14 +41,14 @@ class NoteControllerTest {
     void testCreateNote_Success() {
         // Arrange
         HttpServletRequest request = mock(HttpServletRequest.class);
-        NoteDto noteDtoRequest = NoteDto.builder().businessUnitId((short)50).build();
+        NoteDto noteDtoRequest = NoteDto.builder().businessUnitId((short) 50).build();
         NoteDto noteDtoResponse = NoteDto.builder().noteId(1L).build();
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(noteDtoResponse);
         when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
 
         // Act
-        ResponseEntity<NoteDto> response = noteController.createNote(noteDtoRequest, request);
+        ResponseEntity<NoteDto> response = noteController.createNote(noteDtoRequest, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
