@@ -58,7 +58,7 @@ class DefendantAccountControllerIntegrationTest {
     void testGetDefendantAccountById() throws Exception {
         AccountDetailsDto defendantAccountEntity = createAccountDetailsDto();
 
-        when(userStateService.getUserStateUsingServletRequest(anyString()))
+        when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.getAccountDetailsByDefendantAccountId(1L)).thenReturn(defendantAccountEntity);
 
@@ -74,7 +74,7 @@ class DefendantAccountControllerIntegrationTest {
 
     @Test
     void testGetDefendantAccountById_WhenDefendantAccountDoesNotExist() throws Exception {
-        when(userStateService.getUserStateUsingServletRequest(anyString()))
+        when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.getDefendantAccount(any())).thenReturn(null);
 
@@ -88,7 +88,7 @@ class DefendantAccountControllerIntegrationTest {
         AccountSummaryDto dto = createAccountSummaryDto();
         AccountSearchResultsDto results = AccountSearchResultsDto.builder().searchResults(List.of(dto)).build();
 
-        when(userStateService.getUserStateUsingServletRequest(anyString()))
+        when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class))).thenReturn(results);
 
@@ -110,7 +110,7 @@ class DefendantAccountControllerIntegrationTest {
     void testPostDefendantAccountsSearch_WhenDefendantAccountDoesNotExist() throws Exception {
         AccountEnquiryDto dto = AccountEnquiryDto.builder().build();
 
-        when(userStateService.getUserStateUsingServletRequest(anyString()))
+        when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.getDefendantAccount(dto)).thenReturn(null);
 
@@ -125,7 +125,7 @@ class DefendantAccountControllerIntegrationTest {
     public void testGetDefendantAccount() throws Exception {
         DefendantAccountEntity entity = createDefendantAccountEntity();
 
-        when(userStateService.getUserStateUsingServletRequest(anyString()))
+        when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.getDefendantAccount(any())).thenReturn(entity);
 
@@ -146,7 +146,7 @@ class DefendantAccountControllerIntegrationTest {
     public void testPutDefendantAccount() throws Exception {
         DefendantAccountEntity entity = createDefendantAccountEntity();
 
-        when(userStateService.getUserStateUsingServletRequest(anyString()))
+        when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.putDefendantAccount(any())).thenReturn(entity);
 
@@ -173,7 +173,7 @@ class DefendantAccountControllerIntegrationTest {
             .noteText("Non payment fine")
             .build();
 
-        when(userStateService.getUserStateUsingServletRequest(anyString()))
+        when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(opalNoteService.saveNote(any())).thenReturn(noteDto);
 
@@ -191,7 +191,7 @@ class DefendantAccountControllerIntegrationTest {
     public void testGetNotesForDefendantAccount_notePresent() throws Exception {
         List<NoteDto> notesList = List.of(createNoteDto());
 
-        when(userStateService.getUserStateUsingServletRequest(anyString()))
+        when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(opalNoteService.searchNotes(any())).thenReturn(notesList);
 
@@ -211,7 +211,7 @@ class DefendantAccountControllerIntegrationTest {
     public void testGetNotesForDefendantAccount_zeroNotes() throws Exception {
         List<NoteDto> notesList = Collections.emptyList();
 
-        when(userStateService.getUserStateUsingServletRequest(anyString()))
+        when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
         when(opalNoteService.searchNotes(any())).thenReturn(notesList);
 

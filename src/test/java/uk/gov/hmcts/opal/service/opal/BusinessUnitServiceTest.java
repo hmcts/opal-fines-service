@@ -40,7 +40,7 @@ class BusinessUnitServiceTest {
         when(businessUnitRepository.getReferenceById(any())).thenReturn(businessUnitEntity);
 
         // Act
-        BusinessUnitEntity result = businessUnitService.getBusinessUnit(1);
+        BusinessUnitEntity result = businessUnitService.getBusinessUnit((short)1);
 
         // Assert
         assertNotNull(result);
