@@ -111,8 +111,6 @@ quartzProperties:
 
 opal:
   schedule:
-    log-retention-job:
-      cron: ${OPAL_LOG_RETENTION_JOB_CRON:0 0 2 * * ?}
     file-handler-job:
       cron: ${OPAL_FILE_HANDLER_JOB_CRON:0 0/1 * * * ?}
   frontend:
