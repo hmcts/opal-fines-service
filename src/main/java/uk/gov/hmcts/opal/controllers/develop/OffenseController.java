@@ -35,7 +35,7 @@ public class OffenseController {
 
     @GetMapping(value = "/{offenseId}")
     @Operation(summary = "Returns the Offense for the given offenseId.")
-    public ResponseEntity<OffenseEntity> getOffenseById(@PathVariable Long offenseId) {
+    public ResponseEntity<OffenseEntity> getOffenseById(@PathVariable Short offenseId) {
 
         log.info(":GET:getOffenseById: offenseId: {}", offenseId);
 

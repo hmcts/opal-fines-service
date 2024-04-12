@@ -1,9 +1,17 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.SuspenseItemSearchDto;
+import uk.gov.hmcts.opal.entity.SuspenseAccountEntity;
 import uk.gov.hmcts.opal.entity.SuspenseItemEntity;
 import uk.gov.hmcts.opal.entity.SuspenseItemEntity_;
+
+import static uk.gov.hmcts.opal.repository.jpa.SuspenseAccountSpecs.equalsSuspenseAccountIdPredicate;
 
 public class SuspenseItemSpecs extends EntitySpecs<SuspenseItemEntity> {
 
@@ -19,12 +27,17 @@ public class SuspenseItemSpecs extends EntitySpecs<SuspenseItemEntity> {
     }
 
     public static Specification<SuspenseItemEntity> equalsSuspenseItemId(Long suspenseItemId) {
-        return (root, query, builder) -> builder.equal(root.get(SuspenseItemEntity_.suspenseItemId), suspenseItemId);
+        return (root, query, builder) -> equalsSuspenseItemIdPredicate(root, builder, suspenseItemId);
+    }
+
+    public static Predicate equalsSuspenseItemIdPredicate(From<?, SuspenseItemEntity> from, CriteriaBuilder builder,
+                                                          Long suspenseItemId) {
+        return builder.equal(from.get(SuspenseItemEntity_.suspenseItemId), suspenseItemId);
     }
 
     public static Specification<SuspenseItemEntity> equalsSuspenseAccountId(Long suspenseAccountId) {
-        return (root, query, builder) -> builder.equal(root.get(SuspenseItemEntity_.suspenseAccountId),
-                                                       suspenseAccountId);
+        return (root, query, builder) -> equalsSuspenseAccountIdPredicate(joinSuspenseAccount(root), builder,
+                                                                          suspenseAccountId);
     }
 
     public static Specification<SuspenseItemEntity> equalsSuspenseItemNumber(Short suspenseItemNumber) {
@@ -46,4 +59,7 @@ public class SuspenseItemSpecs extends EntitySpecs<SuspenseItemEntity> {
         return (root, query, builder) -> builder.equal(root.get(SuspenseItemEntity_.courtFeeId), courtFeeId);
     }
 
+    public static Join<SuspenseItemEntity, SuspenseAccountEntity> joinSuspenseAccount(Root<SuspenseItemEntity> root) {
+        return root.join(SuspenseItemEntity_.suspenseAccount);
+    }
 }

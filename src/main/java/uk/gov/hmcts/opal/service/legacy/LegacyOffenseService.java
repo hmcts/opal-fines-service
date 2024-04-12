@@ -25,7 +25,7 @@ public class LegacyOffenseService extends LegacyService implements OffenseServic
     }
 
     @Override
-    public OffenseEntity getOffense(long offenseId) {
+    public OffenseEntity getOffense(short offenseId) {
         throw new LegacyGatewayResponseException("Not Yet Implemented");
     }
 

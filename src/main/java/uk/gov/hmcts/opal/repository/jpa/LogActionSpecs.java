@@ -18,19 +18,19 @@ public class LogActionSpecs extends EntitySpecs<LogActionEntity> {
     }
 
     public static Specification<LogActionEntity> equalsLogActionId(Short logActionId) {
-        return (root, query, builder) -> logActionIdPredicate(root, builder, logActionId);
+        return (root, query, builder) -> equalsLogActionIdPredicate(root, builder, logActionId);
     }
 
     public static Specification<LogActionEntity> equalsLogActionName(String logActionName) {
-        return (root, query, builder) -> logActionNamePredicate(root, builder, logActionName);
+        return (root, query, builder) -> likeLogActionNamePredicate(root, builder, logActionName);
     }
 
-    public static Predicate logActionIdPredicate(
+    public static Predicate equalsLogActionIdPredicate(
         From<?, LogActionEntity> from, CriteriaBuilder builder, Short logActionId) {
         return builder.equal(from.get(LogActionEntity_.logActionId), logActionId);
     }
 
-    public static Predicate logActionNamePredicate(
+    public static Predicate likeLogActionNamePredicate(
         From<?, LogActionEntity> from, CriteriaBuilder builder, String logActionName) {
         return likeWildcardPredicate(from.get(LogActionEntity_.logActionName), builder, logActionName);
     }

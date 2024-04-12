@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.service.opal.OffenseService;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -52,13 +52,13 @@ class OffenseServiceProxyTest extends ProxyTestsBase {
     void testGetOffense(OffenseServiceInterface targetService, OffenseServiceInterface otherService) {
         // Given: a OffenseEntity is returned from the target service
         OffenseEntity entity = OffenseEntity.builder().build();
-        when(targetService.getOffense(anyLong())).thenReturn(entity);
+        when(targetService.getOffense(anyShort())).thenReturn(entity);
 
         // When: getOffense is called on the proxy
-        OffenseEntity offenseResult = offenseServiceProxy.getOffense(1);
+        OffenseEntity offenseResult = offenseServiceProxy.getOffense((short)1);
 
         // Then: target service should be used, and the returned offense should be as expected
-        verify(targetService).getOffense(1);
+        verify(targetService).getOffense((short)1);
         verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, offenseResult);
     }

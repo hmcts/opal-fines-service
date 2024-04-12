@@ -1,9 +1,16 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.SuspenseTransactionSearchDto;
+import uk.gov.hmcts.opal.entity.SuspenseItemEntity;
 import uk.gov.hmcts.opal.entity.SuspenseTransactionEntity;
 import uk.gov.hmcts.opal.entity.SuspenseTransactionEntity_;
+import uk.gov.hmcts.opal.entity.UserEntity;
+
+import static uk.gov.hmcts.opal.repository.jpa.SuspenseItemSpecs.equalsSuspenseItemIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.equalsUserIdPredicate;
 
 public class SuspenseTransactionSpecs extends EntitySpecs<SuspenseTransactionEntity> {
 
@@ -27,8 +34,7 @@ public class SuspenseTransactionSpecs extends EntitySpecs<SuspenseTransactionEnt
     }
 
     public static Specification<SuspenseTransactionEntity> equalsSuspenseItemId(Long suspenseItemId) {
-        return (root, query, builder) -> builder.equal(root.get(SuspenseTransactionEntity_.suspenseItemId),
-                                                       suspenseItemId);
+        return (root, query, builder) -> equalsSuspenseItemIdPredicate(joinSuspenseItem(root), builder, suspenseItemId);
     }
 
     public static Specification<SuspenseTransactionEntity> likePostedBy(String postedBy) {
@@ -37,8 +43,7 @@ public class SuspenseTransactionSpecs extends EntitySpecs<SuspenseTransactionEnt
     }
 
     public static Specification<SuspenseTransactionEntity> equalsPostedByUserId(Long postedByUserId) {
-        return (root, query, builder) -> builder.equal(root.get(SuspenseTransactionEntity_.postedByUserId),
-                                                       postedByUserId);
+        return (root, query, builder) -> equalsUserIdPredicate(joinPostedByUser(root), builder, postedByUserId);
     }
 
     public static Specification<SuspenseTransactionEntity> likeTransactionType(String transactionType) {
@@ -67,4 +72,12 @@ public class SuspenseTransactionSpecs extends EntitySpecs<SuspenseTransactionEnt
             likeWildcardPredicate(root.get(SuspenseTransactionEntity_.reversed), builder, reversed);
     }
 
+    public static Join<SuspenseTransactionEntity, SuspenseItemEntity> joinSuspenseItem(
+        Root<SuspenseTransactionEntity> root) {
+        return root.join(SuspenseTransactionEntity_.suspenseItem);
+    }
+
+    public static Join<SuspenseTransactionEntity, UserEntity> joinPostedByUser(Root<SuspenseTransactionEntity> root) {
+        return root.join(SuspenseTransactionEntity_.postedByUser);
+    }
 }

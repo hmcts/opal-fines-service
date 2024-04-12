@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -36,8 +38,9 @@ public class ImpositionEntity {
     @Column(name = "imposition_id", nullable = false)
     private Long impositionId;
 
-    @Column(name = "defendant_account_id", nullable = false)
-    private Long defendantAccountId;
+    @ManyToOne
+    @JoinColumn(name = "defendant_account_id", updatable = false)
+    private DefendantAccountEntity defendantAccount;
 
     @Column(name = "posted_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -46,8 +49,9 @@ public class ImpositionEntity {
     @Column(name = "posted_by", length = 20)
     private String postedBy;
 
-    @Column(name = "posted_by_user_id", nullable = false)
-    private Long postedByUserId;
+    @ManyToOne
+    @JoinColumn(name = "posted_by_user_id", nullable = false)
+    private UserEntity postedByUser;
 
     @Column(name = "original_posted_date")
     @Temporal(TemporalType.TIMESTAMP)
@@ -56,8 +60,9 @@ public class ImpositionEntity {
     @Column(name = "result_id", length = 6, nullable = false)
     private String resultId;
 
-    @Column(name = "imposing_court_id")
-    private Long imposingCourtId;
+    @ManyToOne
+    @JoinColumn(name = "imposing_court_id", nullable = false)
+    private CourtEntity imposingCourt;
 
     @Column(name = "imposed_date")
     @Temporal(TemporalType.TIMESTAMP)
@@ -72,8 +77,9 @@ public class ImpositionEntity {
     @Column(name = "offence_id", nullable = false)
     private Short offenceId;
 
-    @Column(name = "creditor_account_id", nullable = false)
-    private Long creditorAccountId;
+    @ManyToOne
+    @JoinColumn(name = "creditor_account_id", updatable = false)
+    private CreditorAccountEntity creditorAccount;
 
     @Column(name = "unit_fine_adjusted")
     private boolean unitFineAdjusted;

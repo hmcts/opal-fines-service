@@ -8,8 +8,8 @@ import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.OffenseEntity;
 import uk.gov.hmcts.opal.entity.OffenseEntity_;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.businessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.businessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
 
 public class OffenseSpecs extends EntitySpecs<OffenseEntity> {
 
@@ -30,12 +30,12 @@ public class OffenseSpecs extends EntitySpecs<OffenseEntity> {
 
     public static Specification<OffenseEntity> equalsBusinessUnitId(Short businessUnitId) {
         return (root, query, builder) ->
-            businessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
+            equalsBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
     }
 
     public static Specification<OffenseEntity> likeBusinessUnitName(String businessUnitName) {
         return (root, query, builder) ->
-            businessUnitNamePredicate(joinBusinessUnit(root), builder, businessUnitName);
+            likeBusinessUnitNamePredicate(joinBusinessUnit(root), builder, businessUnitName);
     }
 
     public static Specification<OffenseEntity> likeCjsCode(String cjsCode) {

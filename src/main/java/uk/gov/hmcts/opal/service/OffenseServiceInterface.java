@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface OffenseServiceInterface {
 
-    OffenseEntity getOffense(long offenseId);
+    OffenseEntity getOffense(short offenseId);
 
     List<OffenseEntity> searchOffenses(OffenseSearchDto criteria);
 }

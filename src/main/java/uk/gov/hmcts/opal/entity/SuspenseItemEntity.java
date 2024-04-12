@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -36,8 +38,9 @@ public class SuspenseItemEntity {
     @Column(name = "suspense_item_id", nullable = false)
     private Long suspenseItemId;
 
-    @Column(name = "suspense_account_id", nullable = false)
-    private Long suspenseAccountId;
+    @ManyToOne
+    @JoinColumn(name = "suspense_account_id", nullable = false)
+    private SuspenseAccountEntity suspenseAccount;
 
     @Column(name = "suspense_item_number", nullable = false)
     private Short suspenseItemNumber;

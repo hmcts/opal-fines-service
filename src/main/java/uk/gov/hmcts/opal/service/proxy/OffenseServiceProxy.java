@@ -26,7 +26,7 @@ public class OffenseServiceProxy implements OffenseServiceInterface, ProxyInterf
     }
 
     @Override
-    public OffenseEntity getOffense(long offenseId) {
+    public OffenseEntity getOffense(short offenseId) {
         return getCurrentModeService().getOffense(offenseId);
     }
 

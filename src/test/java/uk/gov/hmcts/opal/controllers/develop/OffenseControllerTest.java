@@ -33,15 +33,15 @@ class OffenseControllerTest {
         // Arrange
         OffenseEntity entity = OffenseEntity.builder().build();
 
-        when(offenseService.getOffense(any(Long.class))).thenReturn(entity);
+        when(offenseService.getOffense(any(Short.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<OffenseEntity> response = offenseController.getOffenseById(1L);
+        ResponseEntity<OffenseEntity> response = offenseController.getOffenseById((short)1);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
-        verify(offenseService, times(1)).getOffense(any(Long.class));
+        verify(offenseService, times(1)).getOffense(any(Short.class));
     }
 
     @Test

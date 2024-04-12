@@ -31,7 +31,7 @@ public class OffenseEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "offense_id_seq_generator")
     @SequenceGenerator(name = "offense_id_seq_generator", sequenceName = "offense_id_seq", allocationSize = 1)
     @Column(name = "offense_id", nullable = false)
-    private Long offenseId;
+    private Short offenseId;
 
     @Column(name = "cjs_code", length = 10, nullable = false)
     private String cjsCode;

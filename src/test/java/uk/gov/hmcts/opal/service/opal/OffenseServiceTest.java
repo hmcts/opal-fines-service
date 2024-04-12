@@ -40,7 +40,7 @@ class OffenseServiceTest {
         when(offenseRepository.getReferenceById(any())).thenReturn(offenseEntity);
 
         // Act
-        OffenseEntity result = offenseService.getOffense(1);
+        OffenseEntity result = offenseService.getOffense((short)1);
 
         // Assert
         assertNotNull(result);

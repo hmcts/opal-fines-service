@@ -1,9 +1,15 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.CreditorTransactionSearchDto;
 import uk.gov.hmcts.opal.entity.CreditorTransactionEntity;
 import uk.gov.hmcts.opal.entity.CreditorTransactionEntity_;
+import uk.gov.hmcts.opal.entity.UserEntity;
+
+import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.equalsUserIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.likeUserDescriptionPredicate;
 
 public class CreditorTransactionSpecs extends EntitySpecs<CreditorTransactionEntity> {
 
@@ -38,9 +44,13 @@ public class CreditorTransactionSpecs extends EntitySpecs<CreditorTransactionEnt
     }
 
     public static Specification<CreditorTransactionEntity> equalsPostedByUserId(Long postedByUserId) {
-        return (root, query, builder) -> builder.equal(root.get(CreditorTransactionEntity_.postedByUserId),
-                                                       postedByUserId);
+        return (root, query, builder) -> equalsUserIdPredicate(joinPostedByUser(root), builder, postedByUserId);
     }
+
+    public static Specification<CreditorTransactionEntity> likePostedByUserDescription(String description) {
+        return (root, query, builder) -> likeUserDescriptionPredicate(joinPostedByUser(root), builder, description);
+    }
+
 
     public static Specification<CreditorTransactionEntity> likeTransactionType(String transactionType) {
         return (root, query, builder) ->
@@ -73,5 +83,7 @@ public class CreditorTransactionSpecs extends EntitySpecs<CreditorTransactionEnt
             likeWildcardPredicate(root.get(CreditorTransactionEntity_.associatedRecordId), builder, associatedRecordId);
     }
 
-
+    public static Join<CreditorTransactionEntity, UserEntity> joinPostedByUser(Root<CreditorTransactionEntity> root) {
+        return root.join(CreditorTransactionEntity_.postedByUser);
+    }
 }

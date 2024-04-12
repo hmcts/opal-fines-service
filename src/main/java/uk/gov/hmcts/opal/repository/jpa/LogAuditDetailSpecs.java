@@ -9,10 +9,10 @@ import uk.gov.hmcts.opal.entity.LogActionEntity;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity_;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.businessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.businessUnitNamePredicate;
-import static uk.gov.hmcts.opal.repository.jpa.LogActionSpecs.logActionIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.LogActionSpecs.logActionNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.LogActionSpecs.equalsLogActionIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.LogActionSpecs.likeLogActionNamePredicate;
 
 public class LogAuditDetailSpecs extends EntitySpecs<LogAuditDetailEntity> {
 
@@ -35,22 +35,22 @@ public class LogAuditDetailSpecs extends EntitySpecs<LogAuditDetailEntity> {
 
     public static Specification<LogAuditDetailEntity> equalsBusinessUnitId(Short businessUnitId) {
         return (root, query, builder) ->
-            businessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
+            equalsBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
     }
 
     public static Specification<LogAuditDetailEntity> likeBusinessUnitName(String businessUnitName) {
         return (root, query, builder) ->
-            businessUnitNamePredicate(joinBusinessUnit(root), builder, businessUnitName);
+            likeBusinessUnitNamePredicate(joinBusinessUnit(root), builder, businessUnitName);
     }
 
     public static Specification<LogAuditDetailEntity> equalsLogActionId(Short logActionId) {
         return (root, query, builder) ->
-            logActionIdPredicate(joinLogAction(root), builder, logActionId);
+            equalsLogActionIdPredicate(joinLogAction(root), builder, logActionId);
     }
 
     public static Specification<LogAuditDetailEntity> likeLogActionName(String logActionName) {
         return (root, query, builder) ->
-            logActionNamePredicate(joinLogAction(root), builder, logActionName);
+            likeLogActionNamePredicate(joinLogAction(root), builder, logActionName);
     }
 
     public static Specification<LogAuditDetailEntity> equalsAccountNumber(String accountNumber) {

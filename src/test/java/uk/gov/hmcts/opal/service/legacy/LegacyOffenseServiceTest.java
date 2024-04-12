@@ -31,7 +31,7 @@ class LegacyOffenseServiceTest extends LegacyTestsBase {
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyOffenseService.getOffense(1)
+            () -> legacyOffenseService.getOffense((short)1)
         );
 
         // Assert

@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -47,8 +49,9 @@ public class CreditorTransactionEntity {
     @Column(name = "posted_by", length = 20)
     private String postedBy;
 
-    @Column(name = "posted_by_user_id", nullable = false)
-    private Long postedByUserId;
+    @ManyToOne
+    @JoinColumn(name = "posted_by_user_id", nullable = false)
+    private UserEntity postedByUser;
 
     @Column(name = "transaction_type", length = 6, nullable = false)
     private String transactionType;
