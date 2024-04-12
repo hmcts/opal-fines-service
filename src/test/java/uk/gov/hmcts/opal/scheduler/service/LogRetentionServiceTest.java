@@ -25,6 +25,7 @@ class LogRetentionServiceTest {
 
     @Test
     void testDeleteExpiredLogAudit_SuccessfulExecution() {
+        // Call the method under test
         logRetentionService.deleteExpiredLogAudit();
 
         verify(jdbcTemplate).execute("CALL delete_expired_log_audit()");
@@ -33,8 +34,10 @@ class LogRetentionServiceTest {
 
     @Test
     void testDeleteExpiredLogAudit_DatabaseError() {
+        // Mock behavior to throw an exception when execute() method is called
         doThrow(new RuntimeException("Database error")).when(jdbcTemplate).execute("CALL delete_expired_log_audit()");
 
+        // Verify that the method under test throws an exception
         assertThrows(RuntimeException.class, () -> logRetentionService.deleteExpiredLogAudit());
         verify(jdbcTemplate).execute("CALL delete_expired_log_audit()");
     }
