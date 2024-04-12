@@ -9,7 +9,7 @@ import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
-import uk.gov.hmcts.opal.scheduler.service.LogRetentionService;
+import uk.gov.hmcts.opal.repository.LogAuditDetailRepository;
 
 import java.util.Date;
 
@@ -29,7 +29,7 @@ class LogRetentionJobTest {
     JobExecutionContext jobExecutionContext;
 
     @Mock
-    LogRetentionService logRetentionService;
+    LogAuditDetailRepository logAuditDetailRepository;
 
     @Mock
     Logger logger;
@@ -49,11 +49,11 @@ class LogRetentionJobTest {
         Date now = now();
         when(jobExecutionContext.getFireTime()).thenReturn(now);
         when(jobExecutionContext.getNextFireTime()).thenReturn(now);
-        doNothing().when(logRetentionService).deleteExpiredLogAudit();
+        doNothing().when(logAuditDetailRepository).deleteExpiredLogAudit();
 
         logRetentionJob.execute(jobExecutionContext);
 
-        verify(logRetentionService, times(1)).deleteExpiredLogAudit();
+        verify(logAuditDetailRepository, times(1)).deleteExpiredLogAudit();
     }
 
     @Test
@@ -66,10 +66,10 @@ class LogRetentionJobTest {
         Date now = now();
         when(jobExecutionContext.getFireTime()).thenReturn(now);
         when(jobExecutionContext.getNextFireTime()).thenReturn(now);
-        doThrow(new RuntimeException("Error occurred")).when(logRetentionService).deleteExpiredLogAudit();
+        doThrow(new RuntimeException("Error occurred")).when(logAuditDetailRepository).deleteExpiredLogAudit();
 
         logRetentionJob.execute(jobExecutionContext);
 
-        verify(logRetentionService, times(1)).deleteExpiredLogAudit();
+        verify(logAuditDetailRepository, times(1)).deleteExpiredLogAudit();
     }
 }
