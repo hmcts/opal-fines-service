@@ -70,6 +70,24 @@ public class DefendantAccountDetailsStefDef extends BaseStepDef {
             .statusCode(401);
     }
 
+    @Then("the response from the defendant account search api is unauthorised")
+    public void assertDefendantAccountSearchResponseUnauthorised() {
+        then().assertThat()
+            .statusCode(401);
+    }
+
+    @Then("the response from the defendant account details api is forbidden")
+    public void assertDefendantAccountDetailsResponseForbidden() {
+        then().assertThat()
+            .statusCode(403);
+    }
+
+    @Then("the response from the defendant account search api is forbidden")
+    public void assertDefendantAccountSearchResponseForbidden() {
+        then().assertThat()
+            .statusCode(403);
+    }
+
     @Then("the response from the defendant account details api is empty")
     public void responseFromTheDefendantAccountDetailsApiIsInvalid() {
         then().assertThat()
