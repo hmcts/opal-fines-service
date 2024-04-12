@@ -11,13 +11,13 @@ import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity_;
 import uk.gov.hmcts.opal.entity.UserEntity;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.businessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.businessUnitNamePredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.businessUnitTypePredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.parentBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.userDescriptionPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.userIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.usernamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitTypePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsParentBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.likeUserDescriptionPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.equalsUserIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.likeUsernamePredicate;
 
 public class BusinessUnitUserSpecs extends EntitySpecs<BusinessUnitUserEntity> {
 
@@ -35,44 +35,44 @@ public class BusinessUnitUserSpecs extends EntitySpecs<BusinessUnitUserEntity> {
     }
 
     public static Specification<BusinessUnitUserEntity> equalsBusinessUnitUserId(String businessUnitUserId) {
-        return (root, query, builder) -> businessUnitUserIdPredicate(root, builder, businessUnitUserId);
+        return (root, query, builder) -> equalsBusinessUnitUserIdPredicate(root, builder, businessUnitUserId);
     }
 
-    public static Predicate businessUnitUserIdPredicate(From<?, BusinessUnitUserEntity> from, CriteriaBuilder builder,
-                                                        String businessUnitUserId) {
+    public static Predicate equalsBusinessUnitUserIdPredicate(From<?, BusinessUnitUserEntity> from,
+                                                              CriteriaBuilder builder, String businessUnitUserId) {
         return likeWildcardPredicate(from.get(BusinessUnitUserEntity_.businessUnitUserId), builder, businessUnitUserId);
     }
 
     public static Specification<BusinessUnitUserEntity> equalsBusinessUnitId(Short businessUnitId) {
         return (root, query, builder) ->
-            businessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
+            equalsBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
     }
 
     public static Specification<BusinessUnitUserEntity> likeBusinessUnitName(String businessUnitName) {
         return (root, query, builder) ->
-            businessUnitNamePredicate(joinBusinessUnit(root), builder, businessUnitName);
+            likeBusinessUnitNamePredicate(joinBusinessUnit(root), builder, businessUnitName);
     }
 
     public static Specification<BusinessUnitUserEntity> likeBusinessUnitType(String businessUnitType) {
         return (root, query, builder) ->
-            businessUnitTypePredicate(joinBusinessUnit(root), builder, businessUnitType);
+            likeBusinessUnitTypePredicate(joinBusinessUnit(root), builder, businessUnitType);
     }
 
     public static Specification<BusinessUnitUserEntity> equalsParentBusinessUnitId(String parentBusinessUnitId) {
         return (root, query, builder) ->
-            parentBusinessUnitIdPredicate(joinBusinessUnit(root), builder, parentBusinessUnitId);
+            equalsParentBusinessUnitIdPredicate(joinBusinessUnit(root), builder, parentBusinessUnitId);
     }
 
     public static Specification<BusinessUnitUserEntity> likeUserId(Long userId) {
-        return (root, query, builder) -> userIdPredicate(joinUser(root), builder, userId);
+        return (root, query, builder) -> equalsUserIdPredicate(joinUser(root), builder, userId);
     }
 
     public static Specification<BusinessUnitUserEntity> likeUsername(String username) {
-        return (root, query, builder) -> usernamePredicate(joinUser(root), builder, username);
+        return (root, query, builder) -> likeUsernamePredicate(joinUser(root), builder, username);
     }
 
     public static Specification<BusinessUnitUserEntity> likeUserDescription(String description) {
-        return (root, query, builder) -> userDescriptionPredicate(joinUser(root), builder, description);
+        return (root, query, builder) -> likeUserDescriptionPredicate(joinUser(root), builder, description);
     }
 
     public static Join<BusinessUnitUserEntity, BusinessUnitEntity> joinBusinessUnit(

@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.OffenseEntity;
 
 @Repository
-public interface OffenseRepository extends JpaRepository<OffenseEntity, Long>,
+public interface OffenseRepository extends JpaRepository<OffenseEntity, Short>,
     JpaSpecificationExecutor<OffenseEntity> {
 }

@@ -8,8 +8,8 @@ import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.CourtFeeEntity;
 import uk.gov.hmcts.opal.entity.CourtFeeEntity_;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.businessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.businessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
 
 public class CourtFeeSpecs extends EntitySpecs<CourtFeeEntity> {
 
@@ -30,12 +30,12 @@ public class CourtFeeSpecs extends EntitySpecs<CourtFeeEntity> {
 
     public static Specification<CourtFeeEntity> equalsBusinessUnitId(Short businessUnitId) {
         return (root, query, builder) ->
-            businessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
+            equalsBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
     }
 
     public static Specification<CourtFeeEntity> likeBusinessUnitName(String businessUnitName) {
         return (root, query, builder) ->
-            businessUnitNamePredicate(joinBusinessUnit(root), builder, businessUnitName);
+            likeBusinessUnitNamePredicate(joinBusinessUnit(root), builder, businessUnitName);
     }
 
     public static Specification<CourtFeeEntity> likeCourtFeeCode(String courtFeeCode) {

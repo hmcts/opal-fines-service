@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -37,8 +39,9 @@ public class SuspenseTransactionEntity {
     @Column(name = "suspense_transaction_id", nullable = false)
     private Long suspenseTransactionId;
 
-    @Column(name = "suspense_item_id", nullable = false)
-    private Long suspenseItemId;
+    @ManyToOne
+    @JoinColumn(name = "suspense_item_id", nullable = false)
+    private SuspenseItemEntity suspenseItem;
 
     @Column(name = "posted_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -47,8 +50,9 @@ public class SuspenseTransactionEntity {
     @Column(name = "posted_by", length = 20)
     private String postedBy;
 
-    @Column(name = "posted_by_user_id", nullable = false)
-    private Long postedByUserId;
+    @ManyToOne
+    @JoinColumn(name = "posted_by_user_id", nullable = false)
+    private UserEntity postedByUser;
 
     @Column(name = "transaction_type", length = 2, nullable = false)
     private String transactionType;

@@ -51,11 +51,10 @@ public class CreditorAccountEntity {
     @Column(name = "prosecution_service", nullable = false)
     private boolean prosecutionService;
 
-    // TODO Entity
-    @Column(name = "major_creditor_id")
-    private Long majorCreditorId;
+    @ManyToOne
+    @JoinColumn(name = "major_creditor_id", updatable = false)
+    private MajorCreditorEntity majorCreditor;
 
-    // TODO Entity ?
     @Column(name = "minor_creditor_party_id")
     private Long minorCreditorPartyId;
 

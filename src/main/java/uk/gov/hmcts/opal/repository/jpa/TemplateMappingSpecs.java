@@ -10,8 +10,8 @@ import uk.gov.hmcts.opal.entity.TemplateEntity;
 import uk.gov.hmcts.opal.entity.TemplateMappingEntity;
 import uk.gov.hmcts.opal.entity.TemplateMappingEntity_;
 
-import static uk.gov.hmcts.opal.repository.jpa.TemplateSpecs.templateIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.TemplateSpecs.templateNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.TemplateSpecs.equalsTemplateIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.TemplateSpecs.likeTemplateNamePredicate;
 
 public class TemplateMappingSpecs extends EntitySpecs<TemplateMappingEntity> {
 
@@ -24,11 +24,11 @@ public class TemplateMappingSpecs extends EntitySpecs<TemplateMappingEntity> {
     }
 
     public static Specification<TemplateMappingEntity> equalsTemplateId(Long templateId) {
-        return (root, query, builder) -> templateIdPredicate(joinTemplate(root), builder, templateId);
+        return (root, query, builder) -> equalsTemplateIdPredicate(joinTemplate(root), builder, templateId);
     }
 
     public static Specification<TemplateMappingEntity> likeTemplateName(String templateName) {
-        return (root, query, builder) -> templateNamePredicate(joinTemplate(root), builder, templateName);
+        return (root, query, builder) -> likeTemplateNamePredicate(joinTemplate(root), builder, templateName);
     }
 
     public static Specification<TemplateMappingEntity> equalsApplicationFunctionId(Long applicationFunctionId) {

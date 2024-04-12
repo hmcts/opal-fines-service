@@ -18,20 +18,20 @@ public class TemplateSpecs extends EntitySpecs<TemplateEntity> {
     }
 
     public static Specification<TemplateEntity> equalsTemplateId(Long templateId) {
-        return (root, query, builder) -> templateIdPredicate(root, builder, templateId);
+        return (root, query, builder) -> equalsTemplateIdPredicate(root, builder, templateId);
     }
 
-    public static Predicate templateIdPredicate(From<?, TemplateEntity> from, CriteriaBuilder builder,
-                                                Long templateId) {
+    public static Predicate equalsTemplateIdPredicate(From<?, TemplateEntity> from, CriteriaBuilder builder,
+                                                      Long templateId) {
         return builder.equal(from.get(TemplateEntity_.templateId), templateId);
     }
 
     public static Specification<TemplateEntity> likeTemplateName(String templateName) {
-        return (root, query, builder) -> templateNamePredicate(root, builder, templateName);
+        return (root, query, builder) -> likeTemplateNamePredicate(root, builder, templateName);
     }
 
-    public static Predicate templateNamePredicate(From<?, TemplateEntity> from, CriteriaBuilder builder,
-                                                  String templateName) {
+    public static Predicate likeTemplateNamePredicate(From<?, TemplateEntity> from, CriteriaBuilder builder,
+                                                      String templateName) {
         return likeWildcardPredicate(from.get(TemplateEntity_.templateName), builder, templateName);
     }
 }

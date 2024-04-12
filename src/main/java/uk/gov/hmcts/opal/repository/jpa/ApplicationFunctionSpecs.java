@@ -23,11 +23,11 @@ public class ApplicationFunctionSpecs extends EntitySpecs<ApplicationFunctionEnt
     }
 
     public static Specification<ApplicationFunctionEntity> likeFunctionName(String functionName) {
-        return (root, query, builder) -> functionNamePredicate(root, builder, functionName);
+        return (root, query, builder) -> likeFunctionNamePredicate(root, builder, functionName);
     }
 
-    public static Predicate functionNamePredicate(From<?, ApplicationFunctionEntity> from, CriteriaBuilder builder,
-                                                  String functionName) {
+    public static Predicate likeFunctionNamePredicate(From<?, ApplicationFunctionEntity> from, CriteriaBuilder builder,
+                                                      String functionName) {
         return likeWildcardPredicate(from.get(ApplicationFunctionEntity_.functionName), builder, functionName);
     }
 

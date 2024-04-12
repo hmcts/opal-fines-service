@@ -24,7 +24,7 @@ public class OffenseService implements OffenseServiceInterface {
     private final OffenseSpecs specs = new OffenseSpecs();
 
     @Override
-    public OffenseEntity getOffense(long offenseId) {
+    public OffenseEntity getOffense(short offenseId) {
         return offenseRepository.getReferenceById(offenseId);
     }
 
