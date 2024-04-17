@@ -1,8 +1,9 @@
 package uk.gov.hmcts.opal.authorisation.aspect;
 
 import lombok.RequiredArgsConstructor;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -23,12 +24,34 @@ public class AuthorizationAspect {
     public static final String AUTHORIZATION = "Authorization";
     private final UserStateService userStateService;
 
-    @Before("@annotation(uk.gov.hmcts.opal.authorisation.aspect.AuthorizedPermission) ")
-    public void checkAuthorization(String authHeaderValue, AuthorizedPermission authorizedPermission) {
+    @Around("execution(* *(*)) && @annotation(authorizedPermission)")
+    public Object checkAuthorization(ProceedingJoinPoint joinPoint,
+                                     AuthorizedPermission authorizedPermission) throws Throwable {
+        Object[] args = joinPoint.getArgs();
+        String authHeaderValue = getRequestHeaderValue(args);
+        return check(joinPoint, authorizedPermission, authHeaderValue);
+    }
+
+    private String getRequestHeaderValue(Object[] args) {
+        for (Object arg : args) {
+            if (arg.getClass().isAnnotationPresent(org.springframework.web.bind.annotation.RequestHeader.class)
+                && arg instanceof String) {
+                return (String) arg;
+            }
+        }
+        return null;
+    }
+
+    private Object check(ProceedingJoinPoint joinPoint,
+                         AuthorizedPermission authorizedPermission,
+                         String authHeaderValue) throws Throwable {
         String bearerToken = getAuthorization(authHeaderValue)
             .orElseThrow(() -> new MissingRequestHeaderException(AUTHORIZATION));
         UserState userState = userStateService.getUserStateUsingAuthToken(bearerToken);
-        checkPermission(userState, authorizedPermission.value());
+        if (checkPermission(userState, authorizedPermission.value())) {
+            return joinPoint.proceed();
+        }
+        return null;
     }
 
     private Optional<String> getAuthorization(String authHeaderValue) {
@@ -42,8 +65,8 @@ public class AuthorizationAspect {
         return Optional.empty();
     }
 
-    private void checkPermission(UserState userState, Permissions permission) {
-        checkAnyRoleHasPermission(userState, permission);
+    private boolean checkPermission(UserState userState, Permissions permission) {
+        return checkAnyRoleHasPermission(userState, permission);
     }
 }
 
