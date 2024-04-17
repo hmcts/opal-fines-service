@@ -51,7 +51,6 @@ class DefendantAccountControllerTest {
         DefendantAccountEntity mockResponse = new DefendantAccountEntity();
 
         when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(mockResponse);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(createUserState());
 
         // Act
         ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
@@ -68,7 +67,6 @@ class DefendantAccountControllerTest {
     public void testGetDefendantAccount_NoContent() {
 
         when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(null);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(createUserState());
 
         // Act
         ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
@@ -106,7 +104,6 @@ class DefendantAccountControllerTest {
 
         when(defendantAccountService.getAccountDetailsByDefendantAccountId(any(Long.class)))
             .thenReturn(mockResponse);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(createUserState());
 
         // Act
         ResponseEntity<AccountDetailsDto> responseEntity = defendantAccountController
@@ -126,7 +123,6 @@ class DefendantAccountControllerTest {
         AccountSearchResultsDto mockResponse = AccountSearchResultsDto.builder().build();
 
         when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class))).thenReturn(mockResponse);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(createUserState());
 
         // Act
         ResponseEntity<AccountSearchResultsDto> responseEntity = defendantAccountController.postDefendantAccountSearch(
@@ -181,7 +177,6 @@ class DefendantAccountControllerTest {
         List<NoteDto> mockResponse = List.of(mockNote);
 
         when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(mockResponse);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(createUserState());
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();
@@ -199,7 +194,6 @@ class DefendantAccountControllerTest {
     @Test
     public void testNotes_NoContent() {
         when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(null);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(createUserState());
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().build();
