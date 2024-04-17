@@ -46,7 +46,7 @@ class UserStateServiceTest {
         when(userEntitlementService.getUserStateByUsername(any())).thenReturn(Optional.of(userState));
 
         // Act
-        UserState result = userStateService.getUserStateUsingServletRequest(BEARER_TOKEN);
+        UserState result = userStateService.getUserStateUsingAuthToken(BEARER_TOKEN);
 
         // Assert
         assertNotNull(result);
@@ -65,7 +65,7 @@ class UserStateServiceTest {
         when(userService.getLimitedUserStateByUsername(any())).thenReturn((userState));
 
         // Act
-        UserState result = userStateService.getUserStateUsingServletRequest(BEARER_TOKEN);
+        UserState result = userStateService.getUserStateUsingAuthToken(BEARER_TOKEN);
 
         // Assert
         assertNotNull(result);
@@ -83,7 +83,7 @@ class UserStateServiceTest {
         when(developerConfiguration.getUserRolePermissions()).thenReturn(DEVELOPER_PERMISSIONS);
 
         // Act
-        UserState result = userStateService.getUserStateUsingServletRequest(BEARER_TOKEN);
+        UserState result = userStateService.getUserStateUsingAuthToken(BEARER_TOKEN);
 
         // Assert
         assertNotNull(result);
@@ -102,7 +102,7 @@ class UserStateServiceTest {
         // Act
         AccessDeniedException ex = assertThrows(
             AccessDeniedException.class,
-            () -> userStateService.getUserStateUsingServletRequest(BEARER_TOKEN)
+            () -> userStateService.getUserStateUsingAuthToken(BEARER_TOKEN)
         );
 
         // Assert

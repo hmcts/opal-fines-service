@@ -27,7 +27,7 @@ public class AuthorizationAspect {
     public void checkAuthorization(String authHeaderValue, AuthorizedPermission authorizedPermission) {
         String bearerToken = getAuthorization(authHeaderValue)
             .orElseThrow(() -> new MissingRequestHeaderException(AUTHORIZATION));
-        UserState userState = userStateService.getUserStateUsingServletRequest(bearerToken);
+        UserState userState = userStateService.getUserStateUsingAuthToken(bearerToken);
         checkPermission(userState, authorizedPermission.value());
     }
 

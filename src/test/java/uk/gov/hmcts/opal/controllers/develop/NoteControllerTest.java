@@ -45,7 +45,7 @@ class NoteControllerTest {
         NoteDto noteDtoResponse = NoteDto.builder().noteId(1L).build();
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(noteDtoResponse);
-        when(userStateService.getUserStateUsingServletRequest(any())).thenReturn(createUserState());
+        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(createUserState());
 
         // Act
         ResponseEntity<NoteDto> response = noteController.createNote(noteDtoRequest, BEARER_TOKEN);

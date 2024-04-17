@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -52,13 +52,13 @@ class BusinessUnitServiceProxyTest extends ProxyTestsBase {
     void testGetBusinessUnit(BusinessUnitServiceInterface targetService, BusinessUnitServiceInterface otherService) {
         // Given: a BusinessUnitEntity is returned from the target service
         BusinessUnitEntity entity = BusinessUnitEntity.builder().build();
-        when(targetService.getBusinessUnit(anyLong())).thenReturn(entity);
+        when(targetService.getBusinessUnit(anyShort())).thenReturn(entity);
 
         // When: getBusinessUnit is called on the proxy
-        BusinessUnitEntity businessUnitResult = businessUnitServiceProxy.getBusinessUnit(1);
+        BusinessUnitEntity businessUnitResult = businessUnitServiceProxy.getBusinessUnit((short)1);
 
         // Then: target service should be used, and the returned businessUnit should be as expected
-        verify(targetService).getBusinessUnit(1);
+        verify(targetService).getBusinessUnit((short)1);
         verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, businessUnitResult);
     }

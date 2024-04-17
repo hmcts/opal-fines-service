@@ -124,7 +124,7 @@ public class DefendantAccountController {
         @RequestHeader("Authorization") String authHeaderValue) {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(authHeaderValue);
+        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
         Role role = getRequiredRole(userState, addNote.getBusinessUnitId());
         checkRoleHasPermission(role, Permissions.ACCOUNT_ENQUIRY_NOTES);
 

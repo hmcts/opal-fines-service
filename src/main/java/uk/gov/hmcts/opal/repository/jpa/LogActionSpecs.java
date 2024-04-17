@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.LogActionSearchDto;
 import uk.gov.hmcts.opal.entity.LogActionEntity;
@@ -15,11 +18,21 @@ public class LogActionSpecs extends EntitySpecs<LogActionEntity> {
     }
 
     public static Specification<LogActionEntity> equalsLogActionId(Short logActionId) {
-        return (root, query, builder) -> builder.equal(root.get(LogActionEntity_.logActionId), logActionId);
+        return (root, query, builder) -> equalsLogActionIdPredicate(root, builder, logActionId);
     }
 
     public static Specification<LogActionEntity> equalsLogActionName(String logActionName) {
-        return (root, query, builder) -> builder.equal(root.get(LogActionEntity_.logActionName), logActionName);
+        return (root, query, builder) -> likeLogActionNamePredicate(root, builder, logActionName);
+    }
+
+    public static Predicate equalsLogActionIdPredicate(
+        From<?, LogActionEntity> from, CriteriaBuilder builder, Short logActionId) {
+        return builder.equal(from.get(LogActionEntity_.logActionId), logActionId);
+    }
+
+    public static Predicate likeLogActionNamePredicate(
+        From<?, LogActionEntity> from, CriteriaBuilder builder, String logActionName) {
+        return likeWildcardPredicate(from.get(LogActionEntity_.logActionName), builder, logActionName);
     }
 
 }

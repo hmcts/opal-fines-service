@@ -8,4 +8,5 @@ import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
 @Repository
 public interface LogAuditDetailRepository extends JpaRepository<LogAuditDetailEntity, Long>,
     JpaSpecificationExecutor<LogAuditDetailEntity> {
+
 }

@@ -23,10 +23,10 @@ public class CourtSpecs extends BaseCourtSpecs<CourtEntity> {
     }
 
     public static Specification<CourtEntity> equalsCourtId(Long courtId) {
-        return (root, query, builder) -> courtIdPredicate(root, builder, courtId);
+        return (root, query, builder) -> equalsCourtIdPredicate(root, builder, courtId);
     }
 
-    public static Predicate courtIdPredicate(From<?, CourtEntity> from, CriteriaBuilder builder, Long courtId) {
+    public static Predicate equalsCourtIdPredicate(From<?, CourtEntity> from, CriteriaBuilder builder, Long courtId) {
         return builder.equal(from.get(CourtEntity_.courtId), courtId);
     }
 
