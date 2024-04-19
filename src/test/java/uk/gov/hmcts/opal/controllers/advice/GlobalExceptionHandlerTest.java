@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
+import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,16 +15,19 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ContextConfiguration(classes = GlobalExceptionHandler.class)
-public class GlobalExceptionHandlerTest {
+class GlobalExceptionHandlerTest {
 
     @Mock
-    private FeatureDisabledException exception;
+    FeatureDisabledException exception;
+
+    @Mock
+    MissingRequestHeaderException missingRequestHeaderException;
 
     @InjectMocks
-    private GlobalExceptionHandler globalExceptionHandler;
+    GlobalExceptionHandler globalExceptionHandler;
 
     @Test
-    public void handleFeatureDisabledException_ReturnsMethodNotAllowed() {
+    void handleFeatureDisabledException_ReturnsMethodNotAllowed() {
         // Arrange
         String errorMessage = "Feature is disabled";
         when(exception.getMessage()).thenReturn(errorMessage);
@@ -33,6 +37,21 @@ public class GlobalExceptionHandlerTest {
 
         // Assert
         assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
+        assertEquals(errorMessage, response.getBody());
+    }
+
+    @Test
+    void handleMissingRequestHeaderException_ReturnsBadRequest() {
+        // Arrange
+        String errorMessage = "Missing required header";
+        when(missingRequestHeaderException.getMessage()).thenReturn(errorMessage);
+
+        // Act
+        ResponseEntity<String> response = globalExceptionHandler.handleMissingRequestHeaderException(
+            missingRequestHeaderException);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(errorMessage, response.getBody());
     }
 }
