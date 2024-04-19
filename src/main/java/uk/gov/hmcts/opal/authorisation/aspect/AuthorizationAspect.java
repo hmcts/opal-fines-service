@@ -31,7 +31,7 @@ public class AuthorizationAspect {
         if (checkAnyRoleHasPermission(userState, authorizedPermission.value())) {
             return joinPoint.proceed();
         }
-        return null;
+        throw new PermissionNotAllowedException(authorizedPermission.value());
     }
 }
 

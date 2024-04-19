@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
+import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,6 +23,9 @@ class GlobalExceptionHandlerTest {
 
     @Mock
     MissingRequestHeaderException missingRequestHeaderException;
+
+    @Mock
+    PermissionNotAllowedException permissionNotAllowedException;
 
     @InjectMocks
     GlobalExceptionHandler globalExceptionHandler;
@@ -52,6 +56,21 @@ class GlobalExceptionHandlerTest {
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(errorMessage, response.getBody());
+    }
+
+    @Test
+    void handlePermissionNotAllowedException_ReturnsBadRequest() {
+        // Arrange
+        String errorMessage = "permission is not allowed for user";
+        when(permissionNotAllowedException.getMessage()).thenReturn(errorMessage);
+
+        // Act
+        ResponseEntity<String> response = globalExceptionHandler.handlePermissionNotAllowedException(
+            permissionNotAllowedException);
+
+        // Assert
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertEquals(errorMessage, response.getBody());
     }
 }
