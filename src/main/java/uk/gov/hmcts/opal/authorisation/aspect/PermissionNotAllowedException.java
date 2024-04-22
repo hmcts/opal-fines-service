@@ -4,7 +4,7 @@ import lombok.Getter;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 
 @Getter
-public class PermissionNotAllowedException extends Throwable {
+public class PermissionNotAllowedException extends RuntimeException {
 
     private final Permissions permission;
 

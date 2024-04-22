@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.authorisation.aspect.AuthorizedPermission;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.NoteEntity;
@@ -33,6 +35,7 @@ public class NoteService implements NoteServiceInterface {
 
     @Override
     @FeatureToggle(feature = "add-note", value = true)
+    @AuthorizedPermission(Permissions.ACCOUNT_ENQUIRY_NOTES)
     public NoteDto saveNote(NoteDto noteDto) {
         // Restrict the 'postedBy' to 20 characters length
         String postedBy = Optional.ofNullable(noteDto.getPostedBy())
@@ -44,6 +47,7 @@ public class NoteService implements NoteServiceInterface {
     }
 
     @Override
+    @AuthorizedPermission(Permissions.ACCOUNT_ENQUIRY)
     public List<NoteDto> searchNotes(NoteSearchDto criteria) {
 
         Sort dateSort = Sort.by(Sort.Direction.DESC, NoteEntity_.POSTED_DATE);

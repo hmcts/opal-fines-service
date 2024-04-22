@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.authorisation.aspect.AuthorizedPermission;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.Role;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
@@ -64,7 +63,6 @@ public class DefendantAccountController {
 
     @GetMapping
     @Operation(summary = "Searches for a defendant account in the Opal DB")
-    @AuthorizedPermission(Permissions.ACCOUNT_ENQUIRY)
     public ResponseEntity<DefendantAccountEntity> getDefendantAccount(
         @RequestParam(name = "businessUnitId") Short businessUnitId,
         @RequestParam(name = "accountNumber") String accountNumber,
@@ -82,7 +80,6 @@ public class DefendantAccountController {
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Updates defendant account information")
-    @AuthorizedPermission(Permissions.ACCOUNT_ENQUIRY)
     public ResponseEntity<DefendantAccountEntity> putDefendantAccount(
         @RequestBody DefendantAccountEntity defendantAccountEntity,
         @RequestHeader("Authorization") String authHeaderValue) {
@@ -94,7 +91,6 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/{defendantAccountId}")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
-    @AuthorizedPermission(Permissions.ACCOUNT_ENQUIRY)
     public ResponseEntity<AccountDetailsDto> getAccountDetails(@PathVariable Long defendantAccountId,
                                                                @RequestHeader("Authorization") String authHeaderValue) {
 
@@ -105,7 +101,6 @@ public class DefendantAccountController {
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
-    @AuthorizedPermission(Permissions.ACCOUNT_ENQUIRY)
     public ResponseEntity<AccountSearchResultsDto> postDefendantAccountSearch(
         @RequestBody AccountSearchDto accountSearchDto,
         @RequestHeader("Authorization") String authHeaderValue) {
@@ -118,7 +113,6 @@ public class DefendantAccountController {
 
     @PostMapping(value = "/addNote", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Adds a single note associated with the defendant account")
-    @AuthorizedPermission(Permissions.ACCOUNT_ENQUIRY_NOTES)
     public ResponseEntity<NoteDto> addNote(
         @RequestBody AddNoteDto addNote,
         @RequestHeader("Authorization") String authHeaderValue) {
@@ -149,7 +143,6 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/notes/{defendantId}")
     @Operation(summary = "Returns all notes for an associated defendant account id.")
-    @AuthorizedPermission(Permissions.ACCOUNT_ENQUIRY)
     public ResponseEntity<List<NoteDto>> getNotesForDefendantAccount(
         @PathVariable String defendantId,
         @RequestHeader("Authorization") String authHeaderValue) {

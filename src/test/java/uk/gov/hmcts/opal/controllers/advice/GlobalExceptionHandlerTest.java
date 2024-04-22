@@ -1,14 +1,19 @@
 package uk.gov.hmcts.opal.controllers.advice;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
+import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,16 +23,19 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = GlobalExceptionHandler.class)
 class GlobalExceptionHandlerTest {
 
-    @Mock
+    @MockBean
     FeatureDisabledException exception;
 
-    @Mock
+    @MockBean
     MissingRequestHeaderException missingRequestHeaderException;
 
-    @Mock
+    @MockBean
     PermissionNotAllowedException permissionNotAllowedException;
 
-    @InjectMocks
+    @MockBean
+    AccessTokenService tokenService;
+
+    @Autowired
     GlobalExceptionHandler globalExceptionHandler;
 
     @Test
@@ -60,17 +68,27 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handlePermissionNotAllowedException_ReturnsBadRequest() {
+    void handlePermissionNotAllowedException_ShouldReturnForbiddenResponse() {
         // Arrange
-        String errorMessage = "permission is not allowed for user";
-        when(permissionNotAllowedException.getMessage()).thenReturn(errorMessage);
+        PermissionNotAllowedException ex = new PermissionNotAllowedException(Permissions.ACCOUNT_ENQUIRY);
+        HttpServletRequest request = new MockHttpServletRequest();
 
         // Act
-        ResponseEntity<String> response = globalExceptionHandler.handlePermissionNotAllowedException(
-            permissionNotAllowedException);
+        ResponseEntity<String> response = globalExceptionHandler.handlePermissionNotAllowedException(ex, request);
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        assertEquals(errorMessage, response.getBody());
+    }
+
+    @Test
+    void handleAccessDeniedException_ShouldReturnForbiddenResponse() {
+        // Arrange
+        AccessDeniedException ex = new AccessDeniedException("access denied");
+        HttpServletRequest request = new MockHttpServletRequest();
+        // Act
+        ResponseEntity<String> response = globalExceptionHandler.handlePermissionNotAllowedException(ex, request);
+
+        // Assert
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 }
