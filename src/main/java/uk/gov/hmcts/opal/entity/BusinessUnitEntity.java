@@ -26,16 +26,16 @@ public class BusinessUnitEntity {
     @Column(name = "business_unit_id")
     private Short businessUnitId;
 
-    @Column(name = "business_unit_name", nullable = false)
+    @Column(name = "business_unit_name", length = 200, nullable = false)
     private String businessUnitName;
 
-    @Column(name = "business_unit_code")
+    @Column(name = "business_unit_code", length = 4)
     private String businessUnitCode;
 
-    @Column(name = "business_unit_type", nullable = false)
+    @Column(name = "business_unit_type", length = 20, nullable = false)
     private String businessUnitType;
 
-    @Column(name = "account_number_prefix")
+    @Column(name = "account_number_prefix", length = 2)
     private String accountNumberPrefix;
 
     @Column(name = "parent_business_unit_id")

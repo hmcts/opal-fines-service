@@ -86,8 +86,6 @@ class LogAuditDetailControllerIntegrationTest {
 
     @Test
     void testPostLogAuditDetailsSearch_WhenLogAuditDetailDoesNotExist() throws Exception {
-        when(logAuditDetailService.getLogAuditDetail(2L)).thenReturn(null);
-
         mockMvc.perform(post("/api/log-audit-detail/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))

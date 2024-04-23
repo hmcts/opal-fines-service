@@ -77,8 +77,6 @@ class TillControllerIntegrationTest {
 
     @Test
     void testPostTillsSearch_WhenTillDoesNotExist() throws Exception {
-        when(tillService.getTill(2L)).thenReturn(null);
-
         mockMvc.perform(post("/api/till/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
