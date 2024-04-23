@@ -2,9 +2,15 @@ package uk.gov.hmcts.opal.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 @MappedSuperclass
 public abstract class AddressEntity {
 

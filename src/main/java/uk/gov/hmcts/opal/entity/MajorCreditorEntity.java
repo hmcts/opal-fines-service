@@ -13,20 +13,20 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @Entity
 @EqualsAndHashCode(callSuper = true)
 @Table(name = "major_creditors")
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "majorCreditorsId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "majorCreditorId")
 public class MajorCreditorEntity extends AddressEntity {
 
     @Id
@@ -41,6 +41,6 @@ public class MajorCreditorEntity extends AddressEntity {
     private BusinessUnitEntity businessUnit;
 
     @Column(name = "major_creditor_code", length = 4)
-    private Short majorCreditorCode;
+    private String majorCreditorCode;
 
 }
