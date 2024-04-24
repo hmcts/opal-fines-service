@@ -17,7 +17,7 @@ public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
             notBlank(criteria.getBusinessUnitCode()).map(BusinessUnitSpecs::likeBusinessUnitCode),
             notBlank(criteria.getBusinessUnitType()).map(BusinessUnitSpecs::likeBusinessUnitType),
             notBlank(criteria.getAccountNumberPrefix()).map(BusinessUnitSpecs::equalsAccountNumberPrefix),
-            notBlank(criteria.getParentBusinessUnitId()).map(BusinessUnitSpecs::equalsParentBusinessUnitId)
+            numericShort(criteria.getParentBusinessUnitId()).map(BusinessUnitSpecs::equalsParentBusinessUnitId)
         ));
     }
 
@@ -62,12 +62,12 @@ public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
                                                        accountNumberPrefix);
     }
 
-    public static Specification<BusinessUnitEntity> equalsParentBusinessUnitId(String parentBusinessUnitId) {
+    public static Specification<BusinessUnitEntity> equalsParentBusinessUnitId(Short parentBusinessUnitId) {
         return (root, query, builder) -> equalsParentBusinessUnitIdPredicate(root, builder, parentBusinessUnitId);
     }
 
     public static Predicate equalsParentBusinessUnitIdPredicate(
-        From<?, BusinessUnitEntity> from, CriteriaBuilder builder, String parentBusinessUnitId) {
+        From<?, BusinessUnitEntity> from, CriteriaBuilder builder, Short parentBusinessUnitId) {
         return builder.equal(from.get(BusinessUnitEntity_.parentBusinessUnitId), parentBusinessUnitId);
     }
 
