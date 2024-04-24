@@ -51,6 +51,10 @@ public abstract class EntitySpecs<E> {
         return numeric(candidate).map(Long::parseLong);
     }
 
+    public Optional<Integer> numericInteger(String candidate) {
+        return numeric(candidate).map(Integer::parseInt);
+    }
+
     public Optional<Short> numericShort(String candidate) {
         return numeric(candidate).map(Short::parseShort);
     }
