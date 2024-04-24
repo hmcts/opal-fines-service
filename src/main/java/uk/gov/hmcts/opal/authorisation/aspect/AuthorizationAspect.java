@@ -20,9 +20,9 @@ public class AuthorizationAspect {
     private final UserStateService userStateService;
     private final AuthorizationAspectService authorizationAspectService;
 
-    @Around("execution(* *(*)) && @annotation(authorizedAnyRoleAnyRoleHasPermission)")
+    @Around("execution(* *(*)) && @annotation(authorizedAnyRoleHasPermission)")
     public Object checkAuthorization(ProceedingJoinPoint joinPoint,
-                                     AuthorizedAnyRoleAnyRoleHasPermission authorizedAnyRoleAnyRoleHasPermission
+                                     AuthorizedAnyRoleHasPermission authorizedAnyRoleHasPermission
     ) throws Throwable {
 
         Object[] args = joinPoint.getArgs();
@@ -30,10 +30,10 @@ public class AuthorizationAspect {
         String bearerToken = authorizationAspectService.getAuthorization(authHeaderValue)
             .orElseThrow(() -> new MissingRequestHeaderException(AUTHORIZATION));
         UserState userState = userStateService.getUserStateUsingAuthToken(bearerToken);
-        if (checkAnyRoleHasPermission(userState, authorizedAnyRoleAnyRoleHasPermission.value())) {
+        if (checkAnyRoleHasPermission(userState, authorizedAnyRoleHasPermission.value())) {
             return joinPoint.proceed();
         }
-        throw new PermissionNotAllowedException(authorizedAnyRoleAnyRoleHasPermission.value());
+        throw new PermissionNotAllowedException(authorizedAnyRoleHasPermission.value());
     }
 }
 
