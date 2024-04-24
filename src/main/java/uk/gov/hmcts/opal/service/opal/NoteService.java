@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.authorisation.aspect.AuthorizedAnyRoleAnyRoleHasPermission;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.NoteEntity;
@@ -44,13 +46,16 @@ public class NoteService implements NoteServiceInterface {
     }
 
     @Override
+    @AuthorizedAnyRoleAnyRoleHasPermission(Permissions.ACCOUNT_ENQUIRY)
     public List<NoteDto> searchNotes(NoteSearchDto criteria) {
 
         Sort dateSort = Sort.by(Sort.Direction.DESC, NoteEntity_.POSTED_DATE);
 
         Page<NoteEntity> notesPage = noteRepository
-            .findBy(specs.findBySearchCriteria(criteria),
-                    ffq -> ffq.sortBy(dateSort).page(Pageable.unpaged()));
+            .findBy(
+                specs.findBySearchCriteria(criteria),
+                ffq -> ffq.sortBy(dateSort).page(Pageable.unpaged())
+            );
 
         List<NoteDto> noteDtos = notesPage.getContent().stream()
             .map(entity -> toNoteDto(entity, null))

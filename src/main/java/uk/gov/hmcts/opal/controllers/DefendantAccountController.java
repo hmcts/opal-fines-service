@@ -35,7 +35,6 @@ import java.util.List;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
-import static uk.gov.hmcts.opal.util.PermissionUtil.checkAnyRoleHasPermission;
 import static uk.gov.hmcts.opal.util.PermissionUtil.checkRoleHasPermission;
 import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredRole;
 
@@ -69,9 +68,6 @@ public class DefendantAccountController {
         @RequestParam(name = "accountNumber") String accountNumber,
         @RequestHeader("Authorization") String authHeaderValue) {
 
-        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
-
         AccountEnquiryDto enquiryDto = AccountEnquiryDto.builder()
             .businessUnitId(businessUnitId)
             .accountNumber(accountNumber)
@@ -88,9 +84,6 @@ public class DefendantAccountController {
         @RequestBody DefendantAccountEntity defendantAccountEntity,
         @RequestHeader("Authorization") String authHeaderValue) {
 
-        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
-
         DefendantAccountEntity response = defendantAccountService.putDefendantAccount(defendantAccountEntity);
 
         return buildResponse(response);
@@ -100,9 +93,6 @@ public class DefendantAccountController {
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     public ResponseEntity<AccountDetailsDto> getAccountDetails(@PathVariable Long defendantAccountId,
                                                                @RequestHeader("Authorization") String authHeaderValue) {
-
-        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(defendantAccountId);
 
@@ -115,9 +105,6 @@ public class DefendantAccountController {
         @RequestBody AccountSearchDto accountSearchDto,
         @RequestHeader("Authorization") String authHeaderValue) {
         log.info(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
-
-        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         AccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
 
@@ -161,9 +148,6 @@ public class DefendantAccountController {
         @RequestHeader("Authorization") String authHeaderValue) {
 
         log.info(":GET:getNotesForDefendantAccount: defendant account id: {}", defendantId);
-
-        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        checkAnyRoleHasPermission(userState, Permissions.ACCOUNT_ENQUIRY);
 
         NoteSearchDto criteria = NoteSearchDto.builder()
             .associatedType(NOTE_ASSOC_REC_TYPE)
