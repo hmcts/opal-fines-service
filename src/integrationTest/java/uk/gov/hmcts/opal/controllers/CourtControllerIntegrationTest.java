@@ -97,8 +97,6 @@ class CourtControllerIntegrationTest {
 
     @Test
     void testPostCourtsSearch_WhenCourtDoesNotExist() throws Exception {
-        when(courtService.getCourt(2L)).thenReturn(null);
-
         mockMvc.perform(post("/api/court/search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)

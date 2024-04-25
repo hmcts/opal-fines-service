@@ -74,8 +74,6 @@ class LogActionControllerIntegrationTest {
 
     @Test
     void testPostLogActionsSearch_WhenLogActionDoesNotExist() throws Exception {
-        when(logActionService.getLogAction((short)2)).thenReturn(null);
-
         mockMvc.perform(post("/api/log-action/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
