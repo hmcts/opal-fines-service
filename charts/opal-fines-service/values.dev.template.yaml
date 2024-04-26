@@ -21,6 +21,14 @@ java:
           alias: OPAL_LEGACY_GATEWAY_USERNAME
         - name: OpalLegacyGatewayPassword
           alias: OPAL_LEGACY_GATEWAY_PASSWORD
+        - name: inbound-user
+          alias: OPAL_SFTP_INBOUND_USER
+        - name: inbound-password
+          alias: OPAL_SFTP_INBOUND_PASSWORD
+        - name: outbound-user
+          alias: OPAL_SFTP_OUTBOUND_USER
+        - name: outbound-password
+          alias: OPAL_SFTP_OUTBOUND_PASSWORD
   environment:
     OPAL_FINES_DB_HOST: "{{ .Release.Name }}-postgresql"
     OPAL_FINES_DB_NAME: "{{ .Values.postgresql.auth.database}}"
