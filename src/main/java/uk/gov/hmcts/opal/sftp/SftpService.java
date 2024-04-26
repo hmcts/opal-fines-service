@@ -18,16 +18,27 @@ public class SftpService {
     private final DefaultSftpSessionFactory inboundSessionFactory;
     private final DefaultSftpSessionFactory outboundSessionFactory;
 
-    public void uploadFile(byte[] fileBytes, String path, String fileName) {
-        var template = new RemoteFileTemplate<>(inboundSessionFactory);
+    public void uploadOutboundFile(byte[] fileBytes, String path, String fileName) {
+        uploadFile(outboundSessionFactory, fileBytes, path, fileName);
+    }
+
+    public void uploadFile(DefaultSftpSessionFactory sessionFactory, byte[] fileBytes, String path, String fileName) {
+        var template = new RemoteFileTemplate<>(sessionFactory);
         template.execute(session -> {
             session.write(new ByteArrayInputStream(fileBytes), path + "/" + fileName);
             return null;
         });
     }
 
-    public boolean downloadFile(String path, String fileName, Consumer<InputStream> fileProcessor) {
-        var template = new RemoteFileTemplate<>(outboundSessionFactory);
+    public boolean downloadInboundFile(String path, String fileName, Consumer<InputStream> fileProcessor) {
+        return downloadFile(inboundSessionFactory, path, fileName, fileProcessor);
+    }
+
+    public boolean downloadFile(DefaultSftpSessionFactory sessionFactory,
+                                String path,
+                                String fileName,
+                                Consumer<InputStream> fileProcessor) {
+        var template = new RemoteFileTemplate<>(sessionFactory);
         return template.get(path + "/" + fileName, fileProcessor::accept);
     }
 

@@ -112,13 +112,13 @@ quartzProperties:
 opal:
   sftp:
     inbound:
-      host: ${OPAL_SFTP_INBOUND_HOST:-}
+      host: ${OPAL_SFTP_INBOUND_HOST:opalsftpstg.blob.core.windows.net}
       port: ${OPAL_SFTP_INBOUND_PORT:22}
       user: ${OPAL_SFTP_INBOUND_USER:-}
       password: ${OPAL_SFTP_INBOUND_PASSWORD:-}
       location: ${OPAL_SFTP_INBOUND_LOCATION:inbound}
     outbound:
-      host: ${OPAL_SFTP_OUTBOUND_HOST:-}
+      host: ${OPAL_SFTP_OUTBOUND_HOST:opalsftpstg.blob.core.windows.net}
       port: ${OPAL_SFTP_OUTBOUND_PORT:22}
       user: ${OPAL_SFTP_OUTBOUND_USER:-}
       password: ${OPAL_SFTP_OUTBOUND_PASSWORD:-}
