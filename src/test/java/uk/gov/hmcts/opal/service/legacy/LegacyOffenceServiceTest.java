@@ -6,50 +6,50 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
-import uk.gov.hmcts.opal.dto.search.OffenseSearchDto;
-import uk.gov.hmcts.opal.entity.OffenseEntity;
+import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
+import uk.gov.hmcts.opal.entity.OffenceEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-class LegacyOffenseServiceTest extends LegacyTestsBase {
+class LegacyOffenceServiceTest extends LegacyTestsBase {
 
     @Mock
     private Logger log;
 
     @InjectMocks
-    private LegacyOffenseService legacyOffenseService;
+    private LegacyOffenceService legacyOffenceService;
 
     @Test
-    void testGetOffense() {
+    void testGetOffence() {
         // Arrange
 
-        OffenseEntity offenseEntity = OffenseEntity.builder().build();
+        OffenceEntity offenceEntity = OffenceEntity.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyOffenseService.getOffense((short)1)
+            () -> legacyOffenceService.getOffence((short)1)
         );
 
         // Assert
-        assertNotNull(legacyOffenseService.getLog());
+        assertNotNull(legacyOffenceService.getLog());
         assertNotNull(exception);
         assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
 
     }
 
     @Test
-    void testSearchOffenses() {
+    void testSearchOffences() {
         // Arrange
-        OffenseSearchDto criteria = OffenseSearchDto.builder().build();
+        OffenceSearchDto criteria = OffenceSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyOffenseService.searchOffenses(criteria)
+            () -> legacyOffenceService.searchOffences(criteria)
         );
 
         // Assert
