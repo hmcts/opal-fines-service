@@ -10,6 +10,8 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.function.Consumer;
 
+import static java.lang.String.format;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -26,12 +28,17 @@ public class SftpService {
         var template = new RemoteFileTemplate<>(sessionFactory);
         template.execute(session -> {
             session.write(new ByteArrayInputStream(fileBytes), path + "/" + fileName);
-            return null;
+            log.info(format("File %s uploaded successfully.", fileName));
+            return true;
         });
     }
 
     public boolean downloadInboundFile(String path, String fileName, Consumer<InputStream> fileProcessor) {
         return downloadFile(inboundSessionFactory, path, fileName, fileProcessor);
+    }
+
+    public boolean downloadOutboundFile(String path, String fileName, Consumer<InputStream> fileProcessor) {
+        return downloadFile(outboundSessionFactory, path, fileName, fileProcessor);
     }
 
     public boolean downloadFile(DefaultSftpSessionFactory sessionFactory,
