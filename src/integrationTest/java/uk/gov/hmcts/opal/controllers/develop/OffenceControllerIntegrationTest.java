@@ -9,10 +9,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import uk.gov.hmcts.opal.dto.search.OffenseSearchDto;
+import uk.gov.hmcts.opal.controllers.OffenceController;
+import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.OffenseEntity;
-import uk.gov.hmcts.opal.service.opal.OffenseService;
+import uk.gov.hmcts.opal.entity.OffenceEntity;
+import uk.gov.hmcts.opal.service.opal.OffenceService;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,75 +25,73 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest
-@ContextConfiguration(classes = OffenseController.class)
+@ContextConfiguration(classes = OffenceController.class)
 @ActiveProfiles({"integration"})
-class OffenseControllerIntegrationTest {
+class OffenceControllerIntegrationTest {
 
     @Autowired
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("offenseService")
-    OffenseService offenseService;
+    @Qualifier("offenceService")
+    OffenceService offenceService;
 
     @Test
-    void testGetOffenseById() throws Exception {
-        OffenseEntity offenseEntity = createOffenseEntity();
+    void testGetOffenceById() throws Exception {
+        OffenceEntity offenceEntity = createOffenceEntity();
 
-        when(offenseService.getOffense((short)1)).thenReturn(offenseEntity);
+        when(offenceService.getOffence((short)1)).thenReturn(offenceEntity);
 
-        mockMvc.perform(get("/api/offense/1"))
+        mockMvc.perform(get("/api/offence/1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.offenseId").value(1))
+            .andExpect(jsonPath("$.offenceId").value(1))
             .andExpect(jsonPath("$.cjsCode").value("cjs-code"))
-            .andExpect(jsonPath("$.offenseTitle").value("Title of Offense"))
-            .andExpect(jsonPath("$.offenseTitleCy").value("Title of Offense CY"));
+            .andExpect(jsonPath("$.offenceTitle").value("Title of Offence"))
+            .andExpect(jsonPath("$.offenceTitleCy").value("Title of Offence CY"));
     }
 
 
     @Test
-    void testGetOffenseById_WhenOffenseDoesNotExist() throws Exception {
-        when(offenseService.getOffense((short)2)).thenReturn(null);
+    void testGetOffenceById_WhenOffenceDoesNotExist() throws Exception {
+        when(offenceService.getOffence((short)2)).thenReturn(null);
 
-        mockMvc.perform(get("/api/offense/2"))
+        mockMvc.perform(get("/api/offence/2"))
             .andExpect(status().isNoContent());
     }
 
     @Test
-    void testPostOffensesSearch() throws Exception {
-        OffenseEntity offenseEntity = createOffenseEntity();
+    void testPostOffencesSearch() throws Exception {
+        OffenceEntity offenceEntity = createOffenceEntity();
 
-        when(offenseService.searchOffenses(any(OffenseSearchDto.class))).thenReturn(singletonList(offenseEntity));
+        when(offenceService.searchOffences(any(OffenceSearchDto.class))).thenReturn(singletonList(offenceEntity));
 
-        mockMvc.perform(post("/api/offense/search")
+        mockMvc.perform(post("/api/offence/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[0].offenseId").value(1))
+            .andExpect(jsonPath("$[0].offenceId").value(1))
             .andExpect(jsonPath("$[0].cjsCode").value("cjs-code"))
-            .andExpect(jsonPath("$[0].offenseTitle").value("Title of Offense"))
-            .andExpect(jsonPath("$[0].offenseTitleCy").value("Title of Offense CY"));
+            .andExpect(jsonPath("$[0].offenceTitle").value("Title of Offence"))
+            .andExpect(jsonPath("$[0].offenceTitleCy").value("Title of Offence CY"));
     }
 
     @Test
-    void testPostOffensesSearch_WhenOffenseDoesNotExist() throws Exception {
-        // when(offenseService.getOffense(2L)).thenReturn(null);
-
-        mockMvc.perform(post("/api/offense/search")
+    void testPostOffencesSearch_WhenOffenceDoesNotExist() throws Exception {
+        mockMvc.perform(post("/api/offence/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isNoContent());
     }
 
-    private OffenseEntity createOffenseEntity() {
-        return OffenseEntity.builder()
-            .offenseId((short)1)
+    private OffenceEntity createOffenceEntity() {
+        return OffenceEntity.builder()
+            .offenceId(1L)
             .cjsCode("cjs-code")
             .businessUnit(BusinessUnitEntity.builder().build())
-            .offenseTitle("Title of Offense")
-            .offenseTitleCy("Title of Offense CY")
+            .offenceTitle("Title of Offence")
+            .offenceTitleCy("Title of Offence CY")
             .build();
     }
 }

@@ -6,9 +6,9 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 
 @Data
 @Builder
-public class OffenseSearchDto implements ToJsonString {
+public class OffenceSearchDto implements ToJsonString {
 
-    private String offenseId;
+    private String offenceId;
     private String cjsCode;
     private String businessUnitId;
     private String businessUnitName;
