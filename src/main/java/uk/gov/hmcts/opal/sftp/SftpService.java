@@ -49,6 +49,14 @@ public class SftpService {
         return template.get(path + "/" + fileName, fileProcessor::accept);
     }
 
+    public boolean deleteOutboundFile(String path, String fileName) {
+        return deleteFile(outboundSessionFactory, path, fileName);
+    }
+
+    public boolean deleteInboundFile(String path, String fileName) {
+        return deleteFile(inboundSessionFactory, path, fileName);
+    }
+
     public boolean deleteFile(DefaultSftpSessionFactory sessionFactory, String path, String fileName) {
         var template = new RemoteFileTemplate<>(sessionFactory);
         return template.execute(session -> session.remove(path + "/" + fileName));
