@@ -103,7 +103,7 @@ task functionalLegacy(type: Test) {
   systemProperty "cucumber.filter.tags", "@Legacy and not @Smoke and not @Ignore"
   systemProperty "test.mode", "legacy"
 }
-task copyFunctionalReport(type: Copy){
+task copyFunctionalReport(type: Copy) {
   from("${rootDir}/target/site/serenity")
   into("${rootDir}/functional-test-report")
   logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
@@ -113,7 +113,7 @@ task functional() {
   description = "Runs functional tests"
   group = "Verification"
   gradle.startParameter.continueOnFailure = true
-  dependsOn('clearReports','functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport')
+  dependsOn('clearReports', 'functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport')
   tasks.functionalOpal.mustRunAfter clearReports
   tasks.functionalLegacy.mustRunAfter functionalOpal
   tasks.aggregate.mustRunAfter functionalLegacy
@@ -130,7 +130,7 @@ task smokeOpal(type: Test) {
   gradle.startParameter.continueOnFailure = true
   systemProperty "cucumber.filter.tags", "@Smoke and not @Ignore"
 }
-task copySmokeReport(type: Copy){
+task copySmokeReport(type: Copy) {
   from("${rootDir}/target/site/serenity")
   into("${rootDir}/smoke-test-report")
   logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
@@ -140,7 +140,7 @@ task smoke() {
   description = "Runs Smoke Tests"
   group = "Verification"
   gradle.startParameter.continueOnFailure = true
-  dependsOn('clearReports','smokeOpal', 'aggregate', 'copySmokeReport')
+  dependsOn('clearReports', 'smokeOpal', 'aggregate', 'copySmokeReport')
   tasks.smokeOpal.mustRunAfter clearReports
   tasks.aggregate.mustRunAfter smokeOpal
   tasks.copySmokeReport.mustRunAfter aggregate
@@ -164,17 +164,16 @@ jacocoTestReport {
   }
   afterEvaluate {
     classDirectories.setFrom(files(classDirectories.files.collect {
-      fileTree(dir: it, exclude:  jacocoExclusionArray(coverageExclusions)
+      fileTree(dir: it, exclude: jacocoExclusionArray(coverageExclusions)
       )
     }))
   }
 }
 
-static String[] jacocoExclusionArray(ArrayList<String> exclusions)
-{
+static String[] jacocoExclusionArray(ArrayList<String> exclusions) {
   final def lst = new ArrayList<String>()
 
-  exclusions.stream().forEach {it.endsWith(".java") ? lst.add(it.replace(".java", ".class")) : lst.add(it)}
+  exclusions.stream().forEach { it.endsWith(".java") ? lst.add(it.replace(".java", ".class")) : lst.add(it) }
 
   return lst.toArray()
 }
@@ -191,7 +190,7 @@ sonarqube {
     property "sonar.projectKey", "uk.gov.hmcts:opal-fines-service"
     property "sonar.gradle.skipCompile", "true"
     property "sonar.exclusions", coverageExclusions.join(', ')
-    property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*,**/repository/jpa/*,**/opal/dto/*"
+    property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*,**/sftp/*,**/repository/jpa/*,**/opal/dto/*"
   }
 }
 
@@ -210,6 +209,10 @@ dependencyUpdates {
 dependencyManagement {
   imports {
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2023.0.1'
+  }
+
+  imports {
+    mavenBom "org.springframework.integration:spring-integration-bom:6.2.1"
   }
 
   dependencies {
@@ -246,6 +249,11 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-quartz'
 
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-integration'
+  implementation group: 'org.springframework.integration', name: 'spring-integration-sftp'
+  implementation group: 'org.springframework.integration', name: 'spring-integration-file'
+
+
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-authorization-server', version: '1.2.4'
 
   implementation group: 'org.springframework', name: 'spring-aspects'
@@ -273,7 +281,6 @@ dependencies {
 
   testCompileOnly 'org.projectlombok:lombok:1.18.32'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
-
 
   testImplementation 'com.github.fge:json-schema-validator:2.2.14'
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
