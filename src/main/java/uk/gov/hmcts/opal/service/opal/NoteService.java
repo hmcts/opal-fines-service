@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.aspect.AuthorizedAnyRoleHasPermission;
+import uk.gov.hmcts.opal.authorisation.aspect.AuthorizedRoleHasPermission;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
@@ -24,6 +25,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static uk.gov.hmcts.opal.authorisation.model.Permissions.ACCOUNT_ENQUIRY_NOTES;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "NoteService")
@@ -35,6 +38,7 @@ public class NoteService implements NoteServiceInterface {
 
     @Override
     @FeatureToggle(feature = "add-note", value = true)
+    @AuthorizedRoleHasPermission(ACCOUNT_ENQUIRY_NOTES)
     public NoteDto saveNote(NoteDto noteDto) {
         // Restrict the 'postedBy' to 20 characters length
         String postedBy = Optional.ofNullable(noteDto.getPostedBy())
