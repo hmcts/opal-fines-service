@@ -5,17 +5,17 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.dto.search.OffenseSearchDto;
-import uk.gov.hmcts.opal.entity.OffenseEntity;
-import uk.gov.hmcts.opal.service.OffenseServiceInterface;
+import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
+import uk.gov.hmcts.opal.entity.OffenceEntity;
+import uk.gov.hmcts.opal.service.OffenceServiceInterface;
 
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyOffenseService")
-public class LegacyOffenseService extends LegacyService implements OffenseServiceInterface {
+@Slf4j(topic = "LegacyOffenceService")
+public class LegacyOffenceService extends LegacyService implements OffenceServiceInterface {
 
-    public LegacyOffenseService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
+    public LegacyOffenceService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
         super(legacyGatewayProperties, restClient);
     }
 
@@ -25,12 +25,12 @@ public class LegacyOffenseService extends LegacyService implements OffenseServic
     }
 
     @Override
-    public OffenseEntity getOffense(short offenseId) {
+    public OffenceEntity getOffence(long offenceId) {
         throw new LegacyGatewayResponseException("Not Yet Implemented");
     }
 
     @Override
-    public List<OffenseEntity> searchOffenses(OffenseSearchDto criteria) {
+    public List<OffenceEntity> searchOffences(OffenceSearchDto criteria) {
         throw new LegacyGatewayResponseException("Not Yet Implemented");
     }
 
