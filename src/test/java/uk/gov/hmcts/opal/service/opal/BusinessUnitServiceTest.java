@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,5 +70,26 @@ class BusinessUnitServiceTest {
 
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    void testBusinessUnitsReferenceData() {
+        // Arrange
+        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        when(ffq.sortBy(any())).thenReturn(ffq);
+
+        BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder().build();
+        Page<BusinessUnitEntity> mockPage = new PageImpl<>(List.of(businessUnitEntity), Pageable.unpaged(), 999L);
+        when(businessUnitRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(ffq);
+            return mockPage;
+        });
+
+        // Act
+        List<BusinessUnitEntity> result = businessUnitService.getReferenceData(Optional.empty());
+
+        // Assert
+        assertEquals(List.of(businessUnitEntity), result);
+
+    }
 
 }
