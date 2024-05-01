@@ -162,7 +162,7 @@ class AuthorizationAspectServiceTest {
         }
 
         @Test
-        void testGetUserStringWithValidArgument() {
+        void testGetUserStateWithValidArgument() {
             String str = "testString";
             Object[] args = {USER_STATE, str, 42};
 
