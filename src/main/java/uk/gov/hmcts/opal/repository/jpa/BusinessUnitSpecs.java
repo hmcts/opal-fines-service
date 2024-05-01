@@ -8,6 +8,8 @@ import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity_;
 
+import java.util.Optional;
+
 public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
 
     public Specification<BusinessUnitEntity> findBySearchCriteria(BusinessUnitSearchDto criteria) {
@@ -18,6 +20,12 @@ public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
             notBlank(criteria.getBusinessUnitType()).map(BusinessUnitSpecs::likeBusinessUnitType),
             notBlank(criteria.getAccountNumberPrefix()).map(BusinessUnitSpecs::equalsAccountNumberPrefix),
             numericShort(criteria.getParentBusinessUnitId()).map(BusinessUnitSpecs::equalsParentBusinessUnitId)
+        ));
+    }
+
+    public Specification<BusinessUnitEntity> referenceDataFilter(Optional<String> filter) {
+        return Specification.allOf(specificationList(
+            filter.filter(s -> !s.isBlank()).map(BusinessUnitSpecs::likeAnyBusinessUnit)
         ));
     }
 
@@ -71,4 +79,11 @@ public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
         return builder.equal(from.get(BusinessUnitEntity_.parentBusinessUnitId), parentBusinessUnitId);
     }
 
+    public static Specification<BusinessUnitEntity> likeAnyBusinessUnit(String filter) {
+        return Specification.anyOf(
+            likeBusinessUnitName(filter),
+            likeBusinessUnitCode(filter),
+            likeBusinessUnitType(filter)
+        );
+    }
 }
