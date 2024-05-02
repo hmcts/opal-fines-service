@@ -13,9 +13,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.projection.LjaReferenceData;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -70,5 +72,27 @@ class LocalJusticeAreaServiceTest {
 
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    void testLocalJusticeAreasReferenceData() {
+        // Arrange
+        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        when(ffq.as(any())).thenReturn(ffq);
+        when(ffq.sortBy(any())).thenReturn(ffq);
+
+        LocalJusticeAreaEntity localJAEntity = LocalJusticeAreaEntity.builder().build();
+        Page<LocalJusticeAreaEntity> mockPage = new PageImpl<>(List.of(localJAEntity), Pageable.unpaged(), 999L);
+        when(localJusticeAreaRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(ffq);
+            return mockPage;
+        });
+
+        // Act
+        List<LjaReferenceData> result = localJusticeAreaService.getReferenceData(Optional.empty());
+
+        // Assert
+        assertEquals(List.of(localJAEntity), result);
+
+    }
 
 }

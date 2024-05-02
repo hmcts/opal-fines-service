@@ -62,7 +62,7 @@ public class OffenceController {
     }
 
     @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
-    @Operation(summary = "Returns Offences as reference data with an option filter applied")
+    @Operation(summary = "Returns Offences as reference data with an optional filter applied")
     public ResponseEntity<OffenceReferenceDataResults> getOffenceRefData(@PathVariable Optional<String> filter) {
         log.info(":GET:getOffenceRefData: query: \n{}", filter);
 
