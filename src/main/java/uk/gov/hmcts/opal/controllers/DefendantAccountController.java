@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.Role;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
@@ -35,7 +34,6 @@ import java.util.List;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
-import static uk.gov.hmcts.opal.util.PermissionUtil.checkRoleHasPermission;
 import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredRole;
 
 @RestController
@@ -120,7 +118,6 @@ public class DefendantAccountController {
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
         Role role = getRequiredRole(userState, addNote.getBusinessUnitId());
-        checkRoleHasPermission(role, Permissions.ACCOUNT_ENQUIRY_NOTES);
 
         NoteDto noteDto = NoteDto.builder()
             .associatedRecordId(addNote.getAssociatedRecordId())
