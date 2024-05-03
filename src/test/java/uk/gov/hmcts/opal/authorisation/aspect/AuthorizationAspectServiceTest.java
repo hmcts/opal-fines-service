@@ -98,7 +98,7 @@ class AuthorizationAspectServiceTest {
         @Test
         void getRole_WhenInvalidArguments() {
             Object[] args = {"invalid"};
-            String expectedMessage = "Can't infer the roel for user John Smith."
+            String expectedMessage = "Can't infer the role for user John Smith."
                 + " Annotated method needs to have arguments of types (Role, AddNoteDto, NoteDto).";
 
             RoleNotFoundException exception = assertThrows(
