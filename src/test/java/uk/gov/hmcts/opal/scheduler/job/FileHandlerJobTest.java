@@ -11,7 +11,7 @@ import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
-import uk.gov.hmcts.opal.sftp.SftpService;
+import uk.gov.hmcts.opal.sftp.SftpOutboundService;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -33,7 +33,7 @@ class FileHandlerJobTest {
     JobExecutionContext jobExecutionContext;
 
     @Mock
-    SftpService sftpService;
+    SftpOutboundService sftpOutboundService;
 
     @Mock
     Logger logger;
@@ -57,8 +57,8 @@ class FileHandlerJobTest {
 
         fileHandlerJob.execute(jobExecutionContext);
 
-        verify(sftpService, times(1)).uploadOutboundFile(any(), anyString(), anyString());
-        verify(sftpService, times(1)).downloadOutboundFile(anyString(), anyString(), any());
+        verify(sftpOutboundService, times(1)).uploadFile(any(), anyString(), anyString());
+        verify(sftpOutboundService, times(1)).downloadFile(anyString(), anyString(), any());
     }
 
     @Test

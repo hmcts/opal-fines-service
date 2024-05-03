@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.sftp;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
@@ -14,15 +13,7 @@ import static java.lang.String.format;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class SftpService {
-
-    private final DefaultSftpSessionFactory inboundSessionFactory;
-    private final DefaultSftpSessionFactory outboundSessionFactory;
-
-    public void uploadOutboundFile(byte[] fileBytes, String path, String fileName) {
-        uploadFile(outboundSessionFactory, fileBytes, path, fileName);
-    }
 
     public void uploadFile(DefaultSftpSessionFactory sessionFactory, byte[] fileBytes, String path, String fileName) {
         var template = new RemoteFileTemplate<>(sessionFactory);
@@ -33,14 +24,6 @@ public class SftpService {
         });
     }
 
-    public boolean downloadInboundFile(String path, String fileName, Consumer<InputStream> fileProcessor) {
-        return downloadFile(inboundSessionFactory, path, fileName, fileProcessor);
-    }
-
-    public boolean downloadOutboundFile(String path, String fileName, Consumer<InputStream> fileProcessor) {
-        return downloadFile(outboundSessionFactory, path, fileName, fileProcessor);
-    }
-
     public boolean downloadFile(DefaultSftpSessionFactory sessionFactory,
                                 String path,
                                 String fileName,
@@ -49,17 +32,27 @@ public class SftpService {
         return template.get(path + "/" + fileName, fileProcessor::accept);
     }
 
-    public boolean deleteOutboundFile(String path, String fileName) {
-        return deleteFile(outboundSessionFactory, path, fileName);
-    }
-
-    public boolean deleteInboundFile(String path, String fileName) {
-        return deleteFile(inboundSessionFactory, path, fileName);
-    }
-
     public boolean deleteFile(DefaultSftpSessionFactory sessionFactory, String path, String fileName) {
         var template = new RemoteFileTemplate<>(sessionFactory);
         return template.execute(session -> session.remove(path + "/" + fileName));
+    }
+
+    public void createDirectoryIfNotExists(DefaultSftpSessionFactory sessionFactory, SftpLocation location) {
+        try {
+            String remoteDirectory = location.getPath();
+            boolean directoryExists = sessionFactory.getSession().list(remoteDirectory).length > 0;
+            if (!directoryExists) {
+                sessionFactory.getSession().mkdir(remoteDirectory);
+                log.info(format(
+                    "%s SFTP directory %s created for ",
+                    location.getDirection(),
+                    remoteDirectory,
+                    location.getDescription()
+                ));
+            }
+        } catch (Exception exception) {
+            log.error(exception.getMessage(), exception);
+        }
     }
 
 }
