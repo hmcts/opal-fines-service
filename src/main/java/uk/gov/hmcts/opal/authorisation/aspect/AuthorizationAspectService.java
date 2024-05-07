@@ -1,11 +1,21 @@
 package uk.gov.hmcts.opal.authorisation.aspect;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddNoteDto;
+import uk.gov.hmcts.opal.dto.NoteDto;
 
+import java.util.Arrays;
 import java.util.Optional;
 
+import static java.lang.String.format;
+import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredRole;
+
+@Slf4j
 @Component
 public class AuthorizationAspectService {
 
@@ -30,5 +40,33 @@ public class AuthorizationAspectService {
             return Optional.ofNullable(sra.getRequest().getHeader(AUTHORIZATION));
         }
         return Optional.empty();
+    }
+
+    public Role getRole(Object[] args, UserState userState) {
+        for (Object arg : args) {
+            if (arg instanceof Role) {
+                return (Role) arg;
+            } else if (arg instanceof AddNoteDto addNoteDto) {
+                return getRequiredRole(userState, addNoteDto.getBusinessUnitId());
+            } else if (arg instanceof NoteDto noteDto) {
+                return getRequiredRole(userState, noteDto.getBusinessUnitId());
+            }
+        }
+        throw new RoleNotFoundException(format(
+            "Can't infer the role for user %s. "
+                + "Annotated method needs to have arguments of types (Role, AddNoteDto, NoteDto).",
+            userState.getUserName()
+        ));
+    }
+
+    public Optional<UserState> getUserState(Object[] args) {
+        return getArgument(args, UserState.class);
+    }
+
+    public <T> Optional<T> getArgument(Object[] args, Class<T> clazz) {
+        return Arrays.stream(args)
+            .filter(clazz::isInstance)
+            .map(clazz::cast)
+            .findFirst();
     }
 }
