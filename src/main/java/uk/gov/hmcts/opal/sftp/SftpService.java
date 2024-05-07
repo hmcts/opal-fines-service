@@ -3,9 +3,11 @@ package uk.gov.hmcts.opal.sftp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
+import org.springframework.integration.sftp.session.SftpSession;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Consumer;
 
@@ -40,8 +42,7 @@ public class SftpService {
     public void createDirectoryIfNotExists(DefaultSftpSessionFactory sessionFactory, SftpLocation location) {
         try {
             String remoteDirectory = location.getPath();
-            boolean directoryExists = sessionFactory.getSession().list(remoteDirectory).length > 0;
-            if (!directoryExists) {
+            if (!directoryExists(sessionFactory, remoteDirectory)) {
                 sessionFactory.getSession().mkdir(remoteDirectory);
                 log.info(format(
                     "%s SFTP directory %s created for ",
@@ -52,6 +53,18 @@ public class SftpService {
             }
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);
+        }
+    }
+
+    public boolean directoryExists(DefaultSftpSessionFactory sessionFactory, String path) throws IOException {
+
+        try (SftpSession session = sessionFactory.getSession()) {
+            for (var file : session.list("/")) {
+                if (path.equalsIgnoreCase(file.getFilename())) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
