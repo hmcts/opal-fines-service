@@ -2,11 +2,17 @@ package uk.gov.hmcts.opal.repository.jpa;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.CourtEntity;
 import uk.gov.hmcts.opal.entity.CourtEntity_;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+
+import java.util.Optional;
+
+import static uk.gov.hmcts.opal.repository.jpa.LocalJusticeAreaSpecs.equalsLocalJusticeAreaIdPredicate;
 
 public class CourtSpecs extends BaseCourtSpecs<CourtEntity> {
 
@@ -15,10 +21,15 @@ public class CourtSpecs extends BaseCourtSpecs<CourtEntity> {
             findByBaseCourtCriteria(criteria),
             numericLong(criteria.getCourtId()).map(CourtSpecs::equalsCourtId),
             notBlank(criteria.getCourtCode()).map(CourtSpecs::equalsCourtCode),
-            notBlank(criteria.getParentCourtId()).map(CourtSpecs::equalsParentCourtId),
-            notBlank(criteria.getLocalJusticeAreaId()).map(CourtSpecs::equalsLocalJusticeAreaId),
-            notBlank(criteria.getNationalCourtCode()).map(CourtSpecs::equalsNationalCourtCode)
+            numericLong(criteria.getParentCourtId()).map(CourtSpecs::equalsParentCourtId),
+            numericShort(criteria.getLocalJusticeAreaId()).map(CourtSpecs::equalsLocalJusticeAreaId),
+            notBlank(criteria.getNationalCourtCode()).map(CourtSpecs::likeNationalCourtCode)
+        ));
+    }
 
+    public Specification<CourtEntity> referenceDataFilter(Optional<String> filter) {
+        return Specification.allOf(specificationList(
+            filter.filter(s -> !s.isBlank()).map(this::likeAnyCourt)
         ));
     }
 
@@ -34,17 +45,34 @@ public class CourtSpecs extends BaseCourtSpecs<CourtEntity> {
         return (root, query, builder) -> builder.equal(root.get(CourtEntity_.courtCode), courtCode);
     }
 
-    public static Specification<CourtEntity> equalsParentCourtId(String parentCourtId) {
-        return (root, query, builder) -> builder.equal(root.get(CourtEntity_.parentCourtId), parentCourtId);
+    public static Specification<CourtEntity> equalsParentCourtId(Long parentCourtId) {
+        return (root, query, builder) -> equalsCourtIdPredicate(joinParentCourt(root), builder, parentCourtId);
     }
 
-    public static Specification<CourtEntity> equalsLocalJusticeAreaId(String localJusticeAreaId) {
-        return (root, query, builder) -> builder.equal(root.get(CourtEntity_.localJusticeAreaId), localJusticeAreaId);
+    public static Specification<CourtEntity> equalsLocalJusticeAreaId(Short localJusticeAreaId) {
+        return (root, query, builder) -> equalsLocalJusticeAreaIdPredicate(joinLocalJusticeArea(root), builder,
+                                                                           localJusticeAreaId);
     }
 
-    public static Specification<CourtEntity> equalsNationalCourtCode(String nationalCourtCode) {
-        return (root, query, builder) -> builder.equal(root.get(CourtEntity_.nationalCourtCode), nationalCourtCode);
+    public static Specification<CourtEntity> likeNationalCourtCode(String nationalCourtCode) {
+        return (root, query, builder) ->
+            likeWildcardPredicate(root.get(CourtEntity_.nationalCourtCode), builder, nationalCourtCode);
     }
 
+    public Specification<CourtEntity> likeAnyCourt(String filter) {
+        return Specification.anyOf(
+            likeName(filter),
+            likeNameCy(filter),
+            likeNationalCourtCode(filter)
+        );
+    }
+
+    public static Join<CourtEntity, CourtEntity> joinParentCourt(From<?, CourtEntity> from) {
+        return from.join(CourtEntity_.parentCourt);
+    }
+
+    public static Join<CourtEntity, LocalJusticeAreaEntity> joinLocalJusticeArea(From<?, CourtEntity> from) {
+        return from.join(CourtEntity_.localJusticeArea);
+    }
 
 }
