@@ -11,6 +11,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.CourtEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.projection.CourtReferenceData;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
@@ -44,8 +46,8 @@ class CourtControllerIntegrationTest {
             .courtId(1L)
             .courtCode((short) 11)
             .nationalCourtCode("Test Court")
-            .parentCourtId(2L)
-            .localJusticeAreaId((short) 22)
+            .parentCourt(CourtEntity.builder().courtId(2L).build())
+            .localJusticeArea(LocalJusticeAreaEntity.builder().localJusticeAreaId((short)22).build())
             .build();
 
         when(courtService.getCourt(1L)).thenReturn(courtEntity);
@@ -56,8 +58,8 @@ class CourtControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.courtId").value(1))
             .andExpect(jsonPath("$.courtCode").value(11))
-            .andExpect(jsonPath("$.parentCourtId").value(2))
-            .andExpect(jsonPath("$.localJusticeAreaId").value(22))
+            .andExpect(jsonPath("$.parentCourt.courtId").value(2))
+            .andExpect(jsonPath("$.localJusticeArea.localJusticeAreaId").value(22))
             .andExpect(jsonPath("$.nationalCourtCode").value("Test Court"));
     }
 
@@ -76,8 +78,8 @@ class CourtControllerIntegrationTest {
             .courtId(1L)
             .courtCode((short) 11)
             .nationalCourtCode("Test Court")
-            .parentCourtId(2L)
-            .localJusticeAreaId((short) 22)
+            .parentCourt(CourtEntity.builder().courtId(2L).build())
+            .localJusticeArea(LocalJusticeAreaEntity.builder().localJusticeAreaId((short)22).build())
             .build();
 
         when(courtService.searchCourts(any(CourtSearchDto.class))).thenReturn(singletonList(courtEntity));
@@ -90,8 +92,8 @@ class CourtControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$[0].courtId").value(1))
             .andExpect(jsonPath("$[0].courtCode").value(11))
-            .andExpect(jsonPath("$[0].parentCourtId").value(2))
-            .andExpect(jsonPath("$[0].localJusticeAreaId").value(22))
+            .andExpect(jsonPath("$[0].parentCourt.courtId").value(2))
+            .andExpect(jsonPath("$[0].localJusticeArea.localJusticeAreaId").value(22))
             .andExpect(jsonPath("$[0].nationalCourtCode").value("Test Court"));
     }
 
@@ -102,5 +104,22 @@ class CourtControllerIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testGetCourtRefData() throws Exception {
+        CourtReferenceData refData = new CourtReferenceData(1L, (short)11,"Main Court", null, "MN1234");
+
+        when(courtService.getReferenceData(any())).thenReturn(singletonList(refData));
+
+        mockMvc.perform(get("/api/court/ref-data")
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.refData[0].courtId").value(1))
+            .andExpect(jsonPath("$.refData[0].courtCode").value(11))
+            .andExpect(jsonPath("$.refData[0].name").value("Main Court"))
+            .andExpect(jsonPath("$.refData[0].nationalCourtCode").value("MN1234"));
     }
 }

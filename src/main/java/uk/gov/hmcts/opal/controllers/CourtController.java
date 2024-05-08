@@ -13,12 +13,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.dto.reference.CourtReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.CourtEntity;
+import uk.gov.hmcts.opal.entity.projection.CourtReferenceData;
 import uk.gov.hmcts.opal.service.CourtServiceInterface;
+import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
+import java.util.Optional;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
@@ -31,12 +35,15 @@ public class CourtController {
 
     private final CourtServiceInterface courtService;
 
+    private final CourtService opalCourtService;
+
     private final UserStateService userStateService;
 
     public CourtController(@Qualifier("courtService") CourtServiceInterface courtService,
-                           UserStateService userStateService) {
+                           UserStateService userStateService, CourtService opalCourtService) {
         this.courtService = courtService;
         this.userStateService = userStateService;
+        this.opalCourtService = opalCourtService;
     }
 
     @GetMapping(value = "/{courtId}")
@@ -66,5 +73,15 @@ public class CourtController {
         return buildResponse(response);
     }
 
+    @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
+    @Operation(summary = "Returns courts as reference data with an optional filter applied")
+    public ResponseEntity<CourtReferenceDataResults> getCourtRefData(
+        @PathVariable Optional<String> filter) {
+        log.info(":GET:getCourtRefData: query: \n{}", filter);
 
+        List<CourtReferenceData> refData = opalCourtService.getReferenceData(filter);
+
+        log.info(":GET:getCourtRefData: court reference data count: {}", refData.size());
+        return ResponseEntity.ok(CourtReferenceDataResults.builder().refData(refData).build());
+    }
 }

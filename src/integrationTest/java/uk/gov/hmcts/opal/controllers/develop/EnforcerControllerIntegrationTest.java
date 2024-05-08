@@ -10,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.service.opal.EnforcerService;
 
@@ -47,7 +48,7 @@ class EnforcerControllerIntegrationTest {
             .andExpect(jsonPath("$.enforcerCode").value(7))
             .andExpect(jsonPath("$.warrantReferenceSequence").value("WARR-REF-SEQ-666"))
             .andExpect(jsonPath("$.warrantRegisterSequence").value(666))
-            .andExpect(jsonPath("$.businessUnitId").value(3))
+            .andExpect(jsonPath("$.businessUnit.businessUnitId").value(3))
             .andExpect(jsonPath("$.name").value("Herbert the Enforcer"))
             .andExpect(jsonPath("$.addressLine1").value("Enforcer Road"))
             .andExpect(jsonPath("$.addressLine2").value("Enforcer Town"))
@@ -83,7 +84,7 @@ class EnforcerControllerIntegrationTest {
             .andExpect(jsonPath("$[0].enforcerCode").value(7))
             .andExpect(jsonPath("$[0].warrantReferenceSequence").value("WARR-REF-SEQ-666"))
             .andExpect(jsonPath("$[0].warrantRegisterSequence").value(666))
-            .andExpect(jsonPath("$[0].businessUnitId").value(3))
+            .andExpect(jsonPath("$[0].businessUnit.businessUnitId").value(3))
             .andExpect(jsonPath("$[0].name").value("Herbert the Enforcer"))
             .andExpect(jsonPath("$[0].addressLine1").value("Enforcer Road"))
             .andExpect(jsonPath("$[0].addressLine2").value("Enforcer Town"))
@@ -109,7 +110,7 @@ class EnforcerControllerIntegrationTest {
             .enforcerCode((short)7)
             .warrantReferenceSequence("WARR-REF-SEQ-666")
             .warrantRegisterSequence(666)
-            .businessUnitId((short)3)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)3).build())
             .name("Herbert the Enforcer")
             .addressLine1("Enforcer Road")
             .addressLine2("Enforcer Town")
