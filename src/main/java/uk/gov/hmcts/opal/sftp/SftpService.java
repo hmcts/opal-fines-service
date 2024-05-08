@@ -45,7 +45,7 @@ public class SftpService {
             if (!directoryExists(sessionFactory, remoteDirectory)) {
                 sessionFactory.getSession().mkdir(remoteDirectory);
                 log.info(format(
-                    "%s SFTP directory %s created for ",
+                    "%s SFTP directory %s created for %s",
                     location.getDirection(),
                     remoteDirectory,
                     location.getDescription()
