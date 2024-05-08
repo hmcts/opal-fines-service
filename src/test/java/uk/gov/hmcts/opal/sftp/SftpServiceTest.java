@@ -7,15 +7,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.integration.file.remote.RemoteFileTemplate;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.integration.sftp.session.SftpSession;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,9 +32,6 @@ class SftpServiceTest {
     DefaultSftpSessionFactory sessionFactory;
 
     @Mock
-    RemoteFileTemplate<SftpSession> remoteFileTemplate;
-
-    @Mock
     SftpSession sftpSession;
 
     @Test
@@ -44,7 +42,9 @@ class SftpServiceTest {
         String fileName = "test.txt";
 
         when(sessionFactory.getSession()).thenReturn(sftpSession);
+
         sftpService.uploadFile(sessionFactory, fileBytes, path, fileName);
+        verify(sftpSession).write(any(InputStream.class), eq(path + "/" + fileName));
     }
 
     @Test
@@ -53,10 +53,12 @@ class SftpServiceTest {
         String fileName = "test.txt";
 
         when(sessionFactory.getSession()).thenReturn(sftpSession);
+        when(sftpSession.finalizeRaw()).thenReturn(true);
 
-        sftpService.downloadFile(sessionFactory, path, fileName, inputStream -> {
+        boolean result = sftpService.downloadFile(sessionFactory, path, fileName, inputStream -> {
         });
 
+        assertTrue(result);
     }
 
     @Test
