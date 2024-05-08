@@ -64,7 +64,7 @@ public class BusinessUnitController {
     }
 
     @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
-    @Operation(summary = "Returns Business Units as reference data with an option filter applied")
+    @Operation(summary = "Returns Business Units as reference data with an optional filter applied")
     public ResponseEntity<BusinessUnitReferenceDataResults> getBusinessUnitRefData(
         @PathVariable Optional<String> filter) {
         log.info(":GET:getBusinessUnitRefData: query: \n{}", filter);
