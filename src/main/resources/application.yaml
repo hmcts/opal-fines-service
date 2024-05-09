@@ -117,12 +117,14 @@ opal:
       user: ${OPAL_SFTP_INBOUND_USER:-}
       password: ${OPAL_SFTP_INBOUND_PASSWORD:-}
       location: ${OPAL_SFTP_INBOUND_LOCATION:inbound}
+      create-sub-locations: ${OPAL_SFTP_INBOUND_CREATE_SUB_LOCATIONS:false}
     outbound:
       host: ${OPAL_SFTP_OUTBOUND_HOST:opalsftpstg.blob.core.windows.net}
       port: ${OPAL_SFTP_OUTBOUND_PORT:22}
       user: ${OPAL_SFTP_OUTBOUND_USER:-}
       password: ${OPAL_SFTP_OUTBOUND_PASSWORD:-}
       location: ${OPAL_SFTP_OUTBOUND_LOCATION:outbound}
+      create-sub-locations: ${OPAL_SFTP_OUTBOUND_CREATE_SUB_LOCATIONS:false}
   schedule:
     log-retention-job:
       cron: ${OPAL_LOG_RETENTION_JOB_CRON:0 0 * * * ?}

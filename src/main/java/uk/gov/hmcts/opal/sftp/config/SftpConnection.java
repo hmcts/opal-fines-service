@@ -12,4 +12,5 @@ public class SftpConnection {
     private String user;
     private String password;
     private String location;
+    private boolean createSubLocations;
 }

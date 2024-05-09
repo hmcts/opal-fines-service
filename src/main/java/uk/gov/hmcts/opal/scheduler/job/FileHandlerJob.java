@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.scheduler.model.CronJob;
-import uk.gov.hmcts.opal.sftp.SftpService;
+import uk.gov.hmcts.opal.sftp.SftpOutboundService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +28,7 @@ public class FileHandlerJob implements CronJob {
     private String cronExpression;
 
     @Autowired
-    private SftpService sftpService;
+    private SftpOutboundService sftpOutboundService;
 
 
     @SneakyThrows
@@ -40,7 +40,7 @@ public class FileHandlerJob implements CronJob {
         String fileName = format("test-file-%s.txt", now());
         this.uploadFile("My file contents here...", fileName);
 
-        sftpService.downloadOutboundFile("", fileName, this::logInputStream);
+        sftpOutboundService.downloadFile("", fileName, this::logInputStream);
 
         log.info(
             "Job ** {} ** completed.  Next job scheduled @ {}",
@@ -51,7 +51,7 @@ public class FileHandlerJob implements CronJob {
     }
 
     public void uploadFile(String contents, String fileName) {
-        sftpService.uploadOutboundFile(format("%s %s", contents, now()).getBytes(), "", fileName);
+        sftpOutboundService.uploadFile(format("%s %s", contents, now()).getBytes(), "", fileName);
     }
 
 
