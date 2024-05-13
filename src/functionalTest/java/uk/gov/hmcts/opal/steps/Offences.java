@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.steps;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
 
-import static uk.gov.hmcts.opal.config.Constants.COURTS_REF_DATA_URI;
 import static uk.gov.hmcts.opal.config.Constants.OFFENCES_REF_DATA_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
