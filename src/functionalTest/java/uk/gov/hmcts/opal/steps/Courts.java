@@ -17,5 +17,7 @@ public class Courts extends BaseStepDef {
             .contentType("application/json")
             .when()
             .get(getTestUrl() + COURTS_REF_DATA_URI);
+
     }
+
 }

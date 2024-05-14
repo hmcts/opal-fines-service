@@ -1,8 +1,11 @@
 package uk.gov.hmcts.opal.steps;
 
+import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
+import org.hamcrest.Matchers;
 
+import static net.serenitybdd.rest.SerenityRest.then;
 import static uk.gov.hmcts.opal.config.Constants.OFFENCES_REF_DATA_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
@@ -18,6 +21,17 @@ public class Offences extends BaseStepDef {
             .when()
             .get(getTestUrl() + OFFENCES_REF_DATA_URI);
 
+    }
+
+    @Then("the LJA ref data matching to result")
+    @Then("the court ref data matching to result")
+    @Then("the offence ref data matching to result")
+    public void theRefDataMatchingToResult() {
+        int totalCount = then().extract().jsonPath().getInt("count");
+        System.out.println("total count is : " + totalCount);
+        then().assertThat()
+            .statusCode(200)
+            .body("count", Matchers.equalTo(totalCount));
     }
 
 }
