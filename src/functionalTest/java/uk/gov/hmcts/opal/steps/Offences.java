@@ -16,8 +16,7 @@ public class Offences extends BaseStepDef {
             .header("Authorization", "Bearer " + getToken())
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + OFFENCES_REF_DATA_URI)
-            .then().log().all();
+            .get(getTestUrl() + OFFENCES_REF_DATA_URI);
 
     }
 

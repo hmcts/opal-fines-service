@@ -1,6 +1,6 @@
 Feature: Test the Offence Reference data for end points
 
-  @PO-311
+  @PO-311 @Opal
   #PO-311
   Scenario: Checking the end points for Offence ref data
     Given I am testing as the "opal-test@hmcts.net" user

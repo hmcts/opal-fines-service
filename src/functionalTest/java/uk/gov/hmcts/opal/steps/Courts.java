@@ -16,6 +16,6 @@ public class Courts extends BaseStepDef {
             .header("Authorization", "Bearer " + getToken())
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + COURTS_REF_DATA_URI).then().log().all();
+            .get(getTestUrl() + COURTS_REF_DATA_URI);
     }
 }

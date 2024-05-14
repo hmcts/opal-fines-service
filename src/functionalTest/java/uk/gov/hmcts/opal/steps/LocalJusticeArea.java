@@ -18,7 +18,7 @@ public class LocalJusticeArea extends BaseStepDef {
             .header("Authorization", "Bearer " + getToken())
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + LJA_REF_DATA_URI).then().log().all();
+            .get(getTestUrl() + LJA_REF_DATA_URI);
 
     }
 
