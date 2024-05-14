@@ -9,13 +9,13 @@ import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 public class Courts extends BaseStepDef {
 
     @When("I make a request to the court ref data api with")
-    public void iMakeARequestToTheOffenceRefDataApiWith() {
-        SerenityRest.given()
+    public void getRequestToCourtsRefData() {
+        SerenityRest
+            .given()
             .accept("*/*")
             .header("Authorization", "Bearer " + getToken())
             .contentType("application/json")
             .when()
             .get(getTestUrl() + COURTS_REF_DATA_URI).then().log().all();
-
     }
 }
