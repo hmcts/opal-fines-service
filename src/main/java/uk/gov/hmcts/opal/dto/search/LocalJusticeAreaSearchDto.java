@@ -17,5 +17,5 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 public class LocalJusticeAreaSearchDto extends AddressSearch implements ToJsonString {
 
     private String localJusticeAreaId;
-
+    private String ljaCode;
 }

@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
+import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
@@ -30,6 +31,7 @@ public class TestingSupportController {
     private final DynamicConfigService dynamicConfigService;
     private final FeatureToggleService featureToggleService;
     private final AccessTokenService accessTokenService;
+    private final AuthorisationService authorisationService;
 
     @GetMapping("/app-mode")
     @Operation(summary = "Retrieves the value for app mode.")
@@ -55,14 +57,18 @@ public class TestingSupportController {
 
     @GetMapping("/token/test-user")
     @Operation(summary = "Retrieves the token for default test user")
-    public ResponseEntity<AccessTokenResponse> getToken() {
-        return ResponseEntity.ok(this.accessTokenService.getTestUserToken());
+    public ResponseEntity<SecurityToken> getToken() {
+        var accessTokenResponse = this.accessTokenService.getTestUserToken();
+        var securityToken = authorisationService.getSecurityToken(accessTokenResponse.getAccessToken());
+        return ResponseEntity.ok(securityToken);
     }
 
     @GetMapping("/token/user")
     @Operation(summary = "Retrieves the token for a given user")
-    public ResponseEntity<AccessTokenResponse> getTokenForUser(@RequestHeader(value = X_USER_EMAIL) String userEmail) {
-        return ResponseEntity.ok(accessTokenService.getTestUserToken(userEmail));
+    public ResponseEntity<SecurityToken> getTokenForUser(@RequestHeader(value = X_USER_EMAIL) String userEmail) {
+        var accessTokenResponse = this.accessTokenService.getTestUserToken(userEmail);
+        var securityToken = authorisationService.getSecurityToken(accessTokenResponse.getAccessToken());
+        return ResponseEntity.ok(securityToken);
     }
 
     @GetMapping("/token/parse")

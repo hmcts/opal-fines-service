@@ -1,14 +1,11 @@
 package uk.gov.hmcts.opal.util;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 
 import java.util.List;
 import java.util.Optional;
-
-import static uk.gov.hmcts.opal.authentication.service.AccessTokenService.AUTH_HEADER;
 
 public class HttpUtil {
 
@@ -36,9 +33,10 @@ public class HttpUtil {
         return new ResponseEntity<>(contents, HttpStatus.CREATED);
     }
 
-    public static String extractPreferredUsername(HttpServletRequest request, AccessTokenService tokenService) {
-        return Optional.ofNullable(request.getHeader(AUTH_HEADER))
+    public static String extractPreferredUsername(String authorization, AccessTokenService tokenService) {
+        return Optional.ofNullable(authorization)
             .map(tokenService::extractPreferredUsername)
             .orElse(null);
     }
+
 }

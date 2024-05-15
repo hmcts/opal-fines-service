@@ -8,8 +8,14 @@ import uk.gov.hmcts.opal.authentication.config.AuthenticationConfigurationProper
 import uk.gov.hmcts.opal.authentication.dao.AzureDao;
 import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
 import uk.gov.hmcts.opal.authentication.exception.AzureDaoException;
+import uk.gov.hmcts.opal.authentication.model.JwtValidationResult;
 import uk.gov.hmcts.opal.authentication.model.OAuthProviderRawResponse;
+import uk.gov.hmcts.opal.authorisation.model.LogActions;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddLogAuditDetailDto;
 import uk.gov.hmcts.opal.exception.OpalApiException;
+import uk.gov.hmcts.opal.service.opal.LogAuditDetailService;
+import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.net.URI;
 import java.util.Objects;
@@ -24,6 +30,10 @@ public class AuthenticationService {
 
     private final AuthStrategySelector locator;
 
+    private final LogAuditDetailService logAuditDetailService;
+
+    private final UserStateService userStateService;
+
     public URI loginOrRefresh(String accessToken, String redirectUri) {
         log.debug("Initiated login or refresh flow with access token {}", accessToken);
 
@@ -32,7 +42,7 @@ public class AuthenticationService {
             return configStrategy.getLoginUri(redirectUri);
         }
 
-        var validationResult = tokenValidator.validate(
+        JwtValidationResult validationResult = tokenValidator.validate(
             accessToken,
             configStrategy.getProviderConfiguration(),
             configStrategy.getConfiguration()
@@ -41,6 +51,8 @@ public class AuthenticationService {
         if (!validationResult.valid()) {
             return configStrategy.getLoginUri(redirectUri);
         }
+
+        writeAuditLog(accessToken, LogActions.LOG_IN);
 
         return configStrategy.getLandingPageUri();
     }
@@ -81,6 +93,9 @@ public class AuthenticationService {
         AuthenticationConfigurationPropertiesStrategy configStrategy = locator.locateAuthenticationConfiguration();
 
         log.debug("Initiated logout flow with access token {} and redirectUri {}", accessToken, redirectUri);
+
+        writeAuditLog(accessToken, LogActions.LOG_OUT);
+
         return configStrategy.getLogoutUri(accessToken, redirectUri);
     }
 
@@ -89,5 +104,17 @@ public class AuthenticationService {
 
         log.debug("Requesting password reset, with redirectUri {}", redirectUri);
         return configStrategy.getResetPasswordUri(redirectUri);
+    }
+
+    private void writeAuditLog(String accessToken, LogActions action) {
+
+        UserState userState = userStateService.getUserStateUsingAuthToken(accessToken);
+
+        logAuditDetailService.writeLogAuditDetail(
+            AddLogAuditDetailDto.builder()
+                .logAction(action)
+                .userId(userState.getUserId())
+                .jsonRequest("none")
+                .build());
     }
 }

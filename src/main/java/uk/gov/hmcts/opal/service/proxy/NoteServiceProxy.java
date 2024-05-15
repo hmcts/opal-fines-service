@@ -3,14 +3,18 @@ package uk.gov.hmcts.opal.service.proxy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.authorisation.aspect.AuthorizedRoleHasPermission;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
+import uk.gov.hmcts.opal.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyNoteService;
 import uk.gov.hmcts.opal.service.opal.NoteService;
 
 import java.util.List;
+
+import static uk.gov.hmcts.opal.authorisation.model.Permissions.ACCOUNT_ENQUIRY_NOTES;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,8 @@ public class NoteServiceProxy implements NoteServiceInterface, ProxyInterface {
     }
 
     @Override
+    @FeatureToggle(feature = "add-note", value = true)
+    @AuthorizedRoleHasPermission(ACCOUNT_ENQUIRY_NOTES)
     public NoteDto saveNote(NoteDto noteDto) {
         return getCurrentModeService().saveNote(noteDto);
     }

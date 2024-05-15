@@ -7,11 +7,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,15 +35,15 @@ class BusinessUnitControllerTest {
         // Arrange
         BusinessUnitEntity entity = BusinessUnitEntity.builder().build();
 
-        when(businessUnitService.getBusinessUnit(any(Long.class))).thenReturn(entity);
+        when(businessUnitService.getBusinessUnit(any(Short.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<BusinessUnitEntity> response = businessUnitController.getBusinessUnitById(1L);
+        ResponseEntity<BusinessUnitEntity> response = businessUnitController.getBusinessUnitById((short)1);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
-        verify(businessUnitService, times(1)).getBusinessUnit(any(Long.class));
+        verify(businessUnitService, times(1)).getBusinessUnit(any(Short.class));
     }
 
     @Test
@@ -62,4 +64,24 @@ class BusinessUnitControllerTest {
         verify(businessUnitService, times(1)).searchBusinessUnits(any());
     }
 
+    @Test
+    void testGetBusinessUnitsRefData_Success() {
+        // Arrange
+        BusinessUnitEntity entity = BusinessUnitEntity.builder().build();
+        List<BusinessUnitEntity> businessUnitList = List.of(entity);
+
+        when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
+
+        // Act
+        Optional<String> filter = Optional.empty();
+        ResponseEntity<BusinessUnitReferenceDataResults> response = businessUnitController
+            .getBusinessUnitRefData(filter);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        BusinessUnitReferenceDataResults refDataResults = response.getBody();
+        assertEquals(1, refDataResults.getCount());
+        assertEquals(businessUnitList, refDataResults.getRefData());
+        verify(businessUnitService, times(1)).getReferenceData(any());
+    }
 }

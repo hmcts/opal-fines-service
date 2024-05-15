@@ -15,7 +15,10 @@ import uk.gov.hmcts.opal.authentication.dao.AzureDao;
 import uk.gov.hmcts.opal.authentication.exception.AzureDaoException;
 import uk.gov.hmcts.opal.authentication.model.JwtValidationResult;
 import uk.gov.hmcts.opal.authentication.model.OAuthProviderRawResponse;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.exception.OpalApiException;
+import uk.gov.hmcts.opal.service.opal.LogAuditDetailService;
+import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.net.URI;
 
@@ -49,6 +52,12 @@ class AuthenticationServiceTest {
 
     @Mock
     private InternalAuthConfigurationProperties internalAuthConfigurationProperties;
+
+    @Mock
+    private LogAuditDetailService logAuditDetailService;
+
+    @Mock
+    private UserStateService userStateService;
 
     @Test
     void loginOrRefreshShouldReturnAuthUriWhenNoAuthHeaderExists() {
@@ -89,6 +98,7 @@ class AuthenticationServiceTest {
     @Test
     void loginOrRefreshShouldReturnLandingPageUriWhenValidAccessTokenExists() {
 
+        UserState userState = new UserState.DeveloperUserState();
         AuthenticationConfigurationPropertiesStrategy authStrategyMock = Mockito.mock(
             AuthenticationConfigurationPropertiesStrategy.class);
         when(uriProvider.locateAuthenticationConfiguration()).thenReturn(authStrategyMock);
@@ -101,6 +111,7 @@ class AuthenticationServiceTest {
             authStrategyMock.getConfiguration()
         ))
             .thenReturn(new JwtValidationResult(true, null));
+        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(userState);
 
         URI uri = authenticationService.loginOrRefresh(DUMMY_ID_TOKEN, null);
 
@@ -164,6 +175,7 @@ class AuthenticationServiceTest {
     @Test
     void logoutShouldReturnLogoutPageUriWhenSessionExists() {
 
+        UserState userState = new UserState.DeveloperUserState();
         AuthenticationConfigurationPropertiesStrategy authStrategyMock = Mockito.mock(
             AuthenticationConfigurationPropertiesStrategy.class);
 
@@ -171,6 +183,7 @@ class AuthenticationServiceTest {
 
         when(authStrategyMock.getLogoutUri(anyString(), any()))
             .thenReturn(DUMMY_LOGOUT_URI);
+        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(userState);
 
         URI uri = authenticationService.logout(DUMMY_ID_TOKEN, null);
 

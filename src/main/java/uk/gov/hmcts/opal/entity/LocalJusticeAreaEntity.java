@@ -10,17 +10,21 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
+import java.time.LocalDateTime;
 
 @Data
 @Entity
 @EqualsAndHashCode(callSuper = true)
 @Table(name = "local_justice_areas")
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -33,5 +37,18 @@ public class LocalJusticeAreaEntity extends AddressEntity {
         allocationSize = 1)
     @Column(name = "local_justice_area_id", nullable = false)
     private Short localJusticeAreaId;
+
+    @Column(name = "lja_code", length = 4)
+    private String ljaCode;
+
+    @Column(name = "address_line_4", length = 35)
+    private String addressLine4;
+
+    @Column(name = "address_line_5", length = 35)
+    private String addressLine5;
+
+    @Column(name = "end_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime endDate;
 
 }

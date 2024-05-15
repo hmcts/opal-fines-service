@@ -18,10 +18,12 @@ import uk.gov.hmcts.opal.repository.UserRepository;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -76,7 +78,7 @@ class UserServiceTest {
     @Test
     void testGetUserStateByUsername() {
         // Arrange
-        UserEntity userEntity = UserEntity.builder().userId("UID_001").username("John Smith").build();
+        UserEntity userEntity = UserEntity.builder().userId(123L).username("John Smith").build();
         when(userRepository.findByUsername(any())).thenReturn(userEntity);
         when(businessUnitUserService.getAuthorisationRolesByUserId(any())).thenReturn(Collections.emptySet());
 
@@ -85,7 +87,7 @@ class UserServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals("UID_001", result.getUserId());
+        assertEquals(123L, result.getUserId());
         assertEquals("John Smith", result.getUserName());
 
     }
@@ -93,16 +95,18 @@ class UserServiceTest {
     @Test
     void testGetLimitedUserStateByUsername() {
         // Arrange
-        UserEntity userEntity = UserEntity.builder().userId("UID_001").username("John Smith").build();
+        UserEntity userEntity = UserEntity.builder().userId(123L).username("John Smith").build();
         when(userRepository.findByUsername(any())).thenReturn(userEntity);
 
         // Act
-        UserState result = userService.getLimitedUserStateByUsername("");
+        Optional<UserState> result = userService.getLimitedUserStateByUsername("");
+        // UserState result = userService.getLimitedUserStateByUsername("");
 
         // Assert
         assertNotNull(result);
-        assertEquals("UID_001", result.getUserId());
-        assertEquals("John Smith", result.getUserName());
+        assertTrue(result.isPresent());
+        assertEquals(123L, result.get().getUserId());
+        assertEquals("John Smith", result.get().getUserName());
 
     }
 }

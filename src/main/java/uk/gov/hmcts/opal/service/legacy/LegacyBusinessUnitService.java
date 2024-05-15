@@ -26,7 +26,7 @@ public class LegacyBusinessUnitService extends LegacyService implements Business
     }
 
     @Override
-    public BusinessUnitEntity getBusinessUnit(long businessUnitId) {
+    public BusinessUnitEntity getBusinessUnit(short businessUnitId) {
         throw new LegacyGatewayResponseException("Not Yet Implemented");
     }
 

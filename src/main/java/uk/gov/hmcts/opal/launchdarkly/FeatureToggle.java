@@ -36,4 +36,19 @@ public @interface FeatureToggle {
      * @return boolean value
      */
     boolean value() default true;
+
+    /**
+     * Indicates the default boolean value of feature toggle in case of failure to fetch the value from launchdarkly.
+     *
+     * @return boolean value
+     */
+    boolean defaultValue() default true;
+
+    /**
+     * Indicates the default Exception to throw when the feature is not enabled.
+     *
+     * @return boolean value
+     */
+    Class<? extends Throwable> throwException() default FeatureDisabledException.class;
+
 }

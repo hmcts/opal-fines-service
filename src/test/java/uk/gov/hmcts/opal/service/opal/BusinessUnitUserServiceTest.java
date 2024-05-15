@@ -88,7 +88,7 @@ class BusinessUnitUserServiceTest {
         when(userEntitlementService.getPermissionsByBusinessUnitUserId(any())).thenReturn(Collections.emptySet());
 
         // Act
-        Set<Role> result = businessUnitUserService.getAuthorisationRolesByUserId("");
+        Set<Role> result = businessUnitUserService.getAuthorisationRolesByUserId(0L);
 
         // Assert
         assertNotNull(result);
@@ -106,7 +106,7 @@ class BusinessUnitUserServiceTest {
         when(businessUnitUserRepository.findAllByUser_UserId(any())).thenReturn(list);
 
         // Act
-        Set<Role> result = businessUnitUserService.getLimitedRolesByUserId("");
+        Set<Role> result = businessUnitUserService.getLimitedRolesByUserId(0L);
 
         // Assert
         assertNotNull(result);

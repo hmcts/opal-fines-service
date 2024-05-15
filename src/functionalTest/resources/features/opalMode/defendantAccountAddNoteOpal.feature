@@ -1,17 +1,20 @@
 @PO-139 @PO-138 @Opal
 Feature: Test the add note endpoint for Opal
-
   Scenario: assert add note response is valid for opal route
+    Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the defendant account add notes api with
       | associatedRecordId | 500000000              |
+      | businessUnitId     | 17                     |
       | noteText           | test account note Opal |
     Then the add notes response contains
       | associatedRecordId | 500000000              |
       | noteText           | test account note Opal |
 
   Scenario: latest added note response is returned in ac details request
+    Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the defendant account add notes api with
       | associatedRecordId | 500000001               |
+      | businessUnitId     | 17                     |
       | noteText           | test account note2 Opal |
     And the add notes response contains
       | associatedRecordId | 500000001               |

@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
@@ -12,16 +11,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.authorisation.model.Role;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
@@ -33,6 +34,7 @@ import java.util.List;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredRole;
 
 @RestController
 @RequestMapping("/api/defendant-account")
@@ -61,14 +63,15 @@ public class DefendantAccountController {
     @Operation(summary = "Searches for a defendant account in the Opal DB")
     public ResponseEntity<DefendantAccountEntity> getDefendantAccount(
         @RequestParam(name = "businessUnitId") Short businessUnitId,
-        @RequestParam(name = "accountNumber") String accountNumber) {
+        @RequestParam(name = "accountNumber") String accountNumber,
+        @RequestHeader("Authorization") String authHeaderValue) {
 
-        AccountEnquiryDto request = AccountEnquiryDto.builder()
+        AccountEnquiryDto enquiryDto = AccountEnquiryDto.builder()
             .businessUnitId(businessUnitId)
             .accountNumber(accountNumber)
             .build();
 
-        DefendantAccountEntity response = defendantAccountService.getDefendantAccount(request);
+        DefendantAccountEntity response = defendantAccountService.getDefendantAccount(enquiryDto);
 
         return buildResponse(response);
     }
@@ -76,7 +79,8 @@ public class DefendantAccountController {
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Updates defendant account information")
     public ResponseEntity<DefendantAccountEntity> putDefendantAccount(
-        @RequestBody DefendantAccountEntity defendantAccountEntity) {
+        @RequestBody DefendantAccountEntity defendantAccountEntity,
+        @RequestHeader("Authorization") String authHeaderValue) {
 
         DefendantAccountEntity response = defendantAccountService.putDefendantAccount(defendantAccountEntity);
 
@@ -85,7 +89,8 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/{defendantAccountId}")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
-    public ResponseEntity<AccountDetailsDto> getAccountDetails(@PathVariable Long defendantAccountId) {
+    public ResponseEntity<AccountDetailsDto> getAccountDetails(@PathVariable Long defendantAccountId,
+                                                               @RequestHeader("Authorization") String authHeaderValue) {
 
         AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(defendantAccountId);
 
@@ -95,7 +100,8 @@ public class DefendantAccountController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
     public ResponseEntity<AccountSearchResultsDto> postDefendantAccountSearch(
-        @RequestBody AccountSearchDto accountSearchDto) {
+        @RequestBody AccountSearchDto accountSearchDto,
+        @RequestHeader("Authorization") String authHeaderValue) {
         log.info(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
         AccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
@@ -106,18 +112,21 @@ public class DefendantAccountController {
     @PostMapping(value = "/addNote", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Adds a single note associated with the defendant account")
     public ResponseEntity<NoteDto> addNote(
-        @RequestBody AddNoteDto addNote, HttpServletRequest request) {
+        @RequestBody AddNoteDto addNote,
+        @RequestHeader("Authorization") String authHeaderValue) {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
-        UserState userState = userStateService.getUserStateUsingServletRequest(request);
+        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
+        Role role = getRequiredRole(userState, addNote.getBusinessUnitId());
 
         NoteDto noteDto = NoteDto.builder()
             .associatedRecordId(addNote.getAssociatedRecordId())
             .noteText(addNote.getNoteText())
             .associatedRecordType(NOTE_ASSOC_REC_TYPE)
             .noteType("AA") // TODO - This will probably need to part of the AddNoteDto in future
-            .postedBy(userState.getFirstRoleBusinessUserId().orElse(userState.getUserName())) // TODO - always first?
-            .postedByAAD(userState.getUserId())
+            .businessUnitId(addNote.getBusinessUnitId())
+            .postedBy(role.getBusinessUserId())
+            .postedByUserId(userState.getUserId())
             .postedDate(LocalDateTime.now())
             .build();
 
@@ -131,7 +140,9 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/notes/{defendantId}")
     @Operation(summary = "Returns all notes for an associated defendant account id.")
-    public ResponseEntity<List<NoteDto>> getNotesForDefendantAccount(@PathVariable String defendantId) {
+    public ResponseEntity<List<NoteDto>> getNotesForDefendantAccount(
+        @PathVariable String defendantId,
+        @RequestHeader("Authorization") String authHeaderValue) {
 
         log.info(":GET:getNotesForDefendantAccount: defendant account id: {}", defendantId);
 

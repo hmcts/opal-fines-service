@@ -44,13 +44,12 @@ class LegacyDocumentServiceTest extends LegacyTestsBase {
     @Test
     void testSearchDocuments() {
         // Arrange
-
-        DocumentEntity documentEntity = DocumentEntity.builder().build();
+        DocumentSearchDto criteria = DocumentSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyDocumentService.searchDocuments(DocumentSearchDto.builder().build())
+            () -> legacyDocumentService.searchDocuments(criteria)
         );
 
         // Assert

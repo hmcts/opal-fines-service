@@ -8,51 +8,59 @@ import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity_;
 
+import java.util.Optional;
+
 public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
 
     public Specification<BusinessUnitEntity> findBySearchCriteria(BusinessUnitSearchDto criteria) {
         return Specification.allOf(specificationList(
-            notBlank(criteria.getBusinessUnitId()).map(BusinessUnitSpecs::equalsBusinessUnitId),
-            notBlank(criteria.getBusinessUnitName()).map(BusinessUnitSpecs::equalsBusinessUnitName),
+            numericShort(criteria.getBusinessUnitId()).map(BusinessUnitSpecs::equalsBusinessUnitId),
+            notBlank(criteria.getBusinessUnitName()).map(BusinessUnitSpecs::likeBusinessUnitName),
             notBlank(criteria.getBusinessUnitCode()).map(BusinessUnitSpecs::likeBusinessUnitCode),
             notBlank(criteria.getBusinessUnitType()).map(BusinessUnitSpecs::likeBusinessUnitType),
             notBlank(criteria.getAccountNumberPrefix()).map(BusinessUnitSpecs::equalsAccountNumberPrefix),
-            notBlank(criteria.getParentBusinessUnitId()).map(BusinessUnitSpecs::equalsParentBusinessUnitId)
+            numericShort(criteria.getParentBusinessUnitId()).map(BusinessUnitSpecs::equalsParentBusinessUnitId)
         ));
     }
 
-    public static Specification<BusinessUnitEntity> equalsBusinessUnitId(String businessUnitId) {
-        return (root, query, builder) -> businessUnitIdPredicate(root, builder, businessUnitId);
+    public Specification<BusinessUnitEntity> referenceDataFilter(Optional<String> filter) {
+        return Specification.allOf(specificationList(
+            filter.filter(s -> !s.isBlank()).map(BusinessUnitSpecs::likeAnyBusinessUnit)
+        ));
     }
 
-    public static Predicate businessUnitIdPredicate(
-        From<?, BusinessUnitEntity> from, CriteriaBuilder builder, String businessUnitId) {
+    public static Specification<BusinessUnitEntity> equalsBusinessUnitId(Short businessUnitId) {
+        return (root, query, builder) -> equalsBusinessUnitIdPredicate(root, builder, businessUnitId);
+    }
+
+    public static Predicate equalsBusinessUnitIdPredicate(
+        From<?, BusinessUnitEntity> from, CriteriaBuilder builder, Short businessUnitId) {
         return builder.equal(from.get(BusinessUnitEntity_.businessUnitId), businessUnitId);
     }
 
-    public static Specification<BusinessUnitEntity> equalsBusinessUnitName(String businessUnitName) {
-        return (root, query, builder) -> businessUnitNamePredicate(root, builder, businessUnitName);
+    public static Specification<BusinessUnitEntity> likeBusinessUnitName(String businessUnitName) {
+        return (root, query, builder) -> likeBusinessUnitNamePredicate(root, builder, businessUnitName);
     }
 
-    public static Predicate businessUnitNamePredicate(
+    public static Predicate likeBusinessUnitNamePredicate(
         From<?, BusinessUnitEntity> from, CriteriaBuilder builder, String businessUnitName) {
         return likeWildcardPredicate(from.get(BusinessUnitEntity_.businessUnitName), builder, businessUnitName);
     }
 
     public static Specification<BusinessUnitEntity> likeBusinessUnitCode(String businessUnitCode) {
-        return (root, query, builder) -> businessUnitCodePredicate(root, builder, businessUnitCode);
+        return (root, query, builder) -> likeBusinessUnitCodePredicate(root, builder, businessUnitCode);
     }
 
-    public static Predicate businessUnitCodePredicate(
+    public static Predicate likeBusinessUnitCodePredicate(
         From<?, BusinessUnitEntity> from, CriteriaBuilder builder, String businessUnitCode) {
         return likeWildcardPredicate(from.get(BusinessUnitEntity_.businessUnitCode), builder, businessUnitCode);
     }
 
     public static Specification<BusinessUnitEntity> likeBusinessUnitType(String businessUnitType) {
-        return (root, query, builder) -> businessUnitTypePredicate(root, builder, businessUnitType);
+        return (root, query, builder) -> likeBusinessUnitTypePredicate(root, builder, businessUnitType);
     }
 
-    public static Predicate businessUnitTypePredicate(
+    public static Predicate likeBusinessUnitTypePredicate(
         From<?, BusinessUnitEntity> from, CriteriaBuilder builder, String businessUnitType) {
         return likeWildcardPredicate(from.get(BusinessUnitEntity_.businessUnitType), builder, businessUnitType);
     }
@@ -62,13 +70,20 @@ public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
                                                        accountNumberPrefix);
     }
 
-    public static Specification<BusinessUnitEntity> equalsParentBusinessUnitId(String parentBusinessUnitId) {
-        return (root, query, builder) -> parentBusinessUnitIdPredicate(root, builder, parentBusinessUnitId);
+    public static Specification<BusinessUnitEntity> equalsParentBusinessUnitId(Short parentBusinessUnitId) {
+        return (root, query, builder) -> equalsParentBusinessUnitIdPredicate(root, builder, parentBusinessUnitId);
     }
 
-    public static Predicate parentBusinessUnitIdPredicate(
-        From<?, BusinessUnitEntity> from, CriteriaBuilder builder, String parentBusinessUnitId) {
+    public static Predicate equalsParentBusinessUnitIdPredicate(
+        From<?, BusinessUnitEntity> from, CriteriaBuilder builder, Short parentBusinessUnitId) {
         return builder.equal(from.get(BusinessUnitEntity_.parentBusinessUnitId), parentBusinessUnitId);
     }
 
+    public static Specification<BusinessUnitEntity> likeAnyBusinessUnit(String filter) {
+        return Specification.anyOf(
+            likeBusinessUnitName(filter),
+            likeBusinessUnitCode(filter),
+            likeBusinessUnitType(filter)
+        );
+    }
 }

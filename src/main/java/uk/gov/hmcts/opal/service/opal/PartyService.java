@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Qualifier("partyService")
 public class PartyService implements PartyServiceInterface {
 
     private final PartyRepository partyRepository;

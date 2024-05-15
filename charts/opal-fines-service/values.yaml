@@ -31,8 +31,17 @@ java:
           alias: OPAL_LEGACY_GATEWAY_USERNAME
         - name: OpalLegacyGatewayPassword
           alias: OPAL_LEGACY_GATEWAY_PASSWORD
+        - name: inbound-user
+          alias: OPAL_SFTP_INBOUND_USER
+        - name: inbound-password
+          alias: OPAL_SFTP_INBOUND_PASSWORD
+        - name: outbound-user
+          alias: OPAL_SFTP_OUTBOUND_USER
+        - name: outbound-password
+          alias: OPAL_SFTP_OUTBOUND_PASSWORD
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: https://opal-frontend.{{ .Values.global.environment }}.platform.hmcts.net
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
+    LAUNCH_DARKLY_ENABLED: true
     OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.{{ .Values.global.environment }}.platform.hmcts.net

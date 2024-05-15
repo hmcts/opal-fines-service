@@ -44,6 +44,18 @@ public class DefendantAccountAddNoteStepDef extends BaseStepDef {
         }
     }
 
+    @Then("the add notes request is forbidden")
+    public void assertAddNotesForbidden() {
+        then().assertThat()
+            .statusCode(403);
+    }
+
+    @Then("the add notes request returns an Internal Server Error")
+    public void assertAddNotesInternalServerError() {
+        then().assertThat()
+            .statusCode(500);
+    }
+
     @Then("the following account note is returned in the ac details request")
     public void theFollowingAccountNoteIsReturnedInTheAcDetailsRequest(DataTable data) {
         Map<String, String> response = data.asMap(String.class, String.class);

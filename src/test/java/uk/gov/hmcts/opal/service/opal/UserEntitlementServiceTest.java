@@ -106,7 +106,7 @@ class UserEntitlementServiceTest {
             .businessUnitUser(BusinessUnitUserEntity.builder()
                                   .businessUnitUserId("BUU_001")
                                   .user(UserEntity.builder()
-                                            .userId("UID_001").username("John Smith").build())
+                                            .userId(123L).username("John Smith").build())
                                   .businessUnit(BusinessUnitEntity.builder()
                                             .businessUnitId((short)101).build())
                                   .build())
@@ -123,7 +123,7 @@ class UserEntitlementServiceTest {
         // Assert
         assertNotNull(result);
         assertTrue(result.isPresent());
-        assertEquals("UID_001", result.get().getUserId());
+        assertEquals(123L, result.get().getUserId());
         assertEquals("John Smith", result.get().getUserName());
 
     }

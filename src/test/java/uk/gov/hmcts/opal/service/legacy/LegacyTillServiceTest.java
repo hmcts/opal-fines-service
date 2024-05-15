@@ -44,13 +44,12 @@ class LegacyTillServiceTest extends LegacyTestsBase {
     @Test
     void testSearchTills() {
         // Arrange
-
-        TillEntity tillEntity = TillEntity.builder().build();
+        TillSearchDto criteria = TillSearchDto.builder().build();
 
         // Act
         LegacyGatewayResponseException exception = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyTillService.searchTills(TillSearchDto.builder().build())
+            () -> legacyTillService.searchTills(criteria)
         );
 
         // Assert

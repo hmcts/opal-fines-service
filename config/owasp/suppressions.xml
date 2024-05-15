@@ -6,6 +6,11 @@
 
   <!--Please add Temporary suppression here-->
 
+  <suppress>
+    <notes>Disputed</notes>
+    <cve>CVE-2023-39017</cve>
+    <cve>CVE-2023-48795</cve>
+  </suppress>
 
   <!--End of Temporary suppression section -->
 

@@ -12,7 +12,7 @@ public class UserSpecs extends EntitySpecs<UserEntity> {
 
     public Specification<UserEntity> findBySearchCriteria(UserSearchDto criteria) {
         return Specification.allOf(specificationList(
-            notBlank(criteria.getUserId()).map(UserSpecs::likeUserId),
+            numericLong(criteria.getUserId()).map(UserSpecs::equalsUserId),
             notBlank(criteria.getUsername()).map(UserSpecs::likeUsername),
             notBlank(criteria.getDescription()).map(UserSpecs::likeUserDescription)
         ));
@@ -20,46 +20,33 @@ public class UserSpecs extends EntitySpecs<UserEntity> {
 
     public Specification<UserEntity> findByUserIdOrName(String userIdOrName) {
         return Specification.allOf(specificationList(
-            notBlank(userIdOrName).map(UserSpecs::equalsUserId),
-            notBlank(userIdOrName).map(UserSpecs::equalsUsername)
+            numericLong(userIdOrName).map(UserSpecs::equalsUserId),
+            notBlank(userIdOrName).map(UserSpecs::likeUsername)
         ));
     }
 
-    public static Specification<UserEntity> equalsUserId(String userId) {
-        return (root, query, builder) -> builder.equal(root.get(UserEntity_.userId), userId);
+    public static Specification<UserEntity> equalsUserId(Long userId) {
+        return (root, query, builder) -> equalsUserIdPredicate(root, builder, userId);
     }
 
-    public static Specification<UserEntity> likeUserId(String userId) {
-        return (root, query, builder) -> userIdPredicate(root, builder, userId);
-    }
-
-    public static Predicate userIdPredicate(From<?, UserEntity> from, CriteriaBuilder builder, String userId) {
-        return likeWildcardPredicate(from.get(UserEntity_.userId), builder, userId);
-    }
-
-    public static Specification<UserEntity> equalsUsername(String username) {
-        return (root, query, builder) -> equalsUsernamePredicate(root, builder, username);
-    }
-
-    public static Predicate equalsUsernamePredicate(From<?, UserEntity> from, CriteriaBuilder builder,
-                                                    String username) {
-        return builder.equal(from.get(UserEntity_.username), username);
+    public static Predicate equalsUserIdPredicate(From<?, UserEntity> from, CriteriaBuilder builder, Long userId) {
+        return builder.equal(from.get(UserEntity_.userId), userId);
     }
 
     public static Specification<UserEntity> likeUsername(String username) {
-        return (root, query, builder) -> usernamePredicate(root, builder, username);
+        return (root, query, builder) -> likeUsernamePredicate(root, builder, username);
     }
 
-    public static Predicate usernamePredicate(From<?, UserEntity> from, CriteriaBuilder builder, String username) {
+    public static Predicate likeUsernamePredicate(From<?, UserEntity> from, CriteriaBuilder builder, String username) {
         return likeWildcardPredicate(from.get(UserEntity_.username), builder, username);
     }
 
     public static Specification<UserEntity> likeUserDescription(String description) {
-        return (root, query, builder) -> userDescriptionPredicate(root, builder, description);
+        return (root, query, builder) -> likeUserDescriptionPredicate(root, builder, description);
     }
 
-    public static Predicate userDescriptionPredicate(From<?, UserEntity> from,
-                                                     CriteriaBuilder builder, String description) {
+    public static Predicate likeUserDescriptionPredicate(From<?, UserEntity> from,
+                                                         CriteriaBuilder builder, String description) {
         return likeWildcardPredicate(from.get(UserEntity_.description), builder, description);
     }
 }

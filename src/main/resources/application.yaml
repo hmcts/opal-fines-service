@@ -66,6 +66,7 @@ spring:
   jpa:
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           lob:
             # silence the 'wall-of-text' - unnecessary exception throw about blob types
@@ -91,8 +92,44 @@ launchdarkly:
   sdk-key: ${LAUNCH_DARKLY_SDK_KEY:}
   offline-mode: ${LAUNCH_DARKLY_OFFLINE_MODE:false}
   env: ${LAUNCH_DARKLY_ENV:default}
+  enabled: ${LAUNCH_DARKLY_ENABLED:true}
+
+quartzProperties:
+  org.quartz:
+    scheduler:
+      instanceId: AUTO
+    jobStore:
+      isClustered: true
+      class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
+      driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      dataSource: dataSource
+      clusterCheckinInterval: 2000
+      misfireThreshold: 60000
+    threadPool:
+      class: org.quartz.simpl.SimpleThreadPool
+      threadCount: 8
 
 opal:
+  sftp:
+    inbound:
+      host: ${OPAL_SFTP_INBOUND_HOST:opalsftpstg.blob.core.windows.net}
+      port: ${OPAL_SFTP_INBOUND_PORT:22}
+      user: ${OPAL_SFTP_INBOUND_USER:-}
+      password: ${OPAL_SFTP_INBOUND_PASSWORD:-}
+      location: ${OPAL_SFTP_INBOUND_LOCATION:inbound}
+      create-sub-locations: ${OPAL_SFTP_INBOUND_CREATE_SUB_LOCATIONS:false}
+    outbound:
+      host: ${OPAL_SFTP_OUTBOUND_HOST:opalsftpstg.blob.core.windows.net}
+      port: ${OPAL_SFTP_OUTBOUND_PORT:22}
+      user: ${OPAL_SFTP_OUTBOUND_USER:-}
+      password: ${OPAL_SFTP_OUTBOUND_PASSWORD:-}
+      location: ${OPAL_SFTP_OUTBOUND_LOCATION:outbound}
+      create-sub-locations: ${OPAL_SFTP_OUTBOUND_CREATE_SUB_LOCATIONS:false}
+  schedule:
+    log-retention-job:
+      cron: ${OPAL_LOG_RETENTION_JOB_CRON:0 0 * * * ?}
+    file-handler-job:
+      cron: ${OPAL_FILE_HANDLER_JOB_CRON:0 0 * * * ?}
   frontend:
       url: ${OPAL_FRONTEND_URL:http://localhost:4200}
   azure:
@@ -102,3 +139,6 @@ opal:
   test-user:
     email: ${OPAL_TEST_USER_EMAIL:opal-test@HMCTS.NET}
     password: ${OPAL_TEST_USER_PASSWORD}
+
+be-developer-config:
+  user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}

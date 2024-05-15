@@ -12,11 +12,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;
+import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 
 import java.util.List;
+import java.util.Optional;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
@@ -29,14 +32,18 @@ public class BusinessUnitController {
 
     private final BusinessUnitServiceInterface businessUnitService;
 
+    private final BusinessUnitService opalBusinessUnitService;
+
     public BusinessUnitController(
-        @Qualifier("businessUnitServiceProxy") BusinessUnitServiceInterface businessUnitService) {
+        @Qualifier("businessUnitService") BusinessUnitServiceInterface businessUnitService,
+        BusinessUnitService opalBusinessUnitService) {
         this.businessUnitService = businessUnitService;
+        this.opalBusinessUnitService = opalBusinessUnitService;
     }
 
     @GetMapping(value = "/{businessUnitId}")
     @Operation(summary = "Returns the BusinessUnit for the given businessUnitId.")
-    public ResponseEntity<BusinessUnitEntity> getBusinessUnitById(@PathVariable Long businessUnitId) {
+    public ResponseEntity<BusinessUnitEntity> getBusinessUnitById(@PathVariable Short businessUnitId) {
 
         log.info(":GET:getBusinessUnitById: businessUnitId: {}", businessUnitId);
 
@@ -56,5 +63,15 @@ public class BusinessUnitController {
         return buildResponse(response);
     }
 
+    @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
+    @Operation(summary = "Returns Business Units as reference data with an optional filter applied")
+    public ResponseEntity<BusinessUnitReferenceDataResults> getBusinessUnitRefData(
+        @PathVariable Optional<String> filter) {
+        log.info(":GET:getBusinessUnitRefData: query: \n{}", filter);
 
+        List<BusinessUnitEntity> refData = opalBusinessUnitService.getReferenceData(filter);
+
+        log.info(":GET:getBusinessUnitRefData: business unit reference data count: {}", refData.size());
+        return ResponseEntity.ok(BusinessUnitReferenceDataResults.builder().refData(refData).build());
+    }
 }

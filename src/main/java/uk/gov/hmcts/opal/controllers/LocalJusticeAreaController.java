@@ -12,11 +12,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.dto.reference.LjaReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.projection.LjaReferenceData;
 import uk.gov.hmcts.opal.service.LocalJusticeAreaServiceInterface;
+import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 
 import java.util.List;
+import java.util.Optional;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
@@ -29,9 +33,13 @@ public class LocalJusticeAreaController {
 
     private final LocalJusticeAreaServiceInterface localJusticeAreaService;
 
+    private final LocalJusticeAreaService opalLocalJusticeAreaService;
+
     public LocalJusticeAreaController(
-        @Qualifier("localJusticeAreaServiceProxy") LocalJusticeAreaServiceInterface localJusticeAreaService) {
+        @Qualifier("localJusticeAreaService") LocalJusticeAreaServiceInterface localJusticeAreaService,
+        LocalJusticeAreaService opalLocalJusticeAreaService) {
         this.localJusticeAreaService = localJusticeAreaService;
+        this.opalLocalJusticeAreaService = opalLocalJusticeAreaService;
     }
 
     @GetMapping(value = "/{localJusticeAreaId}")
@@ -56,5 +64,15 @@ public class LocalJusticeAreaController {
         return buildResponse(response);
     }
 
+    @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
+    @Operation(summary = "Returns Local Justice Area as reference data with an optional filter applied")
+    public ResponseEntity<LjaReferenceDataResults> getLocalJusticeAreaRefData(
+        @PathVariable Optional<String> filter) {
+        log.info(":GET:getLocalJusticeAreaRefData: query: \n{}", filter);
 
+        List<LjaReferenceData> refData = opalLocalJusticeAreaService.getReferenceData(filter);
+
+        log.info(":GET:getLocalJusticeAreaRefData: local justice area reference data count: {}", refData.size());
+        return ResponseEntity.ok(LjaReferenceDataResults.builder().refData(refData).build());
+    }
 }
