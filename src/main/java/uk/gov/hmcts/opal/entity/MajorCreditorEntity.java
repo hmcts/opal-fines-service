@@ -43,4 +43,13 @@ public class MajorCreditorEntity extends AddressEntity {
     @Column(name = "major_creditor_code", length = 4)
     private String majorCreditorCode;
 
+    @Column(name = "contact_name", length = 35)
+    private String contactName;
+
+    @Column(name = "contact_telephone", length = 35)
+    private String contactTelephone;
+
+    @Column(name = "contact_email", length = 80)
+    private String contactEmail;
+
 }
