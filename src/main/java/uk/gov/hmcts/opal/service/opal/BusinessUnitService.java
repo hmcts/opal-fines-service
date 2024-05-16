@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity_;
+import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs;
 import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;
@@ -40,14 +41,15 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
         return page.getContent();
     }
 
-    public List<BusinessUnitEntity> getReferenceData(Optional<String> filter) {
+    public List<BusinessUnitReferenceData> getReferenceData(Optional<String> filter) {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, BusinessUnitEntity_.BUSINESS_UNIT_NAME);
 
-        Page<BusinessUnitEntity> page = businessUnitRepository
+        Page<BusinessUnitReferenceData> page = businessUnitRepository
             .findBy(specs.referenceDataFilter(filter),
                     ffq -> ffq
                         .sortBy(nameSort)
+                        .as(BusinessUnitReferenceData.class)
                         .page(Pageable.unpaged()));
 
         return page.getContent();

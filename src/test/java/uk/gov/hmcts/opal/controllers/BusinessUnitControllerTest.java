@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 
 import java.util.List;
@@ -67,8 +68,8 @@ class BusinessUnitControllerTest {
     @Test
     void testGetBusinessUnitsRefData_Success() {
         // Arrange
-        BusinessUnitEntity entity = BusinessUnitEntity.builder().build();
-        List<BusinessUnitEntity> businessUnitList = List.of(entity);
+        BusinessUnitReferenceData entity = createBusinessUnitReferenceData();
+        List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
 
@@ -83,5 +84,40 @@ class BusinessUnitControllerTest {
         assertEquals(1, refDataResults.getCount());
         assertEquals(businessUnitList, refDataResults.getRefData());
         verify(businessUnitService, times(1)).getReferenceData(any());
+    }
+
+    private BusinessUnitReferenceData createBusinessUnitReferenceData() {
+        return new BusinessUnitReferenceData() {
+            @Override
+            public Short getBusinessUnitId() {
+                return (short)1;
+            }
+
+            @Override
+            public String getBusinessUnitName() {
+                return "Main BU";
+            }
+
+            @Override
+            public String getBusinessUnitCode() {
+                return "MNBU";
+            }
+
+            @Override
+            public String getBusinessUnitType() {
+                return "Big";
+            }
+
+            @Override
+            public String getAccountNumberPrefix() {
+                return "Prefix";
+            }
+
+            @Override
+            public String getOpalDomain() {
+                return "Domain";
+            }
+        };
+
     }
 }

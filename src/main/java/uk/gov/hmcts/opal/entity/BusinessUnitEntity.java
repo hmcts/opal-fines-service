@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,6 +40,11 @@ public class BusinessUnitEntity {
     @Column(name = "account_number_prefix", length = 2)
     private String accountNumberPrefix;
 
-    @Column(name = "parent_business_unit_id")
-    private Short parentBusinessUnitId;
+    @ManyToOne
+    @JoinColumn(name = "parent_business_unit_id")
+    private BusinessUnitEntity parentBusinessUnit;
+
+    @Column(name = "opal_domain", length = 30)
+    private String opalDomain;
+
 }
