@@ -15,6 +15,7 @@ import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 public class Offences extends BaseStepDef {
 
     static Logger log = LoggerFactory.getLogger(Offences.class.getName());
+
     @When("I make a request to the offence ref data api with")
     public void getRequestToOffencesRefData() {
         SerenityRest
@@ -34,7 +35,7 @@ public class Offences extends BaseStepDef {
         int totalCount = then().extract().jsonPath().getInt("count");
         int refDataList = then().extract().jsonPath().getList("refData").size();
         log.info("total count is : " + totalCount);
-        log.info("Total records in the json response" +refDataList);
+        log.info("Total records in the json response" + refDataList);
         then().assertThat()
             .statusCode(200)
             .body("count", Matchers.equalTo(refDataList));
