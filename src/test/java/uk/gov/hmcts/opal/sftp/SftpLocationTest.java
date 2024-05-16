@@ -15,7 +15,7 @@ class SftpLocationTest {
     @Test
     void testGetInboundLocations() {
         List<SftpLocation> inboundLocations = SftpLocation.getInboundLocations();
-        assertEquals(5, inboundLocations.size());
+        assertEquals(15, inboundLocations.size());
     }
 
     @Test
@@ -27,6 +27,6 @@ class SftpLocationTest {
     @Test
     void testGetLocations() {
         List<SftpLocation> locations = SftpLocation.getLocations(INBOUND);
-        assertEquals(5, locations.size());
+        assertEquals(15, locations.size());
     }
 }
