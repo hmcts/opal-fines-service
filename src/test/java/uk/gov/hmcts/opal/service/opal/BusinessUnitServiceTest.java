@@ -13,6 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 
 import java.util.List;
@@ -75,6 +76,7 @@ class BusinessUnitServiceTest {
     void testBusinessUnitsReferenceData() {
         // Arrange
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        when(ffq.as(any())).thenReturn(ffq);
         when(ffq.sortBy(any())).thenReturn(ffq);
 
         BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder().build();
@@ -85,7 +87,7 @@ class BusinessUnitServiceTest {
         });
 
         // Act
-        List<BusinessUnitEntity> result = businessUnitService.getReferenceData(Optional.empty());
+        List<BusinessUnitReferenceData> result = businessUnitService.getReferenceData(Optional.empty());
 
         // Assert
         assertEquals(List.of(businessUnitEntity), result);

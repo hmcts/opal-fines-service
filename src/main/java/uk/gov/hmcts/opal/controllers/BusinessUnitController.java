@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 
@@ -69,7 +70,7 @@ public class BusinessUnitController {
         @PathVariable Optional<String> filter) {
         log.info(":GET:getBusinessUnitRefData: query: \n{}", filter);
 
-        List<BusinessUnitEntity> refData = opalBusinessUnitService.getReferenceData(filter);
+        List<BusinessUnitReferenceData> refData = opalBusinessUnitService.getReferenceData(filter);
 
         log.info(":GET:getBusinessUnitRefData: business unit reference data count: {}", refData.size());
         return ResponseEntity.ok(BusinessUnitReferenceDataResults.builder().refData(refData).build());

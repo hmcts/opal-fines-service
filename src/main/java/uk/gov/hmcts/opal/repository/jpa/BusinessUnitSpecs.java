@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.repository.jpa;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
@@ -76,8 +77,9 @@ public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
 
     public static Predicate equalsParentBusinessUnitIdPredicate(
         From<?, BusinessUnitEntity> from, CriteriaBuilder builder, Short parentBusinessUnitId) {
-        return builder.equal(from.get(BusinessUnitEntity_.parentBusinessUnitId), parentBusinessUnitId);
+        return equalsBusinessUnitIdPredicate(joinParentBusinessUnit(from), builder, parentBusinessUnitId);
     }
+
 
     public static Specification<BusinessUnitEntity> likeAnyBusinessUnit(String filter) {
         return Specification.anyOf(
@@ -85,5 +87,10 @@ public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
             likeBusinessUnitCode(filter),
             likeBusinessUnitType(filter)
         );
+    }
+
+    public static Join<BusinessUnitEntity, BusinessUnitEntity> joinParentBusinessUnit(
+        From<?, BusinessUnitEntity> from) {
+        return from.join(BusinessUnitEntity_.parentBusinessUnit);
     }
 }

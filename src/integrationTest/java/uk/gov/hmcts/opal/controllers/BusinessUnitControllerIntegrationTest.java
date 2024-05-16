@@ -49,7 +49,7 @@ class BusinessUnitControllerIntegrationTest {
             .andExpect(jsonPath("$.businessUnitCode").value("AAAA"))
             .andExpect(jsonPath("$.businessUnitType").value("LARGE UNIT"))
             .andExpect(jsonPath("$.accountNumberPrefix").value("XX"))
-            .andExpect(jsonPath("$.parentBusinessUnitId").value(99));
+            .andExpect(jsonPath("$.parentBusinessUnit.businessUnitId").value(99));
     }
 
 
@@ -78,7 +78,7 @@ class BusinessUnitControllerIntegrationTest {
             .andExpect(jsonPath("$[0].businessUnitCode").value("AAAA"))
             .andExpect(jsonPath("$[0].businessUnitType").value("LARGE UNIT"))
             .andExpect(jsonPath("$[0].accountNumberPrefix").value("XX"))
-            .andExpect(jsonPath("$[0].parentBusinessUnitId").value(99));
+            .andExpect(jsonPath("$[0].parentBusinessUnit.businessUnitId").value(99));
     }
 
     @Test
@@ -96,7 +96,7 @@ class BusinessUnitControllerIntegrationTest {
             .businessUnitCode("AAAA")
             .businessUnitType("LARGE UNIT")
             .accountNumberPrefix("XX")
-            .parentBusinessUnitId((short)99)
+            .parentBusinessUnit(BusinessUnitEntity.builder().businessUnitId((short)99).build())
             .build();
     }
 }
