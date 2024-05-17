@@ -16,15 +16,15 @@ public class Offences extends BaseStepDef {
 
     static Logger log = LoggerFactory.getLogger(Offences.class.getName());
 
-    @When("I make a request to the offence ref data api with")
-    public void getRequestToOffencesRefData() {
+    @When("I make a request to the offence ref data api filtering by cjs code {string}")
+    public void getRequestToOffencesRefData(String filter) {
         SerenityRest
             .given()
             .accept("*/*")
             .header("Authorization", "Bearer " + getToken())
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + OFFENCES_REF_DATA_URI);
+            .get(getTestUrl() + OFFENCES_REF_DATA_URI + filter);
 
     }
 
