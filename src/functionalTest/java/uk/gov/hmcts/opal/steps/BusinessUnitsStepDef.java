@@ -15,16 +15,16 @@ public class BusinessUnitsStepDef extends BaseStepDef {
 
     static Logger log = LoggerFactory.getLogger(BusinessUnitsStepDef.class.getName());
 
-    @When("I make a request to the business unit ref data api")
-    public void getRequestToBusinessUnitRefData() {
+    @When("I make a request to the business unit ref data api filtering by business unit type {string}")
+    public void getRequestToBusinessUnitRefData(String filter) {
+
         SerenityRest
             .given()
             .accept("*/*")
             .header("Authorization", "Bearer " + getToken())
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + BUSINESS_UNIT_REF_DATA_URI)
-            .then().log().all();
+            .get(getTestUrl() + BUSINESS_UNIT_REF_DATA_URI + filter);
 
     }
 
@@ -38,4 +38,5 @@ public class BusinessUnitsStepDef extends BaseStepDef {
             .statusCode(200)
             .body("count", Matchers.equalTo(refDataList));
     }
+
 }
