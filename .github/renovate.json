@@ -3,5 +3,11 @@
   "extends": [
     "local>hmcts/.github:renovate-config",
     "local>hmcts/.github//renovate/automerge-all"
+  ],
+    "packageRules": [
+    {
+      "matchPackageNames": ["net.serenity-bdd.serenity-gradle-plugin"],
+      "allowedVersions": "4.0.46"
+    }
   ]
 }
