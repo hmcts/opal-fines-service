@@ -8,6 +8,8 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import lombok.SneakyThrows;
+import org.apache.http.client.utils.URIBuilder;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,15 +58,29 @@ class AuthenticationInternalUserControllerTest {
     private AccessTokenService accessTokenService;
 
     @Test
+    @SneakyThrows
     void loginAndRefreshShouldReturnLoginPageAsRedirectWhenAuthHeaderIsNotSet() {
-        when(authenticationService.loginOrRefresh(null, null))
-            .thenReturn(DUMMY_AUTHORIZATION_URI);
+        when(authenticationService.getLoginUri(anyString()))
+            .thenReturn(new URIBuilder("/azure-login").build());
 
-        ModelAndView modelAndView = controller.loginOrRefresh(null, null);
+        ModelAndView modelAndView = controller.loginOrRefresh(null, "/azure-login");
 
         assertNotNull(modelAndView);
-        assertEquals("redirect:https://www.example.com/authorization?param=value", modelAndView.getViewName());
+        assertEquals("redirect:/azure-login", modelAndView.getViewName());
     }
+
+    @Test
+    @SneakyThrows
+    void loginAndRefreshShouldReturnPageAsRedirectWhenAuthHeaderIsNotSet() {
+        when(authenticationService.loginOrRefresh(DUMMY_TOKEN, null))
+            .thenReturn(DUMMY_AUTHORIZATION_URI);
+
+        ModelAndView modelAndView = controller.loginOrRefresh(DUMMY_TOKEN, null);
+
+        assertNotNull(modelAndView);
+        assertEquals("redirect:" + DUMMY_AUTHORIZATION_URI, modelAndView.getViewName());
+    }
+
 
     @Nested
     class HandleOauthCode {

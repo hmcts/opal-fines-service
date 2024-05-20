@@ -38,6 +38,7 @@ public class AuthenticationService {
         log.debug("Initiated login or refresh flow with access token {}", accessToken);
 
         AuthenticationConfigurationPropertiesStrategy configStrategy = locator.locateAuthenticationConfiguration();
+
         if (accessToken == null) {
             return configStrategy.getLoginUri(redirectUri);
         }
@@ -55,6 +56,10 @@ public class AuthenticationService {
         writeAuditLog(accessToken, LogActions.LOG_IN);
 
         return configStrategy.getLandingPageUri();
+    }
+
+    public URI getLoginUri(String redirectUri) {
+        return locator.locateAuthenticationConfiguration().getLoginUri(redirectUri);
     }
 
     public String handleOauthCode(String code) {

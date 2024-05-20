@@ -37,13 +37,16 @@ public class AuthenticationInternalUserController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestParam(value = "redirect_uri", required = false) String redirectUri
     ) {
-        log.info("Login attempt received.");
-        String accessToken = null;
         if (authHeaderValue != null) {
-            accessToken = authHeaderValue.replace("Bearer ", "");
+            log.info("Login attempt received with token {}", authHeaderValue);
+            String accessToken = authHeaderValue.replace("Bearer ", "");
+            URI url = authenticationService.loginOrRefresh(accessToken, redirectUri);
+            return new ModelAndView("redirect:" + url.toString());
+        } else {
+            log.info("Login attempt received without any token.");
+            URI loginUri = authenticationService.getLoginUri(redirectUri);
+            return new ModelAndView("redirect:" + loginUri.toString());
         }
-        URI url = authenticationService.loginOrRefresh(accessToken, redirectUri);
-        return new ModelAndView("redirect:" + url.toString());
     }
 
     @PostMapping("/handle-oauth-code")

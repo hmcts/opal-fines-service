@@ -51,6 +51,7 @@ class AuthenticationInternalUserControllerTest {
     void testLoginOrRefresh() throws Exception {
         String redirectUri = "http://example.com/redirect";
         when(authenticationService.loginOrRefresh(any(), any())).thenReturn(new URI(redirectUri));
+        when(authenticationService.getLoginUri(any())).thenReturn(new URI(redirectUri));
 
         mockMvc.perform(get("/internal-user/login-or-refresh")
                             .param("redirect_uri", redirectUri))
