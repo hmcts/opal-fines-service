@@ -6,6 +6,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddLogAuditDetailDto;
 import uk.gov.hmcts.opal.service.opal.LogAuditDetailService;
@@ -23,13 +24,12 @@ public class LogAuditDetailsAspect {
     public Object writeLogAuditDetail(ProceedingJoinPoint joinPoint,
                                       LogAuditDetail logAuditDetail
     ) throws Throwable {
-        writeAuditLog(joinPoint, logAuditDetail);
+        writeAuditLog(joinPoint.getArgs(), logAuditDetail);
         return joinPoint.proceed();
     }
 
-    private void writeAuditLog(ProceedingJoinPoint joinPoint, LogAuditDetail logAuditDetail) {
+    public void writeAuditLog(Object[] args, LogAuditDetail logAuditDetail) {
         try {
-            Object[] args = joinPoint.getArgs();
             UserState userState = userStateAspectService.getUserState(args);
 
             AddLogAuditDetailDto logAuditDetailDto = AddLogAuditDetailDto.builder()
@@ -39,8 +39,10 @@ public class LogAuditDetailsAspect {
                 .build();
 
             logAuditDetailService.writeLogAuditDetail(logAuditDetailDto);
+        } catch (MissingRequestHeaderException exception) {
+            log.warn("Can't log action {} details as missing JWT token in auth header", logAuditDetail.action());
         } catch (Exception exception) {
-            log.error("Error writing audit log action::", exception);
+            log.error("Error writing audit log action:: {}", logAuditDetail.action(), exception);
         }
     }
 

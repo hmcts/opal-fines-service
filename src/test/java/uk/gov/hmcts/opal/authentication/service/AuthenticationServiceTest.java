@@ -1,11 +1,14 @@
 package uk.gov.hmcts.opal.authentication.service;
 
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.authentication.aspect.LogAuditDetail;
 import uk.gov.hmcts.opal.authentication.config.AuthStrategySelector;
 import uk.gov.hmcts.opal.authentication.config.AuthenticationConfigurationPropertiesStrategy;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
@@ -15,15 +18,15 @@ import uk.gov.hmcts.opal.authentication.dao.AzureDao;
 import uk.gov.hmcts.opal.authentication.exception.AzureDaoException;
 import uk.gov.hmcts.opal.authentication.model.JwtValidationResult;
 import uk.gov.hmcts.opal.authentication.model.OAuthProviderRawResponse;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.authorisation.model.LogActions;
 import uk.gov.hmcts.opal.exception.OpalApiException;
-import uk.gov.hmcts.opal.service.opal.LogAuditDetailService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
 
+import java.lang.reflect.Method;
 import java.net.URI;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.notNull;
@@ -52,12 +55,6 @@ class AuthenticationServiceTest {
 
     @Mock
     private InternalAuthConfigurationProperties internalAuthConfigurationProperties;
-
-    @Mock
-    private LogAuditDetailService logAuditDetailService;
-
-    @Mock
-    private UserStateService userStateService;
 
     @Test
     void loginOrRefreshShouldReturnAuthUriWhenNoAuthHeaderExists() {
@@ -98,7 +95,6 @@ class AuthenticationServiceTest {
     @Test
     void loginOrRefreshShouldReturnLandingPageUriWhenValidAccessTokenExists() {
 
-        UserState userState = new UserState.DeveloperUserState();
         AuthenticationConfigurationPropertiesStrategy authStrategyMock = Mockito.mock(
             AuthenticationConfigurationPropertiesStrategy.class);
         when(uriProvider.locateAuthenticationConfiguration()).thenReturn(authStrategyMock);
@@ -111,7 +107,6 @@ class AuthenticationServiceTest {
             authStrategyMock.getConfiguration()
         ))
             .thenReturn(new JwtValidationResult(true, null));
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(userState);
 
         URI uri = authenticationService.loginOrRefresh(DUMMY_ID_TOKEN, null);
 
@@ -175,7 +170,6 @@ class AuthenticationServiceTest {
     @Test
     void logoutShouldReturnLogoutPageUriWhenSessionExists() {
 
-        UserState userState = new UserState.DeveloperUserState();
         AuthenticationConfigurationPropertiesStrategy authStrategyMock = Mockito.mock(
             AuthenticationConfigurationPropertiesStrategy.class);
 
@@ -183,7 +177,6 @@ class AuthenticationServiceTest {
 
         when(authStrategyMock.getLogoutUri(anyString(), any()))
             .thenReturn(DUMMY_LOGOUT_URI);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(userState);
 
         URI uri = authenticationService.logout(DUMMY_ID_TOKEN, null);
 
@@ -204,6 +197,34 @@ class AuthenticationServiceTest {
         URI uri = authenticationService.resetPassword(null);
 
         assertEquals(DUMMY_AUTH_URI, uri);
+    }
+
+    @Nested
+    class LogAuditDetailTests {
+
+        @Test
+        @SneakyThrows
+        public void loginOrRefreshHasLogAuditDetail() {
+
+            Method method = AuthenticationService.class.getMethod("loginOrRefresh", String.class, String.class);
+            LogAuditDetail annotation = method.getAnnotation(LogAuditDetail.class);
+
+            boolean isAnnotated = method.isAnnotationPresent(LogAuditDetail.class);
+            assertTrue(isAnnotated, "loginOrRefresh should be annotated with @LogAuditDetail");
+            assertEquals(LogActions.LOG_IN, annotation.action(), "The value property should be 'LOG_IN'");
+        }
+
+        @Test
+        @SneakyThrows
+        public void logoutHasLogAuditDetail() {
+
+            Method method = AuthenticationService.class.getMethod("logout", String.class, String.class);
+            LogAuditDetail annotation = method.getAnnotation(LogAuditDetail.class);
+
+            boolean isAnnotated = method.isAnnotationPresent(LogAuditDetail.class);
+            assertTrue(isAnnotated, "logout should be annotated with @LogAuditDetail");
+            assertEquals(LogActions.LOG_OUT, annotation.action(), "The value property should be 'LOG_IN'");
+        }
     }
 
 }
