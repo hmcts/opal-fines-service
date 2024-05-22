@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers.develop;
+package uk.gov.hmcts.opal.controllers;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +11,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.ResultEntity;
+import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
 import static java.util.Collections.singletonList;
@@ -40,7 +41,7 @@ class ResultControllerIntegrationTest {
 
         when(resultService.getResult(1L)).thenReturn(resultEntity);
 
-        mockMvc.perform(get("/dev/result/1"))
+        mockMvc.perform(get("/api/result/1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.resultId").value(1))
@@ -73,7 +74,7 @@ class ResultControllerIntegrationTest {
     void testGetResultById_WhenResultDoesNotExist() throws Exception {
         when(resultService.getResult(2L)).thenReturn(null);
 
-        mockMvc.perform(get("/dev/result/2"))
+        mockMvc.perform(get("/api/result/2"))
             .andExpect(status().isNoContent());
     }
 
@@ -83,7 +84,7 @@ class ResultControllerIntegrationTest {
 
         when(resultService.searchResults(any(ResultSearchDto.class))).thenReturn(singletonList(resultEntity));
 
-        mockMvc.perform(post("/dev/result/search")
+        mockMvc.perform(post("/api/result/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -115,10 +116,29 @@ class ResultControllerIntegrationTest {
 
     @Test
     void testPostResultsSearch_WhenResultDoesNotExist() throws Exception {
-        mockMvc.perform(post("/dev/result/search")
+        mockMvc.perform(post("/api/result/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isNoContent());
+    }
+
+
+    @Test
+    void testGetEnforcerRefData() throws Exception {
+        ResultReferenceData refData = new ResultReferenceData("result-id-001", "Result Title",
+                                                              "Result Tittle Cy", "FINAL");
+
+        when(resultService.getReferenceData(any())).thenReturn(singletonList(refData));
+
+        mockMvc.perform(get("/api/result/ref-data")
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.refData[0].resultId").value("result-id-001"))
+            .andExpect(jsonPath("$.refData[0].resultTitle").value("Result Title"))
+            .andExpect(jsonPath("$.refData[0].resultTitleCy").value("Result Tittle Cy"))
+            .andExpect(jsonPath("$.refData[0].resultType").value("FINAL"));
     }
 
     private ResultEntity createResultEntity() {
