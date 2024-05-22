@@ -18,7 +18,9 @@ import uk.gov.hmcts.opal.authentication.dao.AzureDao;
 import uk.gov.hmcts.opal.authentication.exception.AzureDaoException;
 import uk.gov.hmcts.opal.authentication.model.JwtValidationResult;
 import uk.gov.hmcts.opal.authentication.model.OAuthProviderRawResponse;
+import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authorisation.model.LogActions;
+import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 
 import java.lang.reflect.Method;
@@ -30,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.notNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,6 +59,9 @@ class AuthenticationServiceTest {
 
     @Mock
     private InternalAuthConfigurationProperties internalAuthConfigurationProperties;
+
+    @Mock
+    private AuthorisationService authorisationService;
 
     @Test
     void loginOrRefreshShouldReturnAuthUriWhenNoAuthHeaderExists() {
@@ -186,7 +193,6 @@ class AuthenticationServiceTest {
     @Test
     void resetPasswordShouldReturnResetPasswordUri() {
 
-
         AuthenticationConfigurationPropertiesStrategy authStrategyMock = Mockito.mock(
             AuthenticationConfigurationPropertiesStrategy.class);
         when(uriProvider.locateAuthenticationConfiguration()).thenReturn(authStrategyMock);
@@ -199,12 +205,27 @@ class AuthenticationServiceTest {
         assertEquals(DUMMY_AUTH_URI, uri);
     }
 
+    @Test
+    void testGetSecurityToken() {
+        String accessToken = "testAccessToken";
+        SecurityToken expectedToken = SecurityToken.builder()
+            .accessToken(accessToken)
+            .build();
+
+        when(authorisationService.getSecurityToken(accessToken)).thenReturn(expectedToken);
+
+        SecurityToken result = authenticationService.getSecurityToken(accessToken);
+
+        assertEquals(expectedToken, result);
+        verify(authorisationService, times(1)).getSecurityToken(accessToken);
+    }
+
     @Nested
     class LogAuditDetailTests {
 
         @Test
         @SneakyThrows
-        public void loginOrRefreshHasLogAuditDetail() {
+        void loginOrRefreshHasLogAuditDetail() {
 
             Method method = AuthenticationService.class.getMethod("loginOrRefresh", String.class, String.class);
             LogAuditDetail annotation = method.getAnnotation(LogAuditDetail.class);
@@ -216,14 +237,26 @@ class AuthenticationServiceTest {
 
         @Test
         @SneakyThrows
-        public void logoutHasLogAuditDetail() {
+        void logoutHasLogAuditDetail() {
 
             Method method = AuthenticationService.class.getMethod("logout", String.class, String.class);
             LogAuditDetail annotation = method.getAnnotation(LogAuditDetail.class);
 
             boolean isAnnotated = method.isAnnotationPresent(LogAuditDetail.class);
             assertTrue(isAnnotated, "logout should be annotated with @LogAuditDetail");
-            assertEquals(LogActions.LOG_OUT, annotation.action(), "The value property should be 'LOG_IN'");
+            assertEquals(LogActions.LOG_OUT, annotation.action(), "The value property should be 'LOG_OUT'");
+        }
+
+        @Test
+        @SneakyThrows
+        void getSecurityTokenHasLogAuditDetail() {
+
+            Method method = AuthenticationService.class.getMethod("getSecurityToken", String.class);
+            LogAuditDetail annotation = method.getAnnotation(LogAuditDetail.class);
+
+            boolean isAnnotated = method.isAnnotationPresent(LogAuditDetail.class);
+            assertTrue(isAnnotated, "getSecurityToken should be annotated with @LogAuditDetail");
+            assertEquals(LogActions.LOG_IN, annotation.action(), "The value property should be 'LOG_IN'");
         }
     }
 
