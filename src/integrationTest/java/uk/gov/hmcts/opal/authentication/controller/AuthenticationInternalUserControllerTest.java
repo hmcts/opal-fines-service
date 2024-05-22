@@ -63,7 +63,6 @@ class AuthenticationInternalUserControllerTest {
     void testHandleOauthCode() throws Exception {
         when(authenticationService.handleOauthCode(anyString())).thenReturn("accessToken");
 
-        SecurityToken securityToken = SecurityToken.builder().accessToken("accessToken").build();
         when(accessTokenService.extractPreferredUsername(anyString())).thenReturn("username");
         UserState userState = UserState.builder()
             .userName("name")
@@ -78,7 +77,12 @@ class AuthenticationInternalUserControllerTest {
                                       .build()))
                               .build()))
             .build();
-        when(authorisationService.getAuthorisation(anyString())).thenReturn(userState);
+        SecurityToken securityToken = SecurityToken.builder()
+            .userState(userState)
+            .accessToken("accessToken")
+            .build();
+
+        when(authenticationService.getSecurityToken(anyString())).thenReturn(securityToken);
 
         mockMvc.perform(post("/internal-user/handle-oauth-code")
                             .param("code", "code")

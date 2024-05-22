@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.authentication.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.authentication.aspect.AccessTokenParam;
 import uk.gov.hmcts.opal.authentication.aspect.LogAuditDetail;
 import uk.gov.hmcts.opal.authentication.config.AuthStrategySelector;
 import uk.gov.hmcts.opal.authentication.config.AuthenticationConfigurationPropertiesStrategy;
@@ -11,7 +12,9 @@ import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
 import uk.gov.hmcts.opal.authentication.exception.AzureDaoException;
 import uk.gov.hmcts.opal.authentication.model.JwtValidationResult;
 import uk.gov.hmcts.opal.authentication.model.OAuthProviderRawResponse;
+import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authorisation.model.LogActions;
+import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 
 import java.net.URI;
@@ -24,8 +27,8 @@ public class AuthenticationService {
 
     private final TokenValidator tokenValidator;
     private final AzureDao azureDao;
-
     private final AuthStrategySelector locator;
+    private final AuthorisationService authorisationService;
 
     @LogAuditDetail(action = LogActions.LOG_IN)
     public URI loginOrRefresh(String accessToken, String redirectUri) {
@@ -100,5 +103,10 @@ public class AuthenticationService {
 
         log.debug("Requesting password reset, with redirectUri {}", redirectUri);
         return configStrategy.getResetPasswordUri(redirectUri);
+    }
+
+    @LogAuditDetail(action = LogActions.LOG_IN)
+    public SecurityToken getSecurityToken(@AccessTokenParam String accessToken) {
+        return authorisationService.getSecurityToken(accessToken);
     }
 }

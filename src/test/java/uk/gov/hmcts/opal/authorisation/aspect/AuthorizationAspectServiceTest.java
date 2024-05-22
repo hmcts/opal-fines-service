@@ -19,7 +19,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -49,17 +48,6 @@ class AuthorizationAspectServiceTest {
     @Autowired
     private AuthorizationAspectService authorizationAspectService;
 
-    @Nested
-    class GetRequestHeaderValue {
-        @Test
-        void getRequestHeaderValue_WhenNoStringArgumentExists_ReturnsNull() {
-            Object[] args = {123, true, new Object()};
-
-            String headerValue = authorizationAspectService.getRequestHeaderValue(args);
-
-            assertNull(headerValue);
-        }
-    }
 
     @Nested
     class GetAuthorization {

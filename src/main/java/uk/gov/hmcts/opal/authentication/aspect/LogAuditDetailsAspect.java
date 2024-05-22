@@ -20,17 +20,17 @@ public class LogAuditDetailsAspect {
     private final UserStateAspectService userStateAspectService;
     private final LogAuditDetailService logAuditDetailService;
 
-    @Around("execution(* *(*)) && @annotation(logAuditDetail)")
+    @Around("@annotation(logAuditDetail)")
     public Object writeLogAuditDetail(ProceedingJoinPoint joinPoint,
                                       LogAuditDetail logAuditDetail
     ) throws Throwable {
-        writeAuditLog(joinPoint.getArgs(), logAuditDetail);
+        writeAuditLog(joinPoint, logAuditDetail);
         return joinPoint.proceed();
     }
 
-    public void writeAuditLog(Object[] args, LogAuditDetail logAuditDetail) {
+    public void writeAuditLog(ProceedingJoinPoint joinPoint, LogAuditDetail logAuditDetail) {
         try {
-            UserState userState = userStateAspectService.getUserState(args);
+            UserState userState = userStateAspectService.getUserState(joinPoint);
 
             AddLogAuditDetailDto logAuditDetailDto = AddLogAuditDetailDto.builder()
                 .logAction(logAuditDetail.action())
@@ -39,8 +39,9 @@ public class LogAuditDetailsAspect {
                 .build();
 
             logAuditDetailService.writeLogAuditDetail(logAuditDetailDto);
+            log.info("LogAuditDetails logged action {} for user id {}", logAuditDetail.action(), userState.getUserId());
         } catch (MissingRequestHeaderException exception) {
-            log.warn("Can't log action {} details as missing JWT token in auth header", logAuditDetail.action());
+            log.warn("Can't log action {} details as missing JWT access token in parameters", logAuditDetail.action());
         } catch (Exception exception) {
             log.error("Error writing audit log action:: {}", logAuditDetail.action(), exception);
         }

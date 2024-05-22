@@ -103,9 +103,8 @@ class LogAuditDetailsAspectTest {
 
         @Test
         void writeLogAuditDetail_shouldHandleGeneralExceptionGracefully() throws Throwable {
-            when(userStateAspectService.getUserState(args)).thenThrow(new RuntimeException("Test Exception"));
+            when(userStateAspectService.getUserState(joinPoint)).thenThrow(new RuntimeException("Test Exception"));
             when(logAuditDetail.action()).thenReturn(LogActions.LOG_OUT);
-            when(logAuditDetail.defaultJsonRequest()).thenReturn("{}");
 
             Object expectedReturnValue = new Object();
             when(joinPoint.proceed()).thenReturn(expectedReturnValue);
@@ -126,11 +125,11 @@ class LogAuditDetailsAspectTest {
         @Test
         void writeAuditLog_shouldWriteAuditLog() {
 
-            when(userStateAspectService.getUserState(args)).thenReturn(USER_STATE);
+            when(userStateAspectService.getUserState(joinPoint)).thenReturn(USER_STATE);
             when(logAuditDetail.action()).thenReturn(LogActions.LOG_IN);
             when(logAuditDetail.defaultJsonRequest()).thenReturn("{}");
 
-            logAuditDetailsAspect.writeAuditLog(args, logAuditDetail);
+            logAuditDetailsAspect.writeAuditLog(joinPoint, logAuditDetail);
 
             ArgumentCaptor<AddLogAuditDetailDto> captor = ArgumentCaptor.forClass(AddLogAuditDetailDto.class);
             verify(logAuditDetailService).writeLogAuditDetail(captor.capture());
@@ -143,21 +142,21 @@ class LogAuditDetailsAspectTest {
 
         @Test
         void writeAuditLog_shouldHandleMissingRequestHeaderExceptionGracefully() {
-            when(userStateAspectService.getUserState(args))
+            when(userStateAspectService.getUserState(joinPoint))
                 .thenThrow(new MissingRequestHeaderException("Authorization"));
             when(logAuditDetail.action()).thenReturn(LogActions.LOG_IN);
 
-            logAuditDetailsAspect.writeAuditLog(args, logAuditDetail);
+            logAuditDetailsAspect.writeAuditLog(joinPoint, logAuditDetail);
 
             verify(logAuditDetailService, never()).writeLogAuditDetail(any(AddLogAuditDetailDto.class));
         }
 
         @Test
         void writeAuditLog_shouldHandleGeneralExceptionGracefully() {
-            when(userStateAspectService.getUserState(args)).thenThrow(new RuntimeException("Test Exception"));
+            when(userStateAspectService.getUserState(joinPoint)).thenThrow(new RuntimeException("Test Exception"));
             when(logAuditDetail.action()).thenReturn(LogActions.LOG_IN);
 
-            logAuditDetailsAspect.writeAuditLog(args, logAuditDetail);
+            logAuditDetailsAspect.writeAuditLog(joinPoint, logAuditDetail);
 
             verify(logAuditDetailService, never()).writeLogAuditDetail(any(AddLogAuditDetailDto.class));
         }

@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.authentication.aspect;
 
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,6 +21,7 @@ import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -35,6 +38,9 @@ class UserStateAspectServiceTest {
 
     @InjectMocks
     private UserStateAspectService userStateAspectService;
+
+    @Mock
+    private ProceedingJoinPoint joinPoint;
 
     private Object[] args;
 
@@ -57,69 +63,78 @@ class UserStateAspectServiceTest {
         args = new Object[]{};
     }
 
-    @Test
-    void getUserState_shouldReturnUserStateFromArgs() {
-        when(authorizationAspectService.getUserState(args)).thenReturn(Optional.of(USER_STATE));
+    @Nested class GetUserState {
 
-        UserState actualUserState = userStateAspectService.getUserState(args);
+        @Test
+        void getUserState_shouldReturnUserStateFromArgs() {
+            when(joinPoint.getArgs()).thenReturn(args);
+            when(authorizationAspectService.getUserState(args)).thenReturn(Optional.of(USER_STATE));
 
-        assertEquals(USER_STATE, actualUserState);
-        verify(authorizationAspectService).getUserState(args);
-        verifyNoMoreInteractions(authorizationAspectService, userStateService);
+            UserState actualUserState = userStateAspectService.getUserState(joinPoint);
+
+            assertEquals(USER_STATE, actualUserState);
+            verify(authorizationAspectService).getUserState(args);
+            verifyNoMoreInteractions(authorizationAspectService, userStateService);
+        }
+
+        @Test
+        void getUserState_shouldFetchUserStateUsingBearerToken() {
+            String authHeaderValue = "Bearer someToken";
+            String bearerToken = "someToken";
+            UserState expectedUserState = USER_STATE;
+
+            when(joinPoint.getArgs()).thenReturn(args);
+            when(authorizationAspectService.getUserState(args)).thenReturn(Optional.empty());
+            when(authorizationAspectService.getAccessTokenParam(any())).thenReturn(Optional.of(authHeaderValue));
+            when(authorizationAspectService.getAuthorization(authHeaderValue)).thenReturn(Optional.of(bearerToken));
+            when(userStateService.getUserStateUsingAuthToken(bearerToken)).thenReturn(expectedUserState);
+
+            UserState actualUserState = userStateAspectService.getUserState(joinPoint);
+
+            assertEquals(expectedUserState, actualUserState);
+            verify(authorizationAspectService).getUserState(args);
+            verify(authorizationAspectService).getAccessTokenParam(joinPoint);
+            verify(authorizationAspectService).getAuthorization(authHeaderValue);
+            verify(userStateService).getUserStateUsingAuthToken(bearerToken);
+        }
+
     }
 
-    @Test
-    void getUserState_shouldFetchUserStateUsingBearerToken() {
-        String authHeaderValue = "Bearer someToken";
-        String bearerToken = "someToken";
-        UserState expectedUserState = USER_STATE;
+    @Nested class GetUserStateSupplier {
+        @Test
+        void getUserStateSupplier_shouldThrowExceptionWhenAuthorizationHeaderMissing() {
+            String authHeaderValue = "Bearer someToken";
 
-        when(authorizationAspectService.getUserState(args)).thenReturn(Optional.empty());
-        when(authorizationAspectService.getRequestHeaderValue(args)).thenReturn(authHeaderValue);
-        when(authorizationAspectService.getAuthorization(authHeaderValue)).thenReturn(Optional.of(bearerToken));
-        when(userStateService.getUserStateUsingAuthToken(bearerToken)).thenReturn(expectedUserState);
+            when(authorizationAspectService.getAccessTokenParam(any())).thenReturn(Optional.of(authHeaderValue));
+            when(authorizationAspectService.getAuthorization(authHeaderValue)).thenReturn(Optional.empty());
 
-        UserState actualUserState = userStateAspectService.getUserState(args);
+            Supplier<UserState> userStateSupplier = userStateAspectService.getUserStateSupplier(joinPoint);
 
-        assertEquals(expectedUserState, actualUserState);
-        verify(authorizationAspectService).getUserState(args);
-        verify(authorizationAspectService).getRequestHeaderValue(args);
-        verify(authorizationAspectService).getAuthorization(authHeaderValue);
-        verify(userStateService).getUserStateUsingAuthToken(bearerToken);
+            assertThrows(MissingRequestHeaderException.class, userStateSupplier::get);
+            verify(authorizationAspectService).getAccessTokenParam(joinPoint);
+            verify(authorizationAspectService).getAuthorization(authHeaderValue);
+            verifyNoInteractions(userStateService);
+        }
+
+        @Test
+        void getUserStateSupplier_shouldReturnUserStateUsingBearerToken() {
+            String authHeaderValue = "Bearer someToken";
+            String bearerToken = "someToken";
+            UserState expectedUserState = USER_STATE;
+
+            when(authorizationAspectService.getAccessTokenParam(joinPoint)).thenReturn(Optional.of(authHeaderValue));
+            when(authorizationAspectService.getAuthorization(authHeaderValue)).thenReturn(Optional.of(bearerToken));
+            when(userStateService.getUserStateUsingAuthToken(bearerToken)).thenReturn(expectedUserState);
+
+            Supplier<UserState> userStateSupplier = userStateAspectService.getUserStateSupplier(joinPoint);
+
+            UserState actualUserState = userStateSupplier.get();
+
+            assertEquals(expectedUserState, actualUserState);
+            verify(authorizationAspectService).getAccessTokenParam(joinPoint);
+            verify(authorizationAspectService).getAuthorization(authHeaderValue);
+            verify(userStateService).getUserStateUsingAuthToken(bearerToken);
+        }
     }
 
-    @Test
-    void getUserStateSupplier_shouldThrowExceptionWhenAuthorizationHeaderMissing() {
-        String authHeaderValue = "Bearer someToken";
-
-        when(authorizationAspectService.getRequestHeaderValue(args)).thenReturn(authHeaderValue);
-        when(authorizationAspectService.getAuthorization(authHeaderValue)).thenReturn(Optional.empty());
-
-        Supplier<UserState> userStateSupplier = userStateAspectService.getUserStateSupplier(args);
-
-        assertThrows(MissingRequestHeaderException.class, userStateSupplier::get);
-        verify(authorizationAspectService).getRequestHeaderValue(args);
-        verify(authorizationAspectService).getAuthorization(authHeaderValue);
-        verifyNoInteractions(userStateService);
-    }
-
-    @Test
-    void getUserStateSupplier_shouldReturnUserStateUsingBearerToken() {
-        String authHeaderValue = "Bearer someToken";
-        String bearerToken = "someToken";
-        UserState expectedUserState = USER_STATE;
-
-        when(authorizationAspectService.getRequestHeaderValue(args)).thenReturn(authHeaderValue);
-        when(authorizationAspectService.getAuthorization(authHeaderValue)).thenReturn(Optional.of(bearerToken));
-        when(userStateService.getUserStateUsingAuthToken(bearerToken)).thenReturn(expectedUserState);
-
-        Supplier<UserState> userStateSupplier = userStateAspectService.getUserStateSupplier(args);
-
-        UserState actualUserState = userStateSupplier.get();
-
-        assertEquals(expectedUserState, actualUserState);
-        verify(authorizationAspectService).getRequestHeaderValue(args);
-        verify(authorizationAspectService).getAuthorization(authHeaderValue);
-        verify(userStateService).getUserStateUsingAuthToken(bearerToken);
-    }
 }

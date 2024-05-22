@@ -25,8 +25,7 @@ public class AuthorizationAspect {
                                      AuthorizedAnyRoleHasPermission authorizedAnyRoleHasPermission
     ) throws Throwable {
 
-        Object[] args = joinPoint.getArgs();
-        UserState userState = userStateAspectService.getUserState(args);
+        UserState userState = userStateAspectService.getUserState(joinPoint);
         if (checkAnyRoleHasPermission(userState, authorizedAnyRoleHasPermission.value())) {
             return joinPoint.proceed();
         }
@@ -39,7 +38,7 @@ public class AuthorizationAspect {
     ) throws Throwable {
 
         Object[] args = joinPoint.getArgs();
-        UserState userState = userStateAspectService.getUserState(args);
+        UserState userState = userStateAspectService.getUserState(joinPoint);
 
         Role role = authorizationAspectService.getRole(args, userState);
         if (checkRoleHasPermission(role, authorizedRoleHasPermission.value())) {
