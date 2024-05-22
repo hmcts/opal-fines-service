@@ -5,7 +5,7 @@ plugins {
   id 'org.springframework.boot' version '3.2.5'
   id 'com.github.ben-manes.versions' version '0.51.0'
   id 'org.sonarqube' version '5.0.0.4638'
-  id 'uk.gov.hmcts.java' version '0.12.61'
+  id 'uk.gov.hmcts.java' version '0.12.62'
   id 'org.flywaydb.flyway' version '10.13.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.0.46'
 }
@@ -277,7 +277,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
   compileOnly 'org.projectlombok:lombok:1.18.32'
   annotationProcessor 'org.projectlombok:lombok:1.18.32'
-  annotationProcessor 'org.hibernate:hibernate-jpamodelgen:6.5.1.Final'
+  annotationProcessor 'org.hibernate:hibernate-jpamodelgen:6.5.2.Final'
 
   testCompileOnly 'org.projectlombok:lombok:1.18.32'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
