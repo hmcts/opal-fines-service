@@ -5,6 +5,8 @@ import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.ResultEntity;
 import uk.gov.hmcts.opal.entity.ResultEntity_;
 
+import java.util.Optional;
+
 public class ResultSpecs extends EntitySpecs<ResultEntity> {
 
     public Specification<ResultEntity> findBySearchCriteria(ResultSearchDto criteria) {
@@ -18,6 +20,12 @@ public class ResultSpecs extends EntitySpecs<ResultEntity> {
                 .map(ResultSpecs::equalsImpositionAllocationPriority),
             notBlank(criteria.getImpositionCreditor()).map(ResultSpecs::likeImpositionCreditor),
             notBlank(criteria.getUserEntries()).map(ResultSpecs::likeUserEntries)
+        ));
+    }
+
+    public Specification<ResultEntity> referenceDataFilter(Optional<String> filter) {
+        return Specification.allOf(specificationList(
+            filter.filter(s -> !s.isBlank()).map(this::likeAnyResult)
         ));
     }
 
@@ -79,4 +87,11 @@ public class ResultSpecs extends EntitySpecs<ResultEntity> {
                                                                userEntries);
     }
 
+    public Specification<ResultEntity> likeAnyResult(String filter) {
+        return Specification.anyOf(
+            likeResultId(filter),
+            likeResultTitle(filter),
+            likeResultTitleCy(filter)
+        );
+    }
 }

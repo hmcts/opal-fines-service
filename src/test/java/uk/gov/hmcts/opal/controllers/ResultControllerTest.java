@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers.develop;
+package uk.gov.hmcts.opal.controllers;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -7,12 +7,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.controllers.develop.ResultController;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.ResultEntity;
+import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -63,4 +65,25 @@ class ResultControllerTest {
         verify(resultService, times(1)).searchResults(any());
     }
 
+    @Test
+    void testGetResultsRefData_Success() {
+        // Arrange
+        ResultReferenceData refData = new ResultReferenceData("result-id-001", "Result Title",
+                                                                  "Result Tittle Cy", "FINAL");
+        List<ResultReferenceData> refDataList = List.of(refData);
+
+        when(resultService.getReferenceData(any())).thenReturn(refDataList);
+
+        // Act
+        Optional<String> filter = Optional.empty();
+        ResponseEntity<ResultReferenceDataResults> response = resultController
+            .getResultRefData(filter);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        ResultReferenceDataResults refDataResults = response.getBody();
+        assertEquals(1, refDataResults.getCount());
+        assertEquals(refDataList, refDataResults.getRefData());
+        verify(resultService, times(1)).getReferenceData(any());
+    }
 }

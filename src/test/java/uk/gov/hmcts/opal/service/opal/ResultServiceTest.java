@@ -13,9 +13,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.ResultEntity;
+import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,5 +70,32 @@ class ResultServiceTest {
 
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    void testResultsReferenceData() {
+        // Arrange
+        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        when(ffq.sortBy(any())).thenReturn(ffq);
 
+        ResultEntity entity = ResultEntity.builder().build();
+        Page<ResultEntity> mockPage = new PageImpl<>(List.of(entity), Pageable.unpaged(), 999L);
+        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(ffq);
+            return mockPage;
+        });
+
+        // Act
+        List<ResultReferenceData> result = resultService.getReferenceData(Optional.empty());
+
+        ResultReferenceData refData =  new ResultReferenceData(
+            entity.getResultId(),
+            entity.getResultTitle(),
+            entity.getResultTitleCy(),
+            entity.getResultType()
+        );
+
+        // Assert
+        assertEquals(List.of(refData), result);
+
+    }
 }

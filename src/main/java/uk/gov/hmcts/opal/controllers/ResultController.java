@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers.develop;
+package uk.gov.hmcts.opal.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,25 +12,33 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.ResultEntity;
+import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
 import uk.gov.hmcts.opal.service.ResultServiceInterface;
+import uk.gov.hmcts.opal.service.opal.ResultService;
 
 import java.util.List;
+import java.util.Optional;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/dev/result")
+@RequestMapping("/api/result")
 @Slf4j(topic = "ResultController")
 @Tag(name = "Result Controller")
 public class ResultController {
 
     private final ResultServiceInterface resultService;
 
-    public ResultController(@Qualifier("resultServiceProxy") ResultServiceInterface resultService) {
+    private final ResultService opalResultService;
+
+    public ResultController(@Qualifier("resultServiceProxy") ResultServiceInterface resultService,
+                            ResultService opalResultService) {
         this.resultService = resultService;
+        this.opalResultService = opalResultService;
     }
 
     @GetMapping(value = "/{resultId}")
@@ -54,5 +62,15 @@ public class ResultController {
         return buildResponse(response);
     }
 
+    @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
+    @Operation(summary = "Returns MajorCreditors as reference data with an optional filter applied")
+    public ResponseEntity<ResultReferenceDataResults> getResultRefData(
+        @PathVariable Optional<String> filter) {
+        log.info(":GET:getMajorCreditorRefData: filter string: {}", filter);
 
+        List<ResultReferenceData> refData = opalResultService.getReferenceData(filter);
+
+        log.info(":GET:getMajorCreditorRefData: major creditor reference data count: {}", refData.size());
+        return ResponseEntity.ok(ResultReferenceDataResults.builder().refData(refData).build());
+    }
 }
