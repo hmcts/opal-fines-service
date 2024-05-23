@@ -21,7 +21,6 @@ public class MajorCreditorsStepDef extends BaseStepDef {
 
     @When("I make a request to the major creditors ref data api filter by major creditor id {int}")
     public void getRequestToMajorCreditorsBy(int majorCreditorId) {
-        log.info("THE URL----" + getTestUrl() + MAJOR_CREDITORS_URI);
 
         SerenityRest
             .given()
