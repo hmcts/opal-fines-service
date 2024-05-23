@@ -12,9 +12,9 @@ import static uk.gov.hmcts.opal.config.Constants.OFFENCES_REF_DATA_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 
-public class Offences extends BaseStepDef {
+public class OffencesStepDef extends BaseStepDef {
 
-    static Logger log = LoggerFactory.getLogger(Offences.class.getName());
+    static Logger log = LoggerFactory.getLogger(OffencesStepDef.class.getName());
 
     @When("I make a request to the offence ref data api filtering by cjs code {string}")
     public void getRequestToOffencesRefData(String filter) {
@@ -27,6 +27,7 @@ public class Offences extends BaseStepDef {
             .get(getTestUrl() + OFFENCES_REF_DATA_URI + filter);
 
     }
+
 
     @Then("the LJA ref data matching to result")
     @Then("the court ref data matching to result")
