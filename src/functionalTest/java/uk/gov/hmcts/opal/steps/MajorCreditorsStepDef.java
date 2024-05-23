@@ -4,11 +4,13 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
 
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
 import static net.serenitybdd.rest.SerenityRest.then;
+import static org.hamcrest.Matchers.equalTo;
 import static uk.gov.hmcts.opal.config.Constants.MAJOR_CREDITORS_URI;
 
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
@@ -34,7 +36,11 @@ public class MajorCreditorsStepDef extends BaseStepDef {
     @Then("the major creditors ref data matching to result")
     public void theMajorCreditorsRefDataMatchingToResult() {
         then().assertThat()
-            .statusCode(200);
+            .statusCode(HttpStatus.SC_OK)
+            .body("name",equalTo("CHESTERFIELD BOROUGH COUNCIL"))
+            .body("majorCreditorId",equalTo(15));
+
+
 
     }
 }
