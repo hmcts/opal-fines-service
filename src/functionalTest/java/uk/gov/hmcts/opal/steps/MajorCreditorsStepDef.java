@@ -29,8 +29,8 @@ public class MajorCreditorsStepDef extends BaseStepDef {
             .header("Authorization", "Bearer " + getToken())
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + MAJOR_CREDITORS_URI + majorCreditorId)
-            .then().log().all();
+            .get(getTestUrl() + MAJOR_CREDITORS_URI + majorCreditorId);
+
     }
 
     @Then("the major creditors ref data matching to result")
