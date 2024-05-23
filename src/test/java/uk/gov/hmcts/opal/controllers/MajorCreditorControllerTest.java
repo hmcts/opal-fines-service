@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers.develop;
+package uk.gov.hmcts.opal.controllers;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -7,11 +7,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.projection.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,6 +64,28 @@ class MajorCreditorControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(majorCreditorList, response.getBody());
         verify(majorCreditorService, times(1)).searchMajorCreditors(any());
+    }
+
+    @Test
+    void testGetMajorCreditorRefData_Success() {
+        // Arrange
+        MajorCreditorReferenceData refData = new MajorCreditorReferenceData(1L, "MC_001",
+                                                                            "Major Credit Card Ltd", "MN12 4TT");
+        List<MajorCreditorReferenceData> refDataList = List.of(refData);
+
+        when(majorCreditorService.getReferenceData(any())).thenReturn(refDataList);
+
+        // Act
+        Optional<String> filter = Optional.empty();
+        ResponseEntity<MajorCreditorReferenceDataResults> response = majorCreditorController
+            .getMajorCreditorRefData(filter);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MajorCreditorReferenceDataResults refDataResults = response.getBody();
+        assertEquals(1, refDataResults.getCount());
+        assertEquals(refDataList, refDataResults.getRefData());
+        verify(majorCreditorService, times(1)).getReferenceData(any());
     }
 
 }

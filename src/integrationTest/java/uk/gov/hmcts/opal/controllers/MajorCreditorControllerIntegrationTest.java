@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers.develop;
+package uk.gov.hmcts.opal.controllers;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.projection.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 
 import static java.util.Collections.singletonList;
@@ -89,6 +90,24 @@ class MajorCreditorControllerIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testGetMajorCreditorRefData() throws Exception {
+        MajorCreditorReferenceData refData = new MajorCreditorReferenceData(1L, "MC_001",
+                                                                            "Major Credit Card Ltd", "MN12 4TT");
+
+        when(majorCreditorService.getReferenceData(any())).thenReturn(singletonList(refData));
+
+        mockMvc.perform(get("/api/major-creditor/ref-data")
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.refData[0].majorCreditorId").value(1))
+            .andExpect(jsonPath("$.refData[0].majorCreditorCode").value("MC_001"))
+            .andExpect(jsonPath("$.refData[0].name").value("Major Credit Card Ltd"))
+            .andExpect(jsonPath("$.refData[0].postcode").value("MN12 4TT"));
     }
 
     private MajorCreditorEntity createMajorCreditorEntity() {
