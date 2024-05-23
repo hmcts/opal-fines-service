@@ -10,19 +10,24 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
+import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
 import java.util.Optional;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.PermissionUtil.filterBusinessUnitsByPermission;
 
 
 @RestController
@@ -35,11 +40,14 @@ public class BusinessUnitController {
 
     private final BusinessUnitService opalBusinessUnitService;
 
+    private final UserStateService userStateService;
+
     public BusinessUnitController(
         @Qualifier("businessUnitService") BusinessUnitServiceInterface businessUnitService,
-        BusinessUnitService opalBusinessUnitService) {
+        BusinessUnitService opalBusinessUnitService, UserStateService userStateService) {
         this.businessUnitService = businessUnitService;
         this.opalBusinessUnitService = opalBusinessUnitService;
+        this.userStateService = userStateService;
     }
 
     @GetMapping(value = "/{businessUnitId}")
@@ -67,10 +75,13 @@ public class BusinessUnitController {
     @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
     @Operation(summary = "Returns Business Units as reference data with an optional filter applied")
     public ResponseEntity<BusinessUnitReferenceDataResults> getBusinessUnitRefData(
-        @PathVariable Optional<String> filter) {
-        log.info(":GET:getBusinessUnitRefData: query: \n{}", filter);
+        @PathVariable Optional<String> filter, @RequestParam Optional<Permissions> permission,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
-        List<BusinessUnitReferenceData> refData = opalBusinessUnitService.getReferenceData(filter);
+        log.info(":GET:getBusinessUnitRefData: permission: {}, query: \n{}", permission, filter);
+
+        List<BusinessUnitReferenceData> refData =  filterBusinessUnitsByPermission(userStateService,
+            opalBusinessUnitService.getReferenceData(filter), permission, authHeaderValue);
 
         log.info(":GET:getBusinessUnitRefData: business unit reference data count: {}", refData.size());
         return ResponseEntity.ok(BusinessUnitReferenceDataResults.builder().refData(refData).build());
