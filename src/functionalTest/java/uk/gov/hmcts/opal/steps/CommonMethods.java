@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.steps;
 
 import net.serenitybdd.rest.SerenityRest;
-import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
