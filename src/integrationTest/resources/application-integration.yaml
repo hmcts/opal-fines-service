@@ -1,4 +1,6 @@
 spring:
+  quartz:
+    enabled: false
   flyway:
     enabled: false
   security:
