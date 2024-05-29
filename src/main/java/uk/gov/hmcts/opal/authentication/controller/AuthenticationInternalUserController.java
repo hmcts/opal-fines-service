@@ -14,8 +14,6 @@ import org.springframework.web.servlet.ModelAndView;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authentication.service.AuthenticationService;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 
 import java.net.URI;
 import java.util.Optional;
@@ -29,7 +27,6 @@ public class AuthenticationInternalUserController {
 
     private final AuthenticationService authenticationService;
     private final AccessTokenService accessTokenService;
-    private final AuthorisationService authorisationService;
 
     @GetMapping("/login-or-refresh")
     @Operation(summary = "Handles login for the front end API calls")
@@ -37,13 +34,16 @@ public class AuthenticationInternalUserController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestParam(value = "redirect_uri", required = false) String redirectUri
     ) {
-        log.info("Login attempt received.");
-        String accessToken = null;
         if (authHeaderValue != null) {
-            accessToken = authHeaderValue.replace("Bearer ", "");
+            log.info("Login attempt received with token {}", authHeaderValue);
+            String accessToken = authHeaderValue.replace("Bearer ", "");
+            URI url = authenticationService.loginOrRefresh(accessToken, redirectUri);
+            return new ModelAndView("redirect:" + url.toString());
+        } else {
+            log.info("Login attempt received without any token.");
+            URI loginUri = authenticationService.getLoginUri(redirectUri);
+            return new ModelAndView("redirect:" + loginUri.toString());
         }
-        URI url = authenticationService.loginOrRefresh(accessToken, redirectUri);
-        return new ModelAndView("redirect:" + url.toString());
     }
 
     @PostMapping("/handle-oauth-code")
@@ -51,20 +51,13 @@ public class AuthenticationInternalUserController {
     public SecurityToken handleOauthCode(@RequestParam("code") String code) {
 
         String accessToken = authenticationService.handleOauthCode(code);
-        var securityTokenBuilder = SecurityToken.builder()
-            .accessToken(accessToken);
         Optional<String> preferredUsernameOptional = Optional.ofNullable(
             accessTokenService.extractPreferredUsername(accessToken));
         log.info(
             "Login successful received for user {} from Azure AD.",
             preferredUsernameOptional.orElse("unknown")
         );
-
-        if (preferredUsernameOptional.isPresent()) {
-            UserState userStateOptional = authorisationService.getAuthorisation(preferredUsernameOptional.get());
-            securityTokenBuilder.userState(userStateOptional);
-        }
-        return securityTokenBuilder.build();
+        return authenticationService.getSecurityToken(accessToken);
     }
 
     @GetMapping("/logout")
