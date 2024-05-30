@@ -79,8 +79,8 @@ class MajorCreditorServiceTest {
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
         when(ffq.sortBy(any())).thenReturn(ffq);
 
-        MajorCreditorEntity courtEntity = MajorCreditorEntity.builder().build();
-        Page<MajorCreditorEntity> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 999L);
+        MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder().build();
+        Page<MajorCreditorEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity), Pageable.unpaged(), 999L);
         when(majorCreditorRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
             return mockPage;
@@ -90,10 +90,10 @@ class MajorCreditorServiceTest {
         List<MajorCreditorReferenceData> result = majorCreditorService.getReferenceData(Optional.empty());
 
         MajorCreditorReferenceData refData =  new MajorCreditorReferenceData(
-            courtEntity.getMajorCreditorId(),
-            courtEntity.getMajorCreditorCode(),
-            courtEntity.getName(),
-            courtEntity.getPostcode()
+            majorCreditorEntity.getMajorCreditorId(),
+            majorCreditorEntity.getMajorCreditorCode(),
+            majorCreditorEntity.getName(),
+            majorCreditorEntity.getPostcode()
         );
 
         // Assert
