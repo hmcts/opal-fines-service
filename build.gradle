@@ -1,3 +1,9 @@
+buildscript {
+  dependencies {
+    classpath("org.flywaydb:flyway-database-postgresql:10.13.0")
+  }
+}
+
 plugins {
   id 'application'
   id 'jacoco'
@@ -272,6 +278,7 @@ dependencies {
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:10.13.0'
   implementation 'org.postgresql:postgresql'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
