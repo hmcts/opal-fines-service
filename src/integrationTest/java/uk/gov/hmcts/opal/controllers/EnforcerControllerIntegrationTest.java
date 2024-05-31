@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers.develop;
+package uk.gov.hmcts.opal.controllers;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.projection.EnforcerReferenceData;
 import uk.gov.hmcts.opal.service.opal.EnforcerService;
 
 import static java.util.Collections.singletonList;
@@ -103,6 +104,25 @@ class EnforcerControllerIntegrationTest {
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isNoContent());
     }
+
+    @Test
+    void testGetEnforcerRefData() throws Exception {
+        EnforcerReferenceData refData = new EnforcerReferenceData(1L, (short)2,
+                                                                  "Enforcers UK Ltd", "Enforcers Wales Ltd");
+
+        when(enforcerService.getReferenceData(any())).thenReturn(singletonList(refData));
+
+        mockMvc.perform(get("/api/enforcer/ref-data")
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.refData[0].enforcerId").value(1))
+            .andExpect(jsonPath("$.refData[0].enforcerCode").value(2))
+            .andExpect(jsonPath("$.refData[0].name").value("Enforcers UK Ltd"))
+            .andExpect(jsonPath("$.refData[0].nameCy").value("Enforcers Wales Ltd"));
+    }
+
 
     private EnforcerEntity createEnforcerEntity() {
         return EnforcerEntity.builder()
