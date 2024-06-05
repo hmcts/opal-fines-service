@@ -2,10 +2,14 @@ package uk.gov.hmcts.opal.dto.legacy;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,6 +18,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@XmlAccessorType(XmlAccessType.FIELD)
 public class DefendantAccountDto {
 
     @JsonProperty("defendant_account_id")
@@ -36,6 +41,7 @@ public class DefendantAccountDto {
     private String originatorName;
     @JsonProperty("imposed_hearing_date")
     @JsonFormat(pattern = "yyyy-MM-dd")
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate imposedHearingDate;
     @JsonProperty("imposing_court_code")
     private int imposingCourtCode;
@@ -45,9 +51,11 @@ public class DefendantAccountDto {
     private int lastHearingCourtCode;
     @JsonProperty("last_changed_date")
     @JsonFormat(pattern = "yyyy-MM-dd")
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate lastChangedDate;
     @JsonProperty("last_movement_date")
     @JsonFormat(pattern = "yyyy-MM-dd")
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate lastMovementDate;
     @JsonProperty("collection_order")
     private boolean collectionOrder;

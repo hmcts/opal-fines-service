@@ -3,10 +3,14 @@ package uk.gov.hmcts.opal.dto.legacy;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 import java.time.LocalDate;
 
@@ -15,6 +19,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonRootName(value = "party")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class PartyDto {
 
     @JsonProperty("party_id")
@@ -46,6 +51,7 @@ public class PartyDto {
 
     @JsonProperty("birth_date")
     @JsonFormat(pattern = "yyyy-MM-dd")
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate birthDate;
 
     @JsonProperty("age")

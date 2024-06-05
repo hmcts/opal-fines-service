@@ -17,10 +17,15 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -34,6 +39,8 @@ import java.util.List;
 @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "defendantAccountId")
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class DefendantAccountEntity {
 
     @Id
@@ -51,6 +58,7 @@ public class DefendantAccountEntity {
 
     @Column(name = "imposed_hearing_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate imposedHearingDate;
 
     @Column(name = "imposing_court_id")
@@ -70,6 +78,7 @@ public class DefendantAccountEntity {
 
     @Column(name = "completed_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate completedDate;
 
     @ManyToOne
@@ -82,10 +91,12 @@ public class DefendantAccountEntity {
 
     @Column(name = "last_hearing_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate lastHearingDate;
 
     @Column(name = "last_movement_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate lastMovementDate;
 
     @Column(name = "last_enforcement", length = 6)
@@ -93,6 +104,7 @@ public class DefendantAccountEntity {
 
     @Column(name = "last_changed_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate lastChangedDate;
 
     @Column(name = "originator_name", length = 100)
@@ -136,18 +148,22 @@ public class DefendantAccountEntity {
 
     @Column(name = "collection_order_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate collectionOrderEffectiveDate;
 
     @Column(name = "further_steps_notice_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate furtherStepsNoticeDate;
 
     @Column(name = "confiscation_order_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate confiscationOrderDate;
 
     @Column(name = "fine_registration_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate fineRegistrationDate;
 
     @Column(name = "consolidated_account_type", length = 1)
@@ -158,6 +174,7 @@ public class DefendantAccountEntity {
 
     @Column(name = "payment_card_requested_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate paymentCardRequestedDate;
 
     @Column(name = "payment_card_requested_by", length = 20)

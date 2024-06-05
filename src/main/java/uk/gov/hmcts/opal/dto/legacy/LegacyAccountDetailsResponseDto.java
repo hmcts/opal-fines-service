@@ -1,6 +1,9 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +21,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Jacksonized
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyAccountDetailsResponseDto implements ToJsonString {
 
     @JsonProperty("defendant_account")
