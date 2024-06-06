@@ -126,6 +126,12 @@ opal:
       location: ${OPAL_SFTP_OUTBOUND_LOCATION:outbound}
       create-sub-locations: ${OPAL_SFTP_OUTBOUND_CREATE_SUB_LOCATIONS:false}
   schedule:
+    auto-check-job:
+      cron: ${OPAL_AUTO_CHECK_JOB_CRON:0 0 * * * ?}
+    auto-cash-job:
+      cron: ${OPAL_AUTO_CASH_JOB_CRON:0 0 * * * ?}
+    all-pay-archive-job:
+      cron: ${OPAL_ALL_PAY_ARCHIVE_JOB_CRON:0 0 * * * ?}
     log-retention-job:
       cron: ${OPAL_LOG_RETENTION_JOB_CRON:0 0 * * * ?}
     file-handler-job:
