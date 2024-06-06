@@ -94,10 +94,10 @@ class MajorCreditorControllerIntegrationTest {
 
     @Test
     void testGetMajorCreditorRefData() throws Exception {
-        MajorCreditorReferenceData refData = new MajorCreditorReferenceData(1L, "MC_001",
+        MajorCreditorReferenceData refData = new MajorCreditorReferenceData(1L, (short)007, "MC_001",
                                                                             "Major Credit Card Ltd", "MN12 4TT");
 
-        when(majorCreditorService.getReferenceData(any())).thenReturn(singletonList(refData));
+        when(majorCreditorService.getReferenceData(any(), any())).thenReturn(singletonList(refData));
 
         mockMvc.perform(get("/api/major-creditor/ref-data")
                             .header("authorization", "Bearer some_value"))

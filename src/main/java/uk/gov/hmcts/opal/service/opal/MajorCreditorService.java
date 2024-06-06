@@ -41,12 +41,12 @@ public class MajorCreditorService implements MajorCreditorServiceInterface {
         return page.getContent();
     }
 
-    public List<MajorCreditorReferenceData> getReferenceData(Optional<String> filter) {
+    public List<MajorCreditorReferenceData> getReferenceData(Optional<String> filter, Optional<Short> businessUnitId) {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, MajorCreditorEntity_.NAME);
 
         Page<MajorCreditorEntity> page = majorCreditorRepository
-            .findBy(specs.referenceDataFilter(filter),
+            .findBy(specs.referenceDataFilter(filter, businessUnitId),
                     ffq -> ffq
                         .sortBy(nameSort)
                         .page(Pageable.unpaged()));
@@ -57,6 +57,7 @@ public class MajorCreditorService implements MajorCreditorServiceInterface {
     private MajorCreditorReferenceData toRefData(MajorCreditorEntity entity) {
         return new MajorCreditorReferenceData(
             entity.getMajorCreditorId(),
+            entity.getBusinessUnit().getBusinessUnitId(),
             entity.getMajorCreditorCode(),
             entity.getName(),
             entity.getPostcode()
