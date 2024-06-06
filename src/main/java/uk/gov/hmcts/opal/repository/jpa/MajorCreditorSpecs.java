@@ -27,9 +27,11 @@ public class MajorCreditorSpecs extends AddressSpecs<MajorCreditorEntity> {
         ));
     }
 
-    public Specification<MajorCreditorEntity> referenceDataFilter(Optional<String> filter) {
+    public Specification<MajorCreditorEntity> referenceDataFilter(Optional<String> filter,
+                                                                  Optional<Short> businessUnitId) {
         return Specification.allOf(specificationList(
-            filter.filter(s -> !s.isBlank()).map(this::likeAnyMajorCreditor)
+            filter.filter(s -> !s.isBlank()).map(this::likeAnyMajorCreditor),
+            businessUnitId.map(MajorCreditorSpecs::equalsBusinessUnitId)
         ));
     }
 
