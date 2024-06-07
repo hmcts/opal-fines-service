@@ -4,6 +4,7 @@ import org.mockito.Mock;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.util.XmlUtil;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -40,6 +41,8 @@ public abstract class LegacyTestsBase {
     @Mock
     ResponseSpec responseSpec;
 
+    XmlUtil xmlUtil = new XmlUtil();
+
 
     @SuppressWarnings("unchecked")
     void mockRestClientGet() {
@@ -56,4 +59,7 @@ public abstract class LegacyTestsBase {
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
     }
 
+    <T> String marshalXmlString(T object, Class<T> clzz) {
+        return xmlUtil.marshalXmlString(object, clzz);
+    }
 }

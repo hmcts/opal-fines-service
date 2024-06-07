@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import jakarta.xml.bind.UnmarshalException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,7 +43,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
 
         final PartyDto expectedPartyDto = PartyServiceTest.buildPartyDto();
 
-        String jsonBody = createJsonBody1();
+        String jsonBody = createXml();
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
         when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
@@ -94,7 +94,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         final PartyDto inputPartyDto = new PartyDto();
 
 
-        String jsonBody = createJsonBody1();
+        String jsonBody = createXml();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -125,7 +125,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         final PartyDto inputPartyDto = new PartyDto();
 
 
-        String jsonBody = createBrokenJson();
+        String jsonBody = createBrokenXml();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.OK);
@@ -144,7 +144,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         assertNotNull(lgre);
         Throwable cause = lgre.getCause();
         assertNotNull(cause);
-        assertEquals(UnrecognizedPropertyException.class, cause.getClass());
+        assertEquals(UnmarshalException.class, cause.getClass());
     }
 
     @Test
@@ -156,7 +156,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
 
         final PartyDto expectedPartyDto = PartyServiceTest.buildPartyDto();
 
-        String jsonBody = createJsonBody1();
+        String jsonBody = createXml();
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
         when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
@@ -205,7 +205,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         // Arrange
         mockRestClientPost();
 
-        String jsonBody = createJsonBody1();
+        String jsonBody = createXml();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -233,7 +233,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
     void getParty_ErrorResponse() {
         // Arrange
         mockRestClientPost();
-        String jsonBody = createBrokenJson();
+        String jsonBody = createBrokenXml();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             jsonBody, HttpStatus.OK);
@@ -252,7 +252,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         assertNotNull(lgre);
         Throwable cause = lgre.getCause();
         assertNotNull(cause);
-        assertEquals(UnrecognizedPropertyException.class, cause.getClass());
+        assertEquals(UnmarshalException.class, cause.getClass());
     }
 
     @Test
@@ -285,51 +285,49 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
 
     }
 
-    private static String createJsonBody1() {
+    private static String createXml() {
         return """
-            {
-              "organisation" : false,
-              "organisationName" : null,
-              "surname" : "Smith",
-              "forenames" : "John James",
-              "initials" : "JJ",
-              "title" : "Mr",
-              "addressLine1" : "22 Acacia Avenue",
-              "addressLine2" : "Hammersmith",
-              "addressLine3" : "Birmingham",
-              "addressLine4" : "Cornwall",
-              "addressLine5" : "Scotland",
-              "postcode" : "SN15 9TT",
-              "accountType" : "TFO",
-              "dateOfBirth" : [ 2001, 8, 16 ],
-              "age" : 21,
-              "niNumber" : "FF22446688",
-              "lastChangedDate" : [ 2023, 12, 5, 15, 45 ]
-            }
+            <party>
+              <organisation>false</organisation>
+              <surname>Smith</surname>
+              <forenames>John James</forenames>
+              <initials>JJ</initials>
+              <title>Mr</title>
+              <addressLine1>22 Acacia Avenue</addressLine1>
+              <addressLine2>Hammersmith</addressLine2>
+              <addressLine3>Birmingham</addressLine3>
+              <addressLine4>Cornwall</addressLine4>
+              <addressLine5>Scotland</addressLine5>
+              <postcode>SN15 9TT</postcode>
+              <accountType>TFO</accountType>
+              <dateOfBirth>2001-08-16</dateOfBirth>
+              <age>21</age>
+              <niNumber>FF22446688</niNumber>
+              <lastChangedDate>2023-12-05T15:45</lastChangedDate>
+             </party>
             """;
     }
 
-    private static String createBrokenJson() {
+    private static String createBrokenXml() {
         return """
-            {
-              "organisation" : false,
-              "organisationName" : null,
-              "surname" : "Smith",
-              "forenames" : "John James",
-              "initials" : "JJ",
-              "title" : "Mr",
-              "FOOBAR 1" : "22 Acacia Avenue",
-              "FOOBAR 2" : "Hammersmith",
-              "FOOBAR 3" : "Birmingham",
-              "FOOBAR 4" : "Cornwall",
-              "FOOBAR 5" : "Scotland",
-              "postcode" : "SN15 9TT",
-              "accountType" : "TFO",
-              "dateOfBirth" : [ 2001, 8, 16 ],
-              "age" : 21,
-              "niNumber" : "FF22446688",
-              "lastChangedDate" : [ 2023, 12, 5, 15, 45 ]
-            }
+            <party>
+              <organisation>false</organisation>
+              <surname>Smith</surname>
+              <forenames>John James</forenames>
+              <initials>JJ</initials>
+              <title>Mr</title>
+              <FOOBAR 1>22 Acacia Avenue</FOOBAR 1>
+              <FOOBAR 2>Hammersmith</FOOBAR 2>
+              <FOOBAR 3>Birmingham</FOOBAR 3>
+              <FOOBAR 4>Cornwall</FOOBAR 4>
+              <FOOBAR 5>Scotland</FOOBAR 5>
+              <postcode>SN15 9TT</postcode>
+              <accountType>TFO</accountType>
+              <dateOfBirth>2001-08-16</dateOfBirth>
+              <age>21</age>
+              <niNumber>FF22446688</niNumber>
+              <lastChangedDate>2023-12-05T15:45</lastChangedDate>
+             </party>
             """;
     }
 
