@@ -20,7 +20,7 @@ public class AllPayArchiveService {
         sftpOutboundService.downloadFile(ALL_PAY_ARCHIVE.getPath(), fileName, this::processFile);
     }
 
-    private void processFile(InputStream inputStream) {
+    public void processFile(InputStream inputStream) {
         log.info("Process file contents of the stream.");
         //TODO: add file processing logic here.
     }

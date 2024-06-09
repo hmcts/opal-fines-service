@@ -20,7 +20,7 @@ public class AutoCashService {
         sftpInboundService.downloadFile(AUTO_CASH.getPath(), fileName, this::processFile);
     }
 
-    private void processFile(InputStream inputStream) {
+    public void processFile(InputStream inputStream) {
         log.info("Process file contents of the stream.");
         //TODO: add file processing logic here.
     }
