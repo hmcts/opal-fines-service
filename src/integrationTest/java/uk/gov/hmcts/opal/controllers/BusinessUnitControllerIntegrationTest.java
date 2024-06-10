@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -9,13 +10,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
+import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -34,6 +38,9 @@ class BusinessUnitControllerIntegrationTest {
     @MockBean
     @Qualifier("businessUnitService")
     BusinessUnitService businessUnitService;
+
+    @MockBean
+    UserStateService userStateService;
 
     @Test
     void testGetBusinessUnitById() throws Exception {
@@ -92,7 +99,7 @@ class BusinessUnitControllerIntegrationTest {
     }
 
     @Test
-    void testGetCourtRefData() throws Exception {
+    void testGetBusinessUnitRefData() throws Exception {
         BusinessUnitReferenceData refData = createBusinessUnitRefData();
 
         when(businessUnitService.getReferenceData(any())).thenReturn(singletonList(refData));
@@ -110,6 +117,43 @@ class BusinessUnitControllerIntegrationTest {
             .andExpect(jsonPath("$.refData[0].opalDomain").value("Fines"));
     }
 
+    @Test
+    void testGetBusinessUnitRefData_Permission_success() throws Exception {
+        BusinessUnitReferenceData refData = createBusinessUnitRefData();
+        UserState userState = Mockito.mock(UserState.class);
+
+        when(businessUnitService.getReferenceData(any())).thenReturn(singletonList(refData));
+        when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
+        when(userState.allRolesWithPermission(any())).thenReturn(new TestUserRoles(true));
+
+        mockMvc.perform(get("/api/business-unit/ref-data/?permission=MANUAL_ACCOUNT_CREATION")
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.refData[0].businessUnitId").value(1))
+            .andExpect(jsonPath("$.refData[0].businessUnitName").value("Business Unit 001"))
+            .andExpect(jsonPath("$.refData[0].businessUnitCode").value("AAAA"))
+            .andExpect(jsonPath("$.refData[0].businessUnitType").value("LARGE UNIT"))
+            .andExpect(jsonPath("$.refData[0].accountNumberPrefix").value("XX"))
+            .andExpect(jsonPath("$.refData[0].opalDomain").value("Fines"));
+    }
+
+    @Test
+    void testGetBusinessUnitRefData_Permission_empty() throws Exception {
+        BusinessUnitReferenceData refData = createBusinessUnitRefData();
+        UserState userState = Mockito.mock(UserState.class);
+
+        when(businessUnitService.getReferenceData(any())).thenReturn(singletonList(refData));
+        when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
+        when(userState.allRolesWithPermission(any())).thenReturn(new TestUserRoles(false));
+
+        mockMvc.perform(get("/api/business-unit/ref-data/?permission=MANUAL_ACCOUNT_CREATION")
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(0));
+    }
 
     private BusinessUnitEntity createBusinessUnitEntity() {
         return BusinessUnitEntity.builder()
@@ -156,5 +200,18 @@ class BusinessUnitControllerIntegrationTest {
                 return "Fines";
             }
         };
+    }
+
+    private class TestUserRoles implements UserState.UserRoles {
+        private final boolean contains;
+
+        public TestUserRoles(boolean contains) {
+            this.contains = contains;
+        }
+
+        @Override
+        public boolean containsBusinessUnit(Short businessUnitId) {
+            return contains;
+        }
     }
 }
