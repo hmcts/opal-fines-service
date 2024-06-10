@@ -4,10 +4,9 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,12 +14,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.opal.scheduler.service.AutoCheckService;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = AutoCheckJob.class)
@@ -35,12 +35,17 @@ class AutoCheckJobTest {
     @Mock
     private JobExecutionContext jobExecutionContext;
 
-    @Captor
-    private ArgumentCaptor<String> fileNameCaptor;
+    @Mock
+    private JobDetail jobDetail;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        when(jobExecutionContext.getJobDetail()).thenReturn(jobDetail);
+        when(jobExecutionContext.getFireTime()).thenReturn(new java.util.Date());
+        when(jobExecutionContext.getNextFireTime()).thenReturn(new java.util.Date());
+        when(jobDetail.getKey()).thenReturn(mock(org.quartz.JobKey.class));
+        when(jobDetail.getKey().getName()).thenReturn("testJob");
     }
 
     @Test
@@ -50,11 +55,10 @@ class AutoCheckJobTest {
 
     @Test
     @SneakyThrows
-    void testExecuteCallsAutoCashService() {
+    void testExecuteCallsAutoCheckService() {
         autoCheckJob.execute(jobExecutionContext);
 
-        verify(autoCheckService, times(1)).process(fileNameCaptor.capture());
-        assertEquals("test.txt", fileNameCaptor.getValue());
+        verify(autoCheckService, times(1)).process("test.txt");
     }
 
     @Test
@@ -64,7 +68,6 @@ class AutoCheckJobTest {
 
         autoCheckJob.execute(jobExecutionContext);
 
-        verify(autoCheckService, times(1)).process(fileNameCaptor.capture());
-        assertEquals("test.txt", fileNameCaptor.getValue());
+        verify(autoCheckService, times(1)).process("test.txt");
     }
 }
