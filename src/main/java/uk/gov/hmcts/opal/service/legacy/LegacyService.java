@@ -1,8 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.Unmarshaller;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.helpers.MessageFormatter;
@@ -13,8 +11,8 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.util.XmlUtil;
 
-import java.io.StringReader;
 import java.util.Base64;
 import java.util.Map;
 
@@ -39,11 +37,8 @@ public abstract class LegacyService {
                 getLog().info("extractResponse: Raw XML response: {}", rawXml);
 
                 try {
-                    JAXBContext jaxbContext = JAXBContext.newInstance(clzz);
-                    Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-                    StringReader reader = new StringReader(rawXml);
-
-                    return (T) unmarshaller.unmarshal(reader);
+                    XmlUtil xmlUtil = new XmlUtil();
+                    return (T) xmlUtil.unmarshalXmlString(rawXml, clzz);
 
                 } catch (Exception e) {
                     getLog().error("extractResponse: Error deserializing response: {}", e.getMessage(), e);

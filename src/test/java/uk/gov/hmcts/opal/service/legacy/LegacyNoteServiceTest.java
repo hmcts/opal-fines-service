@@ -8,7 +8,6 @@ import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
-import jakarta.xml.bind.UnmarshalException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -240,7 +239,7 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
         assertNotNull(lgre);
         Throwable cause = lgre.getCause();
         assertNotNull(cause);
-        assertEquals(UnmarshalException.class, cause.getClass());
+        assertEquals(RuntimeException.class, cause.getClass());
     }
 
 }

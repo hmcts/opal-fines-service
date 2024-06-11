@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import jakarta.xml.bind.UnmarshalException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -144,7 +143,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         assertNotNull(lgre);
         Throwable cause = lgre.getCause();
         assertNotNull(cause);
-        assertEquals(UnmarshalException.class, cause.getClass());
+        assertEquals(RuntimeException.class, cause.getClass());
     }
 
     @Test
@@ -252,7 +251,7 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
         assertNotNull(lgre);
         Throwable cause = lgre.getCause();
         assertNotNull(cause);
-        assertEquals(UnmarshalException.class, cause.getClass());
+        assertEquals(RuntimeException.class, cause.getClass());
     }
 
     @Test
