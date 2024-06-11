@@ -5,6 +5,8 @@ import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity_;
 
+import java.util.Optional;
+
 public class EnforcerSpecs extends BaseCourtSpecs<EnforcerEntity> {
 
     public Specification<EnforcerEntity> findBySearchCriteria(EnforcerSearchDto criteria) {
@@ -12,8 +14,15 @@ public class EnforcerSpecs extends BaseCourtSpecs<EnforcerEntity> {
             findByBaseCourtCriteria(criteria),
             notBlank(criteria.getEnforcerId()).map(EnforcerSpecs::equalsEnforcerId),
             notBlank(criteria.getEnforcerCode()).map(EnforcerSpecs::equalsEnforcerCode),
-            notBlank(criteria.getWarrantReferenceSequence()).map(EnforcerSpecs::equalswarrantReferenceSequence),
-            notBlank(criteria.getWarrantRegisterSequence()).map(EnforcerSpecs::equalswarrantRegisterSequence)
+            notBlank(criteria.getWarrantReferenceSequence()).map(EnforcerSpecs::equalsWarrantReferenceSequence),
+            notBlank(criteria.getWarrantRegisterSequence()).map(EnforcerSpecs::equalsWarrantRegisterSequence)
+        ));
+    }
+
+
+    public Specification<EnforcerEntity> referenceDataFilter(Optional<String> filter) {
+        return Specification.allOf(specificationList(
+            filter.filter(s -> !s.isBlank()).map(this::likeAnyEnforcer)
         ));
     }
 
@@ -25,14 +34,20 @@ public class EnforcerSpecs extends BaseCourtSpecs<EnforcerEntity> {
         return (root, query, builder) -> builder.equal(root.get(EnforcerEntity_.enforcerCode), enforcerCode);
     }
 
-    public static Specification<EnforcerEntity> equalswarrantReferenceSequence(String warrantReferenceSequence) {
+    public static Specification<EnforcerEntity> equalsWarrantReferenceSequence(String warrantReferenceSequence) {
         return (root, query, builder) -> builder.equal(root.get(EnforcerEntity_.warrantReferenceSequence),
                                                        warrantReferenceSequence);
     }
 
-    public static Specification<EnforcerEntity> equalswarrantRegisterSequence(String warrantRegisterSequence) {
+    public static Specification<EnforcerEntity> equalsWarrantRegisterSequence(String warrantRegisterSequence) {
         return (root, query, builder) -> builder.equal(root.get(EnforcerEntity_.warrantRegisterSequence),
                                                        warrantRegisterSequence);
     }
 
+    public Specification<EnforcerEntity> likeAnyEnforcer(String filter) {
+        return Specification.anyOf(
+            likeName(filter),
+            likeNameCy(filter)
+        );
+    }
 }

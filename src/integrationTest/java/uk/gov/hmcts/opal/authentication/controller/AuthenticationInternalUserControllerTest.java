@@ -51,6 +51,7 @@ class AuthenticationInternalUserControllerTest {
     void testLoginOrRefresh() throws Exception {
         String redirectUri = "http://example.com/redirect";
         when(authenticationService.loginOrRefresh(any(), any())).thenReturn(new URI(redirectUri));
+        when(authenticationService.getLoginUri(any())).thenReturn(new URI(redirectUri));
 
         mockMvc.perform(get("/internal-user/login-or-refresh")
                             .param("redirect_uri", redirectUri))
@@ -62,7 +63,6 @@ class AuthenticationInternalUserControllerTest {
     void testHandleOauthCode() throws Exception {
         when(authenticationService.handleOauthCode(anyString())).thenReturn("accessToken");
 
-        SecurityToken securityToken = SecurityToken.builder().accessToken("accessToken").build();
         when(accessTokenService.extractPreferredUsername(anyString())).thenReturn("username");
         UserState userState = UserState.builder()
             .userName("name")
@@ -77,7 +77,12 @@ class AuthenticationInternalUserControllerTest {
                                       .build()))
                               .build()))
             .build();
-        when(authorisationService.getAuthorisation(anyString())).thenReturn(userState);
+        SecurityToken securityToken = SecurityToken.builder()
+            .userState(userState)
+            .accessToken("accessToken")
+            .build();
+
+        when(authenticationService.getSecurityToken(anyString())).thenReturn(securityToken);
 
         mockMvc.perform(post("/internal-user/handle-oauth-code")
                             .param("code", "code")

@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.entity.projection;
 
-public interface BusinessUnitReferenceData {
+import uk.gov.hmcts.opal.entity.BusinessUnitRef;
+
+public interface BusinessUnitReferenceData extends BusinessUnitRef {
 
     Short getBusinessUnitId();
 

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.authorisation.aspect;
 
+import lombok.SneakyThrows;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.access.AccessDeniedException;
+import uk.gov.hmcts.opal.authentication.aspect.UserStateAspectService;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
@@ -28,7 +30,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = AuthorizationAspect.class)
+@SpringBootTest(classes = {AuthorizationAspect.class, UserStateAspectService.class})
 @ExtendWith(MockitoExtension.class)
 class AuthorizationAspectTest {
 
@@ -67,11 +69,11 @@ class AuthorizationAspectTest {
 
     @Nested
     class AuthorizedAnyRoleHasPermissionAspect {
+
         @Test
-        void checkAuthorization_WhenAuthorizationHeaderMissing_ThrowsException() throws Throwable {
+        void checkAuthorization_WhenAuthorizationHeaderMissing_ThrowsException() {
             Object[] args = {"some argument"};
             when(joinPoint.getArgs()).thenReturn(args);
-            when(authorizationAspectService.getRequestHeaderValue(args)).thenReturn(null);
             when(authorizedAnyRoleHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY);
 
             Assertions.assertThrows(
@@ -81,13 +83,12 @@ class AuthorizationAspectTest {
         }
 
         @Test
-        void checkAuthorization_WhenUserHasPermission_ReturnsProceededObject() throws Throwable {
+        @SneakyThrows
+        void checkAuthorization_WhenUserHasPermission_ReturnsProceededObject() {
             Object[] args = {"Bearer token"};
             when(joinPoint.getArgs()).thenReturn(args);
-            when(authorizationAspectService.getRequestHeaderValue(args)).thenReturn("Bearer token");
-            when(authorizationAspectService.getAuthorization("Bearer token"))
-                .thenReturn(Optional.of("Bearer token"));
-            when(userStateService.getUserStateUsingAuthToken("Bearer token")).thenReturn(USER_STATE);
+            when(authorizationAspectService.getUserState(args)).thenReturn(Optional.ofNullable(USER_STATE));
+
             when(joinPoint.proceed()).thenReturn(new Object());
             when(authorizedAnyRoleHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY);
 
@@ -101,10 +102,8 @@ class AuthorizationAspectTest {
         void checkAuthorization_WhenUserDoesNotHavePermission_ThrowsException() throws Throwable {
             Object[] args = {"Bearer token"};
             when(joinPoint.getArgs()).thenReturn(args);
-            when(authorizationAspectService.getRequestHeaderValue(args)).thenReturn("Bearer token");
-            when(authorizationAspectService.getAuthorization("Bearer token"))
-                .thenReturn(Optional.of("Bearer token"));
-            when(userStateService.getUserStateUsingAuthToken("Bearer token")).thenReturn(USER_STATE);
+            when(authorizationAspectService.getUserState(args)).thenReturn(Optional.ofNullable(USER_STATE));
+
             when(joinPoint.proceed()).thenReturn(new Object());
             when(authorizedAnyRoleHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY_NOTES);
 
@@ -129,10 +128,9 @@ class AuthorizationAspectTest {
         void checkAuthorization_WhenUserHasPermission_ReturnsProceededObject() throws Throwable {
             Object[] args = {"Bearer token"};
             when(joinPoint.getArgs()).thenReturn(args);
-            when(authorizationAspectService.getRequestHeaderValue(args)).thenReturn("Bearer token");
-            when(authorizationAspectService.getAuthorization("Bearer token"))
-                .thenReturn(Optional.of("Bearer token"));
-            when(userStateService.getUserStateUsingAuthToken("Bearer token")).thenReturn(USER_STATE);
+
+            when(authorizationAspectService.getUserState(args)).thenReturn(Optional.ofNullable(USER_STATE));
+
             when(joinPoint.proceed()).thenReturn(new Object());
             when(authorizedRoleHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY);
             when(authorizationAspectService.getRole(any(), any())).thenReturn(ROLE);
@@ -147,10 +145,8 @@ class AuthorizationAspectTest {
         void checkAuthorization_WhenUserDoesNotHavePermission_ThrowsException() throws Throwable {
             Object[] args = {"Bearer token"};
             when(joinPoint.getArgs()).thenReturn(args);
-            when(authorizationAspectService.getRequestHeaderValue(args)).thenReturn("Bearer token");
-            when(authorizationAspectService.getAuthorization("Bearer token"))
-                .thenReturn(Optional.of("Bearer token"));
-            when(userStateService.getUserStateUsingAuthToken("Bearer token")).thenReturn(USER_STATE);
+            when(authorizationAspectService.getUserState(args)).thenReturn(Optional.ofNullable(USER_STATE));
+
             when(joinPoint.proceed()).thenReturn(new Object());
             when(authorizedRoleHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY_NOTES);
             when(authorizationAspectService.getRole(any(), any())).thenReturn(ROLE);
