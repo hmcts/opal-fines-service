@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.CourtEntity;
 import uk.gov.hmcts.opal.entity.projection.CourtReferenceData;
 import uk.gov.hmcts.opal.repository.CourtRepository;
@@ -77,7 +78,8 @@ class CourtServiceTest {
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
         when(ffq.sortBy(any())).thenReturn(ffq);
 
-        CourtEntity courtEntity = CourtEntity.builder().build();
+        CourtEntity courtEntity = CourtEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)007).build()).build();
         Page<CourtEntity> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 999L);
         when(courtRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
@@ -85,10 +87,11 @@ class CourtServiceTest {
         });
 
         // Act
-        List<CourtReferenceData> result = courtService.getReferenceData(Optional.empty());
+        List<CourtReferenceData> result = courtService.getReferenceData(Optional.empty(), Optional.empty());
 
         CourtReferenceData refData =  new CourtReferenceData(
             courtEntity.getCourtId(),
+            courtEntity.getBusinessUnit().getBusinessUnitId(),
             courtEntity.getCourtCode(),
             courtEntity.getName(),
             courtEntity.getNameCy(),

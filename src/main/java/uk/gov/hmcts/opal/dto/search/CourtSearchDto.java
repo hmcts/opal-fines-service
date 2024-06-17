@@ -10,9 +10,10 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 @Builder
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class CourtSearchDto extends BaseCourtSearch implements ToJsonString {
+public class CourtSearchDto extends AddressCySearch implements ToJsonString {
 
     private String courtId;
+    private String businessUnitId;
     private String courtCode;
     private String parentCourtId;
     private String localJusticeAreaId;
