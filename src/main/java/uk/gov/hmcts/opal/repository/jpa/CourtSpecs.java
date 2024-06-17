@@ -6,15 +6,17 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.CourtEntity;
 import uk.gov.hmcts.opal.entity.CourtEntity_;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 
 import java.util.Optional;
 
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.LocalJusticeAreaSpecs.equalsLocalJusticeAreaIdPredicate;
 
-public class CourtSpecs extends BaseCourtSpecs<CourtEntity> {
+public class CourtSpecs extends AddressCySpecs<CourtEntity> {
 
     public Specification<CourtEntity> findBySearchCriteria(CourtSearchDto criteria) {
         return Specification.allOf(specificationList(
@@ -27,9 +29,11 @@ public class CourtSpecs extends BaseCourtSpecs<CourtEntity> {
         ));
     }
 
-    public Specification<CourtEntity> referenceDataFilter(Optional<String> filter) {
+    public Specification<CourtEntity> referenceDataFilter(Optional<String> filter,
+                                                          Optional<Short> businessUnitId) {
         return Specification.allOf(specificationList(
-            filter.filter(s -> !s.isBlank()).map(this::likeAnyCourt)
+            filter.filter(s -> !s.isBlank()).map(this::likeAnyCourt),
+            businessUnitId.map(CourtSpecs::equalsBusinessUnitId)
         ));
     }
 
@@ -39,6 +43,11 @@ public class CourtSpecs extends BaseCourtSpecs<CourtEntity> {
 
     public static Predicate equalsCourtIdPredicate(From<?, CourtEntity> from, CriteriaBuilder builder, Long courtId) {
         return builder.equal(from.get(CourtEntity_.courtId), courtId);
+    }
+
+    public static Specification<CourtEntity> equalsBusinessUnitId(Short businessUnitId) {
+        return (root, query, builder) ->
+            equalsBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
     }
 
     public static Specification<CourtEntity> equalsCourtCode(String courtCode) {
@@ -65,6 +74,10 @@ public class CourtSpecs extends BaseCourtSpecs<CourtEntity> {
             likeNameCy(filter),
             likeNationalCourtCode(filter)
         );
+    }
+
+    public static Join<CourtEntity, BusinessUnitEntity> joinBusinessUnit(From<?, CourtEntity> from) {
+        return from.join(CourtEntity_.businessUnit);
     }
 
     public static Join<CourtEntity, CourtEntity> joinParentCourt(From<?, CourtEntity> from) {
