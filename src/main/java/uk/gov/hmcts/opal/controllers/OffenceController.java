@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
@@ -62,11 +63,15 @@ public class OffenceController {
     }
 
     @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
-    @Operation(summary = "Returns Offences as reference data with an optional filter applied")
-    public ResponseEntity<OffenceReferenceDataResults> getOffenceRefData(@PathVariable Optional<String> filter) {
-        log.info(":GET:getOffenceRefData: query: \n{}", filter);
+    @Operation(summary = "Returns 'global' Offences as reference data with an optional filter applied. "
+        + "If the business unit is provided, then that is used to return only 'local' offences "
+        + "for that business unit, or ALL local offences if the business unit provided is zero.")
+    public ResponseEntity<OffenceReferenceDataResults> getOffenceRefData(
+        @PathVariable Optional<String> filter, @RequestParam Optional<Short> businessUnit) {
 
-        List<OffenceReferenceData> refData = opalOffenceService.getReferenceData(filter);
+        log.info(":GET:getOffenceRefData: business unit: {}, filter string: {}", businessUnit, filter);
+
+        List<OffenceReferenceData> refData = opalOffenceService.getReferenceData(filter, businessUnit);
 
         log.info(":GET:getOffenceRefData: offences reference data count: {}", refData.size());
         return ResponseEntity.ok(OffenceReferenceDataResults.builder().refData(refData).build());
