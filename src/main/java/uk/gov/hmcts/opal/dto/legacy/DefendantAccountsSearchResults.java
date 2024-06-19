@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@XmlRootElement
 public class DefendantAccountsSearchResults implements ToJsonString {
 
     List<DefendantAccountSearchResult> defendantAccountsSearchResult;

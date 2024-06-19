@@ -1,8 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.helpers.MessageFormatter;
@@ -13,6 +11,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.util.XmlUtil;
 
 import java.util.Base64;
 import java.util.Map;
@@ -29,18 +28,17 @@ public abstract class LegacyService {
 
     protected abstract Logger getLog();
 
+    @SuppressWarnings("unchecked")
     public <T> T extractResponse(ResponseEntity<String> responseEntity, Class<T> clzz) {
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
             if (responseEntity.getBody() != null) {
 
-                String rawJson = responseEntity.getBody();
-                getLog().info("extractResponse: Raw JSON response: {}", rawJson);
+                String rawXml = responseEntity.getBody();
+                getLog().info("extractResponse: Raw XML response: {}", rawXml);
 
                 try {
-                    ObjectMapper objectMapper = ToJsonString.getObjectMapper();
-                    JsonNode root = objectMapper.readTree(rawJson);
-
-                    return objectMapper.treeToValue(root, clzz);
+                    XmlUtil xmlUtil = new XmlUtil();
+                    return (T) xmlUtil.unmarshalXmlString(rawXml, clzz);
 
                 } catch (Exception e) {
                     getLog().error("extractResponse: Error deserializing response: {}", e.getMessage(), e);
