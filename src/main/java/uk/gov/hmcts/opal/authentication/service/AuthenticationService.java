@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal.authentication.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.authentication.aspect.AccessTokenParam;
+import uk.gov.hmcts.opal.authentication.aspect.LogAuditDetail;
 import uk.gov.hmcts.opal.authentication.config.AuthStrategySelector;
 import uk.gov.hmcts.opal.authentication.config.AuthenticationConfigurationPropertiesStrategy;
 import uk.gov.hmcts.opal.authentication.dao.AzureDao;
@@ -10,12 +12,10 @@ import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
 import uk.gov.hmcts.opal.authentication.exception.AzureDaoException;
 import uk.gov.hmcts.opal.authentication.model.JwtValidationResult;
 import uk.gov.hmcts.opal.authentication.model.OAuthProviderRawResponse;
+import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authorisation.model.LogActions;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddLogAuditDetailDto;
+import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 import uk.gov.hmcts.opal.exception.OpalApiException;
-import uk.gov.hmcts.opal.service.opal.LogAuditDetailService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.net.URI;
 import java.util.Objects;
@@ -27,17 +27,15 @@ public class AuthenticationService {
 
     private final TokenValidator tokenValidator;
     private final AzureDao azureDao;
-
     private final AuthStrategySelector locator;
+    private final AuthorisationService authorisationService;
 
-    private final LogAuditDetailService logAuditDetailService;
-
-    private final UserStateService userStateService;
-
+    @LogAuditDetail(action = LogActions.LOG_IN)
     public URI loginOrRefresh(String accessToken, String redirectUri) {
         log.debug("Initiated login or refresh flow with access token {}", accessToken);
 
         AuthenticationConfigurationPropertiesStrategy configStrategy = locator.locateAuthenticationConfiguration();
+
         if (accessToken == null) {
             return configStrategy.getLoginUri(redirectUri);
         }
@@ -52,9 +50,11 @@ public class AuthenticationService {
             return configStrategy.getLoginUri(redirectUri);
         }
 
-        writeAuditLog(accessToken, LogActions.LOG_IN);
-
         return configStrategy.getLandingPageUri();
+    }
+
+    public URI getLoginUri(String redirectUri) {
+        return locator.locateAuthenticationConfiguration().getLoginUri(redirectUri);
     }
 
     public String handleOauthCode(String code) {
@@ -82,19 +82,18 @@ public class AuthenticationService {
             configStrategy.getConfiguration()
         );
         if (!validationResult.valid()) {
-            log.error("Invalid reason: " + validationResult.reason());
+            log.error("Invalid reason: {}", validationResult.reason());
             throw new OpalApiException(AuthenticationError.FAILED_TO_VALIDATE_ACCESS_TOKEN);
         }
 
         return accessToken;
     }
 
+    @LogAuditDetail(action = LogActions.LOG_OUT)
     public URI logout(String accessToken, String redirectUri) {
         AuthenticationConfigurationPropertiesStrategy configStrategy = locator.locateAuthenticationConfiguration();
 
         log.debug("Initiated logout flow with access token {} and redirectUri {}", accessToken, redirectUri);
-
-        writeAuditLog(accessToken, LogActions.LOG_OUT);
 
         return configStrategy.getLogoutUri(accessToken, redirectUri);
     }
@@ -106,15 +105,8 @@ public class AuthenticationService {
         return configStrategy.getResetPasswordUri(redirectUri);
     }
 
-    private void writeAuditLog(String accessToken, LogActions action) {
-
-        UserState userState = userStateService.getUserStateUsingAuthToken(accessToken);
-
-        logAuditDetailService.writeLogAuditDetail(
-            AddLogAuditDetailDto.builder()
-                .logAction(action)
-                .userId(userState.getUserId())
-                .jsonRequest("none")
-                .build());
+    @LogAuditDetail(action = LogActions.LOG_IN)
+    public SecurityToken getSecurityToken(@AccessTokenParam String accessToken) {
+        return authorisationService.getSecurityToken(accessToken);
     }
 }

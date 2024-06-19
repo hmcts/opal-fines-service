@@ -13,9 +13,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.projection.EnforcerReferenceData;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,5 +70,32 @@ class EnforcerServiceTest {
 
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    void testEnforcersReferenceData() {
+        // Arrange
+        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        when(ffq.sortBy(any())).thenReturn(ffq);
 
+        EnforcerEntity enforcerEntity = EnforcerEntity.builder().build();
+        Page<EnforcerEntity> mockPage = new PageImpl<>(List.of(enforcerEntity), Pageable.unpaged(), 999L);
+        when(enforcerRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(ffq);
+            return mockPage;
+        });
+
+        // Act
+        List<EnforcerReferenceData> result = enforcerService.getReferenceData(Optional.empty());
+
+        EnforcerReferenceData refData =  new EnforcerReferenceData(
+            enforcerEntity.getEnforcerId(),
+            enforcerEntity.getEnforcerCode(),
+            enforcerEntity.getName(),
+            enforcerEntity.getNameCy()
+        );
+
+        // Assert
+        assertEquals(List.of(refData), result);
+
+    }
 }

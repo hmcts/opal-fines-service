@@ -8,6 +8,8 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import lombok.SneakyThrows;
+import org.apache.http.client.utils.URIBuilder;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +21,6 @@ import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authentication.service.AuthenticationService;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 
 import java.net.URI;
 import java.util.Date;
@@ -31,11 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings({"PMD.ExcessiveImports"})
 class AuthenticationInternalUserControllerTest {
 
     private static final URI DUMMY_AUTHORIZATION_URI = URI.create("https://www.example.com/authorization?param=value");
@@ -50,56 +49,84 @@ class AuthenticationInternalUserControllerTest {
     private AuthenticationService authenticationService;
 
     @Mock
-    private AuthorisationService authorisationService;
-
-    @Mock
     private AccessTokenService accessTokenService;
 
     @Test
+    @SneakyThrows
     void loginAndRefreshShouldReturnLoginPageAsRedirectWhenAuthHeaderIsNotSet() {
-        when(authenticationService.loginOrRefresh(null, null))
-            .thenReturn(DUMMY_AUTHORIZATION_URI);
+        when(authenticationService.getLoginUri(anyString()))
+            .thenReturn(new URIBuilder("/azure-login").build());
 
-        ModelAndView modelAndView = controller.loginOrRefresh(null, null);
+        ModelAndView modelAndView = controller.loginOrRefresh(null, "/azure-login");
 
         assertNotNull(modelAndView);
-        assertEquals("redirect:https://www.example.com/authorization?param=value", modelAndView.getViewName());
+        assertEquals("redirect:/azure-login", modelAndView.getViewName());
     }
+
+    @Test
+    @SneakyThrows
+    void loginAndRefreshShouldReturnPageAsRedirectWhenAuthHeaderIsNotSet() {
+        when(authenticationService.loginOrRefresh(DUMMY_TOKEN, null))
+            .thenReturn(DUMMY_AUTHORIZATION_URI);
+
+        ModelAndView modelAndView = controller.loginOrRefresh(DUMMY_TOKEN, null);
+
+        assertNotNull(modelAndView);
+        assertEquals("redirect:" + DUMMY_AUTHORIZATION_URI, modelAndView.getViewName());
+    }
+
 
     @Nested
     class HandleOauthCode {
         @Test
         void handleOauthCodeFromAzureWhenCodeIsReturnedWithAccessTokenAndUserState() throws JOSEException {
-            when(authenticationService.handleOauthCode(anyString()))
-                .thenReturn(createDummyAccessToken("test.user@example.com"));
+            String accessToken = createDummyAccessToken("test.missing@example.com");
+            SecurityToken securityToken = SecurityToken.builder().accessToken(accessToken).build();
 
-            SecurityToken securityToken = controller.handleOauthCode(DUMMY_CODE);
-            assertNotNull(securityToken);
-            assertNotNull(securityToken.getAccessToken());
+            when(authenticationService.getSecurityToken(accessToken))
+                .thenReturn(securityToken);
+
+            when(authenticationService.handleOauthCode(anyString()))
+                .thenReturn(accessToken);
+
+            SecurityToken resultToken = controller.handleOauthCode(DUMMY_CODE);
+            assertNotNull(resultToken);
+            assertNotNull(resultToken.getAccessToken());
 
             verify(authenticationService).handleOauthCode(DUMMY_CODE);
         }
 
         @Test
         void handleOauthCodeFromAzureWhenCodeIsReturnedWithAccessTokenAndNoUserState() throws JOSEException {
-            when(authenticationService.handleOauthCode(anyString()))
-                .thenReturn(createDummyAccessToken("test.missing@example.com"));
+            String accessToken = createDummyAccessToken("test.missing@example.com");
+            SecurityToken securityToken = SecurityToken.builder().accessToken(accessToken).build();
 
-            SecurityToken securityToken = controller.handleOauthCode(DUMMY_CODE);
-            assertNotNull(securityToken);
-            assertNotNull(securityToken.getAccessToken());
+            when(authenticationService.handleOauthCode(anyString()))
+                .thenReturn(accessToken);
+            when(authenticationService.getSecurityToken(accessToken))
+                .thenReturn(securityToken);
+
+            SecurityToken result = controller.handleOauthCode(DUMMY_CODE);
+            assertNotNull(result);
+            assertNotNull(result.getAccessToken());
 
             verify(authenticationService).handleOauthCode(DUMMY_CODE);
         }
 
         @Test
-        void handleOauthCodeFromAzureWhenCodeIsReturnedWithoutClaim() throws JOSEException {
-            when(authenticationService.handleOauthCode(anyString()))
-                .thenReturn(createDummyAccessToken("test.missing@example.com"));
+        @SneakyThrows
+        void handleOauthCodeFromAzureWhenCodeIsReturnedWithoutClaim() {
+            String accessToken = createDummyAccessToken("test.missing@example.com");
+            SecurityToken securityToken = SecurityToken.builder().accessToken(accessToken).build();
 
-            SecurityToken securityToken = controller.handleOauthCode(DUMMY_CODE);
-            assertNotNull(securityToken);
-            assertNotNull(securityToken.getAccessToken());
+            when(authenticationService.getSecurityToken(accessToken))
+                .thenReturn(securityToken);
+            when(authenticationService.handleOauthCode(anyString()))
+                .thenReturn(accessToken);
+
+            SecurityToken resultToken = controller.handleOauthCode(DUMMY_CODE);
+            assertNotNull(resultToken);
+            assertNotNull(resultToken.getAccessToken());
 
             verify(authenticationService).handleOauthCode(DUMMY_CODE);
         }
@@ -111,10 +138,12 @@ class AuthenticationInternalUserControllerTest {
             String accessToken = "accessToken";
             String userEmail = "test@example.com";
             UserState userState = UserState.builder().userId(234L).userName("some name").build();
+            SecurityToken securityToken = SecurityToken.builder().accessToken(accessToken).userState(userState).build();
 
             when(authenticationService.handleOauthCode(code)).thenReturn(accessToken);
             when(accessTokenService.extractPreferredUsername(accessToken)).thenReturn(userEmail);
-            when(authorisationService.getAuthorisation(userEmail)).thenReturn(userState);
+            when(authenticationService.getSecurityToken(accessToken))
+                .thenReturn(securityToken);
 
             // Act
             SecurityToken result = controller.handleOauthCode(code);
@@ -127,7 +156,6 @@ class AuthenticationInternalUserControllerTest {
             // Verify interactions
             verify(authenticationService).handleOauthCode(code);
             verify(accessTokenService).extractPreferredUsername(accessToken);
-            verify(authorisationService).getAuthorisation(userEmail);
         }
 
         @Test
@@ -135,10 +163,12 @@ class AuthenticationInternalUserControllerTest {
             // Arrange
             String code = "validCode";
             String accessToken = "accessToken";
+            SecurityToken securityToken = SecurityToken.builder().accessToken(accessToken).build();
 
             when(authenticationService.handleOauthCode(code)).thenReturn(accessToken);
             when(accessTokenService.extractPreferredUsername(accessToken)).thenReturn(null);
-
+            when(authenticationService.getSecurityToken(accessToken))
+                .thenReturn(securityToken);
             // Act
             SecurityToken result = controller.handleOauthCode(code);
 
@@ -150,7 +180,6 @@ class AuthenticationInternalUserControllerTest {
             // Verify interactions
             verify(authenticationService).handleOauthCode(code);
             verify(accessTokenService).extractPreferredUsername(accessToken);
-            verifyNoInteractions(authorisationService);
         }
 
     }
@@ -177,8 +206,6 @@ class AuthenticationInternalUserControllerTest {
         assertEquals("redirect:https://www.example.com/authorization?param=value", modelAndView.getViewName());
     }
 
-
-    @SuppressWarnings("PMD.UseUnderscoresInNumericLiterals")
     private String createDummyAccessToken(String emails) throws JOSEException {
         RSAKey rsaKey = new RSAKeyGenerator(2048)
             .keyID("123")

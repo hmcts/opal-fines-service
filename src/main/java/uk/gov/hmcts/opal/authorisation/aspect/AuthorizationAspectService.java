@@ -1,14 +1,18 @@
 package uk.gov.hmcts.opal.authorisation.aspect;
 
 import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import uk.gov.hmcts.opal.authentication.aspect.AccessTokenParam;
 import uk.gov.hmcts.opal.authorisation.model.Role;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
 
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -21,14 +25,23 @@ public class AuthorizationAspectService {
 
     public static final String AUTHORIZATION = "Authorization";
 
-    public String getRequestHeaderValue(Object[] args) {
-        for (Object arg : args) {
-            if (arg.getClass().isAnnotationPresent(org.springframework.web.bind.annotation.RequestHeader.class)
-                && arg instanceof String) {
-                return (String) arg;
-            }
+    public Optional<String> getAccessTokenParam(ProceedingJoinPoint joinPoint) {
+        try {
+            Object[] args = joinPoint.getArgs();
+            MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+            Parameter[] parameters = signature.getMethod().getParameters();
+
+            return Arrays.stream(parameters)
+                .filter(param -> Arrays.stream(param.getAnnotations()).anyMatch(anno -> anno.annotationType().equals(
+                    AccessTokenParam.class)))
+                .map(param -> args[Arrays.asList(parameters).indexOf(param)])
+                .filter(arg -> arg instanceof String)
+                .map(String.class::cast)
+                .findFirst();
+        } catch (Exception exception) {
+            log.error(exception.getMessage(), exception);
         }
-        return null;
+        return Optional.empty();
     }
 
     public Optional<String> getAuthorization(String authHeaderValue) {

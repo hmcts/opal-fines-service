@@ -5,14 +5,14 @@ Feature: tests for notes roles/permissions for accounts dependant on business un
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the defendant account add notes api with
       | associatedRecordId | 500000010                       |
-      | businessUnitId     | 17                              |
+      | businessUnitId     | 71                              |
       | noteText           | test roles and perms Opal user1 |
     And the add notes response contains
       | associatedRecordId | 500000010                       |
       | noteText           | test roles and perms Opal user1 |
-      | postedBy           | L017KG                          |
+      | postedBy           | L073JG                          |
       | postedByUserId     | 500000000                       |
-      | businessUnitId     | 17                              |
+      | businessUnitId     | 71                              |
 
 
     When I make a request to the defendant account add notes api with
@@ -22,7 +22,7 @@ Feature: tests for notes roles/permissions for accounts dependant on business un
     And the add notes response contains
       | associatedRecordId | 500000010                       |
       | noteText           | test roles and perms Opal user1 |
-      | postedBy           | L069KG                          |
+      | postedBy           | L078JG                          |
       | postedByUserId     | 500000000                       |
       | businessUnitId     | 69                              |
 

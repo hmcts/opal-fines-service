@@ -1,25 +1,30 @@
 package uk.gov.hmcts.opal.authorisation.aspect;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import uk.gov.hmcts.opal.authentication.aspect.AccessTokenParam;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.Role;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -49,15 +54,67 @@ class AuthorizationAspectServiceTest {
     @Autowired
     private AuthorizationAspectService authorizationAspectService;
 
+
     @Nested
-    class GetRequestHeaderValue {
+    class GetAccessTokenParam {
+
+        @Mock
+        private ProceedingJoinPoint joinPoint;
+
+        @Mock
+        private MethodSignature methodSignature;
+
         @Test
-        void getRequestHeaderValue_WhenNoStringArgumentExists_ReturnsNull() {
-            Object[] args = {123, true, new Object()};
+        public void testGetAccessTokenParam_found() throws NoSuchMethodException {
+            String expectedToken = "testToken";
 
-            String headerValue = authorizationAspectService.getRequestHeaderValue(args);
+            when(joinPoint.getSignature()).thenReturn(methodSignature);
 
-            assertNull(headerValue);
+            Method method = AuthorizationAspectServiceTest.GetAccessTokenParam.class.getMethod(
+                "methodWithAccessToken",
+                String.class
+            );
+            when(methodSignature.getMethod()).thenReturn(method);
+
+            when(joinPoint.getArgs()).thenReturn(new Object[]{expectedToken});
+
+            Optional<String> result = authorizationAspectService.getAccessTokenParam(joinPoint);
+
+            assertTrue(result.isPresent());
+            assertEquals(expectedToken, result.get());
+        }
+
+        @Test
+        public void testGetAccessTokenParam_notFound() throws NoSuchMethodException {
+            when(joinPoint.getSignature()).thenReturn(methodSignature);
+
+            Method method = AuthorizationAspectServiceTest.GetAccessTokenParam.class.getMethod(
+                "methodWithoutAccessToken",
+                String.class
+            );
+            when(methodSignature.getMethod()).thenReturn(method);
+
+            Parameter[] parameters = method.getParameters();
+            when(joinPoint.getArgs()).thenReturn(new Object[]{"someOtherArg"});
+
+            Optional<String> result = authorizationAspectService.getAccessTokenParam(joinPoint);
+
+            assertTrue(result.isEmpty());
+        }
+
+        @Test
+        public void testGetAccessTokenParam_exceptionHandling() throws NoSuchMethodException {
+            when(joinPoint.getSignature()).thenThrow(new RuntimeException("Exception"));
+
+            Optional<String> result = authorizationAspectService.getAccessTokenParam(joinPoint);
+
+            assertTrue(result.isEmpty());
+        }
+
+        public void methodWithAccessToken(@AccessTokenParam String token) {
+        }
+
+        public void methodWithoutAccessToken(String arg) {
         }
     }
 
