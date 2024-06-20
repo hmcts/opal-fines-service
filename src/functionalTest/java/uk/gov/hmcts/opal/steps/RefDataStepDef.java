@@ -50,6 +50,10 @@ public class RefDataStepDef extends BaseStepDef {
     public void getRequestToCourtsRefData() {
         methods.getRequest(COURTS_REF_DATA_URI);
     }
+    @When("I make a request to the court ref data api with a filter of {string}")
+    public void getRequestToCourtsRefDataWithFilter(String filter) {
+        methods.getRequest(COURTS_REF_DATA_URI + filter);
+    }
 
     @Then("the LJA ref data matching to result")
     @Then("the court ref data matching to result")
