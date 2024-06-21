@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
@@ -76,10 +77,10 @@ public class CourtController {
     @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
     @Operation(summary = "Returns courts as reference data with an optional filter applied")
     public ResponseEntity<CourtReferenceDataResults> getCourtRefData(
-        @PathVariable Optional<String> filter) {
-        log.info(":GET:getCourtRefData: query: \n{}", filter);
+        @PathVariable Optional<String> filter, @RequestParam Optional<Short> businessUnit) {
+        log.info(":GET:getCourtRefData: business unit: {}, filter string: {}", businessUnit, filter);
 
-        List<CourtReferenceData> refData = opalCourtService.getReferenceData(filter);
+        List<CourtReferenceData> refData = opalCourtService.getReferenceData(filter, businessUnit);
 
         log.info(":GET:getCourtRefData: court reference data count: {}", refData.size());
         return ResponseEntity.ok(CourtReferenceDataResults.builder().refData(refData).build());

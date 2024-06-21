@@ -3,20 +3,18 @@ package uk.gov.hmcts.opal.steps;
 
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-
 import org.apache.http.HttpStatus;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.hamcrest.Matchers.equalTo;
 import static uk.gov.hmcts.opal.config.Constants.BUSINESS_UNIT_REF_DATA_URI;
-import static uk.gov.hmcts.opal.config.Constants.OFFENCES_REF_DATA_URI;
-import static uk.gov.hmcts.opal.config.Constants.MAJOR_CREDITORS_URI;
-import static uk.gov.hmcts.opal.config.Constants.LJA_REF_DATA_URI;
 import static uk.gov.hmcts.opal.config.Constants.COURTS_REF_DATA_URI;
 import static uk.gov.hmcts.opal.config.Constants.ENFORCERS_REF_DATA_URI;
+import static uk.gov.hmcts.opal.config.Constants.LJA_REF_DATA_URI;
+import static uk.gov.hmcts.opal.config.Constants.MAJOR_CREDITORS_URI;
+import static uk.gov.hmcts.opal.config.Constants.OFFENCES_REF_DATA_URI;
 
 
 public class RefDataStepDef extends BaseStepDef {
@@ -51,6 +49,11 @@ public class RefDataStepDef extends BaseStepDef {
         methods.getRequest(COURTS_REF_DATA_URI);
     }
 
+    @When("I make a request to the court ref data api with a filter of {string}")
+    public void getRequestToCourtsRefDataWithFilter(String filter) {
+        methods.getRequest(COURTS_REF_DATA_URI + filter);
+    }
+
     @Then("the LJA ref data matching to result")
     @Then("the court ref data matching to result")
     @Then("the offence ref data matching to result")
@@ -70,8 +73,8 @@ public class RefDataStepDef extends BaseStepDef {
     public void theMajorCreditorsRefDataMatching() {
         then().assertThat()
             .statusCode(HttpStatus.SC_OK)
-            .body("name",equalTo("CHESTERFIELD BOROUGH COUNCIL"))
-            .body("majorCreditorId",equalTo(15));
+            .body("name", equalTo("CHESTERFIELD BOROUGH COUNCIL"))
+            .body("majorCreditorId", equalTo(15));
     }
 
     @When("I make a request to enforcer ref data api filtering by name {string}")
