@@ -36,8 +36,7 @@ public class DBConnection {
             log.info("Successfully made to postgres database");
         } catch (SQLException e) {
             log.info("Error: " + e);
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             log.info("Error: " + e);
         }
         return conn;
