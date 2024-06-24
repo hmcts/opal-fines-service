@@ -26,12 +26,15 @@ public class LegacyUserEntitlementService extends LegacyService implements UserE
 
     @Override
     public UserEntitlementEntity getUserEntitlement(long userEntitlementId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getUserEntitlement for {} from {}", userEntitlementId, legacyGateway.getUrl());
+        return postToGateway("getUserEntitlement", UserEntitlementEntity.class, userEntitlementId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<UserEntitlementEntity> searchUserEntitlements(UserEntitlementSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchUserEntitlements: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchUserEntitlements", List.class, criteria);
     }
 
 }

@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.SearchResponseEntities;
 import uk.gov.hmcts.opal.dto.search.AccountTransferSearchDto;
 import uk.gov.hmcts.opal.entity.AccountTransferEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
@@ -28,13 +30,16 @@ public class LegacyAccountTransferService extends LegacyService implements Accou
 
     @Override
     public AccountTransferEntity getAccountTransfer(long accountTransferId) {
-        log.info("Get Account Transfer for {} from {}", accountTransferId, legacyGateway.getUrl());
+        log.info("getAccountTransfer for {} from {}", accountTransferId, legacyGateway.getUrl());
         return postToGateway("getAccountTransfer", AccountTransferEntity.class, accountTransferId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<AccountTransferEntity> searchAccountTransfers(AccountTransferSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchAccountTransfers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchAccountTransfers", SearchResponseEntities.class, criteria)
+            .getEntities();
     }
 
 }

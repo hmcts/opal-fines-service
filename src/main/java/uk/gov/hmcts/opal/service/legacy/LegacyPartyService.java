@@ -50,8 +50,10 @@ public class LegacyPartyService extends LegacyService implements PartyServiceInt
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<PartyEntity> searchParties(PartySearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchParties: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchParties", List.class, criteria);
     }
 
 

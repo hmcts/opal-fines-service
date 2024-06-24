@@ -27,11 +27,14 @@ public class LegacyPaymentTermsService extends LegacyService implements PaymentT
 
     @Override
     public PaymentTermsEntity getPaymentTerms(long paymentTermsId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getPaymentTerms for {} from {}", paymentTermsId, legacyGateway.getUrl());
+        return postToGateway("getPaymentTerms", PaymentTermsEntity.class, paymentTermsId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<PaymentTermsEntity> searchPaymentTerms(PaymentTermsSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchPaymentTerms: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchPaymentTerms", List.class, criteria);
     }
 }

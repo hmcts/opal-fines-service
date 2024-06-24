@@ -27,12 +27,15 @@ public class LegacyDocumentInstanceService extends LegacyService implements Docu
 
     @Override
     public DocumentInstanceEntity getDocumentInstance(long documentInstanceId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getDocumentInstance for {} from {}", documentInstanceId, legacyGateway.getUrl());
+        return postToGateway("getDocumentInstance", DocumentInstanceEntity.class, documentInstanceId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<DocumentInstanceEntity> searchDocumentInstances(DocumentInstanceSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchDocumentInstances: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchDocumentInstances", List.class, criteria);
     }
 
 }

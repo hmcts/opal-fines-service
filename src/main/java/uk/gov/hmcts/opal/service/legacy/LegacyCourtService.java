@@ -27,12 +27,15 @@ public class LegacyCourtService extends LegacyService implements CourtServiceInt
 
     @Override
     public CourtEntity getCourt(long courtId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getCourt for {} from {}", courtId, legacyGateway.getUrl());
+        return postToGateway("getCourt", CourtEntity.class, courtId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<CourtEntity> searchCourts(CourtSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchCourts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchCourts", List.class, criteria);
     }
 
 }

@@ -26,12 +26,15 @@ public class LegacyTemplateService extends LegacyService implements TemplateServ
 
     @Override
     public TemplateEntity getTemplate(long templateId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getTemplate for {} from {}", templateId, legacyGateway.getUrl());
+        return postToGateway("getTemplate", TemplateEntity.class, templateId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<TemplateEntity> searchTemplates(TemplateSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchTemplates: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchTemplates", List.class, criteria);
     }
 
 }

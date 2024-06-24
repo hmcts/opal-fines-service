@@ -26,12 +26,15 @@ public class LegacyMiscellaneousAccountService extends LegacyService implements 
 
     @Override
     public MiscellaneousAccountEntity getMiscellaneousAccount(long miscellaneousAccountId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getMiscellaneousAccount for {} from {}", miscellaneousAccountId, legacyGateway.getUrl());
+        return postToGateway("getMiscellaneousAccount", MiscellaneousAccountEntity.class, miscellaneousAccountId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<MiscellaneousAccountEntity> searchMiscellaneousAccounts(MiscellaneousAccountSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchMiscellaneousAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchMiscellaneousAccounts", List.class, criteria);
     }
 
 }

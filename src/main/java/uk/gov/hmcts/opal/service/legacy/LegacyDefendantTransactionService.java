@@ -26,12 +26,15 @@ public class LegacyDefendantTransactionService extends LegacyService implements 
 
     @Override
     public DefendantTransactionEntity getDefendantTransaction(long defendantTransactionId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getDefendantTransaction for {} from {}", defendantTransactionId, legacyGateway.getUrl());
+        return postToGateway("getDefendantTransaction", DefendantTransactionEntity.class, defendantTransactionId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<DefendantTransactionEntity> searchDefendantTransactions(DefendantTransactionSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchDefendantTransactions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchDefendantTransactions", List.class, criteria);
     }
 
 }

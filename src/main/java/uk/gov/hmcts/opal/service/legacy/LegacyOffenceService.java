@@ -26,12 +26,15 @@ public class LegacyOffenceService extends LegacyService implements OffenceServic
 
     @Override
     public OffenceEntity getOffence(long offenceId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getOffence for {} from {}", offenceId, legacyGateway.getUrl());
+        return postToGateway("getOffence", OffenceEntity.class, offenceId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<OffenceEntity> searchOffences(OffenceSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchOffences: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchOffences", List.class, criteria);
     }
 
 }

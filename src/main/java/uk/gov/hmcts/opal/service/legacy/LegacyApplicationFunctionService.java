@@ -26,12 +26,15 @@ public class LegacyApplicationFunctionService extends LegacyService implements A
 
     @Override
     public ApplicationFunctionEntity getApplicationFunction(long applicationFunctionId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getApplicationFunction for {} from {}", applicationFunctionId, legacyGateway.getUrl());
+        return postToGateway("getApplicationFunction", ApplicationFunctionEntity.class, applicationFunctionId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<ApplicationFunctionEntity> searchApplicationFunctions(ApplicationFunctionSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchApplicationFunctions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchApplicationFunctions", List.class, criteria);
     }
 
 }

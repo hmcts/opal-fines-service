@@ -27,12 +27,15 @@ public class LegacyLocalJusticeAreaService extends LegacyService implements Loca
 
     @Override
     public LocalJusticeAreaEntity getLocalJusticeArea(short localJusticeAreaId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getLocalJusticeArea for {} from {}", localJusticeAreaId, legacyGateway.getUrl());
+        return postToGateway("getLocalJusticeArea", LocalJusticeAreaEntity.class, localJusticeAreaId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<LocalJusticeAreaEntity> searchLocalJusticeAreas(LocalJusticeAreaSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchLocalJusticeAreas: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchLocalJusticeAreas", List.class, criteria);
     }
 
 }

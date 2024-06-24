@@ -27,12 +27,15 @@ public class LegacyMisDebtorService extends LegacyService implements MisDebtorSe
 
     @Override
     public MisDebtorEntity getMisDebtor(long misDebtorId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getMisDebtor for {} from {}", misDebtorId, legacyGateway.getUrl());
+        return postToGateway("getMisDebtor", MisDebtorEntity.class, misDebtorId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<MisDebtorEntity> searchMisDebtors(MisDebtorSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchMisDebtors: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchMisDebtors", List.class, criteria);
     }
 
 }

@@ -29,13 +29,18 @@ public class LegacyCommittalWarrantProgressService extends LegacyService
 
     @Override
     public CommittalWarrantProgressEntity getCommittalWarrantProgress(long committalWarrantProgressId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getCommittalWarrantProgress for {} from {}", committalWarrantProgressId, legacyGateway.getUrl());
+        return postToGateway("getCommittalWarrantProgress", CommittalWarrantProgressEntity.class,
+            committalWarrantProgressId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<CommittalWarrantProgressEntity> searchCommittalWarrantProgresss(
         CommittalWarrantProgressSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchCommittalWarrantProgresss: criteria: {} via gateway {}", criteria.toJson(),
+            legacyGateway.getUrl());
+        return postToGateway("searchCommittalWarrantProgresss", List.class, criteria);
     }
 
 }

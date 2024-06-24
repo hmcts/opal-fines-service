@@ -26,12 +26,15 @@ public class LegacyDocumentService extends LegacyService implements DocumentServ
 
     @Override
     public DocumentEntity getDocument(String documentId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getDocument for {} from {}", documentId, legacyGateway.getUrl());
+        return postToGateway("getDocument", DocumentEntity.class, documentId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<DocumentEntity> searchDocuments(DocumentSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchDocuments: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchDocuments", List.class, criteria);
     }
 
 }

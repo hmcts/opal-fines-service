@@ -26,12 +26,15 @@ public class LegacyFixedPenaltyOffenceService extends LegacyService implements F
 
     @Override
     public FixedPenaltyOffenceEntity getFixedPenaltyOffence(long fixedPenaltyOffenceId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getFixedPenaltyOffence for {} from {}", fixedPenaltyOffenceId, legacyGateway.getUrl());
+        return postToGateway("getFixedPenaltyOffence", FixedPenaltyOffenceEntity.class, fixedPenaltyOffenceId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<FixedPenaltyOffenceEntity> searchFixedPenaltyOffences(FixedPenaltyOffenceSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchFixedPenaltyOffences: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchFixedPenaltyOffences", List.class, criteria);
     }
 
 }

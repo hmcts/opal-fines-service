@@ -26,12 +26,15 @@ public class LegacyLogActionService extends LegacyService implements LogActionSe
 
     @Override
     public LogActionEntity getLogAction(short logActionId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getLogAction for {} from {}", logActionId, legacyGateway.getUrl());
+        return postToGateway("getLogAction", LogActionEntity.class, logActionId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<LogActionEntity> searchLogActions(LogActionSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchLogActions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchLogActions", List.class, criteria);
     }
 
 }

@@ -26,12 +26,15 @@ public class LegacyTemplateMappingService extends LegacyService implements Templ
 
     @Override
     public TemplateMappingEntity getTemplateMapping(Long templateId, Long applicationFunctionId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getTemplateMapping for {} from {}", templateId, legacyGateway.getUrl());
+        return postToGateway("getTemplateMapping", TemplateMappingEntity.class, templateId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<TemplateMappingEntity> searchTemplateMappings(TemplateMappingSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchTemplateMappings: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchTemplateMappings", List.class, criteria);
     }
 
 }

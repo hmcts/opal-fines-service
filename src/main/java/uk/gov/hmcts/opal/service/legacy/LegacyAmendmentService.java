@@ -26,12 +26,15 @@ public class LegacyAmendmentService extends LegacyService implements AmendmentSe
 
     @Override
     public AmendmentEntity getAmendment(long amendmentId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getAmendment for {} from {}", amendmentId, legacyGateway.getUrl());
+        return postToGateway("getAmendment", AmendmentEntity.class, amendmentId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<AmendmentEntity> searchAmendments(AmendmentSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchAmendments: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchAmendments", List.class, criteria);
     }
 
 }

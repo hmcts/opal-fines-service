@@ -26,12 +26,15 @@ public class LegacyEnforcerService extends LegacyService implements EnforcerServ
 
     @Override
     public EnforcerEntity getEnforcer(long enforcerId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getEnforcer for {} from {}", enforcerId, legacyGateway.getUrl());
+        return postToGateway("getEnforcer", EnforcerEntity.class, enforcerId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<EnforcerEntity> searchEnforcers(EnforcerSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchEnforcers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchEnforcers", List.class, criteria);
     }
 
 }

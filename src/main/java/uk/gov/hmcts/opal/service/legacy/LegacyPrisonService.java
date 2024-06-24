@@ -26,12 +26,15 @@ public class LegacyPrisonService extends LegacyService implements PrisonServiceI
 
     @Override
     public PrisonEntity getPrison(long prisonId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getPrison for {} from {}", prisonId, legacyGateway.getUrl());
+        return postToGateway("getPrison", PrisonEntity.class, prisonId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<PrisonEntity> searchPrisons(PrisonSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchPrisons: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchPrisons", List.class, criteria);
     }
 
 }

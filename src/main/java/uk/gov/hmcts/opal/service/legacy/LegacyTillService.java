@@ -26,12 +26,15 @@ public class LegacyTillService extends LegacyService implements TillServiceInter
 
     @Override
     public TillEntity getTill(long tillId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getTill for {} from {}", tillId, legacyGateway.getUrl());
+        return postToGateway("getTill", TillEntity.class, tillId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<TillEntity> searchTills(TillSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchTills: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchTills", List.class, criteria);
     }
 
 }

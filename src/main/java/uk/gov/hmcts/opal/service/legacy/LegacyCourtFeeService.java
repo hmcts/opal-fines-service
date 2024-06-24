@@ -26,12 +26,15 @@ public class LegacyCourtFeeService extends LegacyService implements CourtFeeServ
 
     @Override
     public CourtFeeEntity getCourtFee(long courtFeeId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getCourtFee for {} from {}", courtFeeId, legacyGateway.getUrl());
+        return postToGateway("getCourtFee", CourtFeeEntity.class, courtFeeId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<CourtFeeEntity> searchCourtFees(CourtFeeSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchCourtFees: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchCourtFees", List.class, criteria);
     }
 
 }

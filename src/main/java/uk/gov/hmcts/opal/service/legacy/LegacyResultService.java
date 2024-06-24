@@ -26,12 +26,15 @@ public class LegacyResultService extends LegacyService implements ResultServiceI
 
     @Override
     public ResultEntity getResult(long resultId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getResult for {} from {}", resultId, legacyGateway.getUrl());
+        return postToGateway("getResult", ResultEntity.class, resultId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<ResultEntity> searchResults(ResultSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchResults: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchResults", List.class, criteria);
     }
 
 }

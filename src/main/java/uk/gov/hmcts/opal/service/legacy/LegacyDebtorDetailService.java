@@ -27,12 +27,15 @@ public class LegacyDebtorDetailService extends LegacyService implements DebtorDe
 
     @Override
     public DebtorDetailEntity getDebtorDetail(long debtorDetailId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getDebtorDetail for {} from {}", debtorDetailId, legacyGateway.getUrl());
+        return postToGateway("getDebtorDetail", DebtorDetailEntity.class, debtorDetailId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<DebtorDetailEntity> searchDebtorDetails(DebtorDetailSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchDebtorDetails: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchDebtorDetails", List.class, criteria);
     }
 
 }

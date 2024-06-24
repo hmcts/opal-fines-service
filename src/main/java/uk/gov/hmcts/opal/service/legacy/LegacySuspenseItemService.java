@@ -26,12 +26,15 @@ public class LegacySuspenseItemService extends LegacyService implements Suspense
 
     @Override
     public SuspenseItemEntity getSuspenseItem(long suspenseItemId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getSuspenseItem for {} from {}", suspenseItemId, legacyGateway.getUrl());
+        return postToGateway("getSuspenseItem", SuspenseItemEntity.class, suspenseItemId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<SuspenseItemEntity> searchSuspenseItems(SuspenseItemSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchSuspenseItems: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchSuspenseItems", List.class, criteria);
     }
 
 }

@@ -26,12 +26,15 @@ public class LegacyConfigurationItemService extends LegacyService implements Con
 
     @Override
     public ConfigurationItemEntity getConfigurationItem(long configurationItemId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getConfigurationItem for {} from {}", configurationItemId, legacyGateway.getUrl());
+        return postToGateway("getConfigurationItem", ConfigurationItemEntity.class, configurationItemId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<ConfigurationItemEntity> searchConfigurationItems(ConfigurationItemSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchConfigurationItems: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchConfigurationItems", List.class, criteria);
     }
 
 }

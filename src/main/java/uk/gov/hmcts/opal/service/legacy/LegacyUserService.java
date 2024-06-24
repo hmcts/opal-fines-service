@@ -26,12 +26,15 @@ public class LegacyUserService extends LegacyService implements UserServiceInter
 
     @Override
     public UserEntity getUser(String userId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getUser for {} from {}", userId, legacyGateway.getUrl());
+        return postToGateway("getUser", UserEntity.class, userId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<UserEntity> searchUsers(UserSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchUsers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchUsers", List.class, criteria);
     }
 
 }

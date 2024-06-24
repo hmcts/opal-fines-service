@@ -26,12 +26,15 @@ public class LegacyBusinessUnitUserService extends LegacyService implements Busi
 
     @Override
     public BusinessUnitUserEntity getBusinessUnitUser(String businessUnitUserId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getBusinessUnitUser for {} from {}", businessUnitUserId, legacyGateway.getUrl());
+        return postToGateway("getBusinessUnitUser", BusinessUnitUserEntity.class, businessUnitUserId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<BusinessUnitUserEntity> searchBusinessUnitUsers(BusinessUnitUserSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchBusinessUnitUsers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchBusinessUnitUsers", List.class, criteria);
     }
 
 }

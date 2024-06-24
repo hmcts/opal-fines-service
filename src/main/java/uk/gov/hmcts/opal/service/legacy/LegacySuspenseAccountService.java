@@ -26,12 +26,15 @@ public class LegacySuspenseAccountService extends LegacyService implements Suspe
 
     @Override
     public SuspenseAccountEntity getSuspenseAccount(long suspenseAccountId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getSuspenseAccount for {} from {}", suspenseAccountId, legacyGateway.getUrl());
+        return postToGateway("getSuspenseAccount", SuspenseAccountEntity.class, suspenseAccountId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<SuspenseAccountEntity> searchSuspenseAccounts(SuspenseAccountSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchSuspenseAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchSuspenseAccounts", List.class, criteria);
     }
 
 }

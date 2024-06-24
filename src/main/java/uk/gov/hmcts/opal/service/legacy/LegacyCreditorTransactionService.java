@@ -26,12 +26,15 @@ public class LegacyCreditorTransactionService extends LegacyService implements C
 
     @Override
     public CreditorTransactionEntity getCreditorTransaction(long creditorTransactionId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getCreditorTransaction for {} from {}", creditorTransactionId, legacyGateway.getUrl());
+        return postToGateway("getCreditorTransaction", CreditorTransactionEntity.class, creditorTransactionId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<CreditorTransactionEntity> searchCreditorTransactions(CreditorTransactionSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchCreditorTransactions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchCreditorTransactions", List.class, criteria);
     }
 
 }

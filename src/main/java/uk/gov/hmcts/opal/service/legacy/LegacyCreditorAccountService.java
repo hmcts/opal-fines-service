@@ -26,12 +26,15 @@ public class LegacyCreditorAccountService extends LegacyService implements Credi
 
     @Override
     public CreditorAccountEntity getCreditorAccount(long creditorAccountId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getCreditorAccount for {} from {}", creditorAccountId, legacyGateway.getUrl());
+        return postToGateway("getCreditorAccount", CreditorAccountEntity.class, creditorAccountId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<CreditorAccountEntity> searchCreditorAccounts(CreditorAccountSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchCreditorAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchCreditorAccounts", List.class, criteria);
     }
 
 }
