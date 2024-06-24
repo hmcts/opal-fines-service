@@ -75,10 +75,13 @@ class OffenceServiceTest {
     void testOffencesReferenceData() {
         // Arrange
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
-        when(ffq.as(any())).thenReturn(ffq);
         when(ffq.sortBy(any())).thenReturn(ffq);
 
-        OffenceEntity offenceEntity = OffenceEntity.builder().build();
+        OffenceEntity offenceEntity = OffenceEntity.builder()
+            .offenceId(1L)
+            .cjsCode("NINE")
+            .offenceTitle("Theft from a Palace")
+            .build();
         Page<OffenceEntity> mockPage = new PageImpl<>(List.of(offenceEntity), Pageable.unpaged(), 999L);
         when(offenceRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
@@ -86,10 +89,12 @@ class OffenceServiceTest {
         });
 
         // Act
-        List<OffenceReferenceData> result = offenceService.getReferenceData(Optional.empty());
+        List<OffenceReferenceData> result = offenceService.getReferenceData(Optional.empty(), Optional.empty());
 
+        OffenceReferenceData refData = new OffenceReferenceData(1L, "NINE", null,
+                                                                "Theft from a Palace", null);
         // Assert
-        assertEquals(List.of(offenceEntity), result);
+        assertEquals(List.of(refData), result);
 
     }
 
