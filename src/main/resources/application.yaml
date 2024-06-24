@@ -72,8 +72,8 @@ spring:
             non_contextual_creation: true
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${OPAL_REDIS_HOST:localhost}
+      port: ${OPAL_REDIS_PORT:6379}
 
 dbMigration:
   # When true, the app will run DB migration on startup.
@@ -114,8 +114,8 @@ quartzProperties:
 
 opal:
   redis:
-    enabled: ${REDIS_ENABLED:false}
-    ttl-hours: ${REDIS_TTL_HOURS:8}
+    enabled: ${OPAL_REDIS_ENABLED:false}
+    ttl-hours: ${OPAL_REDIS_TTL_HOURS:8}
   sftp:
     inbound:
       host: ${OPAL_SFTP_INBOUND_HOST:opalsftpstg.blob.core.windows.net}
