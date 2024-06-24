@@ -16,9 +16,10 @@ public class DBConnection {
 
         log.info("Making postgres connection");
 
-        String url = System.getenv().getOrDefault("TEST_URL" + "/", "http://localhost:5432/");
-        url = url.replaceAll("http://", "jdbc:postgresql://");
-        url = url.replaceAll("https://", "jdbc:postgresql://");
+        //String url = System.getenv().getOrDefault("TEST_URL" + "/", "http://localhost:5432/");
+        String url = "opal-fines-service-pr-405-postgresql";
+        //url = url.replaceAll("http://", "jdbc:postgresql://");
+        //url = url.replaceAll("https://", "jdbc:postgresql://");
 
         String database = System.getenv().getOrDefault("POSTGRES_DB", "opal-fines-db");
         String username = System.getenv().getOrDefault("POSTGRES_USER", "opal-fines");
@@ -28,15 +29,12 @@ public class DBConnection {
         props.put("user", username);
         props.put("password", password);
         try {
-            Thread.sleep(1000000);
             conn = DriverManager.getConnection(
                 url + database,
                 props
             );
             log.info("Successfully made to postgres database");
         } catch (SQLException e) {
-            log.info("Error: " + e);
-        } catch (InterruptedException e) {
             log.info("Error: " + e);
         }
         return conn;
