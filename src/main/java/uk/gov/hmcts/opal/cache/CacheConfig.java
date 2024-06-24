@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.cache;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
@@ -19,9 +20,13 @@ import org.springframework.data.redis.serializer.RedisSerializationContext.Seria
 
 import java.time.Duration;
 
+@Slf4j
 @Configuration
 @EnableCaching
 public class CacheConfig {
+
+    @Value("${opal.redis.enabled}")
+    private boolean redisEnabled;
 
     @Value("${spring.data.redis.host}")
     private String redisHost;
@@ -31,6 +36,8 @@ public class CacheConfig {
 
     @Value("${opal.redis.ttl-hours}")
     private long redisTtlHours;
+
+    private CacheManager cacheManager;
 
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
@@ -55,14 +62,43 @@ public class CacheConfig {
             .entryTtl(Duration.ofHours(redisTtlHours))
             .serializeValuesWith(SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
 
-        return RedisCacheManager.builder(redisConnectionFactory)
+        this.cacheManager = RedisCacheManager.builder(redisConnectionFactory)
             .cacheDefaults(cacheConfig)
             .build();
+        logCacheDetails(cacheManager);
+        return cacheManager;
     }
 
     @Bean
     @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "false", matchIfMissing = true)
     public CacheManager simpleCacheManager() {
-        return new ConcurrentMapCacheManager();
+        this.cacheManager = new ConcurrentMapCacheManager();
+        logCacheDetails(cacheManager);
+        return cacheManager;
+    }
+
+    public void logCacheDetails(CacheManager cacheManager) {
+        log.info("------------------------------");
+        log.info("Cache Configuration Details:");
+        log.info("Redis Enabled: {}", redisEnabled);
+        log.info("Redis Host: {}", redisHost);
+        log.info("Redis Port: {}", redisPort);
+        log.info("Redis TTL (hours): {}", redisTtlHours);
+        if (cacheManager != null) {
+            log.info("Cache Manager: {}", cacheManager.getClass().getName());
+            if (cacheManager instanceof RedisCacheManager) {
+                log.info("Using Redis Cache Manager");
+            } else if (cacheManager instanceof ConcurrentMapCacheManager) {
+                log.info("Using Concurrent Map Cache Manager (local cache)");
+            }
+        } else {
+            log.warn("Cache Manager is null. This might indicate a configuration issue.");
+        }
+
+        log.info("Available Caches:");
+        if (cacheManager != null) {
+            cacheManager.getCacheNames().forEach(cacheName -> log.info("- {}", cacheName));
+        }
+        log.info("------------------------------");
     }
 }
