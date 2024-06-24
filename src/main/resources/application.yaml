@@ -37,7 +37,6 @@ spring:
             response-type: code
             response-mode: form_post
             prompt: login
-            #            issuer-uri: ${opal.azure.active-directory-justice-auth-uri}/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/v2.0
             issuer-uri: https://sts.windows.net/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/
             claims: preferred_username
             provider: internal-azure-ad-provider
