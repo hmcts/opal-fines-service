@@ -37,7 +37,7 @@ spring:
             response-type: code
             response-mode: form_post
             prompt: login
-#            issuer-uri: ${opal.azure.active-directory-justice-auth-uri}/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/v2.0
+            #            issuer-uri: ${opal.azure.active-directory-justice-auth-uri}/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/v2.0
             issuer-uri: https://sts.windows.net/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/
             claims: preferred_username
             provider: internal-azure-ad-provider
@@ -71,6 +71,10 @@ spring:
           lob:
             # silence the 'wall-of-text' - unnecessary exception throw about blob types
             non_contextual_creation: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 dbMigration:
   # When true, the app will run DB migration on startup.
@@ -110,6 +114,9 @@ quartzProperties:
       threadCount: 8
 
 opal:
+  redis:
+    enabled: ${REDIS_ENABLED:false}
+    ttl-hours: ${REDIS_TTL_HOURS:8}
   sftp:
     inbound:
       host: ${OPAL_SFTP_INBOUND_HOST:opalsftpstg.blob.core.windows.net}
@@ -140,7 +147,7 @@ opal:
     file-handler-job:
       cron: ${OPAL_FILE_HANDLER_JOB_CRON:0 0 * * * ?}
   frontend:
-      url: ${OPAL_FRONTEND_URL:http://localhost:4200}
+    url: ${OPAL_FRONTEND_URL:http://localhost:4200}
   azure:
     active-directory-justice-auth-uri: https://login.microsoftonline.com
   testing-support-endpoints:
