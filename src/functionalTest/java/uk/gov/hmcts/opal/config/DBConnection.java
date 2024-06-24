@@ -16,7 +16,7 @@ public class DBConnection {
 
         log.info("Making postgres connection");
 
-        String url = System.getenv().getOrDefault("TEST_URL"+"/", "http://localhost:5432/");
+        String url = System.getenv().getOrDefault("TEST_URL" + "/", "http://localhost:5432/");
         url = url.replaceAll("http://", "jdbc:postgresql://");
         url = url.replaceAll("https://", "jdbc:postgresql://");
 
