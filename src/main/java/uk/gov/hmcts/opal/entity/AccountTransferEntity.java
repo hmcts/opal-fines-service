@@ -14,10 +14,15 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;
 
@@ -28,6 +33,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class AccountTransferEntity {
 
     @Id
@@ -47,6 +54,7 @@ public class AccountTransferEntity {
 
     @Column(name = "initiated_date")
     @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime initiatedDate;
 
     @Column(name = "initiated_by", length = 20)
@@ -54,6 +62,7 @@ public class AccountTransferEntity {
 
     @Column(name = "printed_date")
     @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime printedDate;
 
     @Column(name = "printed_by", length = 20)
@@ -70,6 +79,7 @@ public class AccountTransferEntity {
 
     @Column(name = "reminder_date")
     @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime reminderDate;
 
 }

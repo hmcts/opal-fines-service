@@ -7,6 +7,7 @@ import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.search.AccountTransferSearchDto;
 import uk.gov.hmcts.opal.entity.AccountTransferEntity;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.AccountTransferServiceInterface;
 
 import java.util.List;
@@ -27,7 +28,8 @@ public class LegacyAccountTransferService extends LegacyService implements Accou
 
     @Override
     public AccountTransferEntity getAccountTransfer(long accountTransferId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("Get Account Transfer for {} from {}", accountTransferId, legacyGateway.getUrl());
+        return postToGateway("getAccountTransfer", AccountTransferEntity.class, accountTransferId);
     }
 
     @Override
