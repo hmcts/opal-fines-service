@@ -15,7 +15,7 @@ public class DBConnection {
         Connection conn = null;
 
         log.info("Making postgres connection");
-        log.info("Test: " + System.getenv("OPAL_FINES_DB_HOST"));
+
         String url = System.getenv().getOrDefault("TEST_URL" + "/", "http://localhost:5432/");
         url = url.replaceAll("http://", "jdbc:postgresql://");
         url = url.replaceAll("https://", "jdbc:postgresql://");
@@ -28,12 +28,16 @@ public class DBConnection {
         props.put("user", username);
         props.put("password", password);
         try {
+            Thread.sleep(1000000);
             conn = DriverManager.getConnection(
                 url + database,
                 props
             );
             log.info("Successfully made to postgres database");
         } catch (SQLException e) {
+            log.info("Error: " + e);
+        }
+        catch (InterruptedException e) {
             log.info("Error: " + e);
         }
         return conn;
