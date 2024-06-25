@@ -15,11 +15,12 @@ public class DBConnection {
         Connection conn = null;
 
         log.info("Making postgres connection");
+        log.info("DB url: " + System.getenv("DATA_STORE_DB_HOST"));
 
-        //String url = System.getenv().getOrDefault("TEST_URL" + "/", "http://localhost:5432/");
-        String url = "jdbc:postgresql://opal-fines-service-pr-405-postgresql/";
-        //url = url.replaceAll("http://", "jdbc:postgresql://");
-        //url = url.replaceAll("https://", "jdbc:postgresql://");
+        String url = System.getenv().getOrDefault("DATA_STORE_DB_HOST" + "/", "http://localhost/");
+        //String url = "jdbc:postgresql://opal-fines-service-pr-405-postgresql/";
+        url = url.replaceAll("http://", "jdbc:postgresql://");
+        url = url.replaceAll("https://", "jdbc:postgresql://");
 
         String database = System.getenv().getOrDefault("POSTGRES_DB", "opal-fines-db");
         String username = System.getenv().getOrDefault("POSTGRES_USER", "opal-fines");
