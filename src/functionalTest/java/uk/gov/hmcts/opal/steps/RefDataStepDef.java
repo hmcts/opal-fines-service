@@ -16,8 +16,19 @@ import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
-import static uk.gov.hmcts.opal.config.Constants.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import static uk.gov.hmcts.opal.config.Constants.BUSINESS_UNIT_REF_DATA_URI;
+import static uk.gov.hmcts.opal.config.Constants.COURTS_REF_DATA_URI;
+import static uk.gov.hmcts.opal.config.Constants.ENFORCERS_REF_DATA_URI;
+import static uk.gov.hmcts.opal.config.Constants.LJA_REF_DATA_URI;
+import static uk.gov.hmcts.opal.config.Constants.MAJOR_CREDITORS_URI;
+import static uk.gov.hmcts.opal.config.Constants.OFFENCES_REF_DATA_URI;
 
 
 public class RefDataStepDef extends BaseStepDef {
@@ -160,7 +171,8 @@ public class RefDataStepDef extends BaseStepDef {
             String actualBuId = then().extract().jsonPath().getString("refData.businessUnitId[" + i + "]");
             String expectedName = expectedData.get("name");
             String expectedBuId = expectedData.get("businessUnitId");
-            log.info("\nApi response: \n" + "   Count: " + (i + 1) + "/" + totalCount + "\n   " + actualName + "\n   " + actualBuId);
+            log.info("\nApi response: \n" + "   Count: " + (i + 1) + "/" + totalCount + "\n   "
+                         + actualName + "\n   " + actualBuId);
             if (expectedName == null) {
                 log.info("Expected name is null - Skipping check");
             } else {
@@ -184,7 +196,8 @@ public class RefDataStepDef extends BaseStepDef {
             String actualBuId = then().extract().jsonPath().getString("refData.businessUnitId[" + i + "]");
             String expectedName = expectedData.get("name");
             String expectedBuId = expectedData.get("businessUnitId");
-            log.info("\nApi response: \n" + "   Count: " + (i + 1) + "/" + totalCount + "\n   " + actualName + "\n   " + actualBuId);
+            log.info("\nApi response: \n" + "   Count: " + (i + 1) + "/" + totalCount + "\n   "
+                         + actualName + "\n   " + actualBuId);
             if (expectedName == null) {
                 log.info("Expected name is null - Skipping check");
             } else {
@@ -207,9 +220,10 @@ public class RefDataStepDef extends BaseStepDef {
             String actualOffenceTitle = then().extract().jsonPath().getString("refData.getOffenceTitle[" + i + "]");
             String actualBuId = then().extract().jsonPath().getString("refData.businessUnitId[" + i + "]");
             String expectedOffenceTitle = expectedData.get("offenceTitle");
-            String expectedBuId = expectedData.get("businessUnitId").toString();
+            String expectedBuId = expectedData.get("businessUnitId");
             log.info("Expected name: " + expectedOffenceTitle + " Expected buId: " + expectedBuId);
-            log.info("\nApi response: \n" + "   Count: " + (i + 1) + "/" + totalCount + "\n   " + actualOffenceTitle + "\n   " + actualBuId);
+            log.info("\nApi response: \n" + "   Count: " + (i + 1) + "/" + totalCount + "\n   "
+                         + actualOffenceTitle + "\n   " + actualBuId);
             if (expectedOffenceTitle == null) {
                 log.info("Expected name is null - Skipping check");
             } else {
@@ -240,7 +254,8 @@ public class RefDataStepDef extends BaseStepDef {
             String actualOffenceTitle = then().extract().jsonPath().getString("refData.getOffenceTitle[" + i + "]");
             String actualBuId = then().extract().jsonPath().getString("refData.businessUnitId[" + i + "]");
             String expectedBuId = expectedData.get("businessUnitId");
-            log.info("\nApi response: \n" + "   Count: " + (i + 1) + "/" + totalCount + "\n   " + actualOffenceTitle + "\n   " + actualBuId);
+            log.info("\nApi response: \n" + "   Count: " + (i + 1) + "/" + totalCount + "\n   "
+                         + actualOffenceTitle + "\n   " + actualBuId);
             assertNotEquals(expectedBuId, actualBuId);
 
         }
@@ -267,7 +282,8 @@ public class RefDataStepDef extends BaseStepDef {
     }
 
     @Then("the response does not contain the major creditor data for {int}")
-    public void theResponseDoesNotContainTheCorrectMajorCreditor(int majorCreditorId) throws SQLException, JSONException {
+    public void theResponseDoesNotContainTheCorrectMajorCreditor(int majorCreditorId)
+        throws SQLException, JSONException {
         JSONArray majorCreditor;
         majorCreditor = db.getMajorCredByID(String.valueOf(majorCreditorId));
         then().assertThat().statusCode(200);
