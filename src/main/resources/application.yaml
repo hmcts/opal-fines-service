@@ -2,11 +2,13 @@ server:
   port: 4550
 
 management:
+  health:
+    redis:
+      enabled: false
   endpoint:
     health:
       show-details: "always"
-      redis:
-        enabled: false
+
   endpoints:
     web:
       base-path: /
