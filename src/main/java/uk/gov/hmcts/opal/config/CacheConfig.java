@@ -2,8 +2,6 @@ package uk.gov.hmcts.opal.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.autoconfigure.health.ConditionalOnEnabledHealthIndicator;
-import org.springframework.boot.actuate.data.redis.RedisHealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -69,13 +67,6 @@ public class CacheConfig {
             .build();
         logCacheDetails(cacheManager);
         return cacheManager;
-    }
-
-    @Bean
-    @ConditionalOnProperty(name = "opal.redis.enabled", havingValue = "true")
-    @ConditionalOnEnabledHealthIndicator("redis")
-    public RedisHealthIndicator redisHealthIndicator(RedisConnectionFactory redisConnectionFactory) {
-        return new RedisHealthIndicator(redisConnectionFactory);
     }
 
     @Bean
