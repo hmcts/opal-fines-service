@@ -2,9 +2,6 @@
 
 @Library("Infrastructure")
 
-import uk.gov.hmcts.contino.Kubectl
-import uk.gov.hmcts.pipeline.TeamConfig
-
 def type = "java"
 def product = "opal"
 def component = "fines-service"
@@ -24,15 +21,5 @@ withPipeline(type, product, component) {
 
   afterAlways('functionalTest:stg') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
-  }
-  if("dev" == env.ENV){
-    withAksClient('nonprod', product) {
-      def subscription = env.SUBSCRIPTION_NAME
-      def namespace = new TeamConfig(this).getNameSpace(product)
-      def kubectl = new Kubectl(this, subscription, namespace)
-      kubectl.login()
-      String postgresInstanceName = "opal-fines-service-pr-${CHANGE_ID}-postgresql"
-      env.DATA_STORE_DB_HOST = kubectl.getServiceLoadbalancerIP(postgresInstanceName)
-    }
   }
 }

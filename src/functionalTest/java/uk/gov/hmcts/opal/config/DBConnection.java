@@ -15,23 +15,16 @@ public class DBConnection {
         Connection conn = null;
 
         log.info("Making postgres connection");
-        log.info("DB url: " + System.getenv("DATA_STORE_DB_HOST"));
-
-        String url = System.getenv().getOrDefault("DATA_STORE_DB_HOST" + "/", "http://localhost/");
-        //String url = "jdbc:postgresql://opal-fines-service-pr-405-postgresql/";
-        url = url.replaceAll("http://", "jdbc:postgresql://");
-        url = url.replaceAll("https://", "jdbc:postgresql://");
-
-        String database = System.getenv().getOrDefault("POSTGRES_DB", "opal-fines-db");
-        String username = System.getenv().getOrDefault("POSTGRES_USER", "opal-fines");
-        String password = System.getenv().getOrDefault("POSTGRES_PASSWORD", "opal-fines");
+        //Local connection only
+        String url =  "jdbc:postgresql://localhost/";
+        String database = "opal-fines-db";
+        String username = "opal-fines";
+        String password = "opal-fines";
 
         Properties props = new Properties();
         props.put("user", username);
         props.put("password", password);
         try {
-            log.info("DB connecting to: " + url + database);
-
             conn = DriverManager.getConnection(
                 url + database,
                 props
