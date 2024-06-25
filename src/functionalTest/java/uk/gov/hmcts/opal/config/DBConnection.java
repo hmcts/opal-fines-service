@@ -30,6 +30,8 @@ public class DBConnection {
         props.put("user", username);
         props.put("password", password);
         try {
+            log.info("DB connecting to: " + url + database);
+
             conn = DriverManager.getConnection(
                 url + database,
                 props
