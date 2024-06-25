@@ -25,7 +25,7 @@ Feature: PO-420 Global and Local Offences
     Then the response contains the below offence data
       | businessUnitId | 12 |
 
-  @Opal1 @PO-420
+  @Opal @PO-420
   Scenario: The Offences API returns filtered Local offences - negative test
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the offence ref data api filtering by business unit 12
