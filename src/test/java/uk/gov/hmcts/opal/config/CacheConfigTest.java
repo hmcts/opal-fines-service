@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.cache;
+package uk.gov.hmcts.opal.config;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
