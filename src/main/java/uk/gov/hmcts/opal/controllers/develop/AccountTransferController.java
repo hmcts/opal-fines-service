@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.search.AccountTransferSearchDto;
@@ -30,13 +31,15 @@ public class AccountTransferController {
     private final AccountTransferServiceInterface accountTransferService;
 
     public AccountTransferController(
-        @Qualifier("accountTransferService") AccountTransferServiceInterface accountTransferService) {
+        @Qualifier("accountTransferServiceProxy") AccountTransferServiceInterface accountTransferService) {
         this.accountTransferService = accountTransferService;
     }
 
     @GetMapping(value = "/{accountTransferId}")
     @Operation(summary = "Returns the AccountTransfer for the given accountTransferId.")
-    public ResponseEntity<AccountTransferEntity> getAccountTransferById(@PathVariable Long accountTransferId) {
+    public ResponseEntity<AccountTransferEntity> getAccountTransferById(@PathVariable Long accountTransferId,
+                                                                        @RequestHeader(value = "Authorization", required = false)
+                                                                        String authHeaderValue) {
 
         log.info(":GET:getAccountTransferById: accountTransferId: {}", accountTransferId);
 

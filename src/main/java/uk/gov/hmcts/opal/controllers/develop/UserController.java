@@ -29,7 +29,7 @@ public class UserController {
 
     private final UserServiceInterface userService;
 
-    public UserController(@Qualifier("userService") UserServiceInterface userService) {
+    public UserController(@Qualifier("userServiceProxy") UserServiceInterface userService) {
         this.userService = userService;
     }
 

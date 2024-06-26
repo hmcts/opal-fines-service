@@ -29,7 +29,7 @@ public class SuspenseTransactionController {
 
     private final SuspenseTransactionServiceInterface suspenseTransactionService;
 
-    public SuspenseTransactionController(@Qualifier("suspenseTransactionService")
+    public SuspenseTransactionController(@Qualifier("suspenseTransactionServiceProxy")
                                          SuspenseTransactionServiceInterface suspenseTransactionService) {
         this.suspenseTransactionService = suspenseTransactionService;
     }

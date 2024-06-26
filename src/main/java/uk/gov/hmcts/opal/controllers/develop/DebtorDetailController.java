@@ -30,7 +30,7 @@ public class DebtorDetailController {
     private final DebtorDetailServiceInterface debtorDetailService;
 
     public DebtorDetailController(
-        @Qualifier("debtorDetailService") DebtorDetailServiceInterface debtorDetailService) {
+        @Qualifier("debtorDetailServiceProxy") DebtorDetailServiceInterface debtorDetailService) {
         this.debtorDetailService = debtorDetailService;
     }
 

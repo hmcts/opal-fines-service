@@ -29,7 +29,7 @@ public class AliasController {
 
     private final AliasServiceInterface aliasService;
 
-    public AliasController(@Qualifier("aliasService") AliasServiceInterface aliasService) {
+    public AliasController(@Qualifier("aliasServiceProxy") AliasServiceInterface aliasService) {
         this.aliasService = aliasService;
     }
 

@@ -29,7 +29,7 @@ public class SuspenseAccountController {
 
     private final SuspenseAccountServiceInterface suspenseAccountService;
 
-    public SuspenseAccountController(@Qualifier("suspenseAccountService")
+    public SuspenseAccountController(@Qualifier("suspenseAccountServiceProxy")
                                      SuspenseAccountServiceInterface suspenseAccountService) {
         this.suspenseAccountService = suspenseAccountService;
     }

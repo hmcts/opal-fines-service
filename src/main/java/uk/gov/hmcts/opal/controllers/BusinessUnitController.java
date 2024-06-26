@@ -43,7 +43,7 @@ public class BusinessUnitController {
     private final UserStateService userStateService;
 
     public BusinessUnitController(
-        @Qualifier("businessUnitService") BusinessUnitServiceInterface businessUnitService,
+        @Qualifier("businessUnitServiceProxy") BusinessUnitServiceInterface businessUnitService,
         BusinessUnitService opalBusinessUnitService, UserStateService userStateService) {
         this.businessUnitService = businessUnitService;
         this.opalBusinessUnitService = opalBusinessUnitService;

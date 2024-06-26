@@ -29,7 +29,7 @@ public class MiscellaneousAccountController {
 
     private final MiscellaneousAccountServiceInterface miscellaneousAccountService;
 
-    public MiscellaneousAccountController(@Qualifier("miscellaneousAccountService")
+    public MiscellaneousAccountController(@Qualifier("miscellaneousAccountServiceProxy")
                                           MiscellaneousAccountServiceInterface miscellaneousAccountService) {
         this.miscellaneousAccountService = miscellaneousAccountService;
     }

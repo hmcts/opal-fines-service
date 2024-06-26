@@ -32,7 +32,7 @@ public class PartyController {
 
     private final PartyServiceInterface partyService;
 
-    public PartyController(@Qualifier("partyService") PartyServiceInterface partyService) {
+    public PartyController(@Qualifier("partyServiceProxy") PartyServiceInterface partyService) {
         this.partyService = partyService;
     }
 

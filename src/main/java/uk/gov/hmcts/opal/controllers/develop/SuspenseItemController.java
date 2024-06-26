@@ -29,7 +29,7 @@ public class SuspenseItemController {
 
     private final SuspenseItemServiceInterface suspenseItemService;
 
-    public SuspenseItemController(@Qualifier("suspenseItemService") SuspenseItemServiceInterface suspenseItemService) {
+    public SuspenseItemController(@Qualifier("suspenseItemServiceProxy") SuspenseItemServiceInterface suspenseItemService) {
         this.suspenseItemService = suspenseItemService;
     }
 

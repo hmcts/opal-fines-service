@@ -39,7 +39,7 @@ public class CourtController {
 
     private final UserStateService userStateService;
 
-    public CourtController(@Qualifier("courtService") CourtServiceInterface courtService,
+    public CourtController(@Qualifier("courtServiceProxy") CourtServiceInterface courtService,
                            UserStateService userStateService, CourtService opalCourtService) {
         this.courtService = courtService;
         this.userStateService = userStateService;

@@ -29,7 +29,7 @@ public class CreditorAccountController {
 
     private final CreditorAccountServiceInterface creditorAccountService;
 
-    public CreditorAccountController(@Qualifier("creditorAccountService")
+    public CreditorAccountController(@Qualifier("creditorAccountServiceProxy")
                                      CreditorAccountServiceInterface creditorAccountService) {
         this.creditorAccountService = creditorAccountService;
     }
