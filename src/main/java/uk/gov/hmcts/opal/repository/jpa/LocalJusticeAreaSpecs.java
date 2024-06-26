@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity_;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaEntity> {
@@ -23,8 +24,9 @@ public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaEntity> 
 
     public Specification<LocalJusticeAreaEntity> referenceDataFilter(Optional<String> filter) {
         return Specification.allOf(specificationList(
-            Optional.of(LocalDateTime.now()).map(LocalJusticeAreaSpecs::endDateGreaterThenEqualToDate),
-            filter.filter(s -> !s.isBlank()).map(this::likeAnyLocalJusticeArea)
+            List.of(
+                filter.filter(s -> !s.isBlank()).map(this::likeAnyLocalJusticeArea)),
+            endDateGreaterThenEqualToDate(LocalDateTime.now())
         ));
     }
 

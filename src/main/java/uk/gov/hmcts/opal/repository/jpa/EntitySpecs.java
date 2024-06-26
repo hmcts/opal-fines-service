@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public abstract class EntitySpecs<E> {
 
@@ -30,6 +31,17 @@ public abstract class EntitySpecs<E> {
             .stream().filter(Optional::isPresent)
             .map(Optional::get)
             .toList();
+    }
+
+    @SafeVarargs
+    public final List<Specification<E>> specificationList(List<Optional<Specification<E>>> specsList,
+                                                          Specification<E>... specs) {
+        List<Specification<E>> filteredList =  specsList
+            .stream().filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toList());
+        Collections.addAll(filteredList, specs);
+        return filteredList;
     }
 
     @SafeVarargs

@@ -39,12 +39,12 @@ public class CourtService implements CourtServiceInterface {
         return courtsPage.getContent();
     }
 
-    public List<CourtReferenceData> getReferenceData(Optional<String> filter) {
+    public List<CourtReferenceData> getReferenceData(Optional<String> filter, Optional<Short> businessUnitId) {
 
         Sort codeSort = Sort.by(Sort.Direction.ASC, AddressEntity_.NAME);
 
         Page<CourtEntity> page = courtRepository
-            .findBy(specs.referenceDataFilter(filter),
+            .findBy(specs.referenceDataFilter(filter, businessUnitId),
                     ffq -> ffq
                         .sortBy(codeSort)
                         .page(Pageable.unpaged()));
@@ -55,6 +55,7 @@ public class CourtService implements CourtServiceInterface {
     private CourtReferenceData toRefData(CourtEntity entity) {
         return new CourtReferenceData(
             entity.getCourtId(),
+            entity.getBusinessUnit().getBusinessUnitId(),
             entity.getCourtCode(),
             entity.getName(),
             entity.getNameCy(),

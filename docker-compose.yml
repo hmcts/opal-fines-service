@@ -1,7 +1,7 @@
-version: '2.1'
 
 services:
   opal-fines-service:
+    container_name: opal-fines-service
     build:
       context: .
       args:
@@ -26,9 +26,12 @@ services:
       - TESTING_SUPPORT_ENDPOINTS_ENABLED=true
 
     ports:
-      - $SERVER_PORT:$SERVER_PORT
+      - "4550:4550"
+    depends_on:
+      - redis
 
   opal-fines-db:
+    container_name: opal-fines-db
     image: postgres:15
     restart: always
     environment:
@@ -36,9 +39,18 @@ services:
       - POSTGRES_USER=opal-fines
       - POSTGRES_PASSWORD=opal-fines
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
       - opal-database-data:/var/lib/postgresql/data
 
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
 volumes:
   opal-database-data:
+  redis-data:

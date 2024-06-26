@@ -108,9 +108,10 @@ class CourtControllerIntegrationTest {
 
     @Test
     void testGetCourtRefData() throws Exception {
-        CourtReferenceData refData = new CourtReferenceData(1L, (short)11,"Main Court", null, "MN1234");
+        CourtReferenceData refData = new CourtReferenceData(1L, (short)007, (short)11,
+                                                            "Main Court", null, "MN1234");
 
-        when(courtService.getReferenceData(any())).thenReturn(singletonList(refData));
+        when(courtService.getReferenceData(any(), any())).thenReturn(singletonList(refData));
 
         mockMvc.perform(get("/api/court/ref-data")
                             .header("authorization", "Bearer some_value"))
