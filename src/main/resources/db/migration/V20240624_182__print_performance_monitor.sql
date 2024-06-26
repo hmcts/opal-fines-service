@@ -12,23 +12,23 @@
 * 28/02/2024    A Dennis    1.0         PO-208 Creates the PRINT_PERFORMANCE_MONITOR table for the Print service
 *
 **/
-CREATE TABLE print_performance_monitor 
+CREATE TABLE IF NOT EXISTS print_performance_monitor
 (
- print_performance_monitor_id   bigint        not null 
-,uuid                           varchar(360)  not null 
-,document_type                  varchar(100)  not null 
-,date_rendered                  timestamp       
+ print_performance_monitor_id   bigint        not null
+,uuid                           varchar(360)  not null
+,document_type                  varchar(100)  not null
+,date_rendered                  timestamp
 ,time_rendered                  bigint        not null
-,render_size                    bigint        not null   
+,render_size                    bigint        not null
 ,render_server                  varchar(60)   not null
-,used_memory                    bigint        not null 
-,free_memory                    bigint        not null 
-,total_memory                   bigint        not null      
-,max_memory                     bigint        not null   
-,CONSTRAINT print_performance_monitor_id_pk  PRIMARY KEY 
+,used_memory                    bigint        not null
+,free_memory                    bigint        not null
+,total_memory                   bigint        not null
+,max_memory                     bigint        not null
+,CONSTRAINT print_performance_monitor_id_pk  PRIMARY KEY
  (
-   print_performance_monitor_id	
- ) 
+   print_performance_monitor_id
+ )
 );
 
 COMMENT ON COLUMN print_performance_monitor.print_performance_monitor_id IS 'Sequence generated primary key';
