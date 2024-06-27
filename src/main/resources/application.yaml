@@ -78,6 +78,9 @@ spring:
     redis:
       host: ${OPAL_REDIS_HOST:localhost}
       port: ${OPAL_REDIS_PORT:6379}
+  flyway:
+    baseline-on-migrate: true
+
 
 dbMigration:
   # When true, the app will run DB migration on startup.
