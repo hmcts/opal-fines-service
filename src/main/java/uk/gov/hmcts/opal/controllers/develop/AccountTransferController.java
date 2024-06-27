@@ -37,9 +37,7 @@ public class AccountTransferController {
 
     @GetMapping(value = "/{accountTransferId}")
     @Operation(summary = "Returns the AccountTransfer for the given accountTransferId.")
-    public ResponseEntity<AccountTransferEntity> getAccountTransferById(@PathVariable Long accountTransferId,
-                                                                        @RequestHeader(value = "Authorization", required = false)
-                                                                        String authHeaderValue) {
+    public ResponseEntity<AccountTransferEntity> getAccountTransferById(@PathVariable Long accountTransferId) {
 
         log.info(":GET:getAccountTransferById: accountTransferId: {}", accountTransferId);
 
