@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.dto.legacy.searchResults;
+package uk.gov.hmcts.opal.dto.legacy.search;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
