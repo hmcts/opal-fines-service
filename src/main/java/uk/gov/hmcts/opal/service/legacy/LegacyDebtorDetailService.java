@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyDebtorDetailSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyDebtorDetailSearchResults;
 import uk.gov.hmcts.opal.dto.search.DebtorDetailSearchDto;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.service.DebtorDetailServiceInterface;

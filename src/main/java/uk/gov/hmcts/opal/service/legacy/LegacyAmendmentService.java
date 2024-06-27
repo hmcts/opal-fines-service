@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyAmendmentSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyAmendmentSearchResults;
 import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
 import uk.gov.hmcts.opal.entity.AmendmentEntity;
 import uk.gov.hmcts.opal.service.AmendmentServiceInterface;

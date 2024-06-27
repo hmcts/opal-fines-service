@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyAccountTransferSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyAccountTransferSearchResults;
 import uk.gov.hmcts.opal.dto.search.AccountTransferSearchDto;
 import uk.gov.hmcts.opal.entity.AccountTransferEntity;
 import uk.gov.hmcts.opal.service.AccountTransferServiceInterface;

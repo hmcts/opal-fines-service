@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.PartyDto;
-import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyPartySearchResults;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyPartySearchResults;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.PartySearchDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;

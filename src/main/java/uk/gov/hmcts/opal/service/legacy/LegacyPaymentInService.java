@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyPaymentInSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyPaymentInSearchResults;
 import uk.gov.hmcts.opal.dto.search.PaymentInSearchDto;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.service.PaymentInServiceInterface;

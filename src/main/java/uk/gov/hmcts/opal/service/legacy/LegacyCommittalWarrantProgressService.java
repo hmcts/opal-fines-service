@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyCommittalWarrantProgressSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyCommittalWarrantProgressSearchResults;
 import uk.gov.hmcts.opal.dto.search.CommittalWarrantProgressSearchDto;
 import uk.gov.hmcts.opal.entity.CommittalWarrantProgressEntity;
 import uk.gov.hmcts.opal.service.CommittalWarrantProgressServiceInterface;

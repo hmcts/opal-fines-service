@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyLogActionSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyLogActionSearchResults;
 import uk.gov.hmcts.opal.dto.search.LogActionSearchDto;
 import uk.gov.hmcts.opal.entity.LogActionEntity;
 import uk.gov.hmcts.opal.service.LogActionServiceInterface;
