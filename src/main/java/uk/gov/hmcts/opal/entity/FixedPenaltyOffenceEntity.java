@@ -16,7 +16,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
-import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDate;
 
