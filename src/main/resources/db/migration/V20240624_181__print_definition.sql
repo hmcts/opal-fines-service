@@ -12,29 +12,29 @@
 * 26/02/2024    A Dennis    1.0         PO-208 Creates the PRINT_DEFINITION table for the Print service
 *
 **/
-CREATE TABLE print_definition 
+CREATE TABLE IF NOT EXISTS print_definition
 (
- print_definition_id    bigint        not null 
-,doc_type               varchar(50)   not null 
-,doc_description        varchar(255)  not null 
-,dest_main              varchar(20)   not null 
-,dest_sec1              varchar(20) 
-,dest_sec2              varchar(20) 
-,format                 varchar(10)   not null 
-,auto_mode              varchar(10) 
-,expiry_duration        bigint        not null 
-,system                 varchar(10)   not null 
+ print_definition_id    bigint        not null
+,doc_type               varchar(50)   not null
+,doc_description        varchar(255)  not null
+,dest_main              varchar(20)   not null
+,dest_sec1              varchar(20)
+,dest_sec2              varchar(20)
+,format                 varchar(10)   not null
+,auto_mode              varchar(10)
+,expiry_duration        bigint        not null
+,system                 varchar(10)   not null
 ,created_date           timestamp
-,template_id            varchar(20) 
-,address_val_element    varchar(50) 
-,doc_doc_id             bigint 
-,xslt                   text          not null 
-,linked_areas           varchar(150) 
-,template_file          varchar(150)    
-,CONSTRAINT print_definition_id_pk PRIMARY KEY 
+,template_id            varchar(20)
+,address_val_element    varchar(50)
+,doc_doc_id             bigint
+,xslt                   text          not null
+,linked_areas           varchar(150)
+,template_file          varchar(150)
+,CONSTRAINT print_definition_id_pk PRIMARY KEY
  (
-   print_definition_id	
- ) 
+   print_definition_id
+ )
 );
 
 COMMENT ON COLUMN print_definition.print_definition_id IS 'Primary key created from a sequence';

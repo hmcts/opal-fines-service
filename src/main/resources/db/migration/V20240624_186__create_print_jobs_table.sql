@@ -12,7 +12,7 @@
 * 18/04/2024    Tom Reed 1.0        Initial creation of the print_jobs table
 **/
 
-CREATE TABLE print_job (
+CREATE TABLE IF NOT EXISTS print_job (
     print_job_id BIGINT NOT NULL,
     batch_uuid UUID NOT NULL,
     job_uuid UUID NOT NULL,

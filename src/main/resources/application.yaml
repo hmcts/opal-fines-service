@@ -2,9 +2,13 @@ server:
   port: 4550
 
 management:
+  health:
+    redis:
+      enabled: false
   endpoint:
     health:
       show-details: "always"
+
   endpoints:
     web:
       base-path: /
@@ -74,6 +78,9 @@ spring:
     redis:
       host: ${OPAL_REDIS_HOST:localhost}
       port: ${OPAL_REDIS_PORT:6379}
+  flyway:
+    baseline-on-migrate: true
+
 
 dbMigration:
   # When true, the app will run DB migration on startup.
@@ -146,7 +153,7 @@ opal:
     file-handler-job:
       cron: ${OPAL_FILE_HANDLER_JOB_CRON:0 0 * * * ?}
   frontend:
-    url: ${OPAL_FRONTEND_URL:http://localhost:4200}
+      url: ${OPAL_FRONTEND_URL:http://localhost:4200}
   azure:
     active-directory-justice-auth-uri: https://login.microsoftonline.com
   testing-support-endpoints:
