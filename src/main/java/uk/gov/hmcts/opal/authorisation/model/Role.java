@@ -2,8 +2,10 @@ package uk.gov.hmcts.opal.authorisation.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 
 import java.util.Collections;
 import java.util.Set;
@@ -26,7 +28,7 @@ public class Role {
     public Role(@JsonProperty("businessUserId") String businessUserId,
                 @JsonProperty("businessUnitId") Short businessUnitId,
                 @JsonProperty("permissions") Set<Permission> permissions) {
-        
+
         this.businessUserId = businessUserId;
         this.businessUnitId = businessUnitId;
         this.permissions = permissions;
