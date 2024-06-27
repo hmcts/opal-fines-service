@@ -14,6 +14,6 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyAccountTransferSearchResults {
 
-    @XmlElement( name = "accountTransferEntity")
+    @XmlElement(name = "accountTransferEntity")
     private List<AccountTransferEntity> accountTransferEntities;
 }

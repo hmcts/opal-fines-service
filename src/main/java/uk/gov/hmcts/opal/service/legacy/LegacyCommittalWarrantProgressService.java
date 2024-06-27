@@ -36,12 +36,12 @@ public class LegacyCommittalWarrantProgressService extends LegacyService
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<CommittalWarrantProgressEntity> searchCommittalWarrantProgresss(
         CommittalWarrantProgressSearchDto criteria) {
         log.info(":searchCommittalWarrantProgresss: criteria: {} via gateway {}", criteria.toJson(),
             legacyGateway.getUrl());
-        return postToGateway("searchCommittalWarrantProgress", LegacyCommittalWarrantProgressSearchResults.class, criteria)
+        return postToGateway("searchCommittalWarrantProgress",
+                             LegacyCommittalWarrantProgressSearchResults.class, criteria)
             .getCommittalWarrantProgressEntities();
     }
 

@@ -32,10 +32,11 @@ public class LegacyDefendantTransactionService extends LegacyService implements 
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<DefendantTransactionEntity> searchDefendantTransactions(DefendantTransactionSearchDto criteria) {
-        log.info(":searchDefendantTransactions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchDefendantTransactions", LegacyDefendantTransactionSearchResults.class, criteria)
+        log.info(":searchDefendantTransactions: criteria: {} via gateway {}", criteria.toJson(),
+                 legacyGateway.getUrl());
+        return postToGateway("searchDefendantTransactions", LegacyDefendantTransactionSearchResults.class,
+                             criteria)
             .getDefendantTransactionEntities();
     }
 

@@ -32,10 +32,11 @@ public class LegacyMiscellaneousAccountService extends LegacyService implements 
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<MiscellaneousAccountEntity> searchMiscellaneousAccounts(MiscellaneousAccountSearchDto criteria) {
-        log.info(":searchMiscellaneousAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchMiscellaneousAccounts", LegacyMiscellaneousAccountSearchResults.class, criteria)
+        log.info(":searchMiscellaneousAccounts: criteria: {} via gateway {}", criteria.toJson(),
+                 legacyGateway.getUrl());
+        return postToGateway("searchMiscellaneousAccounts", LegacyMiscellaneousAccountSearchResults.class,
+                             criteria)
             .getMiscellaneousAccountEntities();
     }
 

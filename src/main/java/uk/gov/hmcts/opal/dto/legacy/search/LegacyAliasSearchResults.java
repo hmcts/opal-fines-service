@@ -14,7 +14,7 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyAliasSearchResults {
 
-    @XmlElement( name = "aliasEntity")
+    @XmlElement(name = "aliasEntity")
     private List<AliasEntity> aliasEntities;
     private Long totalCount;
 }
