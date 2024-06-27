@@ -19,10 +19,13 @@ import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
+import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;
 
@@ -56,6 +59,7 @@ public class AmendmentEntity {
 
     @Column(name = "amended_date")
     @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime amendedDate;
 
     @Column(name = "amended_by", length = 20, nullable = false)

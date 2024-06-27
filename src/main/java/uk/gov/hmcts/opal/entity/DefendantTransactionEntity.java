@@ -17,10 +17,13 @@ import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
+import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -49,6 +52,7 @@ public class DefendantTransactionEntity {
 
     @Column(name = "posted_date", nullable = false)
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate postedDate;
 
     @Column(name = "posted_by")
@@ -74,6 +78,7 @@ public class DefendantTransactionEntity {
 
     @Column(name = "status_date", nullable = false)
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDate statusDate;
 
     @Column(name = "status_amount", precision = 18, scale = 2)

@@ -10,10 +10,13 @@ import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
+import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDate;
 
@@ -46,6 +49,7 @@ public class FixedPenaltyOffenceEntity {
 
     @Column(name = "issued_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate issuedDate;
 
     @Column(name = "licence_number", length = 20)

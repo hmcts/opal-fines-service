@@ -15,10 +15,12 @@ import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -49,6 +51,7 @@ public class PaymentInEntity {
 
     @Column(name = "payment_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime paymentDate;
 
     @Column(name = "payment_method", length = 2, nullable = false)
