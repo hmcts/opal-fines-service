@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyApplicationFunctionSearchResults;
 import uk.gov.hmcts.opal.dto.search.ApplicationFunctionSearchDto;
 import uk.gov.hmcts.opal.entity.ApplicationFunctionEntity;
 import uk.gov.hmcts.opal.service.ApplicationFunctionServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyApplicationFunctionService extends LegacyService implements A
     @SuppressWarnings("unchecked")
     public List<ApplicationFunctionEntity> searchApplicationFunctions(ApplicationFunctionSearchDto criteria) {
         log.info(":searchApplicationFunctions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchApplicationFunctions", List.class, criteria);
+        return postToGateway("searchApplicationFunctions", LegacyApplicationFunctionSearchResults.class, criteria)
+            .getApplicationFunctionEntities();
     }
 
 }

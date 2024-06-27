@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacySuspenseTransactionSearchResults;
 import uk.gov.hmcts.opal.dto.search.SuspenseTransactionSearchDto;
 import uk.gov.hmcts.opal.entity.SuspenseTransactionEntity;
 import uk.gov.hmcts.opal.service.SuspenseTransactionServiceInterface;
@@ -34,7 +35,8 @@ public class LegacySuspenseTransactionService extends LegacyService implements S
     @SuppressWarnings("unchecked")
     public List<SuspenseTransactionEntity> searchSuspenseTransactions(SuspenseTransactionSearchDto criteria) {
         log.info(":searchSuspenseTransactions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchSuspenseTransactions", List.class, criteria);
+        return postToGateway("searchSuspenseTransactions", LegacySuspenseTransactionSearchResults.class, criteria)
+            .getSuspenseTransactionEntities();
     }
 
 }

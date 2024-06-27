@@ -5,11 +5,9 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
-import uk.gov.hmcts.opal.dto.legacy.SearchResponseEntities;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyAccountTransferSearchResults;
 import uk.gov.hmcts.opal.dto.search.AccountTransferSearchDto;
 import uk.gov.hmcts.opal.entity.AccountTransferEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.AccountTransferServiceInterface;
 
 import java.util.List;
@@ -38,8 +36,8 @@ public class LegacyAccountTransferService extends LegacyService implements Accou
     @SuppressWarnings("unchecked")
     public List<AccountTransferEntity> searchAccountTransfers(AccountTransferSearchDto criteria) {
         log.info(":searchAccountTransfers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchAccountTransfers", SearchResponseEntities.class, criteria)
-            .getEntities();
+        return postToGateway("searchAccountTransfers", LegacyAccountTransferSearchResults.class, criteria)
+            .getAccountTransferEntities();
     }
 
 }

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacySuspenseItemSearchResults;
 import uk.gov.hmcts.opal.dto.search.SuspenseItemSearchDto;
 import uk.gov.hmcts.opal.entity.SuspenseItemEntity;
 import uk.gov.hmcts.opal.service.SuspenseItemServiceInterface;
@@ -34,7 +35,8 @@ public class LegacySuspenseItemService extends LegacyService implements Suspense
     @SuppressWarnings("unchecked")
     public List<SuspenseItemEntity> searchSuspenseItems(SuspenseItemSearchDto criteria) {
         log.info(":searchSuspenseItems: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchSuspenseItems", List.class, criteria);
+        return postToGateway("searchSuspenseItems", LegacySuspenseItemSearchResults.class, criteria)
+            .getSuspenseItemEntities();
     }
 
 }

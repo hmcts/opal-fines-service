@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyCreditorTransactionSearchResults;
 import uk.gov.hmcts.opal.dto.search.CreditorTransactionSearchDto;
 import uk.gov.hmcts.opal.entity.CreditorTransactionEntity;
 import uk.gov.hmcts.opal.service.CreditorTransactionServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyCreditorTransactionService extends LegacyService implements C
     @SuppressWarnings("unchecked")
     public List<CreditorTransactionEntity> searchCreditorTransactions(CreditorTransactionSearchDto criteria) {
         log.info(":searchCreditorTransactions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchCreditorTransactions", List.class, criteria);
+        return postToGateway("searchCreditorTransactions", LegacyCreditorTransactionSearchResults.class, criteria)
+            .getCreditorTransactionEntities();
     }
 
 }

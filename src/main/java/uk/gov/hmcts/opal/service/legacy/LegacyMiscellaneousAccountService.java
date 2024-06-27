@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyMiscellaneousAccountSearchResults;
 import uk.gov.hmcts.opal.dto.search.MiscellaneousAccountSearchDto;
 import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.service.MiscellaneousAccountServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyMiscellaneousAccountService extends LegacyService implements 
     @SuppressWarnings("unchecked")
     public List<MiscellaneousAccountEntity> searchMiscellaneousAccounts(MiscellaneousAccountSearchDto criteria) {
         log.info(":searchMiscellaneousAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchMiscellaneousAccounts", List.class, criteria);
+        return postToGateway("searchMiscellaneousAccounts", LegacyMiscellaneousAccountSearchResults.class, criteria)
+            .getMiscellaneousAccountEntities();
     }
 
 }

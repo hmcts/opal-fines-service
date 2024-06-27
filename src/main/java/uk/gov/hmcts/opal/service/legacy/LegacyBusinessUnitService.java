@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyBusinessUnitSearchResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;
@@ -35,7 +36,8 @@ public class LegacyBusinessUnitService extends LegacyService implements Business
     @SuppressWarnings("unchecked")
     public List<BusinessUnitEntity> searchBusinessUnits(BusinessUnitSearchDto criteria) {
         log.info(":searchBusinessUnits: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchBusinessUnits", List.class, criteria);
+        return postToGateway("searchBusinessUnits", LegacyBusinessUnitSearchResults.class, criteria)
+            .getBusinessUnitEntities();
     }
 
 }

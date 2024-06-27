@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyPrisonSearchResults;
 import uk.gov.hmcts.opal.dto.search.PrisonSearchDto;
 import uk.gov.hmcts.opal.entity.PrisonEntity;
 import uk.gov.hmcts.opal.service.PrisonServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyPrisonService extends LegacyService implements PrisonServiceI
     @SuppressWarnings("unchecked")
     public List<PrisonEntity> searchPrisons(PrisonSearchDto criteria) {
         log.info(":searchPrisons: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchPrisons", List.class, criteria);
+        return postToGateway("searchPrisons", LegacyPrisonSearchResults.class, criteria)
+            .getPrisonEntities();
     }
 
 }

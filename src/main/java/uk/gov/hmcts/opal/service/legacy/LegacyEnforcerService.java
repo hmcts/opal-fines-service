@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyEnforcerSearchResults;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.service.EnforcerServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyEnforcerService extends LegacyService implements EnforcerServ
     @SuppressWarnings("unchecked")
     public List<EnforcerEntity> searchEnforcers(EnforcerSearchDto criteria) {
         log.info(":searchEnforcers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchEnforcers", List.class, criteria);
+        return postToGateway("searchEnforcers", LegacyEnforcerSearchResults.class, criteria)
+            .getEnforcerEntities();
     }
 
 }

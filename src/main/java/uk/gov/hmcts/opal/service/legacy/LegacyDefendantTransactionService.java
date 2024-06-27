@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyDefendantTransactionSearchResults;
 import uk.gov.hmcts.opal.dto.search.DefendantTransactionSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.service.DefendantTransactionServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyDefendantTransactionService extends LegacyService implements 
     @SuppressWarnings("unchecked")
     public List<DefendantTransactionEntity> searchDefendantTransactions(DefendantTransactionSearchDto criteria) {
         log.info(":searchDefendantTransactions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchDefendantTransactions", List.class, criteria);
+        return postToGateway("searchDefendantTransactions", LegacyDefendantTransactionSearchResults.class, criteria)
+            .getDefendantTransactionEntities();
     }
 
 }

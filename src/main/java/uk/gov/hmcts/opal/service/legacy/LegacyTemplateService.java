@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyTemplateSearchResults;
 import uk.gov.hmcts.opal.dto.search.TemplateSearchDto;
 import uk.gov.hmcts.opal.entity.TemplateEntity;
 import uk.gov.hmcts.opal.service.TemplateServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyTemplateService extends LegacyService implements TemplateServ
     @SuppressWarnings("unchecked")
     public List<TemplateEntity> searchTemplates(TemplateSearchDto criteria) {
         log.info(":searchTemplates: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchTemplates", List.class, criteria);
+        return postToGateway("searchTemplates", LegacyTemplateSearchResults.class, criteria)
+            .getTemplateEntities();
     }
 
 }

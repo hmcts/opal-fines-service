@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.dto.legacy.SearchResponseEntities;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyAliasSearchResults;
 import uk.gov.hmcts.opal.dto.search.AliasSearchDto;
 import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.service.AliasServiceInterface;
@@ -35,8 +35,8 @@ public class LegacyAliasService extends LegacyService implements AliasServiceInt
     @SuppressWarnings("unchecked")
     public List<AliasEntity> searchAliass(AliasSearchDto criteria) {
         log.info(":searchAliass: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchAliass", SearchResponseEntities.class, criteria)
-            .getEntities();
+        return postToGateway("searchAliass", LegacyAliasSearchResults.class, criteria)
+            .getAliasEntities();
     }
 
 }

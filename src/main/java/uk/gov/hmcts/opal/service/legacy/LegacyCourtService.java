@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyCourtSearchResults;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.CourtEntity;
 import uk.gov.hmcts.opal.service.CourtServiceInterface;
@@ -35,7 +36,8 @@ public class LegacyCourtService extends LegacyService implements CourtServiceInt
     @SuppressWarnings("unchecked")
     public List<CourtEntity> searchCourts(CourtSearchDto criteria) {
         log.info(":searchCourts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchCourts", List.class, criteria);
+        return postToGateway("searchCourts", LegacyCourtSearchResults.class, criteria)
+            .getCourtEntities();
     }
 
 }

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyUserEntitlementSearchResults;
 import uk.gov.hmcts.opal.dto.search.UserEntitlementSearchDto;
 import uk.gov.hmcts.opal.entity.UserEntitlementEntity;
 import uk.gov.hmcts.opal.service.UserEntitlementServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyUserEntitlementService extends LegacyService implements UserE
     @SuppressWarnings("unchecked")
     public List<UserEntitlementEntity> searchUserEntitlements(UserEntitlementSearchDto criteria) {
         log.info(":searchUserEntitlements: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchUserEntitlements", List.class, criteria);
+        return postToGateway("searchUserEntitlements", LegacyUserEntitlementSearchResults.class, criteria)
+            .getUserEntitlementEntities();
     }
 
 }

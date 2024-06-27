@@ -5,9 +5,8 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.dto.legacy.SearchResponseEntities;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyLogAuditDetailSearchResults;
 import uk.gov.hmcts.opal.dto.search.LogAuditDetailSearchDto;
-import uk.gov.hmcts.opal.entity.LogActionEntity;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
 import uk.gov.hmcts.opal.service.LogAuditDetailServiceInterface;
 
@@ -36,8 +35,8 @@ public class LegacyLogAuditDetailService extends LegacyService implements LogAud
     @SuppressWarnings("unchecked")
     public List<LogAuditDetailEntity> searchLogAuditDetails(LogAuditDetailSearchDto criteria) {
         log.info("searchLogAuditDetails for {} from {}", criteria, legacyGateway.getUrl());
-        return postToGateway("searchLogAuditDetails", SearchResponseEntities.class, criteria)
-            .getEntities();
+        return postToGateway("searchLogAuditDetails", LegacyLogAuditDetailSearchResults.class, criteria)
+            .getLogAuditDetailEntities();
     }
 
 }

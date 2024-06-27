@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyTillSearchResults;
 import uk.gov.hmcts.opal.dto.search.TillSearchDto;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.service.TillServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyTillService extends LegacyService implements TillServiceInter
     @SuppressWarnings("unchecked")
     public List<TillEntity> searchTills(TillSearchDto criteria) {
         log.info(":searchTills: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchTills", List.class, criteria);
+        return postToGateway("searchTills", LegacyTillSearchResults.class, criteria)
+            .getTillEntities();
     }
 
 }

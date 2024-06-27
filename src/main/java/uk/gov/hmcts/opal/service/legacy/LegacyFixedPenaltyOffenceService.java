@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyFixedPenaltyOffenceSearchResults;
 import uk.gov.hmcts.opal.dto.search.FixedPenaltyOffenceSearchDto;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.service.FixedPenaltyOffenceServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyFixedPenaltyOffenceService extends LegacyService implements F
     @SuppressWarnings("unchecked")
     public List<FixedPenaltyOffenceEntity> searchFixedPenaltyOffences(FixedPenaltyOffenceSearchDto criteria) {
         log.info(":searchFixedPenaltyOffences: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchFixedPenaltyOffences", List.class, criteria);
+        return postToGateway("searchFixedPenaltyOffences", LegacyFixedPenaltyOffenceSearchResults.class, criteria)
+            .getFixedPenaltyOffenceEntities();
     }
 
 }

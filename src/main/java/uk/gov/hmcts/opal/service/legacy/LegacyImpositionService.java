@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyImpositionSearchResults;
 import uk.gov.hmcts.opal.dto.search.ImpositionSearchDto;
 import uk.gov.hmcts.opal.entity.ImpositionEntity;
 import uk.gov.hmcts.opal.service.ImpositionServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyImpositionService extends LegacyService implements Imposition
     @SuppressWarnings("unchecked")
     public List<ImpositionEntity> searchImpositions(ImpositionSearchDto criteria) {
         log.info(":searchImpositions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchImpositions", List.class, criteria);
+        return postToGateway("searchImpositions", LegacyImpositionSearchResults.class, criteria)
+            .getImpositionEntities();
     }
 
 }

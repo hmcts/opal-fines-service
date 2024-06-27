@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyConfigurationItemSearchResults;
 import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
 import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.service.ConfigurationItemServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyConfigurationItemService extends LegacyService implements Con
     @SuppressWarnings("unchecked")
     public List<ConfigurationItemEntity> searchConfigurationItems(ConfigurationItemSearchDto criteria) {
         log.info(":searchConfigurationItems: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchConfigurationItems", List.class, criteria);
+        return postToGateway("searchConfigurationItems", LegacyConfigurationItemSearchResults.class, criteria)
+            .getConfigurationItemEntities();
     }
 
 }

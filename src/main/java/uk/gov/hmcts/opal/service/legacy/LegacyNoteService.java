@@ -41,7 +41,7 @@ public class LegacyNoteService extends LegacyService implements NoteServiceInter
                     LegacySaveNoteResponseDto.class, LegacySaveNoteRequestDto.fromNoteDto(noteDto))
             .createClonedAndUpdatedDto(noteDto);
     }
-
+    //TODO: change this to return entity rather than dto ?
     @Override
     @SuppressWarnings("unchecked")
     public List<NoteDto> searchNotes(NoteSearchDto searchCriteria) {

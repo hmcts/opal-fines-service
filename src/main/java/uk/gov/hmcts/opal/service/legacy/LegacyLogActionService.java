@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyLogActionSearchResults;
 import uk.gov.hmcts.opal.dto.search.LogActionSearchDto;
 import uk.gov.hmcts.opal.entity.LogActionEntity;
 import uk.gov.hmcts.opal.service.LogActionServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyLogActionService extends LegacyService implements LogActionSe
     @SuppressWarnings("unchecked")
     public List<LogActionEntity> searchLogActions(LogActionSearchDto criteria) {
         log.info(":searchLogActions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchLogActions", List.class, criteria);
+        return postToGateway("searchLogActions", LegacyLogActionSearchResults.class, criteria)
+            .getLogActionEntities();
     }
 
 }

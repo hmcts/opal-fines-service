@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacySuspenseAccountSearchResults;
 import uk.gov.hmcts.opal.dto.search.SuspenseAccountSearchDto;
 import uk.gov.hmcts.opal.entity.SuspenseAccountEntity;
 import uk.gov.hmcts.opal.service.SuspenseAccountServiceInterface;
@@ -34,7 +35,8 @@ public class LegacySuspenseAccountService extends LegacyService implements Suspe
     @SuppressWarnings("unchecked")
     public List<SuspenseAccountEntity> searchSuspenseAccounts(SuspenseAccountSearchDto criteria) {
         log.info(":searchSuspenseAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchSuspenseAccounts", List.class, criteria);
+        return postToGateway("searchSuspenseAccounts", LegacySuspenseAccountSearchResults.class, criteria)
+            .getSuspenseAccountEntities();
     }
 
 }

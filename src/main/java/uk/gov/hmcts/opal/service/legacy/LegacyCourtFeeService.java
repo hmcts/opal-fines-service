@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyCourtFeeSearchResults;
 import uk.gov.hmcts.opal.dto.search.CourtFeeSearchDto;
 import uk.gov.hmcts.opal.entity.CourtFeeEntity;
 import uk.gov.hmcts.opal.service.CourtFeeServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyCourtFeeService extends LegacyService implements CourtFeeServ
     @SuppressWarnings("unchecked")
     public List<CourtFeeEntity> searchCourtFees(CourtFeeSearchDto criteria) {
         log.info(":searchCourtFees: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchCourtFees", List.class, criteria);
+        return postToGateway("searchCourtFees", LegacyCourtFeeSearchResults.class, criteria)
+            .getCourtFeeEntities();
     }
 
 }

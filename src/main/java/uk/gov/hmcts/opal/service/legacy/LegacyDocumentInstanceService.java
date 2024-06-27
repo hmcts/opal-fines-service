@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyDocumentInstanceSearchResults;
 import uk.gov.hmcts.opal.dto.search.DocumentInstanceSearchDto;
 import uk.gov.hmcts.opal.entity.DocumentInstanceEntity;
 import uk.gov.hmcts.opal.service.DocumentInstanceServiceInterface;
@@ -35,7 +36,8 @@ public class LegacyDocumentInstanceService extends LegacyService implements Docu
     @SuppressWarnings("unchecked")
     public List<DocumentInstanceEntity> searchDocumentInstances(DocumentInstanceSearchDto criteria) {
         log.info(":searchDocumentInstances: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchDocumentInstances", List.class, criteria);
+        return postToGateway("searchDocumentInstances", LegacyDocumentInstanceSearchResults.class, criteria)
+            .getDocumentInstanceEntities();
     }
 
 }

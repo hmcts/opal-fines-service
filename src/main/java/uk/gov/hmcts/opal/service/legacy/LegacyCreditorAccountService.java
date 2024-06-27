@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyCreditorAccountSearchResults;
 import uk.gov.hmcts.opal.dto.search.CreditorAccountSearchDto;
 import uk.gov.hmcts.opal.entity.CreditorAccountEntity;
 import uk.gov.hmcts.opal.service.CreditorAccountServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyCreditorAccountService extends LegacyService implements Credi
     @SuppressWarnings("unchecked")
     public List<CreditorAccountEntity> searchCreditorAccounts(CreditorAccountSearchDto criteria) {
         log.info(":searchCreditorAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchCreditorAccounts", List.class, criteria);
+        return postToGateway("searchCreditorAccounts", LegacyCreditorAccountSearchResults.class, criteria)
+            .getCreditorAccountEntities();
     }
 
 }

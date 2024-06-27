@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyOffenceSearchResults;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
 import uk.gov.hmcts.opal.entity.OffenceEntity;
 import uk.gov.hmcts.opal.service.OffenceServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyOffenceService extends LegacyService implements OffenceServic
     @SuppressWarnings("unchecked")
     public List<OffenceEntity> searchOffences(OffenceSearchDto criteria) {
         log.info(":searchOffences: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchOffences", List.class, criteria);
+        return postToGateway("searchOffences", LegacyOffenceSearchResults.class, criteria)
+            .getOffenceEntities();
     }
 
 }

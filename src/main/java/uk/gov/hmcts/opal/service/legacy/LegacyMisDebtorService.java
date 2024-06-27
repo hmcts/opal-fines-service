@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyMisDebtorSearchResults;
 import uk.gov.hmcts.opal.dto.search.MisDebtorSearchDto;
 import uk.gov.hmcts.opal.entity.MisDebtorEntity;
 import uk.gov.hmcts.opal.service.MisDebtorServiceInterface;
@@ -35,7 +36,8 @@ public class LegacyMisDebtorService extends LegacyService implements MisDebtorSe
     @SuppressWarnings("unchecked")
     public List<MisDebtorEntity> searchMisDebtors(MisDebtorSearchDto criteria) {
         log.info(":searchMisDebtors: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchMisDebtors", List.class, criteria);
+        return postToGateway("searchMisDebtors", LegacyMisDebtorSearchResults.class, criteria)
+            .getMisDebtorEntities();
     }
 
 }

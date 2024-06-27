@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.searchResults.LegacyDocumentSearchResults;
 import uk.gov.hmcts.opal.dto.search.DocumentSearchDto;
 import uk.gov.hmcts.opal.entity.DocumentEntity;
 import uk.gov.hmcts.opal.service.DocumentServiceInterface;
@@ -34,7 +35,8 @@ public class LegacyDocumentService extends LegacyService implements DocumentServ
     @SuppressWarnings("unchecked")
     public List<DocumentEntity> searchDocuments(DocumentSearchDto criteria) {
         log.info(":searchDocuments: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway("searchDocuments", List.class, criteria);
+        return postToGateway("searchDocuments", LegacyDocumentSearchResults.class, criteria)
+            .getDocumentEntities();
     }
 
 }
