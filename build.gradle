@@ -285,12 +285,12 @@ dependencies {
   implementation 'org.postgresql:postgresql'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
-  compileOnly 'org.projectlombok:lombok:1.18.32'
-  annotationProcessor 'org.projectlombok:lombok:1.18.32'
+  compileOnly 'org.projectlombok:lombok:1.18.34'
+  annotationProcessor 'org.projectlombok:lombok:1.18.34'
   annotationProcessor 'org.hibernate:hibernate-jpamodelgen:6.5.2.Final'
 
-  testCompileOnly 'org.projectlombok:lombok:1.18.32'
-  testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
+  testCompileOnly 'org.projectlombok:lombok:1.18.34'
+  testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
 
   testImplementation 'com.github.fge:json-schema-validator:2.2.14'
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
