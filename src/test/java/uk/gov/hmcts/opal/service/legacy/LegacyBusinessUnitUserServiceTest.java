@@ -1,60 +1,65 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
+import org.springframework.web.client.RestClient;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyBusinessUnitUserSearchResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitUserSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity;
 
+import java.util.Collections;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyBusinessUnitUserServiceTest extends LegacyTestsBase {
 
     @Mock
-    private Logger log;
+    private LegacyGatewayProperties legacyGatewayProperties;
 
-    @InjectMocks
+    @Mock
+    private RestClient restClient;
+
     private LegacyBusinessUnitUserService legacyBusinessUnitUserService;
 
-    @Test
-    void testGetBusinessUnitUser() {
-        // Arrange
-
-        BusinessUnitUserEntity businessUnitUserEntity = BusinessUnitUserEntity.builder().build();
-
-        // Act
-        LegacyGatewayResponseException exception = assertThrows(
-            LegacyGatewayResponseException.class,
-            () -> legacyBusinessUnitUserService.getBusinessUnitUser("1")
-        );
-
-        // Assert
-        assertNotNull(legacyBusinessUnitUserService.getLog());
-        assertNotNull(exception);
-        assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
-
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        legacyBusinessUnitUserService = spy(new LegacyBusinessUnitUserService(legacyGatewayProperties, restClient));
     }
 
     @Test
-    void testSearchBusinessUnitUsers() {
-        // Arrange
+    public void testGetBusinessUnitUser() {
+        String id = "1";
+        BusinessUnitUserEntity expectedEntity = new BusinessUnitUserEntity();
+        doReturn(expectedEntity).when(legacyBusinessUnitUserService).postToGateway(anyString(), any(), anyString());
+
+        BusinessUnitUserEntity result = legacyBusinessUnitUserService.getBusinessUnitUser(id);
+
+        assertEquals(expectedEntity, result);
+    }
+
+    @Test
+    public void testSearchBusinessUnitUsers() {
         BusinessUnitUserSearchDto criteria = BusinessUnitUserSearchDto.builder().build();
+        List<BusinessUnitUserEntity> expectedEntities = Collections.singletonList(new BusinessUnitUserEntity());
+        LegacyBusinessUnitUserSearchResults searchResults = LegacyBusinessUnitUserSearchResults.builder().build();
+        searchResults.setBusinessUnitUserEntities(expectedEntities);
+        doReturn(searchResults).when(legacyBusinessUnitUserService).postToGateway(anyString(), any(), any());
 
-        // Act
-        LegacyGatewayResponseException exception = assertThrows(
-            LegacyGatewayResponseException.class, () -> legacyBusinessUnitUserService.searchBusinessUnitUsers(criteria)
-        );
+        List<BusinessUnitUserEntity> result = legacyBusinessUnitUserService.searchBusinessUnitUsers(criteria);
 
-        // Assert
-        assertNotNull(exception);
-        assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
-
+        assertEquals(expectedEntities, result);
     }
 
 }

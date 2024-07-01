@@ -1,61 +1,65 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
-import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.OffenceEntity;
+import org.springframework.web.client.RestClient;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyAccountTransferSearchResults;
+import uk.gov.hmcts.opal.dto.search.AccountTransferSearchDto;
+import uk.gov.hmcts.opal.entity.AccountTransferEntity;
+
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyOffenceServiceTest extends LegacyTestsBase {
 
     @Mock
-    private Logger log;
+    private LegacyGatewayProperties legacyGatewayProperties;
 
-    @InjectMocks
-    private LegacyOffenceService legacyOffenceService;
+    @Mock
+    private RestClient restClient;
 
-    @Test
-    void testGetOffence() {
-        // Arrange
+    private LegacyAccountTransferService legacyAccountTransferService;
 
-        OffenceEntity offenceEntity = OffenceEntity.builder().build();
-
-        // Act
-        LegacyGatewayResponseException exception = assertThrows(
-            LegacyGatewayResponseException.class,
-            () -> legacyOffenceService.getOffence((short)1)
-        );
-
-        // Assert
-        assertNotNull(legacyOffenceService.getLog());
-        assertNotNull(exception);
-        assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
-
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        legacyAccountTransferService = spy(new LegacyAccountTransferService(legacyGatewayProperties, restClient));
     }
 
     @Test
-    void testSearchOffences() {
-        // Arrange
-        OffenceSearchDto criteria = OffenceSearchDto.builder().build();
+    public void testGetAccountTransfer() {
+        long id = 1L;
+        AccountTransferEntity expectedEntity = new AccountTransferEntity();
+        doReturn(expectedEntity).when(legacyAccountTransferService).postToGateway(anyString(), any(), anyLong());
 
-        // Act
-        LegacyGatewayResponseException exception = assertThrows(
-            LegacyGatewayResponseException.class,
-            () -> legacyOffenceService.searchOffences(criteria)
-        );
+        AccountTransferEntity result = legacyAccountTransferService.getAccountTransfer(id);
 
-        // Assert
-        assertNotNull(exception);
-        assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
-
+        assertEquals(expectedEntity, result);
     }
 
+    @Test
+    public void testSearchAccountTransfers() {
+        AccountTransferSearchDto criteria = AccountTransferSearchDto.builder().build();
+        List<AccountTransferEntity> expectedEntities = Collections.singletonList(new AccountTransferEntity());
+        LegacyAccountTransferSearchResults searchResults = LegacyAccountTransferSearchResults.builder().build();
+        searchResults.setAccountTransferEntities(expectedEntities);
+        doReturn(searchResults).when(legacyAccountTransferService).postToGateway(anyString(), any(), any());
+
+        List<AccountTransferEntity> result = legacyAccountTransferService.searchAccountTransfers(criteria);
+
+        assertEquals(expectedEntities, result);
+    }
 }

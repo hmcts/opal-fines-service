@@ -1,61 +1,65 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
+import org.springframework.web.client.RestClient;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyImpositionSearchResults;
 import uk.gov.hmcts.opal.dto.search.ImpositionSearchDto;
 import uk.gov.hmcts.opal.entity.ImpositionEntity;
 
+import java.util.Collections;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyImpositionServiceTest extends LegacyTestsBase {
 
     @Mock
-    private Logger log;
+    private LegacyGatewayProperties legacyGatewayProperties;
 
-    @InjectMocks
+    @Mock
+    private RestClient restClient;
+
     private LegacyImpositionService legacyImpositionService;
 
-    @Test
-    void testGetImposition() {
-        // Arrange
-
-        ImpositionEntity impositionEntity = ImpositionEntity.builder().build();
-
-        // Act
-        LegacyGatewayResponseException exception = assertThrows(
-            LegacyGatewayResponseException.class,
-            () -> legacyImpositionService.getImposition(1)
-        );
-
-        // Assert
-        assertNotNull(legacyImpositionService.getLog());
-        assertNotNull(exception);
-        assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
-
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        legacyImpositionService = spy(new LegacyImpositionService(legacyGatewayProperties, restClient));
     }
 
     @Test
-    void testSearchImpositions() {
-        // Arrange
+    public void testGetImposition() {
+        long id = 1L;
+        ImpositionEntity expectedEntity = new ImpositionEntity();
+        doReturn(expectedEntity).when(legacyImpositionService).postToGateway(anyString(), any(), anyLong());
+
+        ImpositionEntity result = legacyImpositionService.getImposition(id);
+
+        assertEquals(expectedEntity, result);
+    }
+
+    @Test
+    public void testSearchImpositions() {
         ImpositionSearchDto criteria = ImpositionSearchDto.builder().build();
+        List<ImpositionEntity> expectedEntities = Collections.singletonList(new ImpositionEntity());
+        LegacyImpositionSearchResults searchResults = LegacyImpositionSearchResults.builder().build();
+        searchResults.setImpositionEntities(expectedEntities);
+        doReturn(searchResults).when(legacyImpositionService).postToGateway(anyString(), any(), any());
 
-        // Act
-        LegacyGatewayResponseException exception = assertThrows(
-            LegacyGatewayResponseException.class,
-            () -> legacyImpositionService.searchImpositions(criteria)
-        );
+        List<ImpositionEntity> result = legacyImpositionService.searchImpositions(criteria);
 
-        // Assert
-        assertNotNull(exception);
-        assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
-
+        assertEquals(expectedEntities, result);
     }
-
 }
