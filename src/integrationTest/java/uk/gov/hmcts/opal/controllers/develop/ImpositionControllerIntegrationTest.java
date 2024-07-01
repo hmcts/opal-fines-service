@@ -38,7 +38,7 @@ class ImpositionControllerIntegrationTest {
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("impositionService")
+    @Qualifier("impositionServiceProxy")
     ImpositionService impositionService;
 
     @Test

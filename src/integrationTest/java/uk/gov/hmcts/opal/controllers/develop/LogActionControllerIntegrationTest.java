@@ -31,7 +31,7 @@ class LogActionControllerIntegrationTest {
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("logActionService")
+    @Qualifier("logActionServiceProxy")
     LogActionService logActionService;
 
     @Test

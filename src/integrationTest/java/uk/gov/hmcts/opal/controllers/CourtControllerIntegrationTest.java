@@ -34,7 +34,7 @@ class CourtControllerIntegrationTest {
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("courtService")
+    @Qualifier("courtServiceProxy")
     CourtService courtService;
 
     @MockBean

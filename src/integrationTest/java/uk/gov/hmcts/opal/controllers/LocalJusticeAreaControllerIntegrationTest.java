@@ -31,7 +31,7 @@ class LocalJusticeAreaControllerIntegrationTest {
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("localJusticeAreaService")
+    @Qualifier("localJusticeAreaServiceProxy")
     LocalJusticeAreaService localJusticeAreaService;
 
     @Test

@@ -33,7 +33,7 @@ class EnforcerControllerIntegrationTest {
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("enforcerService")
+    @Qualifier("enforcerServiceProxy")
     EnforcerService enforcerService;
 
     @Test

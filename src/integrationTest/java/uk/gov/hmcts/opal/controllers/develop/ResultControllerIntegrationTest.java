@@ -31,7 +31,7 @@ class ResultControllerIntegrationTest {
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("resultService")
+    @Qualifier("resultServiceProxy")
     ResultService resultService;
 
     @Test

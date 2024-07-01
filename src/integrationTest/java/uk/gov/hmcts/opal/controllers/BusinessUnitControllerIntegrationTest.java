@@ -36,7 +36,7 @@ class BusinessUnitControllerIntegrationTest {
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("businessUnitService")
+    @Qualifier("businessUnitServiceProxy")
     BusinessUnitService businessUnitService;
 
     @MockBean

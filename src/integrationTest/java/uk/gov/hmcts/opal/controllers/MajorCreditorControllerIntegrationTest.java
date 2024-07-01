@@ -33,7 +33,7 @@ class MajorCreditorControllerIntegrationTest {
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("majorCreditorService")
+    @Qualifier("majorCreditorServiceProxy")
     MajorCreditorService majorCreditorService;
 
     @Test

@@ -33,7 +33,7 @@ class ConfigurationItemControllerIntegrationTest {
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("configurationItemService")
+    @Qualifier("configurationItemServiceProxy")
     ConfigurationItemService configurationItemService;
 
     @Test
