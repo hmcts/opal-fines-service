@@ -14,6 +14,7 @@ import uk.gov.hmcts.opal.entity.print.PrintStatus;
 import uk.gov.hmcts.opal.repository.print.PrintDefinitionRepository;
 import uk.gov.hmcts.opal.repository.print.PrintJobRepository;
 
+import javax.xml.XMLConstants;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -53,10 +54,12 @@ public class PrintService {
             Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, outStream);
 
             TransformerFactory factory = TransformerFactory.newInstance();
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             Transformer transformer = factory.newTransformer(xslt);
 
             // Setup input for XSLT transformation
             Source src = new StreamSource(xmlReader);
+            disableExternalEntityProcessing(src);
 
             // Resulting SAX events (the generated FO) must be piped through to FOP
             Result res = new SAXResult(fop.getDefaultHandler());
@@ -79,6 +82,13 @@ public class PrintService {
 
         return printDefinitionRepository.findByDocTypeAndTemplateId(docType, templateId);
     }
+
+    private void disableExternalEntityProcessing(Source source) {
+        if (source instanceof StreamSource streamSource) {
+            streamSource.setSystemId("");
+        }
+    }
+
 
 
     public UUID savePrintJobs(List<PrintJob> printJobs) {
