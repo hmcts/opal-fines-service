@@ -55,11 +55,12 @@ public class PrintService {
 
             TransformerFactory factory = TransformerFactory.newInstance();
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
             Transformer transformer = factory.newTransformer(xslt);
 
             // Setup input for XSLT transformation
             Source src = new StreamSource(xmlReader);
-            disableExternalEntityProcessing(src);
 
             // Resulting SAX events (the generated FO) must be piped through to FOP
             Result res = new SAXResult(fop.getDefaultHandler());
@@ -82,14 +83,6 @@ public class PrintService {
 
         return printDefinitionRepository.findByDocTypeAndTemplateId(docType, templateId);
     }
-
-    private void disableExternalEntityProcessing(Source source) {
-        if (source instanceof StreamSource streamSource) {
-            streamSource.setSystemId("");
-        }
-    }
-
-
 
     public UUID savePrintJobs(List<PrintJob> printJobs) {
         UUID batchId = UUID.randomUUID();
