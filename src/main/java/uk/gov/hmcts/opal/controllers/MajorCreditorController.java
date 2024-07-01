@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
@@ -66,10 +67,10 @@ public class MajorCreditorController {
     @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
     @Operation(summary = "Returns MajorCreditors as reference data with an optional filter applied")
     public ResponseEntity<MajorCreditorReferenceDataResults> getMajorCreditorRefData(
-        @PathVariable Optional<String> filter) {
-        log.info(":GET:getMajorCreditorRefData: query: \n{}", filter);
+        @PathVariable Optional<String> filter, @RequestParam Optional<Short> businessUnit) {
+        log.info(":GET:getMajorCreditorRefData: business unit: {}, filter string: {}", businessUnit, filter);
 
-        List<MajorCreditorReferenceData> refData = opalMajorCreditorService.getReferenceData(filter);
+        List<MajorCreditorReferenceData> refData = opalMajorCreditorService.getReferenceData(filter, businessUnit);
 
         log.info(":GET:getMajorCreditorRefData: major creditor reference data count: {}", refData.size());
         return ResponseEntity.ok(MajorCreditorReferenceDataResults.builder().refData(refData).build());

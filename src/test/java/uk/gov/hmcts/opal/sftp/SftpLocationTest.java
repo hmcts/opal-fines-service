@@ -17,7 +17,7 @@ class SftpLocationTest {
     void testGetOutboundLocations() {
         List<SftpLocation> outboundLocations = Arrays.asList(
             SftpLocation.ALL_PAY,
-            SftpLocation.ARCHIVE
+            SftpLocation.ALL_PAY_ARCHIVE
         );
 
         List<SftpLocation> result = SftpLocation.getOutboundLocations();
@@ -44,7 +44,7 @@ class SftpLocationTest {
             SftpLocation.DWP_BAILIFFS_SUCCESS,
             SftpLocation.DWP_BAILIFFS_ERROR
         );
-        List<SftpLocation> outboundLocations = Arrays.asList(SftpLocation.ALL_PAY, SftpLocation.ARCHIVE);
+        List<SftpLocation> outboundLocations = Arrays.asList(SftpLocation.ALL_PAY, SftpLocation.ALL_PAY_ARCHIVE);
 
         assertEquals(15, SftpLocation.getInboundLocations().size());
         assertEquals(inboundLocations, SftpLocation.getInboundLocations());
@@ -69,7 +69,7 @@ class SftpLocationTest {
         assertEquals(SftpDirection.INBOUND, SftpLocation.DWP_BAILIFFS_SUCCESS.getDirection());
         assertEquals(SftpDirection.INBOUND, SftpLocation.DWP_BAILIFFS_ERROR.getDirection());
         assertEquals(SftpDirection.OUTBOUND, SftpLocation.ALL_PAY.getDirection());
-        assertEquals(SftpDirection.OUTBOUND, SftpLocation.ARCHIVE.getDirection());
+        assertEquals(SftpDirection.OUTBOUND, SftpLocation.ALL_PAY_ARCHIVE.getDirection());
     }
 
     @Test
@@ -90,7 +90,7 @@ class SftpLocationTest {
         assertEquals("dwp-bailiffs/success", SftpLocation.DWP_BAILIFFS_SUCCESS.getPath());
         assertEquals("dwp-bailiffs/error", SftpLocation.DWP_BAILIFFS_ERROR.getPath());
         assertEquals("allpay", SftpLocation.ALL_PAY.getPath());
-        assertEquals("allpay-archive", SftpLocation.ARCHIVE.getPath());
+        assertEquals("allpay-archive", SftpLocation.ALL_PAY_ARCHIVE.getPath());
     }
 
     @Test
@@ -111,6 +111,6 @@ class SftpLocationTest {
         assertNotNull(SftpLocation.DWP_BAILIFFS_SUCCESS.getDescription());
         assertNotNull(SftpLocation.DWP_BAILIFFS_ERROR.getDescription());
         assertNotNull(SftpLocation.ALL_PAY.getDescription());
-        assertNotNull(SftpLocation.ARCHIVE.getDescription());
+        assertNotNull(SftpLocation.ALL_PAY_ARCHIVE.getDescription());
     }
 }

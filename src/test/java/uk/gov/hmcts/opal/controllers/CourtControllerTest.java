@@ -77,21 +77,22 @@ class CourtControllerTest {
         CourtReferenceData entity = createCourtReferenceData();
         List<CourtReferenceData> courtList = List.of(entity);
 
-        when(courtService.getReferenceData(any())).thenReturn(courtList);
+        when(courtService.getReferenceData(any(), any())).thenReturn(courtList);
 
         // Act
         Optional<String> filter = Optional.empty();
-        ResponseEntity<CourtReferenceDataResults> response = courtController.getCourtRefData(filter);
+        Optional<Short> businessUnit = Optional.empty();
+        ResponseEntity<CourtReferenceDataResults> response = courtController.getCourtRefData(filter, businessUnit);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         CourtReferenceDataResults refDataResults = response.getBody();
         assertEquals(1, refDataResults.getCount());
         assertEquals(courtList, refDataResults.getRefData());
-        verify(courtService, times(1)).getReferenceData(any());
+        verify(courtService, times(1)).getReferenceData(any(), any());
     }
 
     private CourtReferenceData createCourtReferenceData() {
-        return new CourtReferenceData(1L, (short)2,"Main Court", null,"MM1234");
+        return new CourtReferenceData(1L, (short)007, (short)2,"Main Court", null,"MM1234");
     }
 }

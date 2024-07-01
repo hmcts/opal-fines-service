@@ -2,9 +2,13 @@ server:
   port: 4550
 
 management:
+  health:
+    redis:
+      enabled: false
   endpoint:
     health:
       show-details: "always"
+
   endpoints:
     web:
       base-path: /
@@ -37,7 +41,6 @@ spring:
             response-type: code
             response-mode: form_post
             prompt: login
-#            issuer-uri: ${opal.azure.active-directory-justice-auth-uri}/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/v2.0
             issuer-uri: https://sts.windows.net/${AAD_TENANT_ID:00000000-0000-0000-0000-000000000000}/
             claims: preferred_username
             provider: internal-azure-ad-provider
@@ -71,6 +74,13 @@ spring:
           lob:
             # silence the 'wall-of-text' - unnecessary exception throw about blob types
             non_contextual_creation: true
+  data:
+    redis:
+      host: ${OPAL_REDIS_HOST:localhost}
+      port: ${OPAL_REDIS_PORT:6379}
+  flyway:
+    baseline-on-migrate: true
+
 
 dbMigration:
   # When true, the app will run DB migration on startup.
@@ -110,6 +120,9 @@ quartzProperties:
       threadCount: 8
 
 opal:
+  redis:
+    enabled: ${OPAL_REDIS_ENABLED:false}
+    ttl-hours: ${OPAL_REDIS_TTL_HOURS:8}
   sftp:
     inbound:
       host: ${OPAL_SFTP_INBOUND_HOST:opalsftpstg.blob.core.windows.net}
@@ -126,6 +139,15 @@ opal:
       location: ${OPAL_SFTP_OUTBOUND_LOCATION:outbound}
       create-sub-locations: ${OPAL_SFTP_OUTBOUND_CREATE_SUB_LOCATIONS:false}
   schedule:
+    auto-check-job:
+      cron: ${OPAL_AUTO_CHECK_JOB_CRON:0 0 * * * ?}
+      file-name: ${OPAL_AUTO_CHECK_JOB_FILE_NAME:test.txt}
+    auto-cash-job:
+      cron: ${OPAL_AUTO_CASH_JOB_CRON:0 0 * * * ?}
+      file-name: ${OPAL_AUTO_CASH_JOB_FILE_NAME:test.txt}
+    all-pay-archive-job:
+      cron: ${OPAL_ALL_PAY_ARCHIVE_JOB_CRON:0 0 * * * ?}
+      file-name: ${OPAL_ALL_PAY_ARCHIVE_JOB_FILE_NAME:test.txt}
     log-retention-job:
       cron: ${OPAL_LOG_RETENTION_JOB_CRON:0 0 * * * ?}
     file-handler-job:

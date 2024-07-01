@@ -27,12 +27,16 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "courtId")
-public class CourtEntity extends EnforcerCourtBaseEntity {
+public class CourtEntity extends AddressCyEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "court_id")
     private Long courtId;
+
+    @ManyToOne
+    @JoinColumn(name = "business_unit_id", updatable = false)
+    private BusinessUnitEntity businessUnit;
 
     @Column(name = "court_code", nullable = false)
     private Short courtCode;
@@ -47,5 +51,35 @@ public class CourtEntity extends EnforcerCourtBaseEntity {
 
     @Column(name = "national_court_code", length = 7)
     private String nationalCourtCode;
+
+    @Column(name = "gob_enforcing_court_code")
+    private Short gobEnforcingCourtCode;
+
+    @Column(name = "lja")
+    private Short lja;
+
+    @Column(name = "court_type", length = 2)
+    private String courtType;
+
+    @Column(name = "division", length = 2)
+    private String division;
+
+    @Column(name = "session", length = 2)
+    private String session;
+
+    @Column(name = "start_time", length = 8)
+    private String startTime;
+
+    @Column(name = "max_load")
+    private Long maxLoad;
+
+    @Column(name = "record_session_times", length = 1)
+    private String recordSessionTimes;
+
+    @Column(name = "max_court_duration")
+    private Long maxCourtDuration;
+
+    @Column(name = "group_code", length = 24)
+    private String groupCode;
 
 }

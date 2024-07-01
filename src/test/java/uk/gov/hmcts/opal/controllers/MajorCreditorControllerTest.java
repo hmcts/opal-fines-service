@@ -69,23 +69,24 @@ class MajorCreditorControllerTest {
     @Test
     void testGetMajorCreditorRefData_Success() {
         // Arrange
-        MajorCreditorReferenceData refData = new MajorCreditorReferenceData(1L, "MC_001",
+        MajorCreditorReferenceData refData = new MajorCreditorReferenceData(1L, (short)007, "MC_001",
                                                                             "Major Credit Card Ltd", "MN12 4TT");
         List<MajorCreditorReferenceData> refDataList = List.of(refData);
 
-        when(majorCreditorService.getReferenceData(any())).thenReturn(refDataList);
+        when(majorCreditorService.getReferenceData(any(), any())).thenReturn(refDataList);
 
         // Act
         Optional<String> filter = Optional.empty();
+        Optional<Short> businessUnit = Optional.empty();
         ResponseEntity<MajorCreditorReferenceDataResults> response = majorCreditorController
-            .getMajorCreditorRefData(filter);
+            .getMajorCreditorRefData(filter, businessUnit);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         MajorCreditorReferenceDataResults refDataResults = response.getBody();
         assertEquals(1, refDataResults.getCount());
         assertEquals(refDataList, refDataResults.getRefData());
-        verify(majorCreditorService, times(1)).getReferenceData(any());
+        verify(majorCreditorService, times(1)).getReferenceData(any(), any());
     }
 
 }

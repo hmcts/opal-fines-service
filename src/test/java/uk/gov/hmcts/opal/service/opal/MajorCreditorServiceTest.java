@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
 import uk.gov.hmcts.opal.entity.projection.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
@@ -79,7 +80,8 @@ class MajorCreditorServiceTest {
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
         when(ffq.sortBy(any())).thenReturn(ffq);
 
-        MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder().build();
+        MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)007).build()).build();
         Page<MajorCreditorEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity), Pageable.unpaged(), 999L);
         when(majorCreditorRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
@@ -87,10 +89,12 @@ class MajorCreditorServiceTest {
         });
 
         // Act
-        List<MajorCreditorReferenceData> result = majorCreditorService.getReferenceData(Optional.empty());
+        List<MajorCreditorReferenceData> result = majorCreditorService.getReferenceData(
+            Optional.empty(), Optional.empty());
 
         MajorCreditorReferenceData refData =  new MajorCreditorReferenceData(
             majorCreditorEntity.getMajorCreditorId(),
+            majorCreditorEntity.getBusinessUnit().getBusinessUnitId(),
             majorCreditorEntity.getMajorCreditorCode(),
             majorCreditorEntity.getName(),
             majorCreditorEntity.getPostcode()
