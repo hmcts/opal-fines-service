@@ -51,18 +51,21 @@ class LegacyServiceTest extends LegacyTestsBase {
         // Arrange
         mockRestClientGet();
 
-        String jsonBody = """
-            {
-            "noteId": 1,
-            "noteType": "AC",
-            "associatedRecordType": "defendants_accounts",
-            "associatedRecordId": "123456",
-            "noteText": "This is a sample note text.",
-            "postedBy": "user123"
-            }
+        String xml = """
+            <note>
+                 <noteId>1</noteId>
+                 <noteType>AC</noteType>
+                 <associatedRecordType>defendants_accounts</associatedRecordType>
+                 <associatedRecordId>123456</associatedRecordId>
+                 <businessUnitId>10</businessUnitId>
+                 <noteText>This is a sample note text.</noteText>
+                 <postedDate>2022-12-01T12:00:00</postedDate>
+                 <postedBy>user123</postedBy>
+                 <postedByUserId>1001</postedByUserId>
+             </note>
             """;
 
-        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(xml, HttpStatus.OK);
         when(requestHeaderSpec.header(anyString(), anyString())).thenReturn(requestHeaderSpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 

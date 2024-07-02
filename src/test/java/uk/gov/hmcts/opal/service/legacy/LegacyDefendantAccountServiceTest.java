@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -71,9 +70,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         final DefendantAccountEntity expectedAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
-        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
+        String xml = marshalXmlString(inputAccountEntity, DefendantAccountEntity.class);
 
-        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(xml, HttpStatus.OK);
         when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(DefendantAccountEntity.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
@@ -120,10 +119,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         mockRestClientPost();
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
-        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
+        String xml = marshalXmlString(inputAccountEntity, DefendantAccountEntity.class);
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
-            jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
+            xml, HttpStatus.INTERNAL_SERVER_ERROR);
         when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(DefendantAccountEntity.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
@@ -170,7 +169,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNotNull(lgre);
         Throwable cause = lgre.getCause();
         assertNotNull(cause);
-        assertEquals(UnrecognizedPropertyException.class, cause.getClass());
+        assertEquals(RuntimeException.class, cause.getClass());
     }
 
     @Test
@@ -182,12 +181,13 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         final DefendantAccountEntity expectedAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
-        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
+        String xml = marshalXmlString(inputAccountEntity, DefendantAccountEntity.class);
 
-        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(xml, HttpStatus.OK);
         when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(AccountEnquiryDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
+
 
         // Act
         AccountEnquiryDto enquiry = AccountEnquiryDto.builder().build();
@@ -233,10 +233,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
 
 
-        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(inputAccountEntity);
+        String xml = marshalXmlString(inputAccountEntity, DefendantAccountEntity.class);
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
-            jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
+            xml, HttpStatus.INTERNAL_SERVER_ERROR);
         when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(AccountEnquiryDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
@@ -283,7 +283,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNotNull(lgre);
         Throwable cause = lgre.getCause();
         assertNotNull(cause);
-        assertEquals(UnrecognizedPropertyException.class, cause.getClass());
+        assertEquals(RuntimeException.class, cause.getClass());
     }
 
 
@@ -351,9 +351,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Arrange
         mockRestClientPost();
-        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(buildLegacyAccountDto());
 
-        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        String xml = marshalXmlString(buildLegacyAccountDto(), LegacyAccountDetailsResponseDto.class);
+
+        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(xml, HttpStatus.OK);
         when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(LegacyAccountDetailsRequestDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
@@ -375,9 +376,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // Arrange
         DefendantAccountsSearchResults resultsDto = DefendantAccountsSearchResults.builder()
             .totalCount(9L).build();
-        String jsonBody = ToJsonString.getObjectMapper().writeValueAsString(resultsDto);
+        String xml = marshalXmlString(resultsDto, DefendantAccountsSearchResults.class);
 
-        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(xml, HttpStatus.OK);
         when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(DefendantAccountSearchCriteria.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);

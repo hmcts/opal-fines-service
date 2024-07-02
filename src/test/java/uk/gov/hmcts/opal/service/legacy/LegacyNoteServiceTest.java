@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -61,13 +60,13 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
 
         final NoteDto expectedNoteDto = inputNoteDto.toBuilder().noteId(12345L).build();
 
-        String jsonBody = """
-            {
-                "note_id": 12345
-            }
+        String xml = """
+            <LegacySaveNoteResponse>
+                <noteId>12345</noteId>
+            </LegacySaveNoteResponse>
             """;
 
-        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(jsonBody, HttpStatus.OK);
+        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(xml, HttpStatus.OK);
         when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(LegacySaveNoteRequestDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
@@ -97,7 +96,8 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
 
         LegacyGatewayResponseException lgre = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyNoteService.saveNote(inputNoteDto));
+            () -> legacyNoteService.saveNote(inputNoteDto)
+        );
 
         // Assert
 
@@ -113,14 +113,14 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
         final NoteDto inputNoteDto = new NoteDto();
 
 
-        String jsonBody = """
-            {
-                "note_id": 123456,
-            }
+        String xml = """
+             <LegacySaveNoteResponse>
+                 <noteId></noteId>
+             </LegacySaveNoteResponse>
             """;
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
-            jsonBody, HttpStatus.INTERNAL_SERVER_ERROR);
+            xml, HttpStatus.INTERNAL_SERVER_ERROR);
         when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(LegacySaveNoteRequestDto.class))).thenReturn(requestBodySpec);
         when(responseSpec.toEntity(any(Class.class))).thenReturn(unsuccessfulResponseEntity);
@@ -129,13 +129,16 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
 
         LegacyGatewayResponseException lgre = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyNoteService.saveNote(inputNoteDto));
+            () -> legacyNoteService.saveNote(inputNoteDto)
+        );
 
         // Assert
 
         assertNotNull(lgre);
-        assertEquals("Received a non-2xx response from the Legacy Gateway: 500 INTERNAL_SERVER_ERROR",
-                     lgre.getMessage());
+        assertEquals(
+            "Received a non-2xx response from the Legacy Gateway: 500 INTERNAL_SERVER_ERROR",
+            lgre.getMessage()
+        );
     }
 
     @Test
@@ -157,7 +160,8 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
 
         String content = Files.readString(
             Paths.get("src/test/resources/schemas/AccountNotes/of_create_note_in.json"),
-            StandardCharsets.UTF_8);
+            StandardCharsets.UTF_8
+        );
 
         // Parse the JSON schema
         JsonSchemaFactory schemaFactory = JsonSchemaFactory.byDefault();
@@ -175,7 +179,7 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
     void saveNote_ValidateResponse() throws IOException, ProcessingException {
 
         LegacySaveNoteResponseDto responseDto = LegacySaveNoteResponseDto.builder()
-            .nodeId(1234567L)
+            .noteId(1234567L)
             .build();
         // Serialize the DTO to JSON using Jackson
         ObjectMapper objectMapper = new ObjectMapper();
@@ -185,7 +189,8 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
 
         String content = Files.readString(
             Paths.get("src/test/resources/schemas/AccountNotes/of_create_note_out.json"),
-            StandardCharsets.UTF_8);
+            StandardCharsets.UTF_8
+        );
 
         // Parse the JSON schema
         JsonSchemaFactory schemaFactory = JsonSchemaFactory.byDefault();
@@ -226,14 +231,15 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
         // Act
         LegacyGatewayResponseException lgre = assertThrows(
             LegacyGatewayResponseException.class,
-            () -> legacyNoteService.saveNote(inputNoteDto));
+            () -> legacyNoteService.saveNote(inputNoteDto)
+        );
 
         // Assert
 
         assertNotNull(lgre);
         Throwable cause = lgre.getCause();
         assertNotNull(cause);
-        assertEquals(UnrecognizedPropertyException.class, cause.getClass());
+        assertEquals(RuntimeException.class, cause.getClass());
     }
 
 }
