@@ -25,6 +25,23 @@ OPAL_TEST_USER_PASSWORD=<Ask Team Memebers>
 
 LAUNCH_DARKLY_SDK_KEY=<Ask Team Memebers>
 ```
+
+#### Caching
+
+Redis has been configured as the default caching provider. When running docker-compose with the local configuration a Redis container will be started.
+
+If starting the opal-fines-service from Intellij or the command line you have the following options:
+Follow instructions under 'Running the application locally'
+
+Alternatively the opal-fines-service can be run using a simple in-memory cache by starting the application with the profile in-memory-caching.
+
+To view the cache - when running against local Redis - Intellij has a free plugin called Redis Helper.
+However, if you want to view the cache in staging the plugin doesn't support SSL. Instead, install:
+
+```bash
+brew install --cask another-redis-desktop-manager
+sudo xattr -rd com.apple.quarantine /Applications/Another\ Redis\ Desktop\ Manager.app
+```
 #### Approach 1: Dev Application (No existing dependencies)
 
 The simplest way to run the application is using the `bootTestRun` Gradle task:
