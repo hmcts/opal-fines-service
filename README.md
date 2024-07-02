@@ -42,6 +42,12 @@ However, if you want to view the cache in staging the plugin doesn't support SSL
 brew install --cask another-redis-desktop-manager
 sudo xattr -rd com.apple.quarantine /Applications/Another\ Redis\ Desktop\ Manager.app
 ```
+
+You can also run redis container in local docker:
+```bash
+  docker-compose up redis
+```
+
 #### Approach 1: Dev Application (No existing dependencies)
 
 The simplest way to run the application is using the `bootTestRun` Gradle task:
