@@ -24,6 +24,7 @@ services:
       - OPAL_FINES_DB_HOST=opal-fines-db
       - OPAL_LEGACY_GATEWAY_URL=http://host.docker.internal:4553/opal
       - TESTING_SUPPORT_ENDPOINTS_ENABLED=true
+      - OPAL_REDIS_ENABLED=true
 
     ports:
       - "4550:4550"

@@ -4,6 +4,7 @@ package uk.gov.hmcts.opal.service.opal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,7 @@ public class UserService implements UserServiceInterface {
      * in the UserEntitlementService, but will still return a UserState even if no Entitlements exist for that user,
      * but the User <i>does</i> exist in the table.
      */
+    @Cacheable(cacheNames = "users", key = "#username")
     public UserState getUserStateByUsername(String username) {
         UserEntity user = userRepository.findByUsername(username);
         return UserState.builder()
