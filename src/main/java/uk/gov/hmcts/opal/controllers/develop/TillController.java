@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/till")
+@RequestMapping("/dev/till")
 @Slf4j(topic = "TillController")
 @Tag(name = "Till Controller")
 public class TillController {
@@ -53,6 +53,10 @@ public class TillController {
 
         return buildResponse(response);
     }
-
+    
+    // TODO - remove this
+    private String getFix() {
+        return "This code just added to try an force a complete rebuild in the Jenkins pipelines.";
+    }
 
 }

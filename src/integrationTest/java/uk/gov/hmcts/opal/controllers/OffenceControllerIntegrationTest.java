@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers.develop;
+package uk.gov.hmcts.opal.controllers;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
