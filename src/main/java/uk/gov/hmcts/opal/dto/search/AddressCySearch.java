@@ -7,8 +7,7 @@ import lombok.ToString;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public abstract class BaseCourtSearch extends AddressSearch {
-    private String businessUnitId;
+public abstract class AddressCySearch extends AddressSearch {
     private String nameCy;
     private String addressLineCy;
 }

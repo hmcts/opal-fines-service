@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "docType": {
+        "type": "string"
+      },
+      "docVersion": {
+        "type": "string"
+      },
+      "xmlData": {
+        "type": "string",
+        "contentMediaType": "application/xml"
+      }
+    },
+    "required": ["docType", "docVersion", "xmlData"]
+  }
+}

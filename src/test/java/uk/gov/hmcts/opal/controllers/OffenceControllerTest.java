@@ -71,43 +71,25 @@ class OffenceControllerTest {
         OffenceReferenceData entity = createOffenceReferenceData();
         List<OffenceReferenceData> offenceList = List.of(entity);
 
-        when(offenceService.getReferenceData(any())).thenReturn(offenceList);
+        when(offenceService.getReferenceData(any(), any())).thenReturn(offenceList);
 
         // Act
         Optional<String> filter = Optional.empty();
-        ResponseEntity<OffenceReferenceDataResults> response = offenceController.getOffenceRefData(filter);
+        Optional<Short> businessUnit = Optional.empty();
+        ResponseEntity<OffenceReferenceDataResults> response = offenceController.getOffenceRefData(filter,
+                                                                                                   businessUnit);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         OffenceReferenceDataResults refDataResults = response.getBody();
         assertEquals(1, refDataResults.getCount());
         assertEquals(offenceList, refDataResults.getRefData());
-        verify(offenceService, times(1)).getReferenceData(any());
+        verify(offenceService, times(1)).getReferenceData(any(), any());
     }
 
     private OffenceReferenceData createOffenceReferenceData() {
-        return new OffenceReferenceData() {
-            @Override
-            public Long getOffenceId() {
-                return 1L;
-            }
-
-            @Override
-            public String getCjsCode() {
-                return "TH123456";
-            }
-
-            @Override
-            public String getOffenceTitle() {
-                return "Thief of Time";
-            }
-
-            @Override
-            public String getOffenceTitleCy() {
-                return null;
-            }
-        };
-
+        return new OffenceReferenceData(1L, "TH123456", (short)007,
+                                        "Thief of Time", null);
     }
 
 }
