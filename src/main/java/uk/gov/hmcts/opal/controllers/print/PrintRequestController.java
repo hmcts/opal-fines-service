@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.service.print.PrintService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ContentDisposition;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -50,6 +51,16 @@ public class PrintRequestController {
         headers.setContentDisposition(ContentDisposition.builder("attachment").filename("output.pdf").build());
 
         return ResponseEntity.ok().headers(headers).body(response);
+    }
+
+    @PostMapping(value = "/process-pending-jobs")
+    @Operation(summary = "Processes pending print jobs")
+    public ResponseEntity<String> processPendingJobs() {
+        log.info(":POST:processPendingJobs: processing pending print jobs");
+
+        printService.processPendingJobs(LocalDateTime.now());
+
+        return ResponseEntity.ok().body("OK");
     }
 
 }

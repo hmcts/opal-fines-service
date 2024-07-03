@@ -40,6 +40,8 @@ public class PrintService {
 
     private final PrintJobRepository printJobRepository;
 
+    private static final int MAX_RETRIES = 3;
+
 
     public byte[] generatePdf(PrintJob printJob) {
         // Get print definition from database
@@ -97,6 +99,75 @@ public class PrintService {
         }
 
         return batchId;
+    }
+
+    public void processPendingJobs(LocalDateTime cutoffDate) {
+        int attempt = 0;
+        boolean success = false;
+
+        while (attempt < MAX_RETRIES && !success) {
+            try {
+                attempt++;
+                processJobsWithLock(cutoffDate);
+                success = true;
+            } catch (Exception e) {
+                if (e.getCause() instanceof jakarta.persistence.PessimisticLockException) {
+                    log.error("Could not acquire lock, retrying... ({} / {})", attempt, MAX_RETRIES);
+                    if (attempt >= MAX_RETRIES) {
+                        throw e;  // Exceeded max retries, rethrow exception
+                    }
+                } else {
+                    throw e;  // Non-locking exception, rethrow
+                }
+            }
+        }
+    }
+
+    @Transactional
+    private void processJobsWithLock(LocalDateTime cutoffDate) {
+        List<PrintJob> pendingJobs = printJobRepository.findPendingJobsForUpdate("PENDING", cutoffDate);
+
+        for (PrintJob job : pendingJobs) {
+            try {
+                // Mark job as in-progress
+                job.setStatus(PrintStatus.IN_PROGRESS);
+                printJobRepository.save(job);
+
+                // Generate PDF
+                byte[] pdfData = generatePdf(job);
+
+                if (pdfData != null) {
+                    // Save the PDF to a file (example implementation)
+                    savePdfToFile(pdfData, job);
+
+                    // Update job status to complete
+                    job.setStatus(PrintStatus.COMPLETED);
+                } else {
+                    // Update job status to failed
+                    job.setStatus(PrintStatus.FAILED);
+                }
+
+                printJobRepository.save(job);
+            } catch (Exception e) {
+                log.error("Error processing job {}", job.getPrintJobId(), e);
+                // Handle exceptions and set job status to "failed" if necessary
+                job.setStatus(PrintStatus.FAILED);
+                printJobRepository.save(job);
+            }
+        }
+    }
+
+    private void savePdfToFile(byte[] pdfData, PrintJob job) {
+        // Example implementation to save PDF to a file
+        // Save to file system, S3, etc.
+        // For demonstration purposes, save to a file in the working directory
+        // This would be replaced with actual implementation to save the PDF to a location
+        // that can be retrieved by the caller
+        String fileName = job.getBatchId() + "_" + job.getJobId() + ".pdf";
+        String filePath = new File(fileName).getAbsolutePath();
+        // Save to file
+        // ...
+        log.info("PDF saved to {}", filePath);
     }
 
 
