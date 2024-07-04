@@ -1,21 +1,17 @@
 package uk.gov.hmcts.opal.authorisation.model;
 
-import lombok.AccessLevel;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NonNull;
-import lombok.ToString;
-import lombok.experimental.FieldDefaults;
 
 import java.util.Collections;
 import java.util.Set;
 
 @Builder
-@EqualsAndHashCode
-@Getter
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-@ToString
+@Data
 public class Role {
 
     @NonNull
@@ -27,6 +23,16 @@ public class Role {
     @EqualsAndHashCode.Exclude
     @NonNull
     Set<Permission> permissions;
+
+    @JsonCreator
+    public Role(@JsonProperty("businessUserId") String businessUserId,
+                @JsonProperty("businessUnitId") Short businessUnitId,
+                @JsonProperty("permissions") Set<Permission> permissions) {
+
+        this.businessUserId = businessUserId;
+        this.businessUnitId = businessUnitId;
+        this.permissions = permissions;
+    }
 
     public boolean hasPermission(Permissions permission) {
         return permissions.stream().anyMatch(p -> p.matches(permission));

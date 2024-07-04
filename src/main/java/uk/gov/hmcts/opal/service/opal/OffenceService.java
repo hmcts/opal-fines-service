@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.OffenceEntity;
 import uk.gov.hmcts.opal.entity.OffenceEntity_;
 import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
@@ -41,17 +42,26 @@ public class OffenceService implements OffenceServiceInterface {
         return page.getContent();
     }
 
-    public List<OffenceReferenceData> getReferenceData(Optional<String> filter) {
+    public List<OffenceReferenceData> getReferenceData(Optional<String> filter, Optional<Short> businessUnitId) {
 
         Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceEntity_.CJS_CODE);
 
-        Page<OffenceReferenceData> page = offenceRepository
-            .findBy(specs.referenceDataFilter(filter),
+        Page<OffenceEntity> page = offenceRepository
+            .findBy(specs.referenceDataFilter(filter, businessUnitId),
                     ffq -> ffq
                         .sortBy(codeSort)
-                        .as(OffenceReferenceData.class)
                         .page(Pageable.unpaged()));
 
-        return page.getContent();
+        return page.getContent().stream().map(this::toRefData).toList();
+    }
+
+    private OffenceReferenceData toRefData(OffenceEntity entity) {
+        return new OffenceReferenceData(
+            entity.getOffenceId(),
+            entity.getCjsCode(),
+            Optional.ofNullable(entity.getBusinessUnit()).map(BusinessUnitEntity::getBusinessUnitId).orElse(null),
+            entity.getOffenceTitle(),
+            entity.getOffenceTitleCy()
+        );
     }
 }

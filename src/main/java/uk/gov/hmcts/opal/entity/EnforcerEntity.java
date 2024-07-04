@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
@@ -29,12 +31,16 @@ import lombok.experimental.SuperBuilder;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "enforcerId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class EnforcerEntity extends EnforcerCourtBaseEntity {
+public class EnforcerEntity extends AddressCyEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "enforcer_id", nullable = false)
     private Long enforcerId;
+
+    @ManyToOne
+    @JoinColumn(name = "business_unit_id", updatable = false)
+    private BusinessUnitEntity businessUnit;
 
     @Column(name = "enforcer_code", nullable = false)
     private Short enforcerCode;

@@ -1,13 +1,18 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity_;
 
 import java.util.Optional;
 
-public class EnforcerSpecs extends BaseCourtSpecs<EnforcerEntity> {
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
+
+public class EnforcerSpecs extends AddressCySpecs<EnforcerEntity> {
 
     public Specification<EnforcerEntity> findBySearchCriteria(EnforcerSearchDto criteria) {
         return Specification.allOf(specificationList(
@@ -19,7 +24,6 @@ public class EnforcerSpecs extends BaseCourtSpecs<EnforcerEntity> {
         ));
     }
 
-
     public Specification<EnforcerEntity> referenceDataFilter(Optional<String> filter) {
         return Specification.allOf(specificationList(
             filter.filter(s -> !s.isBlank()).map(this::likeAnyEnforcer)
@@ -28,6 +32,11 @@ public class EnforcerSpecs extends BaseCourtSpecs<EnforcerEntity> {
 
     public static Specification<EnforcerEntity> equalsEnforcerId(String enforcerId) {
         return (root, query, builder) -> builder.equal(root.get(EnforcerEntity_.enforcerId), enforcerId);
+    }
+
+    public static Specification<EnforcerEntity> equalsBusinessUnitId(Short businessUnitId) {
+        return (root, query, builder) ->
+            equalsBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
     }
 
     public static Specification<EnforcerEntity> equalsEnforcerCode(String enforcerCode) {
@@ -49,5 +58,9 @@ public class EnforcerSpecs extends BaseCourtSpecs<EnforcerEntity> {
             likeName(filter),
             likeNameCy(filter)
         );
+    }
+
+    public static Join<EnforcerEntity, BusinessUnitEntity> joinBusinessUnit(From<?, EnforcerEntity> from) {
+        return from.join(EnforcerEntity_.businessUnit);
     }
 }

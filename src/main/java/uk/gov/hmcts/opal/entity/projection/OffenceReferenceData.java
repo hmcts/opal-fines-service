@@ -1,12 +1,5 @@
 package uk.gov.hmcts.opal.entity.projection;
 
-public interface OffenceReferenceData {
-
-    Long getOffenceId();
-
-    String getCjsCode();
-
-    String getOffenceTitle();
-
-    String getOffenceTitleCy();
+public record OffenceReferenceData(Long offenceId, String getCjsCode, Short businessUnitId,
+    String getOffenceTitle, String getOffenceTitleCy) {
 }
