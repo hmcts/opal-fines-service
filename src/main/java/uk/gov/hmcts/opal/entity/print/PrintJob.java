@@ -41,7 +41,7 @@ public class PrintJob {
     @Column(name = "job_uuid", nullable = false)
     private UUID jobId;
 
-    @Lob
+
     @Column(name = "xml_data", nullable = false)
     private String xmlData;
 

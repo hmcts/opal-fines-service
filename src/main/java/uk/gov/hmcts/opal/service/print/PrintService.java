@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.print;
 
+//import org.apache.commons.text.StringEscapeUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,9 @@ import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.StringReader;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -89,12 +93,18 @@ public class PrintService {
     public UUID savePrintJobs(List<PrintJob> printJobs) {
         UUID batchId = UUID.randomUUID();
 
+        log.info("Saving print jobs for batch {}", batchId);
+
         for (PrintJob printJob : printJobs) {
             printJob.setBatchId(batchId);
             printJob.setJobId(UUID.randomUUID());
             printJob.setCreatedAt(LocalDateTime.now());
             printJob.setUpdatedAt(LocalDateTime.now());
             printJob.setStatus(PrintStatus.PENDING);
+           // String escapedXmlData = "'" + StringEscapeUtils.escapeJson(printJob.getXmlData()) + "'";
+           // printJob.setXmlData(escapedXmlData);
+
+            log.info("Saving print job {}", printJob.getXmlData());
             printJobRepository.save(printJob);
         }
 
@@ -125,7 +135,9 @@ public class PrintService {
 
     @Transactional
     private void processJobsWithLock(LocalDateTime cutoffDate) {
-        List<PrintJob> pendingJobs = printJobRepository.findPendingJobsForUpdate("PENDING", cutoffDate);
+
+        List<PrintJob> pendingJobs = printJobRepository.findPendingJobsForUpdate(PrintStatus.valueOf("PENDING"),
+                                                                                 cutoffDate);
 
         for (PrintJob job : pendingJobs) {
             try {
@@ -149,7 +161,7 @@ public class PrintService {
 
                 printJobRepository.save(job);
             } catch (Exception e) {
-                log.error("Error processing job {}", job.getPrintJobId(), e);
+                log.error("Error processing job {}", job.getJobId(), e);
                 // Handle exceptions and set job status to "failed" if necessary
                 job.setStatus(PrintStatus.FAILED);
                 printJobRepository.save(job);
@@ -157,17 +169,20 @@ public class PrintService {
         }
     }
 
+
+
     private void savePdfToFile(byte[] pdfData, PrintJob job) {
-        // Example implementation to save PDF to a file
-        // Save to file system, S3, etc.
-        // For demonstration purposes, save to a file in the working directory
-        // This would be replaced with actual implementation to save the PDF to a location
-        // that can be retrieved by the caller
         String fileName = job.getBatchId() + "_" + job.getJobId() + ".pdf";
         String filePath = new File(fileName).getAbsolutePath();
-        // Save to file
-        // ...
-        log.info("PDF saved to {}", filePath);
+
+        try (FileOutputStream fos = new FileOutputStream(filePath)) {
+            fos.write(pdfData);
+            log.info("PDF saved to {}", filePath);
+        } catch (IOException e) {
+            log.error("Failed to save PDF {}", filePath, e);
+            throw new RuntimeException("Failed to save PDF", e);
+
+        }
     }
 
 
