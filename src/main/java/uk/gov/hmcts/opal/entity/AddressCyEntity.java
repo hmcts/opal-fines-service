@@ -21,11 +21,6 @@ import lombok.experimental.SuperBuilder;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class EnforcerCourtBaseEntity extends AddressEntity {
-
-    @ManyToOne
-    @JoinColumn(name = "business_unit_id", updatable = false)
-    private BusinessUnitEntity businessUnit;
 public class AddressCyEntity extends AddressEntity {
 
     @Column(name = "name_cy", length = 35)
