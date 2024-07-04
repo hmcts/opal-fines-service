@@ -33,6 +33,11 @@ Redis has been configured as the default caching provider. When running docker-c
 If starting the opal-fines-service from Intellij or the command line you have the following options:
 Follow instructions under 'Running the application locally'
 
+In local env by default opal-fines-service uses simple cache instead of Redis cache. This can be enabled by setting this env variable:
+```bash
+OPAL_REDIS_ENABLED=true
+```
+
 Alternatively the opal-fines-service can be run using a simple in-memory cache by starting the application with the profile in-memory-caching.
 
 To view the cache - when running against local Redis - Intellij has a free plugin called Redis Helper.
