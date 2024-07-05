@@ -8,6 +8,10 @@ import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.MimeConstants;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.print.PrintDefinition;
 import uk.gov.hmcts.opal.entity.print.PrintJob;
@@ -44,7 +48,17 @@ public class PrintService {
 
     private final PrintJobRepository printJobRepository;
 
-    private static final int MAX_RETRIES = 3;
+
+
+    @Value("${printservice.maxRetries:3}")
+    private int maxRetries;
+
+    @Value("${printservice.outputDirectory:./output}")
+    private String outputDirectory;
+
+    @Value("${printservice.pageSize:100}")
+    private int pageSize;
+
 
 
     public byte[] generatePdf(PrintJob printJob) {
@@ -115,15 +129,15 @@ public class PrintService {
         int attempt = 0;
         boolean success = false;
 
-        while (attempt < MAX_RETRIES && !success) {
+        while (attempt < maxRetries && !success) {
             try {
                 attempt++;
                 processJobsWithLock(cutoffDate);
                 success = true;
             } catch (Exception e) {
                 if (e.getCause() instanceof jakarta.persistence.PessimisticLockException) {
-                    log.error("Could not acquire lock, retrying... ({} / {})", attempt, MAX_RETRIES);
-                    if (attempt >= MAX_RETRIES) {
+                    log.error("Could not acquire lock, retrying... ({} / {})", attempt, maxRetries);
+                    if (attempt >= maxRetries) {
                         throw e;  // Exceeded max retries, rethrow exception
                     }
                 } else {
@@ -135,53 +149,50 @@ public class PrintService {
 
     @Transactional
     private void processJobsWithLock(LocalDateTime cutoffDate) {
+        Pageable pageable = PageRequest.of(0, pageSize);
 
-        List<PrintJob> pendingJobs = printJobRepository.findPendingJobsForUpdate(PrintStatus.valueOf("PENDING"),
-                                                                                 cutoffDate);
-
-        for (PrintJob job : pendingJobs) {
-            try {
-                // Mark job as in-progress
-                job.setStatus(PrintStatus.IN_PROGRESS);
-                printJobRepository.save(job);
-
-                // Generate PDF
-                byte[] pdfData = generatePdf(job);
-
-                if (pdfData != null) {
-                    // Save the PDF to a file (example implementation)
-                    savePdfToFile(pdfData, job);
-
-                    // Update job status to complete
-                    job.setStatus(PrintStatus.COMPLETED);
-                } else {
-                    // Update job status to failed
+        Page<PrintJob> page;
+        do {
+            page = printJobRepository.findPendingJobsForUpdate(PrintStatus.PENDING, cutoffDate, pageable);
+            for (PrintJob job : page.getContent()) {
+                try {
+                    processJob(job);
+                } catch (Exception e) {
+                    log.error("Error processing job {}", job.getJobId(), e);
                     job.setStatus(PrintStatus.FAILED);
+                    printJobRepository.save(job);
                 }
-
-                printJobRepository.save(job);
-            } catch (Exception e) {
-                log.error("Error processing job {}", job.getJobId(), e);
-                // Handle exceptions and set job status to "failed" if necessary
-                job.setStatus(PrintStatus.FAILED);
-                printJobRepository.save(job);
             }
+            pageable = page.nextPageable();
+        } while (page.hasNext());
+    }
+
+    private void processJob(PrintJob job) {
+        job.setStatus(PrintStatus.IN_PROGRESS);
+        printJobRepository.save(job);
+
+        byte[] pdfData = generatePdf(job);
+
+        if (pdfData != null) {
+            savePdfToFile(pdfData, job);
+            job.setStatus(PrintStatus.COMPLETED);
+        } else {
+            job.setStatus(PrintStatus.FAILED);
         }
+
+        printJobRepository.save(job);
     }
 
 
-
     private void savePdfToFile(byte[] pdfData, PrintJob job) {
-        String fileName = job.getBatchId() + "_" + job.getJobId() + ".pdf";
-        String filePath = new File(fileName).getAbsolutePath();
+        String fileName = outputDirectory + File.separator + job.getBatchId() + "_" + job.getJobId() + ".pdf";
 
-        try (FileOutputStream fos = new FileOutputStream(filePath)) {
+        try (FileOutputStream fos = new FileOutputStream(fileName)) {
             fos.write(pdfData);
-            log.info("PDF saved to {}", filePath);
+            log.info("PDF saved to {}", fileName);
         } catch (IOException e) {
-            log.error("Failed to save PDF {}", filePath, e);
+            log.error("Failed to save PDF to {}", fileName, e);
             throw new RuntimeException("Failed to save PDF", e);
-
         }
     }
 
