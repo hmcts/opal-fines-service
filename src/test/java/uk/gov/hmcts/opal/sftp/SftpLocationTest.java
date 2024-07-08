@@ -17,11 +17,12 @@ class SftpLocationTest {
     void testGetOutboundLocations() {
         List<SftpLocation> outboundLocations = Arrays.asList(
             SftpLocation.ALL_PAY,
-            SftpLocation.ALL_PAY_ARCHIVE
+            SftpLocation.ALL_PAY_ARCHIVE,
+            SftpLocation.PRINT_LOCATION
         );
 
         List<SftpLocation> result = SftpLocation.getOutboundLocations();
-        assertEquals(2, outboundLocations.size());
+        assertEquals(3, outboundLocations.size());
         assertEquals(outboundLocations, result);
     }
 
@@ -44,7 +45,9 @@ class SftpLocationTest {
             SftpLocation.DWP_BAILIFFS_SUCCESS,
             SftpLocation.DWP_BAILIFFS_ERROR
         );
-        List<SftpLocation> outboundLocations = Arrays.asList(SftpLocation.ALL_PAY, SftpLocation.ALL_PAY_ARCHIVE);
+        List<SftpLocation> outboundLocations = Arrays.asList(SftpLocation.ALL_PAY,
+                                                             SftpLocation.ALL_PAY_ARCHIVE,
+                                                             SftpLocation.PRINT_LOCATION);
 
         assertEquals(15, SftpLocation.getInboundLocations().size());
         assertEquals(inboundLocations, SftpLocation.getInboundLocations());

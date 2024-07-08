@@ -100,9 +100,6 @@ public class PrintServiceTest {
                                     + "</xsl:template>"
                                     + "</xsl:stylesheet>");
 
-        // Mock setup for findByDocTypeAndTemplateId to return printDefinition.
-//        when(printDefinitionRepository.findByDocTypeAndTemplateId(eq("docType1"), eq("1.0")))
-//            .thenReturn(printDefinition);
     }
 
     @Test
