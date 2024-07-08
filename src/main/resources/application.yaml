@@ -167,5 +167,4 @@ be-developer-config:
 
 printservice:
   maxRetries: 3
-  outputDirectory: ./pdf_output
   pageSize: 100

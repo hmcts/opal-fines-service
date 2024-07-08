@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.print;
 
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,14 +9,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import uk.gov.hmcts.opal.entity.print.PrintDefinition;
 import uk.gov.hmcts.opal.entity.print.PrintJob;
 import uk.gov.hmcts.opal.entity.print.PrintStatus;
 import uk.gov.hmcts.opal.repository.print.PrintDefinitionRepository;
 import uk.gov.hmcts.opal.repository.print.PrintJobRepository;
+import uk.gov.hmcts.opal.sftp.SftpOutboundService;
 
 import java.io.ByteArrayInputStream;
+import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,7 +30,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,6 +47,10 @@ public class PrintServiceTest {
     @Mock
     private PrintJobRepository printJobRepository;
 
+    @Mock
+    private SftpOutboundService sftpOutboundService;
+
+
     @InjectMocks
     private PrintService printService;
 
@@ -44,6 +58,8 @@ public class PrintServiceTest {
     private PrintJob printJob2;
     private PrintJob printJob;
     private PrintDefinition printDefinition;
+
+
 
     @BeforeEach
     public void setUp() {
@@ -83,6 +99,10 @@ public class PrintServiceTest {
                                     + "</fo:root>"
                                     + "</xsl:template>"
                                     + "</xsl:stylesheet>");
+
+        // Mock setup for findByDocTypeAndTemplateId to return printDefinition.
+//        when(printDefinitionRepository.findByDocTypeAndTemplateId(eq("docType1"), eq("1.0")))
+//            .thenReturn(printDefinition);
     }
 
     @Test
@@ -104,6 +124,7 @@ public class PrintServiceTest {
 
     @Test
     public void testGeneratePdf() throws Exception {
+
         // Arrange
         when(printDefinitionRepository.findByDocTypeAndTemplateId(eq("docType1"), eq("1.0")))
             .thenReturn(printDefinition);
@@ -122,4 +143,35 @@ public class PrintServiceTest {
             assertTrue(pdfText.contains("Test"));
         }
     }
+
+
+
+
+    @Test
+    public void testProcessJobsWithLock() {
+        // Arrange
+        when(printDefinitionRepository.findByDocTypeAndTemplateId(eq("docType1"), eq("1.0")))
+            .thenReturn(printDefinition);
+        LocalDateTime cutoffDate = LocalDateTime.now();
+        Pageable pageable = PageRequest.of(0, 10);
+        when(printJobRepository.findPendingJobsForUpdate(eq(PrintStatus.PENDING), eq(cutoffDate), eq(pageable)))
+            .thenReturn(new PageImpl<>(Collections.singletonList(printJob)))
+            .thenReturn(new PageImpl<>(Collections.emptyList()));
+
+        doNothing().when(sftpOutboundService).uploadFile(any(byte[].class), anyString(), anyString());
+        printService.setPageSize(10);
+        // Act
+        printService.processJobsWithLock(cutoffDate);
+
+        // Assert
+        verify(printJobRepository, atLeastOnce()).findPendingJobsForUpdate(eq(PrintStatus.PENDING), eq(cutoffDate),
+                                                                           any(Pageable.class));
+        verify(sftpOutboundService, atLeastOnce()).uploadFile(any(byte[].class), anyString(), anyString());
+        verify(printJobRepository, atLeastOnce()).save(any(PrintJob.class));
+    }
+
+
+
+
 }
+

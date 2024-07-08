@@ -65,5 +65,16 @@ public class PrintRequestControllerTest {
         assertEquals(pdfData, response.getBody());
         verify(printService, times(1)).generatePdf(any(PrintJob.class));
     }
+
+    @Test
+    void testProcessPendingJobs() {
+        // Act
+        ResponseEntity<String> response = printRequestController.processPendingJobs();
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("OK", response.getBody());
+        verify(printService, times(1)).processPendingJobs(any());
+    }
 }
 

@@ -33,7 +33,9 @@ public enum SftpLocation {
     DWP_BAILIFFS_ERROR(INBOUND, "dwp-bailiffs/error", "Error processing for DWP bailiffs"),
 
     ALL_PAY(OUTBOUND, "allpay", "Goes to BAIS (pushed)"),
-    ALL_PAY_ARCHIVE(OUTBOUND, "allpay-archive", "Goes to OAGS (pushed)");
+    ALL_PAY_ARCHIVE(OUTBOUND, "allpay-archive", "Goes to OAGS (pushed)"),
+
+    PRINT_LOCATION(OUTBOUND, "print", "Goes to Print Service (pushed)");
 
     private final SftpDirection direction;
     private final String path;

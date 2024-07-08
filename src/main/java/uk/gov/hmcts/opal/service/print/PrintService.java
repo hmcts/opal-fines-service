@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.service.print;
 
-//import org.apache.commons.text.StringEscapeUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.Fop;
@@ -12,12 +12,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.print.PrintDefinition;
 import uk.gov.hmcts.opal.entity.print.PrintJob;
 import uk.gov.hmcts.opal.entity.print.PrintStatus;
 import uk.gov.hmcts.opal.repository.print.PrintDefinitionRepository;
 import uk.gov.hmcts.opal.repository.print.PrintJobRepository;
+import uk.gov.hmcts.opal.sftp.SftpLocation;
+import uk.gov.hmcts.opal.sftp.SftpOutboundService;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.Result;
@@ -28,9 +31,6 @@ import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.StringReader;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,6 +38,7 @@ import java.util.UUID;
 
 @Service
 @Transactional
+@Setter
 @RequiredArgsConstructor
 @Slf4j(topic = "PrintService")
 public class PrintService {
@@ -47,6 +48,8 @@ public class PrintService {
     private final PrintDefinitionRepository printDefinitionRepository;
 
     private final PrintJobRepository printJobRepository;
+
+    private final SftpOutboundService sftpOutboundService;
 
 
 
@@ -81,8 +84,6 @@ public class PrintService {
 
             // Setup input for XSLT transformation
             Source src = new StreamSource(xmlReader);
-
-            // Resulting SAX events (the generated FO) must be piped through to FOP
             Result res = new SAXResult(fop.getDefaultHandler());
 
             // Start XSLT transformation and FOP processing
@@ -115,16 +116,13 @@ public class PrintService {
             printJob.setCreatedAt(LocalDateTime.now());
             printJob.setUpdatedAt(LocalDateTime.now());
             printJob.setStatus(PrintStatus.PENDING);
-           // String escapedXmlData = "'" + StringEscapeUtils.escapeJson(printJob.getXmlData()) + "'";
-           // printJob.setXmlData(escapedXmlData);
-
-            log.info("Saving print job {}", printJob.getXmlData());
             printJobRepository.save(printJob);
         }
 
         return batchId;
     }
 
+    @Async
     public void processPendingJobs(LocalDateTime cutoffDate) {
         int attempt = 0;
         boolean success = false;
@@ -145,12 +143,13 @@ public class PrintService {
                 }
             }
         }
+        log.info("Processed pending jobs");
     }
 
     @Transactional
-    private void processJobsWithLock(LocalDateTime cutoffDate) {
+    public void processJobsWithLock(LocalDateTime cutoffDate) {
         Pageable pageable = PageRequest.of(0, pageSize);
-
+        log.info("Page Size: {}", pageSize);
         Page<PrintJob> page;
         do {
             page = printJobRepository.findPendingJobsForUpdate(PrintStatus.PENDING, cutoffDate, pageable);
@@ -185,15 +184,9 @@ public class PrintService {
 
 
     private void savePdfToFile(byte[] pdfData, PrintJob job) {
-        String fileName = outputDirectory + File.separator + job.getBatchId() + "_" + job.getJobId() + ".pdf";
-
-        try (FileOutputStream fos = new FileOutputStream(fileName)) {
-            fos.write(pdfData);
-            log.info("PDF saved to {}", fileName);
-        } catch (IOException e) {
-            log.error("Failed to save PDF to {}", fileName, e);
-            throw new RuntimeException("Failed to save PDF", e);
-        }
+        String fileName = job.getBatchId() + "_" + job.getJobId() + ".pdf";
+        log.info("Saving PDF to file: {}", fileName);
+        sftpOutboundService.uploadFile(pdfData, SftpLocation.PRINT_LOCATION.getPath(), fileName);
     }
 
 
