@@ -6,7 +6,7 @@
 ## Getting Started
 
 ### Prerequisites
-- [JDK 17](https://java.com)
+- [JDK 21](https://java.com)
 - [Docker](https://docker.com)
 
 ## Building and deploying the application
