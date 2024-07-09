@@ -199,6 +199,11 @@ class BusinessUnitControllerIntegrationTest {
             public String getOpalDomain() {
                 return "Fines";
             }
+
+            @Override
+            public Boolean getWelshLanguage() {
+                return null;
+            }
         };
     }
 

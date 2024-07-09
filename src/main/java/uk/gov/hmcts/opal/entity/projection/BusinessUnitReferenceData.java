@@ -16,4 +16,5 @@ public interface BusinessUnitReferenceData extends BusinessUnitRef {
 
     String getOpalDomain();
 
+    Boolean getWelshLanguage();
 }
