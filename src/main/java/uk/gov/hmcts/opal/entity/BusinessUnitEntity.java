@@ -52,4 +52,6 @@ public class BusinessUnitEntity {
     @Column(name = "opal_domain", length = 30)
     private String opalDomain;
 
+    @Column(name = "welsh_language")
+    private Boolean welshLanguage;
 }

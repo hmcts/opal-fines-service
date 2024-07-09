@@ -55,4 +55,7 @@ public class AliasEntity {
 
     @Column(name = "sequence_number", nullable = false)
     private Integer sequenceNumber;
+
+    @Column(name = "organisation_name", length = 50)
+    private String organisationName;
 }

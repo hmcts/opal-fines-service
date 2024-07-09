@@ -180,6 +180,11 @@ class BusinessUnitControllerTest {
             public String getOpalDomain() {
                 return "Domain";
             }
+
+            @Override
+            public Boolean getWelshLanguage() {
+                return null;
+            }
         };
 
     }
