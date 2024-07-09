@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyAliasSearchResults;
 import uk.gov.hmcts.opal.dto.search.AliasSearchDto;
 import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.service.AliasServiceInterface;
@@ -26,12 +27,16 @@ public class LegacyAliasService extends LegacyService implements AliasServiceInt
 
     @Override
     public AliasEntity getAlias(long aliasId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getAlias for {} from {}", aliasId, legacyGateway.getUrl());
+        return postToGateway("getAlias", AliasEntity.class, aliasId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<AliasEntity> searchAliass(AliasSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchAliass: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchAliass", LegacyAliasSearchResults.class, criteria)
+            .getAliasEntities();
     }
 
 }

@@ -9,10 +9,16 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
+import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,6 +30,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class PaymentTermsEntity {
 
     @Id
@@ -37,6 +45,7 @@ public class PaymentTermsEntity {
 
     @Column(name = "posted_date", nullable = false)
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate postedDate;
 
     @Column(name = "posted_by")
@@ -47,6 +56,7 @@ public class PaymentTermsEntity {
 
     @Column(name = "effective_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDate effectiveDate;
 
     @Column(name = "instalment_period")

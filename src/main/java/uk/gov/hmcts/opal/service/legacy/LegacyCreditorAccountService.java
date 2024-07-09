@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyCreditorAccountSearchResults;
 import uk.gov.hmcts.opal.dto.search.CreditorAccountSearchDto;
 import uk.gov.hmcts.opal.entity.CreditorAccountEntity;
 import uk.gov.hmcts.opal.service.CreditorAccountServiceInterface;
@@ -26,12 +27,16 @@ public class LegacyCreditorAccountService extends LegacyService implements Credi
 
     @Override
     public CreditorAccountEntity getCreditorAccount(long creditorAccountId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getCreditorAccount for {} from {}", creditorAccountId, legacyGateway.getUrl());
+        return postToGateway("getCreditorAccount", CreditorAccountEntity.class, creditorAccountId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<CreditorAccountEntity> searchCreditorAccounts(CreditorAccountSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchCreditorAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchCreditorAccounts", LegacyCreditorAccountSearchResults.class, criteria)
+            .getCreditorAccountEntities();
     }
 
 }

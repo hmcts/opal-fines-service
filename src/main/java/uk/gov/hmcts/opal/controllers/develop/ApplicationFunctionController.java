@@ -30,7 +30,7 @@ public class ApplicationFunctionController {
     private final ApplicationFunctionServiceInterface applicationFunctionService;
 
     public ApplicationFunctionController(
-        @Qualifier("applicationFunctionService") ApplicationFunctionServiceInterface applicationFunctionService) {
+        @Qualifier("applicationFunctionServiceProxy") ApplicationFunctionServiceInterface applicationFunctionService) {
         this.applicationFunctionService = applicationFunctionService;
     }
 

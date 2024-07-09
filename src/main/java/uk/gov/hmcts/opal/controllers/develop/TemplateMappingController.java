@@ -30,7 +30,7 @@ public class TemplateMappingController {
     private final TemplateMappingServiceInterface templateMappingService;
 
     public TemplateMappingController(
-        @Qualifier("templateMappingService") TemplateMappingServiceInterface templateMappingService) {
+        @Qualifier("templateMappingServiceProxy") TemplateMappingServiceInterface templateMappingService) {
         this.templateMappingService = templateMappingService;
     }
 

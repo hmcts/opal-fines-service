@@ -30,7 +30,7 @@ public class AccountTransferController {
     private final AccountTransferServiceInterface accountTransferService;
 
     public AccountTransferController(
-        @Qualifier("accountTransferService") AccountTransferServiceInterface accountTransferService) {
+        @Qualifier("accountTransferServiceProxy") AccountTransferServiceInterface accountTransferService) {
         this.accountTransferService = accountTransferService;
     }
 

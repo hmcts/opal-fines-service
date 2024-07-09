@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyDebtorDetailSearchResults;
 import uk.gov.hmcts.opal.dto.search.DebtorDetailSearchDto;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.service.DebtorDetailServiceInterface;
@@ -27,12 +28,16 @@ public class LegacyDebtorDetailService extends LegacyService implements DebtorDe
 
     @Override
     public DebtorDetailEntity getDebtorDetail(long debtorDetailId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getDebtorDetail for {} from {}", debtorDetailId, legacyGateway.getUrl());
+        return postToGateway("getDebtorDetail", DebtorDetailEntity.class, debtorDetailId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<DebtorDetailEntity> searchDebtorDetails(DebtorDetailSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchDebtorDetails: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchDebtorDetails", LegacyDebtorDetailSearchResults.class, criteria)
+            .getDebtorDetailEntities();
     }
 
 }

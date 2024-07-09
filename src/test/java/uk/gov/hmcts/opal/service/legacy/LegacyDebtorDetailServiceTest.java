@@ -1,61 +1,65 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
+import org.springframework.web.client.RestClient;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyDebtorDetailSearchResults;
 import uk.gov.hmcts.opal.dto.search.DebtorDetailSearchDto;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 
+import java.util.Collections;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDebtorDetailServiceTest extends LegacyTestsBase {
 
     @Mock
-    private Logger log;
+    private LegacyGatewayProperties legacyGatewayProperties;
 
-    @InjectMocks
+    @Mock
+    private RestClient restClient;
+
     private LegacyDebtorDetailService legacyDebtorDetailService;
 
-    @Test
-    void testGetDebtorDetail() {
-        // Arrange
-
-        DebtorDetailEntity debtorDetailEntity = DebtorDetailEntity.builder().build();
-
-        // Act
-        LegacyGatewayResponseException exception = assertThrows(
-            LegacyGatewayResponseException.class,
-            () -> legacyDebtorDetailService.getDebtorDetail(1)
-        );
-
-        // Assert
-        assertNotNull(legacyDebtorDetailService.getLog());
-        assertNotNull(exception);
-        assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
-
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        legacyDebtorDetailService = spy(new LegacyDebtorDetailService(legacyGatewayProperties, restClient));
     }
 
     @Test
-    void testSearchDebtorDetails() {
-        // Arrange
+    public void testGetDebtorDetail() {
+        long id = 1L;
+        DebtorDetailEntity expectedEntity = new DebtorDetailEntity();
+        doReturn(expectedEntity).when(legacyDebtorDetailService).postToGateway(anyString(), any(), anyLong());
+
+        DebtorDetailEntity result = legacyDebtorDetailService.getDebtorDetail(id);
+
+        assertEquals(expectedEntity, result);
+    }
+
+    @Test
+    public void testSearchDebtorDetails() {
         DebtorDetailSearchDto criteria = DebtorDetailSearchDto.builder().build();
+        List<DebtorDetailEntity> expectedEntities = Collections.singletonList(new DebtorDetailEntity());
+        LegacyDebtorDetailSearchResults searchResults = LegacyDebtorDetailSearchResults.builder().build();
+        searchResults.setDebtorDetailEntities(expectedEntities);
+        doReturn(searchResults).when(legacyDebtorDetailService).postToGateway(anyString(), any(), any());
 
-        // Act
-        LegacyGatewayResponseException exception = assertThrows(
-            LegacyGatewayResponseException.class,
-            () -> legacyDebtorDetailService.searchDebtorDetails(criteria)
-        );
+        List<DebtorDetailEntity> result = legacyDebtorDetailService.searchDebtorDetails(criteria);
 
-        // Assert
-        assertNotNull(exception);
-        assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
-
+        assertEquals(expectedEntities, result);
     }
-
 }

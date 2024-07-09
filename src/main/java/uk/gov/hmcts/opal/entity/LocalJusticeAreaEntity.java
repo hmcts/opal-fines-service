@@ -12,11 +12,16 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;
 
@@ -29,6 +34,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "localJusticeAreaId")
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class LocalJusticeAreaEntity extends AddressEntity {
 
     @Id
@@ -49,6 +56,7 @@ public class LocalJusticeAreaEntity extends AddressEntity {
 
     @Column(name = "end_date")
     @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime endDate;
 
 }

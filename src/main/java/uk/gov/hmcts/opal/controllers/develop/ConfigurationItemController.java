@@ -30,7 +30,7 @@ public class ConfigurationItemController {
     private final ConfigurationItemServiceInterface configurationItemService;
 
     public ConfigurationItemController(
-        @Qualifier("configurationItemService") ConfigurationItemServiceInterface configurationItemService) {
+        @Qualifier("configurationItemServiceProxy") ConfigurationItemServiceInterface configurationItemService) {
         this.configurationItemService = configurationItemService;
     }
 

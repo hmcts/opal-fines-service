@@ -29,7 +29,7 @@ public class EnforcementController {
 
     private final EnforcementServiceInterface enforcementService;
 
-    public EnforcementController(@Qualifier("enforcementService") EnforcementServiceInterface enforcementService) {
+    public EnforcementController(@Qualifier("enforcementServiceProxy") EnforcementServiceInterface enforcementService) {
         this.enforcementService = enforcementService;
     }
 

@@ -1,61 +1,65 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
+import org.springframework.web.client.RestClient;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyDocumentInstanceSearchResults;
 import uk.gov.hmcts.opal.dto.search.DocumentInstanceSearchDto;
 import uk.gov.hmcts.opal.entity.DocumentInstanceEntity;
 
+import java.util.Collections;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDocumentInstanceServiceTest extends LegacyTestsBase {
 
     @Mock
-    private Logger log;
+    private LegacyGatewayProperties legacyGatewayProperties;
 
-    @InjectMocks
+    @Mock
+    private RestClient restClient;
+
     private LegacyDocumentInstanceService legacyDocumentInstanceService;
 
-    @Test
-    void testGetDocumentInstance() {
-        // Arrange
-
-        DocumentInstanceEntity documentInstanceEntity = DocumentInstanceEntity.builder().build();
-
-        // Act
-        LegacyGatewayResponseException exception = assertThrows(
-            LegacyGatewayResponseException.class,
-            () -> legacyDocumentInstanceService.getDocumentInstance(1)
-        );
-
-        // Assert
-        assertNotNull(legacyDocumentInstanceService.getLog());
-        assertNotNull(exception);
-        assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
-
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        legacyDocumentInstanceService = spy(new LegacyDocumentInstanceService(legacyGatewayProperties, restClient));
     }
 
     @Test
-    void testSearchDocumentInstances() {
-        // Arrange
+    public void testGetDocumentInstance() {
+        long id = 1L;
+        DocumentInstanceEntity expectedEntity = new DocumentInstanceEntity();
+        doReturn(expectedEntity).when(legacyDocumentInstanceService).postToGateway(anyString(), any(), anyLong());
+
+        DocumentInstanceEntity result = legacyDocumentInstanceService.getDocumentInstance(id);
+
+        assertEquals(expectedEntity, result);
+    }
+
+    @Test
+    public void testSearchDocumentInstances() {
         DocumentInstanceSearchDto criteria = DocumentInstanceSearchDto.builder().build();
+        List<DocumentInstanceEntity> expectedEntities = Collections.singletonList(new DocumentInstanceEntity());
+        LegacyDocumentInstanceSearchResults searchResults = LegacyDocumentInstanceSearchResults.builder().build();
+        searchResults.setDocumentInstanceEntities(expectedEntities);
+        doReturn(searchResults).when(legacyDocumentInstanceService).postToGateway(anyString(), any(), any());
 
-        // Act
-        LegacyGatewayResponseException exception = assertThrows(
-            LegacyGatewayResponseException.class,
-            () -> legacyDocumentInstanceService.searchDocumentInstances(criteria)
-        );
+        List<DocumentInstanceEntity> result = legacyDocumentInstanceService.searchDocumentInstances(criteria);
 
-        // Assert
-        assertNotNull(exception);
-        assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
-
+        assertEquals(expectedEntities, result);
     }
-
 }

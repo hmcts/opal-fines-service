@@ -29,7 +29,7 @@ public class LogActionController {
 
     private final LogActionServiceInterface logActionService;
 
-    public LogActionController(@Qualifier("logActionService") LogActionServiceInterface logActionService) {
+    public LogActionController(@Qualifier("logActionServiceProxy") LogActionServiceInterface logActionService) {
         this.logActionService = logActionService;
     }
 

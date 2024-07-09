@@ -29,7 +29,7 @@ public class MisDebtorController {
 
     private final MisDebtorServiceInterface misDebtorService;
 
-    public MisDebtorController(@Qualifier("misDebtorService") MisDebtorServiceInterface misDebtorService) {
+    public MisDebtorController(@Qualifier("misDebtorServiceProxy") MisDebtorServiceInterface misDebtorService) {
         this.misDebtorService = misDebtorService;
     }
 

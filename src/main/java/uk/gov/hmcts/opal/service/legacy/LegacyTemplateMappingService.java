@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyTemplateMappingSearchResults;
 import uk.gov.hmcts.opal.dto.search.TemplateMappingSearchDto;
 import uk.gov.hmcts.opal.entity.TemplateMappingEntity;
 import uk.gov.hmcts.opal.service.TemplateMappingServiceInterface;
@@ -26,12 +27,16 @@ public class LegacyTemplateMappingService extends LegacyService implements Templ
 
     @Override
     public TemplateMappingEntity getTemplateMapping(Long templateId, Long applicationFunctionId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getTemplateMapping for {} from {}", templateId, legacyGateway.getUrl());
+        return postToGateway("getTemplateMapping", TemplateMappingEntity.class, templateId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<TemplateMappingEntity> searchTemplateMappings(TemplateMappingSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchTemplateMappings: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchTemplateMappings", LegacyTemplateMappingSearchResults.class, criteria)
+            .getTemplateMappingEntities();
     }
 
 }

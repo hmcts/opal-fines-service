@@ -29,7 +29,7 @@ public class AmendmentController {
 
     private final AmendmentServiceInterface amendmentService;
 
-    public AmendmentController(@Qualifier("amendmentService") AmendmentServiceInterface amendmentService) {
+    public AmendmentController(@Qualifier("amendmentServiceProxy") AmendmentServiceInterface amendmentService) {
         this.amendmentService = amendmentService;
     }
 

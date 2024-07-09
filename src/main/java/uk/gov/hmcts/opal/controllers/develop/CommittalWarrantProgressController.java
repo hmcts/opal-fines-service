@@ -29,7 +29,7 @@ public class CommittalWarrantProgressController {
 
     private final CommittalWarrantProgressServiceInterface committalWarrantProgressService;
 
-    public CommittalWarrantProgressController(@Qualifier("committalWarrantProgressService")
+    public CommittalWarrantProgressController(@Qualifier("committalWarrantProgressServiceProxy")
                                             CommittalWarrantProgressServiceInterface committalWarrantProgressService) {
         this.committalWarrantProgressService = committalWarrantProgressService;
     }

@@ -30,7 +30,7 @@ public class UserEntitlementController {
     private final UserEntitlementServiceInterface userEntitlementService;
 
     public UserEntitlementController(
-        @Qualifier("userEntitlementService") UserEntitlementServiceInterface userEntitlementService) {
+        @Qualifier("userEntitlementServiceProxy") UserEntitlementServiceInterface userEntitlementService) {
         this.userEntitlementService = userEntitlementService;
     }
 

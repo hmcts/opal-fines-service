@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyCommittalWarrantProgressSearchResults;
 import uk.gov.hmcts.opal.dto.search.CommittalWarrantProgressSearchDto;
 import uk.gov.hmcts.opal.entity.CommittalWarrantProgressEntity;
 import uk.gov.hmcts.opal.service.CommittalWarrantProgressServiceInterface;
@@ -29,13 +30,19 @@ public class LegacyCommittalWarrantProgressService extends LegacyService
 
     @Override
     public CommittalWarrantProgressEntity getCommittalWarrantProgress(long committalWarrantProgressId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getCommittalWarrantProgress for {} from {}", committalWarrantProgressId, legacyGateway.getUrl());
+        return postToGateway("getCommittalWarrantProgress", CommittalWarrantProgressEntity.class,
+            committalWarrantProgressId);
     }
 
     @Override
     public List<CommittalWarrantProgressEntity> searchCommittalWarrantProgresss(
         CommittalWarrantProgressSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchCommittalWarrantProgresss: criteria: {} via gateway {}", criteria.toJson(),
+            legacyGateway.getUrl());
+        return postToGateway("searchCommittalWarrantProgress",
+                             LegacyCommittalWarrantProgressSearchResults.class, criteria)
+            .getCommittalWarrantProgressEntities();
     }
 
 }

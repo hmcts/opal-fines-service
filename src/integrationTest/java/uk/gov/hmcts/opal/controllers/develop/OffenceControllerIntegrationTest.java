@@ -33,7 +33,7 @@ class OffenceControllerIntegrationTest {
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("offenceService")
+    @Qualifier("offenceServiceProxy")
     OffenceService offenceService;
 
     @Test

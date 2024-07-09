@@ -36,7 +36,7 @@ public class LocalJusticeAreaController {
     private final LocalJusticeAreaService opalLocalJusticeAreaService;
 
     public LocalJusticeAreaController(
-        @Qualifier("localJusticeAreaService") LocalJusticeAreaServiceInterface localJusticeAreaService,
+        @Qualifier("localJusticeAreaServiceProxy") LocalJusticeAreaServiceInterface localJusticeAreaService,
         LocalJusticeAreaService opalLocalJusticeAreaService) {
         this.localJusticeAreaService = localJusticeAreaService;
         this.opalLocalJusticeAreaService = opalLocalJusticeAreaService;

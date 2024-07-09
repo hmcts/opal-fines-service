@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacySuspenseAccountSearchResults;
 import uk.gov.hmcts.opal.dto.search.SuspenseAccountSearchDto;
 import uk.gov.hmcts.opal.entity.SuspenseAccountEntity;
 import uk.gov.hmcts.opal.service.SuspenseAccountServiceInterface;
@@ -26,12 +27,16 @@ public class LegacySuspenseAccountService extends LegacyService implements Suspe
 
     @Override
     public SuspenseAccountEntity getSuspenseAccount(long suspenseAccountId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getSuspenseAccount for {} from {}", suspenseAccountId, legacyGateway.getUrl());
+        return postToGateway("getSuspenseAccount", SuspenseAccountEntity.class, suspenseAccountId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<SuspenseAccountEntity> searchSuspenseAccounts(SuspenseAccountSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchSuspenseAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchSuspenseAccounts", LegacySuspenseAccountSearchResults.class, criteria)
+            .getSuspenseAccountEntities();
     }
 
 }

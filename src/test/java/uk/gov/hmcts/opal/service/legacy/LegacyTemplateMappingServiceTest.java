@@ -1,55 +1,67 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
+import org.springframework.web.client.RestClient;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyTemplateMappingSearchResults;
 import uk.gov.hmcts.opal.dto.search.TemplateMappingSearchDto;
+import uk.gov.hmcts.opal.entity.TemplateMappingEntity;
+
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyTemplateMappingServiceTest extends LegacyTestsBase {
 
     @Mock
-    private Logger log;
+    private LegacyGatewayProperties legacyGatewayProperties;
 
-    @InjectMocks
+    @Mock
+    private RestClient restClient;
+
     private LegacyTemplateMappingService legacyTemplateMappingService;
 
-    @Test
-    void testGetTemplateMapping() {
-
-        // Act
-        LegacyGatewayResponseException exception = assertThrows(
-            LegacyGatewayResponseException.class, () -> legacyTemplateMappingService.getTemplateMapping(1L, 1L)
-        );
-
-        // Assert
-        assertNotNull(legacyTemplateMappingService.getLog());
-        assertNotNull(exception);
-        assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
-
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        legacyTemplateMappingService = spy(new LegacyTemplateMappingService(legacyGatewayProperties, restClient));
     }
 
     @Test
-    void testSearchTemplateMappings() {
-        // Arrange
+    public void testGetTemplateMapping() {
+        long templateId = 1L;
+        long applicationFunctionId = 2L;
+        TemplateMappingEntity expectedEntity = new TemplateMappingEntity();
+        doReturn(expectedEntity).when(legacyTemplateMappingService).postToGateway(anyString(), any(), anyLong());
+
+        TemplateMappingEntity result = legacyTemplateMappingService.getTemplateMapping(templateId,
+                                                                                       applicationFunctionId);
+
+        assertEquals(expectedEntity, result);
+    }
+
+    @Test
+    public void testSearchTemplateMappings() {
         TemplateMappingSearchDto criteria = TemplateMappingSearchDto.builder().build();
+        List<TemplateMappingEntity> expectedEntities = Collections.singletonList(new TemplateMappingEntity());
+        LegacyTemplateMappingSearchResults searchResults = LegacyTemplateMappingSearchResults.builder().build();
+        searchResults.setTemplateMappingEntities(expectedEntities);
+        doReturn(searchResults).when(legacyTemplateMappingService).postToGateway(anyString(), any(), any());
 
-        // Act
-        LegacyGatewayResponseException exception = assertThrows(
-            LegacyGatewayResponseException.class, () -> legacyTemplateMappingService.searchTemplateMappings(criteria)
-        );
+        List<TemplateMappingEntity> result = legacyTemplateMappingService.searchTemplateMappings(criteria);
 
-        // Assert
-        assertNotNull(exception);
-        assertEquals(NOT_YET_IMPLEMENTED, exception.getMessage());
-
+        assertEquals(expectedEntities, result);
     }
-
 }

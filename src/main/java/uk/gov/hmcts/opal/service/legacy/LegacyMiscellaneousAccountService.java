@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyMiscellaneousAccountSearchResults;
 import uk.gov.hmcts.opal.dto.search.MiscellaneousAccountSearchDto;
 import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.service.MiscellaneousAccountServiceInterface;
@@ -26,12 +27,17 @@ public class LegacyMiscellaneousAccountService extends LegacyService implements 
 
     @Override
     public MiscellaneousAccountEntity getMiscellaneousAccount(long miscellaneousAccountId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getMiscellaneousAccount for {} from {}", miscellaneousAccountId, legacyGateway.getUrl());
+        return postToGateway("getMiscellaneousAccount", MiscellaneousAccountEntity.class, miscellaneousAccountId);
     }
 
     @Override
     public List<MiscellaneousAccountEntity> searchMiscellaneousAccounts(MiscellaneousAccountSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchMiscellaneousAccounts: criteria: {} via gateway {}", criteria.toJson(),
+                 legacyGateway.getUrl());
+        return postToGateway("searchMiscellaneousAccounts", LegacyMiscellaneousAccountSearchResults.class,
+                             criteria)
+            .getMiscellaneousAccountEntities();
     }
 
 }

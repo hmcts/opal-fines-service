@@ -35,7 +35,7 @@ public class EnforcerController {
 
     private final EnforcerService opalEnforcerService;
 
-    public EnforcerController(@Qualifier("enforcerService") EnforcerServiceInterface enforcerService,
+    public EnforcerController(@Qualifier("enforcerServiceProxy") EnforcerServiceInterface enforcerService,
                               EnforcerService opalEnforcerService) {
         this.enforcerService = enforcerService;
         this.opalEnforcerService = opalEnforcerService;

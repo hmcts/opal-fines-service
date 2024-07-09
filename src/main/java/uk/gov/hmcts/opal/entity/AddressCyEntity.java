@@ -3,6 +3,9 @@ package uk.gov.hmcts.opal.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,6 +19,8 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class AddressCyEntity extends AddressEntity {
 
     @Column(name = "name_cy", length = 35)

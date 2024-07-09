@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyEnforcementSearchResults;
 import uk.gov.hmcts.opal.dto.search.EnforcementSearchDto;
 import uk.gov.hmcts.opal.entity.EnforcementEntity;
 import uk.gov.hmcts.opal.service.EnforcementServiceInterface;
@@ -26,12 +27,16 @@ public class LegacyEnforcementService extends LegacyService implements Enforceme
 
     @Override
     public EnforcementEntity getEnforcement(long enforcementId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getEnforcement for {} from {}", enforcementId, legacyGateway.getUrl());
+        return postToGateway("getEnforcement", EnforcementEntity.class, enforcementId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<EnforcementEntity> searchEnforcements(EnforcementSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchEnforcements: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchEnforcements", LegacyEnforcementSearchResults.class, criteria)
+            .getEnforcementEntities();
     }
 
 }

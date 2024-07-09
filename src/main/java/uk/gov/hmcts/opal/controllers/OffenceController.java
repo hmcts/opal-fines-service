@@ -35,7 +35,7 @@ public class OffenceController {
     private final OffenceServiceInterface offenceService;
     private final OffenceService opalOffenceService;
 
-    public OffenceController(@Qualifier("offenceService") OffenceServiceInterface offenceService,
+    public OffenceController(@Qualifier("offenceServiceProxy") OffenceServiceInterface offenceService,
                              OffenceService opalOffenceService) {
         this.offenceService = offenceService;
         this.opalOffenceService = opalOffenceService;

@@ -36,7 +36,7 @@ public class MajorCreditorController {
 
     private final MajorCreditorService opalMajorCreditorService;
 
-    public MajorCreditorController(@Qualifier("majorCreditorService") MajorCreditorServiceInterface
+    public MajorCreditorController(@Qualifier("majorCreditorServiceProxy") MajorCreditorServiceInterface
                                        majorCreditorService, MajorCreditorService opalMajorCreditorService) {
         this.majorCreditorService = majorCreditorService;
         this.opalMajorCreditorService = opalMajorCreditorService;

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.PartyDto;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyPartySearchResults;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.PartySearchDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -50,8 +51,11 @@ public class LegacyPartyService extends LegacyService implements PartyServiceInt
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<PartyEntity> searchParties(PartySearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchParties: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchParties", LegacyPartySearchResults.class, criteria)
+            .getPartyEntities();
     }
 
 

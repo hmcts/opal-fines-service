@@ -12,10 +12,15 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;
 
@@ -26,6 +31,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class DocumentInstanceEntity {
 
     @Id
@@ -45,6 +52,7 @@ public class DocumentInstanceEntity {
 
     @Column(name = "generated_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime generatedDate;
 
     @Column(name = "generated_by", length = 20, nullable = false)

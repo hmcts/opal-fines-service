@@ -35,7 +35,7 @@ class LogAuditDetailControllerIntegrationTest {
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("logAuditDetailService")
+    @Qualifier("logAuditDetailServiceProxy")
     LogAuditDetailService logAuditDetailService;
 
     @Test

@@ -29,7 +29,7 @@ public class ImpositionController {
 
     private final ImpositionServiceInterface impositionService;
 
-    public ImpositionController(@Qualifier("impositionService") ImpositionServiceInterface impositionService) {
+    public ImpositionController(@Qualifier("impositionServiceProxy") ImpositionServiceInterface impositionService) {
         this.impositionService = impositionService;
     }
 

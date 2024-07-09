@@ -15,10 +15,15 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,6 +37,8 @@ import java.util.List;
 @Builder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "partyId")
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class PartyEntity implements FullNameBuilder {
 
     @Id
@@ -81,6 +88,7 @@ public class PartyEntity implements FullNameBuilder {
 
     @Column(name = "birth_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate dateOfBirth;
 
     @Column(name = "age")

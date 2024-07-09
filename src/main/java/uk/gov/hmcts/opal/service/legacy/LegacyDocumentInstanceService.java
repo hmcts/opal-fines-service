@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyDocumentInstanceSearchResults;
 import uk.gov.hmcts.opal.dto.search.DocumentInstanceSearchDto;
 import uk.gov.hmcts.opal.entity.DocumentInstanceEntity;
 import uk.gov.hmcts.opal.service.DocumentInstanceServiceInterface;
@@ -27,12 +28,16 @@ public class LegacyDocumentInstanceService extends LegacyService implements Docu
 
     @Override
     public DocumentInstanceEntity getDocumentInstance(long documentInstanceId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getDocumentInstance for {} from {}", documentInstanceId, legacyGateway.getUrl());
+        return postToGateway("getDocumentInstance", DocumentInstanceEntity.class, documentInstanceId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<DocumentInstanceEntity> searchDocumentInstances(DocumentInstanceSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchDocumentInstances: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchDocumentInstances", LegacyDocumentInstanceSearchResults.class, criteria)
+            .getDocumentInstanceEntities();
     }
 
 }

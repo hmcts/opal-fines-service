@@ -14,10 +14,15 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,6 +35,8 @@ import java.time.LocalDateTime;
 @Builder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "impositionId")
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class ImpositionEntity {
 
     @Id
@@ -44,6 +51,7 @@ public class ImpositionEntity {
 
     @Column(name = "posted_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime postedDate;
 
     @Column(name = "posted_by", length = 20)
@@ -55,6 +63,7 @@ public class ImpositionEntity {
 
     @Column(name = "original_posted_date")
     @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime originalPostedDate;
 
     @Column(name = "result_id", length = 6, nullable = false)
@@ -66,6 +75,7 @@ public class ImpositionEntity {
 
     @Column(name = "imposed_date")
     @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime imposedDate;
 
     @Column(name = "imposed_amount", precision = 18, scale = 2, nullable = false)

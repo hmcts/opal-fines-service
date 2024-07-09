@@ -30,7 +30,7 @@ public class LogAuditDetailController {
     private final LogAuditDetailServiceInterface logAuditDetailService;
 
     public LogAuditDetailController(
-        @Qualifier("logAuditDetailService") LogAuditDetailServiceInterface logAuditDetailService) {
+        @Qualifier("logAuditDetailServiceProxy") LogAuditDetailServiceInterface logAuditDetailService) {
         this.logAuditDetailService = logAuditDetailService;
     }
 

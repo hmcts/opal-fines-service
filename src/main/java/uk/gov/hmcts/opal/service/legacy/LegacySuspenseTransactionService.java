@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacySuspenseTransactionSearchResults;
 import uk.gov.hmcts.opal.dto.search.SuspenseTransactionSearchDto;
 import uk.gov.hmcts.opal.entity.SuspenseTransactionEntity;
 import uk.gov.hmcts.opal.service.SuspenseTransactionServiceInterface;
@@ -26,12 +27,16 @@ public class LegacySuspenseTransactionService extends LegacyService implements S
 
     @Override
     public SuspenseTransactionEntity getSuspenseTransaction(long suspenseTransactionId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getSuspenseTransaction for {} from {}", suspenseTransactionId, legacyGateway.getUrl());
+        return postToGateway("getSuspenseTransaction", SuspenseTransactionEntity.class, suspenseTransactionId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<SuspenseTransactionEntity> searchSuspenseTransactions(SuspenseTransactionSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchSuspenseTransactions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchSuspenseTransactions", LegacySuspenseTransactionSearchResults.class, criteria)
+            .getSuspenseTransactionEntities();
     }
 
 }

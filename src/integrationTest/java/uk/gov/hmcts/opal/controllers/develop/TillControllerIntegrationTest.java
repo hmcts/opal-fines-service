@@ -31,7 +31,7 @@ class TillControllerIntegrationTest {
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("tillService")
+    @Qualifier("tillServiceProxy")
     TillService tillService;
 
     @Test

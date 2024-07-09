@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyResultSearchResults;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.ResultEntity;
 import uk.gov.hmcts.opal.service.ResultServiceInterface;
@@ -26,12 +27,16 @@ public class LegacyResultService extends LegacyService implements ResultServiceI
 
     @Override
     public ResultEntity getResult(long resultId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getResult for {} from {}", resultId, legacyGateway.getUrl());
+        return postToGateway("getResult", ResultEntity.class, resultId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<ResultEntity> searchResults(ResultSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchResults: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchResults", LegacyResultSearchResults.class, criteria)
+            .getResultEntities();
     }
 
 }

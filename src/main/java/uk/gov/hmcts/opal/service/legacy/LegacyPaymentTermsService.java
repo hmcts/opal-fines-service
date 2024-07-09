@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyPaymentTermsSearchResults;
 import uk.gov.hmcts.opal.dto.search.PaymentTermsSearchDto;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.service.PaymentTermsServiceInterface;
@@ -27,11 +28,15 @@ public class LegacyPaymentTermsService extends LegacyService implements PaymentT
 
     @Override
     public PaymentTermsEntity getPaymentTerms(long paymentTermsId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getPaymentTerms for {} from {}", paymentTermsId, legacyGateway.getUrl());
+        return postToGateway("getPaymentTerms", PaymentTermsEntity.class, paymentTermsId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<PaymentTermsEntity> searchPaymentTerms(PaymentTermsSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchPaymentTerms: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchPaymentTerms", LegacyPaymentTermsSearchResults.class, criteria)
+            .getPaymentTermsEntities();
     }
 }

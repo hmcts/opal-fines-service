@@ -29,7 +29,7 @@ public class CourtFeeController {
 
     private final CourtFeeServiceInterface courtFeeService;
 
-    public CourtFeeController(@Qualifier("courtFeeService") CourtFeeServiceInterface courtFeeService) {
+    public CourtFeeController(@Qualifier("courtFeeServiceProxy") CourtFeeServiceInterface courtFeeService) {
         this.courtFeeService = courtFeeService;
     }
 

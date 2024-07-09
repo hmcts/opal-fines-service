@@ -9,10 +9,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDate;
 
@@ -23,6 +28,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 public class DebtorDetailEntity {
 
     @Id
@@ -86,6 +93,7 @@ public class DebtorDetailEntity {
 
     @Column(name = "document_language_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDate documentLanguageDate;
 
     @Column(name = "hearing_language")
@@ -93,5 +101,6 @@ public class DebtorDetailEntity {
 
     @Column(name = "hearing_language_date")
     @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDate hearingLanguageDate;
 }

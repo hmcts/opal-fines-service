@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyMisDebtorSearchResults;
 import uk.gov.hmcts.opal.dto.search.MisDebtorSearchDto;
 import uk.gov.hmcts.opal.entity.MisDebtorEntity;
 import uk.gov.hmcts.opal.service.MisDebtorServiceInterface;
@@ -27,12 +28,16 @@ public class LegacyMisDebtorService extends LegacyService implements MisDebtorSe
 
     @Override
     public MisDebtorEntity getMisDebtor(long misDebtorId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getMisDebtor for {} from {}", misDebtorId, legacyGateway.getUrl());
+        return postToGateway("getMisDebtor", MisDebtorEntity.class, misDebtorId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<MisDebtorEntity> searchMisDebtors(MisDebtorSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchMisDebtors: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchMisDebtors", LegacyMisDebtorSearchResults.class, criteria)
+            .getMisDebtorEntities();
     }
 
 }

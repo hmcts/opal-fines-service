@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyLogAuditDetailSearchResults;
 import uk.gov.hmcts.opal.dto.search.LogAuditDetailSearchDto;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
 import uk.gov.hmcts.opal.service.LogAuditDetailServiceInterface;
@@ -26,12 +27,16 @@ public class LegacyLogAuditDetailService extends LegacyService implements LogAud
 
     @Override
     public LogAuditDetailEntity getLogAuditDetail(long logAuditDetailId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getLogAuditDetail for {} from {}", logAuditDetailId, legacyGateway.getUrl());
+        return postToGateway("getLogAuditDetail", LogAuditDetailEntity.class, logAuditDetailId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<LogAuditDetailEntity> searchLogAuditDetails(LogAuditDetailSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("searchLogAuditDetails for {} from {}", criteria, legacyGateway.getUrl());
+        return postToGateway("searchLogAuditDetails", LegacyLogAuditDetailSearchResults.class, criteria)
+            .getLogAuditDetailEntities();
     }
 
 }

@@ -30,7 +30,7 @@ public class FixedPenaltyOffenceController {
     private final FixedPenaltyOffenceServiceInterface fixedPenaltyOffenceService;
 
     public FixedPenaltyOffenceController(
-        @Qualifier("fixedPenaltyOffenceService") FixedPenaltyOffenceServiceInterface fixedPenaltyOffenceService) {
+        @Qualifier("fixedPenaltyOffenceServiceProxy") FixedPenaltyOffenceServiceInterface fixedPenaltyOffenceService) {
         this.fixedPenaltyOffenceService = fixedPenaltyOffenceService;
     }
 

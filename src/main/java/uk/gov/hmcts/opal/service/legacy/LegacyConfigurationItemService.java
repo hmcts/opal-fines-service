@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyConfigurationItemSearchResults;
 import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
 import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.service.ConfigurationItemServiceInterface;
@@ -26,12 +27,16 @@ public class LegacyConfigurationItemService extends LegacyService implements Con
 
     @Override
     public ConfigurationItemEntity getConfigurationItem(long configurationItemId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getConfigurationItem for {} from {}", configurationItemId, legacyGateway.getUrl());
+        return postToGateway("getConfigurationItem", ConfigurationItemEntity.class, configurationItemId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<ConfigurationItemEntity> searchConfigurationItems(ConfigurationItemSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchConfigurationItems: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchConfigurationItems", LegacyConfigurationItemSearchResults.class, criteria)
+            .getConfigurationItemEntities();
     }
 
 }

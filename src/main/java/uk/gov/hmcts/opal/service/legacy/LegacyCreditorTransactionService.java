@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyCreditorTransactionSearchResults;
 import uk.gov.hmcts.opal.dto.search.CreditorTransactionSearchDto;
 import uk.gov.hmcts.opal.entity.CreditorTransactionEntity;
 import uk.gov.hmcts.opal.service.CreditorTransactionServiceInterface;
@@ -26,12 +27,16 @@ public class LegacyCreditorTransactionService extends LegacyService implements C
 
     @Override
     public CreditorTransactionEntity getCreditorTransaction(long creditorTransactionId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getCreditorTransaction for {} from {}", creditorTransactionId, legacyGateway.getUrl());
+        return postToGateway("getCreditorTransaction", CreditorTransactionEntity.class, creditorTransactionId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<CreditorTransactionEntity> searchCreditorTransactions(CreditorTransactionSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchCreditorTransactions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchCreditorTransactions", LegacyCreditorTransactionSearchResults.class, criteria)
+            .getCreditorTransactionEntities();
     }
 
 }

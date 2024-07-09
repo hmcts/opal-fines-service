@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyAmendmentSearchResults;
 import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
 import uk.gov.hmcts.opal.entity.AmendmentEntity;
 import uk.gov.hmcts.opal.service.AmendmentServiceInterface;
@@ -26,12 +27,16 @@ public class LegacyAmendmentService extends LegacyService implements AmendmentSe
 
     @Override
     public AmendmentEntity getAmendment(long amendmentId) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("getAmendment for {} from {}", amendmentId, legacyGateway.getUrl());
+        return postToGateway("getAmendment", AmendmentEntity.class, amendmentId);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<AmendmentEntity> searchAmendments(AmendmentSearchDto criteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info(":searchAmendments: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        return postToGateway("searchAmendments", LegacyAmendmentSearchResults.class, criteria)
+            .getAmendmentEntities();
     }
 
 }

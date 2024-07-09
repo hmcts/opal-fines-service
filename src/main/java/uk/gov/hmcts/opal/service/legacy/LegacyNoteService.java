@@ -43,8 +43,10 @@ public class LegacyNoteService extends LegacyService implements NoteServiceInter
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<NoteDto> searchNotes(NoteSearchDto searchCriteria) {
-        throw new LegacyGatewayResponseException("Not Yet Implemented");
+        log.info("Searching Notes: {}", searchCriteria);
+        return postToGateway("searchNotes", List.class, searchCriteria);
     }
 
 
