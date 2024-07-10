@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.entity.print.PrintJob;
 import uk.gov.hmcts.opal.entity.print.PrintStatus;
@@ -16,10 +17,10 @@ import java.time.LocalDateTime;
 
 
 
-
+@Repository
 public interface PrintJobRepository extends JpaRepository<PrintJob, Long> {
 
-    @Transactional
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM PrintJob p WHERE p.status = :status AND p.createdAt <= :cutoffDate")
     Page<PrintJob> findPendingJobsForUpdate(@Param("status") PrintStatus status,

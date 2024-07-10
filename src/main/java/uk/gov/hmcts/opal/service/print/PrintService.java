@@ -8,6 +8,7 @@ import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.MimeConstants;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,7 +38,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@Transactional
 @Setter
 @RequiredArgsConstructor
 @Slf4j(topic = "PrintService")
@@ -49,6 +49,7 @@ public class PrintService {
 
     private final PrintJobRepository printJobRepository;
 
+    @Autowired
     private final SftpOutboundService sftpOutboundService;
 
 
@@ -63,7 +64,7 @@ public class PrintService {
     private int pageSize;
 
 
-
+    @Transactional
     public byte[] generatePdf(PrintJob printJob) {
         // Get print definition from database
         final PrintDefinition printDef = getPrintDefinition(printJob.getDocType(), printJob.getDocVersion());
@@ -105,6 +106,7 @@ public class PrintService {
         return printDefinitionRepository.findByDocTypeAndTemplateId(docType, templateId);
     }
 
+    @Transactional
     public UUID savePrintJobs(List<PrintJob> printJobs) {
         UUID batchId = UUID.randomUUID();
 
@@ -122,7 +124,7 @@ public class PrintService {
         return batchId;
     }
 
-    @Async
+
     public void processPendingJobs(LocalDateTime cutoffDate) {
         int attempt = 0;
         boolean success = false;
@@ -166,6 +168,7 @@ public class PrintService {
         } while (page.hasNext());
     }
 
+    @Transactional
     private void processJob(PrintJob job) {
         job.setStatus(PrintStatus.IN_PROGRESS);
         printJobRepository.save(job);
@@ -182,10 +185,11 @@ public class PrintService {
         printJobRepository.save(job);
     }
 
-
+    @Transactional
     private void savePdfToFile(byte[] pdfData, PrintJob job) {
         String fileName = job.getBatchId() + "_" + job.getJobId() + ".pdf";
         log.info("Saving PDF to file: {}", fileName);
+
         sftpOutboundService.uploadFile(pdfData, SftpLocation.PRINT_LOCATION.getPath(), fileName);
     }
 

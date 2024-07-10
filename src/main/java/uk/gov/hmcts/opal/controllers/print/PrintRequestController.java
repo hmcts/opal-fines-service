@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.entity.print.PrintJob;
+import uk.gov.hmcts.opal.service.print.AsyncPrintJobProcessor;
 import uk.gov.hmcts.opal.service.print.PrintService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ContentDisposition;
@@ -28,6 +29,9 @@ import java.util.UUID;
 public class PrintRequestController {
 
     private final PrintService printService;
+
+    private final AsyncPrintJobProcessor asyncPrintJobProcessor;
+
 
     @PostMapping(value = "/enqueue-print-jobs", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Enqueues print jobs for a batch of documents")
@@ -58,7 +62,7 @@ public class PrintRequestController {
     public ResponseEntity<String> processPendingJobs() {
         log.info(":POST:processPendingJobs: processing pending print jobs");
 
-        printService.processPendingJobs(LocalDateTime.now());
+        asyncPrintJobProcessor.processPendingJobsAsync(LocalDateTime.now());
 
         return ResponseEntity.ok().body("OK");
     }
