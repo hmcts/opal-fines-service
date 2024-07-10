@@ -28,7 +28,7 @@ import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredRole;
 
 
 @RestController
-@RequestMapping("/api/note")
+@RequestMapping("/dev/note")
 @Slf4j(topic = "NoteController")
 @Tag(name = "Notes Controller")
 public class NoteController {

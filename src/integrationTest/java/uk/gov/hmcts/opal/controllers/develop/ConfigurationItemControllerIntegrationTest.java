@@ -42,7 +42,7 @@ class ConfigurationItemControllerIntegrationTest {
 
         when(configurationItemService.getConfigurationItem(1L)).thenReturn(configurationItemEntity);
 
-        mockMvc.perform(get("/api/configuration-item/1"))
+        mockMvc.perform(get("/dev/configuration-item/1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.configurationItemId").value(1))
@@ -56,7 +56,7 @@ class ConfigurationItemControllerIntegrationTest {
     void testGetConfigurationItemById_WhenConfigurationItemDoesNotExist() throws Exception {
         when(configurationItemService.getConfigurationItem(2L)).thenReturn(null);
 
-        mockMvc.perform(get("/api/configuration-item/2"))
+        mockMvc.perform(get("/dev/configuration-item/2"))
             .andExpect(status().isNoContent());
     }
 
@@ -67,7 +67,7 @@ class ConfigurationItemControllerIntegrationTest {
         when(configurationItemService.searchConfigurationItems(any(ConfigurationItemSearchDto.class)))
             .thenReturn(singletonList(configurationItemEntity));
 
-        mockMvc.perform(post("/api/configuration-item/search")
+        mockMvc.perform(post("/dev/configuration-item/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -80,7 +80,7 @@ class ConfigurationItemControllerIntegrationTest {
 
     @Test
     void testPostConfigurationItemsSearch_WhenConfigurationItemDoesNotExist() throws Exception {
-        mockMvc.perform(post("/api/configuration-item/search")
+        mockMvc.perform(post("/dev/configuration-item/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isNoContent());

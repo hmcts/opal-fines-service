@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/creditor-transaction")
+@RequestMapping("/dev/creditor-transaction")
 @Slf4j(topic = "CreditorTransactionController")
 @Tag(name = "Creditor Transaction Controller")
 public class CreditorTransactionController {

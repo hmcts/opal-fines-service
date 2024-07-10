@@ -47,7 +47,7 @@ class ImpositionControllerIntegrationTest {
 
         when(impositionService.getImposition(1L)).thenReturn(impositionEntity);
 
-        mockMvc.perform(get("/api/imposition/1"))
+        mockMvc.perform(get("/dev/imposition/1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.impositionId").value(1))
@@ -64,7 +64,7 @@ class ImpositionControllerIntegrationTest {
     void testGetImpositionById_WhenImpositionDoesNotExist() throws Exception {
         when(impositionService.getImposition(2L)).thenReturn(null);
 
-        mockMvc.perform(get("/api/imposition/2"))
+        mockMvc.perform(get("/dev/imposition/2"))
             .andExpect(status().isNoContent());
     }
 
@@ -75,7 +75,7 @@ class ImpositionControllerIntegrationTest {
         when(impositionService.searchImpositions(any(ImpositionSearchDto.class)))
             .thenReturn(singletonList(impositionEntity));
 
-        mockMvc.perform(post("/api/imposition/search")
+        mockMvc.perform(post("/dev/imposition/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -91,7 +91,7 @@ class ImpositionControllerIntegrationTest {
 
     @Test
     void testPostImpositionsSearch_WhenImpositionDoesNotExist() throws Exception {
-        mockMvc.perform(post("/api/imposition/search")
+        mockMvc.perform(post("/dev/imposition/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isNoContent());

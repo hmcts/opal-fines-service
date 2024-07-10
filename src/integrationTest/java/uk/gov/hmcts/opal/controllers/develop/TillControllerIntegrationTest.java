@@ -10,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.TillSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.service.opal.TillService;
 
@@ -40,12 +41,12 @@ class TillControllerIntegrationTest {
 
         when(tillService.getTill(1L)).thenReturn(tillEntity);
 
-        mockMvc.perform(get("/api/till/1"))
+        mockMvc.perform(get("/dev/till/1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.tillId").value(1))
             .andExpect(jsonPath("$.tillNumber").value(2))
-            .andExpect(jsonPath("$.businessUnitId").value(3))
+            .andExpect(jsonPath("$.businessUnit.businessUnitId").value(3))
             .andExpect(jsonPath("$.ownedBy").value("Owner Keith"));
     }
 
@@ -54,7 +55,7 @@ class TillControllerIntegrationTest {
     void testGetTillById_WhenTillDoesNotExist() throws Exception {
         when(tillService.getTill(2L)).thenReturn(null);
 
-        mockMvc.perform(get("/api/till/2"))
+        mockMvc.perform(get("/dev/till/2"))
             .andExpect(status().isNoContent());
     }
 
@@ -64,20 +65,20 @@ class TillControllerIntegrationTest {
 
         when(tillService.searchTills(any(TillSearchDto.class))).thenReturn(singletonList(tillEntity));
 
-        mockMvc.perform(post("/api/till/search")
+        mockMvc.perform(post("/dev/till/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$[0].tillId").value(1))
             .andExpect(jsonPath("$[0].tillNumber").value(2))
-            .andExpect(jsonPath("$[0].businessUnitId").value(3))
+            .andExpect(jsonPath("$[0].businessUnit.businessUnitId").value(3))
             .andExpect(jsonPath("$[0].ownedBy").value("Owner Keith"));
     }
 
     @Test
     void testPostTillsSearch_WhenTillDoesNotExist() throws Exception {
-        mockMvc.perform(post("/api/till/search")
+        mockMvc.perform(post("/dev/till/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isNoContent());
@@ -87,7 +88,7 @@ class TillControllerIntegrationTest {
         return TillEntity.builder()
             .tillId(1L)
             .tillNumber((short)2)
-            .businessUnitId((short)3)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)3).build())
             .ownedBy("Owner Keith")
             .build();
     }
