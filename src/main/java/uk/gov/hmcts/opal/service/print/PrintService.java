@@ -8,12 +8,10 @@ import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.MimeConstants;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.print.PrintDefinition;
 import uk.gov.hmcts.opal.entity.print.PrintJob;
@@ -37,6 +35,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import static jakarta.transaction.Transactional.TxType.REQUIRES_NEW;
+
 @Service
 @Setter
 @RequiredArgsConstructor
@@ -49,9 +49,7 @@ public class PrintService {
 
     private final PrintJobRepository printJobRepository;
 
-    @Autowired
     private final SftpOutboundService sftpOutboundService;
-
 
 
     @Value("${printservice.maxRetries:3}")
@@ -99,8 +97,6 @@ public class PrintService {
     }
 
 
-
-
     private PrintDefinition getPrintDefinition(String docType, String templateId) {
 
         return printDefinitionRepository.findByDocTypeAndTemplateId(docType, templateId);
@@ -124,7 +120,7 @@ public class PrintService {
         return batchId;
     }
 
-
+    @Transactional(value = REQUIRES_NEW)
     public void processPendingJobs(LocalDateTime cutoffDate) {
         int attempt = 0;
         boolean success = false;
@@ -148,7 +144,6 @@ public class PrintService {
         log.info("Processed pending jobs");
     }
 
-    @Transactional
     public void processJobsWithLock(LocalDateTime cutoffDate) {
         Pageable pageable = PageRequest.of(0, pageSize);
         log.info("Page Size: {}", pageSize);
@@ -169,7 +164,7 @@ public class PrintService {
     }
 
     @Transactional
-    private void processJob(PrintJob job) {
+    protected void processJob(PrintJob job) {
         job.setStatus(PrintStatus.IN_PROGRESS);
         printJobRepository.save(job);
 
@@ -186,13 +181,10 @@ public class PrintService {
     }
 
     @Transactional
-    private void savePdfToFile(byte[] pdfData, PrintJob job) {
+    protected void savePdfToFile(byte[] pdfData, PrintJob job) {
         String fileName = job.getBatchId() + "_" + job.getJobId() + ".pdf";
         log.info("Saving PDF to file: {}", fileName);
 
         sftpOutboundService.uploadFile(pdfData, SftpLocation.PRINT_LOCATION.getPath(), fileName);
     }
-
-
-
 }
