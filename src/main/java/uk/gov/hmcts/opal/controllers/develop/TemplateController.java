@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/template")
+@RequestMapping("/dev/template")
 @Slf4j(topic = "TemplateController")
 @Tag(name = "Template Controller")
 public class TemplateController {

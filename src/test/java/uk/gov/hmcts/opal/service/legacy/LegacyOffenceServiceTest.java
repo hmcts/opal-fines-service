@@ -38,7 +38,7 @@ class LegacyOffenceServiceTest extends LegacyTestsBase {
         MockitoAnnotations.openMocks(this);
         legacyAccountTransferService = spy(new LegacyAccountTransferService(legacyGatewayProperties, restClient));
     }
-
+    
     @Test
     public void testGetAccountTransfer() {
         long id = 1L;

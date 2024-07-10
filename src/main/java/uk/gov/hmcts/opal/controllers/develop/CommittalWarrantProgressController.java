@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/committal-warrant-progress")
+@RequestMapping("/dev/committal-warrant-progress")
 @Slf4j(topic = "CommittalWarrantProgressController")
 @Tag(name = "CommittalWarrantProgress Controller")
 public class CommittalWarrantProgressController {

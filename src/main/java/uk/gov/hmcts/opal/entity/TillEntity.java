@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -36,8 +38,9 @@ public class TillEntity {
     @Column(name = "till_id", nullable = false)
     private Long tillId;
 
-    @Column(name = "business_unit_id", nullable = false)
-    private Short businessUnitId;
+    @ManyToOne
+    @JoinColumn(name = "business_unit_id", nullable = false)
+    private BusinessUnitEntity businessUnit;
 
     @Column(name = "till_number", nullable = false)
     private Short tillNumber;

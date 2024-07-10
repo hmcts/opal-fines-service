@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/suspense-item")
+@RequestMapping("/dev/suspense-item")
 @Slf4j(topic = "SuspenseItemController")
 @Tag(name = "Suspense Item Controller")
 public class SuspenseItemController {

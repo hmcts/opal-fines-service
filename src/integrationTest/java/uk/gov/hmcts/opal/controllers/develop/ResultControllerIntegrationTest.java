@@ -40,7 +40,7 @@ class ResultControllerIntegrationTest {
 
         when(resultService.getResult(1L)).thenReturn(resultEntity);
 
-        mockMvc.perform(get("/api/result/1"))
+        mockMvc.perform(get("/dev/result/1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.resultId").value(1))
@@ -73,7 +73,7 @@ class ResultControllerIntegrationTest {
     void testGetResultById_WhenResultDoesNotExist() throws Exception {
         when(resultService.getResult(2L)).thenReturn(null);
 
-        mockMvc.perform(get("/api/result/2"))
+        mockMvc.perform(get("/dev/result/2"))
             .andExpect(status().isNoContent());
     }
 
@@ -83,7 +83,7 @@ class ResultControllerIntegrationTest {
 
         when(resultService.searchResults(any(ResultSearchDto.class))).thenReturn(singletonList(resultEntity));
 
-        mockMvc.perform(post("/api/result/search")
+        mockMvc.perform(post("/dev/result/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -115,7 +115,7 @@ class ResultControllerIntegrationTest {
 
     @Test
     void testPostResultsSearch_WhenResultDoesNotExist() throws Exception {
-        mockMvc.perform(post("/api/result/search")
+        mockMvc.perform(post("/dev/result/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isNoContent());
