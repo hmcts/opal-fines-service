@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.service.print;
 
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.entity.print.PrintDefinition;
 import uk.gov.hmcts.opal.entity.print.PrintJob;
 import uk.gov.hmcts.opal.entity.print.PrintStatus;
@@ -35,9 +36,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static jakarta.transaction.Transactional.TxType.REQUIRES_NEW;
-
 @Service
+@Transactional(transactionManager = "printTransactionManager")
 @Setter
 @RequiredArgsConstructor
 @Slf4j(topic = "PrintService")
@@ -55,14 +55,10 @@ public class PrintService {
     @Value("${printservice.maxRetries:3}")
     private int maxRetries;
 
-    @Value("${printservice.outputDirectory:./output}")
-    private String outputDirectory;
-
     @Value("${printservice.pageSize:100}")
     private int pageSize;
 
 
-    @Transactional
     public byte[] generatePdf(PrintJob printJob) {
         // Get print definition from database
         final PrintDefinition printDef = getPrintDefinition(printJob.getDocType(), printJob.getDocVersion());
@@ -102,7 +98,7 @@ public class PrintService {
         return printDefinitionRepository.findByDocTypeAndTemplateId(docType, templateId);
     }
 
-    @Transactional
+
     public UUID savePrintJobs(List<PrintJob> printJobs) {
         UUID batchId = UUID.randomUUID();
 
@@ -120,7 +116,7 @@ public class PrintService {
         return batchId;
     }
 
-    @Transactional(value = REQUIRES_NEW)
+
     public void processPendingJobs(LocalDateTime cutoffDate) {
         int attempt = 0;
         boolean success = false;
@@ -144,12 +140,13 @@ public class PrintService {
         log.info("Processed pending jobs");
     }
 
-    public void processJobsWithLock(LocalDateTime cutoffDate) {
+
+    protected void processJobsWithLock(LocalDateTime cutoffDate) {
         Pageable pageable = PageRequest.of(0, pageSize);
         log.info("Page Size: {}", pageSize);
         Page<PrintJob> page;
         do {
-            page = printJobRepository.findPendingJobsForUpdate(PrintStatus.PENDING, cutoffDate, pageable);
+            page = this.findPendingJobsForUpdate(PrintStatus.PENDING, cutoffDate, pageable);
             for (PrintJob job : page.getContent()) {
                 try {
                     processJob(job);
@@ -163,8 +160,8 @@ public class PrintService {
         } while (page.hasNext());
     }
 
-    @Transactional
-    protected void processJob(PrintJob job) {
+
+    private void processJob(PrintJob job) {
         job.setStatus(PrintStatus.IN_PROGRESS);
         printJobRepository.save(job);
 
@@ -180,11 +177,17 @@ public class PrintService {
         printJobRepository.save(job);
     }
 
-    @Transactional
-    protected void savePdfToFile(byte[] pdfData, PrintJob job) {
+
+    private void savePdfToFile(byte[] pdfData, PrintJob job) {
         String fileName = job.getBatchId() + "_" + job.getJobId() + ".pdf";
         log.info("Saving PDF to file: {}", fileName);
 
         sftpOutboundService.uploadFile(pdfData, SftpLocation.PRINT_LOCATION.getPath(), fileName);
+    }
+
+
+    private Page<PrintJob> findPendingJobsForUpdate(PrintStatus status, LocalDateTime cutoffDate, Pageable pageable) {
+        log.info("Finding pending jobs for update");
+        return printJobRepository.findPendingJobsForUpdate(status, cutoffDate, pageable);
     }
 }

@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.entity.print.PrintJob;
+import uk.gov.hmcts.opal.service.print.AsyncPrintJobProcessor;
 import uk.gov.hmcts.opal.service.print.PrintService;
 
 import java.util.Collections;
@@ -26,6 +27,9 @@ public class PrintRequestControllerTest {
 
     @Mock
     private PrintService printService;
+
+    @Mock
+    private AsyncPrintJobProcessor asyncPrintJobProcessor;
 
     @InjectMocks
     private PrintRequestController printRequestController;
@@ -74,7 +78,7 @@ public class PrintRequestControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("OK", response.getBody());
-        verify(printService, times(1)).processPendingJobs(any());
+        verify(asyncPrintJobProcessor, times(1)).processPendingJobsAsync(any());
     }
 }
 

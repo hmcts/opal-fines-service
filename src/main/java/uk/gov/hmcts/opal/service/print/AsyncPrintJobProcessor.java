@@ -3,9 +3,6 @@ package uk.gov.hmcts.opal.service.print;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 
@@ -21,7 +18,7 @@ public class AsyncPrintJobProcessor {
 
     @Async
     public void processPendingJobsAsync(LocalDateTime cutoffDate) {
-            printService.processPendingJobs(cutoffDate);
+        printService.processPendingJobs(cutoffDate);
     }
 
 }
