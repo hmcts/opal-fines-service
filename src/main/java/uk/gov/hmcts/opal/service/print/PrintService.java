@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.print;
 
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ import java.util.UUID;
 @Service
 @Transactional(transactionManager = "printTransactionManager")
 @Setter
+@Getter
 @RequiredArgsConstructor
 @Slf4j(topic = "PrintService")
 public class PrintService {
@@ -127,7 +129,7 @@ public class PrintService {
                 processJobsWithLock(cutoffDate);
                 success = true;
             } catch (Exception e) {
-                if (e.getCause() instanceof jakarta.persistence.PessimisticLockException) {
+                if (e instanceof jakarta.persistence.PessimisticLockException) {
                     log.error("Could not acquire lock, retrying... ({} / {})", attempt, maxRetries);
                     if (attempt >= maxRetries) {
                         throw e;  // Exceeded max retries, rethrow exception

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -28,18 +29,20 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class PrintServiceTest {
+class PrintServiceTest {
 
     @Mock
     private PrintDefinitionRepository printDefinitionRepository;
@@ -54,6 +57,12 @@ public class PrintServiceTest {
     @InjectMocks
     private PrintService printService;
 
+
+
+
+
+
+
     private PrintJob printJob1;
     private PrintJob printJob2;
     private PrintJob printJob;
@@ -62,7 +71,7 @@ public class PrintServiceTest {
 
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         // Setup for savePrintJobs test
         printJob1 = new PrintJob();
         printJob1.setXmlData("<xml>Data1</xml>");
@@ -100,10 +109,12 @@ public class PrintServiceTest {
                                     + "</xsl:template>"
                                     + "</xsl:stylesheet>");
 
+
+
     }
 
     @Test
-    public void testSavePrintJobs() {
+    void testSavePrintJobs() {
         // Arrange
         List<PrintJob> printJobs = Arrays.asList(printJob1, printJob2);
 
@@ -113,17 +124,17 @@ public class PrintServiceTest {
         // Assert
         assertEquals(printJob1.getBatchId(), batchId);
         assertEquals(printJob2.getBatchId(), batchId);
-        assertEquals(printJob1.getStatus(), PrintStatus.PENDING);
-        assertEquals(printJob2.getStatus(), PrintStatus.PENDING);
+        assertEquals(PrintStatus.PENDING, printJob1.getStatus());
+        assertEquals(PrintStatus.PENDING, printJob2.getStatus());
 
         verify(printJobRepository, times(2)).save(any(PrintJob.class));
     }
 
     @Test
-    public void testGeneratePdf() throws Exception {
+    void testGeneratePdf() throws Exception {
 
         // Arrange
-        when(printDefinitionRepository.findByDocTypeAndTemplateId(eq("docType1"), eq("1.0")))
+        when(printDefinitionRepository.findByDocTypeAndTemplateId("docType1", "1.0"))
             .thenReturn(printDefinition);
 
         // Act
@@ -141,17 +152,14 @@ public class PrintServiceTest {
         }
     }
 
-
-
-
     @Test
-    public void testProcessJobsWithLock() {
+    void testProcessJobsWithLock() {
         // Arrange
-        when(printDefinitionRepository.findByDocTypeAndTemplateId(eq("docType1"), eq("1.0")))
+        when(printDefinitionRepository.findByDocTypeAndTemplateId("docType1", "1.0"))
             .thenReturn(printDefinition);
         LocalDateTime cutoffDate = LocalDateTime.now();
         Pageable pageable = PageRequest.of(0, 10);
-        when(printJobRepository.findPendingJobsForUpdate(eq(PrintStatus.PENDING), eq(cutoffDate), eq(pageable)))
+        when(printJobRepository.findPendingJobsForUpdate(PrintStatus.PENDING, cutoffDate, pageable))
             .thenReturn(new PageImpl<>(Collections.singletonList(printJob)))
             .thenReturn(new PageImpl<>(Collections.emptyList()));
 
@@ -167,8 +175,46 @@ public class PrintServiceTest {
         verify(printJobRepository, atLeastOnce()).save(any(PrintJob.class));
     }
 
+    @Test
+    void testProcessPendingJobsSuccess() {
+        // Arrange
+        PrintService printServiceSpy = Mockito.spy(printService);
+        printServiceSpy.setMaxRetries(3);
+        LocalDateTime cutoffDate = LocalDateTime.now();
+        doNothing().when(printServiceSpy).processJobsWithLock(cutoffDate);
 
+        // Act
+        printServiceSpy.processPendingJobs(cutoffDate);
 
+        // Assert
+        verify(printServiceSpy, times(1)).processJobsWithLock(cutoffDate);
+
+        // Consider verifying the state of printServiceSpy or its dependencies here
+        // to ensure that processPendingJobs has the expected effects.
+    }
+
+    @Test
+    void testProcessPendingJobsMaxRetriesExceeded() {
+        // Arrange
+        PrintService printServiceSpy = Mockito.spy(printService);
+        printServiceSpy.setMaxRetries(3); // Assuming maxRetries is set to 3
+        LocalDateTime cutoffDate = LocalDateTime.now();
+
+        // Simulate failure in processing jobs, causing retries
+        doThrow(new jakarta.persistence.PessimisticLockException("could not acquire lock"))
+            .when(printServiceSpy).processJobsWithLock(cutoffDate);
+
+        // Act & Assert
+        assertThrows(RuntimeException.class, () -> {
+            printServiceSpy.processPendingJobs(cutoffDate);
+        }, "Expected processPendingJobs to throw RuntimeException after max retries exceeded");
+
+        // Verify that processJobsWithLock was attempted maxRetries times
+        verify(printServiceSpy, times(3)).processJobsWithLock(cutoffDate);
+    }
 
 }
+
+
+
 
