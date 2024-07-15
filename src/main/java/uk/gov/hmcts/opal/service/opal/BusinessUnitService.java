@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -41,6 +42,7 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
         return page.getContent();
     }
 
+    @Cacheable(cacheNames = "businessUnitReferenceDataCache", key = "#filter.orElse('noFilter')")
     public List<BusinessUnitReferenceData> getReferenceData(Optional<String> filter) {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, BusinessUnitEntity_.BUSINESS_UNIT_NAME);

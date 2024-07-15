@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -41,6 +42,7 @@ public class LocalJusticeAreaService implements LocalJusticeAreaServiceInterface
         return page.getContent();
     }
 
+    @Cacheable(cacheNames = "ljaReferenceDataCache", key = "#filter.orElse('noFilter')")
     public List<LjaReferenceData> getReferenceData(Optional<String> filter) {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, LocalJusticeAreaEntity_.NAME);

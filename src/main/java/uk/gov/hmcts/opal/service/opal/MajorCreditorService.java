@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -41,6 +42,10 @@ public class MajorCreditorService implements MajorCreditorServiceInterface {
         return page.getContent();
     }
 
+    @Cacheable(
+        cacheNames = "majorCreditorReferenceDataCache",
+        key = "#filter.orElse('noFilter') + '_' + #businessUnitId.orElse(0)"
+    )
     public List<MajorCreditorReferenceData> getReferenceData(Optional<String> filter, Optional<Short> businessUnitId) {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, MajorCreditorEntity_.NAME);
