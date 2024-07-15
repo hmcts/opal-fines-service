@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.saxon.TransformerFactoryImpl;
 import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
@@ -73,7 +74,7 @@ public class PrintService {
             FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
             Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, outStream);
 
-            TransformerFactory factory = TransformerFactory.newInstance();
+            TransformerFactory factory = new TransformerFactoryImpl();
             factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
             factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
