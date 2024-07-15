@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -42,6 +43,10 @@ public class OffenceService implements OffenceServiceInterface {
         return page.getContent();
     }
 
+    @Cacheable(
+        cacheNames = "offenceReferenceDataCache",
+        key = "#filter.orElse('noFilter') + '_' + #businessUnitId.orElse(0)"
+    )
     public List<OffenceReferenceData> getReferenceData(Optional<String> filter, Optional<Short> businessUnitId) {
 
         Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceEntity_.CJS_CODE);
