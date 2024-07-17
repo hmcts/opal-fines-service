@@ -12,7 +12,8 @@ import static net.serenitybdd.rest.SerenityRest.then;
 
 public class BearerTokenStepDef extends BaseStepDef {
 
-    protected static String TOKEN;
+    protected static String DEFAULT_USER = "opal-test@hmcts.net";
+    protected static ThreadLocal<String> TOKEN = new ThreadLocal<>();
     protected static ThreadLocal<String> ALT_TOKEN = new ThreadLocal<>();
     private static final ConcurrentHashMap<String, String> tokenCache = new ConcurrentHashMap<>();
 
@@ -33,19 +34,25 @@ public class BearerTokenStepDef extends BaseStepDef {
     }
 
     @BeforeAll
-    public static void setToken() {
+    public void setDefaultToken() {
+        String accessToken = tokenCache.computeIfAbsent(DEFAULT_USER, this::fetchDefaultUserToken);
+        TOKEN.set(accessToken);
+    }
+
+    private String fetchDefaultUserToken(String user) {
         SerenityRest.given()
             .accept("*/*")
+            .header("X-User-Email", user)
             .contentType("application/json")
             .when()
             .get(getTestUrl() + "/api/testing-support/token/test-user");
         then().assertThat().statusCode(200);
-        TOKEN = then().extract().body().jsonPath().getString("accessToken");
+        return then().extract().body().jsonPath().getString("accessToken");
     }
 
     protected static String getToken() {
         if (ALT_TOKEN.get() == null) {
-            return TOKEN;
+            return TOKEN.get();
         } else {
             return ALT_TOKEN.get();
         }
