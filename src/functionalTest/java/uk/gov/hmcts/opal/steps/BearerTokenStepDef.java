@@ -9,12 +9,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 
-
 public class BearerTokenStepDef extends BaseStepDef {
 
-    protected static String DEFAULT_USER = "opal-test@hmcts.net";
-    protected static ThreadLocal<String> TOKEN = new ThreadLocal<>();
-    protected static ThreadLocal<String> ALT_TOKEN = new ThreadLocal<>();
+    private static final String DEFAULT_USER = "opal-test@hmcts.net";
+    private static final ThreadLocal<String> TOKEN = new ThreadLocal<>();
+    private static final ThreadLocal<String> ALT_TOKEN = new ThreadLocal<>();
     private static final ConcurrentHashMap<String, String> tokenCache = new ConcurrentHashMap<>();
 
     public String getAccessTokenForUser(String user) {
@@ -22,55 +21,43 @@ public class BearerTokenStepDef extends BaseStepDef {
     }
 
     private String fetchAccessToken(String user) {
-        SerenityRest.given()
-            .accept("*/*")
-            .header("X-User-Email", user)
-            .contentType("application/json")
-            .when()
-            .get(getTestUrl() + "/api/testing-support/token/user");
-
-        then().assertThat().statusCode(200);
-        return then().extract().body().jsonPath().getString("accessToken");
+        return fetchToken("/api/testing-support/token/user", user);
     }
 
     @BeforeAll
     public static void setDefaultToken() {
-        String accessToken = tokenCache.computeIfAbsent(DEFAULT_USER, BearerTokenStepDef::fetchDefaultUserToken);
-        TOKEN.set(accessToken);
+        TOKEN.set(tokenCache.computeIfAbsent(DEFAULT_USER, BearerTokenStepDef::fetchDefaultUserToken));
     }
 
     private static String fetchDefaultUserToken(String user) {
+        return fetchToken("/api/testing-support/token/test-user", user);
+    }
+
+    private static String fetchToken(String endpoint, String user) {
         SerenityRest.given()
             .accept("*/*")
             .header("X-User-Email", user)
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + "/api/testing-support/token/test-user");
+            .get(getTestUrl() + endpoint);
+
         then().assertThat().statusCode(200);
         return then().extract().body().jsonPath().getString("accessToken");
     }
 
     protected static String getToken() {
-        if (ALT_TOKEN.get() == null) {
-            return TOKEN.get();
-        } else {
-            return ALT_TOKEN.get();
-        }
+        return ALT_TOKEN.get() != null ? ALT_TOKEN.get() : TOKEN.get();
     }
 
     @When("I am testing as the {string} user")
     public void setTokenWithUser(String user) {
-        String accessToken = getAccessTokenForUser(user);
-        ALT_TOKEN.set(accessToken);
-    }
-
-    public static void clearCurrentToken() {
-        ALT_TOKEN.remove();
+        ALT_TOKEN.set(getAccessTokenForUser(user));
     }
 
     @AfterAll
     public static void clearCache() {
         tokenCache.clear();
-        clearCurrentToken();
+        ALT_TOKEN.remove();
+        TOKEN.remove();
     }
 }
