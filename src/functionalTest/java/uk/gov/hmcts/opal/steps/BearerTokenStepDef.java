@@ -17,29 +17,25 @@ public class BearerTokenStepDef extends BaseStepDef {
     private static final ConcurrentHashMap<String, String> tokenCache = new ConcurrentHashMap<>();
 
     public String getAccessTokenForUser(String user) {
-        return tokenCache.computeIfAbsent(user, this::fetchAccessToken);
+        return tokenCache.computeIfAbsent(user, BearerTokenStepDef::fetchAccessToken);
     }
 
-    private String fetchAccessToken(String user) {
-        return fetchToken("/api/testing-support/token/user", user);
+    private static String fetchAccessToken(String user) {
+        return fetchToken(user);
     }
 
     @BeforeAll
     public static void setDefaultToken() {
-        TOKEN.set(tokenCache.computeIfAbsent(DEFAULT_USER, BearerTokenStepDef::fetchDefaultUserToken));
+        TOKEN.set(tokenCache.computeIfAbsent(DEFAULT_USER, BearerTokenStepDef::fetchAccessToken));
     }
 
-    private static String fetchDefaultUserToken(String user) {
-        return fetchToken("/api/testing-support/token/test-user", user);
-    }
-
-    private static String fetchToken(String endpoint, String user) {
+    private static String fetchToken(String user) {
         SerenityRest.given()
             .accept("*/*")
             .header("X-User-Email", user)
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + endpoint);
+            .get(getTestUrl() + "/api/testing-support/token/user");
 
         then().assertThat().statusCode(200);
         return then().extract().body().jsonPath().getString("accessToken");
