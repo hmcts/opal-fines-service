@@ -13,6 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 
@@ -76,10 +77,19 @@ class BusinessUnitServiceTest {
     void testBusinessUnitsReferenceData() {
         // Arrange
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
-        when(ffq.as(any())).thenReturn(ffq);
         when(ffq.sortBy(any())).thenReturn(ffq);
 
-        BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder().build();
+        BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder()
+            .businessUnitId((short)3)
+            .businessUnitName("Big Business Unit")
+            .welshLanguage(true)
+            .configurationItems(List.of(
+                ConfigurationItemEntity.builder()
+                    .itemName("A Config Item")
+                    .itemValue("A value")
+                    .itemValues(List.of("Item Values One", "Item Values Two"))
+                    .build()))
+            .build();
         Page<BusinessUnitEntity> mockPage = new PageImpl<>(List.of(businessUnitEntity), Pageable.unpaged(), 999L);
         when(businessUnitRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
@@ -90,7 +100,10 @@ class BusinessUnitServiceTest {
         List<BusinessUnitReferenceData> result = businessUnitService.getReferenceData(Optional.empty());
 
         // Assert
-        assertEquals(List.of(businessUnitEntity), result);
+        assertEquals(List.of(new BusinessUnitReferenceData(
+            (short)3, "Big Business Unit", null, null, null,
+            null, Boolean.TRUE, List.of(new BusinessUnitReferenceData.ConfigItemRefData(
+                "A Config Item", "A value", List.of("Item Values One", "Item Values Two"))))), result);
 
     }
 

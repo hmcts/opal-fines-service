@@ -13,9 +13,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
+
+import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
@@ -164,47 +167,20 @@ class BusinessUnitControllerIntegrationTest {
             .accountNumberPrefix("XX")
             .parentBusinessUnit(BusinessUnitEntity.builder().businessUnitId((short)99).build())
             .opalDomain("Fines")
+            .welshLanguage(null)
+            .configurationItems(List.of(
+                ConfigurationItemEntity.builder()
+                    .itemName("Config Item Name")
+                    .itemValue("Config Item Value")
+                    .itemValues(List.of("Config Item Values 1", "Config Item Values 2"))
+                    .build()))
             .build();
     }
 
     private BusinessUnitReferenceData createBusinessUnitRefData() {
-        return new BusinessUnitReferenceData() {
-
-            @Override
-            public Short getBusinessUnitId() {
-                return (short)1;
-            }
-
-            @Override
-            public String getBusinessUnitName() {
-                return "Business Unit 001";
-            }
-
-            @Override
-            public String getBusinessUnitCode() {
-                return "AAAA";
-            }
-
-            @Override
-            public String getBusinessUnitType() {
-                return "LARGE UNIT";
-            }
-
-            @Override
-            public String getAccountNumberPrefix() {
-                return "XX";
-            }
-
-            @Override
-            public String getOpalDomain() {
-                return "Fines";
-            }
-
-            @Override
-            public Boolean getWelshLanguage() {
-                return null;
-            }
-        };
+        return new BusinessUnitReferenceData(
+            (short)1, "Business Unit 001", "AAAA", "LARGE UNIT",
+            "XX", "Fines", null, null);
     }
 
     private class TestUserRoles implements UserState.UserRoles {
