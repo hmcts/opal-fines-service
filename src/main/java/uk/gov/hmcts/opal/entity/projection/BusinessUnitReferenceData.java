@@ -2,19 +2,30 @@ package uk.gov.hmcts.opal.entity.projection;
 
 import uk.gov.hmcts.opal.entity.BusinessUnitRef;
 
-public interface BusinessUnitReferenceData extends BusinessUnitRef {
+import java.util.List;
 
-    Short getBusinessUnitId();
+public record BusinessUnitReferenceData(Short businessUnitId,
 
-    String getBusinessUnitName();
+    String businessUnitName,
 
-    String getBusinessUnitCode();
+    String businessUnitCode,
 
-    String getBusinessUnitType();
+    String businessUnitType,
 
-    String getAccountNumberPrefix();
+    String accountNumberPrefix,
 
-    String getOpalDomain();
+    String opalDomain,
 
-    Boolean getWelshLanguage();
+    Boolean welshLanguage,
+
+    List<ConfigItemRefData> configurationItems
+) implements BusinessUnitRef {
+
+    @Override
+    public Short getBusinessUnitId() {
+        return businessUnitId;
+    }
+
+    public record ConfigItemRefData(String itemName, String itemValue, List<String> itemValues) {}
+
 }

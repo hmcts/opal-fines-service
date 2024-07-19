@@ -6,6 +6,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -39,8 +41,9 @@ public class ConfigurationItemEntity {
     @Column(name = "item_name", length = 50, nullable = false)
     private String itemName;
 
-    @Column(name = "business_unit_id")
-    private Short businessUnitId;
+    @ManyToOne
+    @JoinColumn(name = "business_unit_id", updatable = false)
+    private BusinessUnitEntity businessUnit;
 
     @Column(name = "item_value")
     private String itemValue;

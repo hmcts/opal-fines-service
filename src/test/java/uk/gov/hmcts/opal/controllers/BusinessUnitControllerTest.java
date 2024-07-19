@@ -150,42 +150,12 @@ class BusinessUnitControllerTest {
     }
 
     private BusinessUnitReferenceData createBusinessUnitReferenceData() {
-        return new BusinessUnitReferenceData() {
-            @Override
-            public Short getBusinessUnitId() {
-                return (short)1;
-            }
-
-            @Override
-            public String getBusinessUnitName() {
-                return "Main BU";
-            }
-
-            @Override
-            public String getBusinessUnitCode() {
-                return "MNBU";
-            }
-
-            @Override
-            public String getBusinessUnitType() {
-                return "Big";
-            }
-
-            @Override
-            public String getAccountNumberPrefix() {
-                return "Prefix";
-            }
-
-            @Override
-            public String getOpalDomain() {
-                return "Domain";
-            }
-
-            @Override
-            public Boolean getWelshLanguage() {
-                return null;
-            }
-        };
+        return new BusinessUnitReferenceData(
+            (short)1, "Main BU", "MNBU", "Big",
+            "Prefix", "Domain", null, List.of(
+                new BusinessUnitReferenceData.ConfigItemRefData("Item Name", "Item Value",
+                                                                List.of("value 1", "value 2"))
+        ));
 
     }
 

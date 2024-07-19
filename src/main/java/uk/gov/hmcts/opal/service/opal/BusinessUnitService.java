@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity_;
+import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs;
@@ -47,13 +48,38 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, BusinessUnitEntity_.BUSINESS_UNIT_NAME);
 
-        Page<BusinessUnitReferenceData> page = businessUnitRepository
+        Page<BusinessUnitEntity> page = businessUnitRepository
             .findBy(specs.referenceDataFilter(filter),
                     ffq -> ffq
                         .sortBy(nameSort)
-                        .as(BusinessUnitReferenceData.class)
                         .page(Pageable.unpaged()));
 
-        return page.getContent();
+        return page.getContent().stream().map(this::toRefData).toList();
     }
+
+    private BusinessUnitReferenceData toRefData(BusinessUnitEntity entity) {
+        return new BusinessUnitReferenceData(
+            entity.getBusinessUnitId(),
+            entity.getBusinessUnitName(),
+            entity.getBusinessUnitCode(),
+            entity.getBusinessUnitType(),
+            entity.getAccountNumberPrefix(),
+            entity.getOpalDomain(),
+            entity.getWelshLanguage(),
+            toRefData(entity.getConfigurationItems())
+        );
+    }
+
+    private List<BusinessUnitReferenceData.ConfigItemRefData> toRefData(List<ConfigurationItemEntity> list) {
+        return Optional.ofNullable(list).map(items -> items.stream().map(this::toRefData).toList()).orElse(null);
+    }
+
+    private BusinessUnitReferenceData.ConfigItemRefData toRefData(ConfigurationItemEntity entity) {
+        return new BusinessUnitReferenceData.ConfigItemRefData(
+            entity.getItemName(),
+            entity.getItemValue(),
+            entity.getItemValues()
+        );
+    }
+
 }
