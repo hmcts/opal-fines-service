@@ -27,7 +27,7 @@ module "opal-fines-db" {
 
   pgsql_databases = [
     {
-      name: local.db_name
+      name : local.db_name
     }
   ]
 
