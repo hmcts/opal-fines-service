@@ -2,6 +2,10 @@ java:
   # Don't modify below here
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
+  devmemoryRequests: "1Gi"
+  devcpuRequests: "250m"
+  devmemoryLimits: "2Gi"
+  devcpuLimits: "2500m"
   keyVaults:
     opal:
       secrets:
