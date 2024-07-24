@@ -27,7 +27,7 @@ FOR bus_units IN
   SELECT buu.business_unit_user_id AS bu_user_id
     FROM users u 
     JOIN business_unit_users buu ON u.user_id = buu.user_id
-   WHERE u.user_id <> '500000000'
+   WHERE u.user_id <> '500000001'
 LOOP
  INSERT into user_entitlements VALUES (user_ent_id, bus_units.bu_user_id, 500);
  user_ent_id = user_ent_id + 1;
