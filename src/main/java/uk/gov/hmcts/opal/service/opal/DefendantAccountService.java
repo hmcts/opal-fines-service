@@ -87,6 +87,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.info(":searchDefendantAccounts: criteria: {}", accountSearchDto.toJson());
 
+        // TODO - 25/06/2024 - remove this Disco+ 'test' code soon?
         if ("test".equalsIgnoreCase(accountSearchDto.getCourt())) {
 
             try (InputStream in = Thread.currentThread().getContextClassLoader()
@@ -118,7 +119,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
     public AccountDetailsDto getAccountDetailsByDefendantAccountId(Long defendantAccountId) {
 
-
+        // TODO - 25/06/2024 - remove this Disco+ 'test' code soon?
         if (defendantAccountId.equals(0L)) {
 
 
