@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.authorisation.model;
 public enum Permissions {
     ACCOUNT_ENQUIRY(54, "Account Enquiry"),
     ACCOUNT_ENQUIRY_NOTES(41, "Account Enquiry - Account Notes"),
+    COLLECTION_ORDER(500, "Collection Order"),
     MANUAL_ACCOUNT_CREATION(35, "Manual Account Creation");
 
     public final long id;
