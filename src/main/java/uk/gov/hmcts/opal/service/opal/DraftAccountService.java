@@ -37,4 +37,8 @@ public class DraftAccountService implements DraftAccountServiceInterface {
         return page.getContent();
     }
 
+    public DraftAccountEntity saveDraftAccount(DraftAccountEntity entity) {
+        return draftAccountRepository.save(entity);
+    }
+
 }
