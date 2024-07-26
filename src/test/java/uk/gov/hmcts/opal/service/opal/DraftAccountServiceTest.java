@@ -69,4 +69,18 @@ class DraftAccountServiceTest {
 
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    void testSaveDraftAccounts() {
+        // Arrange
+        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
+
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(draftAccountEntity);
+
+        // Act
+        DraftAccountEntity result = draftAccountService.saveDraftAccount(draftAccountEntity);
+
+        // Assert
+        assertEquals(draftAccountEntity, result);
+    }
 }

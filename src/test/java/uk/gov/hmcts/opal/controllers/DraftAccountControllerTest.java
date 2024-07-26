@@ -68,4 +68,21 @@ class DraftAccountControllerTest {
         assertEquals(draftAccountList, response.getBody());
         verify(draftAccountService, times(1)).searchDraftAccounts(any());
     }
+
+    @Test
+    void testSaveDraftAccounts_Success() {
+        // Arrange
+        DraftAccountEntity entity = DraftAccountEntity.builder().build();
+
+        when(draftAccountService.saveDraftAccount(any())).thenReturn(entity);
+
+        // Act
+        ResponseEntity<DraftAccountEntity> response = draftAccountController.postDraftAccount(
+            entity, BEARER_TOKEN);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(entity, response.getBody());
+        verify(draftAccountService, times(1)).saveDraftAccount(any());
+    }
 }

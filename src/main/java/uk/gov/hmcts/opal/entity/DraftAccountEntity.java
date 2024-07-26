@@ -43,11 +43,11 @@ public class DraftAccountEntity {
     @JoinColumn(name = "business_unit_id", nullable = false)
     private BusinessUnitEntity businessUnit;
 
-    @Column(name = "created_date")
+    @Column(name = "created_date", nullable = false)
     @Temporal(TemporalType.DATE)
     private LocalDate createdDate;
 
-    @Column(name = "created_by", length = 20)
+    @Column(name = "created_by", length = 20, nullable = false)
     private String createdBy;
 
     @ManyToOne
@@ -65,24 +65,24 @@ public class DraftAccountEntity {
     @JoinColumn(name = "validated_by_user_id")
     private UserEntity validatedByUser;
 
-    @Column(name = "account", columnDefinition = "json")
+    @Column(name = "account", columnDefinition = "json", nullable = false)
     @JsonRawValue
     private String account;
 
-    @Column(name = "account_summary_data", columnDefinition = "json")
+    @Column(name = "account_type", length = 30, nullable = false)
+    private String accountType;
+
+    @Column(name = "account_id")
+    private Long accountId;
+
+    @Column(name = "account_summary_data", columnDefinition = "json", nullable = false)
     @JsonRawValue
     private String accountSummaryData;
 
-    @Column(name = "account_type", length = 30)
-    private String accountType;
-
-    @Column(name = "account_status")
+    @Column(name = "account_status", length = 30, nullable = false)
     private String accountStatus;
 
     @Column(name = "status_reason", columnDefinition = "json")
     @JsonRawValue
-    private String statusReason;
-
-    @Column(name = "account_id")
-    private Long accountId;
+    private String timelineData;
 }

@@ -64,4 +64,16 @@ public class DraftAccountController {
         return buildResponse(response);
     }
 
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Creates a Draft Account entity in the DB based upon data in request body")
+    public ResponseEntity<DraftAccountEntity> postDraftAccount(@RequestBody DraftAccountEntity entity,
+                                                         @RequestHeader("Authorization") String authHeaderValue) {
+        log.info(":POST:postDraftAccount: creating a new draft account entity.");
+
+        userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        DraftAccountEntity response = opalDraftAccountService.saveDraftAccount(entity);
+
+        return buildResponse(response);
+    }
 }
