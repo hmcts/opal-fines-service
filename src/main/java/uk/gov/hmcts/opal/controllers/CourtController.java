@@ -50,7 +50,7 @@ public class CourtController {
     @GetMapping(value = "/{courtId}")
     @Operation(summary = "Returns the court for the given courtId.")
     public ResponseEntity<CourtEntity> getCourtById(@PathVariable Long courtId,
-                                                    @RequestHeader("Authorization") String authHeaderValue) {
+              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.info(":GET:getCourtById: courtId: {}", courtId);
 
@@ -64,7 +64,7 @@ public class CourtController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches courts based upon criteria in request body")
     public ResponseEntity<List<CourtEntity>> postCourtsSearch(@RequestBody CourtSearchDto criteria,
-                                                              @RequestHeader("Authorization") String authHeaderValue) {
+                  @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.info(":POST:postCourtsSearch: query: \n{}", criteria);
 
         userStateService.checkForAuthorisedUser(authHeaderValue);

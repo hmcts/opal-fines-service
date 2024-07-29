@@ -47,7 +47,7 @@ public class NoteController {
     @Operation(summary = "Creates a new note in the Opal Fines Notes table assigning an ID.")
     public ResponseEntity<NoteDto> createNote(
         @RequestBody NoteDto noteDto,
-        @RequestHeader("Authorization") String authHeaderValue) {
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.info(":POST:createNote: {}", noteDto.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
