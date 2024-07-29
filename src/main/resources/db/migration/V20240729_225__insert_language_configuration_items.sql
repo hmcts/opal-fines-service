@@ -113,37 +113,3 @@ VALUES
 ,'W'
 ,NULL
 );
-
-INSERT INTO configuration_items
-(
- configuration_item_id	         
-,item_name                 
-,business_unit_id          
-,item_value                          
-,item_values                     
-)
-VALUES
-(
- 500000007
-,'DEFAULT_DOCUMENT_LANGUAGE_PREFERENCE'
-,85     -- this is business_unit for South Wales
-,'W'
-,NULL
-);
-
-INSERT INTO configuration_items
-(
- configuration_item_id	         
-,item_name                 
-,business_unit_id          
-,item_value                          
-,item_values                     
-)
-VALUES
-(
- 500000008
-,'DEFAULT_HEARING_LANGUAGE_PREFERENCE'
-,85
-,'W'
-,NULL
-);
