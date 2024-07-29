@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.authentication.client;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.authentication.model.AccessTokenRequest;
 
 
+@Slf4j(topic = "AzureTokenClient")
 @Service
 @RequiredArgsConstructor
 public class AzureTokenClient {
@@ -28,6 +30,8 @@ public class AzureTokenClient {
         body.add("scope", request.getScope());
         body.add("username", request.getUsername());
         body.add("password", request.getPassword());
+
+        log.info(":getAccessToken:");
 
         ResponseEntity<AccessTokenResponse> response = restClient
             .post()
