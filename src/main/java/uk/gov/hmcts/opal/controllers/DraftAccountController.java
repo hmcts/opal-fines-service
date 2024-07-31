@@ -40,7 +40,7 @@ public class DraftAccountController {
     @GetMapping(value = "/{draftAccountId}")
     @Operation(summary = "Returns the Draft Account for the given draftAccountId.")
     public ResponseEntity<DraftAccountEntity> getDraftAccountById(@PathVariable Long draftAccountId,
-                                                    @RequestHeader("Authorization") String authHeaderValue) {
+                  @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
 
         log.info(":GET:getDraftAccountById: draftAccountId: {}", draftAccountId);
 
@@ -54,7 +54,7 @@ public class DraftAccountController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Draft Accounts based upon criteria in request body")
     public ResponseEntity<List<DraftAccountEntity>> postDraftAccountsSearch(@RequestBody DraftAccountSearchDto criteria,
-                                                              @RequestHeader("Authorization") String authHeaderValue) {
+                @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.info(":POST:postDraftAccountsSearch: query: \n{}", criteria);
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
@@ -67,7 +67,7 @@ public class DraftAccountController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Creates a Draft Account entity in the DB based upon data in request body")
     public ResponseEntity<DraftAccountEntity> postDraftAccount(@RequestBody DraftAccountEntity entity,
-                                                         @RequestHeader("Authorization") String authHeaderValue) {
+                              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.info(":POST:postDraftAccount: creating a new draft account entity.");
 
         userStateService.checkForAuthorisedUser(authHeaderValue);

@@ -64,7 +64,7 @@ public class DefendantAccountController {
     public ResponseEntity<DefendantAccountEntity> getDefendantAccount(
         @RequestParam(name = "businessUnitId") Short businessUnitId,
         @RequestParam(name = "accountNumber") String accountNumber,
-        @RequestHeader("Authorization") String authHeaderValue) {
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         AccountEnquiryDto enquiryDto = AccountEnquiryDto.builder()
             .businessUnitId(businessUnitId)
@@ -80,7 +80,7 @@ public class DefendantAccountController {
     @Operation(summary = "Updates defendant account information")
     public ResponseEntity<DefendantAccountEntity> putDefendantAccount(
         @RequestBody DefendantAccountEntity defendantAccountEntity,
-        @RequestHeader("Authorization") String authHeaderValue) {
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         DefendantAccountEntity response = defendantAccountService.putDefendantAccount(defendantAccountEntity);
 
@@ -90,7 +90,7 @@ public class DefendantAccountController {
     @GetMapping(value = "/{defendantAccountId}")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     public ResponseEntity<AccountDetailsDto> getAccountDetails(@PathVariable Long defendantAccountId,
-                                                               @RequestHeader("Authorization") String authHeaderValue) {
+                     @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(defendantAccountId);
 
@@ -101,7 +101,7 @@ public class DefendantAccountController {
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
     public ResponseEntity<AccountSearchResultsDto> postDefendantAccountSearch(
         @RequestBody AccountSearchDto accountSearchDto,
-        @RequestHeader("Authorization") String authHeaderValue) {
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.info(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
         AccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
@@ -113,7 +113,7 @@ public class DefendantAccountController {
     @Operation(summary = "Adds a single note associated with the defendant account")
     public ResponseEntity<NoteDto> addNote(
         @RequestBody AddNoteDto addNote,
-        @RequestHeader("Authorization") String authHeaderValue) {
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
@@ -142,7 +142,7 @@ public class DefendantAccountController {
     @Operation(summary = "Returns all notes for an associated defendant account id.")
     public ResponseEntity<List<NoteDto>> getNotesForDefendantAccount(
         @PathVariable String defendantId,
-        @RequestHeader("Authorization") String authHeaderValue) {
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.info(":GET:getNotesForDefendantAccount: defendant account id: {}", defendantId);
 

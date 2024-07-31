@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 import static uk.gov.hmcts.opal.authorisation.aspect.AuthorizationAspectService.AUTHORIZATION;
 
 @Component
-@Slf4j
+@Slf4j(topic = "UserStateAspectService")
 @RequiredArgsConstructor
 public class UserStateAspectService {
 
@@ -29,12 +29,14 @@ public class UserStateAspectService {
      * @return UserState object for the user
      */
     public UserState getUserState(ProceedingJoinPoint joinPoint) {
+        log.info(":getUserState:");
         return authorizationAspectService.getUserState(joinPoint.getArgs())
             .orElseGet(getUserStateSupplier(joinPoint));
     }
 
     public Supplier<UserState> getUserStateSupplier(ProceedingJoinPoint joinPoint) {
         return () -> {
+            log.info(":getUserStateSupplier:");
             String authHeaderValue = authorizationAspectService.getAccessTokenParam(joinPoint).orElse(null);
             String bearerToken = authorizationAspectService.getAuthorization(authHeaderValue)
                 .orElseThrow(() -> new MissingRequestHeaderException(AUTHORIZATION));
