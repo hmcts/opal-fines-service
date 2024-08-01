@@ -7,7 +7,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -41,7 +40,7 @@ public class PrintJob {
     @Column(name = "job_uuid", nullable = false)
     private UUID jobId;
 
-    @Lob
+
     @Column(name = "xml_data", nullable = false)
     private String xmlData;
 

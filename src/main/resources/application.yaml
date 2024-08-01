@@ -164,3 +164,7 @@ opal:
 
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}
+
+printservice:
+  maxRetries: 3
+  pageSize: 100

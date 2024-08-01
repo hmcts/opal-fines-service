@@ -1,0 +1,103 @@
+{
+	"info": {
+		"_postman_id": "47e7c899-66b9-485a-bf81-13002887dbc6",
+		"name": "Opal Print Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1068308"
+	},
+	"item": [
+		{
+			"name": "generate-pdf",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>John Doe</name><accountNumber>123456789</accountNumber><balance>501.55</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n}\n"
+				},
+				"url": {
+					"raw": "http://localhost:4550/api/print/generate-pdf",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4550",
+					"path": [
+						"api",
+						"print",
+						"generate-pdf"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "enqueue-print-jobs",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\n  {\n    \"xmlData\": \"This one should fail\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Bob Brown</name><accountNumber>112233445</accountNumber><balance>250.00</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Alice Green</name><accountNumber>556677889</accountNumber><balance>799.99</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Charlie Black</name><accountNumber>223344556</accountNumber><balance>1240.50</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Emma White</name><accountNumber>667788990</accountNumber><balance>645.25</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Liam Grey</name><accountNumber>334455667</accountNumber><balance>320.75</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Olivia Brown</name><accountNumber>445566778</accountNumber><balance>510.65</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Noah Blue</name><accountNumber>223344556</accountNumber><balance>985.20</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Ava Red</name><accountNumber>778899001</accountNumber><balance>450.10</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>William Green</name><accountNumber>112233445</accountNumber><balance>702.95</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Sophia Violet</name><accountNumber>667788990</accountNumber><balance>250.50</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>James Yellow</name><accountNumber>334455667</accountNumber><balance>890.30</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Isabella Orange</name><accountNumber>445566778</accountNumber><balance>395.75</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Benjamin Pink</name><accountNumber>223344556</accountNumber><balance>980.00</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Mia Purple</name><accountNumber>778899001</accountNumber><balance>215.80</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Lucas Grey</name><accountNumber>112233445</accountNumber><balance>467.35</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Amelia White</name><accountNumber>667788990</accountNumber><balance>730.15</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Henry Black</name><accountNumber>334455667</accountNumber><balance>1005.25</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  },\n  {\n    \"xmlData\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?><fine><name>Emily Brown</name><accountNumber>445566778</accountNumber><balance>589.45</balance></fine>\",\n    \"docType\": \"TEST_PDF_definition_id\",\n    \"docVersion\": \"test_version_1\"\n  }\n]\n\n\n"
+				},
+				"url": {
+					"raw": "http://localhost:4550/api/print/enqueue-print-jobs",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4550",
+					"path": [
+						"api",
+						"print",
+						"enqueue-print-jobs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "process-pending-jobs",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"info\": {\n    \"general\": {\n      \"version\": \"00_1\",\n      \"docref\": \"AAA\"\n    }\n  },\n  \"data\": {\n    \"job\": {\n      \"division\": \"MinimalDivision\",\n      \"accountnumber\": \"000001\",\n      \"casenumber\": \"CASE-00001\",\n      \"dob\": \"1990-01-01\",\n      \"defendantname\": \"John Doe\",\n      \"sex\": \"Male\",\n      \"amountoutstanding\": \"£100.00\",\n      \"defendantindefault\": \"No\",\n      \"dateproduced\": \"2024-04-09\",\n      \"dateoforder\": \"2024-03-01\",\n      \"defendantaddress\": {\n        \"street\": \"123 Minimal St\",\n        \"city\": \"Minimal City\",\n        \"postalCode\": \"M1234\"\n      },\n      \"jobcentreaddress\": {\n        \"name\": \"Minimal Job Centre\",\n        \"address\": {\n          \"street\": \"456 Minimal St\",\n          \"city\": \"Job Centre City\",\n          \"postalCode\": \"JC123\"\n        }\n      }\n    }\n  }\n}\n"
+				},
+				"url": {
+					"raw": "http://localhost:4550/api/print/process-pending-jobs",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4550",
+					"path": [
+						"api",
+						"print",
+						"process-pending-jobs"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

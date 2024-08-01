@@ -35,6 +35,7 @@ public class DatabaseConfiguration {
     }
 
     @Bean
+    @Primary
     public PlatformTransactionManager transactionManager(
         TransactionAwareDataSourceProxy transactionAwareDataSourceProxy
     ) {
