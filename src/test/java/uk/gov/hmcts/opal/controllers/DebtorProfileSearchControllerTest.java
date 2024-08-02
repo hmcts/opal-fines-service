@@ -1,27 +1,17 @@
 package uk.gov.hmcts.opal.controllers;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.OpalS2SRequestWrapper;
 import uk.gov.hmcts.opal.dto.OpalS2SResponseWrapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+
 class DebtorProfileSearchControllerTest {
 
-    @Mock
-    private DebtorProfileSearchController debtorProfileSearchController;
-
-    @InjectMocks
-    private DebtorProfileSearchControllerTest debtorProfileSearchControllerTest;
+    private DebtorProfileSearchController debtorProfileSearchController = new DebtorProfileSearchController();
 
     @Test
     void testSearchDebtorProfile_Success() {
@@ -59,7 +49,9 @@ class DebtorProfileSearchControllerTest {
                                         <BalanceOutstanding>1000.00</BalanceOutstanding>
                                         <CollectionOrderMade>Y</CollectionOrderMade>
                                         <PaymentTerms>Monthly</PaymentTerms>
-                                        <AmountImposed>1500.00</AmountPaid>500.00<DaysInDefault>30</DaysInDefault>
+                                        <AmountImposed>1500.00</AmountImposed>
+                                        <AmountPaid>500.00</AmountPaid>
+                                        <DaysInDefault>30</DaysInDefault>
                                         <MasterAccount>N</MasterAccount>
                                         <OriginatingCT>CT123</OriginatingCT>
                                         <ParentGuardianFlag>N</ParentGuardianFlag>
@@ -86,9 +78,6 @@ class DebtorProfileSearchControllerTest {
             .build();
 
         ResponseEntity<OpalS2SResponseWrapper> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);
-
-        when(debtorProfileSearchController.searchDebtorProfile(any(OpalS2SRequestWrapper.class)))
-            .thenReturn(responseEntity);
 
         // Act
         ResponseEntity<OpalS2SResponseWrapper> actualResponse = debtorProfileSearchController
