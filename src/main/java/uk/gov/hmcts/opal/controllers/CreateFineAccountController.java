@@ -30,10 +30,10 @@ public class CreateFineAccountController {
 
     private String responseXML = """
         <?xml version="1.0" encoding="UTF-8"?>
-                                <CreateFineAccountsResponse xmlns="http://www.justice.gov.uk/magistrates/atcm/CreateFineAccountsResponse"
-                                                            xmlns:lg="http://www.justice.gov.uk/magistrates/atcm/CreatedFineAccount">
+                                <CreateFineAccountsResponse
+                                xmlns="http://www.justice.gov.uk/magistrates/atcm/CreateFineAccountsResponse"
+                                xmlns:lg="http://www.justice.gov.uk/magistrates/atcm/CreatedFineAccount">
                                     <lg:CreatedFineAccount>
-                                        <!-- Details of a fine account can be included here, according to the structure defined in CreatedFineAccount.xsd -->
                                         <AccountID>12345</AccountID>
                                         <FineAmount>100.00</FineAmount>
                                         <DueDate>2024-09-01</DueDate>
