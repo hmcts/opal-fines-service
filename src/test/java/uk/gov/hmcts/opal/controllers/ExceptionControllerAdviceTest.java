@@ -5,9 +5,11 @@ import org.htmlunit.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
@@ -34,7 +36,8 @@ class ExceptionControllerAdviceTest {
     @Test
     void handleHttpMessageNotReadableException() {
         // Arrange
-        HttpMessageNotReadableException hmnre = new HttpMessageNotReadableException("A Test Message");
+        HttpInputMessage input = Mockito.mock(HttpInputMessage.class);
+        HttpMessageNotReadableException hmnre = new HttpMessageNotReadableException("A Test Message", input);
         // Act
         ResponseEntity<Map<String, String>> response = exceptionControllerAdvice
             .handleHttpMessageNotReadableException(hmnre);

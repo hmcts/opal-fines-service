@@ -16,11 +16,13 @@ import java.util.Map;
 @Slf4j(topic = "ExceptionControllerAdvice")
 public class ExceptionControllerAdvice {
 
+    public static final String ERROR_MESSAGE = "errorMessage";
+
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> handlePropertyValueException(PropertyValueException pve) {
         log.error(":handlePropertyValueException: {}", pve.getMessage());
         Map<String, String> body = Map.of(
-            "errorMessage", pve.getMessage(),
+            ERROR_MESSAGE, pve.getMessage(),
             "entity", pve.getEntityName(),
             "property", pve.getPropertyName()
         );
@@ -33,7 +35,7 @@ public class ExceptionControllerAdvice {
 
         log.error(":handleHttpMessageNotReadableException: {}", hmnre.getMessage());
         Map<String, String> body = Map.of(
-            "errorMessage", hmnre.getMessage()
+            ERROR_MESSAGE, hmnre.getMessage()
         );
         return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body(body);
     }
@@ -44,7 +46,7 @@ public class ExceptionControllerAdvice {
 
         log.error(":handleInvalidDataAccessApiUsageException: {}", idaaue.getMessage());
         Map<String, String> body = Map.of(
-            "errorMessage", idaaue.getMessage()
+            ERROR_MESSAGE, idaaue.getMessage()
         );
         return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body(body);
     }
@@ -57,7 +59,7 @@ public class ExceptionControllerAdvice {
         log.error(":handleInvalidDataAccessApiUsageException:", idarue.getRootCause());
 
         Map<String, String> body = Map.of(
-            "errorMessage", idarue.getMessage()
+            ERROR_MESSAGE, idarue.getMessage()
         );
         return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body(body);
     }
