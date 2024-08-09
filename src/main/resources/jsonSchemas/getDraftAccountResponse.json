@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "draft_account_id": {
+      "type": "integer",
+      "format": "int64",
+      "description": "Unique ID for the Draft Account - System generated (BE)"
+    },
+    "business_unit_id": {
+      "type": "integer",
+      "format": "int32",
+      "description": "ID of the Business Unit the Draft Account belongs to"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date the Draft Account was created (first submitted) - System generated (BE)"
+    },
+    "submitted_by": {
+      "type": "string",
+      "description": "ID of the User that last submitted the Draft Account for checking"
+    },
+    "validated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "[Optional] Date the Draft Account was validated - System generated (BE)"
+    },
+    "validated_by": {
+      "type": "string",
+      "description": "[Optional] ID of the User that validated the Draft Account"
+    },
+    "account": {
+      "type": "string",
+      "description": "The structured Account data (JSON)"
+    },
+    "account_snapshot": {
+      "type": "string",
+      "description": "Summary business data to identify the Account - System generated (BE) from Account data (JSON)"
+    },
+    "account_type": {
+      "type": "string",
+      "description": "Type of Account, such as Fixed Penalty Registration"
+    },
+    "account_status": {
+      "type": "string",
+      "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
+    },
+    "timeline_data": {
+      "type": "string",
+      "description": "Status changes to the Draft Account in chronological order (JSON Array) - System generated (UI)"
+    },
+    "account_number": {
+      "type": "string",
+      "description": "[Optional] The Opal Account Number (2char letter code+account number) created on validation - System generated (BE)"
+    },
+    "account_id": {
+      "type": "integer",
+      "format": "int64",
+      "description": "[Optional] Opal Account ID created on validation - System generated (BE)"
+    }
+  },
+  "required": [
+    "draft_account_id",
+    "business_unit_id",
+    "created_at",
+    "submitted_by",
+    "account",
+    "account_snapshot",
+    "account_type",
+    "account_status",
+    "timeline_data"
+  ]
+}

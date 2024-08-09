@@ -279,6 +279,8 @@ dependencies {
 
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.5.0'
 
+  implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.1');
+
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
   runtimeOnly 'org.flywaydb:flyway-database-postgresql:10.17.1'
