@@ -4,12 +4,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.dto.GetDraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
@@ -19,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.util.DateTimeUtils.toOffsetDateTime;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountControllerTest {
@@ -31,22 +36,28 @@ class DraftAccountControllerTest {
     @Mock
     private UserStateService userStateService;
 
+    @Spy
+    private JsonSchemaValidationService jsonSchemaValidationService;
+
     @InjectMocks
     private DraftAccountController draftAccountController;
 
     @Test
     void testGetDraftAccount_Success() {
         // Arrange
-        DraftAccountEntity entity = DraftAccountEntity.builder().build();
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().build())
+            .build();
 
         when(draftAccountService.getDraftAccount(any(Long.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<DraftAccountEntity> response = draftAccountController.getDraftAccountById(1L, BEARER_TOKEN);
+        ResponseEntity<GetDraftAccountResponseDto> response = draftAccountController
+            .getDraftAccountById(1L, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(entity, response.getBody());
+        assertEquals(toGetDto(entity), response.getBody());
         verify(draftAccountService, times(1)).getDraftAccount(any(Long.class));
     }
 
@@ -84,5 +95,23 @@ class DraftAccountControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
         verify(draftAccountService, times(1)).saveDraftAccount(any());
+    }
+
+    GetDraftAccountResponseDto toGetDto(DraftAccountEntity entity) {
+        return GetDraftAccountResponseDto.builder()
+            .draftAccountId(entity.getDraftAccountId())
+            .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
+            .createdDate(toOffsetDateTime(entity.getCreatedDate()))
+            .submittedBy(entity.getSubmittedBy())
+            .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
+            .validatedBy(entity.getValidatedBy())
+            .account(entity.getAccount())
+            .accountSnapshot(entity.getAccountSnapshot())
+            .accountType(entity.getAccountType())
+            .accountStatus(entity.getAccountStatus())
+            .timelineData(entity.getTimelineData())
+            .accountNumber(entity.getAccountNumber())
+            .accountId(entity.getAccountId())
+            .build();
     }
 }

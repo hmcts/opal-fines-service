@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,14 +14,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "draft-accounts")
@@ -44,28 +44,19 @@ public class DraftAccountEntity {
     private BusinessUnitEntity businessUnit;
 
     @Column(name = "created_date", nullable = false)
-    @Temporal(TemporalType.DATE)
-    private LocalDate createdDate;
+    private LocalDateTime createdDate;
 
-    @Column(name = "created_by", length = 20, nullable = false)
-    private String createdBy;
-
-    @ManyToOne
-    @JoinColumn(name = "created_by_user_id", nullable = false)
-    private UserEntity createdByUser;
+    @Column(name = "submitted_by", length = 20, nullable = false)
+    private String submittedBy;
 
     @Column(name = "validated_date")
-    @Temporal(TemporalType.DATE)
-    private LocalDate validatedDate;
+    private LocalDateTime validatedDate;
 
     @Column(name = "validated_by", length = 20)
     private String validatedBy;
 
-    @ManyToOne
-    @JoinColumn(name = "validated_by_user_id")
-    private UserEntity validatedByUser;
-
     @Column(name = "account", columnDefinition = "json", nullable = false)
+    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
     @JsonRawValue
     private String account;
 
@@ -75,14 +66,19 @@ public class DraftAccountEntity {
     @Column(name = "account_id")
     private Long accountId;
 
-    @Column(name = "account_summary_data", columnDefinition = "json", nullable = false)
+    @Column(name = "account_snapshot", columnDefinition = "json", nullable = false)
+    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
     @JsonRawValue
-    private String accountSummaryData;
+    private String accountSnapshot;
 
     @Column(name = "account_status", length = 30, nullable = false)
     private String accountStatus;
 
     @Column(name = "status_reason", columnDefinition = "json")
+    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
     @JsonRawValue
     private String timelineData;
+
+    @Column(name = "account_number", length = 25)
+    private String accountNumber;
 }

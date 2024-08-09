@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "test_long_id": {
+      "type": "integer",
+      "format": "int64"
+    },
+    "test_short_id": {
+      "type": "integer",
+      "format": "int32"
+    },
+    "test_date_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "test_text_1": {
+      "type": "string"
+    },
+    "test_text_2": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "test_long_id",
+    "test_short_id",
+    "test_date_time",
+    "test_text_1"
+  ]
+}

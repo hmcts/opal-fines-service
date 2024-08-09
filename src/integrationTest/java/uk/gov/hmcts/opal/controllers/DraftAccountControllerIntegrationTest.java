@@ -5,19 +5,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.time.LocalDate;
+import java.util.logging.Logger;
 
 import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -31,6 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class DraftAccountControllerIntegrationTest {
 
+    private static final Logger logger = Logger.getLogger(DraftAccountControllerIntegrationTest.class.getSimpleName());
+
     @Autowired
     MockMvc mockMvc;
 
@@ -41,21 +49,31 @@ class DraftAccountControllerIntegrationTest {
     @MockBean
     UserStateService userStateService;
 
+    @SpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
+
     @Test
     void testGetDraftAccountById() throws Exception {
         DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(draftAccountEntity);
 
-        mockMvc.perform(get("/api/draft-account/1")
+        MvcResult result = mockMvc.perform(get("/api/draft-account/1")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.draftAccountId").value(1))
-            .andExpect(jsonPath("$.businessUnit.businessUnitId").value(7))
-            .andExpect(jsonPath("$.accountType").value("DRAFT"))
-            .andExpect(jsonPath("$.createdBy").value("Tony"))
-            .andExpect(jsonPath("$.accountStatus").value("CREATED"));
+            .andExpect(jsonPath("$.draft_account_id").value(1))
+            .andExpect(jsonPath("$.business_unit_id").value(7))
+            .andExpect(jsonPath("$.account_type").value("DRAFT"))
+            .andExpect(jsonPath("$.submitted_by").value("Tony"))
+            .andExpect(jsonPath("$.account_status").value("CREATED"))
+            .andReturn();
+
+        String body = result.getResponse().getContentAsString();
+
+        logger.info(":testGetDraftAccountById: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        assertTrue(jsonSchemaValidationService.isValid(body, "getDraftAccountResponse.json"));
     }
 
 
@@ -83,7 +101,7 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(jsonPath("$[0].draftAccountId").value(1))
             .andExpect(jsonPath("$[0].businessUnit.businessUnitId").value(7))
             .andExpect(jsonPath("$[0].accountType").value("DRAFT"))
-            .andExpect(jsonPath("$[0].createdBy").value("Tony"))
+            .andExpect(jsonPath("$[0].submittedBy").value("Tony"))
             .andExpect(jsonPath("$[0].accountStatus").value("CREATED"));
     }
 
@@ -100,10 +118,13 @@ class DraftAccountControllerIntegrationTest {
         return DraftAccountEntity.builder()
             .draftAccountId(1L)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)007).build())
-            .createdDate(LocalDate.of(2023, 1, 2))
-            .createdBy("Tony")
+            .createdDate(LocalDate.of(2023, 1, 2).atStartOfDay())
+            .submittedBy("Tony")
             .accountType("DRAFT")
             .accountStatus("CREATED")
+            .account("{}")
+            .accountSnapshot("{}")
+            .timelineData("{}")
             .build();
     }
 }

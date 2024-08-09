@@ -23,7 +23,11 @@ public interface ToJsonString {
     }
 
     default String toPrettyJsonString() throws JsonProcessingException {
-        return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+        return toPrettyJsonString(this);
+    }
+
+    static String toPrettyJsonString(Object original) throws JsonProcessingException {
+        return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(original);
     }
 
     default String toPrettyJson() {
@@ -34,8 +38,20 @@ public interface ToJsonString {
         }
     }
 
+    static String toPrettyJson(String json) {
+        try {
+            return toPrettyJsonString(toJsonNode(json));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     default JsonNode toJsonNode() throws JsonProcessingException {
-        return OBJECT_MAPPER.readTree(this.toJsonString());
+        return toJsonNode(this.toJsonString());
+    }
+
+    static JsonNode toJsonNode(String json) throws JsonProcessingException {
+        return OBJECT_MAPPER.readTree(json);
     }
 
     static ObjectMapper getObjectMapper() {
