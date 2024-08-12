@@ -74,7 +74,6 @@ class DebtorProfileSearchControllerTest {
                         <ErrorMessage>Sample error message</ErrorMessage>
                     </DebtorProfileResponse>
                     """)
-            .errorDetail("")
             .build();
 
         ResponseEntity<OpalS2SResponseWrapper> responseEntity = new ResponseEntity<>(response, HttpStatus.OK);

@@ -15,15 +15,14 @@ import uk.gov.hmcts.opal.dto.OpalS2SResponseWrapper;
 @RequestMapping("/api/create-fine-accounts")
 @Slf4j(topic = "CreateFineAccountController")
 @Tag(name = "Create Fine Account Controller")
-public class CreateFineAccountController {
+public class CreateFineAccountsController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<OpalS2SResponseWrapper> searchDebtorProfile(OpalS2SRequestWrapper createFineAccountsRequest) {
+    public ResponseEntity<OpalS2SResponseWrapper> createFineAccounts(OpalS2SRequestWrapper createFineAccountsRequest) {
 
-        log.info(":POST:searchDebtorProfile: request: \n{}", createFineAccountsRequest);
+        log.info(":POST:createFineAccounts: request: \n{}", createFineAccountsRequest);
         OpalS2SResponseWrapper response = OpalS2SResponseWrapper.builder()
             .opalResponsePayload(responseXML)
-            .errorDetail("")
             .build();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -34,13 +33,12 @@ public class CreateFineAccountController {
                                 xmlns="http://www.justice.gov.uk/magistrates/atcm/CreateFineAccountsResponse"
                                 xmlns:lg="http://www.justice.gov.uk/magistrates/atcm/CreatedFineAccount">
                                     <lg:CreatedFineAccount>
-                                        <AccountID>12345</AccountID>
-                                        <FineAmount>100.00</FineAmount>
-                                        <DueDate>2024-09-01</DueDate>
+                                        <CPPID xmlns="">12345</CPPID>
+                                        <CPPUUID xmlns="">12345</CPPUUID>
                                     </lg:CreatedFineAccount>
-                                    <NumberOfFineAccounts>1</NumberOfFineAccounts>
-                                    <ErrorCode></ErrorCode>
-                                    <ErrorMessage></ErrorMessage>
+                                    <NumberOfFineAccounts xmlns="">1</NumberOfFineAccounts>
+                                    <ErrorCode xmlns=""></ErrorCode>
+                                    <ErrorMessage xmlns=""></ErrorMessage>
                                 </CreateFineAccountsResponse>
         """;
 

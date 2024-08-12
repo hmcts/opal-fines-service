@@ -23,7 +23,6 @@ public class DebtorProfileSearchController {
         log.info(":POST:searchDebtorProfile: request: \n{}", debtorProfileRequest);
         OpalS2SResponseWrapper response = OpalS2SResponseWrapper.builder()
             .opalResponsePayload(responseXML)
-            .errorDetail("")
             .build();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
