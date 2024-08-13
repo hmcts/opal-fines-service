@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import uk.gov.hmcts.opal.dto.OpalS2SResponseWrapper;
 public class CreateFineAccountsController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "cpp interface: creates fine accounts by criteria in request body xml.")
     public ResponseEntity<OpalS2SResponseWrapper> createFineAccounts(OpalS2SRequestWrapper createFineAccountsRequest) {
 
         log.info(":POST:createFineAccounts: request: \n{}", createFineAccountsRequest);
