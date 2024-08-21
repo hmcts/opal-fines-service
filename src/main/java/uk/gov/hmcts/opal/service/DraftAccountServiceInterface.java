@@ -10,4 +10,6 @@ public interface DraftAccountServiceInterface {
     DraftAccountEntity getDraftAccount(long draftAccountId);
 
     List<DraftAccountEntity> searchDraftAccounts(DraftAccountSearchDto criteria);
+
+
 }

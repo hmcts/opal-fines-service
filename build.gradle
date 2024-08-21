@@ -218,11 +218,11 @@ dependencyManagement {
   }
 
   imports {
-    mavenBom "org.springframework.integration:spring-integration-bom:6.3.2"
+    mavenBom "org.springframework.integration:spring-integration-bom:6.3.3"
   }
 
   dependencies {
-    dependency group: 'com.google.guava', name: 'guava', version: '33.2.1-jre'
+    dependency group: 'com.google.guava', name: 'guava', version: '33.3.0-jre'
   }
 }
 
@@ -238,7 +238,7 @@ repositories {
 
 ext {
   log4JVersion = "2.23.1"
-  serenityVersion = "4.1.20"
+  serenityVersion = "4.2.0"
 }
 
 ext['snakeyaml.version'] = '2.0'
@@ -263,7 +263,7 @@ dependencies {
   implementation group: 'org.springframework.integration', name: 'spring-integration-file'
 
 
-  implementation group: 'org.springframework.security', name: 'spring-security-oauth2-authorization-server', version: '1.3.1'
+  implementation group: 'org.springframework.security', name: 'spring-security-oauth2-authorization-server', version: '1.3.2'
 
   implementation group: 'org.springframework', name: 'spring-aspects'
 
@@ -275,9 +275,11 @@ dependencies {
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
-  implementation group: 'com.google.guava', name: 'guava', version: '33.2.1-jre'
+  implementation group: 'com.google.guava', name: 'guava', version: '33.3.0-jre'
 
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.5.0'
+
+  implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.1');
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
@@ -307,13 +309,13 @@ dependencies {
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:junit-jupiter:1.20.1'
   testImplementation 'org.testcontainers:postgresql'
-  testImplementation(platform('org.junit:junit-bom:5.10.3'))
+  testImplementation(platform('org.junit:junit-bom:5.11.0'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  testImplementation 'org.junit.platform:junit-platform-suite:1.10.3'
+  testImplementation 'org.junit.platform:junit-platform-suite:1.11.0'
   testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.18.1'
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"

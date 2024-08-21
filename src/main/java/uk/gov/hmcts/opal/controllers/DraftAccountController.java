@@ -12,13 +12,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.dto.GetDraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
+import java.util.Optional;
 
+import static uk.gov.hmcts.opal.util.DateTimeUtils.toOffsetDateTime;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
@@ -28,27 +32,32 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 @Tag(name = "DraftAccount Controller")
 public class DraftAccountController {
 
-    private final DraftAccountService opalDraftAccountService;
+    private final DraftAccountService draftAccountService;
 
     private final UserStateService userStateService;
 
-    public DraftAccountController(UserStateService userStateService, DraftAccountService opalDraftAccountService) {
-        this.opalDraftAccountService = opalDraftAccountService;
+    private final JsonSchemaValidationService jsonSchemaValidationService;
+
+    public DraftAccountController(UserStateService userStateService, DraftAccountService draftAccountService,
+                                  JsonSchemaValidationService jsonSchemaValidationService) {
+        this.draftAccountService = draftAccountService;
         this.userStateService = userStateService;
+        this.jsonSchemaValidationService = jsonSchemaValidationService;
     }
 
     @GetMapping(value = "/{draftAccountId}")
     @Operation(summary = "Returns the Draft Account for the given draftAccountId.")
-    public ResponseEntity<DraftAccountEntity> getDraftAccountById(@PathVariable Long draftAccountId,
-                  @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
+    public ResponseEntity<GetDraftAccountResponseDto> getDraftAccountById(
+        @PathVariable Long draftAccountId,
+        @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
 
         log.info(":GET:getDraftAccountById: draftAccountId: {}", draftAccountId);
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        DraftAccountEntity response = opalDraftAccountService.getDraftAccount(draftAccountId);
+        DraftAccountEntity response = draftAccountService.getDraftAccount(draftAccountId);
 
-        return buildResponse(response);
+        return buildResponse(Optional.ofNullable(response).map(this::toGetResponseDto).orElse(null));
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -59,7 +68,7 @@ public class DraftAccountController {
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        List<DraftAccountEntity> response = opalDraftAccountService.searchDraftAccounts(criteria);
+        List<DraftAccountEntity> response = draftAccountService.searchDraftAccounts(criteria);
 
         return buildResponse(response);
     }
@@ -72,8 +81,26 @@ public class DraftAccountController {
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        DraftAccountEntity response = opalDraftAccountService.saveDraftAccount(entity);
+        DraftAccountEntity response = draftAccountService.saveDraftAccount(entity);
 
         return buildResponse(response);
+    }
+
+    GetDraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
+        return GetDraftAccountResponseDto.builder()
+            .draftAccountId(entity.getDraftAccountId())
+            .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
+            .createdDate(toOffsetDateTime(entity.getCreatedDate()))
+            .submittedBy(entity.getSubmittedBy())
+            .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
+            .validatedBy(entity.getValidatedBy())
+            .account(entity.getAccount())
+            .accountSnapshot(entity.getAccountSnapshot())
+            .accountType(entity.getAccountType())
+            .accountStatus(entity.getAccountStatus())
+            .timelineData(entity.getTimelineData())
+            .accountNumber(entity.getAccountNumber())
+            .accountId(entity.getAccountId())
+            .build();
     }
 }
