@@ -110,8 +110,8 @@ public class DefendantAccountEntity {
     @Column(name = "originator_name", length = 100)
     private String originatorName;
 
-    @Column(name = "originator_reference", length = 40)
-    private String originatorReference;
+    @Column(name = "originator_id", length = 40)
+    private String originatorId;
 
     @Column(name = "originator_type", length = 10)
     private String originatorType;

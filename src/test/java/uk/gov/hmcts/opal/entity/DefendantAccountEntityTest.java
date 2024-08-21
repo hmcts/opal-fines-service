@@ -35,7 +35,7 @@ public class DefendantAccountEntityTest {
         defendantAccount.setLastEnforcement("123456");
         defendantAccount.setLastChangedDate(now);
         defendantAccount.setOriginatorName("name");
-        defendantAccount.setOriginatorReference("reference");
+        defendantAccount.setOriginatorId("reference");
         defendantAccount.setOriginatorType("type");
         defendantAccount.setAllowWriteoffs(true);
         defendantAccount.setAllowCheques(true);
@@ -77,7 +77,7 @@ public class DefendantAccountEntityTest {
         assertEquals("123456", defendantAccount.getLastEnforcement());
         assertEquals(now, defendantAccount.getLastChangedDate());
         assertEquals("name", defendantAccount.getOriginatorName());
-        assertEquals("reference", defendantAccount.getOriginatorReference());
+        assertEquals("reference", defendantAccount.getOriginatorId());
         assertEquals("type", defendantAccount.getOriginatorType());
         assertTrue(defendantAccount.isAllowWriteoffs());
         assertTrue(defendantAccount.isAllowCheques());
