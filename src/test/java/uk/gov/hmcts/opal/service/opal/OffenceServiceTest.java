@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.entity.OffenceEntity;
 import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -81,6 +82,9 @@ class OffenceServiceTest {
             .offenceId(1L)
             .cjsCode("NINE")
             .offenceTitle("Theft from a Palace")
+            .dateUsedFrom(LocalDateTime.of(1909,3,3,3,30))
+            .offenceOas("A")
+            .offenceOasCy("B")
             .build();
         Page<OffenceEntity> mockPage = new PageImpl<>(List.of(offenceEntity), Pageable.unpaged(), 999L);
         when(offenceRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
@@ -91,8 +95,11 @@ class OffenceServiceTest {
         // Act
         List<OffenceReferenceData> result = offenceService.getReferenceData(Optional.empty(), Optional.empty());
 
-        OffenceReferenceData refData = new OffenceReferenceData(1L, "NINE", null,
-                                                                "Theft from a Palace", null);
+        OffenceReferenceData refData =
+            new OffenceReferenceData(1L, "NINE", null, "Theft from a Palace",
+                                     null, LocalDateTime.of(1909, 3, 3, 3, 30),
+                                     null, "A", "B"
+            );
         // Assert
         assertEquals(List.of(refData), result);
 

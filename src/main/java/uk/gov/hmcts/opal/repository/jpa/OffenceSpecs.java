@@ -35,7 +35,6 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
         return Specification.allOf(specificationList(
             List.of(
                 filter.filter(s -> !s.isBlank()).map(OffenceSpecs::likeAnyOffence)),
-            usedToDateGreaterThenEqualToDate(LocalDateTime.now()),
             globalOrLocalOffence(businessUnitId)
         ));
     }
@@ -67,6 +66,13 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
     public static Specification<OffenceEntity> likeOffenceTitleCy(String offenceTitleCy) {
         return (root, query, builder) ->
             likeWildcardPredicate(root.get(OffenceEntity_.offenceTitleCy), builder, offenceTitleCy);
+    }
+
+    public static Specification<OffenceEntity> usedFromDateLessThenEqualToDate(LocalDateTime offenceStillValidDate) {
+        return (root, query, builder) -> builder.or(
+            builder.isNull(root.get(OffenceEntity_.dateUsedFrom)),
+            builder.lessThanOrEqualTo(root.get(OffenceEntity_.dateUsedFrom), offenceStillValidDate)
+        );
     }
 
     public static Specification<OffenceEntity> usedToDateGreaterThenEqualToDate(LocalDateTime offenceStillValidDate) {
