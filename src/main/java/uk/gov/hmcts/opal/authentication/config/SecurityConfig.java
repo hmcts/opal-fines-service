@@ -64,6 +64,7 @@ public class SecurityConfig {
         "/internal-user/logout",
         "/internal-user/handle-oauth-code",
         "/api/testing-support/**",
+        "/api/s2s/**",
         "/"
     };
 

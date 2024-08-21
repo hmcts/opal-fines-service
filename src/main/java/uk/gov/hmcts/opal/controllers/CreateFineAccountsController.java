@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.dto.OpalS2SRequestWrapper;
 import uk.gov.hmcts.opal.dto.OpalS2SResponseWrapper;
 
 @RestController
-@RequestMapping("/api/create-fine-accounts")
+@RequestMapping("/api/s2s/create-fine-accounts")
 @Slf4j(topic = "CreateFineAccountController")
 @Tag(name = "Create Fine Account Controller")
 public class CreateFineAccountsController {
