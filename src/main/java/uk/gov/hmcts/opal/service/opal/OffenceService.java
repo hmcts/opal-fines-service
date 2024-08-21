@@ -66,7 +66,11 @@ public class OffenceService implements OffenceServiceInterface {
             entity.getCjsCode(),
             Optional.ofNullable(entity.getBusinessUnit()).map(BusinessUnitEntity::getBusinessUnitId).orElse(null),
             entity.getOffenceTitle(),
-            entity.getOffenceTitleCy()
+            entity.getOffenceTitleCy(),
+            entity.getDateUsedFrom(),
+            entity.getDateUsedTo(),
+            entity.getOffenceOas(),
+            entity.getOffenceOasCy()
         );
     }
 }

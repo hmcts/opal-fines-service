@@ -13,6 +13,7 @@ import uk.gov.hmcts.opal.entity.OffenceEntity;
 import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -89,7 +90,9 @@ class OffenceControllerTest {
 
     private OffenceReferenceData createOffenceReferenceData() {
         return new OffenceReferenceData(1L, "TH123456", (short)007,
-                                        "Thief of Time", null);
+                                        "Thief of Time", null,
+                                        LocalDateTime.of(1909, 3, 3, 3, 30),
+                                        null, "", "");
     }
 
 }

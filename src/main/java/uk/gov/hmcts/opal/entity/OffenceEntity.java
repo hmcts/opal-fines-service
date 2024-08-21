@@ -57,6 +57,11 @@ public class OffenceEntity {
     @Column(name = "offence_title_cy", length = 120)
     private String offenceTitleCy;
 
+    @Column(name = "date_used_from")
+    @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+    private LocalDateTime dateUsedFrom;
+
     @Column(name = "date_used_to")
     @Temporal(TemporalType.TIMESTAMP)
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)

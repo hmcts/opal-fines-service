@@ -67,8 +67,10 @@ spring:
       maxLifetime: 7200000
       connectionTimeout: 30000
   jpa:
+    show-sql: false
     properties:
       hibernate:
+        format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           lob:
@@ -168,3 +170,13 @@ be-developer-config:
 printservice:
   maxRetries: 3
   pageSize: 100
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE

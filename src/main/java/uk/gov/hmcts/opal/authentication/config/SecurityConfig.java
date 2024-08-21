@@ -36,9 +36,10 @@ import java.io.IOException;
 import java.util.Map;
 
 
-@Slf4j
+@Slf4j(topic = "SecurityConfig")
 @Configuration
 @EnableWebSecurity
+//@EnableWebSecurity(debug = true)
 @RequiredArgsConstructor
 @Profile("!integration")
 public class SecurityConfig {
@@ -131,7 +132,8 @@ public class SecurityConfig {
                 filterChain.doFilter(request, response);
                 return;
             }
-
+            
+            log.warn(".AuthorisationTokenExistenceFilter:doFilterInternal: No Bearer Token.");
             throw new OpalApiException(AuthenticationError.FAILED_TO_OBTAIN_ACCESS_TOKEN);
         }
     }
