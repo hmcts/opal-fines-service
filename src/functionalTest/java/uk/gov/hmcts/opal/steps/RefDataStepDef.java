@@ -310,14 +310,12 @@ public class RefDataStepDef extends BaseStepDef {
         Map<String, String> expectedData = data.asMap(String.class, String.class);
         then().assertThat().statusCode(200);
 
-        for( String key : expectedData.keySet()){
-            String apiResponseValue = then().extract().body().jsonPath().getString("refData[0]."+key);
-            if (apiResponseValue == null && expectedData.get(key).equals("null")){
+        for (String key : expectedData.keySet()) {
+            String apiResponseValue = then().extract().body().jsonPath().getString("refData[0]." + key);
+            if (apiResponseValue == null && expectedData.get(key).equals("null")) {
                 apiResponseValue = "null";
             }
             Assert.assertEquals("Values are not equal : ", expectedData.get(key), apiResponseValue);
         }
-
-
     }
 }
