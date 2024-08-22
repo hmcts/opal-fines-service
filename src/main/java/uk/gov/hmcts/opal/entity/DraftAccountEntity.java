@@ -23,7 +23,7 @@ import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "draft-accounts")
+@Table(name = "draft_accounts")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
