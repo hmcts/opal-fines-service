@@ -74,10 +74,10 @@ public class DraftAccountEntity {
     @Column(name = "account_status", length = 30, nullable = false)
     private String accountStatus;
 
-//    @Column(name = "status_reason", columnDefinition = "json")
-//    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
-//    @JsonRawValue
-//    private String timelineData;
+    @Column(name = "status_reason", columnDefinition = "json")
+    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
+    @JsonRawValue
+    private String timelineData;
 
     @Column(name = "account_number", length = 25)
     private String accountNumber;
