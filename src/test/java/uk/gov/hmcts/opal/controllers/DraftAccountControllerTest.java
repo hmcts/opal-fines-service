@@ -8,15 +8,19 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.dto.GetDraftAccountResponseDto;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
+import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,7 +56,7 @@ class DraftAccountControllerTest {
         when(draftAccountService.getDraftAccount(any(Long.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<GetDraftAccountResponseDto> response = draftAccountController
+        ResponseEntity<DraftAccountResponseDto> response = draftAccountController
             .getDraftAccountById(1L, BEARER_TOKEN);
 
         // Assert
@@ -83,22 +87,42 @@ class DraftAccountControllerTest {
     @Test
     void testSaveDraftAccounts_Success() {
         // Arrange
-        DraftAccountEntity entity = DraftAccountEntity.builder().build();
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .accountType("Large")
+            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .account("{\"acc\": \"1\"}")
+            .businessUnit(BusinessUnitEntity.builder().build())
+            .submittedBy("Charles")
+            .timelineData("{\"dat\": \"2\"}")
+            .build();
+        AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
+            .accountType("Large")
+            .account("{\"acc\": \"1\"}")
+            .businessUnitId((short)1)
+            .submittedBy("Charles")
+            .timelineData("{\"dat\": \"2\"}")
+            .build();
 
-        when(draftAccountService.saveDraftAccount(any())).thenReturn(entity);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
+        when(draftAccountService.submitDraftAccount(any(), any())).thenReturn(entity);
 
         // Act
-        ResponseEntity<DraftAccountEntity> response = draftAccountController.postDraftAccount(
-            entity, BEARER_TOKEN);
+        ResponseEntity<DraftAccountResponseDto> response = draftAccountController.postDraftAccount(
+            addDraftAccountDto, BEARER_TOKEN);
 
         // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(entity, response.getBody());
-        verify(draftAccountService, times(1)).saveDraftAccount(any());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        DraftAccountResponseDto responseEntity = response.getBody();
+        assertEquals("Large", responseEntity.getAccountType());
+        assertEquals("Submitted", responseEntity.getAccountStatus());
+        assertEquals("{\"acc\": \"1\"}", responseEntity.getAccount());
+        assertEquals("Charles", responseEntity.getSubmittedBy());
+        assertEquals("{\"dat\": \"2\"}", responseEntity.getTimelineData());
+        verify(draftAccountService, times(1)).submitDraftAccount(any(), any());
     }
 
-    GetDraftAccountResponseDto toGetDto(DraftAccountEntity entity) {
-        return GetDraftAccountResponseDto.builder()
+    DraftAccountResponseDto toGetDto(DraftAccountEntity entity) {
+        return DraftAccountResponseDto.builder()
             .draftAccountId(entity.getDraftAccountId())
             .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
             .createdDate(toOffsetDateTime(entity.getCreatedDate()))
@@ -108,7 +132,7 @@ class DraftAccountControllerTest {
             .account(entity.getAccount())
             .accountSnapshot(entity.getAccountSnapshot())
             .accountType(entity.getAccountType())
-            .accountStatus(entity.getAccountStatus())
+            .accountStatus(Optional.ofNullable(entity.getAccountStatus()).map(r -> r.getLabel()).orElse(null))
             .timelineData(entity.getTimelineData())
             .accountNumber(entity.getAccountNumber())
             .accountId(entity.getAccountId())

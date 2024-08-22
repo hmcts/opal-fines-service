@@ -7,6 +7,10 @@ import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity_;
+import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
 
@@ -17,7 +21,7 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
             numericLong(criteria.getDraftAccountId()).map(DraftAccountSpecs::equalsDraftAccountId),
             numericShort(criteria.getBusinessUnitId()).map(DraftAccountSpecs::equalsBusinessUnitId),
             notBlank(criteria.getAccountType()).map(DraftAccountSpecs::likeAccountType),
-            notBlank(criteria.getAccountStatus()).map(DraftAccountSpecs::likeAccountStatus)
+            notBlank(criteria.getAccountStatus()).map(DraftAccountSpecs::equalsAccountStatus)
         ));
     }
 
@@ -35,9 +39,16 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
             likeWildcardPredicate(root.get(DraftAccountEntity_.accountType), builder, accountType);
     }
 
-    public static Specification<DraftAccountEntity> likeAccountStatus(String accountStatus) {
-        return (root, query, builder) ->
-            likeWildcardPredicate(root.get(DraftAccountEntity_.accountStatus), builder, accountStatus);
+    public static Specification<DraftAccountEntity> equalsAccountStatus(String accountStatus) {
+        DraftAccountStatus status = DraftAccountStatus.valueOf(accountStatus);
+        return (root, query, builder) -> builder.equal(root.get(DraftAccountEntity_.accountStatus), status);
+    }
+
+    public static Specification<DraftAccountEntity> equalsAccountStatuses(Set<String> accountStatuses) {
+        Set<DraftAccountStatus> statuses = accountStatuses.stream()
+            .map(DraftAccountStatus::valueOf)
+            .collect(Collectors.toSet());
+        return (root, query, builder) -> root.get(DraftAccountEntity_.accountStatus).in(statuses);
     }
 
     public static Join<DraftAccountEntity, BusinessUnitEntity> joinBusinessUnit(From<?, DraftAccountEntity> from) {

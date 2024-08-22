@@ -5,9 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
+
 public interface ToJsonString {
 
     ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+        .disable(WRITE_DATES_AS_TIMESTAMPS)
         .registerModule(new JavaTimeModule());
 
     default String toJsonString() throws JsonProcessingException {

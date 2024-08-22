@@ -11,11 +11,15 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
+import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
+import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,6 +32,9 @@ class DraftAccountServiceTest {
 
     @Mock
     private DraftAccountRepository draftAccountRepository;
+
+    @Mock
+    private BusinessUnitRepository businessUnitRepository;
 
     @InjectMocks
     private DraftAccountService draftAccountService;
@@ -71,16 +78,40 @@ class DraftAccountServiceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    void testSaveDraftAccounts() {
+    void testSubmitDraftAccounts() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
+        AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
+            .account(createAccountString())
+            .build();
+        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+            .businessUnitName("Old Bailey")
+            .build();
 
+        when(businessUnitRepository.findById(any())).thenReturn(Optional.of(businessUnit));
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(draftAccountEntity);
 
         // Act
-        DraftAccountEntity result = draftAccountService.saveDraftAccount(draftAccountEntity);
+        DraftAccountEntity result = draftAccountService.submitDraftAccount(addDraftAccountDto, "Charles");
 
         // Assert
         assertEquals(draftAccountEntity, result);
+    }
+
+    private String createAccountString() {
+        return """
+            {
+                "accountCreateRequest": {
+                    "Defendant": {
+                        "Surname": "Windsor",
+                        "Forenames": "Charles",
+                        "DOB": "August 1958"
+                    },
+                    "Account": {
+                        "AccountType": "Fine"
+                    }
+                }
+            }
+            """;
     }
 }
