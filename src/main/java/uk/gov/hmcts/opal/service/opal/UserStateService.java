@@ -29,8 +29,8 @@ public class UserStateService {
         return getUserStateByUsername(getPreferredUsername(authorization));
     }
 
-    public void checkForAuthorisedUser(String authorization) {
-        getUserStateByUsername(getPreferredUsername(authorization));
+    public UserState checkForAuthorisedUser(String authorization) {
+        return getUserStateByUsername(getPreferredUsername(authorization));
     }
 
     public String getPreferredUsername(String authorization) {

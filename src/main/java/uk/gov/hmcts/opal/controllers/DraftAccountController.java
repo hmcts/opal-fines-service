@@ -12,9 +12,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.dto.GetDraftAccountResponseDto;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
+import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
@@ -23,14 +26,17 @@ import java.util.List;
 import java.util.Optional;
 
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toOffsetDateTime;
+import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/draft-account")
+@RequestMapping("/api/draft-accounts")
 @Slf4j(topic = "DraftAccountController")
 @Tag(name = "DraftAccount Controller")
 public class DraftAccountController {
+
+    public static final String ADD_DRAFT_ACCOUNT_REQUEST_JSON = "addDraftAccountRequest.json";
 
     private final DraftAccountService draftAccountService;
 
@@ -47,7 +53,7 @@ public class DraftAccountController {
 
     @GetMapping(value = "/{draftAccountId}")
     @Operation(summary = "Returns the Draft Account for the given draftAccountId.")
-    public ResponseEntity<GetDraftAccountResponseDto> getDraftAccountById(
+    public ResponseEntity<DraftAccountResponseDto> getDraftAccountById(
         @PathVariable Long draftAccountId,
         @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
 
@@ -74,20 +80,22 @@ public class DraftAccountController {
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Creates a Draft Account entity in the DB based upon data in request body")
-    public ResponseEntity<DraftAccountEntity> postDraftAccount(@RequestBody DraftAccountEntity entity,
-                              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+    @Operation(summary = "Creates a Draft Account Entity in the DB based upon data in request body")
+    public ResponseEntity<DraftAccountResponseDto> postDraftAccount(@RequestBody AddDraftAccountRequestDto dto,
+                @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.info(":POST:postDraftAccount: creating a new draft account entity.");
 
-        userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState user = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        DraftAccountEntity response = draftAccountService.saveDraftAccount(entity);
+        jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
 
-        return buildResponse(response);
+        DraftAccountEntity response = draftAccountService.submitDraftAccount(dto, user.getUserName());
+
+        return buildCreatedResponse(toGetResponseDto(response));
     }
 
-    GetDraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
-        return GetDraftAccountResponseDto.builder()
+    DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
+        return DraftAccountResponseDto.builder()
             .draftAccountId(entity.getDraftAccountId())
             .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
             .createdDate(toOffsetDateTime(entity.getCreatedDate()))
@@ -97,10 +105,12 @@ public class DraftAccountController {
             .account(entity.getAccount())
             .accountSnapshot(entity.getAccountSnapshot())
             .accountType(entity.getAccountType())
-            .accountStatus(entity.getAccountStatus())
+            .accountStatus(Optional.ofNullable(entity.getAccountStatus())
+                               .map(DraftAccountStatus::getLabel).orElse(null))
             .timelineData(entity.getTimelineData())
             .accountNumber(entity.getAccountNumber())
             .accountId(entity.getAccountId())
             .build();
     }
+
 }
