@@ -8,6 +8,7 @@ import net.serenitybdd.core.Serenity;
 import org.apache.http.HttpStatus;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -304,4 +305,17 @@ public class RefDataStepDef extends BaseStepDef {
         methods.getRequest(ENFORCERS_REF_DATA_URI + enforcerName);
     }
 
+    @Then("the response contains the below offence data fields and values")
+    public void theResponseContainsTheBelowOffenceDataFieldsAndValues(DataTable data) {
+        Map<String, String> expectedData = data.asMap(String.class, String.class);
+        then().assertThat().statusCode(200);
+
+        for (String key : expectedData.keySet()) {
+            String apiResponseValue = then().extract().body().jsonPath().getString("refData[0]." + key);
+            if (apiResponseValue == null && expectedData.get(key).equals("null")) {
+                apiResponseValue = "null";
+            }
+            Assert.assertEquals("Values are not equal : ", expectedData.get(key), apiResponseValue);
+        }
+    }
 }
