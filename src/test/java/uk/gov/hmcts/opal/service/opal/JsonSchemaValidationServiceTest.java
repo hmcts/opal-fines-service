@@ -1,17 +1,18 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import com.networknt.schema.ValidationMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class JsonSchemaValidationServiceTest {
@@ -22,27 +23,27 @@ class JsonSchemaValidationServiceTest {
     @Test
     void testIsValid_failBlankSchema() {
         // Act
-        JsonSchemaValidationException jsve = assertThrows(
-            JsonSchemaValidationException.class,
+        SchemaConfigurationException sce = assertThrows(
+            SchemaConfigurationException.class,
             () -> jsonSchemaValidationService.isValid("", " ")
         );
 
         // Assert
         assertEquals("A schema filename is required to validate a JSON document.",
-                     jsve.getMessage());
+                     sce.getMessage());
     }
 
     @Test
     void testIsValid_failLoadSchema() {
         // Act
-        JsonSchemaValidationException jsve = assertThrows(
-            JsonSchemaValidationException.class,
+        SchemaConfigurationException sce = assertThrows(
+            SchemaConfigurationException.class,
             () -> jsonSchemaValidationService.isValid("", "nonExistentSchema.json")
         );
 
         // Assert
         assertEquals("No JSON Schema file found at 'jsonSchemas/nonExistentSchema.json'",
-                     jsve.getMessage());
+                     sce.getMessage());
     }
 
     @Test
@@ -52,21 +53,52 @@ class JsonSchemaValidationServiceTest {
 
     @Test
     void testIsValid_failValidate1() {
-        Set<ValidationMessage> messages = jsonSchemaValidationService
+        Set<String> messages = jsonSchemaValidationService
             .validate("", "testSchema.json");
         assertEquals(1, messages.size());
         assertEquals("$: unknown found, object expected", messages
             .stream()
             .findFirst()
-            .map(ValidationMessage::getMessage)
             .orElse(""));
     }
 
     @Test
     void testIsValid_failValidate2() {
-        Set<ValidationMessage> messages = jsonSchemaValidationService
+        Set<String> messages = jsonSchemaValidationService
             .validate("{\"data\": 7}", "testSchema.json");
         assertEquals(4, messages.size());
     }
 
+    @Test
+    void testIsValid_failValidate3() {
+        Set<String> messages = jsonSchemaValidationService
+            .validate("Not valid JSON", "testSchema.json");
+        assertEquals(1, messages.size());
+        String msg = messages.stream().findFirst().orElse("");
+        assertTrue(msg.startsWith("Unrecognized token 'Not': was expecting (JSON String, Number, Array, Object "));
+    }
+
+    @Test
+    void testIsValid_failValidateOrError1() {
+        // Act
+        JsonSchemaValidationException sce = assertThrows(
+            JsonSchemaValidationException.class,
+            () -> jsonSchemaValidationService.validateOrError("Not Valid JSON", "testSchema.json")
+        );
+
+        // Assert
+        assertTrue(sce.getMessage().startsWith("Validating against JSON schema 'testSchema.json', found 1 validation"));
+    }
+
+    @Test
+    void testIsValid_failValidateOrError2() {
+        // Act
+        JsonSchemaValidationException sce = assertThrows(
+            JsonSchemaValidationException.class,
+            () -> jsonSchemaValidationService.validateOrError("{\"name\": 5}", "testSchema.json")
+        );
+
+        // Assert
+        assertTrue(sce.getMessage().startsWith("Validating against JSON schema 'testSchema.json', found 4 validation"));
+    }
 }
