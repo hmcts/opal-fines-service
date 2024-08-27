@@ -2,19 +2,20 @@
 *
 * OPAL Program
 *
-* MODULE : log_audit_details_new_columns.sql
+* MODULE : log_audit_details_add_drop_columns.sql
 * 
-* DESCRIPTION : Add new columns to the LOG_AUDIT_DETAILS table.
+* DESCRIPTION : Add and drop columns in the LOG_AUDIT_DETAILS table.
 * 
 * VERSION HISTORY:
 * 
 * Date          Author      Version     Nature of Change
 * ----------    --------    --------    ---------------------------------------------------------------------------------------------------------
-- 23/08/2024    I Readman   1.0         PO-646 Add new columns to the LOG_AUDIT_DETAILS table
+- 23/08/2024    I Readman   1.0         PO-646 Add and drop columns in the LOG_AUDIT_DETAILS table
 *
 **/
--- Drop columns to maintain column order from data model spreadsheet
+-- Drop column to maintain column order from data model spreadsheet
 ALTER TABLE log_audit_details DROP COLUMN json_request;
+ALTER TABLE log_audit_details DROP COLUMN account_number;
 
 ALTER TABLE log_audit_details ADD COLUMN associated_record_type varchar(30);
 ALTER TABLE log_audit_details ADD COLUMN associated_record_id varchar(30);
