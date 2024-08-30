@@ -11,10 +11,11 @@
 * Date          Author       Version     Nature of Change 
 * ----------    --------     --------    --------------------------------------------------------------------------------------------------------- 
 * 23/08/2024    I Readman    1.0         PO-644 Add new column to the ENFORCEMENT table 
+* 30/08/2024    I Readman    1.1         PO-722 Removed temporary table and replaced with DROP / CREATE
 * 
 **/ 
 -- Create temporary table to hold enforcement data
-CREATE TEMP TABLE enforcements_tmp AS SELECT * FROM enforcements;
+CREATE TABLE enforcements_tmp AS SELECT * FROM enforcements;
 
 -- Drop columns to maintain column order from data model spreadsheet
 ALTER TABLE enforcements DROP COLUMN warrant_reference;
@@ -50,3 +51,6 @@ UPDATE enforcements e SET warrant_reference = (SELECT warrant_reference FROM enf
                           hearing_court_id = (SELECT hearing_court_id FROM enforcements_tmp et WHERE e.enforcement_id = et.enforcement_id),
                           account_type = (SELECT account_type FROM enforcements_tmp et WHERE e.enforcement_id = et.enforcement_id),
                           posted_by_user_id = (SELECT posted_by_user_id FROM enforcements_tmp et WHERE e.enforcement_id = et.enforcement_id);
+
+-- Using temporary tables caused issues with Flexible Server
+DROP TABLE enforcements_tmp;
