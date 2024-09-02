@@ -2,9 +2,6 @@ package uk.gov.hmcts.opal.controllers;
 
 import jakarta.persistence.QueryTimeoutException;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.postgresql.util.PSQLException;
-import org.postgresql.util.PSQLState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -21,12 +18,10 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
-import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
-import java.net.ConnectException;
 import java.time.LocalDate;
 import java.util.logging.Logger;
 
@@ -70,7 +65,7 @@ class DraftAccountControllerIntegrationTest {
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(draftAccountEntity);
 
-        MvcResult result = mockMvc.perform(get("/api/draft-accounts/1")
+        MvcResult result = mockMvc.perform(get("/api/draft-account/1")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -78,7 +73,7 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(jsonPath("$.business_unit_id").value(7))
             .andExpect(jsonPath("$.account_type").value("DRAFT"))
             .andExpect(jsonPath("$.submitted_by").value("Tony"))
-            .andExpect(jsonPath("$.account_status").value("Submitted"))
+            .andExpect(jsonPath("$.account_status").value("CREATED"))
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
@@ -93,7 +88,7 @@ class DraftAccountControllerIntegrationTest {
     void testGetDraftAccountById_WhenDraftAccountDoesNotExist() throws Exception {
         when(draftAccountService.getDraftAccount(2L)).thenReturn(null);
 
-        mockMvc.perform(get("/api/draft-accounts/2").header("authorization", "Bearer some_value"))
+        mockMvc.perform(get("/api/draft-account/2").header("authorization", "Bearer some_value"))
             .andExpect(status().isNotFound());
     }
 
@@ -104,7 +99,7 @@ class DraftAccountControllerIntegrationTest {
         when(draftAccountService.searchDraftAccounts(any(DraftAccountSearchDto.class)))
             .thenReturn(singletonList(draftAccountEntity));
 
-        mockMvc.perform(post("/api/draft-accounts/search")
+        mockMvc.perform(post("/api/draft-account/search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
@@ -114,12 +109,12 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(jsonPath("$[0].businessUnit.businessUnitId").value(7))
             .andExpect(jsonPath("$[0].accountType").value("DRAFT"))
             .andExpect(jsonPath("$[0].submittedBy").value("Tony"))
-            .andExpect(jsonPath("$[0].accountStatus").value("SUBMITTED"));
+            .andExpect(jsonPath("$[0].accountStatus").value("CREATED"));
     }
 
     @Test
     void testPostDraftAccountsSearch_WhenDraftAccountDoesNotExist() throws Exception {
-        mockMvc.perform(post("/api/draft-accounts/search")
+        mockMvc.perform(post("/api/draft-account/search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
@@ -131,7 +126,7 @@ class DraftAccountControllerIntegrationTest {
         // Simulating a timeout exception when the repository is called
         doThrow(new QueryTimeoutException()).when(draftAccountService).getDraftAccount(1L);
 
-        mockMvc.perform(get("/api/draft-accounts/1")
+        mockMvc.perform(get("/api/draft-account/1")
                             .header("Authorization", "Bearer " + "some_value"))
             .andExpect(status().isRequestTimeout())
             .andExpect(content().contentType("application/json"))
@@ -147,7 +142,7 @@ class DraftAccountControllerIntegrationTest {
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(createDraftAccountEntity());
 
-        mockMvc.perform(get("/api/draft-accounts/1")
+        mockMvc.perform(get("/api/draft-account/1")
                             .header("Authorization", "Bearer " + "some_value")
                             .accept("application/xml"))
             .andExpect(status().isNotAcceptable());
@@ -160,31 +155,10 @@ class DraftAccountControllerIntegrationTest {
             .createdDate(LocalDate.of(2023, 1, 2).atStartOfDay())
             .submittedBy("Tony")
             .accountType("DRAFT")
-            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .accountStatus("CREATED")
             .account("{}")
             .accountSnapshot("{}")
             .timelineData("{}")
             .build();
-    }
-
-    @Test
-    void shouldReturn503WhenDownstreamServiceIsUnavailable() throws Exception {
-
-        Mockito.doAnswer(
-                invocation -> {
-                    throw new PSQLException("Connection refused", PSQLState.CONNECTION_FAILURE, new ConnectException());
-                })
-            .when(draftAccountService).getDraftAccount(1L);
-
-
-        mockMvc.perform(get("/api/draft-accounts/1")
-                            .header("Authorization", "Bearer " + "some_value"))
-            .andExpect(status().isServiceUnavailable())
-            .andExpect(content().contentType("application/json"))
-            .andExpect(content().json("""
-                {
-                    "error": "Service Unavailable",
-                    "message": "Opal Fines Database is currently unavailable"
-                }"""));
     }
 }
