@@ -56,7 +56,7 @@ public class GlobalExceptionHandler {
         String authorization = request.getHeader(AUTH_HEADER);
         String preferredName = extractPreferredUsername(authorization, tokenService);
         String message = String.format("For user %s, %s", preferredName, ex.getMessage());
-        log.warn(message);
+        log.error(message);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(message);
     }
 
