@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -83,7 +84,8 @@ class NoteControllerTest {
         ResponseEntity<List<NoteDto>> responseEntity = noteController.getNotesByAssociatedRecord("type", "1");
 
         // Assert
-        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+        assertNull(responseEntity.getBody());
         verify(noteService, times(1)).searchNotes(any(
             NoteSearchDto.class));
     }
@@ -118,7 +120,8 @@ class NoteControllerTest {
         ResponseEntity<List<NoteDto>> responseEntity = noteController.postNotesSearch(criteria);
 
         // Assert
-        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+        assertEquals(responseEntity.getStatusCode(), HttpStatus.OK);
+        assertNull(responseEntity.getBody());
         verify(noteService, times(1)).searchNotes(any(
             NoteSearchDto.class));
     }

@@ -33,6 +33,9 @@ class DefendantAccountControllerTest {
 
     static final String BEARER_TOKEN = "Bearer a_token_here";
 
+    static final String NOT_FOUND_JSON = """
+        { "error": "Not Found", "message": "No resource found at provided URI"}""";
+
     @Mock
     private DefendantAccountService defendantAccountService;
 
@@ -65,7 +68,7 @@ class DefendantAccountControllerTest {
 
     @Test
     public void testGetDefendantAccount_NoContent() {
-
+        // Arrange
         when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(null);
 
         // Act
@@ -73,10 +76,12 @@ class DefendantAccountControllerTest {
             (short) 1, "", BEARER_TOKEN);
 
         // Assert
-        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+        assertEquals(NOT_FOUND_JSON, responseEntity.getBody());
         verify(defendantAccountService, times(1)).getDefendantAccount(any(
             AccountEnquiryDto.class));
     }
+
 
     @Test
     public void testPutDefendantAccount_Success() {
@@ -157,6 +162,8 @@ class DefendantAccountControllerTest {
 
     @Test
     public void testAddNote_NoContent() {
+        // Arrange
+
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(null);
         when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(createUserState());
 
@@ -165,9 +172,11 @@ class DefendantAccountControllerTest {
         ResponseEntity<NoteDto> responseEntity = defendantAccountController.addNote(addNote, BEARER_TOKEN);
 
         // Assert
-        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+        assertEquals(NOT_FOUND_JSON, responseEntity.getBody());
         verify(noteService, times(1)).saveNote(any(
             NoteDto.class));
+
     }
 
     @Test
@@ -193,6 +202,9 @@ class DefendantAccountControllerTest {
 
     @Test
     public void testNotes_NoContent() {
+        // Arrange
+        NoteDto mockNote = new NoteDto();
+
         when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(null);
 
         // Act
@@ -201,9 +213,11 @@ class DefendantAccountControllerTest {
             .getNotesForDefendantAccount("1", BEARER_TOKEN);
 
         // Assert
-        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(null, responseEntity.getBody());
         verify(noteService, times(1)).searchNotes(any(
             NoteSearchDto.class));
+
     }
 
 }

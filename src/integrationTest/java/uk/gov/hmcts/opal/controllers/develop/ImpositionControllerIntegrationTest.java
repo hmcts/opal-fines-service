@@ -65,7 +65,7 @@ class ImpositionControllerIntegrationTest {
         when(impositionService.getImposition(2L)).thenReturn(null);
 
         mockMvc.perform(get("/dev/imposition/2"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -94,7 +94,7 @@ class ImpositionControllerIntegrationTest {
         mockMvc.perform(post("/dev/imposition/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk());
     }
 
     private ImpositionEntity createImpositionEntity() {

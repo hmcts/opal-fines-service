@@ -69,7 +69,7 @@ class BusinessUnitControllerIntegrationTest {
         when(businessUnitService.getBusinessUnit((short)2)).thenReturn(null);
 
         mockMvc.perform(get("/api/business-unit/2"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -98,7 +98,7 @@ class BusinessUnitControllerIntegrationTest {
         mockMvc.perform(post("/api/business-unit/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk());
     }
 
     @Test

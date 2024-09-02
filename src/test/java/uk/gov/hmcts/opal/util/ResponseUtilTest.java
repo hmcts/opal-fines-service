@@ -9,6 +9,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ResponseUtilTest {
 
@@ -26,7 +27,7 @@ class ResponseUtilTest {
     }
 
     @Test
-    void buildResponse_withEmptyList_returnsNoContentResponse() {
+    void buildResponse_withEmptyList_returnsOkResponse() {
         // Arrange
         List<String> responseList = Collections.emptyList();
 
@@ -34,12 +35,12 @@ class ResponseUtilTest {
         ResponseEntity<List<String>> responseEntity = HttpUtil.buildResponse(responseList);
 
         // Assert
-        assertEquals(204, responseEntity.getStatusCode().value());
-        assertNull(responseEntity.getBody());
+        assertEquals(200, responseEntity.getStatusCode().value());
+        assertTrue(responseEntity.getBody().isEmpty());
     }
 
     @Test
-    void buildResponse_withNullList_returnsNoContentResponse() {
+    void buildResponse_withNullList_returnsOkResponse() {
         // Arrange
         List<String> responseList = null;
 
@@ -47,7 +48,7 @@ class ResponseUtilTest {
         ResponseEntity<List<String>> responseEntity = HttpUtil.buildResponse(responseList);
 
         // Assert
-        assertEquals(204, responseEntity.getStatusCode().value());
+        assertEquals(200, responseEntity.getStatusCode().value());
         assertNull(responseEntity.getBody());
     }
 
@@ -66,7 +67,7 @@ class ResponseUtilTest {
 
 
     @Test
-    void buildResponse_withNullString_returnsNoContentResponse() {
+    void buildResponse_withNullString_throwsOpalApiException() {
         // Arrange
         String response = null;
 
@@ -74,7 +75,9 @@ class ResponseUtilTest {
         ResponseEntity<String> responseEntity = HttpUtil.buildResponse(response);
 
         // Assert
-        assertEquals(204, responseEntity.getStatusCode().value());
-        assertNull(responseEntity.getBody());
+        assertEquals(404, responseEntity.getStatusCode().value());
+        assertEquals("""
+                     { "error": "Not Found", "message": "No resource found at provided URI"}""",
+                     responseEntity.getBody());
     }
 }

@@ -53,7 +53,7 @@ class LogActionControllerIntegrationTest {
         when(logActionService.getLogAction((short)2)).thenReturn(null);
 
         mockMvc.perform(get("/dev/log-action/2"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -77,7 +77,7 @@ class LogActionControllerIntegrationTest {
         mockMvc.perform(post("/dev/log-action/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk());
     }
 
     private LogActionEntity createLogActionEntity() {

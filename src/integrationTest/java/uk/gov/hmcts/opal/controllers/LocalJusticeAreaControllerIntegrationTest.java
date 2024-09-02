@@ -57,7 +57,7 @@ class LocalJusticeAreaControllerIntegrationTest {
         when(localJusticeAreaService.getLocalJusticeArea((short)2)).thenReturn(null);
 
         mockMvc.perform(get("/api/local-justice-area/2"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -85,7 +85,7 @@ class LocalJusticeAreaControllerIntegrationTest {
         mockMvc.perform(post("/api/local-justice-area/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk());
     }
 
     private LocalJusticeAreaEntity createLocalJusticeAreaEntity() {

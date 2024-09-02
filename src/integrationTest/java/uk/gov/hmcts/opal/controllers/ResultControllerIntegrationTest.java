@@ -75,7 +75,7 @@ class ResultControllerIntegrationTest {
         when(resultService.getResult(2L)).thenReturn(null);
 
         mockMvc.perform(get("/api/result/2"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -119,7 +119,7 @@ class ResultControllerIntegrationTest {
         mockMvc.perform(post("/api/result/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk());
     }
 
 

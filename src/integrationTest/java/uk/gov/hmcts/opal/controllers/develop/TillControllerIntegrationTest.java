@@ -56,7 +56,7 @@ class TillControllerIntegrationTest {
         when(tillService.getTill(2L)).thenReturn(null);
 
         mockMvc.perform(get("/dev/till/2"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -81,7 +81,7 @@ class TillControllerIntegrationTest {
         mockMvc.perform(post("/dev/till/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk());
     }
 
     private TillEntity createTillEntity() {

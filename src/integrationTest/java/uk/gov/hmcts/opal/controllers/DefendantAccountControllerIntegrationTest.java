@@ -80,7 +80,7 @@ class DefendantAccountControllerIntegrationTest {
 
         mockMvc.perform(get("/api/defendant-account/2")
                             .header("authorization", "Bearer some_value"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -118,7 +118,7 @@ class DefendantAccountControllerIntegrationTest {
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -217,7 +217,7 @@ class DefendantAccountControllerIntegrationTest {
 
         mockMvc.perform(get("/api/defendant-account/notes/{defendantId}", "dummyDefendantId")
                             .header("authorization", "Bearer some_value"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk());
     }
 
 
