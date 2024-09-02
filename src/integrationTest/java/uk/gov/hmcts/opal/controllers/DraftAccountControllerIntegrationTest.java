@@ -2,6 +2,9 @@ package uk.gov.hmcts.opal.controllers;
 
 import jakarta.persistence.QueryTimeoutException;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.postgresql.util.PSQLException;
+import org.postgresql.util.PSQLState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -22,6 +25,7 @@ import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
+import java.net.ConnectException;
 import java.time.LocalDate;
 import java.util.logging.Logger;
 
@@ -160,5 +164,26 @@ class DraftAccountControllerIntegrationTest {
             .accountSnapshot("{}")
             .timelineData("{}")
             .build();
+    }
+
+    @Test
+    void shouldReturn503WhenDownstreamServiceIsUnavailable() throws Exception {
+
+        Mockito.doAnswer(
+                invocation -> {
+                    throw new PSQLException("Connection refused", PSQLState.CONNECTION_FAILURE, new ConnectException());
+                })
+            .when(draftAccountService).getDraftAccount(1L);
+
+
+        mockMvc.perform(get("/api/draft-account/1")
+                            .header("Authorization", "Bearer " + "some_value"))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType("application/json"))
+            .andExpect(content().json("""
+                {
+                    "error": "Service Unavailable",
+                    "message": "Opal Fines Database is currently unavailable"
+                }"""));
     }
 }
