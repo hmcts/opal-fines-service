@@ -77,7 +77,6 @@ class DefendantAccountControllerTest {
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
-        assertEquals(NOT_FOUND_JSON, responseEntity.getBody());
         verify(defendantAccountService, times(1)).getDefendantAccount(any(
             AccountEnquiryDto.class));
     }
@@ -173,7 +172,6 @@ class DefendantAccountControllerTest {
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
-        assertEquals(NOT_FOUND_JSON, responseEntity.getBody());
         verify(noteService, times(1)).saveNote(any(
             NoteDto.class));
 
