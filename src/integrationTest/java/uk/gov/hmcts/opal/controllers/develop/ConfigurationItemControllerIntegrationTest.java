@@ -58,7 +58,7 @@ class ConfigurationItemControllerIntegrationTest {
         when(configurationItemService.getConfigurationItem(2L)).thenReturn(null);
 
         mockMvc.perform(get("/dev/configuration-item/2"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -84,7 +84,7 @@ class ConfigurationItemControllerIntegrationTest {
         mockMvc.perform(post("/dev/configuration-item/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk());
     }
 
     private ConfigurationItemEntity createConfigurationItemEntity() {

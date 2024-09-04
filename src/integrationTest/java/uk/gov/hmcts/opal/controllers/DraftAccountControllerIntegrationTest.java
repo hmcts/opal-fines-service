@@ -1,6 +1,10 @@
 package uk.gov.hmcts.opal.controllers;
 
+import jakarta.persistence.QueryTimeoutException;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.postgresql.util.PSQLException;
+import org.postgresql.util.PSQLState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -11,6 +15,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
@@ -19,12 +25,14 @@ import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
+import java.net.ConnectException;
 import java.time.LocalDate;
 import java.util.logging.Logger;
 
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -33,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest
-@ContextConfiguration(classes = DraftAccountController.class)
+@ContextConfiguration(classes = {DraftAccountController.class, GlobalExceptionHandler.class})
 @ActiveProfiles({"integration"})
 class DraftAccountControllerIntegrationTest {
 
@@ -48,6 +56,9 @@ class DraftAccountControllerIntegrationTest {
 
     @MockBean
     UserStateService userStateService;
+
+    @MockBean
+    AccessTokenService tokenService;
 
     @SpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
@@ -82,7 +93,7 @@ class DraftAccountControllerIntegrationTest {
         when(draftAccountService.getDraftAccount(2L)).thenReturn(null);
 
         mockMvc.perform(get("/api/draft-account/2").header("authorization", "Bearer some_value"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -111,7 +122,34 @@ class DraftAccountControllerIntegrationTest {
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldReturn408WhenTimeout() throws Exception {
+        // Simulating a timeout exception when the repository is called
+        doThrow(new QueryTimeoutException()).when(draftAccountService).getDraftAccount(1L);
+
+        mockMvc.perform(get("/api/draft-account/1")
+                            .header("Authorization", "Bearer " + "some_value"))
+            .andExpect(status().isRequestTimeout())
+            .andExpect(content().contentType("application/json"))
+            .andExpect(content().json("""
+                {
+                    "error": "Request Timeout",
+                    "message": "The request did not receive a response from the database within the timeout period"
+                }"""));
+    }
+
+    @Test
+    void shouldReturn406WhenResponseContentTypeNotSupported() throws Exception {
+
+        when(draftAccountService.getDraftAccount(1L)).thenReturn(createDraftAccountEntity());
+
+        mockMvc.perform(get("/api/draft-account/1")
+                            .header("Authorization", "Bearer " + "some_value")
+                            .accept("application/xml"))
+            .andExpect(status().isNotAcceptable());
     }
 
     private DraftAccountEntity createDraftAccountEntity() {
@@ -126,5 +164,26 @@ class DraftAccountControllerIntegrationTest {
             .accountSnapshot("{}")
             .timelineData("{}")
             .build();
+    }
+
+    @Test
+    void shouldReturn503WhenDownstreamServiceIsUnavailable() throws Exception {
+
+        Mockito.doAnswer(
+                invocation -> {
+                    throw new PSQLException("Connection refused", PSQLState.CONNECTION_FAILURE, new ConnectException());
+                })
+            .when(draftAccountService).getDraftAccount(1L);
+
+
+        mockMvc.perform(get("/api/draft-account/1")
+                            .header("Authorization", "Bearer " + "some_value"))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType("application/json"))
+            .andExpect(content().json("""
+                {
+                    "error": "Service Unavailable",
+                    "message": "Opal Fines Database is currently unavailable"
+                }"""));
     }
 }

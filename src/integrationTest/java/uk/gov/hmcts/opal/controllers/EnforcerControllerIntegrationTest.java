@@ -67,7 +67,7 @@ class EnforcerControllerIntegrationTest {
         when(enforcerService.getEnforcer(2L)).thenReturn(null);
 
         mockMvc.perform(get("/api/enforcer/2"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -102,7 +102,7 @@ class EnforcerControllerIntegrationTest {
         mockMvc.perform(post("/api/enforcer/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk());
     }
 
     @Test

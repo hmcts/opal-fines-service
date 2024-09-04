@@ -24,7 +24,9 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.web.filter.OncePerRequestFilter;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationPropertiesStrategy;
@@ -49,6 +51,8 @@ public class SecurityConfig {
     private final InternalAuthConfigurationPropertiesStrategy fallbackConfiguration;
     private final InternalAuthConfigurationProperties internalAuthConfigurationProperties;
     private final InternalAuthProviderConfigurationProperties internalAuthProviderConfigurationProperties;
+    private final AuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final AccessDeniedHandler customAccessDeniedHandler;
 
     private static final String[] AUTH_WHITELIST = {
         "/swagger-ui.html",
@@ -78,8 +82,13 @@ public class SecurityConfig {
                                            .permitAll()
                                            .requestMatchers(AUTH_WHITELIST)
                                            .permitAll()
+                                           .anyRequest().authenticated()
             )
-            .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
+            .exceptionHandling(exceptionHandling ->
+                                   exceptionHandling
+                                       .authenticationEntryPoint(customAuthenticationEntryPoint)
+                                       .accessDeniedHandler(customAccessDeniedHandler)
+            )
             .oauth2ResourceServer(oauth2 ->
                                       oauth2.authenticationManagerResolver(jwtIssuerAuthenticationManagerResolver())
             );
@@ -132,7 +141,7 @@ public class SecurityConfig {
                 filterChain.doFilter(request, response);
                 return;
             }
-            
+
             log.warn(".AuthorisationTokenExistenceFilter:doFilterInternal: No Bearer Token.");
             throw new OpalApiException(AuthenticationError.FAILED_TO_OBTAIN_ACCESS_TOKEN);
         }

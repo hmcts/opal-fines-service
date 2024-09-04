@@ -56,7 +56,7 @@ class OffenceControllerIntegrationTest {
         when(offenceService.getOffence((short)2)).thenReturn(null);
 
         mockMvc.perform(get("/api/offence/2"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -81,7 +81,7 @@ class OffenceControllerIntegrationTest {
         mockMvc.perform(post("/api/offence/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk());
     }
 
     private OffenceEntity createOffenceEntity() {

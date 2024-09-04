@@ -178,4 +178,31 @@ class TestingSupportControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").value("testUser"));
     }
+
+    @Test
+    void testGetTokenForUserFailure() throws Exception {
+        AccessTokenResponse accessTokenResponse = new AccessTokenResponse();
+        accessTokenResponse.setAccessToken("testAccessToken");
+
+        when(accessTokenService.getTestUserToken(anyString())).thenReturn(accessTokenResponse);
+
+        SecurityToken securityToken = SecurityToken.builder()
+            .accessToken(TEST_TOKEN)
+            .userState(USER_STATE)
+            .build();
+        when(authorisationService.getSecurityToken("testAccessToken")).thenReturn(securityToken);
+
+        mockMvc.perform(get("/api/testing-support/token/user")
+                            .header("X-User-Email", "test@example.com"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.accessToken").value("testToken"))
+            .andExpect(jsonPath("$.userState.userName").value("name"))
+            .andExpect(jsonPath("$.userState.userId").value("123"))
+            .andExpect(jsonPath("$.userState.roles[0].businessUnitId").value("123"))
+            .andExpect(jsonPath("$.userState.roles[0].businessUserId").value("BU123"))
+            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionId").value("1"))
+            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionName")
+                           .value("Notes"));
+    }
 }

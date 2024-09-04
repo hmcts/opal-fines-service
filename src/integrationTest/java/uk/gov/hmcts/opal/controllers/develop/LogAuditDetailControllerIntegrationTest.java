@@ -61,7 +61,7 @@ class LogAuditDetailControllerIntegrationTest {
         when(logAuditDetailService.getLogAuditDetail(2L)).thenReturn(null);
 
         mockMvc.perform(get("/dev/log-audit-detail/2"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -89,7 +89,7 @@ class LogAuditDetailControllerIntegrationTest {
         mockMvc.perform(post("/dev/log-audit-detail/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk());
     }
 
     private LogAuditDetailEntity createLogAuditDetailEntity() {
