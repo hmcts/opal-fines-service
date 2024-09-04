@@ -36,7 +36,12 @@ import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-    public static final String ERROR_MESSAGE = "errorMessage";
+    public static final String ERROR = "error";
+
+    public static final String MESSAGE = "message";
+
+    public static final String DB_UNAVAILABLE_MESSAGE = "Opal Fines Database is currently unavailable";
+
 
     private final AccessTokenService tokenService;
 
@@ -68,8 +73,8 @@ public class GlobalExceptionHandler {
         log.error(":handleHttpMediaTypeNotAcceptableException:", ex.getCause());
 
         Map<String, String> body = Map.of(
-            "error", "Not Acceptable",
-            "message", "The server cannot produce a response matching the request Accept header"
+            ERROR, "Not Acceptable",
+            MESSAGE, "The server cannot produce a response matching the request Accept header"
         );
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(body);
     }
@@ -78,11 +83,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handlePropertyValueException(PropertyValueException pve) {
         log.error(":handlePropertyValueException: {}", pve.getMessage());
         Map<String, String> body = Map.of(
-            ERROR_MESSAGE, pve.getMessage(),
+            ERROR, pve.getMessage(),
             "entity", pve.getEntityName(),
             "property", pve.getPropertyName()
         );
-        return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body(body);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 
     @ExceptionHandler
@@ -91,9 +96,9 @@ public class GlobalExceptionHandler {
 
         log.error(":handleHttpMessageNotReadableException: {}", hmnre.getMessage());
         Map<String, String> body = Map.of(
-            ERROR_MESSAGE, hmnre.getMessage()
+            ERROR, hmnre.getMessage(), MESSAGE, "The request body could not be read"
         );
-        return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body(body);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     @ExceptionHandler
@@ -102,9 +107,9 @@ public class GlobalExceptionHandler {
 
         log.error(":handleInvalidDataAccessApiUsageException: {}", idaaue.getMessage());
         Map<String, String> body = Map.of(
-            ERROR_MESSAGE, idaaue.getMessage()
+            ERROR, idaaue.getMessage()
         );
-        return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body(body);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 
     @ExceptionHandler
@@ -115,9 +120,9 @@ public class GlobalExceptionHandler {
         log.error(":handleInvalidDataAccessApiUsageException:", idarue.getRootCause());
 
         Map<String, String> body = Map.of(
-            ERROR_MESSAGE, idarue.getMessage()
+            ERROR, idarue.getMessage()
         );
-        return ResponseEntity.status(HttpStatus.I_AM_A_TEAPOT).body(body);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 
     @ExceptionHandler
@@ -128,7 +133,7 @@ public class GlobalExceptionHandler {
         log.error(":handleEntityNotFoundException:", entityNotFoundException.getCause());
 
         Map<String, String> body = Map.of(
-            ERROR_MESSAGE, entityNotFoundException.getMessage()
+            ERROR, entityNotFoundException.getMessage(), MESSAGE, "The requested entity was not found"
         );
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
@@ -141,8 +146,8 @@ public class GlobalExceptionHandler {
         log.error(":handleOpalApiException:", opalApiException.getCause());
 
         Map<String, String> body = Map.of(
-            "error", opalApiException.getError().getHttpStatus().getReasonPhrase(),
-            "message", opalApiException.getMessage()
+            ERROR, opalApiException.getError().getHttpStatus().getReasonPhrase(),
+            MESSAGE, opalApiException.getMessage()
         );
         return ResponseEntity.status(opalApiException.getError().getHttpStatus()).body(body);
     }
@@ -154,16 +159,16 @@ public class GlobalExceptionHandler {
             log.error(":handleQueryTimeoutException: {}", ex.getMessage());
 
             Map<String, String> body = Map.of(
-                "error", "Request Timeout",
-                "message", "The request did not receive a response from the database within the timeout period"
+                ERROR, "Request Timeout",
+                MESSAGE, "The request did not receive a response from the database within the timeout period"
             );
             return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(body);
         }
 
         // If it's not a QueryTimeoutException, return a generic internal server error
         Map<String, String> body = Map.of(
-            "error", "Internal Server Error",
-            "message", "An unexpected error occurred"
+            ERROR, "Internal Server Error",
+            MESSAGE, "An unexpected error occurred"
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
@@ -177,14 +182,14 @@ public class GlobalExceptionHandler {
 
         if (psqlException.getCause() instanceof java.net.ConnectException) {
             Map<String, String> body = Map.of(
-                "error", "Service Unavailable", "message",
-                "Opal Fines Database is currently unavailable"
+                ERROR, "Service Unavailable", MESSAGE,
+                DB_UNAVAILABLE_MESSAGE
             );
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(body);
         }
 
         Map<String, String> body = Map.of(
-            "error", "Internal Server Error", "message", psqlException.getMessage()
+            ERROR, "Internal Server Error", MESSAGE, psqlException.getMessage()
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
@@ -197,7 +202,7 @@ public class GlobalExceptionHandler {
         log.error(":handleDataAccessResourceFailureException:", dataAccessResourceFailureException.getCause());
 
         Map<String, String> body = Map.of(
-            "error", "Service Unavailable", "message", "Opal Fines Database is currently unavailable"
+            ERROR, "Service Unavailable", MESSAGE, DB_UNAVAILABLE_MESSAGE
         );
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(body);
     }
