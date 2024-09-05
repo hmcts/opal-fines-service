@@ -93,7 +93,7 @@ class DraftAccountControllerIntegrationTest {
     void testGetDraftAccountById_WhenDraftAccountDoesNotExist() throws Exception {
         when(draftAccountService.getDraftAccount(2L)).thenReturn(null);
 
-        mockMvc.perform(get("/api/draft-account/2").header("authorization", "Bearer some_value"))
+        mockMvc.perform(get("/api/draft-accounts/2").header("authorization", "Bearer some_value"))
             .andExpect(status().isNotFound());
     }
 
@@ -119,7 +119,7 @@ class DraftAccountControllerIntegrationTest {
 
     @Test
     void testPostDraftAccountsSearch_WhenDraftAccountDoesNotExist() throws Exception {
-        mockMvc.perform(post("/api/draft-account/search")
+        mockMvc.perform(post("/api/draft-accounts/search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
@@ -131,7 +131,7 @@ class DraftAccountControllerIntegrationTest {
         // Simulating a timeout exception when the repository is called
         doThrow(new QueryTimeoutException()).when(draftAccountService).getDraftAccount(1L);
 
-        mockMvc.perform(get("/api/draft-account/1")
+        mockMvc.perform(get("/api/draft-accounts/1")
                             .header("Authorization", "Bearer " + "some_value"))
             .andExpect(status().isRequestTimeout())
             .andExpect(content().contentType("application/json"))
@@ -147,7 +147,7 @@ class DraftAccountControllerIntegrationTest {
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(createDraftAccountEntity());
 
-        mockMvc.perform(get("/api/draft-account/1")
+        mockMvc.perform(get("/api/draft-accounts/1")
                             .header("Authorization", "Bearer " + "some_value")
                             .accept("application/xml"))
             .andExpect(status().isNotAcceptable());
