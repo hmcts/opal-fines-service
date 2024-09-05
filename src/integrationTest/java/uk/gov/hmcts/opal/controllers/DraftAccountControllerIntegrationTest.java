@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -186,5 +187,22 @@ class DraftAccountControllerIntegrationTest {
                     "error": "Service Unavailable",
                     "message": "Opal Fines Database is currently unavailable"
                 }"""));
+    }
+
+    @Test
+    void testDeleteDraftAccountById() throws Exception {
+        DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
+
+        when(draftAccountService.getDraftAccount(1L)).thenReturn(draftAccountEntity);
+
+        MvcResult result = mockMvc.perform(delete("/api/draft-accounts/1")
+                                               .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.message").value("Draft Account '1' deleted"))
+            .andReturn();
+
+        String body = result.getResponse().getContentAsString();
+        logger.info(":testGetDraftAccountById: Response body:\n" + ToJsonString.toPrettyJson(body));
     }
 }

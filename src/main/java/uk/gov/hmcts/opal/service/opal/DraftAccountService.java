@@ -20,17 +20,17 @@ import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
-import uk.gov.hmcts.opal.service.DraftAccountServiceInterface;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j(topic = "DraftAccountService")
 @RequiredArgsConstructor
 @Qualifier("draftAccountService")
-public class DraftAccountService implements DraftAccountServiceInterface {
+public class DraftAccountService {
 
     private final DraftAccountRepository draftAccountRepository;
 
@@ -38,12 +38,24 @@ public class DraftAccountService implements DraftAccountServiceInterface {
 
     private final DraftAccountSpecs specs = new DraftAccountSpecs();
 
-    @Override
     public DraftAccountEntity getDraftAccount(long draftAccountId) {
         return draftAccountRepository.getReferenceById(draftAccountId);
     }
 
-    @Override
+    public void deleteDraftAccount(long draftAccountId, Optional<Boolean> ignoreMissing) {
+        DraftAccountEntity entity = getDraftAccount(draftAccountId);
+        // If the DB doesn't hold the target entity to be deleted, then no exception is thrown when a deletion is
+        // attempted. So we need to retrieve the entity first and try to access any property.
+        // This will throw an exception if the entity doesn't exist.
+        boolean checkExists = !(ignoreMissing.orElse(false));
+        if (checkExists && entity.getDraftAccountId() == null) {
+            // Will not get here, as JPA should throw an exception. But for testing, throw an Exception.
+            throw new RuntimeException("Draft Account entity '" + draftAccountId + "' does not exist in the DB.");
+        } else {
+            draftAccountRepository.delete(entity);
+        }
+    }
+
     public List<DraftAccountEntity> searchDraftAccounts(DraftAccountSearchDto criteria) {
         Page<DraftAccountEntity> page = draftAccountRepository
             .findBy(specs.findBySearchCriteria(criteria),
