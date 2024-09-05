@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers.advice;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceException;
 import jakarta.persistence.QueryTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.hibernate.PropertyValueException;
@@ -12,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -128,6 +130,15 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handleInvalidDataAccessResourceUsageException_ShouldReturnInternalServerError() {
+        InvalidDataAccessResourceUsageException exception = new InvalidDataAccessResourceUsageException("Invalid resource usage");
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleInvalidDataAccessResourceUsageException(exception);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Invalid resource usage", response.getBody().get("error"));
+    }
+
+    @Test
     void testHandleEntityNotFoundException() {
         EntityNotFoundException exception = new EntityNotFoundException("Entity not found");
         ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleEntityNotFoundException(exception);
@@ -157,6 +168,16 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handleDatabaseExceptions_OtherDatabaseException_ShouldReturnInternalServerError() {
+        PersistenceException exception = new PersistenceException("Persistence exception");
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleDatabaseExceptions(exception);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Internal Server Error", response.getBody().get("error"));
+        assertEquals("An unexpected error occurred", response.getBody().get("message"));
+    }
+
+    @Test
     void testHandlePsqlException_serviceUnavailable() {
         PSQLException exception = new PSQLException("PSQL Exception",
                                                     PSQLState.CONNECTION_FAILURE,
@@ -166,6 +187,16 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertEquals("Service Unavailable", response.getBody().get("error"));
         assertEquals("Opal Fines Database is currently unavailable", response.getBody().get("message"));
+    }
+
+    @Test
+    void handlePsqlException_WithOtherCause_ShouldReturnInternalServerError() {
+        PSQLException exception = new PSQLException("PSQL Exception", PSQLState.UNEXPECTED_ERROR, new Throwable("Unexpected error"));
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler.handlePsqlException(exception);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Internal Server Error", response.getBody().get("error"));
+        assertEquals("PSQL Exception", response.getBody().get("message"));
     }
 
     @Test
