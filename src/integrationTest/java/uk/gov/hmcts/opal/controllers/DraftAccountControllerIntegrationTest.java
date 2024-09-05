@@ -21,6 +21,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
@@ -103,7 +104,7 @@ class DraftAccountControllerIntegrationTest {
         when(draftAccountService.searchDraftAccounts(any(DraftAccountSearchDto.class)))
             .thenReturn(singletonList(draftAccountEntity));
 
-        mockMvc.perform(post("/api/draft-account/search")
+        mockMvc.perform(post("/api/draft-accounts/search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
@@ -113,7 +114,7 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(jsonPath("$[0].businessUnit.businessUnitId").value(7))
             .andExpect(jsonPath("$[0].accountType").value("DRAFT"))
             .andExpect(jsonPath("$[0].submittedBy").value("Tony"))
-            .andExpect(jsonPath("$[0].accountStatus").value("CREATED"));
+            .andExpect(jsonPath("$[0].accountStatus").value("SUBMITTED"));
     }
 
     @Test
@@ -159,7 +160,7 @@ class DraftAccountControllerIntegrationTest {
             .createdDate(LocalDate.of(2023, 1, 2).atStartOfDay())
             .submittedBy("Tony")
             .accountType("DRAFT")
-            .accountStatus("CREATED")
+            .accountStatus(DraftAccountStatus.SUBMITTED)
             .account("{}")
             .accountSnapshot("{}")
             .timelineData("{}")
@@ -176,7 +177,7 @@ class DraftAccountControllerIntegrationTest {
             .when(draftAccountService).getDraftAccount(1L);
 
 
-        mockMvc.perform(get("/api/draft-account/1")
+        mockMvc.perform(get("/api/draft-accounts/1")
                             .header("Authorization", "Bearer " + "some_value"))
             .andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType("application/json"))
