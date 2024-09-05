@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,7 +25,9 @@ import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,7 +45,6 @@ class DraftAccountServiceTest {
     @Test
     void testGetDraftAccount() {
         // Arrange
-
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
         when(draftAccountRepository.getReferenceById(any())).thenReturn(draftAccountEntity);
 
@@ -51,7 +53,6 @@ class DraftAccountServiceTest {
 
         // Assert
         assertNotNull(result);
-
     }
 
     @SuppressWarnings("unchecked")
@@ -96,6 +97,47 @@ class DraftAccountServiceTest {
 
         // Assert
         assertEquals(draftAccountEntity, result);
+    }
+
+    @Test
+    void testDeleteDraftAccount_success() {
+        // Arrange
+        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().draftAccountId(1L).build();
+        when(draftAccountRepository.getReferenceById(any())).thenReturn(draftAccountEntity);
+
+        // Act
+        draftAccountService.deleteDraftAccount(1, Optional.empty());
+    }
+
+    @Test
+    void testDeleteDraftAccount_fail1() {
+        // Arrange
+        DraftAccountEntity draftAccountEntity = mock(DraftAccountEntity.class);
+        when(draftAccountEntity.getDraftAccountId()).thenThrow(new EntityNotFoundException("No Entity in DB"));
+        when(draftAccountRepository.getReferenceById(any())).thenReturn(draftAccountEntity);
+
+        // Act
+        EntityNotFoundException enfe = assertThrows(
+            EntityNotFoundException.class, () -> draftAccountService.deleteDraftAccount(1, Optional.empty())
+        );
+
+        // Assert
+        assertEquals("No Entity in DB", enfe.getMessage());
+    }
+
+    @Test
+    void testDeleteDraftAccount_fail2() {
+        // Arrange
+        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
+        when(draftAccountRepository.getReferenceById(any())).thenReturn(draftAccountEntity);
+
+        // Act
+        RuntimeException re = assertThrows(
+            RuntimeException.class, () -> draftAccountService.deleteDraftAccount(8, Optional.empty())
+        );
+
+        // Assert
+        assertEquals("Draft Account entity '8' does not exist in the DB.", re.getMessage());
     }
 
     private String createAccountString() {

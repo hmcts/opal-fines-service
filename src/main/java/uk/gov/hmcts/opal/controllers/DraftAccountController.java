@@ -1,16 +1,20 @@
 package uk.gov.hmcts.opal.controllers;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
@@ -37,6 +41,8 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 public class DraftAccountController {
 
     public static final String ADD_DRAFT_ACCOUNT_REQUEST_JSON = "addDraftAccountRequest.json";
+    public static final String ACCOUNT_DELETED_MESSAGE_FORMAT = """
+        { "message": "Draft Account '%s' deleted"}""";
 
     private final DraftAccountService draftAccountService;
 
@@ -92,6 +98,24 @@ public class DraftAccountController {
         DraftAccountEntity response = draftAccountService.submitDraftAccount(dto, user.getUserName());
 
         return buildCreatedResponse(toGetResponseDto(response));
+    }
+
+    @Hidden
+    @DeleteMapping(value = "/{draftAccountId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Deletes the Draft Account for the given draftAccountId.")
+    @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
+    public ResponseEntity<String> deleteDraftAccountById(
+        @PathVariable Long draftAccountId,
+        @RequestHeader(value = "Authorization", required = false)  String authHeaderValue,
+        @RequestParam Optional<Boolean> ignoreMissing) {
+
+        log.info(":DELETE:deleteDraftAccountById: draftAccountId: {}", draftAccountId);
+
+        userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        draftAccountService.deleteDraftAccount(draftAccountId, ignoreMissing);
+
+        return buildResponse(String.format(ACCOUNT_DELETED_MESSAGE_FORMAT, draftAccountId));
     }
 
     DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
