@@ -131,8 +131,10 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleInvalidDataAccessResourceUsageException_ShouldReturnInternalServerError() {
-        InvalidDataAccessResourceUsageException exception = new InvalidDataAccessResourceUsageException("Invalid resource usage");
-        ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleInvalidDataAccessResourceUsageException(exception);
+        InvalidDataAccessResourceUsageException exception =
+            new InvalidDataAccessResourceUsageException("Invalid resource usage");
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler
+            .handleInvalidDataAccessResourceUsageException(exception);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Invalid resource usage", response.getBody().get("error"));
@@ -191,7 +193,8 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handlePsqlException_WithOtherCause_ShouldReturnInternalServerError() {
-        PSQLException exception = new PSQLException("PSQL Exception", PSQLState.UNEXPECTED_ERROR, new Throwable("Unexpected error"));
+        PSQLException exception = new PSQLException("PSQL Exception", PSQLState.UNEXPECTED_ERROR,
+                                                    new Throwable("Unexpected error"));
         ResponseEntity<Map<String, String>> response = globalExceptionHandler.handlePsqlException(exception);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
