@@ -39,8 +39,8 @@ class CustomAuthenticationExceptionsTest {
 
         verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         verify(response).setContentType("application/json");
-        verify(writer).write("{\"error\": \"Unauthorized\", \"message\": "
-                                 + "\"Unauthorized: request could not be authorized\"}");
+        verify(writer).write("{\"error\": \"Unauthorized\", \"message\":"
+                                 + authException.getMessage() + "}");
     }
 
     @Test
