@@ -89,7 +89,7 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
         assertEquals("Not Acceptable", response.getBody().get("error"));
-        assertEquals("The server cannot produce a response matching the request Accept header",
+        assertEquals("Not acceptable, Could not parse Accept header.",
                      response.getBody().get("message"));
     }
 
@@ -110,9 +110,10 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<Map<String, String>> response = globalExceptionHandler
             .handleHttpMessageNotReadableException(exception);
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, response.getStatusCode());
         assertEquals("Cannot read message", response.getBody().get("error"));
-        assertEquals("The request body could not be read", response.getBody().get("message"));
+        assertEquals("The request body could not be read, ensure content-type is application/json",
+                     response.getBody().get("message"));
     }
 
     @Test
@@ -132,17 +133,16 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleEntityNotFoundException(exception);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("Entity not found", response.getBody().get("error"));
+        assertEquals("Entity Not Found", response.getBody().get("error"));
     }
 
     @Test
     void handleOpalApiException_ReturnsInternalServerError() {
         OpalApiException ex = new OpalApiException(
-            AuthenticationError.FAILED_TO_PARSE_ACCESS_TOKEN,
-            "Internal Server Error");
+            AuthenticationError.FAILED_TO_OBTAIN_AUTHENTICATION_CONFIG);
         ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleOpalApiException(ex);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertEquals("Failed to parse access token. Internal Server Error", response.getBody().get("message"));
+        assertEquals("Failed to find authentication configuration", response.getBody().get("message"));
     }
 
     @Test

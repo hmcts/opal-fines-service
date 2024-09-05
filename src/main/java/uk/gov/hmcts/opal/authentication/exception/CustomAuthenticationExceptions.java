@@ -30,7 +30,7 @@ public class CustomAuthenticationExceptions implements AuthenticationEntryPoint,
         // Write the custom message to the response body
         try (PrintWriter writer = response.getWriter()) {
             writer.write("{\"error\": \"Unauthorized\", \"message\":"
-                             + " \"Unauthorized: request could not be authorized\"}");
+                             + authException.getMessage() + "}");
         }
     }
 
