@@ -70,7 +70,7 @@ class DraftAccountControllerIntegrationTest {
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(draftAccountEntity);
 
-        MvcResult result = mockMvc.perform(get("/api/draft-account/1")
+        MvcResult result = mockMvc.perform(get("/api/draft-accounts/1")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -78,7 +78,7 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(jsonPath("$.business_unit_id").value(7))
             .andExpect(jsonPath("$.account_type").value("DRAFT"))
             .andExpect(jsonPath("$.submitted_by").value("Tony"))
-            .andExpect(jsonPath("$.account_status").value("CREATED"))
+            .andExpect(jsonPath("$.account_status").value("Submitted"))
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
