@@ -29,6 +29,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class MajorCreditorControllerIntegrationTest {
 
+    private static final String URL_BASE = "/major-creditors/";
+
     @Autowired
     MockMvc mockMvc;
 
@@ -42,7 +44,7 @@ class MajorCreditorControllerIntegrationTest {
 
         when(majorCreditorService.getMajorCreditor(1L)).thenReturn(majorCreditorEntity);
 
-        mockMvc.perform(get("/api/major-creditor/1"))
+        mockMvc.perform(get(URL_BASE + "1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.majorCreditorId").value(1))
@@ -59,7 +61,7 @@ class MajorCreditorControllerIntegrationTest {
     void testGetMajorCreditorById_WhenMajorCreditorDoesNotExist() throws Exception {
         when(majorCreditorService.getMajorCreditor(2L)).thenReturn(null);
 
-        mockMvc.perform(get("/api/major-creditor/2"))
+        mockMvc.perform(get(URL_BASE + "2"))
             .andExpect(status().isNotFound());
     }
 
@@ -70,7 +72,7 @@ class MajorCreditorControllerIntegrationTest {
         when(majorCreditorService.searchMajorCreditors(any(MajorCreditorSearchDto.class)))
             .thenReturn(singletonList(majorCreditorEntity));
 
-        mockMvc.perform(post("/api/major-creditor/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -86,7 +88,7 @@ class MajorCreditorControllerIntegrationTest {
 
     @Test
     void testPostMajorCreditorsSearch_WhenMajorCreditorDoesNotExist() throws Exception {
-        mockMvc.perform(post("/api/major-creditor/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());
@@ -99,7 +101,7 @@ class MajorCreditorControllerIntegrationTest {
 
         when(majorCreditorService.getReferenceData(any(), any())).thenReturn(singletonList(refData));
 
-        mockMvc.perform(get("/api/major-creditor/ref-data")
+        mockMvc.perform(get(URL_BASE + "ref-data")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))

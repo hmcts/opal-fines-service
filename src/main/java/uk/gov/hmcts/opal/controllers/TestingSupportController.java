@@ -20,7 +20,7 @@ import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 
 @RestController
-@RequestMapping("/api/testing-support")
+@RequestMapping("/testing-support")
 @RequiredArgsConstructor
 @Tag(name = "Testing Support Controller")
 @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")

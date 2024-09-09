@@ -29,7 +29,7 @@ public class DefendantAccountAddNoteStepDef extends BaseStepDef {
             .contentType("application/json")
             .body(postBody.toString())
             .when()
-            .post(getTestUrl() + "/api/defendant-account/addNote");
+            .post(getTestUrl() + "/defendant-accounts/addNote");
     }
 
     @Then("the add notes response contains")

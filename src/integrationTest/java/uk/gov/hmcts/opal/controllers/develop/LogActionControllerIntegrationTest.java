@@ -27,6 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class LogActionControllerIntegrationTest {
 
+    private static final String URL_BASE = "/dev/log-actions/";
+
     @Autowired
     MockMvc mockMvc;
 
@@ -40,7 +42,7 @@ class LogActionControllerIntegrationTest {
 
         when(logActionService.getLogAction((short)1)).thenReturn(logActionEntity);
 
-        mockMvc.perform(get("/dev/log-action/1"))
+        mockMvc.perform(get(URL_BASE + "1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.logActionId").value(1))
@@ -52,7 +54,7 @@ class LogActionControllerIntegrationTest {
     void testGetLogActionById_WhenLogActionDoesNotExist() throws Exception {
         when(logActionService.getLogAction((short)2)).thenReturn(null);
 
-        mockMvc.perform(get("/dev/log-action/2"))
+        mockMvc.perform(get(URL_BASE + "2"))
             .andExpect(status().isNotFound());
     }
 
@@ -63,7 +65,7 @@ class LogActionControllerIntegrationTest {
         when(logActionService.searchLogActions(any(LogActionSearchDto.class)))
             .thenReturn(singletonList(logActionEntity));
 
-        mockMvc.perform(post("/dev/log-action/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -74,7 +76,7 @@ class LogActionControllerIntegrationTest {
 
     @Test
     void testPostLogActionsSearch_WhenLogActionDoesNotExist() throws Exception {
-        mockMvc.perform(post("/dev/log-action/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());

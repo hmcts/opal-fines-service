@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/dev/application-function")
+@RequestMapping("/dev/application-functions")
 @Slf4j(topic = "ApplicationFunctionController")
 @Tag(name = "ApplicationFunction Controller")
 public class ApplicationFunctionController {

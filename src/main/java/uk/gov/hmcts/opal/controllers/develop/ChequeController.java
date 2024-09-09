@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/dev/cheque")
+@RequestMapping("/dev/cheques")
 @Slf4j(topic = "ChequeController")
 @Tag(name = "Cheque Controller")
 public class ChequeController {

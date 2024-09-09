@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/dev/bacs-payment")
+@RequestMapping("/dev/bacs-payments")
 @Slf4j(topic = "BacsPaymentController")
 @Tag(name = "BacsPayment Controller")
 public class BacsPaymentController {

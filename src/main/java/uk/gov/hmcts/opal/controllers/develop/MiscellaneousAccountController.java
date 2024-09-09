@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/dev/miscellaneous-account")
+@RequestMapping("/dev/miscellaneous-accounts")
 @Slf4j(topic = "MiscellaneousAccountController")
 @Tag(name = "MiscellaneousAccount Controller")
 public class MiscellaneousAccountController {

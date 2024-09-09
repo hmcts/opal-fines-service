@@ -27,7 +27,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/major-creditor")
+@RequestMapping("/major-creditors")
 @Slf4j(topic = "MajorCreditorController")
 @Tag(name = "Major Creditor Controller")
 public class MajorCreditorController {

@@ -29,7 +29,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/court")
+@RequestMapping("/courts")
 @Slf4j(topic = "CourtController")
 @Tag(name = "Court Controller")
 public class CourtController {
