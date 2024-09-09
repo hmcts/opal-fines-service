@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
@@ -26,7 +27,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/result")
+@RequestMapping("/results")
 @Slf4j(topic = "ResultController")
 @Tag(name = "Result Controller")
 public class ResultController {
@@ -52,25 +53,36 @@ public class ResultController {
         return buildResponse(response);
     }
 
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches Results based upon criteria in request body")
-    public ResponseEntity<List<ResultEntity>> postResultsSearch(@RequestBody ResultSearchDto criteria) {
-        log.info(":POST:postResultsSearch: query: \n{}", criteria);
+    @GetMapping
+    public ResponseEntity<ResultReferenceDataResults> getResults(
+        @RequestParam(name = "result_ids", required = false) List<String> resultIds) {
 
-        List<ResultEntity> response = resultService.searchResults(criteria);
+        System.out.println("resultIds: " + resultIds);
 
-        return buildResponse(response);
+        List<ResultReferenceData> refData = null;
+
+        if (resultIds == null || resultIds.isEmpty()) {
+            refData = opalResultService.getAllResults();
+        } else {
+            refData = opalResultService.getResultsbyIds(resultIds);
+
+        }
+
+        return ResponseEntity.ok(ResultReferenceDataResults.builder().refData(refData).build());
     }
 
-    @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
-    @Operation(summary = "Returns MajorCreditors as reference data with an optional filter applied")
+
+
+
+    @GetMapping(value = { "/old", "/old/{filter}"})
+    @Operation(summary = "Returns Results as reference data with an optional filter applied")
     public ResponseEntity<ResultReferenceDataResults> getResultRefData(
         @PathVariable Optional<String> filter) {
-        log.info(":GET:getMajorCreditorRefData: filter string: {}", filter);
+        log.info(":GET:getResultRefData: filter string: {}", filter);
 
         List<ResultReferenceData> refData = opalResultService.getReferenceData(filter);
 
-        log.info(":GET:getMajorCreditorRefData: major creditor reference data count: {}", refData.size());
+        log.info(":GET:getResultRefData: result reference data count: {}", refData.size());
         return ResponseEntity.ok(ResultReferenceDataResults.builder().refData(refData).build());
     }
 }

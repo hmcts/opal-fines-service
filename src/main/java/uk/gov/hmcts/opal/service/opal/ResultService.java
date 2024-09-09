@@ -33,6 +33,17 @@ public class ResultService implements ResultServiceInterface {
         return resultRepository.getReferenceById(resultId);
     }
 
+
+    public List<ResultReferenceData> getAllResults() {
+        return resultRepository.findAll().stream().map(this::toRefData).toList();
+    }
+
+    public List<ResultReferenceData> getResultsbyIds(List<String> resultIds) {
+        return resultRepository.findByResultIdIn(resultIds).stream().map(this::toRefData).toList();
+    }
+
+
+
     @Override
     public List<ResultEntity> searchResults(ResultSearchDto criteria) {
         Page<ResultEntity> page = resultRepository
@@ -64,7 +75,10 @@ public class ResultService implements ResultServiceInterface {
             entity.getResultId(),
             entity.getResultTitle(),
             entity.getResultTitleCy(),
-            entity.getResultType()
+            entity.isActive(),
+            entity.getResultType(),
+            entity.getImpositionCreditor(),
+            entity.getImpositionAllocationPriority()
         );
     }
 }
