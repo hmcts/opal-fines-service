@@ -29,6 +29,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class EnforcerControllerIntegrationTest {
 
+    private static final String URL_BASE = "/enforcers/";
+
     @Autowired
     MockMvc mockMvc;
 
@@ -42,7 +44,7 @@ class EnforcerControllerIntegrationTest {
 
         when(enforcerService.getEnforcer(1L)).thenReturn(enforcerEntity);
 
-        mockMvc.perform(get("/api/enforcer/1"))
+        mockMvc.perform(get(URL_BASE + "1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.enforcerId").value(1))
@@ -66,7 +68,7 @@ class EnforcerControllerIntegrationTest {
     void testGetEnforcerById_WhenEnforcerDoesNotExist() throws Exception {
         when(enforcerService.getEnforcer(2L)).thenReturn(null);
 
-        mockMvc.perform(get("/api/enforcer/2"))
+        mockMvc.perform(get(URL_BASE + "2"))
             .andExpect(status().isNotFound());
     }
 
@@ -76,7 +78,7 @@ class EnforcerControllerIntegrationTest {
 
         when(enforcerService.searchEnforcers(any(EnforcerSearchDto.class))).thenReturn(singletonList(enforcerEntity));
 
-        mockMvc.perform(post("/api/enforcer/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -99,7 +101,7 @@ class EnforcerControllerIntegrationTest {
 
     @Test
     void testPostEnforcersSearch_WhenEnforcerDoesNotExist() throws Exception {
-        mockMvc.perform(post("/api/enforcer/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());
@@ -112,7 +114,7 @@ class EnforcerControllerIntegrationTest {
 
         when(enforcerService.getReferenceData(any())).thenReturn(singletonList(refData));
 
-        mockMvc.perform(get("/api/enforcer/ref-data")
+        mockMvc.perform(get(URL_BASE + "ref-data")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))

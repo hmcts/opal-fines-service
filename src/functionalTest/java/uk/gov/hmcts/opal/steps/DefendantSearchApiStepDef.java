@@ -43,7 +43,7 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
             .contentType("application/json")
             .body(requestBody.toString())
             .when()
-            .post(getTestUrl() + "/api/defendant-account/search");
+            .post(getTestUrl() + "/defendant-accounts/search");
 
     }
 

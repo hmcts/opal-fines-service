@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/dev/suspense-transaction")
+@RequestMapping("/dev/suspense-transactions")
 @Slf4j(topic = "SuspenseTransactionController")
 @Tag(name = "Suspense Transaction Controller")
 public class SuspenseTransactionController {

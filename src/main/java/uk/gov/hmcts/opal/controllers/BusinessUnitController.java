@@ -31,7 +31,7 @@ import static uk.gov.hmcts.opal.util.PermissionUtil.filterBusinessUnitsByPermiss
 
 
 @RestController
-@RequestMapping("/api/business-unit")
+@RequestMapping("/business-units")
 @Slf4j(topic = "BusinessUnitController")
 @Tag(name = "BusinessUnit Controller")
 public class BusinessUnitController {

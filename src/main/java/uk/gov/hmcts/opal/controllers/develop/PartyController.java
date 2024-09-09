@@ -24,7 +24,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/dev/party")
+@RequestMapping("/dev/parties")
 @Slf4j(topic = "PartyController")
 @Tag(name = "Party Controller")
 public class PartyController {

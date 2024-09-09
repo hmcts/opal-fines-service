@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/dev/standard-letter")
+@RequestMapping("/dev/standard-letters")
 @Slf4j(topic = "StandardLetterController")
 @Tag(name = "StandardLetter Controller")
 public class StandardLetterController {

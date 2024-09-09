@@ -37,7 +37,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredRole;
 
 @RestController
-@RequestMapping("/api/defendant-account")
+@RequestMapping("/defendant-accounts")
 @Slf4j(topic = "DefendantAccountController")
 @Tag(name = "Defendant Account Controller")
 public class DefendantAccountController {

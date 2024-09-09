@@ -35,7 +35,7 @@ public class BearerTokenStepDef extends BaseStepDef {
             .header("X-User-Email", user)
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + "/api/testing-support/token/user");
+            .get(getTestUrl() + "/testing-support/token/user");
 
         then().assertThat().statusCode(200);
         return then().extract().body().jsonPath().getString("accessToken");

@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.dto.OpalS2SRequestWrapper;
 import uk.gov.hmcts.opal.dto.OpalS2SResponseWrapper;
 
 @RestController
-@RequestMapping("/api/s2s/debtor-profile")
+@RequestMapping("/s2s/debtor-profiles")
 @Slf4j(topic = "DebtorProfileSearchController")
 @Tag(name = "Debtor Profile Search Controller")
 public class DebtorProfileSearchController {
@@ -87,4 +87,3 @@ public class DebtorProfileSearchController {
         """;
 
 }
-

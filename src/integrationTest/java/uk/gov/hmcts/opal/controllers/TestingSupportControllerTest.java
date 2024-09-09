@@ -72,7 +72,7 @@ class TestingSupportControllerTest {
 
         when(dynamicConfigService.getAppMode()).thenReturn(appMode);
 
-        mockMvc.perform(get("/api/testing-support/app-mode"))
+        mockMvc.perform(get("/testing-support/app-mode"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.mode").value("test"));
@@ -84,7 +84,7 @@ class TestingSupportControllerTest {
 
         when(dynamicConfigService.updateAppMode(any(AppMode.class))).thenReturn(appMode);
 
-        mockMvc.perform(put("/api/testing-support/app-mode")
+        mockMvc.perform(put("/testing-support/app-mode")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(new ObjectMapper().writeValueAsString(appMode)))
             .andExpect(status().isAccepted())
@@ -96,7 +96,7 @@ class TestingSupportControllerTest {
     void testIsFeatureEnabled() throws Exception {
         when(featureToggleService.isFeatureEnabled(anyString())).thenReturn(true);
 
-        mockMvc.perform(get("/api/testing-support/launchdarkly/bool/testFeature"))
+        mockMvc.perform(get("/testing-support/launchdarkly/bool/testFeature"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$").isBoolean());
@@ -107,7 +107,7 @@ class TestingSupportControllerTest {
         String featureValue = "testValue";
         when(featureToggleService.getFeatureValue(anyString())).thenReturn(featureValue);
 
-        mockMvc.perform(get("/api/testing-support/launchdarkly/string/testFeature"))
+        mockMvc.perform(get("/testing-support/launchdarkly/string/testFeature"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").value(featureValue));
     }
@@ -126,7 +126,7 @@ class TestingSupportControllerTest {
 
         when(authorisationService.getSecurityToken("testAccessToken")).thenReturn(securityToken);
 
-        mockMvc.perform(get("/api/testing-support/token/test-user"))
+        mockMvc.perform(get("/testing-support/token/test-user"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.accessToken").value("testToken"))
@@ -153,7 +153,7 @@ class TestingSupportControllerTest {
             .build();
         when(authorisationService.getSecurityToken("testAccessToken")).thenReturn(securityToken);
 
-        mockMvc.perform(get("/api/testing-support/token/user")
+        mockMvc.perform(get("/testing-support/token/user")
                             .header("X-User-Email", "test@example.com"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -173,7 +173,7 @@ class TestingSupportControllerTest {
 
         when(accessTokenService.extractPreferredUsername(token)).thenReturn("testUser");
 
-        mockMvc.perform(get("/api/testing-support/token/parse")
+        mockMvc.perform(get("/testing-support/token/parse")
                             .header("Authorization", token))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$").value("testUser"));
@@ -192,7 +192,7 @@ class TestingSupportControllerTest {
             .build();
         when(authorisationService.getSecurityToken("testAccessToken")).thenReturn(securityToken);
 
-        mockMvc.perform(get("/api/testing-support/token/user")
+        mockMvc.perform(get("/testing-support/token/user")
                             .header("X-User-Email", "test@example.com"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))

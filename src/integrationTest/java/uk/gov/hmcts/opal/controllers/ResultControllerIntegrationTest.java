@@ -25,6 +25,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class ResultControllerIntegrationTest {
 
+    private static final String URL_BASE = "/results/";
+
     @Autowired
     MockMvc mockMvc;
 

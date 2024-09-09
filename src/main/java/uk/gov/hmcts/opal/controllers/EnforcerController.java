@@ -26,7 +26,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/enforcer")
+@RequestMapping("/enforcers")
 @Slf4j(topic = "EnforcerController")
 @Tag(name = "Enforcer Controller")
 public class EnforcerController {

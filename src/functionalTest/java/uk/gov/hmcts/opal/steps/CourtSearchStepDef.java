@@ -18,7 +18,7 @@ public class CourtSearchStepDef extends BaseStepDef {
             .contentType("application/json")
             .body("{}")
             .when()
-            .post(getTestUrl() + "/api/court/search");
+            .post(getTestUrl() + "/courts/search");
     }
 
     @Then("the court search response returns 200")

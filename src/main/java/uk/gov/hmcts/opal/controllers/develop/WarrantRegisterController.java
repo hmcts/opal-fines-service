@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/dev/warrant-register")
+@RequestMapping("/dev/warrant-registers")
 @Slf4j(topic = "WarrantRegisterController")
 @Tag(name = "WarrantRegister Controller")
 public class WarrantRegisterController {
