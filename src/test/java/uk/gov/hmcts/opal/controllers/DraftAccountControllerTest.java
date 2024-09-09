@@ -121,6 +121,19 @@ class DraftAccountControllerTest {
         verify(draftAccountService, times(1)).submitDraftAccount(any(), any());
     }
 
+    @Test
+    void testDeleteDraftAccount_Success() {
+        // Act
+        ResponseEntity<String> response = draftAccountController
+            .deleteDraftAccountById(7L, BEARER_TOKEN, Optional.empty());
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("""
+                         { "message": "Draft Account '7' deleted"}""", response.getBody());
+        verify(draftAccountService, times(1)).deleteDraftAccount(any(Long.class), any());
+    }
+
     DraftAccountResponseDto toGetDto(DraftAccountEntity entity) {
         return DraftAccountResponseDto.builder()
             .draftAccountId(entity.getDraftAccountId())
