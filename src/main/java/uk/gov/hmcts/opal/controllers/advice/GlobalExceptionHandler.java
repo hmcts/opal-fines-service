@@ -28,6 +28,8 @@ import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
+import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -192,7 +194,8 @@ public class GlobalExceptionHandler {
         log.error(":handlePSQLException: {}", psqlException.getMessage());
         log.error(":handlePSQLException:", psqlException.getCause());
 
-        if (psqlException.getCause() instanceof java.net.ConnectException) {
+        if (psqlException.getCause() instanceof ConnectException || psqlException.getCause()
+            instanceof UnknownHostException) {
             Map<String, String> body = new LinkedHashMap<>();
             body.put(ERROR, "Service Unavailable");
             body.put(MESSAGE, DB_UNAVAILABLE_MESSAGE);
