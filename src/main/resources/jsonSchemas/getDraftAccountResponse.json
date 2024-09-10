@@ -31,11 +31,11 @@
       "description": "[Optional] ID of the User that validated the Draft Account"
     },
     "account": {
-      "type": "string",
+      "type": "object",
       "description": "The structured Account data (JSON)"
     },
     "account_snapshot": {
-      "type": "string",
+      "type": "object",
       "description": "Summary business data to identify the Account - System generated (BE) from Account data (JSON)"
     },
     "account_type": {
@@ -47,7 +47,7 @@
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
     },
     "timeline_data": {
-      "type": "string",
+      "type": "object",
       "description": "Status changes to the Draft Account in chronological order (JSON Array) - System generated (UI)"
     },
     "account_number": {

@@ -1,10 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
 
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Option;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,11 +16,14 @@ import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
+import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
+
+import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 
 @Service
 @Slf4j(topic = "DraftAccountService")
@@ -80,8 +79,7 @@ public class DraftAccountService {
     private  DraftAccountSnapshotsDto.Snapshot  buildInitialSnapshot(String document, LocalDateTime created,
                                       BusinessUnitEntity businessUnit, String userName) {
 
-        Configuration config = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL);
-        DocumentContext docContext = JsonPath.parse(document, config);
+        JsonPathUtil.DocContext docContext = createDocContext(document);
 
         String companyName = docContext.read("$.accountCreateRequest.Defendant.CompanyName");
 

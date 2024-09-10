@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -20,7 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.time.LocalDateTime;
 
@@ -58,7 +57,7 @@ public class DraftAccountEntity {
     private String validatedBy;
 
     @Column(name = "account", columnDefinition = "json", nullable = false)
-    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
+    @ColumnTransformer(write = "?::jsonb")
     @JsonRawValue
     private String account;
 
@@ -69,7 +68,7 @@ public class DraftAccountEntity {
     private Long accountId;
 
     @Column(name = "account_snapshot", columnDefinition = "json", nullable = false)
-    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
+    @ColumnTransformer(write = "?::jsonb")
     @JsonRawValue
     private String accountSnapshot;
 
@@ -78,7 +77,7 @@ public class DraftAccountEntity {
     private DraftAccountStatus accountStatus;
 
     @Column(name = "timeline_data", columnDefinition = "json")
-    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
+    @ColumnTransformer(write = "?::jsonb")
     @JsonRawValue
     private String timelineData;
 
