@@ -11,15 +11,19 @@ import org.postgresql.util.PSQLState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.MethodParameter;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
@@ -28,6 +32,7 @@ import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
+import java.lang.reflect.Method;
 import java.net.ConnectException;
 import java.util.Map;
 
@@ -96,6 +101,43 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void testHandleMethodArgumentTypeMismatchException() throws NoSuchMethodException {
+        // Simulate a value that caused the type mismatch
+        Object invalidValue = "invalidInt";
+
+        // Expected type (e.g., Integer.class)
+        Class<?> requiredType = Integer.class;
+
+        // Parameter name
+        String parameterName = "testParam";
+
+        // Cause of the mismatch, can be null or a specific exception like NumberFormatException
+        Throwable cause = new NumberFormatException("For input string: \"invalidInt\"");
+
+        // Simulate a method and method parameter
+        Method method = GlobalExceptionHandlerTest.class.getMethod("sampleMethod", Integer.class);
+        MethodParameter methodParameter = new MethodParameter(method, 0);
+
+        // Initialize MethodArgumentTypeMismatchException
+        MethodArgumentTypeMismatchException exception = new MethodArgumentTypeMismatchException(
+            invalidValue,
+            requiredType,
+            parameterName,
+            methodParameter,
+            cause
+        );
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler
+            .handleMethodArgumentTypeMismatchException(exception);
+
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
+        assertEquals("Not Acceptable", response.getBody().get("error"));
+        assertEquals(
+            "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; "
+                + "For input string: \"invalidInt\"",
+                     response.getBody().get("message"));
+    }
+
+    @Test
     void testHandlePropertyValueException() {
         PropertyValueException exception = new PropertyValueException("Property value exception", "entity",
                                                                       "property");
@@ -159,9 +201,9 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void testHandleDatabaseExceptions_queryTimeout() {
+    void testHandleServletExceptions_queryTimeout() {
         QueryTimeoutException exception = new QueryTimeoutException("Query timeout", null, null);
-        ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleDatabaseExceptions(exception);
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleServletExceptions(exception);
 
         assertEquals(HttpStatus.REQUEST_TIMEOUT, response.getStatusCode());
         assertEquals("Request Timeout", response.getBody().get("error"));
@@ -170,13 +212,23 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleDatabaseExceptions_OtherDatabaseException_ShouldReturnInternalServerError() {
+    void handleServletExceptions_OtherDatabaseException_ShouldReturnInternalServerError() {
         PersistenceException exception = new PersistenceException("Persistence exception");
-        ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleDatabaseExceptions(exception);
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleServletExceptions(exception);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Internal Server Error", response.getBody().get("error"));
         assertEquals("An unexpected error occurred", response.getBody().get("message"));
+    }
+
+    @Test
+    void handleServletExceptions_ResourceNotFound_ShouldReturnNotFoundError() {
+        NoResourceFoundException exception = new NoResourceFoundException(HttpMethod.GET, "path");
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleServletExceptions(exception);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("Not Found", response.getBody().get("error"));
+        assertEquals("No static resource path.", response.getBody().get("message"));
     }
 
     @Test
@@ -212,5 +264,9 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertEquals("Service Unavailable", response.getBody().get("error"));
         assertEquals("Opal Fines Database is currently unavailable", response.getBody().get("message"));
+    }
+
+    public static void sampleMethod(Integer testParam) {
+        // Sample method to simulate the method parameter
     }
 }
