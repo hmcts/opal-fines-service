@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,9 +36,11 @@ public class DraftAccountResponseDto implements ToJsonString {
     private String validatedBy;
 
     @JsonProperty("account")
+    @JsonRawValue
     private String account;
 
     @JsonProperty("account_snapshot")
+    @JsonRawValue
     private String accountSnapshot;
 
     @JsonProperty("account_type")
@@ -47,6 +50,7 @@ public class DraftAccountResponseDto implements ToJsonString {
     private String accountStatus;
 
     @JsonProperty("timeline_data")
+    @JsonRawValue
     private String timelineData;
 
     @JsonProperty("account_number")

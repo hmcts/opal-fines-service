@@ -77,9 +77,8 @@ class DraftAccountServiceTest {
 
     }
 
-    @SuppressWarnings("unchecked")
     @Test
-    void testSubmitDraftAccounts() {
+    void testSubmitDraftAccounts_success() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
@@ -97,6 +96,26 @@ class DraftAccountServiceTest {
 
         // Assert
         assertEquals(draftAccountEntity, result);
+    }
+
+    @Test
+    void testSubmitDraftAccounts_fail() {
+        // Arrange
+        AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
+            .account("{}")
+            .build();
+        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+            .businessUnitName("Old Bailey")
+            .build();
+
+        when(businessUnitRepository.findById(any())).thenReturn(Optional.of(businessUnit));
+
+        // Act
+        RuntimeException re = assertThrows(RuntimeException.class, () ->
+            draftAccountService.submitDraftAccount(addDraftAccountDto, "Charles"));
+
+        // Assert
+        assertEquals("Missing property in path $['accountCreateRequest']", re.getMessage());
     }
 
     @Test
