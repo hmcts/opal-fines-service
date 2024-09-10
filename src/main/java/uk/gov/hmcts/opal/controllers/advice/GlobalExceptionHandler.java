@@ -22,12 +22,16 @@ import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
+import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -76,11 +80,25 @@ public class GlobalExceptionHandler {
         HttpMediaTypeNotAcceptableException ex) {
 
         log.error(":handleHttpMediaTypeNotAcceptableException: {}", ex.getMessage());
-        log.error(":handleHttpMediaTypeNotAcceptableException:", ex.getCause());
+        log.error(":handleHttpMediaTypeNotAcceptableException:", ex.getBody().getDetail());
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Not Acceptable");
         body.put(MESSAGE, ex.getMessage() + ", " + ex.getBody().getDetail());
+
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).contentType(MediaType.APPLICATION_JSON).body(body);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, String>> handleMethodArgumentTypeMismatchException(
+        MethodArgumentTypeMismatchException ex) {
+
+        log.error(":handleHttpMediaTypeNotAcceptableException: {}", ex.getMessage());
+        log.error(":handleHttpMediaTypeNotAcceptableException:", ex.getCause());
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "Not Acceptable");
+        body.put(MESSAGE, ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).contentType(MediaType.APPLICATION_JSON).body(body);
     }
@@ -166,7 +184,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({ServletException.class, TransactionSystemException.class, PersistenceException.class})
-    public ResponseEntity<Map<String, String>> handleDatabaseExceptions(Exception ex) {
+    public ResponseEntity<Map<String, String>> handleServletExceptions(Exception ex) {
 
         if (ex instanceof QueryTimeoutException) {
             log.error(":handleQueryTimeoutException: {}", ex.getMessage());
@@ -177,7 +195,16 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).contentType(MediaType.APPLICATION_JSON).body(body);
         }
 
-        // If it's not a QueryTimeoutException, return a generic internal server error
+        if (ex instanceof NoResourceFoundException) {
+            log.error(":handleNoResourceFoundException: {}", ((NoResourceFoundException) ex).getBody().getDetail());
+
+            Map<String, String> body = new LinkedHashMap<>();
+            body.put(ERROR, "Not Found");
+            body.put(MESSAGE, ((NoResourceFoundException) ex).getBody().getDetail());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(body);
+        }
+
+
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Internal Server Error");
         body.put(MESSAGE, "An unexpected error occurred");
@@ -192,7 +219,8 @@ public class GlobalExceptionHandler {
         log.error(":handlePSQLException: {}", psqlException.getMessage());
         log.error(":handlePSQLException:", psqlException.getCause());
 
-        if (psqlException.getCause() instanceof java.net.ConnectException) {
+        if (psqlException.getCause() instanceof ConnectException || psqlException.getCause()
+            instanceof UnknownHostException) {
             Map<String, String> body = new LinkedHashMap<>();
             body.put(ERROR, "Service Unavailable");
             body.put(MESSAGE, DB_UNAVAILABLE_MESSAGE);
