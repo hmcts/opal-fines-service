@@ -22,6 +22,7 @@ import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
@@ -78,11 +79,25 @@ public class GlobalExceptionHandler {
         HttpMediaTypeNotAcceptableException ex) {
 
         log.error(":handleHttpMediaTypeNotAcceptableException: {}", ex.getMessage());
-        log.error(":handleHttpMediaTypeNotAcceptableException:", ex.getCause());
+        log.error(":handleHttpMediaTypeNotAcceptableException:", ex.getBody().getDetail());
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Not Acceptable");
         body.put(MESSAGE, ex.getMessage() + ", " + ex.getBody().getDetail());
+
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).contentType(MediaType.APPLICATION_JSON).body(body);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, String>> handleMethodArgumentTypeMismatchException(
+        MethodArgumentTypeMismatchException ex) {
+
+        log.error(":handleHttpMediaTypeNotAcceptableException: {}", ex.getMessage());
+        log.error(":handleHttpMediaTypeNotAcceptableException:", ex.getCause());
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "Not Acceptable");
+        body.put(MESSAGE, ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).contentType(MediaType.APPLICATION_JSON).body(body);
     }
