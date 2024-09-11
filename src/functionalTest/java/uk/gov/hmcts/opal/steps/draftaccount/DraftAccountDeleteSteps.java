@@ -24,7 +24,7 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .delete(getTestUrl() + DRAFT_ACCOUNT_URI +"/"+ draftAccountId + "?ignoreMissing=true");
+            .delete(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId + "?ignoreMissing=true");
     }
 
     @Then("I delete the created draft accounts")

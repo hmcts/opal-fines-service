@@ -22,7 +22,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI +"/"+ draftAccountId);
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
     }
 
     @When("I get the single created draft account and the response contains")
@@ -39,7 +39,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI +"/"+ draftAccountId);
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
 
