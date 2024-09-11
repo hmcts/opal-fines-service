@@ -29,10 +29,13 @@ public class ResultService implements ResultServiceInterface {
     private final ResultSpecs specs = new ResultSpecs();
 
     @Override
-    public ResultEntity getResult(long resultId) {
+    public ResultEntity getResult(String resultId) {
         return resultRepository.getReferenceById(resultId);
     }
 
+    public ResultReferenceData getResultReferenceData(String resultId) {
+        return toRefData(resultRepository.getReferenceById(resultId));
+    }
 
     public List<ResultReferenceData> getAllResults() {
         return resultRepository.findAll().stream().map(this::toRefData).toList();

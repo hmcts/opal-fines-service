@@ -7,14 +7,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResults;
-import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
-import uk.gov.hmcts.opal.entity.ResultEntity;
 import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
 import uk.gov.hmcts.opal.service.opal.ResultService;
-
-import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,56 +28,26 @@ class ResultControllerTest {
     @Test
     void testGetResult_Success() {
         // Arrange
-        ResultEntity entity = ResultEntity.builder().build();
+        ResultReferenceData refData = new ResultReferenceData("ABC",
+                                                              "Result AAA-BBB",
+                                                              "Result AAA-BBB Cy",
+                                                              false,
+                                                              "ResType-XX",
+                                                              "AAA-01234",
+                                                              (short)9);
 
-        when(resultService.getResult(any(Long.class))).thenReturn(entity);
+        when(resultService.getResultReferenceData(any(String.class))).thenReturn(refData);
 
         // Act
-        ResponseEntity<ResultEntity> response = resultController.getResultById(1L);
+        ResponseEntity<ResultReferenceData> response = resultController.getResultById("ABC");
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(entity, response.getBody());
-        verify(resultService, times(1)).getResult(any(Long.class));
+        assertEquals(refData, response.getBody());
+        verify(resultService, times(1)).getResultReferenceData(any(String.class));
     }
 
-    @Test
-    void testSearchResults_Success() {
-        // Arrange
-        ResultEntity entity = ResultEntity.builder().build();
-        List<ResultEntity> resultList = List.of(entity);
 
-        when(resultService.searchResults(any())).thenReturn(resultList);
 
-        // Act
-        ResultSearchDto searchDto = ResultSearchDto.builder().build();
-        ResponseEntity<List<ResultEntity>> response = resultController.postResultsSearch(searchDto);
 
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(resultList, response.getBody());
-        verify(resultService, times(1)).searchResults(any());
-    }
-
-    @Test
-    void testGetResultsRefData_Success() {
-        // Arrange
-        ResultReferenceData refData = new ResultReferenceData("result-id-001", "Result Title",
-                                                                  "Result Tittle Cy", "FINAL");
-        List<ResultReferenceData> refDataList = List.of(refData);
-
-        when(resultService.getReferenceData(any())).thenReturn(refDataList);
-
-        // Act
-        Optional<String> filter = Optional.empty();
-        ResponseEntity<ResultReferenceDataResults> response = resultController
-            .getResultRefData(filter);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        ResultReferenceDataResults refDataResults = response.getBody();
-        assertEquals(1, refDataResults.getCount());
-        assertEquals(refDataList, refDataResults.getRefData());
-        verify(resultService, times(1)).getReferenceData(any());
-    }
 }

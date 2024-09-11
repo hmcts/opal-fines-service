@@ -42,7 +42,7 @@ class ResultServiceTest {
         when(resultRepository.getReferenceById(any())).thenReturn(resultEntity);
 
         // Act
-        ResultEntity result = resultService.getResult(1);
+        ResultEntity result = resultService.getResult("ABC");
 
         // Assert
         assertNotNull(result);
@@ -91,7 +91,10 @@ class ResultServiceTest {
             entity.getResultId(),
             entity.getResultTitle(),
             entity.getResultTitleCy(),
-            entity.getResultType()
+            entity.isActive(),
+            entity.getResultType(),
+            entity.getImpositionCreditor(),
+            entity.getImpositionAllocationPriority()
         );
 
         // Assert

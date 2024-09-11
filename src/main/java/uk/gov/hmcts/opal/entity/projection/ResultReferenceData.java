@@ -9,8 +9,5 @@ public record ResultReferenceData(
         @JsonProperty("active") boolean active,
         @JsonProperty("result_type") String resultType,
         @JsonProperty("imposition_creditor") String impositionCreditor,
-        @JsonProperty("imposition_allocation_order") Short impositionAllocationPriority)
-
-{
-
+        @JsonProperty("imposition_allocation_order") Short impositionAllocationPriority) {
 }
