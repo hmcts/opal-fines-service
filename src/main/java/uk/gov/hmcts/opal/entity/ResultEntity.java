@@ -3,8 +3,6 @@ package uk.gov.hmcts.opal.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -27,7 +25,6 @@ import lombok.NoArgsConstructor;
 public class ResultEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "result_id_seq_generator")
     private String resultId;
 
     @Column(name = "result_title", length = 50, nullable = false)
@@ -93,7 +90,7 @@ public class ResultEntity {
     @Column(name = "lists_monies", nullable = false)
     private boolean listsMonies;
 
-    @Column(name = "user_entries")
-    private String userEntries;
+    @Column(name = "result_parameters")
+    private String resultParameters;
 
 }

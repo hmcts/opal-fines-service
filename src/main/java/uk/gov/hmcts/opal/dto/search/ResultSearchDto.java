@@ -15,6 +15,6 @@ public class ResultSearchDto implements ToJsonString {
     private String impositionCategory;
     private String impositionAllocationPriority;
     private String impositionCreditor;
-    private String userEntries;
+    private String resultParameters;
 
 }

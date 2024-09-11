@@ -42,12 +42,78 @@ class ResultServiceTest {
         when(resultRepository.getReferenceById(any())).thenReturn(resultEntity);
 
         // Act
-        ResultEntity result = resultService.getResult(1);
+        ResultEntity result = resultService.getResult("ABC");
 
         // Assert
         assertNotNull(result);
 
     }
+
+    @Test
+    void testGetResultReferenceData() {
+        // Arrange
+
+        ResultEntity resultEntity = ResultEntity.builder().build();
+        when(resultRepository.getReferenceById(any())).thenReturn(resultEntity);
+
+        // Act
+        ResultReferenceData result = resultService.getResultReferenceData("ABC");
+
+        // Assert
+        assertNotNull(result);
+
+    }
+
+    @Test
+    void testGetAllResults() {
+        // Arrange
+        ResultEntity resultEntity = ResultEntity.builder().build();
+        when(resultRepository.findAll()).thenReturn(List.of(resultEntity));
+
+        // Act
+        List<ResultReferenceData> result = resultService.getAllResults();
+
+        ResultReferenceData refData =  new ResultReferenceData(
+            resultEntity.getResultId(),
+            resultEntity.getResultTitle(),
+            resultEntity.getResultTitleCy(),
+            resultEntity.isActive(),
+            resultEntity.getResultType(),
+            resultEntity.getImpositionCreditor(),
+            resultEntity.getImpositionAllocationPriority()
+        );
+
+        // Assert
+        assertEquals(List.of(refData), result);
+
+    }
+
+    @Test
+    void testGetResultsByIds() {
+        // Arrange
+        ResultEntity resultEntity = ResultEntity.builder().build();
+        when(resultRepository.findByResultIdIn(any())).thenReturn(List.of(resultEntity));
+
+        // Act
+        List<ResultReferenceData> result = resultService.getResultsByIds(List.of("ABC"));
+
+        ResultReferenceData refData =  new ResultReferenceData(
+            resultEntity.getResultId(),
+            resultEntity.getResultTitle(),
+            resultEntity.getResultTitleCy(),
+            resultEntity.isActive(),
+            resultEntity.getResultType(),
+            resultEntity.getImpositionCreditor(),
+            resultEntity.getImpositionAllocationPriority()
+        );
+
+        // Assert
+        assertEquals(List.of(refData), result);
+
+    }
+
+
+
 
     @SuppressWarnings("unchecked")
     @Test
@@ -91,7 +157,10 @@ class ResultServiceTest {
             entity.getResultId(),
             entity.getResultTitle(),
             entity.getResultTitleCy(),
-            entity.getResultType()
+            entity.isActive(),
+            entity.getResultType(),
+            entity.getImpositionCreditor(),
+            entity.getImpositionAllocationPriority()
         );
 
         // Assert
