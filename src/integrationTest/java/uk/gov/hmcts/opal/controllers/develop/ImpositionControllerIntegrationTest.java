@@ -34,6 +34,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class ImpositionControllerIntegrationTest {
 
+    private static final String URL_BASE = "/dev/impositions/";
+
     @Autowired
     MockMvc mockMvc;
 
@@ -47,7 +49,7 @@ class ImpositionControllerIntegrationTest {
 
         when(impositionService.getImposition(1L)).thenReturn(impositionEntity);
 
-        mockMvc.perform(get("/dev/imposition/1"))
+        mockMvc.perform(get(URL_BASE + "1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.impositionId").value(1))
@@ -64,7 +66,7 @@ class ImpositionControllerIntegrationTest {
     void testGetImpositionById_WhenImpositionDoesNotExist() throws Exception {
         when(impositionService.getImposition(2L)).thenReturn(null);
 
-        mockMvc.perform(get("/dev/imposition/2"))
+        mockMvc.perform(get(URL_BASE + "2"))
             .andExpect(status().isNotFound());
     }
 
@@ -75,7 +77,7 @@ class ImpositionControllerIntegrationTest {
         when(impositionService.searchImpositions(any(ImpositionSearchDto.class)))
             .thenReturn(singletonList(impositionEntity));
 
-        mockMvc.perform(post("/dev/imposition/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -91,7 +93,7 @@ class ImpositionControllerIntegrationTest {
 
     @Test
     void testPostImpositionsSearch_WhenImpositionDoesNotExist() throws Exception {
-        mockMvc.perform(post("/dev/imposition/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());

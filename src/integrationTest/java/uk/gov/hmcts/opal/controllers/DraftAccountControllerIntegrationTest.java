@@ -47,6 +47,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class DraftAccountControllerIntegrationTest {
 
+    private static final String URL_BASE = "/draft-accounts/";
+
     private static final Logger logger = Logger.getLogger(DraftAccountControllerIntegrationTest.class.getSimpleName());
 
     @Autowired
@@ -71,7 +73,7 @@ class DraftAccountControllerIntegrationTest {
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(draftAccountEntity);
 
-        MvcResult result = mockMvc.perform(get("/api/draft-accounts/1")
+        MvcResult result = mockMvc.perform(get(URL_BASE + "1")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -94,7 +96,7 @@ class DraftAccountControllerIntegrationTest {
     void testGetDraftAccountById_WhenDraftAccountDoesNotExist() throws Exception {
         when(draftAccountService.getDraftAccount(2L)).thenReturn(null);
 
-        mockMvc.perform(get("/api/draft-accounts/2").header("authorization", "Bearer some_value"))
+        mockMvc.perform(get(URL_BASE + "2").header("authorization", "Bearer some_value"))
             .andExpect(status().isNotFound());
     }
 
@@ -105,7 +107,7 @@ class DraftAccountControllerIntegrationTest {
         when(draftAccountService.searchDraftAccounts(any(DraftAccountSearchDto.class)))
             .thenReturn(singletonList(draftAccountEntity));
 
-        mockMvc.perform(post("/api/draft-accounts/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
@@ -120,7 +122,7 @@ class DraftAccountControllerIntegrationTest {
 
     @Test
     void testPostDraftAccountsSearch_WhenDraftAccountDoesNotExist() throws Exception {
-        mockMvc.perform(post("/api/draft-accounts/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
@@ -132,7 +134,7 @@ class DraftAccountControllerIntegrationTest {
         // Simulating a timeout exception when the repository is called
         doThrow(new QueryTimeoutException()).when(draftAccountService).getDraftAccount(1L);
 
-        mockMvc.perform(get("/api/draft-accounts/1")
+        mockMvc.perform(get(URL_BASE + "1")
                             .header("Authorization", "Bearer " + "some_value"))
             .andExpect(status().isRequestTimeout())
             .andExpect(content().contentType("application/json"))
@@ -148,7 +150,7 @@ class DraftAccountControllerIntegrationTest {
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(createDraftAccountEntity());
 
-        mockMvc.perform(get("/api/draft-accounts/1")
+        mockMvc.perform(get(URL_BASE + "1")
                             .header("Authorization", "Bearer " + "some_value")
                             .accept("application/xml"))
             .andExpect(status().isNotAcceptable());
@@ -178,7 +180,7 @@ class DraftAccountControllerIntegrationTest {
             .when(draftAccountService).getDraftAccount(1L);
 
 
-        mockMvc.perform(get("/api/draft-accounts/1")
+        mockMvc.perform(get(URL_BASE + "1")
                             .header("Authorization", "Bearer " + "some_value"))
             .andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType("application/json"))
@@ -195,7 +197,7 @@ class DraftAccountControllerIntegrationTest {
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(draftAccountEntity);
 
-        MvcResult result = mockMvc.perform(delete("/api/draft-accounts/1")
+        MvcResult result = mockMvc.perform(delete(URL_BASE + "1")
                                                .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))

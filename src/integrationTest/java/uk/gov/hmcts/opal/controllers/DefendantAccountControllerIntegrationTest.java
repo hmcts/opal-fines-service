@@ -42,6 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class DefendantAccountControllerIntegrationTest {
 
+    private static final String URL_BASE = "/defendant-accounts/";
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -62,7 +64,7 @@ class DefendantAccountControllerIntegrationTest {
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.getAccountDetailsByDefendantAccountId(1L)).thenReturn(defendantAccountEntity);
 
-        mockMvc.perform(get("/api/defendant-account/1")
+        mockMvc.perform(get(URL_BASE + "1")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -78,7 +80,7 @@ class DefendantAccountControllerIntegrationTest {
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.getDefendantAccount(any())).thenReturn(null);
 
-        mockMvc.perform(get("/api/defendant-account/2")
+        mockMvc.perform(get(URL_BASE + "2")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isNotFound());
     }
@@ -92,7 +94,7 @@ class DefendantAccountControllerIntegrationTest {
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class))).thenReturn(results);
 
-        mockMvc.perform(post("/api/defendant-account/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
@@ -114,7 +116,7 @@ class DefendantAccountControllerIntegrationTest {
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.getDefendantAccount(dto)).thenReturn(null);
 
-        mockMvc.perform(post("/api/defendant-account/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
@@ -129,7 +131,7 @@ class DefendantAccountControllerIntegrationTest {
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.getDefendantAccount(any())).thenReturn(entity);
 
-        mockMvc.perform(get("/api/defendant-account")
+        mockMvc.perform(get("/defendant-accounts")
                             .header("authorization", "Bearer some_value")
                             .param("businessUnitId", "1")
                             .param("accountNumber", "123"))
@@ -150,7 +152,7 @@ class DefendantAccountControllerIntegrationTest {
             .thenReturn(new UserState.DeveloperUserState());
         when(defendantAccountService.putDefendantAccount(any())).thenReturn(entity);
 
-        mockMvc.perform(put("/api/defendant-account")
+        mockMvc.perform(put("/defendant-accounts")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(new ObjectMapper().writeValueAsString(entity)))
@@ -177,7 +179,7 @@ class DefendantAccountControllerIntegrationTest {
             .thenReturn(new UserState.DeveloperUserState());
         when(opalNoteService.saveNote(any())).thenReturn(noteDto);
 
-        mockMvc.perform(post("/api/defendant-account/addNote")
+        mockMvc.perform(post(URL_BASE + "addNote")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(new ObjectMapper().writeValueAsString(addNoteDto)))
@@ -195,7 +197,7 @@ class DefendantAccountControllerIntegrationTest {
             .thenReturn(new UserState.DeveloperUserState());
         when(opalNoteService.searchNotes(any())).thenReturn(notesList);
 
-        mockMvc.perform(get("/api/defendant-account/notes/{defendantId}", "dummyDefendantId")
+        mockMvc.perform(get(URL_BASE + "notes/{defendantId}", "dummyDefendantId")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -215,7 +217,7 @@ class DefendantAccountControllerIntegrationTest {
             .thenReturn(new UserState.DeveloperUserState());
         when(opalNoteService.searchNotes(any())).thenReturn(notesList);
 
-        mockMvc.perform(get("/api/defendant-account/notes/{defendantId}", "dummyDefendantId")
+        mockMvc.perform(get(URL_BASE + "notes/{defendantId}", "dummyDefendantId")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk());
     }

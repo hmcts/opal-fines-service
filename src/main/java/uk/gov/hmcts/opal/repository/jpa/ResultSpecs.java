@@ -19,7 +19,7 @@ public class ResultSpecs extends EntitySpecs<ResultEntity> {
             numericShort(criteria.getImpositionAllocationPriority())
                 .map(ResultSpecs::equalsImpositionAllocationPriority),
             notBlank(criteria.getImpositionCreditor()).map(ResultSpecs::likeImpositionCreditor),
-            notBlank(criteria.getUserEntries()).map(ResultSpecs::likeUserEntries)
+            notBlank(criteria.getResultParameters()).map(ResultSpecs::likeResultParameters)
         ));
     }
 
@@ -78,13 +78,13 @@ public class ResultSpecs extends EntitySpecs<ResultEntity> {
                                                                impositionCreditor);
     }
 
-    public static Specification<ResultEntity> equalsUserEntries(String userEntries) {
-        return (root, query, builder) -> builder.equal(root.get(ResultEntity_.userEntries), userEntries);
+    public static Specification<ResultEntity> equalsResultParameters(String resultParameters) {
+        return (root, query, builder) -> builder.equal(root.get(ResultEntity_.resultParameters), resultParameters);
     }
 
-    public static Specification<ResultEntity> likeUserEntries(String userEntries) {
-        return (root, query, builder) -> likeWildcardPredicate(root.get(ResultEntity_.userEntries), builder,
-                                                               userEntries);
+    public static Specification<ResultEntity> likeResultParameters(String resultParameters) {
+        return (root, query, builder) -> likeWildcardPredicate(root.get(ResultEntity_.resultParameters), builder,
+                                                               resultParameters);
     }
 
     public Specification<ResultEntity> likeAnyResult(String filter) {

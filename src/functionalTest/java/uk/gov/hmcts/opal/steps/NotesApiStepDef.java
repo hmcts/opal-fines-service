@@ -34,7 +34,7 @@ public class NotesApiStepDef extends BaseStepDef {
             .contentType("application/json")
             .body(body.toString())
             .when()
-            .post(getTestUrl() + "/api/notes");
+            .post(getTestUrl() + "/notes");
         then().assertThat()
             .statusCode(201)
             .body("associatedRecordId", Matchers.equalTo(dataToPost.get("recordId")))

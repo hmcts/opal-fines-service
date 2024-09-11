@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ResultServiceInterface {
 
-    ResultEntity getResult(long resultId);
+    ResultEntity getResult(String resultId);
 
     List<ResultEntity> searchResults(ResultSearchDto criteria);
 }

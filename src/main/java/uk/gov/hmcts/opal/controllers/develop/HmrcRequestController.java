@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/dev/hmrc-request")
+@RequestMapping("/dev/hmrc-requests")
 @Slf4j(topic = "HmrcRequestController")
 @Tag(name = "HmrcRequest Controller")
 public class HmrcRequestController {

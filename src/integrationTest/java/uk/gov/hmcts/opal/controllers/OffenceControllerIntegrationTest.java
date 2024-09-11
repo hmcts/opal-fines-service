@@ -28,6 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class OffenceControllerIntegrationTest {
 
+    private static final String URL_BASE = "/offences/";
+
     @Autowired
     MockMvc mockMvc;
 
@@ -41,7 +43,7 @@ class OffenceControllerIntegrationTest {
 
         when(offenceService.getOffence((short)1)).thenReturn(offenceEntity);
 
-        mockMvc.perform(get("/api/offence/1"))
+        mockMvc.perform(get(URL_BASE + "1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.offenceId").value(1))
@@ -55,7 +57,7 @@ class OffenceControllerIntegrationTest {
     void testGetOffenceById_WhenOffenceDoesNotExist() throws Exception {
         when(offenceService.getOffence((short)2)).thenReturn(null);
 
-        mockMvc.perform(get("/api/offence/2"))
+        mockMvc.perform(get(URL_BASE + "2"))
             .andExpect(status().isNotFound());
     }
 
@@ -65,7 +67,7 @@ class OffenceControllerIntegrationTest {
 
         when(offenceService.searchOffences(any(OffenceSearchDto.class))).thenReturn(singletonList(offenceEntity));
 
-        mockMvc.perform(post("/api/offence/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -78,7 +80,7 @@ class OffenceControllerIntegrationTest {
 
     @Test
     void testPostOffencesSearch_WhenOffenceDoesNotExist() throws Exception {
-        mockMvc.perform(post("/api/offence/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());

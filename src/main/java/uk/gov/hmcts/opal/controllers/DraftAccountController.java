@@ -35,7 +35,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/api/draft-accounts")
+@RequestMapping("/draft-accounts")
 @Slf4j(topic = "DraftAccountController")
 @Tag(name = "DraftAccount Controller")
 public class DraftAccountController {

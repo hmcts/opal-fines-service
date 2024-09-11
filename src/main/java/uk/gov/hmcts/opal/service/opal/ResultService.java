@@ -29,9 +29,23 @@ public class ResultService implements ResultServiceInterface {
     private final ResultSpecs specs = new ResultSpecs();
 
     @Override
-    public ResultEntity getResult(long resultId) {
+    public ResultEntity getResult(String resultId) {
         return resultRepository.getReferenceById(resultId);
     }
+
+    public ResultReferenceData getResultReferenceData(String resultId) {
+        return toRefData(resultRepository.getReferenceById(resultId));
+    }
+
+    public List<ResultReferenceData> getAllResults() {
+        return resultRepository.findAll().stream().map(this::toRefData).toList();
+    }
+
+    public List<ResultReferenceData> getResultsByIds(List<String> resultIds) {
+        return resultRepository.findByResultIdIn(resultIds).stream().map(this::toRefData).toList();
+    }
+
+
 
     @Override
     public List<ResultEntity> searchResults(ResultSearchDto criteria) {
@@ -64,7 +78,10 @@ public class ResultService implements ResultServiceInterface {
             entity.getResultId(),
             entity.getResultTitle(),
             entity.getResultTitleCy(),
-            entity.getResultType()
+            entity.isActive(),
+            entity.getResultType(),
+            entity.getImpositionCreditor(),
+            entity.getImpositionAllocationPriority()
         );
     }
 }

@@ -23,7 +23,7 @@ public class DefendantAccountGetNoteStepDef extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + "/api/defendant-account/notes/" + idToSend.get("defendantID"));
+            .get(getTestUrl() + "/defendant-accounts/notes/" + idToSend.get("defendantID"));
     }
 
     @Then("the response contains the following in position {string}")

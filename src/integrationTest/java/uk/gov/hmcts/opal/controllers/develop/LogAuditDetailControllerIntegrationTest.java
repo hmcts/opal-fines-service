@@ -31,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class LogAuditDetailControllerIntegrationTest {
 
+    private static final String URL_BASE = "/dev/log-audit-details/";
+
     @Autowired
     MockMvc mockMvc;
 
@@ -44,7 +46,7 @@ class LogAuditDetailControllerIntegrationTest {
 
         when(logAuditDetailService.getLogAuditDetail(1L)).thenReturn(logAuditDetailEntity);
 
-        mockMvc.perform(get("/dev/log-audit-detail/1"))
+        mockMvc.perform(get(URL_BASE + "1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.logAuditDetailId").value(1))
@@ -60,7 +62,7 @@ class LogAuditDetailControllerIntegrationTest {
     void testGetLogAuditDetailById_WhenLogAuditDetailDoesNotExist() throws Exception {
         when(logAuditDetailService.getLogAuditDetail(2L)).thenReturn(null);
 
-        mockMvc.perform(get("/dev/log-audit-detail/2"))
+        mockMvc.perform(get(URL_BASE + "2"))
             .andExpect(status().isNotFound());
     }
 
@@ -71,7 +73,7 @@ class LogAuditDetailControllerIntegrationTest {
         when(logAuditDetailService.searchLogAuditDetails(any(LogAuditDetailSearchDto.class)))
             .thenReturn(singletonList(logAuditDetailEntity));
 
-        mockMvc.perform(post("/dev/log-audit-detail/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -86,7 +88,7 @@ class LogAuditDetailControllerIntegrationTest {
 
     @Test
     void testPostLogAuditDetailsSearch_WhenLogAuditDetailDoesNotExist() throws Exception {
-        mockMvc.perform(post("/dev/log-audit-detail/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());

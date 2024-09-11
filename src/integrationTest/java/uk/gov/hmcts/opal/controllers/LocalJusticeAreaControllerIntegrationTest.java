@@ -27,6 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class LocalJusticeAreaControllerIntegrationTest {
 
+    private static final String URL_BASE = "/local-justice-areas/";
+
     @Autowired
     MockMvc mockMvc;
 
@@ -40,7 +42,7 @@ class LocalJusticeAreaControllerIntegrationTest {
 
         when(localJusticeAreaService.getLocalJusticeArea((short)1)).thenReturn(localJusticeAreaEntity);
 
-        mockMvc.perform(get("/api/local-justice-area/1"))
+        mockMvc.perform(get(URL_BASE + "1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.localJusticeAreaId").value(1))
@@ -56,7 +58,7 @@ class LocalJusticeAreaControllerIntegrationTest {
     void testGetLocalJusticeAreaById_WhenLocalJusticeAreaDoesNotExist() throws Exception {
         when(localJusticeAreaService.getLocalJusticeArea((short)2)).thenReturn(null);
 
-        mockMvc.perform(get("/api/local-justice-area/2"))
+        mockMvc.perform(get(URL_BASE + "2"))
             .andExpect(status().isNotFound());
     }
 
@@ -67,7 +69,7 @@ class LocalJusticeAreaControllerIntegrationTest {
         when(localJusticeAreaService.searchLocalJusticeAreas(any(LocalJusticeAreaSearchDto.class)))
             .thenReturn(singletonList(localJusticeAreaEntity));
 
-        mockMvc.perform(post("/api/local-justice-area/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -82,7 +84,7 @@ class LocalJusticeAreaControllerIntegrationTest {
 
     @Test
     void testPostLocalJusticeAreasSearch_WhenLocalJusticeAreaDoesNotExist() throws Exception {
-        mockMvc.perform(post("/api/local-justice-area/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());

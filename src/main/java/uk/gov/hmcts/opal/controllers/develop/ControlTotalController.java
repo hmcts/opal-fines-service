@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
-@RequestMapping("/dev/control-total")
+@RequestMapping("/dev/control-totals")
 @Slf4j(topic = "ControlTotalController")
 @Tag(name = "ControlTotal Controller")
 public class ControlTotalController {

@@ -5,7 +5,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.ResultEntity;
 
+import java.util.List;
+
 @Repository
-public interface ResultRepository extends JpaRepository<ResultEntity, Long>,
+public interface ResultRepository extends JpaRepository<ResultEntity, String>,
     JpaSpecificationExecutor<ResultEntity> {
+    List<ResultEntity> findByResultIdIn(List<String> resultIds);
 }

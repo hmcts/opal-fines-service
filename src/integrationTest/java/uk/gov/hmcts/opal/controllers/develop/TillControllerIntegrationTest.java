@@ -28,6 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class TillControllerIntegrationTest {
 
+    private static final String URL_BASE = "/dev/tills/";
+
     @Autowired
     MockMvc mockMvc;
 
@@ -41,7 +43,7 @@ class TillControllerIntegrationTest {
 
         when(tillService.getTill(1L)).thenReturn(tillEntity);
 
-        mockMvc.perform(get("/dev/till/1"))
+        mockMvc.perform(get(URL_BASE + "1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.tillId").value(1))
@@ -55,7 +57,7 @@ class TillControllerIntegrationTest {
     void testGetTillById_WhenTillDoesNotExist() throws Exception {
         when(tillService.getTill(2L)).thenReturn(null);
 
-        mockMvc.perform(get("/dev/till/2"))
+        mockMvc.perform(get(URL_BASE + "2"))
             .andExpect(status().isNotFound());
     }
 
@@ -65,7 +67,7 @@ class TillControllerIntegrationTest {
 
         when(tillService.searchTills(any(TillSearchDto.class))).thenReturn(singletonList(tillEntity));
 
-        mockMvc.perform(post("/dev/till/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -78,7 +80,7 @@ class TillControllerIntegrationTest {
 
     @Test
     void testPostTillsSearch_WhenTillDoesNotExist() throws Exception {
-        mockMvc.perform(post("/dev/till/search")
+        mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());
