@@ -41,7 +41,7 @@ public class ResultService implements ResultServiceInterface {
         return resultRepository.findAll().stream().map(this::toRefData).toList();
     }
 
-    public List<ResultReferenceData> getResultsbyIds(List<String> resultIds) {
+    public List<ResultReferenceData> getResultsByIds(List<String> resultIds) {
         return resultRepository.findByResultIdIn(resultIds).stream().map(this::toRefData).toList();
     }
 

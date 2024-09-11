@@ -53,7 +53,7 @@ public class ResultController {
         if (resultIds == null || resultIds.isEmpty()) {
             refData = resultService.getAllResults();
         } else {
-            refData = resultService.getResultsbyIds(resultIds);
+            refData = resultService.getResultsByIds(resultIds);
         }
 
         return buildResponse(ResultReferenceDataResults.builder().refData(refData).build());
