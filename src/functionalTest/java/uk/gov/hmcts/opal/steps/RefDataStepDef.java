@@ -41,7 +41,7 @@ public class RefDataStepDef extends BaseStepDef {
     @When("I make a request to the business unit ref data api filtering by business unit type {string}")
     public void getRequestToBusinessUnitRefData(String filter) {
 
-        methods.getRequest(BUSINESS_UNIT_REF_DATA_URI + filter);
+        methods.getRequest(BUSINESS_UNIT_REF_DATA_URI  + "?q=" + filter);
 
     }
 
@@ -52,17 +52,17 @@ public class RefDataStepDef extends BaseStepDef {
 
     @When("I make a request to the offence ref data api filtering by cjs code {string}")
     public void getRequestToOffencesRefDataCjsCode(String cjsCode) {
-        methods.getRequest(OFFENCES_REF_DATA_URI + cjsCode);
+        methods.getRequest(OFFENCES_REF_DATA_URI  + "?q=" + cjsCode);
     }
 
     @When("I make a request to the offence ref data api filtering with the offence title {string}")
     public void getRequestToOffencesRefDataWording(String filter) {
-        methods.getRequest(OFFENCES_REF_DATA_URI + filter);
+        methods.getRequest(OFFENCES_REF_DATA_URI + "?q=" + filter);
     }
 
     @When("I make a request to the major creditors ref data api filter by major creditor id {int}")
     public void getRequestToMajorCreditorsBy(int majorCreditorId) {
-        methods.getRequest(MAJOR_CREDITORS_URI + majorCreditorId);
+        methods.getRequest(MAJOR_CREDITORS_URI  + "/" + majorCreditorId);
     }
 
     @When("I make a request to the LJA ref data api with")
@@ -77,17 +77,17 @@ public class RefDataStepDef extends BaseStepDef {
 
     @When("I make a request to the court ref data api with a filter of {string}")
     public void getRequestToCourtsRefDataWithFilter(String filter) {
-        methods.getRequest(COURTS_REF_DATA_URI + filter);
+        methods.getRequest(COURTS_REF_DATA_URI + "?q=" + filter);
     }
 
     @When("I make a request to the court ref data api with a filter of {string} and a business unit of {int}")
     public void getRequestToCourtsRefDataWithFilterAndBU(String filter, int businessUnitId) {
-        methods.getRequest(COURTS_REF_DATA_URI + filter + "?businessUnit=" + businessUnitId);
+        methods.getRequest(COURTS_REF_DATA_URI + "?q="  + filter + "?business_unit=" + businessUnitId);
     }
 
     @When("I make a request to the court ref data api with a business unit of {int}")
     public void getRequestToCourtsRefDataWithBU(int businessUnitId) {
-        methods.getRequest(COURTS_REF_DATA_URI + "?businessUnit=" + businessUnitId);
+        methods.getRequest(COURTS_REF_DATA_URI + "?business_unit=" + businessUnitId);
     }
 
     @Then("the LJA ref data matching to result")
@@ -110,13 +110,13 @@ public class RefDataStepDef extends BaseStepDef {
         court = db.getCourtsByCourtName(courtName);
         then().assertThat().statusCode(200);
         for (int i = 0; i < totalCount; i++) {
-            String courtId = then().extract().jsonPath().getString("refData.courtId[" + i + "]");
+            String courtId = then().extract().jsonPath().getString("refData.court_id[" + i + "]");
             assertEquals(courtId, court.getJSONObject(i).getString("court_id"));
 
-            String businessUnitId = then().extract().jsonPath().getString("refData.businessUnitId[" + i + "]");
+            String businessUnitId = then().extract().jsonPath().getString("refData.business_unit_id[" + i + "]");
             assertEquals(businessUnitId, court.getJSONObject(i).getString("business_unit_id"));
 
-            String courtCode = then().extract().jsonPath().getString("refData.courtCode[" + i + "]");
+            String courtCode = then().extract().jsonPath().getString("refData.court_code[" + i + "]");
             assertEquals(courtCode, court.getJSONObject(i).getString("court_code"));
 
             String name = then().extract().jsonPath().getString("refData.name[" + i + "]");
@@ -139,12 +139,14 @@ public class RefDataStepDef extends BaseStepDef {
         Map<String, String> expected = data.asMap(String.class, String.class);
         then().assertThat().statusCode(200);
 
-        assertEquals(expected.get("majorCreditorId"), then().extract().jsonPath().getString("majorCreditorId"));
-        assertEquals(expected.get("majorCreditorCode"), then().extract().jsonPath().getString("majorCreditorCode"));
+        assertEquals(expected.get("majorCreditorId"),
+                     then().extract().jsonPath().getString("major_creditor_id"));
+        assertEquals(expected.get("majorCreditorCode"),
+                     then().extract().jsonPath().getString("major_creditor_code"));
         assertEquals(expected.get("name"), then().extract().jsonPath().getString("name"));
         assertEquals(
-            expected.get("businessUnitId"),
-            then().extract().jsonPath().getString("businessUnit.businessUnitId")
+            expected.get("business_unit_d"),
+            then().extract().jsonPath().getString("business_unit.business_unit_id")
         );
     }
 
@@ -153,12 +155,14 @@ public class RefDataStepDef extends BaseStepDef {
         Map<String, String> expected = data.asMap(String.class, String.class);
         then().assertThat().statusCode(200);
 
-        assertNotEquals(expected.get("majorCreditorId"), then().extract().jsonPath().getString("majorCreditorId"));
-        assertNotEquals(expected.get("majorCreditorCode"), then().extract().jsonPath().getString("majorCreditorCode"));
+        assertNotEquals(expected.get("major_creditor_id"),
+                        then().extract().jsonPath().getString("major_creditor_id"));
+        assertNotEquals(expected.get("major_creditor_code"),
+                        then().extract().jsonPath().getString("major_creditor_code"));
         assertNotEquals(expected.get("name"), then().extract().jsonPath().getString("name"));
         assertNotEquals(
-            expected.get("businessUnitId"),
-            then().extract().jsonPath().getString("businessUnit.businessUnitId")
+            expected.get("business_unit_id"),
+            then().extract().jsonPath().getString("businessUnit.business_unit_id")
         );
     }
 
@@ -169,9 +173,9 @@ public class RefDataStepDef extends BaseStepDef {
         then().assertThat().statusCode(200);
         for (int i = 0; i < totalCount; i++) {
             String actualName = then().extract().jsonPath().getString("refData.name[" + i + "]");
-            String actualBuId = then().extract().jsonPath().getString("refData.businessUnitId[" + i + "]");
+            String actualBuId = then().extract().jsonPath().getString("refData.business_unit_id[" + i + "]");
             String expectedName = expectedData.get("name");
-            String expectedBuId = expectedData.get("businessUnitId");
+            String expectedBuId = expectedData.get("business_unit_id");
             log.info("\nApi response: \n" + "   Count: " + (i + 1) + "/" + totalCount + "\n   "
                          + actualName + "\n   " + actualBuId);
             if (expectedName == null) {
@@ -194,9 +198,9 @@ public class RefDataStepDef extends BaseStepDef {
         then().assertThat().statusCode(200);
         for (int i = 0; i < totalCount; i++) {
             String actualName = then().extract().jsonPath().getString("refData.name[" + i + "]");
-            String actualBuId = then().extract().jsonPath().getString("refData.businessUnitId[" + i + "]");
+            String actualBuId = then().extract().jsonPath().getString("refData.business_unit_id[" + i + "]");
             String expectedName = expectedData.get("name");
-            String expectedBuId = expectedData.get("businessUnitId");
+            String expectedBuId = expectedData.get("business_unit_id");
             log.info("\nApi response: \n" + "   Count: " + (i + 1) + "/" + totalCount + "\n   "
                          + actualName + "\n   " + actualBuId);
             if (expectedName == null) {
@@ -218,10 +222,10 @@ public class RefDataStepDef extends BaseStepDef {
         int totalCount = then().extract().jsonPath().getInt("count");
         then().assertThat().statusCode(200);
         for (int i = 0; i < totalCount; i++) {
-            String actualOffenceTitle = then().extract().jsonPath().getString("refData.getOffenceTitle[" + i + "]");
-            String actualBuId = then().extract().jsonPath().getString("refData.businessUnitId[" + i + "]");
+            String actualOffenceTitle = then().extract().jsonPath().getString("refData._offence_title[" + i + "]");
+            String actualBuId = then().extract().jsonPath().getString("refData.business_unit_id[" + i + "]");
             String expectedOffenceTitle = expectedData.get("offenceTitle");
-            String expectedBuId = expectedData.get("businessUnitId");
+            String expectedBuId = expectedData.get("business_unit_id");
             log.info("Expected name: " + expectedOffenceTitle + " Expected buId: " + expectedBuId);
             log.info("\nApi response: \n" + "   Count: " + (i + 1) + "/" + totalCount + "\n   "
                          + actualOffenceTitle + "\n   " + actualBuId);
@@ -252,9 +256,9 @@ public class RefDataStepDef extends BaseStepDef {
         int totalCount = then().extract().jsonPath().getInt("count");
         then().assertThat().statusCode(200);
         for (int i = 0; i < totalCount; i++) {
-            String actualOffenceTitle = then().extract().jsonPath().getString("refData.getOffenceTitle[" + i + "]");
-            String actualBuId = then().extract().jsonPath().getString("refData.businessUnitId[" + i + "]");
-            String expectedBuId = expectedData.get("businessUnitId");
+            String actualOffenceTitle = then().extract().jsonPath().getString("refData.offence_title[" + i + "]");
+            String actualBuId = then().extract().jsonPath().getString("refData.business_unit_id[" + i + "]");
+            String expectedBuId = expectedData.get("business_unit_id");
             log.info("\nApi response: \n" + "   Count: " + (i + 1) + "/" + totalCount + "\n   "
                          + actualOffenceTitle + "\n   " + actualBuId);
             assertNotEquals(expectedBuId, actualBuId);
@@ -267,13 +271,13 @@ public class RefDataStepDef extends BaseStepDef {
         JSONArray majorCreditor;
         majorCreditor = db.getMajorCredByID(String.valueOf(majorCreditorId));
         then().assertThat().statusCode(200);
-        String majorCreditorFromAPI = then().extract().jsonPath().getString("majorCreditorId");
+        String majorCreditorFromAPI = then().extract().jsonPath().getString("major_creditor_id");
         assertEquals(majorCreditorFromAPI, majorCreditor.getJSONObject(0).getString("major_creditor_id"));
 
-        String businessUnitId = then().extract().jsonPath().getString("businessUnit.businessUnitId");
+        String businessUnitId = then().extract().jsonPath().getString("businessUnit.business_unit_id");
         assertEquals(businessUnitId, majorCreditor.getJSONObject(0).getString("business_unit_id"));
 
-        String majorCreditorCode = then().extract().jsonPath().getString("majorCreditorCode");
+        String majorCreditorCode = then().extract().jsonPath().getString("major_creditor_code");
         assertEquals(majorCreditorCode, majorCreditor.getJSONObject(0).getString("major_creditor_code"));
 
         String name = then().extract().jsonPath().getString("name");
@@ -288,10 +292,10 @@ public class RefDataStepDef extends BaseStepDef {
         JSONArray majorCreditor;
         majorCreditor = db.getMajorCredByID(String.valueOf(majorCreditorId));
         then().assertThat().statusCode(200);
-        String majorCreditorFromAPI = then().extract().jsonPath().getString("majorCreditorId");
+        String majorCreditorFromAPI = then().extract().jsonPath().getString("major_creditor_id");
         assertNotEquals(majorCreditorFromAPI, majorCreditor.getJSONObject(0).getString("major_creditor_id"));
 
-        String majorCreditorCode = then().extract().jsonPath().getString("majorCreditorCode");
+        String majorCreditorCode = then().extract().jsonPath().getString("major_creditor_code");
         assertNotEquals(majorCreditorCode, majorCreditor.getJSONObject(0).getString("major_creditor_code"));
 
         String name = then().extract().jsonPath().getString("name");

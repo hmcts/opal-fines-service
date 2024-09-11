@@ -28,8 +28,8 @@ public class UserState {
 
     @JsonCreator
     public UserState(
-        @JsonProperty("userId") Long userId,
-        @JsonProperty("userName") String userName,
+        @JsonProperty("user_id") Long userId,
+        @JsonProperty("user_name") String userName,
         @JsonProperty("roles") Set<Role> roles
     ) {
         this.userId = userId;

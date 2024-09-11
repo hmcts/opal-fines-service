@@ -25,8 +25,8 @@ public class Role {
     Set<Permission> permissions;
 
     @JsonCreator
-    public Role(@JsonProperty("businessUserId") String businessUserId,
-                @JsonProperty("businessUnitId") Short businessUnitId,
+    public Role(@JsonProperty("business_user_id") String businessUserId,
+                @JsonProperty("business_unit_id") Short businessUnitId,
                 @JsonProperty("permissions") Set<Permission> permissions) {
 
         this.businessUserId = businessUserId;

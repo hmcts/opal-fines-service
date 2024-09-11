@@ -129,13 +129,13 @@ class TestingSupportControllerTest {
         mockMvc.perform(get("/testing-support/token/test-user"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.accessToken").value("testToken"))
-            .andExpect(jsonPath("$.userState.userName").value("name"))
-            .andExpect(jsonPath("$.userState.userId").value("123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUnitId").value("123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUserId").value("BU123"))
-            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionId").value("1"))
-            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionName")
+            .andExpect(jsonPath("$.access_token").value("testToken"))
+            .andExpect(jsonPath("$.user_state.user_name").value("name"))
+            .andExpect(jsonPath("$.user_state.user_id").value("123"))
+            .andExpect(jsonPath("$.user_state.roles[0].business_unit_id").value("123"))
+            .andExpect(jsonPath("$.user_state.roles[0].business_user_id").value("BU123"))
+            .andExpect(jsonPath("$.user_state.roles[0].permissions[0].permission_id").value("1"))
+            .andExpect(jsonPath("$.user_state.roles[0].permissions[0].permission_name")
                            .value("Notes"));
 
     }
@@ -157,13 +157,13 @@ class TestingSupportControllerTest {
                             .header("X-User-Email", "test@example.com"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.accessToken").value("testToken"))
-            .andExpect(jsonPath("$.userState.userName").value("name"))
-            .andExpect(jsonPath("$.userState.userId").value("123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUnitId").value("123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUserId").value("BU123"))
-            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionId").value("1"))
-            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionName")
+            .andExpect(jsonPath("$.access_token").value("testToken"))
+            .andExpect(jsonPath("$.user_state.user_name").value("name"))
+            .andExpect(jsonPath("$.user_state.user_id").value("123"))
+            .andExpect(jsonPath("$.user_state.roles[0].business_unit_id").value("123"))
+            .andExpect(jsonPath("$.user_state.roles[0].business_user_id").value("BU123"))
+            .andExpect(jsonPath("$.user_state.roles[0].permissions[0].permission_id").value("1"))
+            .andExpect(jsonPath("$.user_state.roles[0].permissions[0].permission_name")
                            .value("Notes"));
     }
 
@@ -196,13 +196,13 @@ class TestingSupportControllerTest {
                             .header("X-User-Email", "test@example.com"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.accessToken").value("testToken"))
-            .andExpect(jsonPath("$.userState.userName").value("name"))
-            .andExpect(jsonPath("$.userState.userId").value("123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUnitId").value("123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUserId").value("BU123"))
-            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionId").value("1"))
-            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionName")
+            .andExpect(jsonPath("$.access_token").value("testToken"))
+            .andExpect(jsonPath("$.user_state.user_name").value("name"))
+            .andExpect(jsonPath("$.user_state.user_id").value("123"))
+            .andExpect(jsonPath("$.user_state.roles[0].business_unit_id").value("123"))
+            .andExpect(jsonPath("$.user_state.roles[0].business_user_id").value("BU123"))
+            .andExpect(jsonPath("$.user_state.roles[0].permissions[0].permission_id").value("1"))
+            .andExpect(jsonPath("$.user_state.roles[0].permissions[0].permission_name")
                            .value("Notes"));
     }
 }

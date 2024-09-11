@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class EnforcerControllerIntegrationTest {
 
-    private static final String URL_BASE = "/enforcers/";
+    private static final String URL_BASE = "/enforcers";
 
     @Autowired
     MockMvc mockMvc;
@@ -44,7 +44,7 @@ class EnforcerControllerIntegrationTest {
 
         when(enforcerService.getEnforcer(1L)).thenReturn(enforcerEntity);
 
-        mockMvc.perform(get(URL_BASE + "1"))
+        mockMvc.perform(get(URL_BASE + "/1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.enforcerId").value(1))
@@ -68,7 +68,7 @@ class EnforcerControllerIntegrationTest {
     void testGetEnforcerById_WhenEnforcerDoesNotExist() throws Exception {
         when(enforcerService.getEnforcer(2L)).thenReturn(null);
 
-        mockMvc.perform(get(URL_BASE + "2"))
+        mockMvc.perform(get(URL_BASE + "/2"))
             .andExpect(status().isNotFound());
     }
 
@@ -78,7 +78,7 @@ class EnforcerControllerIntegrationTest {
 
         when(enforcerService.searchEnforcers(any(EnforcerSearchDto.class))).thenReturn(singletonList(enforcerEntity));
 
-        mockMvc.perform(post(URL_BASE + "search")
+        mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -101,7 +101,7 @@ class EnforcerControllerIntegrationTest {
 
     @Test
     void testPostEnforcersSearch_WhenEnforcerDoesNotExist() throws Exception {
-        mockMvc.perform(post(URL_BASE + "search")
+        mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());
@@ -114,15 +114,15 @@ class EnforcerControllerIntegrationTest {
 
         when(enforcerService.getReferenceData(any())).thenReturn(singletonList(refData));
 
-        mockMvc.perform(get(URL_BASE + "ref-data")
+        mockMvc.perform(get(URL_BASE)
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.refData[0].enforcerId").value(1))
-            .andExpect(jsonPath("$.refData[0].enforcerCode").value(2))
+            .andExpect(jsonPath("$.refData[0].enforcer_id").value(1))
+            .andExpect(jsonPath("$.refData[0].enforcer_code").value(2))
             .andExpect(jsonPath("$.refData[0].name").value("Enforcers UK Ltd"))
-            .andExpect(jsonPath("$.refData[0].nameCy").value("Enforcers Wales Ltd"));
+            .andExpect(jsonPath("$.refData[0].name_cy").value("Enforcers Wales Ltd"));
     }
 
 

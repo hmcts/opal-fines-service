@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j(topic = "MajorCreditorService")
 @RequiredArgsConstructor
 @Qualifier("majorCreditorService")
 public class MajorCreditorService implements MajorCreditorServiceInterface {
@@ -48,6 +50,7 @@ public class MajorCreditorService implements MajorCreditorServiceInterface {
     )
     public List<MajorCreditorReferenceData> getReferenceData(Optional<String> filter, Optional<Short> businessUnitId) {
 
+        log.info(":getReferenceData: filter: {}, businessUnitId: {}", filter, businessUnitId);
         Sort nameSort = Sort.by(Sort.Direction.ASC, MajorCreditorEntity_.NAME);
 
         Page<MajorCreditorEntity> page = majorCreditorRepository
@@ -60,12 +63,15 @@ public class MajorCreditorService implements MajorCreditorServiceInterface {
     }
 
     private MajorCreditorReferenceData toRefData(MajorCreditorEntity entity) {
-        return new MajorCreditorReferenceData(
+        log.info(":toRefData: entity: {}", entity);
+        MajorCreditorReferenceData m = new MajorCreditorReferenceData(
             entity.getMajorCreditorId(),
             entity.getBusinessUnit().getBusinessUnitId(),
             entity.getMajorCreditorCode(),
             entity.getName(),
             entity.getPostcode()
         );
+        log.info(":toRefData: refData: \n{}", m.toPrettyJson());
+        return m;
     }
 }

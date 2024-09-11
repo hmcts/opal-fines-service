@@ -30,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class CourtControllerIntegrationTest {
 
-    private static final String URL_BASE = "/courts/";
+    private static final String URL_BASE = "/courts";
 
     @Autowired
     MockMvc mockMvc;
@@ -54,7 +54,7 @@ class CourtControllerIntegrationTest {
 
         when(courtService.getCourt(1L)).thenReturn(courtEntity);
 
-        mockMvc.perform(get(URL_BASE + "1")
+        mockMvc.perform(get(URL_BASE + "/1")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -70,7 +70,7 @@ class CourtControllerIntegrationTest {
     void testGetCourtById_WhenCourtDoesNotExist() throws Exception {
         when(courtService.getCourt(2L)).thenReturn(null);
 
-        mockMvc.perform(get(URL_BASE + "2").header("authorization", "Bearer some_value"))
+        mockMvc.perform(get(URL_BASE + "/2").header("authorization", "Bearer some_value"))
             .andExpect(status().isNotFound());
     }
 
@@ -86,7 +86,7 @@ class CourtControllerIntegrationTest {
 
         when(courtService.searchCourts(any(CourtSearchDto.class))).thenReturn(singletonList(courtEntity));
 
-        mockMvc.perform(post(URL_BASE + "search")
+        mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
@@ -101,7 +101,7 @@ class CourtControllerIntegrationTest {
 
     @Test
     void testPostCourtsSearch_WhenCourtDoesNotExist() throws Exception {
-        mockMvc.perform(post(URL_BASE + "search")
+        mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
@@ -115,14 +115,14 @@ class CourtControllerIntegrationTest {
 
         when(courtService.getReferenceData(any(), any())).thenReturn(singletonList(refData));
 
-        mockMvc.perform(get(URL_BASE + "ref-data")
+        mockMvc.perform(get(URL_BASE)
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.refData[0].courtId").value(1))
-            .andExpect(jsonPath("$.refData[0].courtCode").value(11))
+            .andExpect(jsonPath("$.refData[0].court_id").value(1))
+            .andExpect(jsonPath("$.refData[0].court_code").value(11))
             .andExpect(jsonPath("$.refData[0].name").value("Main Court"))
-            .andExpect(jsonPath("$.refData[0].nationalCourtCode").value("MN1234"));
+            .andExpect(jsonPath("$.refData[0].national_court_code").value("MN1234"));
     }
 }

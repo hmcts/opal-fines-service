@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.dto;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +18,9 @@ import java.util.function.Predicate;
 @AllArgsConstructor
 @Jacksonized
 public class DateDto {
+    @JsonProperty("day_of_month")
     private Integer dayOfMonth;
+    @JsonProperty("month_of_year")
     private Integer monthOfYear;
     private Integer year;
 

@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +16,6 @@ import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
 import uk.gov.hmcts.opal.entity.projection.MajorCreditorReferenceData;
-import uk.gov.hmcts.opal.service.MajorCreditorServiceInterface;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 
 import java.util.List;
@@ -32,13 +30,9 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 @Tag(name = "Major Creditor Controller")
 public class MajorCreditorController {
 
-    private final MajorCreditorServiceInterface majorCreditorService;
-
     private final MajorCreditorService opalMajorCreditorService;
 
-    public MajorCreditorController(@Qualifier("majorCreditorServiceProxy") MajorCreditorServiceInterface
-                                       majorCreditorService, MajorCreditorService opalMajorCreditorService) {
-        this.majorCreditorService = majorCreditorService;
+    public MajorCreditorController(MajorCreditorService opalMajorCreditorService) {
         this.opalMajorCreditorService = opalMajorCreditorService;
     }
 
@@ -48,7 +42,7 @@ public class MajorCreditorController {
 
         log.info(":GET:getMajorCreditorById: majorCreditorId: {}", majorCreditorId);
 
-        MajorCreditorEntity response = majorCreditorService.getMajorCreditor(majorCreditorId);
+        MajorCreditorEntity response = opalMajorCreditorService.getMajorCreditor(majorCreditorId);
 
         return buildResponse(response);
     }
@@ -59,15 +53,15 @@ public class MajorCreditorController {
         @RequestBody MajorCreditorSearchDto criteria) {
         log.info(":POST:postMajorCreditorsSearch: query: \n{}", criteria);
 
-        List<MajorCreditorEntity> response = majorCreditorService.searchMajorCreditors(criteria);
+        List<MajorCreditorEntity> response = opalMajorCreditorService.searchMajorCreditors(criteria);
 
         return buildResponse(response);
     }
 
-    @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
+    @GetMapping
     @Operation(summary = "Returns MajorCreditors as reference data with an optional filter applied")
     public ResponseEntity<MajorCreditorReferenceDataResults> getMajorCreditorRefData(
-        @PathVariable Optional<String> filter, @RequestParam Optional<Short> businessUnit) {
+        @RequestParam("q") Optional<String> filter, @RequestParam Optional<Short> businessUnit) {
         log.info(":GET:getMajorCreditorRefData: business unit: {}, filter string: {}", businessUnit, filter);
 
         List<MajorCreditorReferenceData> refData = opalMajorCreditorService.getReferenceData(filter, businessUnit);
