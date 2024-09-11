@@ -107,7 +107,7 @@ public class DraftAccountController {
     public ResponseEntity<String> deleteDraftAccountById(
         @PathVariable Long draftAccountId,
         @RequestHeader(value = "Authorization", required = false)  String authHeaderValue,
-        @RequestParam Optional<Boolean> ignoreMissing) {
+        @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
 
         log.info(":DELETE:deleteDraftAccountById: draftAccountId: {}", draftAccountId);
 

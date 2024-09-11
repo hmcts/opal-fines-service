@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
@@ -64,10 +65,10 @@ public class LocalJusticeAreaController {
         return buildResponse(response);
     }
 
-    @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
+    @GetMapping
     @Operation(summary = "Returns Local Justice Area as reference data with an optional filter applied")
     public ResponseEntity<LjaReferenceDataResults> getLocalJusticeAreaRefData(
-        @PathVariable Optional<String> filter) {
+        @RequestParam("q") Optional<String> filter) {
         log.info(":GET:getLocalJusticeAreaRefData: query: \n{}", filter);
 
         List<LjaReferenceData> refData = opalLocalJusticeAreaService.getReferenceData(filter);

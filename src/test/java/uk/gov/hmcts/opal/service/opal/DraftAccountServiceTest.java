@@ -19,6 +19,7 @@ import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -121,7 +122,7 @@ class DraftAccountServiceTest {
     @Test
     void testDeleteDraftAccount_success() {
         // Arrange
-        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().draftAccountId(1L).build();
+        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().createdDate(LocalDateTime.now()).build();
         when(draftAccountRepository.getReferenceById(any())).thenReturn(draftAccountEntity);
 
         // Act
@@ -132,7 +133,7 @@ class DraftAccountServiceTest {
     void testDeleteDraftAccount_fail1() {
         // Arrange
         DraftAccountEntity draftAccountEntity = mock(DraftAccountEntity.class);
-        when(draftAccountEntity.getDraftAccountId()).thenThrow(new EntityNotFoundException("No Entity in DB"));
+        when(draftAccountEntity.getCreatedDate()).thenThrow(new EntityNotFoundException("No Entity in DB"));
         when(draftAccountRepository.getReferenceById(any())).thenReturn(draftAccountEntity);
 
         // Act

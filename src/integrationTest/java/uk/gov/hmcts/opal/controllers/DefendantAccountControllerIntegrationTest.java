@@ -68,9 +68,9 @@ class DefendantAccountControllerIntegrationTest {
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendantAccountId").value(1))
-            .andExpect(jsonPath("$.accountNumber").value("abc123"))
-            .andExpect(jsonPath("$.businessUnitId").value(6));
+            .andExpect(jsonPath("$.defendant_account_id").value(1))
+            .andExpect(jsonPath("$.account_number").value("abc123"))
+            .andExpect(jsonPath("$.business_unit_id").value(6));
     }
 
 
@@ -100,12 +100,12 @@ class DefendantAccountControllerIntegrationTest {
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.pageSize").value(100))
-            .andExpect(jsonPath("$.searchResults[0].defendantAccountId").value(1))
-            .andExpect(jsonPath("$.searchResults[0].accountNo").value("abc123"))
-            .andExpect(jsonPath("$.searchResults[0].name").value("Keith Criminal"))
-            .andExpect(jsonPath("$.searchResults[0].court").value("Crown Court"))
-            .andExpect(jsonPath("$.searchResults[0].addressLine1").value("1 Central London"));
+            .andExpect(jsonPath("$.page_size").value(100))
+            .andExpect(jsonPath("$.search_results[0].defendant_account_id").value(1))
+            .andExpect(jsonPath("$.search_results[0].account_no").value("abc123"))
+            .andExpect(jsonPath("$.search_results[0].name").value("Keith Criminal"))
+            .andExpect(jsonPath("$.search_results[0].court").value("Crown Court"))
+            .andExpect(jsonPath("$.search_results[0].address_line_1").value("1 Central London"));
     }
 
     @Test
@@ -185,8 +185,8 @@ class DefendantAccountControllerIntegrationTest {
                             .content(new ObjectMapper().writeValueAsString(addNoteDto)))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.noteType").value("quick"))
-            .andExpect(jsonPath("$.businessUnitId").value(123));
+            .andExpect(jsonPath("$.note_type").value("quick"))
+            .andExpect(jsonPath("$.business_unit_id").value(123));
     }
 
     @Test
@@ -201,12 +201,12 @@ class DefendantAccountControllerIntegrationTest {
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[0].noteType").value("quick"))
-            .andExpect(jsonPath("$[0].noteText").value("A reminder note"))
-            .andExpect(jsonPath("$[0].postedBy").value("Vincent"))
-            .andExpect(jsonPath("$[0].associatedRecordId").value("abc123"))
-            .andExpect(jsonPath("$[0].postedDate").value("2024-03-25 15:30:00"))
-            .andExpect(jsonPath("$[0].businessUnitId").value(123));
+            .andExpect(jsonPath("$[0].note_type").value("quick"))
+            .andExpect(jsonPath("$[0].note_text").value("A reminder note"))
+            .andExpect(jsonPath("$[0].posted_by").value("Vincent"))
+            .andExpect(jsonPath("$[0].associated_record_id").value("abc123"))
+            .andExpect(jsonPath("$[0].posted_date").value("2024-03-25 15:30:00"))
+            .andExpect(jsonPath("$[0].business_unit_id").value(123));
     }
 
     @Test

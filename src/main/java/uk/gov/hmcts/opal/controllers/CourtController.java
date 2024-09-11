@@ -74,10 +74,10 @@ public class CourtController {
         return buildResponse(response);
     }
 
-    @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
+    @GetMapping
     @Operation(summary = "Returns courts as reference data with an optional filter applied")
     public ResponseEntity<CourtReferenceDataResults> getCourtRefData(
-        @PathVariable Optional<String> filter, @RequestParam Optional<Short> businessUnit) {
+        @RequestParam("q") Optional<String> filter, @RequestParam("business_unit") Optional<Short> businessUnit) {
         log.info(":GET:getCourtRefData: business unit: {}, filter string: {}", businessUnit, filter);
 
         List<CourtReferenceData> refData = opalCourtService.getReferenceData(filter, businessUnit);

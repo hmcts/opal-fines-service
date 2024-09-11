@@ -4,40 +4,40 @@ Feature: tests for notes roles/permissions for accounts dependant on business un
   Scenario: A user can add a note to a business unit it is part of
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the defendant account add notes api with
-      | associatedRecordId | 500000010                       |
-      | businessUnitId     | 73                              |
-      | noteText           | test roles and perms Opal user1 |
+      | associated_record_id | 500000010                       |
+      | business_unit_id     | 73                              |
+      | note_text            | test roles and perms Opal user1 |
     And the add notes response contains
-      | associatedRecordId | 500000010                       |
-      | noteText           | test roles and perms Opal user1 |
-      | postedBy           | L073JG                          |
-      | postedByUserId     | 500000000                       |
-      | businessUnitId     | 73                              |
+      | associated_record_id | 500000010                       |
+      | note_text            | test roles and perms Opal user1 |
+      | posted_by            | L073JG                          |
+      | posted_by_user_id    | 500000000                       |
+      | business_unit_id     | 73                              |
 
 
     When I make a request to the defendant account add notes api with
-      | associatedRecordId | 500000010                       |
-      | businessUnitId     | 77                              |
-      | noteText           | test roles and perms Opal user1 |
+      | associated_record_id | 500000010                       |
+      | business_unit_id     | 77                              |
+      | note_text            | test roles and perms Opal user1 |
     And the add notes response contains
-      | associatedRecordId | 500000010                       |
-      | noteText           | test roles and perms Opal user1 |
-      | postedBy           | L067JG                          |
-      | postedByUserId     | 500000000                       |
-      | businessUnitId     | 77                              |
+      | associated_record_id | 500000010                       |
+      | note_text            | test roles and perms Opal user1 |
+      | posted_by            | L067JG                          |
+      | posted_by_user_id    | 500000000                       |
+      | business_unit_id     | 77                              |
 
   Scenario: A user cannot add a note to a business unit it is not part of
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the defendant account add notes api with
-      | associatedRecordId | 500000010                       |
-      | businessUnitId     | 24                              |
-      | noteText           | test roles and perms Opal user1 |
+      | associated_record_id | 500000010                       |
+      | business_unit_id     | 24                              |
+      | note_text            | test roles and perms Opal user1 |
     Then the add notes request is forbidden
 
   Scenario: The business unit must be defined in the request
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the defendant account add notes api with
-      | associatedRecordId | 500000010                       |
-      | noteText           | test roles and perms Opal user1 |
+      | associated_record_id | 500000010                       |
+      | note_text            | test roles and perms Opal user1 |
     #When error logging is looked at would be good to check the error message
     Then the add notes request is forbidden

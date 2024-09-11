@@ -17,8 +17,8 @@ public class Permission {
     String permissionName;
 
     @JsonCreator
-    public Permission(@JsonProperty("permissionId") Long permissionId,
-                      @JsonProperty("permissionName") String permissionName) {
+    public Permission(@JsonProperty("permission_id") Long permissionId,
+                      @JsonProperty("permission_name") String permissionName) {
         this.permissionId = permissionId;
         this.permissionName = permissionName;
     }

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.reference.EnforcerReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
@@ -62,10 +63,10 @@ public class EnforcerController {
         return buildResponse(response);
     }
 
-    @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
+    @GetMapping
     @Operation(summary = "Returns Enforcers as reference data with an optional filter applied")
     public ResponseEntity<EnforcerReferenceDataResults> getEnforcersRefData(
-        @PathVariable Optional<String> filter) {
+        @RequestParam("q") Optional<String> filter) {
         log.info(":GET:getEnforcersRefData: query: \n{}", filter);
 
         List<EnforcerReferenceData> refData = opalEnforcerService.getReferenceData(filter);

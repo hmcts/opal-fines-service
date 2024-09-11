@@ -38,7 +38,7 @@ import java.util.Map;
 import static uk.gov.hmcts.opal.authentication.service.AccessTokenService.AUTH_HEADER;
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 
-@Slf4j
+@Slf4j(topic = "GlobalExceptionHandler")
 @ControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
