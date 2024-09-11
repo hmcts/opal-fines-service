@@ -10,6 +10,7 @@ import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNT_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class DraftAccountGetSteps extends BaseStepDef {
@@ -21,7 +22,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + "/api/draft-accounts/" + draftAccountId);
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI +"/"+ draftAccountId);
     }
 
     @When("I get the single created draft account and the response contains")
@@ -38,7 +39,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + "/api/draft-accounts/" + draftAccountId);
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI +"/"+ draftAccountId);
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
 

@@ -16,6 +16,7 @@ import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNT_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class DraftAccountPostSteps extends BaseStepDef {
@@ -65,7 +66,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
             .contentType("application/json")
             .body(postBody.toString())
             .when()
-            .post(getTestUrl() + "/api/draft-accounts");
+            .post(getTestUrl() + DRAFT_ACCOUNT_URI);
     }
 
     @Then("I store the created draft account ID")
