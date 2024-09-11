@@ -31,7 +31,7 @@ public class AzureTokenClient {
         body.add("username", request.getUsername());
         body.add("password", request.getPassword());
 
-        log.info(":getAccessToken:");
+        log.info(":getAccessToken: for user name: {}", request.getUsername());
 
         ResponseEntity<AccessTokenResponse> response = restClient
             .post()

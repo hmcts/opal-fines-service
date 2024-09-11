@@ -47,7 +47,7 @@ public class DraftAccountService {
         // attempted. So we need to retrieve the entity first and try to access any property.
         // This will throw an exception if the entity doesn't exist.
         boolean checkExists = !(ignoreMissing.orElse(false));
-        if (checkExists && entity.getDraftAccountId() == null) {
+        if (checkExists && entity.getCreatedDate() == null) {
             // Will not get here, as JPA should throw an exception. But for testing, throw an Exception.
             throw new RuntimeException("Draft Account entity '" + draftAccountId + "' does not exist in the DB.");
         } else {

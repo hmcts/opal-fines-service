@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -24,24 +25,33 @@ import java.time.LocalDateTime;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class NoteDto implements ToJsonString {
 
+    @JsonProperty("note_id")
     private Long noteId;
 
+    @JsonProperty("note_type")
     private String noteType;
 
+    @JsonProperty("associated_record_type")
     private String associatedRecordType;
 
+    @JsonProperty("associated_record_id")
     private String associatedRecordId;
 
+    @JsonProperty("business_unit_id")
     private Short businessUnitId;
 
+    @JsonProperty("note_text")
     private String noteText;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+    @JsonProperty("posted_date")
     private LocalDateTime postedDate;
 
+    @JsonProperty("posted_by")
     private String postedBy;
 
+    @JsonProperty("posted_by_user_id")
     private Long postedByUserId;
 
 }

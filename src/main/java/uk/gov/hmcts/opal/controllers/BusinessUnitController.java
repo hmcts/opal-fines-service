@@ -72,10 +72,10 @@ public class BusinessUnitController {
         return buildResponse(response);
     }
 
-    @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
+    @GetMapping
     @Operation(summary = "Returns Business Units as reference data with an optional filter applied")
     public ResponseEntity<BusinessUnitReferenceDataResults> getBusinessUnitRefData(
-        @PathVariable Optional<String> filter, @RequestParam Optional<Permissions> permission,
+        @RequestParam("q") Optional<String> filter, @RequestParam Optional<Permissions> permission,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.info(":GET:getBusinessUnitRefData: permission: {}, query: \n{}", permission, filter);
