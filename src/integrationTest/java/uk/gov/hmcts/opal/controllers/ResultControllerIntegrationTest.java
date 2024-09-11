@@ -86,6 +86,36 @@ class ResultControllerIntegrationTest {
                            .value("Result CCC-DDD"));
     }
 
+    @Test
+    void getResultsByIds() throws Exception {
+        List<ResultReferenceData> resultList = List.of(
+            new ResultReferenceData("ABC",
+                                    "Result AAA-BBB",
+                                    "Result AAA-BBB Cy",
+                                    false,
+                                    "ResType-XX",
+                                    "AAA-01234",
+                                    (short)9),
+            new ResultReferenceData("DEF",
+                                    "Result CCC-DDD",
+                                    "Result CCC-DDD Cy",
+                                    true, "ResType-YY",
+                                    "BBB-56789",
+                                    (short)5)
+        );
+
+        when(resultService.getResultsByIds(List.of("ABC", "DEF"))).thenReturn(resultList);
+
+        mockMvc.perform(get("/results?result_ids=ABC,DEF"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.refData[0].result_id").value("ABC"))
+            .andExpect(jsonPath("$.refData[0].result_title").value("Result AAA-BBB"))
+            .andExpect(jsonPath("$.refData[1].result_id").value("DEF"))
+            .andExpect(jsonPath("$.refData[1].result_title")
+                           .value("Result CCC-DDD"));
+    }
+
     private ResultReferenceData createResultReferenceData() {
         return new ResultReferenceData("ABC",
                                     "Result AAA-BBB",
