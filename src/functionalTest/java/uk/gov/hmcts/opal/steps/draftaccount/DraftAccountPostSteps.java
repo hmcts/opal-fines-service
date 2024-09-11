@@ -42,7 +42,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
         String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
         JSONObject accountObject = new JSONObject(account);
 
-        JSONObject timelineObject = new JSONObject();
+        JSONObject timelineObject;
         if (dataToPost.get("timeline_data") != null) {
             String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
                 + dataToPost.get(
