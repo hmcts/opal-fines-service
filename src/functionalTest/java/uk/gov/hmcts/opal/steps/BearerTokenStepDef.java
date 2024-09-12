@@ -41,7 +41,7 @@ public class BearerTokenStepDef extends BaseStepDef {
         return then().extract().body().jsonPath().getString("accessToken");
     }
 
-    protected static String getToken() {
+    public static String getToken() {
         return ALT_TOKEN.get() != null ? ALT_TOKEN.get() : TOKEN.get();
     }
 

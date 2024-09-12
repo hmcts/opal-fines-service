@@ -50,7 +50,7 @@ public class ModeSwitchStepDef extends BaseStepDef {
             .contentType("application/json")
             .body(requestBody.toString())
             .when()
-            .put(getTestUrl() + "/api/testing-support/app-mode");
+            .put(getTestUrl() + "/testing-support/app-mode");
     }
 
 }
