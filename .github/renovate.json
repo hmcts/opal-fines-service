@@ -7,7 +7,7 @@
     "packageRules": [
     {
       "matchPackageNames": ["net.serenity-bdd.serenity-gradle-plugin"],
-      "allowedVersions": "4.0.46"
+      "allowedVersions": "4.2.1"
     }
   ]
 }
