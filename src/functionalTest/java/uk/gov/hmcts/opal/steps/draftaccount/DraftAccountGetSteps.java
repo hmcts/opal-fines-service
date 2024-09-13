@@ -14,6 +14,9 @@ import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNT_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class DraftAccountGetSteps extends BaseStepDef {
+
+    DraftAccountPostSteps postSteps = new DraftAccountPostSteps();
+
     @When("I get the draft account {string}")
     public void getDraftAccount(String draftAccountId) {
         SerenityRest
@@ -47,5 +50,38 @@ public class DraftAccountGetSteps extends BaseStepDef {
             String apiResponseValue = then().extract().body().jsonPath().getString(key);
             assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
         }
+    }
+
+    @When("I request the draft account id with invalid token")
+    public void requestDraftAccountIdWithInvalidToken() {
+        SerenityRest
+            .given()
+            .header("Authorization", "")
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + DraftAccountUtils.getAllDraftAccountIds());
+    }
+
+    @When("I request the draft account with incorrect account id")
+    public void requestWithIncorrectAccountId(){
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + DraftAccountUtils.getAllDraftAccountIds() + 2);
+    }
+
+    @When("I request the draft account with content type mismatch")
+    public void requestWithContentTypeMismatch(){
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("text/xml")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + DraftAccountUtils.getAllDraftAccountIds());
     }
 }

@@ -72,7 +72,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
     @Then("I store the created draft account ID")
     public void storeDraftAccountId() {
         String draftAccountId = then().extract().body().jsonPath().getString("draft_account_id");
-        DraftAccountUtils.addDraftAccountId(draftAccountId);
+         DraftAccountUtils.addDraftAccountId(draftAccountId);
     }
 
     @Then("The draft account response contains the following data")
@@ -102,4 +102,10 @@ public class DraftAccountPostSteps extends BaseStepDef {
         then().assertThat()
             .statusCode(500);
     }
+    @Then("The draft account response returns {int}")
+    public void draftAccountResponse(int statusCode) {
+        then().assertThat()
+            .statusCode(statusCode);
+    }
+
 }
