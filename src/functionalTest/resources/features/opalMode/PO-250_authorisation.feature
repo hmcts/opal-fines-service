@@ -64,14 +64,14 @@ Feature: Authorisation on endpoints
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the defendant account add notes api with
       | associatedRecordId | 500000010                       |
-      | businessUnitId     | 71                              |
+      | businessUnitId     | 73                              |
       | noteText           | test roles and perms Opal user1 |
     And the add notes response contains
       | associatedRecordId | 500000010                       |
       | noteText           | test roles and perms Opal user1 |
       | postedBy           | L073JG                          |
       | postedByUserId     | 500000000                       |
-      | businessUnitId     | 71                              |
+      | businessUnitId     | 73                              |
 
     Given I am testing as the "opal-test-2@hmcts.net" user
     When I make a request to the defendant account add notes api with

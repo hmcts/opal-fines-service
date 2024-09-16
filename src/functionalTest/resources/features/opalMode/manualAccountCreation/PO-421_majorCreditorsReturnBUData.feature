@@ -8,7 +8,7 @@ Feature: Major Creditors Api returns Business unit level Data
       | majorCreditorId   | 15                           |
       | name              | CHESTERFIELD BOROUGH COUNCIL |
       | majorCreditorCode | CHBC                         |
-      | businessUnitId    | 49                           |
+      | businessUnitId    | 10                           |
 
 
   @Opal @PO-421
@@ -19,4 +19,4 @@ Feature: Major Creditors Api returns Business unit level Data
       | majorCreditorId   | 15                           |
       | name              | CHESTERFIELD BOROUGH COUNCIL |
       | majorCreditorCode | CHBC                         |
-      | businessUnitId    | 49                           |
+      | businessUnitId    | 10                           |
