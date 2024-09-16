@@ -10,4 +10,5 @@ public class Constants {
     public static final String ENFORCERS_REF_DATA_URI = "/enforcers/ref-data/Aldridge";
     public static final String MAJOR_CREDITORS_URI = "/major-creditors/";
     public static final String DRAFT_ACCOUNT_URI = "/draft-accounts";
+    public static final String RESULTS_URI = "/results";
 }
