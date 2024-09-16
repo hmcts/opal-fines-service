@@ -22,7 +22,7 @@ Feature: PO-591 create draft account
       | account_snapshot.DateOfBirth      | 01/01/2000          |
       | account_snapshot.AccountType      | Fine                |
       | account_snapshot.SubmittedBy      | opal-test@HMCTS.NET |
-      | account_snapshot.BusinessUnitName | MBEC London         |
+      | account_snapshot.BusinessUnitName | West London         |
 
     Then I delete the created draft accounts
 

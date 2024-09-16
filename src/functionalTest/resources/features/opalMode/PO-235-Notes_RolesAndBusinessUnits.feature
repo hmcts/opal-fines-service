@@ -5,26 +5,26 @@ Feature: tests for notes roles/permissions for accounts dependant on business un
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the defendant account add notes api with
       | associatedRecordId | 500000010                       |
-      | businessUnitId     | 71                              |
+      | businessUnitId     | 73                              |
       | noteText           | test roles and perms Opal user1 |
     And the add notes response contains
       | associatedRecordId | 500000010                       |
       | noteText           | test roles and perms Opal user1 |
       | postedBy           | L073JG                          |
       | postedByUserId     | 500000000                       |
-      | businessUnitId     | 71                              |
+      | businessUnitId     | 73                              |
 
 
     When I make a request to the defendant account add notes api with
       | associatedRecordId | 500000010                       |
-      | businessUnitId     | 69                              |
+      | businessUnitId     | 77                              |
       | noteText           | test roles and perms Opal user1 |
     And the add notes response contains
       | associatedRecordId | 500000010                       |
       | noteText           | test roles and perms Opal user1 |
-      | postedBy           | L078JG                          |
+      | postedBy           | L067JG                          |
       | postedByUserId     | 500000000                       |
-      | businessUnitId     | 69                              |
+      | businessUnitId     | 77                              |
 
   Scenario: A user cannot add a note to a business unit it is not part of
     Given I am testing as the "opal-test@hmcts.net" user

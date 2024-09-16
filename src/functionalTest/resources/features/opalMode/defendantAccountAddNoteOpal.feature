@@ -4,7 +4,7 @@ Feature: Test the add note endpoint for Opal PO-139
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the defendant account add notes api with
       | associatedRecordId | 500000000              |
-      | businessUnitId     | 71                     |
+      | businessUnitId     | 73                     |
       | noteText           | test account note Opal |
     Then the add notes response contains
       | associatedRecordId | 500000000              |
@@ -14,7 +14,7 @@ Feature: Test the add note endpoint for Opal PO-139
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the defendant account add notes api with
       | associatedRecordId | 500000001               |
-      | businessUnitId     | 71                     |
+      | businessUnitId     | 73                     |
       | noteText           | test account note2 Opal |
     And the add notes response contains
       | associatedRecordId | 500000001               |
