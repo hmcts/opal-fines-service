@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.authentication.aspect.UserStateAspectService;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
-import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AuthorizationAspectTest {
 
-    static final Role ROLE = Role.builder()
+    static final BusinessUnitUserPermissions ROLE = BusinessUnitUserPermissions.builder()
         .businessUnitId((short) 123)
         .businessUserId("BU123")
         .permissions(Set.of(

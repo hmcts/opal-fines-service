@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
@@ -117,7 +117,7 @@ public class DefendantAccountController {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        Role role = getRequiredRole(userState, addNote.getBusinessUnitId());
+        BusinessUnitUserPermissions role = getRequiredRole(userState, addNote.getBusinessUnitId());
 
         NoteDto noteDto = NoteDto.builder()
             .associatedRecordId(addNote.getAssociatedRecordId())
