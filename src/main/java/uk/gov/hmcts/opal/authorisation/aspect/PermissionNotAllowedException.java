@@ -2,13 +2,13 @@ package uk.gov.hmcts.opal.authorisation.aspect;
 
 import lombok.Getter;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
-import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 
 @Getter
 public class PermissionNotAllowedException extends RuntimeException {
 
     private final Permissions permission;
-    private final Role role;
+    private final BusinessUnitUserPermissions role;
 
     public PermissionNotAllowedException(Permissions value) {
         super(value + " permission is not allowed for the user");
@@ -16,7 +16,7 @@ public class PermissionNotAllowedException extends RuntimeException {
         this.role = null;
     }
 
-    public PermissionNotAllowedException(Permissions permission, Role role) {
+    public PermissionNotAllowedException(Permissions permission, BusinessUnitUserPermissions role) {
         super(permission + " permission is not allowed for the role " + role);
         this.permission = permission;
         this.role = role;

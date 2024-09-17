@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.gov.hmcts.opal.authentication.aspect.AccessTokenParam;
-import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
@@ -55,10 +55,10 @@ public class AuthorizationAspectService {
         return Optional.empty();
     }
 
-    public Role getRole(Object[] args, UserState userState) {
+    public BusinessUnitUserPermissions getRole(Object[] args, UserState userState) {
         for (Object arg : args) {
-            if (arg instanceof Role) {
-                return (Role) arg;
+            if (arg instanceof BusinessUnitUserPermissions) {
+                return (BusinessUnitUserPermissions) arg;
             } else if (arg instanceof AddNoteDto addNoteDto) {
                 return getRequiredRole(userState, addNoteDto.getBusinessUnitId());
             } else if (arg instanceof NoteDto noteDto) {

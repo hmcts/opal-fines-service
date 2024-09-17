@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
-import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 import uk.gov.hmcts.opal.dto.AppMode;
@@ -40,7 +40,7 @@ class TestingSupportControllerTest {
     private static final UserState USER_STATE = UserState.builder()
         .userName("name")
         .userId(123L)
-        .roles(Set.of(Role.builder()
+        .roles(Set.of(BusinessUnitUserPermissions.builder()
                           .businessUnitId((short) 123)
                           .businessUserId("BU123")
                           .permissions(Set.of(
