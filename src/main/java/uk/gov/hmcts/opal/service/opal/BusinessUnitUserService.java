@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitUserSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitUserRepository;
@@ -46,10 +46,10 @@ public class BusinessUnitUserService implements BusinessUnitUserServiceInterface
     /**
      * Return a Set of Authorisation Roles mapped from BusinessUnitUsers keyed on the user id from the Users table.
      */
-    public Set<Role> getAuthorisationRolesByUserId(Long userId) {
+    public Set<BusinessUnitUserPermissions> getAuthorisationRolesByUserId(Long userId) {
         List<BusinessUnitUserEntity> buuList =  businessUnitUserRepository.findAllByUser_UserId(userId);
 
-        return buuList.stream().map(buu -> Role.builder()
+        return buuList.stream().map(buu -> BusinessUnitUserPermissions.builder()
             .businessUserId(buu.getBusinessUnitUserId())
             .businessUnitId(buu.getBusinessUnit().getBusinessUnitId())
             .permissions(userEntitlementService.getPermissionsByBusinessUnitUserId(buu.getBusinessUnitUserId()))
@@ -62,10 +62,10 @@ public class BusinessUnitUserService implements BusinessUnitUserServiceInterface
      * This method is assuming that there are no Permissions for the Roles and so skips performing the additional
      * repository queries that <i>do</i> get performed in the method above.
      */
-    public Set<Role> getLimitedRolesByUserId(Long userId) {
+    public Set<BusinessUnitUserPermissions> getLimitedRolesByUserId(Long userId) {
         List<BusinessUnitUserEntity> buuList =  businessUnitUserRepository.findAllByUser_UserId(userId);
 
-        return buuList.stream().map(buu -> Role.builder()
+        return buuList.stream().map(buu -> BusinessUnitUserPermissions.builder()
             .businessUserId(buu.getBusinessUnitUserId())
             .businessUnitId(buu.getBusinessUnit().getBusinessUnitId())
             .permissions(Collections.emptySet()) // We are assuming that Permissions exist for this Role.

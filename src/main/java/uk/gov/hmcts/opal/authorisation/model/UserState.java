@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
-import uk.gov.hmcts.opal.authorisation.model.Role.DeveloperRole;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions.DeveloperRole;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -24,13 +24,13 @@ public class UserState {
     String userName;
 
     @EqualsAndHashCode.Exclude
-    Set<Role> roles;
+    Set<BusinessUnitUserPermissions> roles;
 
     @JsonCreator
     public UserState(
         @JsonProperty("user_id") Long userId,
         @JsonProperty("user_name") String userName,
-        @JsonProperty("roles") Set<Role> roles
+        @JsonProperty("roles") Set<BusinessUnitUserPermissions> roles
     ) {
         this.userId = userId;
         this.userName = userName;
@@ -58,7 +58,7 @@ public class UserState {
             .anyMatch(r -> r.hasPermission(permission));
     }
 
-    public Optional<Role> getRoleForBusinessUnit(Short businessUnitId) {
+    public Optional<BusinessUnitUserPermissions> getRoleForBusinessUnit(Short businessUnitId) {
         return roles.stream()
             .filter(r -> r.matchesBusinessUnitId(businessUnitId))
             .findFirst();
@@ -69,10 +69,10 @@ public class UserState {
     }
 
     public static class UserRolesImpl implements UserRoles {
-        private final Set<Role> roles;
+        private final Set<BusinessUnitUserPermissions> roles;
         private final Set<Short> businessUnits;
 
-        public UserRolesImpl(Set<Role> roles) {
+        public UserRolesImpl(Set<BusinessUnitUserPermissions> roles) {
             this.roles = roles;
             businessUnits = roles.stream().map(r -> r.getBusinessUnitId()).collect(Collectors.toSet());
         }
@@ -83,7 +83,7 @@ public class UserState {
     }
 
     public static class DeveloperUserState extends UserState {
-        private static final Optional<Role> DEV_ROLE = Optional.of(new DeveloperRole());
+        private static final Optional<BusinessUnitUserPermissions> DEV_ROLE = Optional.of(new DeveloperRole());
 
         public DeveloperUserState() {
             super(0L, "Developer_User", Collections.emptySet());
@@ -95,7 +95,7 @@ public class UserState {
         }
 
         @Override
-        public Optional<Role> getRoleForBusinessUnit(Short businessUnitId) {
+        public Optional<BusinessUnitUserPermissions> getRoleForBusinessUnit(Short businessUnitId) {
             return DEV_ROLE;
         }
 

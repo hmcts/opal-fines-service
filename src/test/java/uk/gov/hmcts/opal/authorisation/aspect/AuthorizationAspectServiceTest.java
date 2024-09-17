@@ -15,7 +15,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.gov.hmcts.opal.authentication.aspect.AccessTokenParam;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
-import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AuthorizationAspectServiceTest {
 
-    static final Role ROLE = Role.builder()
+    static final BusinessUnitUserPermissions ROLE = BusinessUnitUserPermissions.builder()
         .businessUnitId((short) 12)
         .businessUserId("BU123")
         .permissions(Set.of(
@@ -171,17 +171,17 @@ class AuthorizationAspectServiceTest {
             AddNoteDto addNoteDto = AddNoteDto.builder().businessUnitId((short) 12).build();
             Object[] args = {addNoteDto};
 
-            Role actualRole = authorizationAspectService.getRole(args, USER_STATE);
+            BusinessUnitUserPermissions actualRole = authorizationAspectService.getRole(args, USER_STATE);
 
             assertEquals(ROLE, actualRole);
         }
 
         @Test
         void getRole_WhenRoleArgument() {
-            Role expectedRole = ROLE;
+            BusinessUnitUserPermissions expectedRole = ROLE;
             Object[] args = {expectedRole};
 
-            Role actualRole = authorizationAspectService.getRole(args, USER_STATE);
+            BusinessUnitUserPermissions actualRole = authorizationAspectService.getRole(args, USER_STATE);
 
             assertEquals(expectedRole, actualRole);
         }

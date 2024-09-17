@@ -6,7 +6,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.authentication.aspect.UserStateAspectService;
-import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 
 import static uk.gov.hmcts.opal.util.PermissionUtil.checkAnyRoleHasPermission;
@@ -40,11 +40,10 @@ public class AuthorizationAspect {
         Object[] args = joinPoint.getArgs();
         UserState userState = userStateAspectService.getUserState(joinPoint);
 
-        Role role = authorizationAspectService.getRole(args, userState);
+        BusinessUnitUserPermissions role = authorizationAspectService.getRole(args, userState);
         if (checkRoleHasPermission(role, authorizedRoleHasPermission.value())) {
             return joinPoint.proceed();
         }
         throw new PermissionNotAllowedException(authorizedRoleHasPermission.value(), role);
     }
 }
-
