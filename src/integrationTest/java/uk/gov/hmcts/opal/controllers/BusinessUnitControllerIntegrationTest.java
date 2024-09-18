@@ -129,7 +129,7 @@ class BusinessUnitControllerIntegrationTest {
 
         when(businessUnitService.getReferenceData(any())).thenReturn(singletonList(refData));
         when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
-        when(userState.allRolesWithPermission(any())).thenReturn(new TestUserRoles(true));
+        when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(true));
 
         mockMvc.perform(get(URL_BASE + "?permission=MANUAL_ACCOUNT_CREATION")
                             .header("authorization", "Bearer some_value"))
@@ -151,7 +151,7 @@ class BusinessUnitControllerIntegrationTest {
 
         when(businessUnitService.getReferenceData(any())).thenReturn(singletonList(refData));
         when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
-        when(userState.allRolesWithPermission(any())).thenReturn(new TestUserRoles(false));
+        when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(false));
 
         mockMvc.perform(get(URL_BASE + "?permission=MANUAL_ACCOUNT_CREATION")
                             .header("authorization", "Bearer some_value"))
@@ -185,10 +185,10 @@ class BusinessUnitControllerIntegrationTest {
             "XX", "Fines", null, null);
     }
 
-    private class TestUserRoles implements UserState.UserRoles {
+    private class TestUserBusinessUnits implements UserState.UserBusinessUnits {
         private final boolean contains;
 
-        public TestUserRoles(boolean contains) {
+        public TestUserBusinessUnits(boolean contains) {
             this.contains = contains;
         }
 

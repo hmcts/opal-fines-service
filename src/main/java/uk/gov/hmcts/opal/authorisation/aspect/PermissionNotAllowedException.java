@@ -8,17 +8,19 @@ import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 public class PermissionNotAllowedException extends RuntimeException {
 
     private final Permissions permission;
-    private final BusinessUnitUserPermissions role;
+    private final BusinessUnitUserPermissions businessUnitUserPermissions;
 
     public PermissionNotAllowedException(Permissions value) {
         super(value + " permission is not allowed for the user");
         this.permission = value;
-        this.role = null;
+        this.businessUnitUserPermissions = null;
     }
 
-    public PermissionNotAllowedException(Permissions permission, BusinessUnitUserPermissions role) {
-        super(permission + " permission is not allowed for the role " + role);
+    public PermissionNotAllowedException(Permissions permission,
+                                         BusinessUnitUserPermissions businessUnitUserPermissions) {
+        super(permission + " permission is not allowed for the businessUnitUserPermissions "
+                  + businessUnitUserPermissions);
         this.permission = permission;
-        this.role = role;
+        this.businessUnitUserPermissions = businessUnitUserPermissions;
     }
 }

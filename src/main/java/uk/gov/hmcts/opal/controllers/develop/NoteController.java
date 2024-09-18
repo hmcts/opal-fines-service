@@ -51,9 +51,10 @@ public class NoteController {
         log.info(":POST:createNote: {}", noteDto.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        BusinessUnitUserPermissions role = getRequiredRole(userState, noteDto.getBusinessUnitId());
+        BusinessUnitUserPermissions businessUnitUserPermissions = getRequiredRole(userState,
+                                                                                  noteDto.getBusinessUnitId());
 
-        noteDto.setPostedBy(role.getBusinessUserId());
+        noteDto.setPostedBy(businessUnitUserPermissions.getBusinessUnitUserId());
         noteDto.setPostedByUserId(userState.getUserId());
         NoteDto savedNoteDto = noteService.saveNote(noteDto);
         return new ResponseEntity<>(savedNoteDto, HttpStatus.CREATED);

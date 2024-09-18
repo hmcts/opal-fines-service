@@ -1,5 +1,5 @@
 @PO-235 @Opal
-Feature: tests for notes roles/permissions for accounts dependant on business units
+Feature: tests for notes business unit users/permissions for accounts dependant on business units
 
   Scenario: A user can add a note to a business unit it is part of
     Given I am testing as the "opal-test@hmcts.net" user

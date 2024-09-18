@@ -78,7 +78,7 @@ class BusinessUnitUserServiceTest {
     }
 
     @Test
-    void testGetAuthorisationRolesByUserId() {
+    void testGetAuthorisationBusinessUnitPermissionsByUserId() {
         // Arrange
         BusinessUnitEntity bue = BusinessUnitEntity.builder().businessUnitId((short)100).build();
         BusinessUnitUserEntity businessUnitUserEntity = BusinessUnitUserEntity.builder()
@@ -88,7 +88,8 @@ class BusinessUnitUserServiceTest {
         when(userEntitlementService.getPermissionsByBusinessUnitUserId(any())).thenReturn(Collections.emptySet());
 
         // Act
-        Set<BusinessUnitUserPermissions> result = businessUnitUserService.getAuthorisationRolesByUserId(0L);
+        Set<BusinessUnitUserPermissions> result = businessUnitUserService
+            .getAuthorisationBusinessUnitPermissionsByUserId(0L);
 
         // Assert
         assertNotNull(result);
@@ -97,7 +98,7 @@ class BusinessUnitUserServiceTest {
     }
 
     @Test
-    void testGetLimitedRolesByUserId() {
+    void testGetLimitedBusinessUnitPermissionsByUserId() {
         // Arrange
         BusinessUnitEntity bue = BusinessUnitEntity.builder().businessUnitId((short)100).build();
         BusinessUnitUserEntity businessUnitUserEntity = BusinessUnitUserEntity.builder()
@@ -106,7 +107,7 @@ class BusinessUnitUserServiceTest {
         when(businessUnitUserRepository.findAllByUser_UserId(any())).thenReturn(list);
 
         // Act
-        Set<BusinessUnitUserPermissions> result = businessUnitUserService.getLimitedRolesByUserId(0L);
+        Set<BusinessUnitUserPermissions> result = businessUnitUserService.getLimitedBusinessUnitPermissionsByUserId(0L);
 
         // Assert
         assertNotNull(result);
