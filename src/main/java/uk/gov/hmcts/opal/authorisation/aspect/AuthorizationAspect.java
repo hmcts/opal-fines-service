@@ -40,10 +40,10 @@ public class AuthorizationAspect {
         Object[] args = joinPoint.getArgs();
         UserState userState = userStateAspectService.getUserState(joinPoint);
 
-        BusinessUnitUserPermissions role = authorizationAspectService.getRole(args, userState);
-        if (checkRoleHasPermission(role, authorizedRoleHasPermission.value())) {
+        BusinessUnitUserPermissions businessUnitUserPermissions = authorizationAspectService.getRole(args, userState);
+        if (checkRoleHasPermission(businessUnitUserPermissions, authorizedRoleHasPermission.value())) {
             return joinPoint.proceed();
         }
-        throw new PermissionNotAllowedException(authorizedRoleHasPermission.value(), role);
+        throw new PermissionNotAllowedException(authorizedRoleHasPermission.value(), businessUnitUserPermissions);
     }
 }

@@ -56,12 +56,13 @@ public class UserService implements UserServiceInterface {
         return UserState.builder()
             .userId(user.getUserId())
             .userName(user.getUsername())
-            .roles(businessUnitUserService.getAuthorisationRolesByUserId(user.getUserId()))
+            .businessUnitUserPermissions(businessUnitUserService
+                                             .getAuthorisationBusinessUnitPermissionsByUserId(user.getUserId()))
             .build();
     }
 
     /**
-     * Return a 'cut down' UserState object that that only tries to populate Roles but not Permissions.
+     * Return a 'cut down' UserState object that that only tries to populate Business Unit Users but not Permissions.
      * The assumption is that previous code has attempted to retrieve a UserState object via a query against
      * the UserEntitlementService, but failed. This could be because of a lack of Entitlements associated with
      * a BusinessUnitUnit, or a lack of BusinessUnitUsers associated with this user. So assuming there
@@ -73,7 +74,8 @@ public class UserService implements UserServiceInterface {
         return userEntity.map(u -> UserState.builder()
             .userId(u.getUserId())
             .userName(u.getUsername())
-            .roles(businessUnitUserService.getLimitedRolesByUserId(u.getUserId()))
+            .businessUnitUserPermissions(businessUnitUserService
+                                             .getLimitedBusinessUnitPermissionsByUserId(u.getUserId()))
             .build());
     }
 }

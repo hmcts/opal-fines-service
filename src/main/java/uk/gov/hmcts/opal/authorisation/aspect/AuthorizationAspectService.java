@@ -67,7 +67,8 @@ public class AuthorizationAspectService {
         }
         throw new RoleNotFoundException(format(
             "Can't infer the role for user %s. "
-                + "Annotated method needs to have arguments of types (Role, AddNoteDto, NoteDto).",
+                + "Annotated method needs to have arguments of types"
+                + " (BusinessUnitUserPermissions, AddNoteDto, NoteDto).",
             userState.getUserName()
         ));
     }

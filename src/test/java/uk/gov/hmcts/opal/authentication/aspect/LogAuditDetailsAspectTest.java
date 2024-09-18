@@ -32,9 +32,9 @@ class LogAuditDetailsAspectTest {
     private static final UserState USER_STATE = UserState.builder()
         .userName("name")
         .userId(123L)
-        .roles(Set.of(BusinessUnitUserPermissions.builder()
+        .businessUnitUserPermissions(Set.of(BusinessUnitUserPermissions.builder()
                           .businessUnitId((short) 123)
-                          .businessUserId("BU123")
+                          .businessUnitUserId("BU123")
                           .permissions(Set.of(
                               Permission.builder()
                                   .permissionId(1L)
