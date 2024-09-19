@@ -5,6 +5,7 @@ import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 @Getter
 public class PermissionNotAllowedException extends RuntimeException {
@@ -14,6 +15,12 @@ public class PermissionNotAllowedException extends RuntimeException {
 
     public PermissionNotAllowedException(Permissions... value) {
         super(Arrays.toString(value) + " permission(s) are not allowed for the user");
+        this.permission = value;
+        this.businessUnitUserPermissions = null;
+    }
+
+    public PermissionNotAllowedException(Collection<Short> buIds, Permissions... value) {
+        super(Arrays.toString(value) + " permission(s) are not allowed for the user in business units: " + buIds);
         this.permission = value;
         this.businessUnitUserPermissions = null;
     }

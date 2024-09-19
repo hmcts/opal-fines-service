@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
+import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
+import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
@@ -63,6 +65,31 @@ class DraftAccountControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(toGetDto(entity), response.getBody());
         verify(draftAccountService, times(1)).getDraftAccount(any(Long.class));
+    }
+
+
+    @Test
+    void testGetDraftAccounts_Success() {
+        // Arrange
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().build())
+            .build();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
+        when(draftAccountService.getDraftAccounts(any(), any(), any())).thenReturn(List.of(entity));
+
+        // Act
+        ResponseEntity<DraftAccountsResponseDto> response = draftAccountController
+            .getDraftAccountSummaries(Optional.of(List.of((short)1)),
+                                      Optional.of(List.of(DraftAccountStatus.PENDING)),
+                                      Optional.of(List.of()), BEARER_TOKEN);
+        DraftAccountsResponseDto dto = response.getBody();
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, dto.getCount());
+        assertEquals(toSummaryDto(entity), dto.getSummaries().get(0));
+        verify(draftAccountService, times(1)).getDraftAccounts(any(), any(), any());
     }
 
     @Test
@@ -146,6 +173,22 @@ class DraftAccountControllerTest {
             .accountType(entity.getAccountType())
             .accountStatus(entity.getAccountStatus())
             .timelineData(entity.getTimelineData())
+            .accountNumber(entity.getAccountNumber())
+            .accountId(entity.getAccountId())
+            .build();
+    }
+
+    DraftAccountSummaryDto toSummaryDto(DraftAccountEntity entity) {
+        return DraftAccountSummaryDto.builder()
+            .draftAccountId(entity.getDraftAccountId())
+            .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
+            .createdDate(toOffsetDateTime(entity.getCreatedDate()))
+            .submittedBy(entity.getSubmittedBy())
+            .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
+            .validatedBy(entity.getValidatedBy())
+            .accountSnapshot(entity.getAccountSnapshot())
+            .accountType(entity.getAccountType())
+            .accountStatus(entity.getAccountStatus())
             .accountNumber(entity.getAccountNumber())
             .accountId(entity.getAccountId())
             .build();

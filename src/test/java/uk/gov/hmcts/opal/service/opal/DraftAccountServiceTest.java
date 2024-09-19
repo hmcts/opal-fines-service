@@ -24,6 +24,7 @@ import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -54,6 +55,27 @@ class DraftAccountServiceTest {
 
         // Act
         DraftAccountEntity result = draftAccountService.getDraftAccount(1);
+
+        // Assert
+        assertNotNull(result);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testGetDraftAccounts() {
+        // Arrange
+        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+
+        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
+        Page<DraftAccountEntity> mockPage = new PageImpl<>(List.of(draftAccountEntity), Pageable.unpaged(), 999L);
+        when(draftAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(ffq);
+            return mockPage;
+        });
+
+        // Act
+        List<DraftAccountEntity> result = draftAccountService.getDraftAccounts(Set.of((short)1), Set.of(
+            DraftAccountStatus.REJECTED), Set.of());
 
         // Assert
         assertNotNull(result);

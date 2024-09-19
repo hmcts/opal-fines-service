@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -55,6 +56,10 @@ public class BusinessUnitUserPermissions {
         return this.businessUnitId.equals(businessUnitId);
     }
 
+    public boolean matchesBusinessUnitId(Collection<Short> businessUnitIds) {
+        return businessUnitIds.contains(this.businessUnitId);
+    }
+
     public static class DeveloperBusinessUnitUserPermissions extends BusinessUnitUserPermissions {
         DeveloperBusinessUnitUserPermissions() {
             super("", Short.MAX_VALUE, Collections.emptySet());
@@ -66,8 +71,18 @@ public class BusinessUnitUserPermissions {
         }
 
         @Override
+        public boolean hasAnyPermission(Permissions... reqPermissions) {
+            return true;
+        }
+
+        @Override
         public boolean matchesBusinessUnitId(Short businessUnitId) {
             return true;
         }
+
+        public boolean matchesBusinessUnitId(Collection<Short> businessUnitIds) {
+            return true;
+        }
+
     }
 }

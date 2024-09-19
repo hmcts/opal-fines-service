@@ -17,18 +17,26 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
+import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
+import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toOffsetDateTime;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
@@ -72,6 +80,42 @@ public class DraftAccountController {
         DraftAccountEntity response = draftAccountService.getDraftAccount(draftAccountId);
 
         return buildResponse(Optional.ofNullable(response).map(this::toGetResponseDto).orElse(null));
+    }
+
+    @GetMapping()
+    @Operation(summary = "Returns a collection of draft accounts summaries for the given user.")
+    public ResponseEntity<DraftAccountsResponseDto> getDraftAccountSummaries(
+        @RequestParam(value = "business_unit") Optional<List<Short>> optionalBusinessUnitIds,
+        @RequestParam(value = "status") Optional<List<DraftAccountStatus>> optionalStatus,
+        @RequestParam(value = "submitted_by") Optional<List<String>> optionalSubmittedBys,
+        @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
+
+        log.info(":GET:getDraftAccountSummaries:");
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
+
+            List<DraftAccountStatus> statuses = optionalStatus.orElse(Collections.emptyList());
+            List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
+            log.info(":GET:getDraftAccountSummaries: statuses: {}; submitted bys: {}", statuses, submittedBys);
+
+            Set<Short> filteredBusinessUnitIds = userState
+                .filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
+                    optionalBusinessUnitIds,
+                    Permissions.DRAFT_ACCOUNT_PERMISSIONS
+                );
+            log.info(":GET:getDraftAccountSummaries: filtered business units: {}", filteredBusinessUnitIds);
+
+            List<DraftAccountEntity> response = draftAccountService
+                .getDraftAccounts(filteredBusinessUnitIds, statuses, submittedBys);
+
+            log.info(":GET:getDraftAccountSummaries: summaries count: {}", response.size());
+
+            return buildResponse(
+                DraftAccountsResponseDto.builder()
+                    .summaries(response.stream().map(this::toSummaryDto).toList()).build());
+        } else {
+            throw new PermissionNotAllowedException(Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+        }
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -155,6 +199,22 @@ public class DraftAccountController {
             .accountType(entity.getAccountType())
             .accountStatus(entity.getAccountStatus())
             .timelineData(entity.getTimelineData())
+            .accountNumber(entity.getAccountNumber())
+            .accountId(entity.getAccountId())
+            .build();
+    }
+
+    DraftAccountSummaryDto toSummaryDto(DraftAccountEntity entity) {
+        return DraftAccountSummaryDto.builder()
+            .draftAccountId(entity.getDraftAccountId())
+            .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
+            .createdDate(toOffsetDateTime(entity.getCreatedDate()))
+            .submittedBy(entity.getSubmittedBy())
+            .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
+            .validatedBy(entity.getValidatedBy())
+            .accountSnapshot(entity.getAccountSnapshot())
+            .accountType(entity.getAccountType())
+            .accountStatus(entity.getAccountStatus())
             .accountNumber(entity.getAccountNumber())
             .accountId(entity.getAccountId())
             .build();

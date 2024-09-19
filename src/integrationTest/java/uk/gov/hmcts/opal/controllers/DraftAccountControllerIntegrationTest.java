@@ -11,14 +11,19 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
+import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
@@ -54,9 +59,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class DraftAccountControllerIntegrationTest {
 
-    private static final String URL_BASE = "/draft-accounts/";
-
     private static final Logger logger = Logger.getLogger(DraftAccountControllerIntegrationTest.class.getSimpleName());
+    private static final String URL_BASE = "/draft-accounts";
+    private static final String GET_DRAFT_ACCOUNT_RESPONSE = "getDraftAccountResponse.json";
+    private static final String GET_DRAFT_ACCOUNTS_RESPONSE = "getDraftAccountsResponse.json";
 
     @Autowired
     MockMvc mockMvc;
@@ -83,7 +89,7 @@ class DraftAccountControllerIntegrationTest {
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(draftAccountEntity);
 
-        MvcResult result = mockMvc.perform(get(URL_BASE + "1")
+        MvcResult result = mockMvc.perform(get(URL_BASE + "/1")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -98,7 +104,7 @@ class DraftAccountControllerIntegrationTest {
 
         logger.info(":testGetDraftAccountById: Response body:\n" + ToJsonString.toPrettyJson(body));
 
-        assertTrue(jsonSchemaValidationService.isValid(body, "getDraftAccountResponse.json"));
+        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNT_RESPONSE));
     }
 
 
@@ -106,8 +112,78 @@ class DraftAccountControllerIntegrationTest {
     void testGetDraftAccountById_WhenDraftAccountDoesNotExist() throws Exception {
         when(draftAccountService.getDraftAccount(2L)).thenReturn(null);
 
-        mockMvc.perform(get(URL_BASE + "2").header("authorization", "Bearer some_value"))
+        mockMvc.perform(get(URL_BASE + "/2").header("authorization", "Bearer some_value"))
             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testGetDraftAccountsSummaries_noParams() throws Exception {
+        DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
+        when(draftAccountService.getDraftAccounts(any(),any(), any()))
+            .thenReturn(singletonList(draftAccountEntity));
+
+        String body = checkStandardSummaryExpectations(mockMvc.perform(get(URL_BASE)
+                            .header("authorization", "Bearer some_value")
+                            // .param("business_unit", "1")
+                            .contentType(MediaType.APPLICATION_JSON)));
+
+        logger.info(":testGetDraftAccountsSummaries_noParams: body:\n" + ToJsonString.toPrettyJson(body));
+
+        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+    }
+
+    @Test
+    void testGetDraftAccountsSummaries_permission() throws Exception {
+        DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
+        final Short businessId = (short)1;
+
+        UserState user = UserStateUtil.permissionUser(businessId, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        when(draftAccountService.getDraftAccounts(any(), any(), any()))
+            .thenReturn(singletonList(draftAccountEntity));
+
+        String body = checkStandardSummaryExpectations(mockMvc.perform(get(URL_BASE)
+                            .header("authorization", "Bearer some_value")
+                            .param("business_unit", businessId.toString())
+                            .contentType(MediaType.APPLICATION_JSON)));
+
+        logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
+
+        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+    }
+
+    @Test
+    void testGetDraftAccountsSummaries_noPermission() throws Exception {
+        DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
+        final Short businessId = (short)1;
+
+        UserState user = UserStateUtil.permissionUser(businessId, Permissions.COLLECTION_ORDER);
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        when(draftAccountService.getDraftAccounts(any(), any(), any()))
+            .thenReturn(singletonList(draftAccountEntity));
+
+        mockMvc.perform(get(URL_BASE)
+                            .header("authorization", "Bearer some_value")
+                            .param("business_unit", businessId.toString())
+                            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is(HttpStatus.FORBIDDEN.value()))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    private String checkStandardSummaryExpectations(ResultActions actions) throws Exception {
+        return actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
+            .andExpect(jsonPath("$.summaries[0].business_unit_id").value(7))
+            .andExpect(jsonPath("$.summaries[0].account_type").value("DRAFT"))
+            .andExpect(jsonPath("$.summaries[0].submitted_by").value("Tony"))
+            .andExpect(jsonPath("$.summaries[0].account_status").value("Submitted"))
+            .andReturn().getResponse().getContentAsString();
     }
 
     @Test
@@ -117,7 +193,7 @@ class DraftAccountControllerIntegrationTest {
         when(draftAccountService.searchDraftAccounts(any(DraftAccountSearchDto.class)))
             .thenReturn(singletonList(draftAccountEntity));
 
-        mockMvc.perform(post(URL_BASE + "search")
+        mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
@@ -132,7 +208,7 @@ class DraftAccountControllerIntegrationTest {
 
     @Test
     void testPostDraftAccountsSearch_WhenDraftAccountDoesNotExist() throws Exception {
-        mockMvc.perform(post(URL_BASE + "search")
+        mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
@@ -144,7 +220,7 @@ class DraftAccountControllerIntegrationTest {
         // Simulating a timeout exception when the repository is called
         doThrow(new QueryTimeoutException()).when(draftAccountService).getDraftAccount(1L);
 
-        mockMvc.perform(get(URL_BASE + "1")
+        mockMvc.perform(get(URL_BASE + "/1")
                             .header("Authorization", "Bearer " + "some_value"))
             .andExpect(status().isRequestTimeout())
             .andExpect(content().contentType("application/json"))
@@ -160,7 +236,7 @@ class DraftAccountControllerIntegrationTest {
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(createDraftAccountEntity());
 
-        mockMvc.perform(get(URL_BASE + "1")
+        mockMvc.perform(get(URL_BASE + "/1")
                             .header("Authorization", "Bearer " + "some_value")
                             .accept("application/xml"))
             .andExpect(status().isNotAcceptable());
@@ -175,7 +251,7 @@ class DraftAccountControllerIntegrationTest {
             .accountType("DRAFT")
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .account("{}")
-            .accountSnapshot("{}")
+            .accountSnapshot("{ \"data\": \"something snappy\"}")
             .timelineData("{}")
             .build();
     }
@@ -190,7 +266,7 @@ class DraftAccountControllerIntegrationTest {
             .when(draftAccountService).getDraftAccount(1L);
 
 
-        mockMvc.perform(get(URL_BASE + "1")
+        mockMvc.perform(get(URL_BASE + "/1")
                             .header("Authorization", "Bearer " + "some_value"))
             .andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType("application/json"))
@@ -207,7 +283,7 @@ class DraftAccountControllerIntegrationTest {
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(draftAccountEntity);
 
-        MvcResult result = mockMvc.perform(delete(URL_BASE + "1")
+        MvcResult result = mockMvc.perform(delete(URL_BASE + "/1")
                                                .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -270,7 +346,7 @@ class DraftAccountControllerIntegrationTest {
         when(draftAccountService.replaceDraftAccount(eq(draftAccountId), any(ReplaceDraftAccountRequestDto.class)))
             .thenReturn(updatedEntity);
 
-        MvcResult result = mockMvc.perform(put(URL_BASE + draftAccountId)
+        MvcResult result = mockMvc.perform(put(URL_BASE + "/" + draftAccountId)
                                                .header("authorization", "Bearer some_value")
                                                .contentType(MediaType.APPLICATION_JSON)
                                                .content(requestBody))
@@ -291,7 +367,7 @@ class DraftAccountControllerIntegrationTest {
         String body = result.getResponse().getContentAsString();
         logger.info(":testReplaceDraftAccount: Response body:\n" + ToJsonString.toPrettyJson(body));
 
-        assertTrue(jsonSchemaValidationService.isValid(body, "getDraftAccountResponse.json"));
+        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNT_RESPONSE));
 
         verify(draftAccountService).replaceDraftAccount(eq(draftAccountId), any(ReplaceDraftAccountRequestDto.class));
     }

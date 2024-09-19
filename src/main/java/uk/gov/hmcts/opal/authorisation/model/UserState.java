@@ -9,6 +9,7 @@ import lombok.NonNull;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions.DeveloperBusinessUnitUserPermissions;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,6 +46,10 @@ public class UserState {
         return !anyBusinessUnitUserHasPermission(permission);
     }
 
+    public boolean anyBusinessUnitUserHasAnyPermission(Permissions... permission) {
+        return businessUnitUserPermissions.stream().anyMatch(r -> r.hasAnyPermission(permission));
+    }
+
     public UserBusinessUnits allBusinessUnitUsersWithPermission(Permissions permission) {
         return new UserBusinessUnitsImpl(
             businessUnitUserPermissions.stream().filter(r -> r.hasPermission(permission)).collect(Collectors.toSet()));
@@ -58,12 +63,27 @@ public class UserState {
             .anyMatch(r -> r.hasPermission(permission));
     }
 
-    public boolean hasBusinessUnitUserWithAnyPermissions(short businessUnitId, Permissions... permission) {
+    public boolean hasBusinessUnitUserWithAnyPermission(short businessUnitId, Permissions... permissions) {
         return businessUnitUserPermissions.stream()
             .filter(r -> r.matchesBusinessUnitId(businessUnitId))
             .findAny()  // Should be either zero or one businessUnitUserPermissions that match the business unit id
             .stream()
-            .anyMatch(r -> r.hasAnyPermission(permission));
+            .anyMatch(r -> r.hasAnyPermission(permissions));
+    }
+
+    public Set<Short> filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
+        Optional<List<Short>> businessUnitIds, Permissions... permissions) {
+
+        return filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
+            businessUnitIds.orElse(Collections.emptyList()), permissions);
+    }
+
+    public Set<Short> filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
+        List<Short> businessUnitIds, Permissions... permissions) {
+
+        return businessUnitIds.stream()
+            .filter(buid -> hasBusinessUnitUserWithAnyPermission(buid, permissions))
+            .collect(Collectors.toSet());
     }
 
     public Optional<BusinessUnitUserPermissions> getBusinessUnitUserForBusinessUnit(Short businessUnitId) {
@@ -104,6 +124,15 @@ public class UserState {
             return true;
         }
 
+        public boolean anyBusinessUnitUserHasAnyPermission(Permissions... permission) {
+            return true;
+        }
+
+        @Override
+        public boolean hasBusinessUnitUserWithAnyPermission(short businessUnitId, Permissions... permissions) {
+            return true;
+        }
+
         @Override
         public Optional<BusinessUnitUserPermissions> getBusinessUnitUserForBusinessUnit(Short businessUnitId) {
             return DEV_BUSINESS_UNIT_USER_PERMISSIONS;
@@ -116,6 +145,7 @@ public class UserState {
                 public boolean containsBusinessUnit(Short businessUnitId) {
                     return true;
                 }
+
             };
         }
     }
