@@ -16,13 +16,10 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DraftAccountResponseDto implements ToJsonString {
+public class DraftAccountSummaryDto implements ToJsonString {
 
     @JsonProperty("draft_account_id")
     private Long draftAccountId;
-
-    @JsonProperty("business_unit_id")
-    private Short businessUnitId;
 
     @JsonProperty("created_at")
     private OffsetDateTime createdDate;
@@ -30,15 +27,14 @@ public class DraftAccountResponseDto implements ToJsonString {
     @JsonProperty("submitted_by")
     private String submittedBy;
 
+    @JsonProperty("business_unit_id")
+    private Short businessUnitId;
+
     @JsonProperty("validated_at")
     private OffsetDateTime validatedDate;
 
     @JsonProperty("validated_by")
     private String validatedBy;
-
-    @JsonProperty("account")
-    @JsonRawValue
-    private String account;
 
     @JsonProperty("account_snapshot")
     @JsonRawValue
@@ -49,10 +45,6 @@ public class DraftAccountResponseDto implements ToJsonString {
 
     @JsonProperty("account_status")
     private DraftAccountStatus accountStatus;
-
-    @JsonProperty("timeline_data")
-    @JsonRawValue
-    private String timelineData;
 
     @JsonProperty("account_number")
     private String accountNumber;

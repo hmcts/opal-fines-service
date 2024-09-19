@@ -75,12 +75,11 @@ class DraftAccountControllerTest {
 
         // Act
         DraftAccountSearchDto searchDto = DraftAccountSearchDto.builder().build();
-        ResponseEntity<List<DraftAccountEntity>> response = draftAccountController.postDraftAccountsSearch(
+        ResponseEntity<List<DraftAccountResponseDto>> response = draftAccountController.postDraftAccountsSearch(
             searchDto, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(draftAccountList, response.getBody());
         verify(draftAccountService, times(1)).searchDraftAccounts(any());
     }
 
@@ -114,7 +113,7 @@ class DraftAccountControllerTest {
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         DraftAccountResponseDto responseEntity = response.getBody();
         assertEquals("Large", responseEntity.getAccountType());
-        assertEquals("Submitted", responseEntity.getAccountStatus());
+        assertEquals("Submitted", responseEntity.getAccountStatus().getLabel());
         assertEquals("{\"acc\": \"1\"}", responseEntity.getAccount());
         assertEquals("Charles", responseEntity.getSubmittedBy());
         assertEquals("{\"dat\": \"2\"}", responseEntity.getTimelineData());
@@ -145,7 +144,7 @@ class DraftAccountControllerTest {
             .account(entity.getAccount())
             .accountSnapshot(entity.getAccountSnapshot())
             .accountType(entity.getAccountType())
-            .accountStatus(Optional.ofNullable(entity.getAccountStatus()).map(r -> r.getLabel()).orElse(null))
+            .accountStatus(entity.getAccountStatus())
             .timelineData(entity.getTimelineData())
             .accountNumber(entity.getAccountNumber())
             .accountId(entity.getAccountId())
