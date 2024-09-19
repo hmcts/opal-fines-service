@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
-import uk.gov.hmcts.opal.entity.DraftAccountSnapshots;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.DraftAccountSnapshots;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
@@ -22,6 +22,7 @@ import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +34,10 @@ import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 @Qualifier("draftAccountService")
 public class DraftAccountService {
 
+    private static final String A_C_R_JSON_PATH = "$.accountCreateRequest";
+    private static final String DEFENDANT_JSON_PATH = A_C_R_JSON_PATH + ".Defendant";
+    private static final String ACCOUNT_JSON_PATH = A_C_R_JSON_PATH + ".Account";
+
     private final DraftAccountRepository draftAccountRepository;
 
     private final BusinessUnitRepository businessUnitRepository;
@@ -41,6 +46,16 @@ public class DraftAccountService {
 
     public DraftAccountEntity getDraftAccount(long draftAccountId) {
         return draftAccountRepository.getReferenceById(draftAccountId);
+    }
+
+    public List<DraftAccountEntity> getDraftAccounts(Collection<Short> businessUnitIds,
+                                                     Collection<DraftAccountStatus> statuses,
+                                                     Collection<String> submittedBy) {
+        Page<DraftAccountEntity> page = draftAccountRepository
+            .findBy(specs.findForSummaries(businessUnitIds, statuses, submittedBy),
+                    ffq -> ffq.page(Pageable.unpaged()));
+
+        return page.getContent();
     }
 
     public void deleteDraftAccount(long draftAccountId, Optional<Boolean> ignoreMissing) {
@@ -107,19 +122,19 @@ public class DraftAccountService {
 
         JsonPathUtil.DocContext docContext = createDocContext(document);
 
-        String companyName = docContext.read("$.accountCreateRequest.Defendant.CompanyName");
+        String companyName = docContext.read(DEFENDANT_JSON_PATH + ".CompanyName");
 
         final boolean notCompany = companyName == null || companyName.isBlank();
 
         String defendantName = notCompany
-            ? docContext.read("$.accountCreateRequest.Defendant.Surname") + ", "
-            + docContext.read("$.accountCreateRequest.Defendant.Forenames")
+            ? docContext.read(DEFENDANT_JSON_PATH + ".Surname") + ", "
+            + docContext.read(DEFENDANT_JSON_PATH + ".Forenames")
             : companyName;
 
         String dob = notCompany
-            ? docContext.read("$.accountCreateRequest.Defendant.DOB")
+            ? docContext.read(DEFENDANT_JSON_PATH + ".DOB")
             : null;
-        String accType = docContext.read("$.accountCreateRequest.Account.AccountType");
+        String accType = docContext.read(ACCOUNT_JSON_PATH + ".AccountType");
 
         return DraftAccountSnapshots.Snapshot.builder()
             .defendantName(defendantName)

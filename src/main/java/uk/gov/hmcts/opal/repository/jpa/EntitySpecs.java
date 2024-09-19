@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.dto.DateDto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -77,6 +78,10 @@ public abstract class EntitySpecs<E> {
 
     public Optional<LocalDateTime> notNullLocalDateTime(DateDto candidate) {
         return Optional.ofNullable(candidate).map(DateDto::toLocalDate).map(d -> d.atTime(0, 0, 0));
+    }
+
+    public <T> Optional<Collection<T>> notEmpty(Collection<T> collection) {
+        return collection.isEmpty() ? Optional.empty() : Optional.of(collection);
     }
 
     public static Predicate likeWildcardPredicate(Path<String> path, CriteriaBuilder builder, String candidate) {

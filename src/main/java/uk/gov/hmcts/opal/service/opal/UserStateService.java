@@ -15,7 +15,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 @Slf4j(topic = "UserStateService")
 public class UserStateService {
 
-    protected static final String DEVELOPER_PERMISSIONS = "Dev-BusinessUnitUserPermissions-Permissions";
+    protected static final String DEVELOPER_PERMISSIONS = "Dev-Role-Permissions";
 
     private final AccessTokenService tokenService;
 
