@@ -80,7 +80,8 @@ class UserServiceTest {
         // Arrange
         UserEntity userEntity = UserEntity.builder().userId(123L).username("John Smith").build();
         when(userRepository.findByUsername(any())).thenReturn(userEntity);
-        when(businessUnitUserService.getAuthorisationRolesByUserId(any())).thenReturn(Collections.emptySet());
+        when(businessUnitUserService.getAuthorisationBusinessUnitPermissionsByUserId(any()))
+            .thenReturn(Collections.emptySet());
 
         // Act
         UserState result = userService.getUserStateByUsername("");

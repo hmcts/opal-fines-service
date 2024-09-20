@@ -15,7 +15,7 @@ import java.util.Set;
 public class BusinessUnitUserPermissions {
 
     @NonNull
-    String businessUserId;
+    String businessUnitUserId;
 
     @NonNull
     Short businessUnitId;
@@ -25,11 +25,11 @@ public class BusinessUnitUserPermissions {
     Set<Permission> permissions;
 
     @JsonCreator
-    public BusinessUnitUserPermissions(@JsonProperty("business_user_id") String businessUserId,
+    public BusinessUnitUserPermissions(@JsonProperty("business_unit_user_id") String businessUnitUserId,
                                        @JsonProperty("business_unit_id") Short businessUnitId,
                                        @JsonProperty("permissions") Set<Permission> permissions) {
 
-        this.businessUserId = businessUserId;
+        this.businessUnitUserId = businessUnitUserId;
         this.businessUnitId = businessUnitId;
         this.permissions = permissions;
     }
@@ -46,8 +46,8 @@ public class BusinessUnitUserPermissions {
         return businessUnitId.equals(roleBusinessUnitId);
     }
 
-    public static class DeveloperRole extends BusinessUnitUserPermissions {
-        DeveloperRole() {
+    public static class DeveloperBusinessUnitUserPermissions extends BusinessUnitUserPermissions {
+        DeveloperBusinessUnitUserPermissions() {
             super("", Short.MAX_VALUE, Collections.emptySet());
         }
 

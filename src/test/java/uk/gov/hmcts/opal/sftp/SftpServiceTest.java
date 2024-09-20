@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.opal.sftp.SftpLocation.AUTO_CHEQUES;
 
 @ExtendWith(MockitoExtension.class)
 class SftpServiceTest {
@@ -79,9 +78,9 @@ class SftpServiceTest {
         when(sftpSession.list(any())).thenReturn(new SftpClient.DirEntry[]{});
         when(sftpSession.mkdir(anyString())).thenReturn(true);
 
-        sftpService.createDirectoryIfNotExists(sessionFactory, AUTO_CHEQUES);
+        sftpService.createDirectoryIfNotExists(sessionFactory, SftpLocation.PRINT_LOCATION);
 
-        verify(sftpSession).mkdir(AUTO_CHEQUES.getPath());
+        verify(sftpSession).mkdir(SftpLocation.PRINT_LOCATION.getPath());
     }
 
     @Test
