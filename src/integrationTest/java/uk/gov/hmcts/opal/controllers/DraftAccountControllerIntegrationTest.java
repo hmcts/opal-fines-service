@@ -113,11 +113,11 @@ class DraftAccountControllerIntegrationTest {
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[0].draftAccountId").value(1))
-            .andExpect(jsonPath("$[0].businessUnit.businessUnitId").value(7))
-            .andExpect(jsonPath("$[0].accountType").value("DRAFT"))
-            .andExpect(jsonPath("$[0].submittedBy").value("Tony"))
-            .andExpect(jsonPath("$[0].accountStatus").value("SUBMITTED"));
+            .andExpect(jsonPath("$[0].draft_account_id").value(1))
+            .andExpect(jsonPath("$[0].business_unit_id").value(7))
+            .andExpect(jsonPath("$[0].account_type").value("DRAFT"))
+            .andExpect(jsonPath("$[0].submitted_by").value("Tony"))
+            .andExpect(jsonPath("$[0].account_status").value("Submitted"));
     }
 
     @Test

@@ -20,8 +20,8 @@ import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
-import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
@@ -74,15 +74,17 @@ public class DraftAccountController {
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Draft Accounts based upon criteria in request body")
-    public ResponseEntity<List<DraftAccountEntity>> postDraftAccountsSearch(@RequestBody DraftAccountSearchDto criteria,
-                @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+    public ResponseEntity<List<DraftAccountResponseDto>> postDraftAccountsSearch(
+        @RequestBody DraftAccountSearchDto criteria,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
         log.info(":POST:postDraftAccountsSearch: query: \n{}", criteria);
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
         List<DraftAccountEntity> response = draftAccountService.searchDraftAccounts(criteria);
 
-        return buildResponse(response);
+        return buildResponse(response.stream().map(this::toGetResponseDto).toList());
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -121,7 +123,8 @@ public class DraftAccountController {
     DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
         return DraftAccountResponseDto.builder()
             .draftAccountId(entity.getDraftAccountId())
-            .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
+            .businessUnitId(Optional.ofNullable(entity.getBusinessUnit())
+                                .map(BusinessUnitEntity::getBusinessUnitId).orElse(null))
             .createdDate(toOffsetDateTime(entity.getCreatedDate()))
             .submittedBy(entity.getSubmittedBy())
             .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
@@ -129,8 +132,7 @@ public class DraftAccountController {
             .account(entity.getAccount())
             .accountSnapshot(entity.getAccountSnapshot())
             .accountType(entity.getAccountType())
-            .accountStatus(Optional.ofNullable(entity.getAccountStatus())
-                               .map(DraftAccountStatus::getLabel).orElse(null))
+            .accountStatus(entity.getAccountStatus())
             .timelineData(entity.getTimelineData())
             .accountNumber(entity.getAccountNumber())
             .accountId(entity.getAccountId())
