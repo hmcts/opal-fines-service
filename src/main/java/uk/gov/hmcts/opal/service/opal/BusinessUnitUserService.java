@@ -44,13 +44,14 @@ public class BusinessUnitUserService implements BusinessUnitUserServiceInterface
     }
 
     /**
-     * Return a Set of Authorisation Roles mapped from BusinessUnitUsers keyed on the user id from the Users table.
+     * Return a Set of Authorisation Business Unit User Permissions mapped from BusinessUnitUsers keyed on the user
+     * id from the Users table.
      */
-    public Set<BusinessUnitUserPermissions> getAuthorisationRolesByUserId(Long userId) {
+    public Set<BusinessUnitUserPermissions> getAuthorisationBusinessUnitPermissionsByUserId(Long userId) {
         List<BusinessUnitUserEntity> buuList =  businessUnitUserRepository.findAllByUser_UserId(userId);
 
         return buuList.stream().map(buu -> BusinessUnitUserPermissions.builder()
-            .businessUserId(buu.getBusinessUnitUserId())
+            .businessUnitUserId(buu.getBusinessUnitUserId())
             .businessUnitId(buu.getBusinessUnit().getBusinessUnitId())
             .permissions(userEntitlementService.getPermissionsByBusinessUnitUserId(buu.getBusinessUnitUserId()))
             .build()).collect(Collectors.toSet());
@@ -58,17 +59,17 @@ public class BusinessUnitUserService implements BusinessUnitUserServiceInterface
     }
 
     /**
-     * Return a Set of 'cut down' Authorisation Roles mapped from BusinessUnitUsers keyed on the user id.
-     * This method is assuming that there are no Permissions for the Roles and so skips performing the additional
-     * repository queries that <i>do</i> get performed in the method above.
+     * Return a Set of 'cut down' Authorisation Business Unit Permissions mapped from Business Unit Users keyed on the
+     * user id. This method is assuming that there are no Permissions for the Business Unit Users and so skips
+     * performing the additional repository queries that <i>do</i> get performed in the method above.
      */
-    public Set<BusinessUnitUserPermissions> getLimitedRolesByUserId(Long userId) {
+    public Set<BusinessUnitUserPermissions> getLimitedBusinessUnitPermissionsByUserId(Long userId) {
         List<BusinessUnitUserEntity> buuList =  businessUnitUserRepository.findAllByUser_UserId(userId);
 
         return buuList.stream().map(buu -> BusinessUnitUserPermissions.builder()
-            .businessUserId(buu.getBusinessUnitUserId())
+            .businessUnitUserId(buu.getBusinessUnitUserId())
             .businessUnitId(buu.getBusinessUnit().getBusinessUnitId())
-            .permissions(Collections.emptySet()) // We are assuming that Permissions exist for this Role.
+            .permissions(Collections.emptySet()) // Assuming that Permissions exist for BusinessUnitUserPermissions.
             .build()).collect(Collectors.toSet());
 
     }

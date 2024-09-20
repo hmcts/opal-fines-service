@@ -67,9 +67,9 @@ class AuthenticationInternalUserControllerTest {
         UserState userState = UserState.builder()
             .userName("name")
             .userId(123L)
-            .roles(Set.of(BusinessUnitUserPermissions.builder()
+            .businessUnitUserPermissions(Set.of(BusinessUnitUserPermissions.builder()
                               .businessUnitId((short) 123)
-                              .businessUserId("BU123")
+                              .businessUnitUserId("BU123")
                               .permissions(Set.of(
                                   Permission.builder()
                                       .permissionId(1L)
@@ -92,10 +92,14 @@ class AuthenticationInternalUserControllerTest {
             .andExpect(jsonPath("$.access_token").value("accessToken"))
             .andExpect(jsonPath("$.user_state.user_name").value("name"))
             .andExpect(jsonPath("$.user_state.user_id").value("123"))
-            .andExpect(jsonPath("$.user_state.roles[0].business_unit_id").value("123"))
-            .andExpect(jsonPath("$.user_state.roles[0].business_user_id").value("BU123"))
-            .andExpect(jsonPath("$.user_state.roles[0].permissions[0].permission_id").value("1"))
-            .andExpect(jsonPath("$.user_state.roles[0].permissions[0].permission_name")
+            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].business_unit_id")
+                           .value("123"))
+            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].business_unit_user_id")
+                           .value("BU123"))
+            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].permissions[0].permission_id")
+                           .value("1"))
+            .andExpect(
+               jsonPath("$.user_state.business_unit_user_permissions[0].permissions[0].permission_name")
                            .value("Notes"));
     }
 

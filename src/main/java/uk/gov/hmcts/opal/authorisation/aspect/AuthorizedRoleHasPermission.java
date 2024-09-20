@@ -16,10 +16,10 @@ import java.lang.annotation.Target;
  * The role can be one of the argument of the annotated method.
  * <pre>
  *      &#064;AuthorizedRoleHasPermission(Permissions.ACCOUNT_ENQUIRY)
- *      public void businessMethod(Role role) { ... }
+ *      public void businessMethod(BusinessUnitUserPermissions role) { ... }
  * </pre>
  * The role can be inferred if one of the argument is of type NoteDto, the role will be picked by matching
- * businessUnitId of NoteDto argument within the userState roles.
+ * businessUnitId of NoteDto argument within the userState businessUnitUserPermissions.
  * If this role has the permission then only execution will be allowed, otherwise PermissionNotAllowedException
  * will be thrown.
  * For example:
@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  *      public NoteDto saveNote(NoteDto noteDto) { .. }
  *  </pre>
  * The role can be inferred if one of the argument is of type NoteDto, the role will be picked by matching
- * businessUnitId of AddNoteDto argument within the userState roles.
+ * businessUnitId of AddNoteDto argument within the userState businessUnitUserPermissions.
  * If this role has the permission then only execution will be allowed, otherwise PermissionNotAllowedException
  * will be thrown.
  * For example:

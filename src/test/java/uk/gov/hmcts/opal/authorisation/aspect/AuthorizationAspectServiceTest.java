@@ -14,8 +14,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.gov.hmcts.opal.authentication.aspect.AccessTokenParam;
-import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
+import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 
@@ -33,9 +33,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AuthorizationAspectServiceTest {
 
-    static final BusinessUnitUserPermissions ROLE = BusinessUnitUserPermissions.builder()
+    static final BusinessUnitUserPermissions BUSINESS_UNIT_USER_PERMISSIONS = BusinessUnitUserPermissions.builder()
         .businessUnitId((short) 12)
-        .businessUserId("BU123")
+        .businessUnitUserId("BU123")
         .permissions(Set.of(
             Permission.builder()
                 .permissionId(1L)
@@ -45,7 +45,7 @@ class AuthorizationAspectServiceTest {
 
     static final UserState USER_STATE = UserState.builder()
         .userId(123L).userName("John Smith")
-        .roles(Set.of(ROLE))
+        .businessUnitUserPermissions(Set.of(BUSINESS_UNIT_USER_PERMISSIONS))
         .build();
 
     @MockBean
@@ -151,12 +151,13 @@ class AuthorizationAspectServiceTest {
     }
 
     @Nested
-    class GetRole {
+    class GetBusinessUnitUserPermissions {
         @Test
         void getRole_WhenInvalidArguments() {
             Object[] args = {"invalid"};
             String expectedMessage = "Can't infer the role for user John Smith."
-                + " Annotated method needs to have arguments of types (Role, AddNoteDto, NoteDto).";
+                + " Annotated method needs to have arguments of types"
+                + " (BusinessUnitUserPermissions, AddNoteDto, NoteDto).";
 
             RoleNotFoundException exception = assertThrows(
                 RoleNotFoundException.class,
@@ -171,19 +172,21 @@ class AuthorizationAspectServiceTest {
             AddNoteDto addNoteDto = AddNoteDto.builder().businessUnitId((short) 12).build();
             Object[] args = {addNoteDto};
 
-            BusinessUnitUserPermissions actualRole = authorizationAspectService.getRole(args, USER_STATE);
+            BusinessUnitUserPermissions actualBusinessUnitUserPermissions = authorizationAspectService
+                .getRole(args, USER_STATE);
 
-            assertEquals(ROLE, actualRole);
+            assertEquals(BUSINESS_UNIT_USER_PERMISSIONS, actualBusinessUnitUserPermissions);
         }
 
         @Test
         void getRole_WhenRoleArgument() {
-            BusinessUnitUserPermissions expectedRole = ROLE;
-            Object[] args = {expectedRole};
+            BusinessUnitUserPermissions expectedBusinessUnitUserPermissions = BUSINESS_UNIT_USER_PERMISSIONS;
+            Object[] args = {expectedBusinessUnitUserPermissions};
 
-            BusinessUnitUserPermissions actualRole = authorizationAspectService.getRole(args, USER_STATE);
+            BusinessUnitUserPermissions actualBusinessUnitUserPermissions = authorizationAspectService
+                .getRole(args, USER_STATE);
 
-            assertEquals(expectedRole, actualRole);
+            assertEquals(expectedBusinessUnitUserPermissions, actualBusinessUnitUserPermissions);
         }
     }
 

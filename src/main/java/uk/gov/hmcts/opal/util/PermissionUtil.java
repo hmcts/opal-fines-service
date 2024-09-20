@@ -17,8 +17,9 @@ public class PermissionUtil {
             AccessDeniedException("User does not have an assigned role in business unit: " + businessUnitId));
     }
 
-    public static boolean checkRoleHasPermission(BusinessUnitUserPermissions role, Permissions permission) {
-        if (role.doesNotHavePermission(permission)) {
+    public static boolean checkRoleHasPermission(BusinessUnitUserPermissions businessUnitUserPermissions,
+                                                 Permissions permission) {
+        if (businessUnitUserPermissions.doesNotHavePermission(permission)) {
             throw new AccessDeniedException("User does not have the required permission: " + permission.description);
         }
         return true;
@@ -37,12 +38,12 @@ public class PermissionUtil {
 
         return optPermission.map(
             permission -> {
-                UserState.UserRoles userRoles = userStateService
+                UserState.UserBusinessUnits userBusinessUnits = userStateService
                     .getUserStateUsingAuthToken(authHeaderValue)
-                    .allRolesWithPermission(permission);
+                    .allBusinessUnitUsersWithPermission(permission);
                 return refData
                     .stream()
-                    .filter(bu -> userRoles
+                    .filter(bu -> userBusinessUnits
                         .containsBusinessUnit(bu.getBusinessUnitId()))
                     .toList();
             }).orElse(refData);
