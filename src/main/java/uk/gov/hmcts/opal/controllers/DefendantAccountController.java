@@ -117,7 +117,8 @@ public class DefendantAccountController {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        BusinessUnitUserPermissions role = getRequiredRole(userState, addNote.getBusinessUnitId());
+        BusinessUnitUserPermissions businessUnitUserPermissions = getRequiredRole(userState,
+                                                                                  addNote.getBusinessUnitId());
 
         NoteDto noteDto = NoteDto.builder()
             .associatedRecordId(addNote.getAssociatedRecordId())
@@ -125,7 +126,7 @@ public class DefendantAccountController {
             .associatedRecordType(NOTE_ASSOC_REC_TYPE)
             .noteType("AA") // TODO - This will probably need to part of the AddNoteDto in future
             .businessUnitId(addNote.getBusinessUnitId())
-            .postedBy(role.getBusinessUserId())
+            .postedBy(businessUnitUserPermissions.getBusinessUnitUserId())
             .postedByUserId(userState.getUserId())
             .postedDate(LocalDateTime.now())
             .build();

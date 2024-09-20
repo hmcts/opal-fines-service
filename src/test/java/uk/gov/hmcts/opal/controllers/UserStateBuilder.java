@@ -23,17 +23,17 @@ public class UserStateBuilder {
             ))));
     }
 
-    public static UserState createUserState(Set<BusinessUnitUserPermissions> roles) {
+    public static UserState createUserState(Set<BusinessUnitUserPermissions> businessUnitUserPermissions) {
         return UserState.builder()
             .userId(345L)
             .userName("John Smith")
-            .roles(roles)
+            .businessUnitUserPermissions(businessUnitUserPermissions)
             .build();
     }
 
     public static BusinessUnitUserPermissions createRole(Set<Permission> permissions) {
         return BusinessUnitUserPermissions.builder()
-            .businessUserId("JK0320")
+            .businessUnitUserId("JK0320")
             .businessUnitId((short)50)
             .permissions(permissions)
             .build();

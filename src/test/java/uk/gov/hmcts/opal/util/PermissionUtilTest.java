@@ -2,8 +2,8 @@ package uk.gov.hmcts.opal.util;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
-import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 
 import java.util.Collections;
@@ -20,28 +20,28 @@ class PermissionUtilTest {
 
     @Test
     void testCheckRoleHasPermission_success() {
-        BusinessUnitUserPermissions role = createRole(createSinglePermissions(41L));
+        BusinessUnitUserPermissions businessUnitUserPermissions = createRole(createSinglePermissions(41L));
         Permissions permission = Permissions.ACCOUNT_ENQUIRY_NOTES;
-        assertTrue(PermissionUtil.checkRoleHasPermission(role, permission));
+        assertTrue(PermissionUtil.checkRoleHasPermission(businessUnitUserPermissions, permission));
     }
 
     @Test
     void testCheckRoleHasPermission_fail1() {
-        BusinessUnitUserPermissions role = createRole(Collections.emptySet());
+        BusinessUnitUserPermissions businessUnitUserPermissions = createRole(Collections.emptySet());
         Permissions permission = Permissions.ACCOUNT_ENQUIRY;
         AccessDeniedException ade = assertThrows(
             AccessDeniedException.class,
-            () -> PermissionUtil.checkRoleHasPermission(role, permission));
+            () -> PermissionUtil.checkRoleHasPermission(businessUnitUserPermissions, permission));
         assertEquals("User does not have the required permission: Account Enquiry", ade.getMessage());
     }
 
     @Test
     void testCheckRoleHasPermission_fail2() {
-        BusinessUnitUserPermissions role = createRole(createSinglePermissions(41L));
+        BusinessUnitUserPermissions businessUnitUserPermissions = createRole(createSinglePermissions(41L));
         Permissions permission = Permissions.ACCOUNT_ENQUIRY;
         AccessDeniedException ade = assertThrows(
             AccessDeniedException.class,
-            () -> PermissionUtil.checkRoleHasPermission(role, permission));
+            () -> PermissionUtil.checkRoleHasPermission(businessUnitUserPermissions, permission));
         assertEquals("User does not have the required permission: Account Enquiry", ade.getMessage());
     }
 
