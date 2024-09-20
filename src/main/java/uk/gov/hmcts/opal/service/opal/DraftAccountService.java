@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
-import uk.gov.hmcts.opal.dto.DraftAccountSnapshotsDto;
+import uk.gov.hmcts.opal.entity.DraftAccountSnapshots;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
@@ -76,8 +76,8 @@ public class DraftAccountService {
         return buildInitialSnapshot(dto.getAccount(), created, businessUnit, userName).toPrettyJson();
     }
 
-    private  DraftAccountSnapshotsDto.Snapshot  buildInitialSnapshot(String document, LocalDateTime created,
-                                      BusinessUnitEntity businessUnit, String userName) {
+    private  DraftAccountSnapshots.Snapshot  buildInitialSnapshot(String document, LocalDateTime created,
+                                                                  BusinessUnitEntity businessUnit, String userName) {
 
         JsonPathUtil.DocContext docContext = createDocContext(document);
 
@@ -95,7 +95,7 @@ public class DraftAccountService {
             : null;
         String accType = docContext.read("$.accountCreateRequest.Account.AccountType");
 
-        return DraftAccountSnapshotsDto.Snapshot.builder()
+        return DraftAccountSnapshots.Snapshot.builder()
             .defendantName(defendantName)
             .dateOfBirth(dob)
             .createdDate(created.atOffset(ZoneOffset.UTC))

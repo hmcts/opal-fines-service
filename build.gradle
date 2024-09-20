@@ -279,7 +279,7 @@ dependencies {
 
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.5.0'
 
-  implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.1');
+  implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.2');
   implementation(group: 'com.jayway.jsonpath', name: 'json-path', version: '2.9.0');
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
@@ -317,7 +317,7 @@ dependencies {
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
   testImplementation 'org.junit.platform:junit-platform-suite:1.11.0'
-  testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.18.1'
+  testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.19.0'
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-rest-assured:${serenityVersion}"
