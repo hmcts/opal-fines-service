@@ -93,7 +93,7 @@ class DraftAccountServiceTest {
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(draftAccountEntity);
 
         // Act
-        DraftAccountEntity result = draftAccountService.submitDraftAccount(addDraftAccountDto, "Charles");
+        DraftAccountEntity result = draftAccountService.submitDraftAccount(addDraftAccountDto);
 
         // Assert
         assertEquals(draftAccountEntity, result);
@@ -113,7 +113,7 @@ class DraftAccountServiceTest {
 
         // Act
         RuntimeException re = assertThrows(RuntimeException.class, () ->
-            draftAccountService.submitDraftAccount(addDraftAccountDto, "Charles"));
+            draftAccountService.submitDraftAccount(addDraftAccountDto));
 
         // Assert
         assertEquals("Missing property in path $['accountCreateRequest']", re.getMessage());

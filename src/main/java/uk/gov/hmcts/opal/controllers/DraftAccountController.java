@@ -93,11 +93,11 @@ public class DraftAccountController {
                 @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.info(":POST:postDraftAccount: creating a new draft account entity.");
 
-        UserState user = userStateService.checkForAuthorisedUser(authHeaderValue);
+        userStateService.checkForAuthorisedUser(authHeaderValue);
 
         jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
 
-        DraftAccountEntity response = draftAccountService.submitDraftAccount(dto, user.getUserName());
+        DraftAccountEntity response = draftAccountService.submitDraftAccount(dto);
 
         return buildCreatedResponse(toGetResponseDto(response));
     }
