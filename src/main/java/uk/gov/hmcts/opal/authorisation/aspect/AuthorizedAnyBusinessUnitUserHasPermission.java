@@ -8,6 +8,6 @@ import uk.gov.hmcts.opal.authorisation.model.Permissions;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface AuthorizedAnyRoleHasPermission {
+public @interface AuthorizedAnyBusinessUnitUserHasPermission {
     Permissions value();
 }

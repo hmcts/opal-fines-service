@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
@@ -34,16 +35,24 @@ public class BusinessUnitUserPermissions {
         this.permissions = permissions;
     }
 
-    public boolean hasPermission(Permissions permission) {
-        return permissions.stream().anyMatch(p -> p.matches(permission));
+    public boolean hasPermission(Permissions reqPermission) {
+        return permissions.stream().anyMatch(p -> p.matchesPermissions(reqPermission));
+    }
+
+    public boolean hasAnyPermission(Permissions... reqPermissions) {
+        return Arrays.stream(reqPermissions).anyMatch(this::hasPermission);
     }
 
     public boolean doesNotHavePermission(Permissions permission) {
         return !hasPermission(permission);
     }
 
-    public boolean matchesBusinessUnitId(Short roleBusinessUnitId) {
-        return businessUnitId.equals(roleBusinessUnitId);
+    public boolean doesNotHaveAnyPermission(Permissions... reqPermissions) {
+        return !hasAnyPermission(reqPermissions);
+    }
+
+    public boolean matchesBusinessUnitId(Short businessUnitId) {
+        return this.businessUnitId.equals(businessUnitId);
     }
 
     public static class DeveloperBusinessUnitUserPermissions extends BusinessUnitUserPermissions {
@@ -52,12 +61,12 @@ public class BusinessUnitUserPermissions {
         }
 
         @Override
-        public boolean hasPermission(Permissions permission) {
+        public boolean hasPermission(Permissions reqPermission) {
             return true;
         }
 
         @Override
-        public boolean matchesBusinessUnitId(Short roleBusinessUnitId) {
+        public boolean matchesBusinessUnitId(Short businessUnitId) {
             return true;
         }
     }

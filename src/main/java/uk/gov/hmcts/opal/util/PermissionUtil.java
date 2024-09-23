@@ -12,21 +12,21 @@ import java.util.Optional;
 
 public class PermissionUtil {
 
-    public static BusinessUnitUserPermissions getRequiredRole(UserState userState, Short businessUnitId) {
-        return userState.getRoleForBusinessUnit(businessUnitId).orElseThrow(() -> new
-            AccessDeniedException("User does not have an assigned role in business unit: " + businessUnitId));
+    public static BusinessUnitUserPermissions getRequiredBusinessUnitUser(UserState userState, Short businessUnitId) {
+        return userState.getBusinessUnitUserForBusinessUnit(businessUnitId).orElseThrow(() -> new
+            AccessDeniedException("User does not have assigned permissions in business unit: " + businessUnitId));
     }
 
-    public static boolean checkRoleHasPermission(BusinessUnitUserPermissions businessUnitUserPermissions,
-                                                 Permissions permission) {
+    public static boolean checkBusinessUnitUserHasPermission(BusinessUnitUserPermissions businessUnitUserPermissions,
+                                                             Permissions permission) {
         if (businessUnitUserPermissions.doesNotHavePermission(permission)) {
             throw new AccessDeniedException("User does not have the required permission: " + permission.description);
         }
         return true;
     }
 
-    public static boolean checkAnyRoleHasPermission(UserState userState, Permissions permission) {
-        if (userState.noRoleHasPermission(permission)) {
+    public static boolean checkAnyBusinessUnitUserHasPermission(UserState userState, Permissions permission) {
+        if (userState.noBusinessUnitUserHasPermission(permission)) {
             throw new AccessDeniedException("User does not have the required permission: " + permission.description);
         }
         return true;

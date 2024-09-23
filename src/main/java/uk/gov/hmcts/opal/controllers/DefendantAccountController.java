@@ -34,7 +34,7 @@ import java.util.List;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
-import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredRole;
+import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredBusinessUnitUser;
 
 @RestController
 @RequestMapping("/defendant-accounts")
@@ -117,7 +117,7 @@ public class DefendantAccountController {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        BusinessUnitUserPermissions businessUnitUserPermissions = getRequiredRole(userState,
+        BusinessUnitUserPermissions businessUnitUserPermissions = getRequiredBusinessUnitUser(userState,
                                                                                   addNote.getBusinessUnitId());
 
         NoteDto noteDto = NoteDto.builder()
