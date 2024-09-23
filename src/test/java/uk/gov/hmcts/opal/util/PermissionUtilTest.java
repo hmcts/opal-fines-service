@@ -12,63 +12,63 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static uk.gov.hmcts.opal.controllers.UserStateBuilder.createRole;
+import static uk.gov.hmcts.opal.controllers.UserStateBuilder.createBusinessUnitUser;
 import static uk.gov.hmcts.opal.controllers.UserStateBuilder.createSinglePermissions;
 import static uk.gov.hmcts.opal.controllers.UserStateBuilder.createUserState;
 
 class PermissionUtilTest {
 
     @Test
-    void testCheckRoleHasPermission_success() {
-        BusinessUnitUserPermissions businessUnitUserPermissions = createRole(createSinglePermissions(41L));
+    void testCheckBusinessUnitUserHasPermission_success() {
+        BusinessUnitUserPermissions businessUnitUserPermissions = createBusinessUnitUser(createSinglePermissions(41L));
         Permissions permission = Permissions.ACCOUNT_ENQUIRY_NOTES;
-        assertTrue(PermissionUtil.checkRoleHasPermission(businessUnitUserPermissions, permission));
+        assertTrue(PermissionUtil.checkBusinessUnitUserHasPermission(businessUnitUserPermissions, permission));
     }
 
     @Test
-    void testCheckRoleHasPermission_fail1() {
-        BusinessUnitUserPermissions businessUnitUserPermissions = createRole(Collections.emptySet());
+    void testCheckBusinessUnitUserHasPermission_fail1() {
+        BusinessUnitUserPermissions businessUnitUserPermissions = createBusinessUnitUser(Collections.emptySet());
         Permissions permission = Permissions.ACCOUNT_ENQUIRY;
         AccessDeniedException ade = assertThrows(
             AccessDeniedException.class,
-            () -> PermissionUtil.checkRoleHasPermission(businessUnitUserPermissions, permission));
+            () -> PermissionUtil.checkBusinessUnitUserHasPermission(businessUnitUserPermissions, permission));
         assertEquals("User does not have the required permission: Account Enquiry", ade.getMessage());
     }
 
     @Test
-    void testCheckRoleHasPermission_fail2() {
-        BusinessUnitUserPermissions businessUnitUserPermissions = createRole(createSinglePermissions(41L));
+    void testCheckBusinessUnitUserHasPermission_fail2() {
+        BusinessUnitUserPermissions businessUnitUserPermissions = createBusinessUnitUser(createSinglePermissions(41L));
         Permissions permission = Permissions.ACCOUNT_ENQUIRY;
         AccessDeniedException ade = assertThrows(
             AccessDeniedException.class,
-            () -> PermissionUtil.checkRoleHasPermission(businessUnitUserPermissions, permission));
+            () -> PermissionUtil.checkBusinessUnitUserHasPermission(businessUnitUserPermissions, permission));
         assertEquals("User does not have the required permission: Account Enquiry", ade.getMessage());
     }
 
     @Test
-    void testCheckAnyRoleHasPermission_success() {
-        UserState userState = createUserState(Set.of(createRole(createSinglePermissions(41L))));
+    void testCheckAnyBusinessUnitUserHasPermission_success() {
+        UserState userState = createUserState(Set.of(createBusinessUnitUser(createSinglePermissions(41L))));
         Permissions permission = Permissions.ACCOUNT_ENQUIRY_NOTES;
-        assertTrue(PermissionUtil.checkAnyRoleHasPermission(userState, permission));
+        assertTrue(PermissionUtil.checkAnyBusinessUnitUserHasPermission(userState, permission));
     }
 
     @Test
-    void testCheckAnyRoleHasPermission_fail1() {
-        UserState userState = createUserState(Set.of(createRole(Collections.emptySet())));
+    void testCheckAnyBusinessUnitUserHasPermission_fail1() {
+        UserState userState = createUserState(Set.of(createBusinessUnitUser(Collections.emptySet())));
         Permissions permission = Permissions.ACCOUNT_ENQUIRY;
         AccessDeniedException ade = assertThrows(
             AccessDeniedException.class,
-            () -> PermissionUtil.checkAnyRoleHasPermission(userState, permission));
+            () -> PermissionUtil.checkAnyBusinessUnitUserHasPermission(userState, permission));
         assertEquals("User does not have the required permission: Account Enquiry", ade.getMessage());
     }
 
     @Test
-    void testCheckAnyRoleHasPermission_fail2() {
-        UserState userState = createUserState(Set.of(createRole(createSinglePermissions(50L))));
+    void testCheckAnyBusinessUnitUserHasPermission_fail2() {
+        UserState userState = createUserState(Set.of(createBusinessUnitUser(createSinglePermissions(50L))));
         Permissions permission = Permissions.ACCOUNT_ENQUIRY;
         AccessDeniedException ade = assertThrows(
             AccessDeniedException.class,
-            () -> PermissionUtil.checkAnyRoleHasPermission(userState, permission));
+            () -> PermissionUtil.checkAnyBusinessUnitUserHasPermission(userState, permission));
         assertEquals("User does not have the required permission: Account Enquiry", ade.getMessage());
     }
 }

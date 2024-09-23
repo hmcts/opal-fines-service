@@ -11,7 +11,7 @@ public class UserStateBuilder {
 
     public static UserState createUserState() {
         return createUserState(Set.of(
-            createRole(Set.of(
+            createBusinessUnitUser(Set.of(
                 createPermission(
                     Permissions.ACCOUNT_ENQUIRY_NOTES.id,
                     Permissions.ACCOUNT_ENQUIRY_NOTES.description
@@ -31,7 +31,7 @@ public class UserStateBuilder {
             .build();
     }
 
-    public static BusinessUnitUserPermissions createRole(Set<Permission> permissions) {
+    public static BusinessUnitUserPermissions createBusinessUnitUser(Set<Permission> permissions) {
         return BusinessUnitUserPermissions.builder()
             .businessUnitUserId("JK0320")
             .businessUnitId((short)50)

@@ -37,12 +37,12 @@ public class UserState {
         this.businessUnitUserPermissions = businessUnitUserPermissions;
     }
 
-    public boolean anyRoleHasPermission(Permissions permission) {
+    public boolean anyBusinessUnitUserHasPermission(Permissions permission) {
         return businessUnitUserPermissions.stream().anyMatch(r -> r.hasPermission(permission));
     }
 
-    public boolean noRoleHasPermission(Permissions permission) {
-        return !anyRoleHasPermission(permission);
+    public boolean noBusinessUnitUserHasPermission(Permissions permission) {
+        return !anyBusinessUnitUserHasPermission(permission);
     }
 
     public UserBusinessUnits allBusinessUnitUsersWithPermission(Permissions permission) {
@@ -50,15 +50,23 @@ public class UserState {
             businessUnitUserPermissions.stream().filter(r -> r.hasPermission(permission)).collect(Collectors.toSet()));
     }
 
-    public boolean hasRoleWithPermission(short roleBusinessUnitId, Permissions permission) {
+    public boolean hasBusinessUnitUserWithPermission(short businessUnitId, Permissions permission) {
         return businessUnitUserPermissions.stream()
-            .filter(r -> r.matchesBusinessUnitId(roleBusinessUnitId))
+            .filter(r -> r.matchesBusinessUnitId(businessUnitId))
             .findAny()  // Should be either zero or one businessUnitUserPermissions that match the business unit id
             .stream()
             .anyMatch(r -> r.hasPermission(permission));
     }
 
-    public Optional<BusinessUnitUserPermissions> getRoleForBusinessUnit(Short businessUnitId) {
+    public boolean hasBusinessUnitUserWithAnyPermissions(short businessUnitId, Permissions... permission) {
+        return businessUnitUserPermissions.stream()
+            .filter(r -> r.matchesBusinessUnitId(businessUnitId))
+            .findAny()  // Should be either zero or one businessUnitUserPermissions that match the business unit id
+            .stream()
+            .anyMatch(r -> r.hasAnyPermission(permission));
+    }
+
+    public Optional<BusinessUnitUserPermissions> getBusinessUnitUserForBusinessUnit(Short businessUnitId) {
         return businessUnitUserPermissions.stream()
             .filter(r -> r.matchesBusinessUnitId(businessUnitId))
             .findFirst();
@@ -84,7 +92,7 @@ public class UserState {
     }
 
     public static class DeveloperUserState extends UserState {
-        private static final Optional<BusinessUnitUserPermissions> DEV_ROLE =
+        private static final Optional<BusinessUnitUserPermissions> DEV_BUSINESS_UNIT_USER_PERMISSIONS =
             Optional.of(new DeveloperBusinessUnitUserPermissions());
 
         public DeveloperUserState() {
@@ -92,13 +100,13 @@ public class UserState {
         }
 
         @Override
-        public boolean anyRoleHasPermission(Permissions permission) {
+        public boolean anyBusinessUnitUserHasPermission(Permissions permission) {
             return true;
         }
 
         @Override
-        public Optional<BusinessUnitUserPermissions> getRoleForBusinessUnit(Short businessUnitId) {
-            return DEV_ROLE;
+        public Optional<BusinessUnitUserPermissions> getBusinessUnitUserForBusinessUnit(Short businessUnitId) {
+            return DEV_BUSINESS_UNIT_USER_PERMISSIONS;
         }
 
         @Override

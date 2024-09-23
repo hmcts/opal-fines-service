@@ -153,38 +153,38 @@ class AuthorizationAspectServiceTest {
     @Nested
     class GetBusinessUnitUserPermissions {
         @Test
-        void getRole_WhenInvalidArguments() {
+        void getBusinessUnitUserPermissions_WhenInvalidArguments() {
             Object[] args = {"invalid"};
             String expectedMessage = "Can't infer the role for user John Smith."
                 + " Annotated method needs to have arguments of types"
                 + " (BusinessUnitUserPermissions, AddNoteDto, NoteDto).";
 
-            RoleNotFoundException exception = assertThrows(
-                RoleNotFoundException.class,
-                () -> authorizationAspectService.getRole(args, USER_STATE)
+            BusinessUnitUserPermissionsNotFoundException exception = assertThrows(
+                BusinessUnitUserPermissionsNotFoundException.class,
+                () -> authorizationAspectService.getBusinessUnitUserPermissions(args, USER_STATE)
             );
 
             assertEquals(expectedMessage, exception.getMessage());
         }
 
         @Test
-        void getRole_WhenAddNoteDtoArgument() {
+        void getBusinessUnitUserPermissions_WhenAddNoteDtoArgument() {
             AddNoteDto addNoteDto = AddNoteDto.builder().businessUnitId((short) 12).build();
             Object[] args = {addNoteDto};
 
             BusinessUnitUserPermissions actualBusinessUnitUserPermissions = authorizationAspectService
-                .getRole(args, USER_STATE);
+                .getBusinessUnitUserPermissions(args, USER_STATE);
 
             assertEquals(BUSINESS_UNIT_USER_PERMISSIONS, actualBusinessUnitUserPermissions);
         }
 
         @Test
-        void getRole_WhenRoleArgument() {
+        void getBusinessUnitUserPermissions_WhenRoleArgument() {
             BusinessUnitUserPermissions expectedBusinessUnitUserPermissions = BUSINESS_UNIT_USER_PERMISSIONS;
             Object[] args = {expectedBusinessUnitUserPermissions};
 
             BusinessUnitUserPermissions actualBusinessUnitUserPermissions = authorizationAspectService
-                .getRole(args, USER_STATE);
+                .getBusinessUnitUserPermissions(args, USER_STATE);
 
             assertEquals(expectedBusinessUnitUserPermissions, actualBusinessUnitUserPermissions);
         }

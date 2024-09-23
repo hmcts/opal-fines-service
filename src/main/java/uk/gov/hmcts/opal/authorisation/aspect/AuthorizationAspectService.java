@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static java.lang.String.format;
-import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredRole;
+import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredBusinessUnitUser;
 
 @Slf4j
 @Component
@@ -55,17 +55,17 @@ public class AuthorizationAspectService {
         return Optional.empty();
     }
 
-    public BusinessUnitUserPermissions getRole(Object[] args, UserState userState) {
+    public BusinessUnitUserPermissions getBusinessUnitUserPermissions(Object[] args, UserState userState) {
         for (Object arg : args) {
             if (arg instanceof BusinessUnitUserPermissions) {
                 return (BusinessUnitUserPermissions) arg;
             } else if (arg instanceof AddNoteDto addNoteDto) {
-                return getRequiredRole(userState, addNoteDto.getBusinessUnitId());
+                return getRequiredBusinessUnitUser(userState, addNoteDto.getBusinessUnitId());
             } else if (arg instanceof NoteDto noteDto) {
-                return getRequiredRole(userState, noteDto.getBusinessUnitId());
+                return getRequiredBusinessUnitUser(userState, noteDto.getBusinessUnitId());
             }
         }
-        throw new RoleNotFoundException(format(
+        throw new BusinessUnitUserPermissionsNotFoundException(format(
             "Can't infer the role for user %s. "
                 + "Annotated method needs to have arguments of types"
                 + " (BusinessUnitUserPermissions, AddNoteDto, NoteDto).",

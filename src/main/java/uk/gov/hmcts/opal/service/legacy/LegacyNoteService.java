@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
-import uk.gov.hmcts.opal.authorisation.aspect.AuthorizedRoleHasPermission;
+import uk.gov.hmcts.opal.authorisation.aspect.AuthorizedBusinessUnitUserHasPermission;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacySaveNoteRequestDto;
@@ -33,7 +33,7 @@ public class LegacyNoteService extends LegacyService implements NoteServiceInter
     }
 
     @Override
-    @AuthorizedRoleHasPermission(ACCOUNT_ENQUIRY_NOTES)
+    @AuthorizedBusinessUnitUserHasPermission(ACCOUNT_ENQUIRY_NOTES)
     public NoteDto saveNote(NoteDto noteDto) {
         log.info("Saving Note: {}", noteDto);
 
