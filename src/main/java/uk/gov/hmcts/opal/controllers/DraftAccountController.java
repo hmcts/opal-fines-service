@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
+import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
@@ -40,6 +42,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 public class DraftAccountController {
 
     public static final String ADD_DRAFT_ACCOUNT_REQUEST_JSON = "addDraftAccountRequest.json";
+    public static final String REPLACE_DRAFT_ACCOUNT_REQUEST_JSON = "replaceDraftAccountRequest.json";
     public static final String ACCOUNT_DELETED_MESSAGE_FORMAT = """
         { "message": "Draft Account '%s' deleted"}""";
 
@@ -117,6 +120,37 @@ public class DraftAccountController {
         draftAccountService.deleteDraftAccount(draftAccountId, ignoreMissing);
 
         return buildResponse(String.format(ACCOUNT_DELETED_MESSAGE_FORMAT, draftAccountId));
+    }
+
+    @PutMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Replaces an existing Draft Account Entity in the DB with data in request body")
+    public ResponseEntity<DraftAccountResponseDto> replaceDraftAccount(
+        @PathVariable Long draftAccountId,
+        @RequestBody ReplaceDraftAccountRequestDto dto,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.info(":PUT:replaceDraftAccount: replacing draft account entity with ID: {} and data: {}", draftAccountId, dto);
+
+        userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
+
+        // Placeholder for service call
+        // DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto, user.getUserName());
+
+        // For testing unmarshalling, we'll just return a placeholder response
+        DraftAccountResponseDto placeholderResponse = DraftAccountResponseDto.builder()
+            .draftAccountId(draftAccountId)
+           // .businessUnitId(dto.getBusinessUnitId())
+            .submittedBy(dto.getSubmittedBy())
+            .validatedBy(dto.getValidatedBy())
+            .account(dto.getAccount())
+            .accountType(dto.getAccountType())
+          //  .accountStatus(dto.getAccountStatus())
+            .timelineData(dto.getTimelineData())
+            .build();
+
+        return buildResponse(placeholderResponse);
     }
 
     DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
