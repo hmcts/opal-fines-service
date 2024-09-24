@@ -63,17 +63,17 @@ public class DraftAccountService {
         return page.getContent();
     }
 
-    public DraftAccountEntity submitDraftAccount(AddDraftAccountRequestDto dto, String userName) {
+    public DraftAccountEntity submitDraftAccount(AddDraftAccountRequestDto dto) {
         LocalDateTime created = LocalDateTime.now();
         BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId()).orElse(null);
-        String snapshot = createInitialSnapshot(dto, created, businessUnit, userName);
+        String snapshot = createInitialSnapshot(dto, created, businessUnit);
         log.info(":submitDraftAccount: snapshot: \n{}", snapshot);
-        return draftAccountRepository.save(toEntity(dto, created, businessUnit, userName, snapshot));
+        return draftAccountRepository.save(toEntity(dto, created, businessUnit, snapshot));
     }
 
     private String createInitialSnapshot(AddDraftAccountRequestDto dto, LocalDateTime created,
-                                         BusinessUnitEntity businessUnit, String userName) {
-        return buildInitialSnapshot(dto.getAccount(), created, businessUnit, userName).toPrettyJson();
+                                         BusinessUnitEntity businessUnit) {
+        return buildInitialSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy()).toPrettyJson();
     }
 
     private  DraftAccountSnapshots.Snapshot  buildInitialSnapshot(String document, LocalDateTime created,
@@ -106,11 +106,11 @@ public class DraftAccountService {
     }
 
     DraftAccountEntity toEntity(AddDraftAccountRequestDto dto, LocalDateTime created,
-                                BusinessUnitEntity businessUnit, String userName, String snapshot) {
+                                BusinessUnitEntity businessUnit, String snapshot) {
         return DraftAccountEntity.builder()
             .businessUnit(businessUnit)
             .createdDate(created)
-            .submittedBy(userName)
+            .submittedBy(dto.getSubmittedBy())
             .account(dto.getAccount())
             .accountSnapshot(snapshot)
             .accountType(dto.getAccountType())

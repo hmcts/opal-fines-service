@@ -91,19 +91,19 @@ class DraftAccountControllerTest {
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .account("{\"acc\": \"1\"}")
             .businessUnit(BusinessUnitEntity.builder().build())
-            .submittedBy("Charles")
+            .submittedBy("USER_ID")
             .timelineData("{\"dat\": \"2\"}")
             .build();
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
             .accountType("Large")
             .account("{\"acc\": \"1\"}")
             .businessUnitId((short)1)
-            .submittedBy("Charles")
+            .submittedBy("USER_ID")
             .timelineData("{\"dat\": \"2\"}")
             .build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
-        when(draftAccountService.submitDraftAccount(any(), any())).thenReturn(entity);
+        when(draftAccountService.submitDraftAccount(any())).thenReturn(entity);
 
         // Act
         ResponseEntity<DraftAccountResponseDto> response = draftAccountController.postDraftAccount(
@@ -115,9 +115,9 @@ class DraftAccountControllerTest {
         assertEquals("Large", responseEntity.getAccountType());
         assertEquals("Submitted", responseEntity.getAccountStatus().getLabel());
         assertEquals("{\"acc\": \"1\"}", responseEntity.getAccount());
-        assertEquals("Charles", responseEntity.getSubmittedBy());
+        assertEquals("USER_ID", responseEntity.getSubmittedBy());
         assertEquals("{\"dat\": \"2\"}", responseEntity.getTimelineData());
-        verify(draftAccountService, times(1)).submitDraftAccount(any(), any());
+        verify(draftAccountService, times(1)).submitDraftAccount(any());
     }
 
     @Test
