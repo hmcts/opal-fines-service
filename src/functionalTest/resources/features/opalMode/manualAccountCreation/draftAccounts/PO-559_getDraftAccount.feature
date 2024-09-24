@@ -9,7 +9,7 @@ Feature: PO-559 get draft account
       | account          | draftAccounts/accountJson/adultAccount.json |
       | account_type     | Fine                                        |
       | account_status   |                                             |
-      | submitted_by     |                                             |
+      | submitted_by     | BUUID                                       |
       | timeline_data    |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
@@ -21,7 +21,7 @@ Feature: PO-559 get draft account
       | account_snapshot.defendant_name     | LNAME, FNAME        |
       | account_snapshot.date_of_birth      | 01/01/2000          |
       | account_snapshot.account_type       | Fine                |
-      | account_snapshot.submitted_by       | opal-test@HMCTS.NET |
+      | account_snapshot.submitted_by       | BUUID               |
       | account_snapshot.business_unit_name | West London         |
 
     Then I delete the created draft accounts
