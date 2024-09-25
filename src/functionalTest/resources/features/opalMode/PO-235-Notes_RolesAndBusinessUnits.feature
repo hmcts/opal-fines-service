@@ -22,7 +22,7 @@ Feature: tests for notes business unit users/permissions for accounts dependant 
     And the add notes response contains
       | associated_record_id | 500000010                       |
       | note_text            | test roles and perms Opal user1 |
-      | posted_by            | L067JG                          |
+      | posted_by            | L077JG                          |
       | posted_by_user_id    | 500000000                       |
       | business_unit_id     | 77                              |
 
