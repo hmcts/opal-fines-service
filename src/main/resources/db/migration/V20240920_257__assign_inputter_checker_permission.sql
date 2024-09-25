@@ -10,12 +10,10 @@
 * Date          Author      Version     Nature of Change
 * ----------    -------     --------    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 * 20/09/2024    A Dennis    1.0         PO-721 Assign users to the Application Function (aka permission) named: Check and Validate Draft Accounrts and Create and Manage Draft Accounts.
-*                           1.1         PO-802 Test user opal-test@HMCTS.NET should have both Check and Validate Draft Accounrts and Create and Manage Draft Accounts
 *
 **/
 
--- Test user opal-test@HMCTS.NET already has the permission - Create and Manage Draft Accounts which is in the user_entitlements table so it should not be deleted.
--- Now Test user opal-test@HMCTS.NET should also have the permission - Check and Validate Draft Accounts
+-- Test user opal-test-1@HMCTS.NET should have the permission - Check and Validate Draft Accounts
 INSERT INTO user_entitlements (user_entitlement_id, business_unit_user_id, application_function_id)
 VALUES(500023,'L065JG',501);
 
@@ -36,6 +34,9 @@ VALUES(500028,'L078JG',501);
 
 INSERT INTO user_entitlements (user_entitlement_id, business_unit_user_id, application_function_id)
 VALUES(500029,'L080JG',501);
+
+-- The implication is that Test user opal-test-1@HMCTS.NET should NOT have the permission - Create and Manage Draft Accounts
+DELETE FROM user_entitlements WHERE user_entitlement_id IN (112904, 113138, 113372, 114776, 115712, 115946, 116414);
 
 -- Test user opal-test-3@HMCTS.NET
 -- No change required
