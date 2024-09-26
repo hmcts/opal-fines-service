@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
@@ -93,11 +92,11 @@ public class DraftAccountController {
                 @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.info(":POST:postDraftAccount: creating a new draft account entity.");
 
-        UserState user = userStateService.checkForAuthorisedUser(authHeaderValue);
+        userStateService.checkForAuthorisedUser(authHeaderValue);
 
         jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
 
-        DraftAccountEntity response = draftAccountService.submitDraftAccount(dto, user.getUserName());
+        DraftAccountEntity response = draftAccountService.submitDraftAccount(dto);
 
         return buildCreatedResponse(toGetResponseDto(response));
     }

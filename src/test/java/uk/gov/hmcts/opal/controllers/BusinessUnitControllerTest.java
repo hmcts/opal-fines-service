@@ -111,7 +111,7 @@ class BusinessUnitControllerTest {
 
         // Act
         Optional<String> filter = Optional.empty();
-        Optional<Permissions> permission = Optional.of(Permissions.MANUAL_ACCOUNT_CREATION);
+        Optional<Permissions> permission = Optional.of(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
         String headerToken = "Bearer token";
         ResponseEntity<BusinessUnitReferenceDataResults> response = businessUnitController
             .getBusinessUnitRefData(filter, permission, headerToken);
@@ -137,7 +137,7 @@ class BusinessUnitControllerTest {
 
         // Act
         Optional<String> filter = Optional.empty();
-        Optional<Permissions> permission = Optional.of(Permissions.MANUAL_ACCOUNT_CREATION);
+        Optional<Permissions> permission = Optional.of(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
         String headerToken = "Bearer token";
         ResponseEntity<BusinessUnitReferenceDataResults> response = businessUnitController
             .getBusinessUnitRefData(filter, permission, headerToken);

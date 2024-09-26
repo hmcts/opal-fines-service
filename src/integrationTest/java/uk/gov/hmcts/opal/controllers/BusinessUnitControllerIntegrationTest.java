@@ -131,7 +131,7 @@ class BusinessUnitControllerIntegrationTest {
         when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
         when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(true));
 
-        mockMvc.perform(get(URL_BASE + "?permission=MANUAL_ACCOUNT_CREATION")
+        mockMvc.perform(get(URL_BASE + "?permission=CREATE_MANAGE_DRAFT_ACCOUNTS")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -153,7 +153,7 @@ class BusinessUnitControllerIntegrationTest {
         when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
         when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(false));
 
-        mockMvc.perform(get(URL_BASE + "?permission=MANUAL_ACCOUNT_CREATION")
+        mockMvc.perform(get(URL_BASE + "?permission=CREATE_MANAGE_DRAFT_ACCOUNTS")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))

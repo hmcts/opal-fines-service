@@ -23,7 +23,7 @@ public class Permission {
         this.permissionName = permissionName;
     }
 
-    boolean matches(Permissions candidate) {
+    boolean matchesPermissions(Permissions candidate) {
         return candidate.id == permissionId;
     }
 }

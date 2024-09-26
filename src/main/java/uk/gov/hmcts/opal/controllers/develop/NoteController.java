@@ -24,7 +24,7 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 import java.util.List;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
-import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredRole;
+import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredBusinessUnitUser;
 
 
 @RestController
@@ -51,7 +51,7 @@ public class NoteController {
         log.info(":POST:createNote: {}", noteDto.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        BusinessUnitUserPermissions businessUnitUserPermissions = getRequiredRole(userState,
+        BusinessUnitUserPermissions businessUnitUserPermissions = getRequiredBusinessUnitUser(userState,
                                                                                   noteDto.getBusinessUnitId());
 
         noteDto.setPostedBy(businessUnitUserPermissions.getBusinessUnitUserId());
