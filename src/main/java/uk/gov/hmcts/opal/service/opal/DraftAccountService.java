@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
+import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
+import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.entity.DraftAccountSnapshots;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
@@ -63,6 +65,8 @@ public class DraftAccountService {
         return page.getContent();
     }
 
+
+
     public DraftAccountEntity submitDraftAccount(AddDraftAccountRequestDto dto) {
         LocalDateTime created = LocalDateTime.now();
         BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId()).orElse(null);
@@ -71,7 +75,29 @@ public class DraftAccountService {
         return draftAccountRepository.save(toEntity(dto, created, businessUnit, snapshot));
     }
 
-    private String createInitialSnapshot(AddDraftAccountRequestDto dto, LocalDateTime created,
+    public DraftAccountEntity replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto) {
+        DraftAccountEntity existingAccount = draftAccountRepository.findById(draftAccountId)
+            .orElseThrow(() -> new RuntimeException("Draft Account not found with id: " + draftAccountId));
+
+        BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId())
+            .orElseThrow(() -> new RuntimeException("Business Unit not found with id: " + dto.getBusinessUnitId()));
+
+        LocalDateTime updatedTime = LocalDateTime.now();
+        String newSnapshot = createInitialSnapshot(dto, updatedTime, businessUnit);
+        existingAccount.setSubmittedBy(dto.getSubmittedBy());
+        existingAccount.setAccount(dto.getAccount());
+        existingAccount.setAccountSnapshot(newSnapshot);
+        existingAccount.setAccountType(dto.getAccountType());
+        existingAccount.setAccountStatus(DraftAccountStatus.RESUBMITTED);
+        existingAccount.setTimelineData(dto.getTimelineData());
+
+        log.info(":replaceDraftAccount: Replacing draft account with ID: {} and new snapshot: \n{}",
+                 draftAccountId, newSnapshot);
+
+        return draftAccountRepository.save(existingAccount);
+    }
+
+    private String createInitialSnapshot(DraftAccountRequestDto dto, LocalDateTime created,
                                          BusinessUnitEntity businessUnit) {
         return buildInitialSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy()).toPrettyJson();
     }
@@ -105,7 +131,7 @@ public class DraftAccountService {
             .build();
     }
 
-    DraftAccountEntity toEntity(AddDraftAccountRequestDto dto, LocalDateTime created,
+    DraftAccountEntity toEntity(DraftAccountRequestDto dto, LocalDateTime created,
                                 BusinessUnitEntity businessUnit, String snapshot) {
         return DraftAccountEntity.builder()
             .businessUnit(businessUnit)

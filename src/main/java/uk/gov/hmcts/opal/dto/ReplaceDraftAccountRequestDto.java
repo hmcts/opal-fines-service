@@ -15,10 +15,10 @@ import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ReplaceDraftAccountRequestDto implements ToJsonString {
+public class ReplaceDraftAccountRequestDto implements ToJsonString, DraftAccountRequestDto {
 
     @JsonProperty(value = "business_unit_id", required = true)
-    private Integer businessUnitId;
+    private Short businessUnitId;
 
     @JsonProperty(value = "submitted_by", required = true)
     private String submittedBy;

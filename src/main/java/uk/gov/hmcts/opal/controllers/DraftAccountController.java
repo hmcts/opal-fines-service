@@ -129,28 +129,16 @@ public class DraftAccountController {
         @RequestBody ReplaceDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
-        log.info(":PUT:replaceDraftAccount: replacing draft account entity with ID: {} and data: {}", draftAccountId, dto);
+        log.info(":PUT:replaceDraftAccount: replacing draft account entity with ID: {} and data: {}",
+                 draftAccountId, dto);
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
         jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
 
-        // Placeholder for service call
-        // DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto, user.getUserName());
+        DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto);
 
-        // For testing unmarshalling, we'll just return a placeholder response
-        DraftAccountResponseDto placeholderResponse = DraftAccountResponseDto.builder()
-            .draftAccountId(draftAccountId)
-           // .businessUnitId(dto.getBusinessUnitId())
-            .submittedBy(dto.getSubmittedBy())
-            .validatedBy(dto.getValidatedBy())
-            .account(dto.getAccount())
-            .accountType(dto.getAccountType())
-          //  .accountStatus(dto.getAccountStatus())
-            .timelineData(dto.getTimelineData())
-            .build();
-
-        return buildResponse(placeholderResponse);
+        return buildResponse(toGetResponseDto(replacedEntity));
     }
 
     DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
