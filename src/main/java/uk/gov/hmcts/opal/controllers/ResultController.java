@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +15,7 @@ import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
 import java.util.List;
+import java.util.Optional;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
@@ -32,32 +34,34 @@ public class ResultController {
 
     @GetMapping(value = "/{resultId}")
     @Operation(summary = "Returns the Result for the given resultId.")
-    public ResponseEntity<ResultReferenceData> getResultById(@PathVariable String resultId) {
+    @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
+    public ResponseEntity<ResultReferenceData> getResultById(@PathVariable Optional<String> resultId) {
 
         log.info(":GET:getResultById: resultId: {}", resultId);
 
-        ResultReferenceData response = resultService.getResultReferenceData(resultId);
+        ResultReferenceData response = resultId
+            .filter(id -> !id.isBlank())
+            .map(resultService::getResultReferenceData)
+            .orElse(null);
 
         return buildResponse(response);
     }
 
+
     @GetMapping
-    @Operation(summary = "Returns all results all results or results for the given resultIds.")
+    @Operation(summary = "Returns all results or results for the given resultIds.")
+    @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultIds.orElse('ALL_RESULTS')")
     public ResponseEntity<ResultReferenceDataResults> getResults(
-        @RequestParam(name = "result_ids", required = false) List<String> resultIds) {
+        @RequestParam(name = "result_ids") Optional<List<String>> resultIds) {
 
-        log.info(":GET:getResults: resultIds: {}", resultIds);
+        log.info("GET:getResults: resultIds: {}", resultIds);
 
-        List<ResultReferenceData> refData;
-
-        if (resultIds == null || resultIds.isEmpty()) {
-            refData = resultService.getAllResults();
-        } else {
-            refData = resultService.getResultsByIds(resultIds);
-        }
+        List<ResultReferenceData> refData = resultIds
+            .filter(ids -> !ids.isEmpty())
+            .map(resultService::getResultsByIds)
+            .orElseGet(resultService::getAllResults);
 
         return buildResponse(ResultReferenceDataResults.builder().refData(refData).build());
-
     }
 
 }
