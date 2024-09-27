@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.QueryTimeoutException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -17,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler;
+import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
@@ -28,19 +30,24 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.net.ConnectException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.logging.Logger;
 
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @WebMvcTest
 @ContextConfiguration(classes = {DraftAccountController.class, GlobalExceptionHandler.class})
@@ -53,6 +60,9 @@ class DraftAccountControllerIntegrationTest {
 
     @Autowired
     MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockBean
     @Qualifier("draftAccountService")
@@ -207,4 +217,83 @@ class DraftAccountControllerIntegrationTest {
         String body = result.getResponse().getContentAsString();
         logger.info(":testGetDraftAccountById: Response body:\n" + ToJsonString.toPrettyJson(body));
     }
+
+    @Test
+    void testReplaceDraftAccount() throws Exception {
+        Long draftAccountId = 241L;
+        String requestBody = """
+    {
+        "account": {
+            "accountCreateRequest": {
+                "Defendant": {
+                    "CompanyName": "Company ABC",
+                    "Surname": "LNAME",
+                    "Fornames": "FNAME",
+                    "DOB": "2000-01-01"
+                },
+                "Account": {
+                    "AccountType": "Fine"
+                }
+            }
+        },
+        "account_status": "",
+        "account_summary_data": "",
+        "account_type": "Fines",
+        "business_unit_id": 5,
+        "submitted_by": "BUUID1",
+        "timeline_data": {
+            "stuff": "yes"
+        },
+        "court": "test"
+    }
+            """;
+
+        LocalDateTime testDateTime = LocalDateTime.of(2024, 9, 26, 15, 0, 0);
+
+        DraftAccountEntity updatedEntity = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 5)
+                              .businessUnitName("Cambridgeshire").build())
+            .createdDate(testDateTime)
+            .submittedBy("BUUID1")
+            .account("{\"accountCreateRequest\":{\"Defendant\":{\"CompanyName\":\"Company ABC\",\"Surname\""
+                         + ":\"LNAME\",\"Fornames\":\"FNAME\",\"DOB\":\"2000-01-01\"},\"Account\""
+                         + ":{\"AccountType\":\"Fine\"}}}")
+            .accountSnapshot("{\"defendant_name\":\"Company ABC\",\"created_date\":\"2024-09-26T15:00:00Z\","
+                                 + "\"account_type\":\"Fine\",\"submitted_by\":\"BUUID1\","
+                                 + "\"business_unit_name\":\"Cambridgeshire\"}")
+            .accountType("Fines")
+            .accountStatus(DraftAccountStatus.RESUBMITTED)
+            .timelineData("{\"stuff\":\"yes\"}")
+            .build();
+
+        when(draftAccountService.replaceDraftAccount(eq(draftAccountId), any(ReplaceDraftAccountRequestDto.class)))
+            .thenReturn(updatedEntity);
+
+        MvcResult result = mockMvc.perform(put(URL_BASE + draftAccountId)
+                                               .header("authorization", "Bearer some_value")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .content(requestBody))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
+            .andExpect(jsonPath("$.business_unit_id").value(5))
+            .andExpect(jsonPath("$.created_at").value("2024-09-26T15:00:00Z"))
+            .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
+            .andExpect(jsonPath("$.account.accountCreateRequest.Defendant.CompanyName")
+                           .value("Company ABC"))
+            .andExpect(jsonPath("$.account_snapshot.defendant_name").value("Company ABC"))
+            .andExpect(jsonPath("$.account_type").value("Fines"))
+            .andExpect(jsonPath("$.account_status").value("Resubmitted"))
+            .andExpect(jsonPath("$.timeline_data.stuff").value("yes"))
+            .andReturn();
+
+        String body = result.getResponse().getContentAsString();
+        logger.info(":testReplaceDraftAccount: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        assertTrue(jsonSchemaValidationService.isValid(body, "getDraftAccountResponse.json"));
+
+        verify(draftAccountService).replaceDraftAccount(eq(draftAccountId), any(ReplaceDraftAccountRequestDto.class));
+    }
+
 }

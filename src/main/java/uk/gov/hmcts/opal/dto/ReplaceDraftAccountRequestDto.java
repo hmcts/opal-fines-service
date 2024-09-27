@@ -10,26 +10,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 
-import java.time.OffsetDateTime;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequestDto {
-
-    @JsonProperty("draft_account_id")
-    private Long draftAccountId;
-
-    @JsonProperty("created_at")
-    private OffsetDateTime createdDate;
-
-    @JsonProperty("validated_at")
-    private OffsetDateTime validatedDate;
+public class ReplaceDraftAccountRequestDto implements ToJsonString, DraftAccountRequestDto {
 
     @JsonProperty(value = "business_unit_id", required = true)
     private Short businessUnitId;
+
+    @JsonProperty(value = "submitted_by", required = true)
+    private String submittedBy;
 
     @JsonProperty("validated_by")
     private String validatedBy;
@@ -39,25 +31,14 @@ public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequ
     @JsonRawValue
     private String account;
 
-    @JsonProperty("account_snapshot")
-    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
-    @JsonRawValue
-    private String accountSnapshot;
-
     @JsonProperty(value = "account_type", required = true)
     private String accountType;
+
+    @JsonProperty(value = "account_status", required = true)
+    private String accountStatus;
 
     @JsonProperty(value = "timeline_data", required = true)
     @JsonDeserialize(using = KeepAsJsonDeserializer.class)
     @JsonRawValue
     private String timelineData;
-
-    @JsonProperty("account_number")
-    private String accountNumber;
-
-    @JsonProperty("account_id")
-    private Long accountId;
-
-    @JsonProperty(value = "submitted_by", required = true)
-    private String submittedBy;
 }
