@@ -13,7 +13,6 @@ import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
 import java.time.Instant;
 import java.util.Map;
 
@@ -28,57 +27,60 @@ public class DraftAccountPutSteps extends BaseStepDef {
         Map<String, String> dataToPost = data.asMap(String.class, String.class);
 
         assertEquals(
-            1,
-            DraftAccountUtils.getAllDraftAccountIds().size(),
-            "There should be only one draft account but found multiple: " + DraftAccountUtils.getAllDraftAccountIds()
+                1,
+                DraftAccountUtils.getAllDraftAccountIds().size(),
+                "There should be only one draft account but found multiple: "
+                        + DraftAccountUtils.getAllDraftAccountIds()
         );
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+
 
         JSONObject postBody = new JSONObject();
 
         postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
+                "business_unit_id",
+                dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
         );
         postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
         postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
         postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
+                "account_status",
+                dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
         );
 
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-            + dataToPost.get(
-            "account");
+                + dataToPost.get(
+                "account");
         String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
         JSONObject accountObject = new JSONObject(account);
 
         JSONObject timelineObject;
         if (dataToPost.get("timeline_data") != null) {
             String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-                + dataToPost.get(
-                "account");
+                    + dataToPost.get(
+                    "account");
             String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
             timelineObject = new JSONObject(timeline);
         } else {
             String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-                + "/draftAccounts/timelineJson/default.json";
+                    + "/draftAccounts/timelineJson/default.json";
             String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
             timelineObject = new JSONObject(timeline);
         }
         postBody.put("account", accountObject);
         postBody.put("timeline_data", timelineObject);
 
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
         SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body(postBody.toString())
-            .when()
-            .put(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
+                .given()
+                .header("Authorization", "Bearer " + getToken())
+                .accept("*/*")
+                .contentType("application/json")
+                .body(postBody.toString())
+                .when()
+                .put(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
     }
+
     @Then("I see the created at time hasn't changed")
     public void checkCreatedAtTime() {
         Instant apiCreatedAt = Instant.parse(then().extract().body().jsonPath().getString("created_at"));
@@ -91,7 +93,8 @@ public class DraftAccountPutSteps extends BaseStepDef {
         assertEquals(createdAtTime, createdAt, "Created at time has changed");
 
 
-        Serenity.recordReportData().withTitle("Times").andContents("Created at time: " + createdAtTime + "\nResponse created at time: " + createdAt);
+        Serenity.recordReportData().withTitle("Times").andContents("Created at time: "
+                + createdAtTime + "\nResponse created at time: " + createdAt);
 
     }
 }

@@ -21,9 +21,11 @@ public class DraftAccountUtils {
     public static void addDraftAccountCreatedAtTime(String time) {
         createdAtTime.set(time);
     }
+
     public static String getDraftAccountCreatedAtTime() {
         return createdAtTime.get();
     }
+
     public static void clearDraftAccountCreatedAtTime() {
         createdAtTime.remove();
     }
