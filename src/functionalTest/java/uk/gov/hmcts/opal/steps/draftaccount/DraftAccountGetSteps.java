@@ -32,7 +32,8 @@ public class DraftAccountGetSteps extends BaseStepDef {
         assertEquals(
             1,
             DraftAccountUtils.getAllDraftAccountIds().size(),
-            "There should be only one draft account but found multiple: " + DraftAccountUtils.getAllDraftAccountIds()
+            "There should be only one draft account but found multiple: "
+                + DraftAccountUtils.getAllDraftAccountIds()
         );
         String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
         SerenityRest
@@ -64,8 +65,9 @@ public class DraftAccountGetSteps extends BaseStepDef {
         Map<String, String> expectedData = data.asMap(String.class, String.class);
         String count = then().extract().body().jsonPath().getString("count");
         for (String key : expectedData.keySet()) {
-            for(int i = 0; i < Integer.parseInt(count); i++) {
-                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]." + key);
+            for (int i = 0; i < Integer.parseInt(count); i++) {
+                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
+                                                                                           + key);
                 assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
             }
         }
@@ -86,8 +88,9 @@ public class DraftAccountGetSteps extends BaseStepDef {
 
         String count = then().extract().body().jsonPath().getString("count");
         for (String key : expectedData.keySet()) {
-            for(int i = 0; i < Integer.parseInt(count); i++) {
-                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]." + key);
+            for (int i = 0; i < Integer.parseInt(count); i++) {
+                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
+                                                                                           + key);
                 assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
             }
         }
@@ -107,28 +110,34 @@ public class DraftAccountGetSteps extends BaseStepDef {
 
         String count = then().extract().body().jsonPath().getString("count");
         for (String key : expectedData.keySet()) {
-            for(int i = 0; i < Integer.parseInt(count); i++) {
-                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]." + key);
+            for (int i = 0; i < Integer.parseInt(count); i++) {
+                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
+                                                                                           + key);
                 assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
             }
         }
     }
-    @When("I get the draft accounts filtering on the Status {string} and Submitted by {string} then the response contains")
-    public void getDraftAccountsFilteringOnStatusesAndSubmittedBy(String statusFilter, String submittedByFilter, DataTable data) {
+
+    @When("I get the draft accounts filtering on the Status {string} and Submitted by {string} "
+        + "then the response contains")
+    public void getDraftAccountsFilteringOnStatusesAndSubmittedBy(String statusFilter, String submittedByFilter,
+                                                                  DataTable data) {
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?status=" + statusFilter + "&submitted_by=" + submittedByFilter);
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?status=" + statusFilter + "&submitted_by="
+                     + submittedByFilter);
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
 
         String count = then().extract().body().jsonPath().getString("count");
         for (String key : expectedData.keySet()) {
-            for(int i = 0; i < Integer.parseInt(count); i++) {
-                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]." + key);
+            for (int i = 0; i < Integer.parseInt(count); i++) {
+                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
+                                                                                           + key);
                 assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
             }
         }
@@ -142,6 +151,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             assertNotEquals(filter, buID, "should not contain " + filter);
         }
     }
+
     @And("The draft account filtered response does not contain accounts with status {string}")
     public void draftAccountFilteredResponseDoesNotContainAccountsInStatus(String filter) {
         String count = then().extract().body().jsonPath().getString("count");
@@ -150,6 +160,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             assertNotEquals(filter, status, "should not contain " + filter);
         }
     }
+
     @And("The draft account filtered response does not contain accounts submitted by {string}")
     public void draftAccountFilteredResponseDoesNotContainAccountsSubmittedBy(String filter) {
         String count = then().extract().body().jsonPath().getString("count");
