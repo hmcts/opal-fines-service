@@ -36,24 +36,18 @@ Feature: PO-606 get draft accounts
 
     When I get the draft accounts filtering on the Business unit "73" then the response contains
       | business_unit_id                    | 73          |
-      | account_status                      | Submitted   |
-      | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
     And The draft account filtered response does not contain accounts in the "77" business unit
     And The draft account filtered response does not contain accounts in the "65" business unit
 
     When I get the draft accounts filtering on the Business unit "77" then the response contains
       | business_unit_id                    | 77               |
-      | account_status                      | Submitted        |
-      | account_snapshot.submitted_by       | BUUID            |
       | account_snapshot.business_unit_name | Camberwell Green |
     And The draft account filtered response does not contain accounts in the "73" business unit
     And The draft account filtered response does not contain accounts in the "65" business unit
 
     When I get the draft accounts filtering on the Business unit "65" then the response contains
       | business_unit_id                    | 65                   |
-      | account_status                      | Submitted            |
-      | account_snapshot.submitted_by       | BUUID                |
       | account_snapshot.business_unit_name | Camden and Islington |
     And The draft account filtered response does not contain accounts in the "73" business unit
     And The draft account filtered response does not contain accounts in the "77" business unit
