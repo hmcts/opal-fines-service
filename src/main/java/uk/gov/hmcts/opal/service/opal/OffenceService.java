@@ -45,7 +45,7 @@ public class OffenceService implements OffenceServiceInterface {
 
     @Cacheable(
         cacheNames = "offenceReferenceDataCache",
-        key = "#filter.orElse('noFilter') + '_' + #businessUnitId.orElse(0)"
+        key = "#filter.orElse('noFilter') + '_' + #businessUnitId.orElse('noBU')"
     )
     public List<OffenceReferenceData> getReferenceData(Optional<String> filter, Optional<Short> businessUnitId) {
 
