@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.controllers.util;
 
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
@@ -23,7 +23,7 @@ public class UserStateUtil {
         return UserState.builder()
             .userId(1L)
             .userName("normal@users.com")
-            .businessUnitUserPermissions(Set.of(permissions(buid, permissionsFor(permissions))))
+            .businessUnitUser(Set.of(permissions(buid, permissionsFor(permissions))))
             .build();
     }
 
@@ -31,24 +31,24 @@ public class UserStateUtil {
         return UserState.builder()
             .userId(1L)
             .userName("normal@users.com")
-            .businessUnitUserPermissions(Set.of(permissions(buid, permissions)))
+            .businessUnitUser(Set.of(permissions(buid, permissions)))
             .build();
     }
 
-    public static final UserState permissionUser(Set<BusinessUnitUserPermissions> permissions) {
+    public static final UserState permissionUser(Set<BusinessUnitUser> permissions) {
         return UserState.builder()
             .userId(1L)
             .userName("normal@users.com")
-            .businessUnitUserPermissions(permissions)
+            .businessUnitUser(permissions)
             .build();
     }
 
-    public static final BusinessUnitUserPermissions permissions(Short buid, Permission... permissions) {
+    public static final BusinessUnitUser permissions(Short buid, Permission... permissions) {
         return permissions(buid, new HashSet<>(Arrays.asList(permissions)));
     }
 
-    public static final BusinessUnitUserPermissions permissions(Short buid, Set<Permission> permissions) {
-        return BusinessUnitUserPermissions.builder()
+    public static final BusinessUnitUser permissions(Short buid, Set<Permission> permissions) {
+        return BusinessUnitUser.builder()
             .businessUnitUserId("USER01")
             .businessUnitId(buid)
             .permissions(permissions)

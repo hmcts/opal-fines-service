@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
@@ -117,7 +117,7 @@ public class DefendantAccountController {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        BusinessUnitUserPermissions businessUnitUserPermissions = getRequiredBusinessUnitUser(userState,
+        BusinessUnitUser businessUnitUser = getRequiredBusinessUnitUser(userState,
                                                                                   addNote.getBusinessUnitId());
 
         NoteDto noteDto = NoteDto.builder()
@@ -126,7 +126,7 @@ public class DefendantAccountController {
             .associatedRecordType(NOTE_ASSOC_REC_TYPE)
             .noteType("AA") // TODO - This will probably need to part of the AddNoteDto in future
             .businessUnitId(addNote.getBusinessUnitId())
-            .postedBy(businessUnitUserPermissions.getBusinessUnitUserId())
+            .postedBy(businessUnitUser.getBusinessUnitUserId())
             .postedByUserId(userState.getUserId())
             .postedDate(LocalDateTime.now())
             .build();

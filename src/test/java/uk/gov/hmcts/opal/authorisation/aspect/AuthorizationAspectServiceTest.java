@@ -14,7 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.gov.hmcts.opal.authentication.aspect.AccessTokenParam;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AuthorizationAspectServiceTest {
 
-    static final BusinessUnitUserPermissions BUSINESS_UNIT_USER_PERMISSIONS = BusinessUnitUserPermissions.builder()
+    static final BusinessUnitUser BUSINESS_UNIT_USER = BusinessUnitUser.builder()
         .businessUnitId((short) 12)
         .businessUnitUserId("BU123")
         .permissions(Set.of(
@@ -45,7 +45,7 @@ class AuthorizationAspectServiceTest {
 
     static final UserState USER_STATE = UserState.builder()
         .userId(123L).userName("John Smith")
-        .businessUnitUserPermissions(Set.of(BUSINESS_UNIT_USER_PERMISSIONS))
+        .businessUnitUser(Set.of(BUSINESS_UNIT_USER))
         .build();
 
     @MockBean
@@ -151,42 +151,42 @@ class AuthorizationAspectServiceTest {
     }
 
     @Nested
-    class GetBusinessUnitUserPermissions {
+    class GetBusinessUnitUser {
         @Test
-        void getBusinessUnitUserPermissions_WhenInvalidArguments() {
+        void getBusinessUnitUser_WhenInvalidArguments() {
             Object[] args = {"invalid"};
             String expectedMessage = "Can't infer the role for user John Smith."
                 + " Annotated method needs to have arguments of types"
-                + " (BusinessUnitUserPermissions, AddNoteDto, NoteDto).";
+                + " (BusinessUnitUser, AddNoteDto, NoteDto).";
 
-            BusinessUnitUserPermissionsNotFoundException exception = assertThrows(
-                BusinessUnitUserPermissionsNotFoundException.class,
-                () -> authorizationAspectService.getBusinessUnitUserPermissions(args, USER_STATE)
+            BusinessUnitUserNotFoundException exception = assertThrows(
+                BusinessUnitUserNotFoundException.class,
+                () -> authorizationAspectService.getBusinessUnitUser(args, USER_STATE)
             );
 
             assertEquals(expectedMessage, exception.getMessage());
         }
 
         @Test
-        void getBusinessUnitUserPermissions_WhenAddNoteDtoArgument() {
+        void getBusinessUnitUser_WhenAddNoteDtoArgument() {
             AddNoteDto addNoteDto = AddNoteDto.builder().businessUnitId((short) 12).build();
             Object[] args = {addNoteDto};
 
-            BusinessUnitUserPermissions actualBusinessUnitUserPermissions = authorizationAspectService
-                .getBusinessUnitUserPermissions(args, USER_STATE);
+            BusinessUnitUser actualBusinessUnitUser = authorizationAspectService
+                .getBusinessUnitUser(args, USER_STATE);
 
-            assertEquals(BUSINESS_UNIT_USER_PERMISSIONS, actualBusinessUnitUserPermissions);
+            assertEquals(BUSINESS_UNIT_USER, actualBusinessUnitUser);
         }
 
         @Test
-        void getBusinessUnitUserPermissions_WhenRoleArgument() {
-            BusinessUnitUserPermissions expectedBusinessUnitUserPermissions = BUSINESS_UNIT_USER_PERMISSIONS;
-            Object[] args = {expectedBusinessUnitUserPermissions};
+        void getBusinessUnitUser_WhenRoleArgument() {
+            BusinessUnitUser expectedBusinessUnitUser = BUSINESS_UNIT_USER;
+            Object[] args = {expectedBusinessUnitUser};
 
-            BusinessUnitUserPermissions actualBusinessUnitUserPermissions = authorizationAspectService
-                .getBusinessUnitUserPermissions(args, USER_STATE);
+            BusinessUnitUser actualBusinessUnitUser = authorizationAspectService
+                .getBusinessUnitUser(args, USER_STATE);
 
-            assertEquals(expectedBusinessUnitUserPermissions, actualBusinessUnitUserPermissions);
+            assertEquals(expectedBusinessUnitUser, actualBusinessUnitUser);
         }
     }
 
