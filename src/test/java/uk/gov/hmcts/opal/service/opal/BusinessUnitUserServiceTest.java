@@ -11,7 +11,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitUserSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity;
@@ -88,7 +88,7 @@ class BusinessUnitUserServiceTest {
         when(userEntitlementService.getPermissionsByBusinessUnitUserId(any())).thenReturn(Collections.emptySet());
 
         // Act
-        Set<BusinessUnitUserPermissions> result = businessUnitUserService
+        Set<BusinessUnitUser> result = businessUnitUserService
             .getAuthorisationBusinessUnitPermissionsByUserId(0L);
 
         // Assert
@@ -107,7 +107,7 @@ class BusinessUnitUserServiceTest {
         when(businessUnitUserRepository.findAllByUser_UserId(any())).thenReturn(list);
 
         // Act
-        Set<BusinessUnitUserPermissions> result = businessUnitUserService.getLimitedBusinessUnitPermissionsByUserId(0L);
+        Set<BusinessUnitUser> result = businessUnitUserService.getLimitedBusinessUnitPermissionsByUserId(0L);
 
         // Assert
         assertNotNull(result);

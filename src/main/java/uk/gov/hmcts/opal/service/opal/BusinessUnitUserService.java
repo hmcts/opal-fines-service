@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitUserSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitUserRepository;
@@ -47,10 +47,10 @@ public class BusinessUnitUserService implements BusinessUnitUserServiceInterface
      * Return a Set of Authorisation Business Unit User Permissions mapped from BusinessUnitUsers keyed on the user
      * id from the Users table.
      */
-    public Set<BusinessUnitUserPermissions> getAuthorisationBusinessUnitPermissionsByUserId(Long userId) {
+    public Set<BusinessUnitUser> getAuthorisationBusinessUnitPermissionsByUserId(Long userId) {
         List<BusinessUnitUserEntity> buuList =  businessUnitUserRepository.findAllByUser_UserId(userId);
 
-        return buuList.stream().map(buu -> BusinessUnitUserPermissions.builder()
+        return buuList.stream().map(buu -> BusinessUnitUser.builder()
             .businessUnitUserId(buu.getBusinessUnitUserId())
             .businessUnitId(buu.getBusinessUnit().getBusinessUnitId())
             .permissions(userEntitlementService.getPermissionsByBusinessUnitUserId(buu.getBusinessUnitUserId()))
@@ -63,13 +63,13 @@ public class BusinessUnitUserService implements BusinessUnitUserServiceInterface
      * user id. This method is assuming that there are no Permissions for the Business Unit Users and so skips
      * performing the additional repository queries that <i>do</i> get performed in the method above.
      */
-    public Set<BusinessUnitUserPermissions> getLimitedBusinessUnitPermissionsByUserId(Long userId) {
+    public Set<BusinessUnitUser> getLimitedBusinessUnitPermissionsByUserId(Long userId) {
         List<BusinessUnitUserEntity> buuList =  businessUnitUserRepository.findAllByUser_UserId(userId);
 
-        return buuList.stream().map(buu -> BusinessUnitUserPermissions.builder()
+        return buuList.stream().map(buu -> BusinessUnitUser.builder()
             .businessUnitUserId(buu.getBusinessUnitUserId())
             .businessUnitId(buu.getBusinessUnit().getBusinessUnitId())
-            .permissions(Collections.emptySet()) // Assuming that Permissions exist for BusinessUnitUserPermissions.
+            .permissions(Collections.emptySet()) // Assuming that Permissions exist for BusinessUnitUser.
             .build()).collect(Collectors.toSet());
 
     }

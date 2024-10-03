@@ -47,7 +47,7 @@ public class RefDataStepDef extends BaseStepDef {
 
     @When("I make a request to the offence ref data api filtering by business unit {int}")
     public void getRequestToOffencesRefDataBusinessUnit(int businessUnitId) {
-        methods.getRequest(OFFENCES_REF_DATA_URI + "?businessUnit=" + businessUnitId);
+        methods.getRequest(OFFENCES_REF_DATA_URI + "?business_unit_id=" + businessUnitId);
     }
 
     @When("I make a request to the offence ref data api filtering by cjs code {string}")
