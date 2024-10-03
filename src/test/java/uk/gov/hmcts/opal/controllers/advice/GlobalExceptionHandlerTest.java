@@ -22,6 +22,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
@@ -29,6 +30,7 @@ import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
@@ -147,18 +149,6 @@ class GlobalExceptionHandlerTest {
         assertEquals("Property value exception : entity.property", response.getBody().get("error"));
     }
 
-    @Test
-    void testHandleHttpMessageNotReadableException() {
-        HttpMessageNotReadableException exception = new HttpMessageNotReadableException("Cannot read message",
-                                                                                        new Throwable("Root cause"));
-        ResponseEntity<Map<String, String>> response = globalExceptionHandler
-            .handleHttpMessageNotReadableException(exception);
-
-        assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, response.getStatusCode());
-        assertEquals("Cannot read message", response.getBody().get("error"));
-        assertEquals("The request body could not be read, ensure content-type is application/json",
-                     response.getBody().get("message"));
-    }
 
     @Test
     void testHandleInvalidDataAccessApiUsageException() {
@@ -265,6 +255,45 @@ class GlobalExceptionHandlerTest {
         assertEquals("Service Unavailable", response.getBody().get("error"));
         assertEquals("Opal Fines Database is currently unavailable", response.getBody().get("message"));
     }
+
+    @Test
+    void testHandleHttpMediaTypeNotSupportedException() {
+        HttpMediaTypeNotSupportedException exception =
+            new HttpMediaTypeNotSupportedException("Unsupported media type");
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler
+            .handleHttpMediaTypeNotSupportedException(exception);
+
+        assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, response.getStatusCode());
+        assertEquals("Unsupported Media Type", response.getBody().get("error"));
+        assertEquals("The Content-Type is not supported. Please use application/json",
+                     response.getBody().get("message"));
+    }
+
+    @Test
+    void testHandleHttpMessageNotReadableException() {
+        HttpMessageNotReadableException exception = new HttpMessageNotReadableException("Cannot read message");
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler
+            .handleHttpMessageNotReadableException(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Bad Request", response.getBody().get("error"));
+        assertEquals("The request body could not be read. It may be missing or invalid JSON.",
+                     response.getBody().get("message"));
+    }
+
+    @Test
+    void testHandleJsonSchemaValidationException() {
+        JsonSchemaValidationException exception =
+            new JsonSchemaValidationException("JSON Schema Validation failed");
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler
+            .handleJsonSchemaValidationException(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Bad Request", response.getBody().get("error"));
+        assertEquals("JSON Schema Validation Error: JSON Schema Validation failed",
+                     response.getBody().get("message"));
+    }
+
 
     public static void sampleMethod(Integer testParam) {
         // Sample method to simulate the method parameter
