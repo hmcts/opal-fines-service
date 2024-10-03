@@ -129,7 +129,8 @@ public class DraftAccountService {
             .map(String::toUpperCase)
             .map(DraftAccountStatus::valueOf)
             .filter(VALID_UPDATE_STATUSES::contains)
-            .orElseThrow(() -> new IllegalArgumentException("Invalid account status: " + dto.getAccountStatus()));
+            .orElseThrow(() -> new IllegalArgumentException("Invalid account status for update: "
+                                                                + dto.getAccountStatus()));
 
         existingAccount.setAccountStatus(newStatus);
 

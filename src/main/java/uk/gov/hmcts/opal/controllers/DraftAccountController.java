@@ -202,9 +202,9 @@ public class DraftAccountController {
 
         jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
 
-        DraftAccountEntity replacedEntity = draftAccountService.updateDraftAccount(draftAccountId, dto);
+        DraftAccountEntity updatedEntity = draftAccountService.updateDraftAccount(draftAccountId, dto);
 
-        return buildResponse(toGetResponseDto(replacedEntity));
+        return buildResponse(toGetResponseDto(updatedEntity));
     }
 
 
