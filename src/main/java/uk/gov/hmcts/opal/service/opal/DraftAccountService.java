@@ -1,6 +1,9 @@
 package uk.gov.hmcts.opal.service.opal;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -10,6 +13,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
+import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
@@ -22,7 +26,9 @@ import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,6 +43,9 @@ public class DraftAccountService {
     private static final String A_C_R_JSON_PATH = "$.accountCreateRequest";
     private static final String DEFENDANT_JSON_PATH = A_C_R_JSON_PATH + ".Defendant";
     private static final String ACCOUNT_JSON_PATH = A_C_R_JSON_PATH + ".Account";
+
+    private static final EnumSet<DraftAccountStatus> VALID_UPDATE_STATUSES =
+        EnumSet.of(DraftAccountStatus.PENDING, DraftAccountStatus.REJECTED, DraftAccountStatus.DELETED);
 
     private final DraftAccountRepository draftAccountRepository;
 
@@ -110,6 +119,49 @@ public class DraftAccountService {
                  draftAccountId, newSnapshot);
 
         return draftAccountRepository.save(existingAccount);
+    }
+
+    public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto)  {
+        DraftAccountEntity existingAccount = draftAccountRepository.findById(draftAccountId)
+            .orElseThrow(() -> new RuntimeException("Draft Account not found with id: " + draftAccountId));
+
+        DraftAccountStatus newStatus = Optional.ofNullable(dto.getAccountStatus())
+            .map(String::toUpperCase)
+            .map(DraftAccountStatus::valueOf)
+            .filter(VALID_UPDATE_STATUSES::contains)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid account status for update: "
+                                                                + dto.getAccountStatus()));
+
+        existingAccount.setAccountStatus(newStatus);
+
+        if (newStatus == DraftAccountStatus.PENDING) {
+            existingAccount.setValidatedDate(LocalDateTime.now());
+            existingAccount.setValidatedBy(dto.getValidatedBy());
+            existingAccount.setAccountSnapshot(addSnapshotApprovedDate(existingAccount));
+        }
+        // Set the timeline data as received from the front end
+        existingAccount.setTimelineData(dto.getTimelineData());
+
+        log.info(":updateDraftAccount: Updating draft account with ID: {} and status: {}",
+                 draftAccountId, existingAccount.getAccountStatus());
+
+        return draftAccountRepository.save(existingAccount);
+    }
+
+    private String addSnapshotApprovedDate(DraftAccountEntity existingAccount) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode rootNode = (ObjectNode) mapper.readTree(existingAccount.getAccountSnapshot());
+
+            String approvedDate = existingAccount.getValidatedDate()
+                .atOffset(ZoneOffset.UTC)
+                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            rootNode.put("approved_date", approvedDate);
+
+            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error processing JSON in addSnapshotApprovedDate", e);
+        }
     }
 
     private String createInitialSnapshot(DraftAccountRequestDto dto, LocalDateTime created,
