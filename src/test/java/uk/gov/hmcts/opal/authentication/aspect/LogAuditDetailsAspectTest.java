@@ -13,7 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authorisation.model.LogActions;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddLogAuditDetailDto;
 import uk.gov.hmcts.opal.service.opal.LogAuditDetailService;
@@ -32,7 +32,7 @@ class LogAuditDetailsAspectTest {
     private static final UserState USER_STATE = UserState.builder()
         .userName("name")
         .userId(123L)
-        .businessUnitUserPermissions(Set.of(BusinessUnitUserPermissions.builder()
+        .businessUnitUser(Set.of(BusinessUnitUser.builder()
                           .businessUnitId((short) 123)
                           .businessUnitUserId("BU123")
                           .permissions(Set.of(

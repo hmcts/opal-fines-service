@@ -12,8 +12,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authentication.service.AuthenticationService;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 
@@ -67,7 +67,7 @@ class AuthenticationInternalUserControllerTest {
         UserState userState = UserState.builder()
             .userName("name")
             .userId(123L)
-            .businessUnitUserPermissions(Set.of(BusinessUnitUserPermissions.builder()
+            .businessUnitUser(Set.of(BusinessUnitUser.builder()
                               .businessUnitId((short) 123)
                               .businessUnitUserId("BU123")
                               .permissions(Set.of(
@@ -92,14 +92,14 @@ class AuthenticationInternalUserControllerTest {
             .andExpect(jsonPath("$.access_token").value("accessToken"))
             .andExpect(jsonPath("$.user_state.user_name").value("name"))
             .andExpect(jsonPath("$.user_state.user_id").value("123"))
-            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].business_unit_id")
+            .andExpect(jsonPath("$.user_state.business_unit_user[0].business_unit_id")
                            .value("123"))
-            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].business_unit_user_id")
+            .andExpect(jsonPath("$.user_state.business_unit_user[0].business_unit_user_id")
                            .value("BU123"))
-            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].permissions[0].permission_id")
+            .andExpect(jsonPath("$.user_state.business_unit_user[0].permissions[0].permission_id")
                            .value("1"))
             .andExpect(
-               jsonPath("$.user_state.business_unit_user_permissions[0].permissions[0].permission_name")
+               jsonPath("$.user_state.business_unit_user[0].permissions[0].permission_name")
                            .value("Notes"));
     }
 
