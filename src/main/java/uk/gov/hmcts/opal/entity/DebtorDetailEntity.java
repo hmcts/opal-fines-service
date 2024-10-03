@@ -37,21 +37,6 @@ public class DebtorDetailEntity {
     @Column(name = "party_id")
     private Long partyId;
 
-    @Column(name = "telephone_home")
-    private String telephoneHome;
-
-    @Column(name = "telephone_business")
-    private String telephoneBusiness;
-
-    @Column(name = "telephone_mobile")
-    private String telephoneMobile;
-
-    @Column(name = "email_1")
-    private String email1;
-
-    @Column(name = "email_2")
-    private String email2;
-
     @Column(name = "vehicle_make")
     private String vehicleMake;
 

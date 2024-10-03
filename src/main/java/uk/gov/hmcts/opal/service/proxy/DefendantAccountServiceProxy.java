@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.authorisation.aspect.AuthorizedAnyRoleHasPermission;
+import uk.gov.hmcts.opal.authorisation.aspect.AuthorizedAnyBusinessUnitUserHasPermission;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
@@ -33,13 +33,13 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     }
 
     @Override
-    @AuthorizedAnyRoleHasPermission(Permissions.ACCOUNT_ENQUIRY)
+    @AuthorizedAnyBusinessUnitUserHasPermission(Permissions.ACCOUNT_ENQUIRY)
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
         return getCurrentModeService().getDefendantAccount(request);
     }
 
     @Override
-    @AuthorizedAnyRoleHasPermission(Permissions.ACCOUNT_ENQUIRY)
+    @AuthorizedAnyBusinessUnitUserHasPermission(Permissions.ACCOUNT_ENQUIRY)
     public DefendantAccountEntity putDefendantAccount(DefendantAccountEntity defendantAccountEntity) {
         return getCurrentModeService().putDefendantAccount(defendantAccountEntity);
     }
@@ -50,14 +50,14 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     }
 
     @Override
-    @AuthorizedAnyRoleHasPermission(Permissions.ACCOUNT_ENQUIRY)
+    @AuthorizedAnyBusinessUnitUserHasPermission(Permissions.ACCOUNT_ENQUIRY)
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.info(":searchDefendantAccounts: isLegacyMode: {}", isLegacyMode(dynamicConfigService));
         return getCurrentModeService().searchDefendantAccounts(accountSearchDto);
     }
 
     @Override
-    @AuthorizedAnyRoleHasPermission(Permissions.ACCOUNT_ENQUIRY)
+    @AuthorizedAnyBusinessUnitUserHasPermission(Permissions.ACCOUNT_ENQUIRY)
     public AccountDetailsDto getAccountDetailsByDefendantAccountId(Long defendantAccountId) {
         return getCurrentModeService().getAccountDetailsByDefendantAccountId(defendantAccountId);
     }

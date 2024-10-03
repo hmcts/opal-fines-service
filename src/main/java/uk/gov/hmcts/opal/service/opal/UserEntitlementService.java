@@ -8,8 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authentication.exception.AuthenticationException;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
-import uk.gov.hmcts.opal.authorisation.model.Role;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.search.UserEntitlementSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity;
@@ -82,8 +82,8 @@ public class UserEntitlementService implements UserEntitlementServiceInterface {
         return users.stream().findFirst().map(u -> UserState.builder()
             .userId(u.getUserId())
             .userName(u.getUsername())
-            .roles(businessUnitUsers.stream().map(buu -> Role.builder()
-                .businessUserId(buu.getBusinessUnitUserId())
+            .businessUnitUserPermissions(businessUnitUsers.stream().map(buu -> BusinessUnitUserPermissions.builder()
+                .businessUnitUserId(buu.getBusinessUnitUserId())
                 .businessUnitId(buu.getBusinessUnit().getBusinessUnitId())
                 .permissions(toPermissions(entitlementsMap.get(buu.getBusinessUnitUserId())))
                 .build()).collect(toSet()))

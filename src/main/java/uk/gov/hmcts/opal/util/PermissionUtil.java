@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.util;
 
 import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
-import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.BusinessUnitRef;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
@@ -12,20 +12,21 @@ import java.util.Optional;
 
 public class PermissionUtil {
 
-    public static Role getRequiredRole(UserState userState, Short businessUnitId) {
-        return userState.getRoleForBusinessUnit(businessUnitId).orElseThrow(() -> new
-            AccessDeniedException("User does not have an assigned role in business unit: " + businessUnitId));
+    public static BusinessUnitUserPermissions getRequiredBusinessUnitUser(UserState userState, Short businessUnitId) {
+        return userState.getBusinessUnitUserForBusinessUnit(businessUnitId).orElseThrow(() -> new
+            AccessDeniedException("User does not have assigned permissions in business unit: " + businessUnitId));
     }
 
-    public static boolean checkRoleHasPermission(Role role, Permissions permission) {
-        if (role.doesNotHavePermission(permission)) {
+    public static boolean checkBusinessUnitUserHasPermission(BusinessUnitUserPermissions businessUnitUserPermissions,
+                                                             Permissions permission) {
+        if (businessUnitUserPermissions.doesNotHavePermission(permission)) {
             throw new AccessDeniedException("User does not have the required permission: " + permission.description);
         }
         return true;
     }
 
-    public static boolean checkAnyRoleHasPermission(UserState userState, Permissions permission) {
-        if (userState.noRoleHasPermission(permission)) {
+    public static boolean checkAnyBusinessUnitUserHasPermission(UserState userState, Permissions permission) {
+        if (userState.noBusinessUnitUserHasPermission(permission)) {
             throw new AccessDeniedException("User does not have the required permission: " + permission.description);
         }
         return true;
@@ -37,12 +38,12 @@ public class PermissionUtil {
 
         return optPermission.map(
             permission -> {
-                UserState.UserRoles userRoles = userStateService
+                UserState.UserBusinessUnits userBusinessUnits = userStateService
                     .getUserStateUsingAuthToken(authHeaderValue)
-                    .allRolesWithPermission(permission);
+                    .allBusinessUnitUsersWithPermission(permission);
                 return refData
                     .stream()
-                    .filter(bu -> userRoles
+                    .filter(bu -> userBusinessUnits
                         .containsBusinessUnit(bu.getBusinessUnitId()))
                     .toList();
             }).orElse(refData);

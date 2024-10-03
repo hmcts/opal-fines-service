@@ -7,10 +7,10 @@ Feature: Test the defendant account details API Opal
       | defendantID | 500000009 |
 
     Then the response from the defendant account details api is
-      | defendantAccountId | 500000009              |
-      | accountNumber      | 80000000000I           |
-      | fullName           | Mr Smart D John        |
-      | address            | 10 Brooks Lake, Cobham |
+      | defendant_account_id | 500000009              |
+      | account_number       | 80000000000I           |
+      | full_name            | Mr Smart D John        |
+      | address              | 10 Brooks Lake, Cobham |
 
 
   Scenario Outline: No data returned when a non-existent account ID is used
@@ -25,5 +25,3 @@ Feature: Test the defendant account details API Opal
       | 999999999   |
       | 123         |
       | 50000000L   |
-
-

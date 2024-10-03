@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
+import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
+import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
@@ -65,6 +67,31 @@ class DraftAccountControllerTest {
         verify(draftAccountService, times(1)).getDraftAccount(any(Long.class));
     }
 
+
+    @Test
+    void testGetDraftAccounts_Success() {
+        // Arrange
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().build())
+            .build();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
+        when(draftAccountService.getDraftAccounts(any(), any(), any())).thenReturn(List.of(entity));
+
+        // Act
+        ResponseEntity<DraftAccountsResponseDto> response = draftAccountController
+            .getDraftAccountSummaries(Optional.of(List.of((short)1)),
+                                      Optional.of(List.of(DraftAccountStatus.PENDING)),
+                                      Optional.of(List.of()), BEARER_TOKEN);
+        DraftAccountsResponseDto dto = response.getBody();
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, dto.getCount());
+        assertEquals(toSummaryDto(entity), dto.getSummaries().get(0));
+        verify(draftAccountService, times(1)).getDraftAccounts(any(), any(), any());
+    }
+
     @Test
     void testSearchDraftAccounts_Success() {
         // Arrange
@@ -75,12 +102,11 @@ class DraftAccountControllerTest {
 
         // Act
         DraftAccountSearchDto searchDto = DraftAccountSearchDto.builder().build();
-        ResponseEntity<List<DraftAccountEntity>> response = draftAccountController.postDraftAccountsSearch(
+        ResponseEntity<List<DraftAccountResponseDto>> response = draftAccountController.postDraftAccountsSearch(
             searchDto, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(draftAccountList, response.getBody());
         verify(draftAccountService, times(1)).searchDraftAccounts(any());
     }
 
@@ -92,19 +118,19 @@ class DraftAccountControllerTest {
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .account("{\"acc\": \"1\"}")
             .businessUnit(BusinessUnitEntity.builder().build())
-            .submittedBy("Charles")
+            .submittedBy("USER_ID")
             .timelineData("{\"dat\": \"2\"}")
             .build();
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
             .accountType("Large")
             .account("{\"acc\": \"1\"}")
             .businessUnitId((short)1)
-            .submittedBy("Charles")
+            .submittedBy("USER_ID")
             .timelineData("{\"dat\": \"2\"}")
             .build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
-        when(draftAccountService.submitDraftAccount(any(), any())).thenReturn(entity);
+        when(draftAccountService.submitDraftAccount(any())).thenReturn(entity);
 
         // Act
         ResponseEntity<DraftAccountResponseDto> response = draftAccountController.postDraftAccount(
@@ -114,11 +140,11 @@ class DraftAccountControllerTest {
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         DraftAccountResponseDto responseEntity = response.getBody();
         assertEquals("Large", responseEntity.getAccountType());
-        assertEquals("Submitted", responseEntity.getAccountStatus());
+        assertEquals("Submitted", responseEntity.getAccountStatus().getLabel());
         assertEquals("{\"acc\": \"1\"}", responseEntity.getAccount());
-        assertEquals("Charles", responseEntity.getSubmittedBy());
+        assertEquals("USER_ID", responseEntity.getSubmittedBy());
         assertEquals("{\"dat\": \"2\"}", responseEntity.getTimelineData());
-        verify(draftAccountService, times(1)).submitDraftAccount(any(), any());
+        verify(draftAccountService, times(1)).submitDraftAccount(any());
     }
 
     @Test
@@ -145,8 +171,24 @@ class DraftAccountControllerTest {
             .account(entity.getAccount())
             .accountSnapshot(entity.getAccountSnapshot())
             .accountType(entity.getAccountType())
-            .accountStatus(Optional.ofNullable(entity.getAccountStatus()).map(r -> r.getLabel()).orElse(null))
+            .accountStatus(entity.getAccountStatus())
             .timelineData(entity.getTimelineData())
+            .accountNumber(entity.getAccountNumber())
+            .accountId(entity.getAccountId())
+            .build();
+    }
+
+    DraftAccountSummaryDto toSummaryDto(DraftAccountEntity entity) {
+        return DraftAccountSummaryDto.builder()
+            .draftAccountId(entity.getDraftAccountId())
+            .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
+            .createdDate(toOffsetDateTime(entity.getCreatedDate()))
+            .submittedBy(entity.getSubmittedBy())
+            .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
+            .validatedBy(entity.getValidatedBy())
+            .accountSnapshot(entity.getAccountSnapshot())
+            .accountType(entity.getAccountType())
+            .accountStatus(entity.getAccountStatus())
             .accountNumber(entity.getAccountNumber())
             .accountId(entity.getAccountId())
             .build();

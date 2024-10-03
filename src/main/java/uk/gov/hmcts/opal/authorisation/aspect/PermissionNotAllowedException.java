@@ -2,23 +2,34 @@ package uk.gov.hmcts.opal.authorisation.aspect;
 
 import lombok.Getter;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
-import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 @Getter
 public class PermissionNotAllowedException extends RuntimeException {
 
-    private final Permissions permission;
-    private final Role role;
+    private final Permissions[] permission;
+    private final BusinessUnitUserPermissions businessUnitUserPermissions;
 
-    public PermissionNotAllowedException(Permissions value) {
-        super(value + " permission is not allowed for the user");
+    public PermissionNotAllowedException(Permissions... value) {
+        super(Arrays.toString(value) + " permission(s) are not allowed for the user");
         this.permission = value;
-        this.role = null;
+        this.businessUnitUserPermissions = null;
     }
 
-    public PermissionNotAllowedException(Permissions permission, Role role) {
-        super(permission + " permission is not allowed for the role " + role);
-        this.permission = permission;
-        this.role = role;
+    public PermissionNotAllowedException(Collection<Short> buIds, Permissions... value) {
+        super(Arrays.toString(value) + " permission(s) are not allowed for the user in business units: " + buIds);
+        this.permission = value;
+        this.businessUnitUserPermissions = null;
+    }
+
+    public PermissionNotAllowedException(Permissions permission,
+                                         BusinessUnitUserPermissions businessUnitUserPermissions) {
+        super(permission + " permission is not allowed for the business unit user "
+                  + businessUnitUserPermissions.getBusinessUnitUserId());
+        this.permission = new Permissions[] {permission};
+        this.businessUnitUserPermissions = businessUnitUserPermissions;
     }
 }

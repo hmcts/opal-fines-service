@@ -62,12 +62,12 @@ public class OffenceController {
         return buildResponse(response);
     }
 
-    @GetMapping(value = {"/ref-data", "/ref-data/", "/ref-data/{filter}"})
+    @GetMapping
     @Operation(summary = "Returns 'global' Offences as reference data with an optional filter applied. "
         + "If the business unit is provided, then that is used to return only 'local' offences "
         + "for that business unit, or ALL local offences if the business unit provided is zero.")
     public ResponseEntity<OffenceReferenceDataResults> getOffenceRefData(
-        @PathVariable Optional<String> filter, @RequestParam Optional<Short> businessUnit) {
+        @RequestParam("q") Optional<String> filter, @RequestParam("business_unit_id") Optional<Short> businessUnit) {
 
         log.info(":GET:getOffenceRefData: business unit: {}, filter string: {}", businessUnit, filter);
 

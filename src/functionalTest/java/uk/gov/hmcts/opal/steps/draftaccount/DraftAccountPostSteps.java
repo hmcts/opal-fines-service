@@ -26,33 +26,33 @@ public class DraftAccountPostSteps extends BaseStepDef {
         JSONObject postBody = new JSONObject();
 
         postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
+                "business_unit_id",
+                dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
         );
         postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
         postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
         postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
+                "account_status",
+                dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
         );
 
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-            + dataToPost.get(
-            "account");
+                + dataToPost.get(
+                "account");
         String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
         JSONObject accountObject = new JSONObject(account);
 
         JSONObject timelineObject;
         if (dataToPost.get("timeline_data") != null) {
             String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-                + dataToPost.get(
-                "account");
+                    + dataToPost.get(
+                    "account");
             String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
             timelineObject = new JSONObject(timeline);
         } else {
             String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-                + "/draftAccounts/timelineJson/default.json";
+                    + "/draftAccounts/timelineJson/default.json";
             String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
             timelineObject = new JSONObject(timeline);
         }
@@ -60,19 +60,25 @@ public class DraftAccountPostSteps extends BaseStepDef {
         postBody.put("timeline_data", timelineObject);
 
         SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body(postBody.toString())
-            .when()
-            .post(getTestUrl() + DRAFT_ACCOUNT_URI);
+                .given()
+                .header("Authorization", "Bearer " + getToken())
+                .accept("*/*")
+                .contentType("application/json")
+                .body(postBody.toString())
+                .when()
+                .post(getTestUrl() + DRAFT_ACCOUNT_URI);
     }
 
     @Then("I store the created draft account ID")
     public void storeDraftAccountId() {
         String draftAccountId = then().extract().body().jsonPath().getString("draft_account_id");
          DraftAccountUtils.addDraftAccountId(draftAccountId);
+    }
+
+    @Then("I store the created draft account created_at time")
+    public void storeDraftAccountCreatedTime() {
+        String createdAt = then().extract().body().jsonPath().getString("created_at");
+        DraftAccountUtils.addDraftAccountCreatedAtTime(createdAt);
     }
 
     @Then("The draft account response contains the following data")
@@ -88,19 +94,25 @@ public class DraftAccountPostSteps extends BaseStepDef {
     @Then("The draft account response returns 201")
     public void draftAccountResponseCreated() {
         then().assertThat()
-            .statusCode(201);
+                .statusCode(201);
+    }
+
+    @Then("The draft account response returns 200")
+    public void draftAccountResponseOK() {
+        then().assertThat()
+                .statusCode(200);
     }
 
     @Then("The draft account response returns 400")
     public void draftAccountResponseBadRequest() {
         then().assertThat()
-            .statusCode(400);
+                .statusCode(400);
     }
 
     @Then("The draft account response returns 500")
     public void draftAccountResponseInternalServerError() {
         then().assertThat()
-            .statusCode(500);
+                .statusCode(500);
     }
     @Then("The draft account response returns {int}")
     public void draftAccountResponse(int statusCode) {

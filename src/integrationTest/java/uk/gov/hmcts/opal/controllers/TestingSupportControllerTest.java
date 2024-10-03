@@ -12,8 +12,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
-import uk.gov.hmcts.opal.authorisation.model.Role;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 import uk.gov.hmcts.opal.dto.AppMode;
@@ -40,9 +40,9 @@ class TestingSupportControllerTest {
     private static final UserState USER_STATE = UserState.builder()
         .userName("name")
         .userId(123L)
-        .roles(Set.of(Role.builder()
+        .businessUnitUserPermissions(Set.of(BusinessUnitUserPermissions.builder()
                           .businessUnitId((short) 123)
-                          .businessUserId("BU123")
+                          .businessUnitUserId("BU123")
                           .permissions(Set.of(
                               Permission.builder()
                                   .permissionId(1L)
@@ -129,13 +129,17 @@ class TestingSupportControllerTest {
         mockMvc.perform(get("/testing-support/token/test-user"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.accessToken").value("testToken"))
-            .andExpect(jsonPath("$.userState.userName").value("name"))
-            .andExpect(jsonPath("$.userState.userId").value("123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUnitId").value("123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUserId").value("BU123"))
-            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionId").value("1"))
-            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionName")
+            .andExpect(jsonPath("$.access_token").value("testToken"))
+            .andExpect(jsonPath("$.user_state.user_name").value("name"))
+            .andExpect(jsonPath("$.user_state.user_id").value("123"))
+            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].business_unit_id")
+                           .value("123"))
+            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].business_unit_user_id")
+                           .value("BU123"))
+            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].permissions[0].permission_id")
+                           .value("1"))
+            .andExpect(
+                jsonPath("$.user_state.business_unit_user_permissions[0].permissions[0].permission_name")
                            .value("Notes"));
 
     }
@@ -157,13 +161,17 @@ class TestingSupportControllerTest {
                             .header("X-User-Email", "test@example.com"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.accessToken").value("testToken"))
-            .andExpect(jsonPath("$.userState.userName").value("name"))
-            .andExpect(jsonPath("$.userState.userId").value("123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUnitId").value("123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUserId").value("BU123"))
-            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionId").value("1"))
-            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionName")
+            .andExpect(jsonPath("$.access_token").value("testToken"))
+            .andExpect(jsonPath("$.user_state.user_name").value("name"))
+            .andExpect(jsonPath("$.user_state.user_id").value("123"))
+            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].business_unit_id")
+                           .value("123"))
+            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].business_unit_user_id")
+                           .value("BU123"))
+            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].permissions[0].permission_id")
+                           .value("1"))
+            .andExpect(
+                jsonPath("$.user_state.business_unit_user_permissions[0].permissions[0].permission_name")
                            .value("Notes"));
     }
 
@@ -196,13 +204,17 @@ class TestingSupportControllerTest {
                             .header("X-User-Email", "test@example.com"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.accessToken").value("testToken"))
-            .andExpect(jsonPath("$.userState.userName").value("name"))
-            .andExpect(jsonPath("$.userState.userId").value("123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUnitId").value("123"))
-            .andExpect(jsonPath("$.userState.roles[0].businessUserId").value("BU123"))
-            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionId").value("1"))
-            .andExpect(jsonPath("$.userState.roles[0].permissions[0].permissionName")
+            .andExpect(jsonPath("$.access_token").value("testToken"))
+            .andExpect(jsonPath("$.user_state.user_name").value("name"))
+            .andExpect(jsonPath("$.user_state.user_id").value("123"))
+            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].business_unit_id")
+                           .value("123"))
+            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].business_unit_user_id")
+                           .value("BU123"))
+            .andExpect(jsonPath("$.user_state.business_unit_user_permissions[0].permissions[0].permission_id")
+                           .value("1"))
+            .andExpect(
+                jsonPath("$.user_state.business_unit_user_permissions[0].permissions[0].permission_name")
                            .value("Notes"));
     }
 }

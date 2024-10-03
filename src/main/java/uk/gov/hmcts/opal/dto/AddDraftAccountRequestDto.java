@@ -17,7 +17,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AddDraftAccountRequestDto implements ToJsonString {
+public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequestDto {
 
     @JsonProperty("draft_account_id")
     private Long draftAccountId;

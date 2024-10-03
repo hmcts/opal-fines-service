@@ -11,23 +11,32 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
+import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
+import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
+import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toOffsetDateTime;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
@@ -41,6 +50,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 public class DraftAccountController {
 
     public static final String ADD_DRAFT_ACCOUNT_REQUEST_JSON = "addDraftAccountRequest.json";
+    public static final String REPLACE_DRAFT_ACCOUNT_REQUEST_JSON = "replaceDraftAccountRequest.json";
     public static final String ACCOUNT_DELETED_MESSAGE_FORMAT = """
         { "message": "Draft Account '%s' deleted"}""";
 
@@ -72,17 +82,55 @@ public class DraftAccountController {
         return buildResponse(Optional.ofNullable(response).map(this::toGetResponseDto).orElse(null));
     }
 
+    @GetMapping()
+    @Operation(summary = "Returns a collection of draft accounts summaries for the given user.")
+    public ResponseEntity<DraftAccountsResponseDto> getDraftAccountSummaries(
+        @RequestParam(value = "business_unit") Optional<List<Short>> optionalBusinessUnitIds,
+        @RequestParam(value = "status") Optional<List<DraftAccountStatus>> optionalStatus,
+        @RequestParam(value = "submitted_by") Optional<List<String>> optionalSubmittedBys,
+        @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
+
+        log.info(":GET:getDraftAccountSummaries:");
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
+
+            List<DraftAccountStatus> statuses = optionalStatus.orElse(Collections.emptyList());
+            List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
+            log.info(":GET:getDraftAccountSummaries: statuses: {}; submitted bys: {}", statuses, submittedBys);
+
+            Set<Short> filteredBusinessUnitIds = userState
+                .filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
+                    optionalBusinessUnitIds,
+                    Permissions.DRAFT_ACCOUNT_PERMISSIONS
+                );
+            log.info(":GET:getDraftAccountSummaries: filtered business units: {}", filteredBusinessUnitIds);
+
+            List<DraftAccountEntity> response = draftAccountService
+                .getDraftAccounts(filteredBusinessUnitIds, statuses, submittedBys);
+
+            log.info(":GET:getDraftAccountSummaries: summaries count: {}", response.size());
+
+            return buildResponse(
+                DraftAccountsResponseDto.builder()
+                    .summaries(response.stream().map(this::toSummaryDto).toList()).build());
+        } else {
+            throw new PermissionNotAllowedException(Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+        }
+    }
+
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Draft Accounts based upon criteria in request body")
-    public ResponseEntity<List<DraftAccountEntity>> postDraftAccountsSearch(@RequestBody DraftAccountSearchDto criteria,
-                @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+    public ResponseEntity<List<DraftAccountResponseDto>> postDraftAccountsSearch(
+        @RequestBody DraftAccountSearchDto criteria,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
         log.info(":POST:postDraftAccountsSearch: query: \n{}", criteria);
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
         List<DraftAccountEntity> response = draftAccountService.searchDraftAccounts(criteria);
 
-        return buildResponse(response);
+        return buildResponse(response.stream().map(this::toGetResponseDto).toList());
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -91,11 +139,11 @@ public class DraftAccountController {
                 @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.info(":POST:postDraftAccount: creating a new draft account entity.");
 
-        UserState user = userStateService.checkForAuthorisedUser(authHeaderValue);
+        userStateService.checkForAuthorisedUser(authHeaderValue);
 
         jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
 
-        DraftAccountEntity response = draftAccountService.submitDraftAccount(dto, user.getUserName());
+        DraftAccountEntity response = draftAccountService.submitDraftAccount(dto);
 
         return buildCreatedResponse(toGetResponseDto(response));
     }
@@ -107,7 +155,7 @@ public class DraftAccountController {
     public ResponseEntity<String> deleteDraftAccountById(
         @PathVariable Long draftAccountId,
         @RequestHeader(value = "Authorization", required = false)  String authHeaderValue,
-        @RequestParam Optional<Boolean> ignoreMissing) {
+        @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
 
         log.info(":DELETE:deleteDraftAccountById: draftAccountId: {}", draftAccountId);
 
@@ -118,10 +166,30 @@ public class DraftAccountController {
         return buildResponse(String.format(ACCOUNT_DELETED_MESSAGE_FORMAT, draftAccountId));
     }
 
+    @PutMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Replaces an existing Draft Account Entity in the DB with data in request body")
+    public ResponseEntity<DraftAccountResponseDto> replaceDraftAccount(
+        @PathVariable Long draftAccountId,
+        @RequestBody ReplaceDraftAccountRequestDto dto,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.info(":PUT:replaceDraftAccount: replacing draft account entity with ID: {} and data: {}",
+                 draftAccountId, dto);
+
+        userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
+
+        DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto);
+
+        return buildResponse(toGetResponseDto(replacedEntity));
+    }
+
     DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
         return DraftAccountResponseDto.builder()
             .draftAccountId(entity.getDraftAccountId())
-            .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
+            .businessUnitId(Optional.ofNullable(entity.getBusinessUnit())
+                                .map(BusinessUnitEntity::getBusinessUnitId).orElse(null))
             .createdDate(toOffsetDateTime(entity.getCreatedDate()))
             .submittedBy(entity.getSubmittedBy())
             .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
@@ -129,9 +197,24 @@ public class DraftAccountController {
             .account(entity.getAccount())
             .accountSnapshot(entity.getAccountSnapshot())
             .accountType(entity.getAccountType())
-            .accountStatus(Optional.ofNullable(entity.getAccountStatus())
-                               .map(DraftAccountStatus::getLabel).orElse(null))
+            .accountStatus(entity.getAccountStatus())
             .timelineData(entity.getTimelineData())
+            .accountNumber(entity.getAccountNumber())
+            .accountId(entity.getAccountId())
+            .build();
+    }
+
+    DraftAccountSummaryDto toSummaryDto(DraftAccountEntity entity) {
+        return DraftAccountSummaryDto.builder()
+            .draftAccountId(entity.getDraftAccountId())
+            .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
+            .createdDate(toOffsetDateTime(entity.getCreatedDate()))
+            .submittedBy(entity.getSubmittedBy())
+            .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
+            .validatedBy(entity.getValidatedBy())
+            .accountSnapshot(entity.getAccountSnapshot())
+            .accountType(entity.getAccountType())
+            .accountStatus(entity.getAccountStatus())
             .accountNumber(entity.getAccountNumber())
             .accountId(entity.getAccountId())
             .build();

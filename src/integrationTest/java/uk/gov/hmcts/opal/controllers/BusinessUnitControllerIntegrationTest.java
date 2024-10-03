@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 class BusinessUnitControllerIntegrationTest {
 
-    private static final String URL_BASE = "/business-units/";
+    private static final String URL_BASE = "/business-units";
 
     @Autowired
     MockMvc mockMvc;
@@ -53,7 +53,7 @@ class BusinessUnitControllerIntegrationTest {
 
         when(businessUnitService.getBusinessUnit((short)1)).thenReturn(businessUnitEntity);
 
-        mockMvc.perform(get(URL_BASE + "1"))
+        mockMvc.perform(get(URL_BASE + "/1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.businessUnitId").value(1))
@@ -70,7 +70,7 @@ class BusinessUnitControllerIntegrationTest {
     void testGetBusinessUnitById_WhenBusinessUnitDoesNotExist() throws Exception {
         when(businessUnitService.getBusinessUnit((short)2)).thenReturn(null);
 
-        mockMvc.perform(get(URL_BASE + "2"))
+        mockMvc.perform(get(URL_BASE + "/2"))
             .andExpect(status().isNotFound());
     }
 
@@ -81,7 +81,7 @@ class BusinessUnitControllerIntegrationTest {
         when(businessUnitService.searchBusinessUnits(any(BusinessUnitSearchDto.class)))
             .thenReturn(singletonList(businessUnitEntity));
 
-        mockMvc.perform(post(URL_BASE + "search")
+        mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"value\"}"))
             .andExpect(status().isOk())
@@ -97,7 +97,7 @@ class BusinessUnitControllerIntegrationTest {
 
     @Test
     void testPostBusinessUnitsSearch_WhenBusinessUnitDoesNotExist() throws Exception {
-        mockMvc.perform(post(URL_BASE + "search")
+        mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());
@@ -109,17 +109,17 @@ class BusinessUnitControllerIntegrationTest {
 
         when(businessUnitService.getReferenceData(any())).thenReturn(singletonList(refData));
 
-        mockMvc.perform(get(URL_BASE + "ref-data")
+        mockMvc.perform(get(URL_BASE)
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.refData[0].businessUnitId").value(1))
-            .andExpect(jsonPath("$.refData[0].businessUnitName").value("Business Unit 001"))
-            .andExpect(jsonPath("$.refData[0].businessUnitCode").value("AAAA"))
-            .andExpect(jsonPath("$.refData[0].businessUnitType").value("LARGE UNIT"))
-            .andExpect(jsonPath("$.refData[0].accountNumberPrefix").value("XX"))
-            .andExpect(jsonPath("$.refData[0].opalDomain").value("Fines"));
+            .andExpect(jsonPath("$.refData[0].business_unit_id").value(1))
+            .andExpect(jsonPath("$.refData[0].business_unit_name").value("Business Unit 001"))
+            .andExpect(jsonPath("$.refData[0].business_unit_code").value("AAAA"))
+            .andExpect(jsonPath("$.refData[0].business_unit_type").value("LARGE UNIT"))
+            .andExpect(jsonPath("$.refData[0].account_number_prefix").value("XX"))
+            .andExpect(jsonPath("$.refData[0].opal_domain").value("Fines"));
     }
 
     @Test
@@ -129,19 +129,19 @@ class BusinessUnitControllerIntegrationTest {
 
         when(businessUnitService.getReferenceData(any())).thenReturn(singletonList(refData));
         when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
-        when(userState.allRolesWithPermission(any())).thenReturn(new TestUserRoles(true));
+        when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(true));
 
-        mockMvc.perform(get(URL_BASE + "ref-data/?permission=MANUAL_ACCOUNT_CREATION")
+        mockMvc.perform(get(URL_BASE + "?permission=CREATE_MANAGE_DRAFT_ACCOUNTS")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.refData[0].businessUnitId").value(1))
-            .andExpect(jsonPath("$.refData[0].businessUnitName").value("Business Unit 001"))
-            .andExpect(jsonPath("$.refData[0].businessUnitCode").value("AAAA"))
-            .andExpect(jsonPath("$.refData[0].businessUnitType").value("LARGE UNIT"))
-            .andExpect(jsonPath("$.refData[0].accountNumberPrefix").value("XX"))
-            .andExpect(jsonPath("$.refData[0].opalDomain").value("Fines"));
+            .andExpect(jsonPath("$.refData[0].business_unit_id").value(1))
+            .andExpect(jsonPath("$.refData[0].business_unit_name").value("Business Unit 001"))
+            .andExpect(jsonPath("$.refData[0].business_unit_code").value("AAAA"))
+            .andExpect(jsonPath("$.refData[0].business_unit_type").value("LARGE UNIT"))
+            .andExpect(jsonPath("$.refData[0].account_number_prefix").value("XX"))
+            .andExpect(jsonPath("$.refData[0].opal_domain").value("Fines"));
     }
 
     @Test
@@ -151,9 +151,9 @@ class BusinessUnitControllerIntegrationTest {
 
         when(businessUnitService.getReferenceData(any())).thenReturn(singletonList(refData));
         when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
-        when(userState.allRolesWithPermission(any())).thenReturn(new TestUserRoles(false));
+        when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(false));
 
-        mockMvc.perform(get(URL_BASE + "ref-data/?permission=MANUAL_ACCOUNT_CREATION")
+        mockMvc.perform(get(URL_BASE + "?permission=CREATE_MANAGE_DRAFT_ACCOUNTS")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -185,10 +185,10 @@ class BusinessUnitControllerIntegrationTest {
             "XX", "Fines", null, null);
     }
 
-    private class TestUserRoles implements UserState.UserRoles {
+    private class TestUserBusinessUnits implements UserState.UserBusinessUnits {
         private final boolean contains;
 
-        public TestUserRoles(boolean contains) {
+        public TestUserBusinessUnits(boolean contains) {
             this.contains = contains;
         }
 

@@ -9,21 +9,19 @@ Feature: PO-559 get draft account
       | account          | draftAccounts/accountJson/adultAccount.json |
       | account_type     | Fine                                        |
       | account_status   |                                             |
-      | submitted_by     |                                             |
+      | submitted_by     | BUUID                                       |
       | timeline_data    |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     Then I get the single created draft account and the response contains
-      | business_unit_id                  | 73                  |
-      | account_type                      | Fine                |
-      | account_status                    | Submitted           |
-      | account_snapshot.DefendantName    | LNAME, FNAME        |
-      | account_snapshot.DateOfBirth      | 01/01/2000          |
-      | account_snapshot.AccountType      | Fine                |
-      | account_snapshot.SubmittedBy      | opal-test@HMCTS.NET |
-      | account_snapshot.BusinessUnitName | MBEC London         |
+      | business_unit_id                    | 73                  |
+      | account_type                        | Fine                |
+      | account_status                      | Submitted           |
+      | account_snapshot.defendant_name     | LNAME, FNAME        |
+      | account_snapshot.date_of_birth      | 01/01/2000          |
+      | account_snapshot.account_type       | Fine                |
+      | account_snapshot.submitted_by       | BUUID               |
+      | account_snapshot.business_unit_name | West London         |
 
     Then I delete the created draft accounts
-
-

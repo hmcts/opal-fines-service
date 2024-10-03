@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity_;
 
+import java.util.Collection;
 import java.util.Optional;
 
 public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
@@ -37,6 +38,11 @@ public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
     public static Predicate equalsBusinessUnitIdPredicate(
         From<?, BusinessUnitEntity> from, CriteriaBuilder builder, Short businessUnitId) {
         return builder.equal(from.get(BusinessUnitEntity_.businessUnitId), businessUnitId);
+    }
+
+    public static Predicate equalsAnyBusinessUnitIdPredicate(
+        From<?, BusinessUnitEntity> from, CriteriaBuilder builder, Collection<Short> businessUnitId) {
+        return from.get(BusinessUnitEntity_.businessUnitId).in(businessUnitId);
     }
 
     public static Specification<BusinessUnitEntity> likeBusinessUnitName(String businessUnitName) {

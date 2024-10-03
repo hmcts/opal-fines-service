@@ -13,14 +13,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
+import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,6 +55,27 @@ class DraftAccountServiceTest {
 
         // Act
         DraftAccountEntity result = draftAccountService.getDraftAccount(1);
+
+        // Assert
+        assertNotNull(result);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testGetDraftAccounts() {
+        // Arrange
+        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+
+        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
+        Page<DraftAccountEntity> mockPage = new PageImpl<>(List.of(draftAccountEntity), Pageable.unpaged(), 999L);
+        when(draftAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(ffq);
+            return mockPage;
+        });
+
+        // Act
+        List<DraftAccountEntity> result = draftAccountService.getDraftAccounts(Set.of((short)1), Set.of(
+            DraftAccountStatus.REJECTED), Set.of());
 
         // Assert
         assertNotNull(result);
@@ -92,7 +118,7 @@ class DraftAccountServiceTest {
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(draftAccountEntity);
 
         // Act
-        DraftAccountEntity result = draftAccountService.submitDraftAccount(addDraftAccountDto, "Charles");
+        DraftAccountEntity result = draftAccountService.submitDraftAccount(addDraftAccountDto);
 
         // Assert
         assertEquals(draftAccountEntity, result);
@@ -112,7 +138,7 @@ class DraftAccountServiceTest {
 
         // Act
         RuntimeException re = assertThrows(RuntimeException.class, () ->
-            draftAccountService.submitDraftAccount(addDraftAccountDto, "Charles"));
+            draftAccountService.submitDraftAccount(addDraftAccountDto));
 
         // Assert
         assertEquals("Missing property in path $['accountCreateRequest']", re.getMessage());
@@ -121,7 +147,7 @@ class DraftAccountServiceTest {
     @Test
     void testDeleteDraftAccount_success() {
         // Arrange
-        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().draftAccountId(1L).build();
+        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().createdDate(LocalDateTime.now()).build();
         when(draftAccountRepository.getReferenceById(any())).thenReturn(draftAccountEntity);
 
         // Act
@@ -132,7 +158,7 @@ class DraftAccountServiceTest {
     void testDeleteDraftAccount_fail1() {
         // Arrange
         DraftAccountEntity draftAccountEntity = mock(DraftAccountEntity.class);
-        when(draftAccountEntity.getDraftAccountId()).thenThrow(new EntityNotFoundException("No Entity in DB"));
+        when(draftAccountEntity.getCreatedDate()).thenThrow(new EntityNotFoundException("No Entity in DB"));
         when(draftAccountRepository.getReferenceById(any())).thenReturn(draftAccountEntity);
 
         // Act
@@ -157,6 +183,92 @@ class DraftAccountServiceTest {
 
         // Assert
         assertEquals("Draft Account entity '8' does not exist in the DB.", re.getMessage());
+    }
+
+    @Test
+    void testReplaceDraftAccount_success() {
+        // Arrange
+        Long draftAccountId = 1L;
+        ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
+            .businessUnitId((short) 2)
+            .submittedBy("TestUser")
+            .account(createAccountString())
+            .accountType("Fine")
+            .timelineData("Timeline data")
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .build();
+
+        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+            .businessUnitId(((short) 2))
+            .businessUnitName("New Bailey")
+            .build();
+
+        DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .submittedBy("TestUser")
+            .account(createAccountString())
+            .accountType("Fine")
+            .accountStatus(DraftAccountStatus.RESUBMITTED)
+            .timelineData("Timeline data")
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+        when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(updatedAccount);
+
+        // Act
+        DraftAccountEntity result = draftAccountService.replaceDraftAccount(draftAccountId, replaceDto);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(draftAccountId, result.getDraftAccountId());
+        assertEquals("TestUser", result.getSubmittedBy());
+        assertEquals(createAccountString(), result.getAccount());
+        assertEquals("Fine", result.getAccountType());
+        assertEquals(DraftAccountStatus.RESUBMITTED, result.getAccountStatus());
+        assertEquals("Timeline data", result.getTimelineData());
+
+        verify(draftAccountRepository).findById(draftAccountId);
+        verify(businessUnitRepository).findById((short) 2);
+        verify(draftAccountRepository).save(any(DraftAccountEntity.class));
+    }
+
+    @Test
+    void testReplaceDraftAccount_draftAccountNotFound() {
+        // Arrange
+        Long draftAccountId = 1L;
+        ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder().build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+            draftAccountService.replaceDraftAccount(draftAccountId, replaceDto)
+        );
+        assertEquals("Draft Account not found with id: 1", exception.getMessage());
+    }
+
+    @Test
+    void testReplaceDraftAccount_businessUnitNotFound() {
+        // Arrange
+        Long draftAccountId = 1L;
+        ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
+            .businessUnitId((short) 2)
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder().build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+        when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+            draftAccountService.replaceDraftAccount(draftAccountId, replaceDto)
+        );
+        assertEquals("Business Unit not found with id: 2", exception.getMessage());
     }
 
     private String createAccountString() {

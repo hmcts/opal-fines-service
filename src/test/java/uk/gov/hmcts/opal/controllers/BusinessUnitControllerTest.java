@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.authorisation.model.UserState.UserRoles;
+import uk.gov.hmcts.opal.authorisation.model.UserState.UserBusinessUnits;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
@@ -107,11 +107,11 @@ class BusinessUnitControllerTest {
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
         when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
-        when(userState.allRolesWithPermission(any())).thenReturn(new TestUserRoles(true));
+        when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(true));
 
         // Act
         Optional<String> filter = Optional.empty();
-        Optional<Permissions> permission = Optional.of(Permissions.MANUAL_ACCOUNT_CREATION);
+        Optional<Permissions> permission = Optional.of(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
         String headerToken = "Bearer token";
         ResponseEntity<BusinessUnitReferenceDataResults> response = businessUnitController
             .getBusinessUnitRefData(filter, permission, headerToken);
@@ -133,11 +133,11 @@ class BusinessUnitControllerTest {
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
         when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
-        when(userState.allRolesWithPermission(any())).thenReturn(new TestUserRoles(false));
+        when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(false));
 
         // Act
         Optional<String> filter = Optional.empty();
-        Optional<Permissions> permission = Optional.of(Permissions.MANUAL_ACCOUNT_CREATION);
+        Optional<Permissions> permission = Optional.of(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
         String headerToken = "Bearer token";
         ResponseEntity<BusinessUnitReferenceDataResults> response = businessUnitController
             .getBusinessUnitRefData(filter, permission, headerToken);
@@ -159,10 +159,10 @@ class BusinessUnitControllerTest {
 
     }
 
-    private class TestUserRoles implements UserRoles {
+    private class TestUserBusinessUnits implements UserBusinessUnits {
         private final boolean contains;
 
-        public TestUserRoles(boolean contains) {
+        public TestUserBusinessUnits(boolean contains) {
             this.contains = contains;
         }
 

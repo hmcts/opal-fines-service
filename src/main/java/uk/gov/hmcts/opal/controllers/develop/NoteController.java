@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
@@ -24,7 +24,7 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 import java.util.List;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
-import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredRole;
+import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredBusinessUnitUser;
 
 
 @RestController
@@ -51,9 +51,10 @@ public class NoteController {
         log.info(":POST:createNote: {}", noteDto.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        Role role = getRequiredRole(userState, noteDto.getBusinessUnitId());
+        BusinessUnitUserPermissions businessUnitUserPermissions = getRequiredBusinessUnitUser(userState,
+                                                                                  noteDto.getBusinessUnitId());
 
-        noteDto.setPostedBy(role.getBusinessUserId());
+        noteDto.setPostedBy(businessUnitUserPermissions.getBusinessUnitUserId());
         noteDto.setPostedByUserId(userState.getUserId());
         NoteDto savedNoteDto = noteService.saveNote(noteDto);
         return new ResponseEntity<>(savedNoteDto, HttpStatus.CREATED);

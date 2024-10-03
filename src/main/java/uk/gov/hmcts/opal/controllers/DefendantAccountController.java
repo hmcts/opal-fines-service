@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.authorisation.model.Role;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
@@ -34,7 +34,7 @@ import java.util.List;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
-import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredRole;
+import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredBusinessUnitUser;
 
 @RestController
 @RequestMapping("/defendant-accounts")
@@ -117,7 +117,8 @@ public class DefendantAccountController {
         log.info(":POST:addNote: {}", addNote.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        Role role = getRequiredRole(userState, addNote.getBusinessUnitId());
+        BusinessUnitUserPermissions businessUnitUserPermissions = getRequiredBusinessUnitUser(userState,
+                                                                                  addNote.getBusinessUnitId());
 
         NoteDto noteDto = NoteDto.builder()
             .associatedRecordId(addNote.getAssociatedRecordId())
@@ -125,7 +126,7 @@ public class DefendantAccountController {
             .associatedRecordType(NOTE_ASSOC_REC_TYPE)
             .noteType("AA") // TODO - This will probably need to part of the AddNoteDto in future
             .businessUnitId(addNote.getBusinessUnitId())
-            .postedBy(role.getBusinessUserId())
+            .postedBy(businessUnitUserPermissions.getBusinessUnitUserId())
             .postedByUserId(userState.getUserId())
             .postedDate(LocalDateTime.now())
             .build();

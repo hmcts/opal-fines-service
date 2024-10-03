@@ -9,9 +9,10 @@ import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.Optional;
 
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsAnyBusinessUnitIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
 
 public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
@@ -25,13 +26,46 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
         ));
     }
 
+    public Specification<DraftAccountEntity> findForSummaries(Collection<Short> businessUnitIds,
+                                                              Collection<DraftAccountStatus> statuses,
+                                                              Collection<String> submittedBys) {
+        return Specification.allOf(specificationList(
+            equalsAnyBusinessUnitId(businessUnitIds),
+            equalsAnyAccountStatus(statuses),
+            equalsAnySubmittedBy(submittedBys)
+        ));
+    }
+
     public static Specification<DraftAccountEntity> equalsDraftAccountId(Long draftAccountId) {
         return (root, query, builder) -> builder.equal(root.get(DraftAccountEntity_.draftAccountId), draftAccountId);
+    }
+
+    public static Specification<DraftAccountEntity> equalsSubmittedBy(String submittedBy) {
+        return (root, query, builder) -> builder.equal(root.get(DraftAccountEntity_.submittedBy), submittedBy);
+    }
+
+    public static Optional<Specification<DraftAccountEntity>> equalsAnySubmittedBy(Collection<String> submittedBys) {
+
+        if (submittedBys.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of((root, query, builder) -> root.get(DraftAccountEntity_.submittedBy).in(submittedBys));
     }
 
     public static Specification<DraftAccountEntity> equalsBusinessUnitId(Short businessUnitId) {
         return (root, query, builder) ->
             equalsBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
+    }
+
+    public static Optional<Specification<DraftAccountEntity>> equalsAnyBusinessUnitId(
+        Collection<Short> businessUnitId) {
+
+        if (businessUnitId.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of((root, query, builder) ->
+            equalsAnyBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId));
     }
 
     public static Specification<DraftAccountEntity> likeAccountType(String accountType) {
@@ -44,11 +78,13 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
         return (root, query, builder) -> builder.equal(root.get(DraftAccountEntity_.accountStatus), status);
     }
 
-    public static Specification<DraftAccountEntity> equalsAccountStatuses(Set<String> accountStatuses) {
-        Set<DraftAccountStatus> statuses = accountStatuses.stream()
-            .map(DraftAccountStatus::valueOf)
-            .collect(Collectors.toSet());
-        return (root, query, builder) -> root.get(DraftAccountEntity_.accountStatus).in(statuses);
+    public static Optional<Specification<DraftAccountEntity>> equalsAnyAccountStatus(
+        Collection<DraftAccountStatus> accountStatuses) {
+
+        if (accountStatuses.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of((root, query, builder) -> root.get(DraftAccountEntity_.accountStatus).in(accountStatuses));
     }
 
     public static Join<DraftAccountEntity, BusinessUnitEntity> joinBusinessUnit(From<?, DraftAccountEntity> from) {

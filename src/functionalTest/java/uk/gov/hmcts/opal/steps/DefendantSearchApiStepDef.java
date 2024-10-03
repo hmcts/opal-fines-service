@@ -26,14 +26,16 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
         requestBody.put("initials", dataToPost.get("initials") != null ? dataToPost.get("initials") : "");
 
         JSONObject dateOfBirth = new JSONObject();
-        dateOfBirth.put("dayOfMonth", dataToPost.get("dayOfMonth") != null ? dataToPost.get("dayOfMonth") : "");
-        dateOfBirth.put("monthOfYear", dataToPost.get("monthOfYear") != null ? dataToPost.get("monthOfYear") : "");
+        dateOfBirth.put("day_of_month",
+                        dataToPost.get("day_of_month") != null ? dataToPost.get("day_of_month") : "");
+        dateOfBirth.put("month_of_year",
+                        dataToPost.get("month_of_year") != null ? dataToPost.get("month_of_year") : "");
         dateOfBirth.put("year", dataToPost.get("year") != null ? dataToPost.get("year") : "");
-        requestBody.put("dateOfBirth", dateOfBirth);
+        requestBody.put("date_of_birth", dateOfBirth);
 
         requestBody.put(
-            "addressLine",
-            dataToPost.get("addressLine") != null ? dataToPost.get("addressLine") : ""
+            "address_line",
+            dataToPost.get("address_line") != null ? dataToPost.get("address_line") : ""
         );
 
         SerenityRest
@@ -53,17 +55,17 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
 
         then().assertThat()
             .statusCode(200)
-            .body("totalCount", Matchers.equalTo(1))
-            .body("searchResults.name[0]", Matchers.equalTo(expectedResult.get("name")))
-            .body("searchResults.dateOfBirth[0]", Matchers.equalTo(expectedResult.get("dateOfBirth")))
-            .body("searchResults.addressLine1[0]", Matchers.equalTo(expectedResult.get("addressLine1")));
+            .body("total_count", Matchers.equalTo(1))
+            .body("search_results.name[0]", Matchers.equalTo(expectedResult.get("name")))
+            .body("search_results.date_of_birth[0]", Matchers.equalTo(expectedResult.get("dateOfBirth")))
+            .body("search_results.address_line_1[0]", Matchers.equalTo(expectedResult.get("addressLine1")));
     }
 
     @Then("there are no results returned")
     public void thereAreNoResultsReturned() {
         then().assertThat()
             .statusCode(200)
-            .body("totalCount", Matchers.equalTo(0));
+            .body("total_count", Matchers.equalTo(0));
     }
 
     @Then("the returned results match")
@@ -72,7 +74,7 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
         then().assertThat()
             .statusCode(200);
 
-        int totalCount = then().extract().jsonPath().getInt("totalCount");
+        int totalCount = then().extract().jsonPath().getInt("total_count");
         System.out.println("total count is : " + totalCount);
 
         int index = 0;
@@ -80,19 +82,19 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
         while (index < totalCount) {
             if (expectedResult.get("name") != null) {
                 then().assertThat()
-                    .body("searchResults.name[" + index + "]", Matchers.containsString(expectedResult.get("name")));
+                    .body("search_results.name[" + index + "]", Matchers.containsString(expectedResult.get("name")));
             }
-            if (expectedResult.get("dateOfBirth") != null) {
+            if (expectedResult.get("date_of_birth") != null) {
                 then().assertThat()
                     .body(
-                        "searchResults.dateOfBirth[" + index + "]",
-                        Matchers.containsString(expectedResult.get("dateOfBirth"))
+                        "search_results.date_of_birth[" + index + "]",
+                        Matchers.containsString(expectedResult.get("date_of_birth"))
                 );
             }
-            if (expectedResult.get("addressLine1") != null) {
+            if (expectedResult.get("address_line_1") != null) {
                 then().assertThat()
                     .body(
-                        "searchResults.addressLine1[" + index + "]",
+                        "search_results.address_line_1[" + index + "]",
                         Matchers.containsString(expectedResult.get("addressLine1"))
                 );
             }

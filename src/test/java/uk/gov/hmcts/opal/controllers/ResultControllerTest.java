@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -39,7 +41,7 @@ class ResultControllerTest {
         when(resultService.getResultReferenceData(any(String.class))).thenReturn(refData);
 
         // Act
-        ResponseEntity<ResultReferenceData> response = resultController.getResultById("ABC");
+        ResponseEntity<ResultReferenceData> response = resultController.getResultById(Optional.of("ABC"));
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

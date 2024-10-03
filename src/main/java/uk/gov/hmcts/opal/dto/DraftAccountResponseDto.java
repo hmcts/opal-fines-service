@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 
 import java.time.OffsetDateTime;
 
@@ -47,7 +48,7 @@ public class DraftAccountResponseDto implements ToJsonString {
     private String accountType;
 
     @JsonProperty("account_status")
-    private String accountStatus;
+    private DraftAccountStatus accountStatus;
 
     @JsonProperty("timeline_data")
     @JsonRawValue

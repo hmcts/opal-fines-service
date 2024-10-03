@@ -6,9 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
-import uk.gov.hmcts.opal.authorisation.model.Role.DeveloperRole;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions.DeveloperBusinessUnitUserPermissions;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,57 +25,85 @@ public class UserState {
     String userName;
 
     @EqualsAndHashCode.Exclude
-    Set<Role> roles;
+    Set<BusinessUnitUserPermissions> businessUnitUserPermissions;
 
     @JsonCreator
     public UserState(
-        @JsonProperty("userId") Long userId,
-        @JsonProperty("userName") String userName,
-        @JsonProperty("roles") Set<Role> roles
+        @JsonProperty("user_id") Long userId,
+        @JsonProperty("user_name") String userName,
+        @JsonProperty("business_unit_user_permissions") Set<BusinessUnitUserPermissions> businessUnitUserPermissions
     ) {
         this.userId = userId;
         this.userName = userName;
-        this.roles = roles;
+        this.businessUnitUserPermissions = businessUnitUserPermissions;
     }
 
-    public boolean anyRoleHasPermission(Permissions permission) {
-        return roles.stream().anyMatch(r -> r.hasPermission(permission));
+    public boolean anyBusinessUnitUserHasPermission(Permissions permission) {
+        return businessUnitUserPermissions.stream().anyMatch(r -> r.hasPermission(permission));
     }
 
-    public boolean noRoleHasPermission(Permissions permission) {
-        return !anyRoleHasPermission(permission);
+    public boolean noBusinessUnitUserHasPermission(Permissions permission) {
+        return !anyBusinessUnitUserHasPermission(permission);
     }
 
-    public UserRoles allRolesWithPermission(Permissions permission) {
-        return new UserRolesImpl(
-            roles.stream().filter(r -> r.hasPermission(permission)).collect(Collectors.toSet()));
+    public boolean anyBusinessUnitUserHasAnyPermission(Permissions... permission) {
+        return businessUnitUserPermissions.stream().anyMatch(r -> r.hasAnyPermission(permission));
     }
 
-    public boolean hasRoleWithPermission(short roleBusinessUnitId, Permissions permission) {
-        return roles.stream()
-            .filter(r -> r.matchesBusinessUnitId(roleBusinessUnitId))
-            .findAny()  // Should be either zero or one roles that match the business unit id
+    public UserBusinessUnits allBusinessUnitUsersWithPermission(Permissions permission) {
+        return new UserBusinessUnitsImpl(
+            businessUnitUserPermissions.stream().filter(r -> r.hasPermission(permission)).collect(Collectors.toSet()));
+    }
+
+    public boolean hasBusinessUnitUserWithPermission(short businessUnitId, Permissions permission) {
+        return businessUnitUserPermissions.stream()
+            .filter(r -> r.matchesBusinessUnitId(businessUnitId))
+            .findAny()  // Should be either zero or one businessUnitUserPermissions that match the business unit id
             .stream()
             .anyMatch(r -> r.hasPermission(permission));
     }
 
-    public Optional<Role> getRoleForBusinessUnit(Short businessUnitId) {
-        return roles.stream()
+    public boolean hasBusinessUnitUserWithAnyPermission(short businessUnitId, Permissions... permissions) {
+        return businessUnitUserPermissions.stream()
+            .filter(r -> r.matchesBusinessUnitId(businessUnitId))
+            .findAny()  // Should be either zero or one businessUnitUserPermissions that match the business unit id
+            .stream()
+            .anyMatch(r -> r.hasAnyPermission(permissions));
+    }
+
+    public Set<Short> filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
+        Optional<List<Short>> businessUnitIds, Permissions... permissions) {
+
+        return filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
+            businessUnitIds.orElse(Collections.emptyList()), permissions);
+    }
+
+    public Set<Short> filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
+        List<Short> businessUnitIds, Permissions... permissions) {
+
+        return businessUnitIds.stream()
+            .filter(buid -> hasBusinessUnitUserWithAnyPermission(buid, permissions))
+            .collect(Collectors.toSet());
+    }
+
+    public Optional<BusinessUnitUserPermissions> getBusinessUnitUserForBusinessUnit(Short businessUnitId) {
+        return businessUnitUserPermissions.stream()
             .filter(r -> r.matchesBusinessUnitId(businessUnitId))
             .findFirst();
     }
 
-    public static interface UserRoles {
+    public static interface UserBusinessUnits {
         boolean containsBusinessUnit(Short businessUnitId);
     }
 
-    public static class UserRolesImpl implements UserRoles {
-        private final Set<Role> roles;
+    public static class UserBusinessUnitsImpl implements UserBusinessUnits {
+        private final Set<BusinessUnitUserPermissions> businessUnitUserPermissions;
         private final Set<Short> businessUnits;
 
-        public UserRolesImpl(Set<Role> roles) {
-            this.roles = roles;
-            businessUnits = roles.stream().map(r -> r.getBusinessUnitId()).collect(Collectors.toSet());
+        public UserBusinessUnitsImpl(Set<BusinessUnitUserPermissions> businessUnitUserPermissions) {
+            this.businessUnitUserPermissions = businessUnitUserPermissions;
+            businessUnits = businessUnitUserPermissions.stream().map(r -> r.getBusinessUnitId())
+                .collect(Collectors.toSet());
         }
 
         public boolean containsBusinessUnit(Short businessUnitId) {
@@ -83,29 +112,40 @@ public class UserState {
     }
 
     public static class DeveloperUserState extends UserState {
-        private static final Optional<Role> DEV_ROLE = Optional.of(new DeveloperRole());
+        private static final Optional<BusinessUnitUserPermissions> DEV_BUSINESS_UNIT_USER_PERMISSIONS =
+            Optional.of(new DeveloperBusinessUnitUserPermissions());
 
         public DeveloperUserState() {
             super(0L, "Developer_User", Collections.emptySet());
         }
 
         @Override
-        public boolean anyRoleHasPermission(Permissions permission) {
+        public boolean anyBusinessUnitUserHasPermission(Permissions permission) {
+            return true;
+        }
+
+        public boolean anyBusinessUnitUserHasAnyPermission(Permissions... permission) {
             return true;
         }
 
         @Override
-        public Optional<Role> getRoleForBusinessUnit(Short businessUnitId) {
-            return DEV_ROLE;
+        public boolean hasBusinessUnitUserWithAnyPermission(short businessUnitId, Permissions... permissions) {
+            return true;
         }
 
         @Override
-        public UserRoles allRolesWithPermission(Permissions permission) {
-            return new UserRoles() {
+        public Optional<BusinessUnitUserPermissions> getBusinessUnitUserForBusinessUnit(Short businessUnitId) {
+            return DEV_BUSINESS_UNIT_USER_PERMISSIONS;
+        }
+
+        @Override
+        public UserBusinessUnits allBusinessUnitUsersWithPermission(Permissions permission) {
+            return new UserBusinessUnits() {
                 @Override
                 public boolean containsBusinessUnit(Short businessUnitId) {
                     return true;
                 }
+
             };
         }
     }

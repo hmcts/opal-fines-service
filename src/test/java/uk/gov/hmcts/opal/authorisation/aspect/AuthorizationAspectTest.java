@@ -13,9 +13,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.opal.authentication.aspect.UserStateAspectService;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
-import uk.gov.hmcts.opal.authorisation.model.Role;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
@@ -34,9 +34,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AuthorizationAspectTest {
 
-    static final Role ROLE = Role.builder()
+    static final BusinessUnitUserPermissions BUSINESS_UNIT_USER_PERMISSIONS = BusinessUnitUserPermissions.builder()
         .businessUnitId((short) 123)
-        .businessUserId("BU123")
+        .businessUnitUserId("BU123")
         .permissions(Set.of(
             Permission.builder()
                 .permissionId(54L)
@@ -46,7 +46,7 @@ class AuthorizationAspectTest {
     static final UserState USER_STATE = UserState.builder()
         .userName("name")
         .userId(123L)
-        .roles(Set.of(ROLE))
+        .businessUnitUserPermissions(Set.of(BUSINESS_UNIT_USER_PERMISSIONS))
         .build();
 
     @MockBean
@@ -59,26 +59,26 @@ class AuthorizationAspectTest {
     ProceedingJoinPoint joinPoint;
 
     @MockBean
-    AuthorizedAnyRoleHasPermission authorizedAnyRoleHasPermission;
+    AuthorizedAnyBusinessUnitUserHasPermission authorizedAnyBusinessUnitUserHasPermission;
 
     @MockBean
-    AuthorizedRoleHasPermission authorizedRoleHasPermission;
+    AuthorizedBusinessUnitUserHasPermission authorizedBusinessUnitUserHasPermission;
 
     @Autowired
     AuthorizationAspect authorizationAspect;
 
     @Nested
-    class AuthorizedAnyRoleHasPermissionAspect {
+    class AuthorizedAnyBusinessUnitUserPermissionsHasPermissionAspect {
 
         @Test
         void checkAuthorization_WhenAuthorizationHeaderMissing_ThrowsException() {
             Object[] args = {"some argument"};
             when(joinPoint.getArgs()).thenReturn(args);
-            when(authorizedAnyRoleHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY);
+            when(authorizedAnyBusinessUnitUserHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY);
 
             Assertions.assertThrows(
                 MissingRequestHeaderException.class,
-                () -> authorizationAspect.checkAuthorization(joinPoint, authorizedAnyRoleHasPermission)
+                () -> authorizationAspect.checkAuthorization(joinPoint, authorizedAnyBusinessUnitUserHasPermission)
             );
         }
 
@@ -90,9 +90,11 @@ class AuthorizationAspectTest {
             when(authorizationAspectService.getUserState(args)).thenReturn(Optional.ofNullable(USER_STATE));
 
             when(joinPoint.proceed()).thenReturn(new Object());
-            when(authorizedAnyRoleHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY);
+            when(authorizedAnyBusinessUnitUserHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY);
 
-            Object result = authorizationAspect.checkAuthorization(joinPoint, authorizedAnyRoleHasPermission);
+            Object result = authorizationAspect.checkAuthorization(joinPoint,
+                                                                   authorizedAnyBusinessUnitUserHasPermission
+            );
 
             assertNotNull(result);
             verify(joinPoint, times(1)).proceed();
@@ -105,11 +107,11 @@ class AuthorizationAspectTest {
             when(authorizationAspectService.getUserState(args)).thenReturn(Optional.ofNullable(USER_STATE));
 
             when(joinPoint.proceed()).thenReturn(new Object());
-            when(authorizedAnyRoleHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY_NOTES);
+            when(authorizedAnyBusinessUnitUserHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY_NOTES);
 
             AccessDeniedException exception = Assertions.assertThrows(
                 AccessDeniedException.class,
-                () -> authorizationAspect.checkAuthorization(joinPoint, authorizedAnyRoleHasPermission)
+                () -> authorizationAspect.checkAuthorization(joinPoint, authorizedAnyBusinessUnitUserHasPermission)
             );
 
             assertNotNull(exception);
@@ -122,7 +124,7 @@ class AuthorizationAspectTest {
     }
 
     @Nested
-    class AuthorizedRoleHasPermissionAspect {
+    class AuthorizedBusinessUnitUserPermissionsHasPermissionAspect {
 
         @Test
         void checkAuthorization_WhenUserHasPermission_ReturnsProceededObject() throws Throwable {
@@ -132,10 +134,11 @@ class AuthorizationAspectTest {
             when(authorizationAspectService.getUserState(args)).thenReturn(Optional.ofNullable(USER_STATE));
 
             when(joinPoint.proceed()).thenReturn(new Object());
-            when(authorizedRoleHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY);
-            when(authorizationAspectService.getRole(any(), any())).thenReturn(ROLE);
+            when(authorizedBusinessUnitUserHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY);
+            when(authorizationAspectService.getBusinessUnitUserPermissions(any(), any()))
+                .thenReturn(BUSINESS_UNIT_USER_PERMISSIONS);
 
-            Object result = authorizationAspect.checkAuthorization(joinPoint, authorizedRoleHasPermission);
+            Object result = authorizationAspect.checkAuthorization(joinPoint, authorizedBusinessUnitUserHasPermission);
 
             assertNotNull(result);
             verify(joinPoint, times(1)).proceed();
@@ -148,12 +151,13 @@ class AuthorizationAspectTest {
             when(authorizationAspectService.getUserState(args)).thenReturn(Optional.ofNullable(USER_STATE));
 
             when(joinPoint.proceed()).thenReturn(new Object());
-            when(authorizedRoleHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY_NOTES);
-            when(authorizationAspectService.getRole(any(), any())).thenReturn(ROLE);
+            when(authorizedBusinessUnitUserHasPermission.value()).thenReturn(Permissions.ACCOUNT_ENQUIRY_NOTES);
+            when(authorizationAspectService.getBusinessUnitUserPermissions(any(), any()))
+                .thenReturn(BUSINESS_UNIT_USER_PERMISSIONS);
 
             AccessDeniedException exception = Assertions.assertThrows(
                 AccessDeniedException.class,
-                () -> authorizationAspect.checkAuthorization(joinPoint, authorizedRoleHasPermission)
+                () -> authorizationAspect.checkAuthorization(joinPoint, authorizedBusinessUnitUserHasPermission)
             );
 
             assertNotNull(exception);
