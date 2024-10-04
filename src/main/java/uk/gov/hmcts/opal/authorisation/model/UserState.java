@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions.DeveloperBusinessUnitUserPermissions;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser.DeveloperBusinessUnitUser;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,21 +25,21 @@ public class UserState {
     String userName;
 
     @EqualsAndHashCode.Exclude
-    Set<BusinessUnitUserPermissions> businessUnitUserPermissions;
+    Set<BusinessUnitUser> businessUnitUser;
 
     @JsonCreator
     public UserState(
         @JsonProperty("user_id") Long userId,
         @JsonProperty("user_name") String userName,
-        @JsonProperty("business_unit_user_permissions") Set<BusinessUnitUserPermissions> businessUnitUserPermissions
+        @JsonProperty("business_unit_user") Set<BusinessUnitUser> businessUnitUser
     ) {
         this.userId = userId;
         this.userName = userName;
-        this.businessUnitUserPermissions = businessUnitUserPermissions;
+        this.businessUnitUser = businessUnitUser;
     }
 
     public boolean anyBusinessUnitUserHasPermission(Permissions permission) {
-        return businessUnitUserPermissions.stream().anyMatch(r -> r.hasPermission(permission));
+        return businessUnitUser.stream().anyMatch(r -> r.hasPermission(permission));
     }
 
     public boolean noBusinessUnitUserHasPermission(Permissions permission) {
@@ -47,26 +47,26 @@ public class UserState {
     }
 
     public boolean anyBusinessUnitUserHasAnyPermission(Permissions... permission) {
-        return businessUnitUserPermissions.stream().anyMatch(r -> r.hasAnyPermission(permission));
+        return businessUnitUser.stream().anyMatch(r -> r.hasAnyPermission(permission));
     }
 
     public UserBusinessUnits allBusinessUnitUsersWithPermission(Permissions permission) {
         return new UserBusinessUnitsImpl(
-            businessUnitUserPermissions.stream().filter(r -> r.hasPermission(permission)).collect(Collectors.toSet()));
+            businessUnitUser.stream().filter(r -> r.hasPermission(permission)).collect(Collectors.toSet()));
     }
 
     public boolean hasBusinessUnitUserWithPermission(short businessUnitId, Permissions permission) {
-        return businessUnitUserPermissions.stream()
+        return businessUnitUser.stream()
             .filter(r -> r.matchesBusinessUnitId(businessUnitId))
-            .findAny()  // Should be either zero or one businessUnitUserPermissions that match the business unit id
+            .findAny()  // Should be either zero or one businessUnitUser that match the business unit id
             .stream()
             .anyMatch(r -> r.hasPermission(permission));
     }
 
     public boolean hasBusinessUnitUserWithAnyPermission(short businessUnitId, Permissions... permissions) {
-        return businessUnitUserPermissions.stream()
+        return businessUnitUser.stream()
             .filter(r -> r.matchesBusinessUnitId(businessUnitId))
-            .findAny()  // Should be either zero or one businessUnitUserPermissions that match the business unit id
+            .findAny()  // Should be either zero or one businessUnitUser that match the business unit id
             .stream()
             .anyMatch(r -> r.hasAnyPermission(permissions));
     }
@@ -86,8 +86,8 @@ public class UserState {
             .collect(Collectors.toSet());
     }
 
-    public Optional<BusinessUnitUserPermissions> getBusinessUnitUserForBusinessUnit(Short businessUnitId) {
-        return businessUnitUserPermissions.stream()
+    public Optional<BusinessUnitUser> getBusinessUnitUserForBusinessUnit(Short businessUnitId) {
+        return businessUnitUser.stream()
             .filter(r -> r.matchesBusinessUnitId(businessUnitId))
             .findFirst();
     }
@@ -97,12 +97,12 @@ public class UserState {
     }
 
     public static class UserBusinessUnitsImpl implements UserBusinessUnits {
-        private final Set<BusinessUnitUserPermissions> businessUnitUserPermissions;
+        private final Set<BusinessUnitUser> businessUnitUser;
         private final Set<Short> businessUnits;
 
-        public UserBusinessUnitsImpl(Set<BusinessUnitUserPermissions> businessUnitUserPermissions) {
-            this.businessUnitUserPermissions = businessUnitUserPermissions;
-            businessUnits = businessUnitUserPermissions.stream().map(r -> r.getBusinessUnitId())
+        public UserBusinessUnitsImpl(Set<BusinessUnitUser> businessUnitUser) {
+            this.businessUnitUser = businessUnitUser;
+            businessUnits = businessUnitUser.stream().map(r -> r.getBusinessUnitId())
                 .collect(Collectors.toSet());
         }
 
@@ -112,8 +112,8 @@ public class UserState {
     }
 
     public static class DeveloperUserState extends UserState {
-        private static final Optional<BusinessUnitUserPermissions> DEV_BUSINESS_UNIT_USER_PERMISSIONS =
-            Optional.of(new DeveloperBusinessUnitUserPermissions());
+        private static final Optional<BusinessUnitUser> DEV_BUSINESS_UNIT_USER =
+            Optional.of(new DeveloperBusinessUnitUser());
 
         public DeveloperUserState() {
             super(0L, "Developer_User", Collections.emptySet());
@@ -134,8 +134,8 @@ public class UserState {
         }
 
         @Override
-        public Optional<BusinessUnitUserPermissions> getBusinessUnitUserForBusinessUnit(Short businessUnitId) {
-            return DEV_BUSINESS_UNIT_USER_PERMISSIONS;
+        public Optional<BusinessUnitUser> getBusinessUnitUserForBusinessUnit(Short businessUnitId) {
+            return DEV_BUSINESS_UNIT_USER;
         }
 
         @Override

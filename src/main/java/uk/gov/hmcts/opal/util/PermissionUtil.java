@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.util;
 
 import org.springframework.security.access.AccessDeniedException;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.BusinessUnitRef;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
@@ -12,14 +12,14 @@ import java.util.Optional;
 
 public class PermissionUtil {
 
-    public static BusinessUnitUserPermissions getRequiredBusinessUnitUser(UserState userState, Short businessUnitId) {
+    public static BusinessUnitUser getRequiredBusinessUnitUser(UserState userState, Short businessUnitId) {
         return userState.getBusinessUnitUserForBusinessUnit(businessUnitId).orElseThrow(() -> new
             AccessDeniedException("User does not have assigned permissions in business unit: " + businessUnitId));
     }
 
-    public static boolean checkBusinessUnitUserHasPermission(BusinessUnitUserPermissions businessUnitUserPermissions,
+    public static boolean checkBusinessUnitUserHasPermission(BusinessUnitUser businessUnitUser,
                                                              Permissions permission) {
-        if (businessUnitUserPermissions.doesNotHavePermission(permission)) {
+        if (businessUnitUser.doesNotHavePermission(permission)) {
             throw new AccessDeniedException("User does not have the required permission: " + permission.description);
         }
         return true;
