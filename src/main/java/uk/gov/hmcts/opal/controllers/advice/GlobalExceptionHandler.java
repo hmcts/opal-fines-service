@@ -27,6 +27,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
@@ -115,17 +116,29 @@ public class GlobalExceptionHandler {
             .contentType(MediaType.APPLICATION_JSON).body(body);
     }
 
-    @ExceptionHandler({HttpMediaTypeNotSupportedException.class, HttpMessageNotReadableException.class})
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<Map<String, String>> handleHttpMediaTypeNotSupportedException(
+        HttpMediaTypeNotSupportedException ex) {
+
+        log.error(":handleHttpMediaTypeNotSupportedException: {}", ex.getMessage());
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "Unsupported Media Type");
+        body.put(MESSAGE, "The Content-Type is not supported. Please use application/json");
+
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+            .contentType(MediaType.APPLICATION_JSON).body(body);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, String>> handleHttpMessageNotReadableException(
-        Exception ex) {
+        HttpMessageNotReadableException ex) {
 
         log.error(":handleHttpMessageNotReadableException: {}", ex.getMessage());
         Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, ex.getMessage());
-        body.put(MESSAGE,
-            "The request body could not be read, ensure content-type is application/json");
+        body.put(ERROR, "Bad Request");
+        body.put(MESSAGE, "The request body could not be read. It may be missing or invalid JSON.");
 
-        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .contentType(MediaType.APPLICATION_JSON).body(body);
     }
 
@@ -248,6 +261,19 @@ public class GlobalExceptionHandler {
         body.put(ERROR, "Service Unavailable");
         body.put(MESSAGE, DB_UNAVAILABLE_MESSAGE);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).contentType(MediaType.APPLICATION_JSON).body(body);
+    }
+
+    @ExceptionHandler(JsonSchemaValidationException.class)
+    public ResponseEntity<Map<String, String>> handleJsonSchemaValidationException(JsonSchemaValidationException e) {
+        log.error(":handleJsonSchemaValidationException: {}", e.getMessage());
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "Bad Request");
+        body.put(MESSAGE, "JSON Schema Validation Error: " + e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body);
     }
 
 

@@ -22,8 +22,8 @@ import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler;
-import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
+import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
@@ -40,6 +40,7 @@ import java.time.LocalDateTime;
 import java.util.logging.Logger;
 
 import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -438,5 +439,45 @@ class DraftAccountControllerIntegrationTest {
         assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNT_RESPONSE));
 
         verify(draftAccountService).updateDraftAccount(eq(draftAccountId), any(UpdateDraftAccountRequestDto.class));
+    }
+
+    @Test
+    void testPostDraftAccount_JsonSchemaValidationException() throws Exception {
+        String invalidRequestBody = """
+        {
+            "invalid_field": "This field shouldn't be here",
+            "account": {
+                "accountCreateRequest": {
+                    "Defendant": {
+                        "CompanyName": "Company ABC",
+                        "Surname": "LNAME",
+                        "Fornames": "FNAME",
+                        "DOB": "2000-01-01"
+                    },
+                    "Account": {
+                        "AccountType": "Invalid"
+                    }
+                }
+            },
+            "business_unit_id": 1
+        }
+            """;
+
+        String expectedErrorMessageStart =
+            "JSON Schema Validation Error: Validating against JSON schema 'addDraftAccountRequest.json',"
+                + " found 3 validation errors:";
+
+        mockMvc.perform(post(URL_BASE)
+                            .header("authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(invalidRequestBody))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.error").value("Bad Request"))
+            .andExpect(jsonPath("$.message").value(containsString(expectedErrorMessageStart)))
+            .andExpect(jsonPath("$.message").value(containsString("required property 'account_type' not found")))
+            .andExpect(jsonPath("$.message").value(containsString("required property 'submitted_by' not found")))
+            .andExpect(jsonPath("$.message").value(containsString("required property 'timeline_data' not found")));
+
     }
 }

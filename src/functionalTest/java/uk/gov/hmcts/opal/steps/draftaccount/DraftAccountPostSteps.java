@@ -91,27 +91,82 @@ public class DraftAccountPostSteps extends BaseStepDef {
         }
     }
 
-    @Then("The draft account response returns 201")
-    public void draftAccountResponseCreated() {
+    @Then("The draft account response returns {int}")
+    public void draftAccountResponse(int statusCode) {
         then().assertThat()
-                .statusCode(201);
+                .statusCode(statusCode);
     }
 
-    @Then("The draft account response returns 200")
-    public void draftAccountResponseOK() {
-        then().assertThat()
-                .statusCode(200);
+    @When("I attempt to create a draft account with an invalid token")
+    public void postDraftAccountWithInvalidToken() throws JSONException {
+        JSONObject postBody = new JSONObject();
+
+        postBody.put("business_unit_id", "77");
+        postBody.put("account", "{\"accountCreateRequest\":{\"Defendant\":{},\"Account\":{}}}");
+        postBody.put("account_type", "Fine");
+        postBody.put("account_status", "");
+        postBody.put("submitted_by", "BUUID");
+        postBody.put("timeline_data", "");
+
+        SerenityRest
+                .given()
+                .header("Authorization", "Bearer " + "invalidToken")
+                .accept("*/*")
+                .contentType("application/json")
+                .body(postBody.toString())
+                .when()
+                .post(getTestUrl() + DRAFT_ACCOUNT_URI);
+
     }
 
-    @Then("The draft account response returns 400")
-    public void draftAccountResponseBadRequest() {
-        then().assertThat()
-                .statusCode(400);
+    @When("I attempt to create a draft account with an unsupported content type")
+    public void postDraftAccountWithUnsupportedContentType() throws JSONException, IOException {
+        JSONObject postBody = new JSONObject();
+        String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
+                + "draftAccounts/accountJson/account.json";
+        String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
+        JSONObject accountObject = new JSONObject(account);
+        postBody.put("business_unit_id", 77);
+        postBody.put("account", accountObject);
+        postBody.put("account_type", "Fine");
+        postBody.put("account_status", "");
+        postBody.put("submitted_by", "BUUID");
+        postBody.put("timeline_data", new JSONObject());
+
+        SerenityRest
+                .given()
+                .header("Authorization", "Bearer " + getToken())
+                .accept("text/plain")
+                .contentType("application/json")
+                .body(postBody.toString())
+                .when()
+                .post(getTestUrl() + DRAFT_ACCOUNT_URI);
+
     }
 
-    @Then("The draft account response returns 500")
-    public void draftAccountResponseInternalServerError() {
-        then().assertThat()
-                .statusCode(500);
+    @When("I attempt to create a draft account with an unsupported media type")
+    public void postDraftAccountWithUnsupportedMediaType() throws JSONException, IOException {
+        JSONObject postBody = new JSONObject();
+        String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
+                + "draftAccounts/accountJson/account.json";
+        String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
+        JSONObject accountObject = new JSONObject(account);
+
+        postBody.put("business_unit_id", 77);
+        postBody.put("account", accountObject);
+        postBody.put("account_type", "Fine");
+        postBody.put("account_status", "");
+        postBody.put("submitted_by", "BUUID");
+        postBody.put("timeline_data", new JSONObject());
+
+        SerenityRest
+                .given()
+                .header("Authorization", "Bearer " + getToken())
+                .accept("*/*")
+                .contentType("application/xml")
+                .body(postBody.toString())
+                .when()
+                .post(getTestUrl() + DRAFT_ACCOUNT_URI);
+
     }
 }
