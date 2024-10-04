@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.gov.hmcts.opal.authentication.aspect.AccessTokenParam;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
@@ -55,20 +55,20 @@ public class AuthorizationAspectService {
         return Optional.empty();
     }
 
-    public BusinessUnitUserPermissions getBusinessUnitUserPermissions(Object[] args, UserState userState) {
+    public BusinessUnitUser getBusinessUnitUser(Object[] args, UserState userState) {
         for (Object arg : args) {
-            if (arg instanceof BusinessUnitUserPermissions) {
-                return (BusinessUnitUserPermissions) arg;
+            if (arg instanceof BusinessUnitUser) {
+                return (BusinessUnitUser) arg;
             } else if (arg instanceof AddNoteDto addNoteDto) {
                 return getRequiredBusinessUnitUser(userState, addNoteDto.getBusinessUnitId());
             } else if (arg instanceof NoteDto noteDto) {
                 return getRequiredBusinessUnitUser(userState, noteDto.getBusinessUnitId());
             }
         }
-        throw new BusinessUnitUserPermissionsNotFoundException(format(
+        throw new BusinessUnitUserNotFoundException(format(
             "Can't infer the role for user %s. "
                 + "Annotated method needs to have arguments of types"
-                + " (BusinessUnitUserPermissions, AddNoteDto, NoteDto).",
+                + " (BusinessUnitUser, AddNoteDto, NoteDto).",
             userState.getUserName()
         ));
     }
