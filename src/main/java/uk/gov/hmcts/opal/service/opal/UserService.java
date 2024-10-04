@@ -56,7 +56,7 @@ public class UserService implements UserServiceInterface {
         return UserState.builder()
             .userId(user.getUserId())
             .userName(user.getUsername())
-            .businessUnitUserPermissions(businessUnitUserService
+            .businessUnitUser(businessUnitUserService
                                              .getAuthorisationBusinessUnitPermissionsByUserId(user.getUserId()))
             .build();
     }
@@ -74,7 +74,7 @@ public class UserService implements UserServiceInterface {
         return userEntity.map(u -> UserState.builder()
             .userId(u.getUserId())
             .userName(u.getUsername())
-            .businessUnitUserPermissions(businessUnitUserService
+            .businessUnitUser(businessUnitUserService
                                              .getLimitedBusinessUnitPermissionsByUserId(u.getUserId()))
             .build());
     }

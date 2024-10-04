@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -25,6 +26,7 @@ import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
+import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
@@ -51,6 +53,7 @@ public class DraftAccountController {
 
     public static final String ADD_DRAFT_ACCOUNT_REQUEST_JSON = "addDraftAccountRequest.json";
     public static final String REPLACE_DRAFT_ACCOUNT_REQUEST_JSON = "replaceDraftAccountRequest.json";
+    public static final String UPDATE_DRAFT_ACCOUNT_REQUEST_JSON = "updateDraftAccountRequest.json";
     public static final String ACCOUNT_DELETED_MESSAGE_FORMAT = """
         { "message": "Draft Account '%s' deleted"}""";
 
@@ -184,6 +187,26 @@ public class DraftAccountController {
 
         return buildResponse(toGetResponseDto(replacedEntity));
     }
+
+    @PatchMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Updates an existing Draft Account Entity in the DB with data in request body")
+    public ResponseEntity<DraftAccountResponseDto> updateDraftAccount(
+        @PathVariable Long draftAccountId,
+        @RequestBody UpdateDraftAccountRequestDto dto,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.info(":PATCH:updateDraftAccount: replacing draft account entity with ID: {} and data: {}",
+                 draftAccountId, dto);
+
+        userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
+
+        DraftAccountEntity updatedEntity = draftAccountService.updateDraftAccount(draftAccountId, dto);
+
+        return buildResponse(toGetResponseDto(updatedEntity));
+    }
+
 
     DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
         return DraftAccountResponseDto.builder()

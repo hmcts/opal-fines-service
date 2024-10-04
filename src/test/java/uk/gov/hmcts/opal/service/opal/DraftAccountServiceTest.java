@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
+import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
@@ -30,8 +31,10 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -269,6 +272,75 @@ class DraftAccountServiceTest {
             draftAccountService.replaceDraftAccount(draftAccountId, replaceDto)
         );
         assertEquals("Business Unit not found with id: 2", exception.getMessage());
+    }
+
+    @Test
+    void testUpdateDraftAccount_success() {
+        // Arrange
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus("PENDING")
+            .validatedBy("TestValidator")
+            .timelineData("Updated timeline data")
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\"}")
+            .build();
+
+        DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .accountStatus(DraftAccountStatus.PENDING)
+            .validatedBy("TestValidator")
+            .validatedDate(LocalDateTime.now())
+            .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\",\"approved_date\":\"2024-10-03T14:30:00Z\"}")
+            .timelineData("Updated timeline data")
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(updatedAccount);
+
+        // Act
+        DraftAccountEntity result = draftAccountService.updateDraftAccount(draftAccountId, updateDto);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(draftAccountId, result.getDraftAccountId());
+        assertEquals(DraftAccountStatus.PENDING, result.getAccountStatus());
+        assertEquals("TestValidator", result.getValidatedBy());
+        assertNotNull(result.getValidatedDate());
+        assertTrue(result.getAccountSnapshot().contains("approved_date"));
+        assertEquals("Updated timeline data", result.getTimelineData());
+
+        verify(draftAccountRepository).findById(draftAccountId);
+        verify(draftAccountRepository).save(any(DraftAccountEntity.class));
+    }
+
+    @Test
+    void testUpdateDraftAccount_invalidStatus() {
+        // Arrange
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus("SUBMITTED")
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            draftAccountService.updateDraftAccount(draftAccountId, updateDto)
+        );
+        assertEquals("Invalid account status for update: SUBMITTED", exception.getMessage());
+
+        verify(draftAccountRepository).findById(draftAccountId);
+        verify(draftAccountRepository, never()).save(any(DraftAccountEntity.class));
     }
 
     private String createAccountString() {

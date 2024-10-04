@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.controllers;
 
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUserPermissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 
 import java.util.Set;
@@ -23,16 +23,16 @@ public class UserStateBuilder {
             ))));
     }
 
-    public static UserState createUserState(Set<BusinessUnitUserPermissions> businessUnitUserPermissions) {
+    public static UserState createUserState(Set<BusinessUnitUser> businessUnitUser) {
         return UserState.builder()
             .userId(345L)
             .userName("John Smith")
-            .businessUnitUserPermissions(businessUnitUserPermissions)
+            .businessUnitUser(businessUnitUser)
             .build();
     }
 
-    public static BusinessUnitUserPermissions createBusinessUnitUser(Set<Permission> permissions) {
-        return BusinessUnitUserPermissions.builder()
+    public static BusinessUnitUser createBusinessUnitUser(Set<Permission> permissions) {
+        return BusinessUnitUser.builder()
             .businessUnitUserId("JK0320")
             .businessUnitId((short)50)
             .permissions(permissions)
