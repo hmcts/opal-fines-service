@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -25,6 +26,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.converter.DefendantAccountTypeConverter;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 import java.math.BigDecimal;
@@ -189,4 +191,7 @@ public class DefendantAccountEntity {
     @OneToMany(mappedBy = "defendantAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<DefendantAccountPartiesEntity> parties;
 
+    @Column(name = "account_type", length = 30, nullable = false)
+    @Convert(converter = DefendantAccountTypeConverter.class)
+    private DefendantAccountType accountType;
 }
