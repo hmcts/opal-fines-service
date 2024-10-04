@@ -57,6 +57,7 @@ public class DefendantAccountEntityTest {
         defendantAccount.setPaymentCardRequestedBy("requested");
         defendantAccount.setProsecutorCaseReference("reference");
         defendantAccount.setEnforcementCaseStatus("status");
+        defendantAccount.setAccountType(DefendantAccountType.FINES);
 
 
         // Test getters
@@ -99,6 +100,7 @@ public class DefendantAccountEntityTest {
         assertEquals("requested", defendantAccount.getPaymentCardRequestedBy());
         assertEquals("reference", defendantAccount.getProsecutorCaseReference());
         assertEquals("status", defendantAccount.getEnforcementCaseStatus());
+        assertEquals(DefendantAccountType.FINES, defendantAccount.getAccountType());
 
     }
 
