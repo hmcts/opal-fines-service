@@ -48,7 +48,7 @@ Feature: PO-703 results happy path
       | active                      | true   |
       | result_type                 | Result |
       | imposition_creditor         | CF     |
-      | imposition_allocation_order |        |
+      | imposition_allocation_order | 5      |
 
     And The results response contains the following result
       | result_id                   | ABDC                                    |
