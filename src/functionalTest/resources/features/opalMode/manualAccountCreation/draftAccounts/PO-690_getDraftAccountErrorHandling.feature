@@ -1,4 +1,4 @@
-@Opal
+
 Feature: PO-690 get draft account error handling scenarios
 
   @PO-690
