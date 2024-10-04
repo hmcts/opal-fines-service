@@ -42,7 +42,7 @@ Feature: PO-691 post draft account error handling
   Scenario: Post draft account - CEP9 - Other Server Error
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id_ | 73                                          |
+      | business_unit_id | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa             |
       | account_status    |                                             |
