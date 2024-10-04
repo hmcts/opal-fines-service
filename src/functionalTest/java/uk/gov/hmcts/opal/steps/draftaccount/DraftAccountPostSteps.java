@@ -143,6 +143,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
                 .post(getTestUrl() + DRAFT_ACCOUNT_URI);
 
     }
+
     @When("I attempt to create a draft account with an unsupported media type")
     public void postDraftAccountWithUnsupportedMediaType() throws JSONException, IOException {
         JSONObject postBody = new JSONObject();
