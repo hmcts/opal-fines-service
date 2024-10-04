@@ -134,6 +134,7 @@ public class GlobalExceptionHandler {
         InvalidDataAccessApiUsageException idaaue) {
 
         log.error(":handleInvalidDataAccessApiUsageException: {}", idaaue.getMessage());
+        log.error(":handleInvalidDataAccessApiUsageException:", idaaue);
 
         Map<String, String> body = new LinkedHashMap<>();
 
