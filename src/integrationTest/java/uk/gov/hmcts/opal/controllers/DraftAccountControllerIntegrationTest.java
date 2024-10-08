@@ -346,6 +346,8 @@ class DraftAccountControllerIntegrationTest {
             .timelineData("{\"stuff\":\"yes\"}")
             .build();
 
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
+
         when(draftAccountService.replaceDraftAccount(eq(draftAccountId), any(ReplaceDraftAccountRequestDto.class)))
             .thenReturn(updatedEntity);
 

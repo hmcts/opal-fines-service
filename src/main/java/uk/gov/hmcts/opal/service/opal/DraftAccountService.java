@@ -106,6 +106,10 @@ public class DraftAccountService {
         BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId())
             .orElseThrow(() -> new RuntimeException("Business Unit not found with id: " + dto.getBusinessUnitId()));
 
+        if (!(existingAccount.getBusinessUnit().getBusinessUnitId() == dto.getBusinessUnitId())) {
+            throw new IllegalArgumentException("Business Unit ID does not match the existing draft account");
+        }
+
         LocalDateTime updatedTime = LocalDateTime.now();
         String newSnapshot = createInitialSnapshot(dto, updatedTime, businessUnit);
         existingAccount.setSubmittedBy(dto.getSubmittedBy());

@@ -139,6 +139,12 @@ public class UserState {
         }
 
         @Override
+        public boolean hasBusinessUnitUserWithPermission(short businessUnitId, Permissions permission) {
+            return true;
+        }
+
+
+        @Override
         public UserBusinessUnits allBusinessUnitUsersWithPermission(Permissions permission) {
             return new UserBusinessUnits() {
                 @Override
