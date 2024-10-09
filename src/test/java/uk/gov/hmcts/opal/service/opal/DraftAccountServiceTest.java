@@ -276,6 +276,32 @@ class DraftAccountServiceTest {
     }
 
     @Test
+    void testReplaceDraftAccount_businessUnitMismatch() {
+        // Arrange
+        Long draftAccountId = 1L;
+        ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
+            .businessUnitId((short) 2)
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
+            .build();
+
+        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+            .businessUnitId(((short) 3))
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+        when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(IllegalArgumentException.class, () ->
+            draftAccountService.replaceDraftAccount(draftAccountId, replaceDto)
+        );
+        assertEquals("Business Unit ID does not match the existing draft account", exception.getMessage());
+    }
+
+    @Test
     void testUpdateDraftAccount_success() {
         // Arrange
         Long draftAccountId = 1L;

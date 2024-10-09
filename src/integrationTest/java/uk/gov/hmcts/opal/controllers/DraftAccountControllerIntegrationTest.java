@@ -37,6 +37,7 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 import java.net.ConnectException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.logging.Logger;
 
 import static java.util.Collections.singletonList;
@@ -375,6 +376,51 @@ class DraftAccountControllerIntegrationTest {
         assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNT_RESPONSE));
 
         verify(draftAccountService).replaceDraftAccount(eq(draftAccountId), any(ReplaceDraftAccountRequestDto.class));
+    }
+
+    @Test
+    void testReplaceDraftAccount_no_permission() throws Exception {
+        Long draftAccountId = 241L;
+        String requestBody = """
+    {
+        "account": {
+            "accountCreateRequest": {
+                "Defendant": {
+                    "CompanyName": "Company ABC",
+                    "Surname": "LNAME",
+                    "Fornames": "FNAME",
+                    "DOB": "2000-01-01"
+                },
+                "Account": {
+                    "AccountType": "Fine"
+                }
+            }
+        },
+        "account_status": "",
+        "account_summary_data": "",
+        "account_type": "Fines",
+        "business_unit_id": 5,
+        "submitted_by": "BUUID1",
+        "timeline_data": {
+            "stuff": "yes"
+        },
+        "court": "test"
+    }
+            """;
+
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState(1L,
+                                                                                      "test",
+                                                                                      new HashSet<>()
+        ));
+
+        mockMvc.perform(put(URL_BASE + "/" + draftAccountId)
+                                               .header("authorization", "Bearer some_value")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .content(requestBody))
+            .andExpect(status().isForbidden())
+            .andReturn();
+
     }
 
     @Test
