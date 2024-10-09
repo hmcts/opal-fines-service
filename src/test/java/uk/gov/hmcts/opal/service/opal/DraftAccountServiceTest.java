@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
+import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
@@ -202,6 +203,7 @@ class DraftAccountServiceTest {
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
             .build();
 
         BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
@@ -272,6 +274,31 @@ class DraftAccountServiceTest {
             draftAccountService.replaceDraftAccount(draftAccountId, replaceDto)
         );
         assertEquals("Business Unit not found with id: 2", exception.getMessage());
+    }
+
+    @Test
+    void testReplaceDraftAccount_businessUnitMismatch() {
+        // Arrange
+        Long draftAccountId = 1L;
+        ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
+            .businessUnitId((short) 2)
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
+            .build();
+
+        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+            .businessUnitId(((short) 3))
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+        when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(PermissionNotAllowedException.class, () ->
+            draftAccountService.replaceDraftAccount(draftAccountId, replaceDto)
+        );
     }
 
     @Test

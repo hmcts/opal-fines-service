@@ -144,6 +144,9 @@ public class DraftAccountController {
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
+
+
+
         jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
 
         DraftAccountEntity response = draftAccountService.submitDraftAccount(dto);
@@ -176,16 +179,20 @@ public class DraftAccountController {
         @RequestBody ReplaceDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
-        log.info(":PUT:replaceDraftAccount: replacing draft account entity with ID: {} and data: {}",
-                 draftAccountId, dto);
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        userStateService.checkForAuthorisedUser(authHeaderValue);
+        if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
+                                                       Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
+            log.info(":PUT:replaceDraftAccount: replacing draft account entity with ID: {} and data: {}",
+                     draftAccountId, dto);
+            jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
 
-        jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
+            DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto);
 
-        DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto);
-
-        return buildResponse(toGetResponseDto(replacedEntity));
+            return buildResponse(toGetResponseDto(replacedEntity));
+        } else {
+            throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        }
     }
 
     @PatchMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
