@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
+import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
@@ -295,10 +296,9 @@ class DraftAccountServiceTest {
         when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
 
         // Act & Assert
-        RuntimeException exception = assertThrows(IllegalArgumentException.class, () ->
+        RuntimeException exception = assertThrows(PermissionNotAllowedException.class, () ->
             draftAccountService.replaceDraftAccount(draftAccountId, replaceDto)
         );
-        assertEquals("Business Unit ID does not match the existing draft account", exception.getMessage());
     }
 
     @Test
