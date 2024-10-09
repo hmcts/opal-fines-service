@@ -64,8 +64,8 @@ public class DebtorDetailEntity {
     @Column(name = "employer_postcode")
     private String employerPostcode;
 
-    @Column(name = "employer_reference")
-    private String employerReference;
+    @Column(name = "employee_reference")
+    private String employeeReference;
 
     @Column(name = "employer_telephone")
     private String employerTelephone;

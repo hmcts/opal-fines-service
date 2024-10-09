@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
@@ -105,6 +107,11 @@ public class DraftAccountService {
 
         BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId())
             .orElseThrow(() -> new RuntimeException("Business Unit not found with id: " + dto.getBusinessUnitId()));
+
+        if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
+            log.info("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
+            throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        }
 
         LocalDateTime updatedTime = LocalDateTime.now();
         String newSnapshot = createInitialSnapshot(dto, updatedTime, businessUnit);
