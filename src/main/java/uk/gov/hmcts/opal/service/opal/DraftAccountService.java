@@ -132,6 +132,11 @@ public class DraftAccountService {
         DraftAccountEntity existingAccount = draftAccountRepository.findById(draftAccountId)
             .orElseThrow(() -> new RuntimeException("Draft Account not found with id: " + draftAccountId));
 
+        if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
+            log.info("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
+            throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        }
+
         DraftAccountStatus newStatus = Optional.ofNullable(dto.getAccountStatus())
             .map(String::toUpperCase)
             .map(DraftAccountStatus::valueOf)

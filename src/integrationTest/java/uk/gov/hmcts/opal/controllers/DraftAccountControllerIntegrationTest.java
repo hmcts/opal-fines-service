@@ -424,6 +424,32 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
+    void testUpdateDraftAccount_no_permission() throws Exception {
+        Long draftAccountId = 241L;
+        String requestBody = """
+            {
+                "account_status": "PENDING",
+                "validated_by": "BUUID1",
+                "business_unit_id": 5,
+                "timeline_data": {"test":"yes"}
+            }
+            """;
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState(1L,
+                                                                                      "test",
+                                                                                      new HashSet<>()
+        ));
+
+        mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+                                               .header("authorization", "Bearer some_value")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .content(requestBody))
+            .andExpect(status().isForbidden())
+            .andReturn();
+
+    }
+
+    @Test
     void testUpdateDraftAccount() throws Exception {
         Long draftAccountId = 241L;
         String requestBody = """
@@ -458,6 +484,8 @@ class DraftAccountControllerIntegrationTest {
 
         when(draftAccountService.updateDraftAccount(eq(draftAccountId), any(UpdateDraftAccountRequestDto.class)))
             .thenReturn(updatedEntity);
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
 
         MvcResult result = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                                                .header("authorization", "Bearer some_value")

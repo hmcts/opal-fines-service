@@ -296,8 +296,28 @@ class DraftAccountServiceTest {
         when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
 
         // Act & Assert
-        RuntimeException exception = assertThrows(PermissionNotAllowedException.class, () ->
+        assertThrows(PermissionNotAllowedException.class, () ->
             draftAccountService.replaceDraftAccount(draftAccountId, replaceDto)
+        );
+    }
+
+    @Test
+    void testUpdateDraftAccount_businessUnitMismatch() {
+        // Arrange
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .businessUnitId((short) 2)
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+
+        // Act & Assert
+        assertThrows(PermissionNotAllowedException.class, () ->
+            draftAccountService.updateDraftAccount(draftAccountId, updateDto)
         );
     }
 
@@ -309,12 +329,14 @@ class DraftAccountServiceTest {
             .accountStatus("PENDING")
             .validatedBy("TestValidator")
             .timelineData("Updated timeline data")
+            .businessUnitId((short) 2)
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\"}")
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
             .build();
 
         DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
@@ -351,10 +373,12 @@ class DraftAccountServiceTest {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus("SUBMITTED")
+            .businessUnitId((short) 2)
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .build();
 
