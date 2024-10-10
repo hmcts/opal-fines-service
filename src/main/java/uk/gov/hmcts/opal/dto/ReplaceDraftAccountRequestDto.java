@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 
 @Data
@@ -18,6 +19,7 @@ import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 public class ReplaceDraftAccountRequestDto implements ToJsonString, DraftAccountRequestDto {
 
     @JsonProperty(value = "business_unit_id", required = true)
+    @NonNull
     private Short businessUnitId;
 
     @JsonProperty(value = "submitted_by", required = true)

@@ -19,6 +19,10 @@ public class UserStateUtil {
             .build();
     }
 
+    public static final UserState allPermissionsUser() {
+        return new UserState.DeveloperUserState();
+    }
+
     public static final UserState permissionUser(Short buid, Permissions... permissions) {
         return UserState.builder()
             .userId(1L)
