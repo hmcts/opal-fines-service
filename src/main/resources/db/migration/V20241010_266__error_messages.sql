@@ -15,8 +15,8 @@
 
 CREATE TABLE error_messages
 (
- error_code           bigint          not null
-,error_message        varchar(50)     not null
+ error_code           varchar(25)       not null
+,error_message        varchar(1000)     not null
 ,CONSTRAINT em_error_code_pk PRIMARY KEY (error_code)
 );
 
