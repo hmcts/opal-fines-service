@@ -32,6 +32,7 @@ import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.OpalApiException;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
 import java.lang.reflect.Method;
@@ -292,6 +293,17 @@ class GlobalExceptionHandlerTest {
         assertEquals("Bad Request", response.getBody().get("error"));
         assertEquals("JSON Schema Validation Error: JSON Schema Validation failed",
                      response.getBody().get("message"));
+    }
+
+    @Test
+    void testHandleResourceConflictException() {
+        ResourceConflictException e = new ResourceConflictException("DraftAccount","BusinessUnits mismatch");
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleResourceConflictException(e);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals("Conflict", response.getBody().get("error"));
+        assertEquals("DraftAccount", response.getBody().get("resourceType"));
+        assertEquals("BusinessUnits mismatch", response.getBody().get("conflictReason"));
     }
 
 

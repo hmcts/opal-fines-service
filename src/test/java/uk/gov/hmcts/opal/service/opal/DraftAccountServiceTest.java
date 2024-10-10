@@ -12,7 +12,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
-import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
@@ -20,6 +19,7 @@ import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 
@@ -296,8 +296,28 @@ class DraftAccountServiceTest {
         when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
 
         // Act & Assert
-        RuntimeException exception = assertThrows(PermissionNotAllowedException.class, () ->
+        assertThrows(ResourceConflictException.class, () ->
             draftAccountService.replaceDraftAccount(draftAccountId, replaceDto)
+        );
+    }
+
+    @Test
+    void testUpdateDraftAccount_businessUnitMismatch() {
+        // Arrange
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .businessUnitId((short) 2)
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+
+        // Act & Assert
+        assertThrows(ResourceConflictException.class, () ->
+            draftAccountService.updateDraftAccount(draftAccountId, updateDto)
         );
     }
 
@@ -309,12 +329,14 @@ class DraftAccountServiceTest {
             .accountStatus("PENDING")
             .validatedBy("TestValidator")
             .timelineData("Updated timeline data")
+            .businessUnitId((short) 2)
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\"}")
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
             .build();
 
         DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
@@ -351,10 +373,12 @@ class DraftAccountServiceTest {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus("SUBMITTED")
+            .businessUnitId((short) 2)
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .build();
 

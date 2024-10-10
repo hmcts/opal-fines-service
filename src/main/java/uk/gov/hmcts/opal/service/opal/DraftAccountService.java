@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
@@ -21,6 +19,7 @@ import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountSnapshots;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
@@ -110,7 +109,13 @@ public class DraftAccountService {
 
         if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
             log.info("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
-            throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+            throw new ResourceConflictException(
+                "DraftAccount",
+                "Business Unit ID mismatch. Existing: "
+                    + existingAccount.getBusinessUnit().getBusinessUnitId()
+                    + ", Requested: "
+                    + dto.getBusinessUnitId()
+            );
         }
 
         LocalDateTime updatedTime = LocalDateTime.now();
@@ -131,6 +136,17 @@ public class DraftAccountService {
     public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto)  {
         DraftAccountEntity existingAccount = draftAccountRepository.findById(draftAccountId)
             .orElseThrow(() -> new RuntimeException("Draft Account not found with id: " + draftAccountId));
+
+        if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
+            log.info("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
+            throw new ResourceConflictException(
+                "DraftAccount",
+                "Business Unit ID mismatch. Existing: "
+                    + existingAccount.getBusinessUnit().getBusinessUnitId()
+                    + ", Requested: "
+                    + dto.getBusinessUnitId()
+            );
+        }
 
         DraftAccountStatus newStatus = Optional.ofNullable(dto.getAccountStatus())
             .map(String::toUpperCase)

@@ -202,16 +202,23 @@ public class DraftAccountController {
         @RequestBody UpdateDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
-        log.info(":PATCH:updateDraftAccount: replacing draft account entity with ID: {} and data: {}",
-                 draftAccountId, dto);
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        userStateService.checkForAuthorisedUser(authHeaderValue);
+        if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
+                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
-        jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
+            log.info(":PATCH:updateDraftAccount: replacing draft account entity with ID: {} and data: {}",
+                     draftAccountId, dto
+            );
 
-        DraftAccountEntity updatedEntity = draftAccountService.updateDraftAccount(draftAccountId, dto);
+            jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
 
-        return buildResponse(toGetResponseDto(updatedEntity));
+            DraftAccountEntity updatedEntity = draftAccountService.updateDraftAccount(draftAccountId, dto);
+
+            return buildResponse(toGetResponseDto(updatedEntity));
+        } else {
+            throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        }
     }
 
 
