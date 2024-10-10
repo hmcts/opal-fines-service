@@ -12,7 +12,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
-import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
@@ -20,6 +19,7 @@ import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 
@@ -296,7 +296,7 @@ class DraftAccountServiceTest {
         when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
 
         // Act & Assert
-        assertThrows(PermissionNotAllowedException.class, () ->
+        assertThrows(ResourceConflictException.class, () ->
             draftAccountService.replaceDraftAccount(draftAccountId, replaceDto)
         );
     }
@@ -316,7 +316,7 @@ class DraftAccountServiceTest {
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
         // Act & Assert
-        assertThrows(PermissionNotAllowedException.class, () ->
+        assertThrows(ResourceConflictException.class, () ->
             draftAccountService.updateDraftAccount(draftAccountId, updateDto)
         );
     }
