@@ -142,18 +142,19 @@ public class DraftAccountController {
     @CheckAcceptHeader
     public ResponseEntity<DraftAccountResponseDto> postDraftAccount(@RequestBody AddDraftAccountRequestDto dto,
                 @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-        log.info(":POST:postDraftAccount: creating a new draft account entity.");
+        log.info(":POST:postDraftAccount: creating a new draft account entity: \n{}", dto.toPrettyJson());
 
-        userStateService.checkForAuthorisedUser(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
+        if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
+                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
+            jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
 
-
-
-        jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
-
-        DraftAccountEntity response = draftAccountService.submitDraftAccount(dto);
-
-        return buildCreatedResponse(toGetResponseDto(response));
+            DraftAccountEntity response = draftAccountService.submitDraftAccount(dto);
+            return buildCreatedResponse(toGetResponseDto(response));
+        } else {
+            throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        }
     }
 
     @Hidden

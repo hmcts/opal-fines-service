@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 
 import java.time.OffsetDateTime;
@@ -29,6 +30,7 @@ public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequ
     private OffsetDateTime validatedDate;
 
     @JsonProperty(value = "business_unit_id", required = true)
+    @NonNull
     private Short businessUnitId;
 
     @JsonProperty("validated_by")

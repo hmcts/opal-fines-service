@@ -41,9 +41,9 @@ import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 @Qualifier("draftAccountService")
 public class DraftAccountService {
 
-    private static final String A_C_R_JSON_PATH = "$.accountCreateRequest";
-    private static final String DEFENDANT_JSON_PATH = A_C_R_JSON_PATH + ".Defendant";
-    private static final String ACCOUNT_JSON_PATH = A_C_R_JSON_PATH + ".Account";
+    private static final String A_C_R_JSON_PATH = "$.account_create_request";
+    private static final String DEFENDANT_JSON_PATH = A_C_R_JSON_PATH + ".defendant";
+    private static final String ACCOUNT_JSON_PATH = A_C_R_JSON_PATH + ".account";
 
     private static final EnumSet<DraftAccountStatus> VALID_UPDATE_STATUSES =
         EnumSet.of(DraftAccountStatus.PENDING, DraftAccountStatus.REJECTED, DraftAccountStatus.DELETED);
@@ -89,8 +89,6 @@ public class DraftAccountService {
 
         return page.getContent();
     }
-
-
 
     public DraftAccountEntity submitDraftAccount(AddDraftAccountRequestDto dto) {
         LocalDateTime created = LocalDateTime.now();
@@ -197,19 +195,19 @@ public class DraftAccountService {
 
         JsonPathUtil.DocContext docContext = createDocContext(document);
 
-        String companyName = docContext.read(DEFENDANT_JSON_PATH + ".CompanyName");
+        String companyName = docContext.read(DEFENDANT_JSON_PATH + ".company_name");
 
         final boolean notCompany = companyName == null || companyName.isBlank();
 
         String defendantName = notCompany
-            ? docContext.read(DEFENDANT_JSON_PATH + ".Surname") + ", "
-            + docContext.read(DEFENDANT_JSON_PATH + ".Forenames")
+            ? docContext.read(DEFENDANT_JSON_PATH + ".surname") + ", "
+            + docContext.read(DEFENDANT_JSON_PATH + ".forenames")
             : companyName;
 
         String dob = notCompany
-            ? docContext.read(DEFENDANT_JSON_PATH + ".DOB")
+            ? docContext.read(DEFENDANT_JSON_PATH + ".dob")
             : null;
-        String accType = docContext.read(ACCOUNT_JSON_PATH + ".AccountType");
+        String accType = docContext.read(ACCOUNT_JSON_PATH + ".account_type");
 
         return DraftAccountSnapshots.Snapshot.builder()
             .defendantName(defendantName)

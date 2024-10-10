@@ -112,6 +112,7 @@ class DraftAccountServiceTest {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
+            .businessUnitId((short)1)
             .account(createAccountString())
             .build();
         BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
@@ -132,6 +133,7 @@ class DraftAccountServiceTest {
     void testSubmitDraftAccounts_fail() {
         // Arrange
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
+            .businessUnitId((short)1)
             .account("{}")
             .build();
         BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
@@ -145,7 +147,7 @@ class DraftAccountServiceTest {
             draftAccountService.submitDraftAccount(addDraftAccountDto));
 
         // Assert
-        assertEquals("Missing property in path $['accountCreateRequest']", re.getMessage());
+        assertEquals("Missing property in path $['account_create_request']", re.getMessage());
     }
 
     @Test
@@ -245,7 +247,9 @@ class DraftAccountServiceTest {
     void testReplaceDraftAccount_draftAccountNotFound() {
         // Arrange
         Long draftAccountId = 1L;
-        ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder().build();
+        ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
+            .businessUnitId((short)1)
+            .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.empty());
 
@@ -397,14 +401,14 @@ class DraftAccountServiceTest {
     private String createAccountString() {
         return """
             {
-                "accountCreateRequest": {
-                    "Defendant": {
-                        "Surname": "Windsor",
-                        "Forenames": "Charles",
-                        "DOB": "August 1958"
+                "account_create_request": {
+                    "defendant": {
+                        "surname": "Windsor",
+                        "forenames": "Charles",
+                        "dob": "August 1958"
                     },
-                    "Account": {
-                        "AccountType": "Fine"
+                    "account": {
+                        "account_type": "Fine"
                     }
                 }
             }

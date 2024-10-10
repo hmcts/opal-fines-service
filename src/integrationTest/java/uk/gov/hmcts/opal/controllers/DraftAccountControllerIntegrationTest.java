@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler;
-import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
+import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
@@ -37,7 +37,6 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 import java.net.ConnectException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.logging.Logger;
 
 import static java.util.Collections.singletonList;
@@ -56,13 +55,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 
 @WebMvcTest
 @ContextConfiguration(classes = {DraftAccountController.class, GlobalExceptionHandler.class})
 @ActiveProfiles({"integration"})
 class DraftAccountControllerIntegrationTest {
-
     private static final Logger logger = Logger.getLogger(DraftAccountControllerIntegrationTest.class.getSimpleName());
     private static final String URL_BASE = "/draft-accounts";
     private static final String GET_DRAFT_ACCOUNT_RESPONSE = "getDraftAccountResponse.json";
@@ -124,7 +125,7 @@ class DraftAccountControllerIntegrationTest {
     void testGetDraftAccountsSummaries_noParams() throws Exception {
         DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
         when(draftAccountService.getDraftAccounts(any(),any(), any()))
             .thenReturn(singletonList(draftAccountEntity));
 
@@ -143,7 +144,7 @@ class DraftAccountControllerIntegrationTest {
         DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
         final Short businessId = (short)1;
 
-        UserState user = UserStateUtil.permissionUser(businessId, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        UserState user = permissionUser(businessId, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
         when(draftAccountService.getDraftAccounts(any(), any(), any()))
@@ -164,7 +165,7 @@ class DraftAccountControllerIntegrationTest {
         DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
         final Short businessId = (short)1;
 
-        UserState user = UserStateUtil.permissionUser(businessId, Permissions.COLLECTION_ORDER);
+        UserState user = permissionUser(businessId, Permissions.COLLECTION_ORDER);
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
         when(draftAccountService.getDraftAccounts(any(), any(), any()))
@@ -191,7 +192,7 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testPostDraftAccountsSearch() throws Exception {
+    void testSearchDraftAccountsPost() throws Exception {
         DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
 
         when(draftAccountService.searchDraftAccounts(any(DraftAccountSearchDto.class)))
@@ -211,7 +212,7 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testPostDraftAccountsSearch_WhenDraftAccountDoesNotExist() throws Exception {
+    void testSearchDraftAccountsPost_WhenDraftAccountDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -301,32 +302,6 @@ class DraftAccountControllerIntegrationTest {
     @Test
     void testReplaceDraftAccount() throws Exception {
         Long draftAccountId = 241L;
-        String requestBody = """
-    {
-        "account": {
-            "accountCreateRequest": {
-                "Defendant": {
-                    "CompanyName": "Company ABC",
-                    "Surname": "LNAME",
-                    "Fornames": "FNAME",
-                    "DOB": "2000-01-01"
-                },
-                "Account": {
-                    "AccountType": "Fine"
-                }
-            }
-        },
-        "account_status": "",
-        "account_summary_data": "",
-        "account_type": "Fines",
-        "business_unit_id": 5,
-        "submitted_by": "BUUID1",
-        "timeline_data": {
-            "stuff": "yes"
-        },
-        "court": "test"
-    }
-            """;
 
         LocalDateTime testDateTime = LocalDateTime.of(2024, 9, 26, 15, 0, 0);
 
@@ -336,9 +311,9 @@ class DraftAccountControllerIntegrationTest {
                               .businessUnitName("Cambridgeshire").build())
             .createdDate(testDateTime)
             .submittedBy("BUUID1")
-            .account("{\"accountCreateRequest\":{\"Defendant\":{\"CompanyName\":\"Company ABC\",\"Surname\""
-                         + ":\"LNAME\",\"Fornames\":\"FNAME\",\"DOB\":\"2000-01-01\"},\"Account\""
-                         + ":{\"AccountType\":\"Fine\"}}}")
+            .account("{\"account_create_request\":{\"defendant\":{\"company_name\":\"Company ABC\",\"surname\""
+                         + ":\"LNAME\",\"fornames\":\"FNAME\",\"dob\":\"2000-01-01\"},\"account\""
+                         + ":{\"account_type\":\"Fine\"}}}")
             .accountSnapshot("{\"defendant_name\":\"Company ABC\",\"created_date\":\"2024-09-26T15:00:00Z\","
                                  + "\"account_type\":\"Fine\",\"submitted_by\":\"BUUID1\","
                                  + "\"business_unit_name\":\"Cambridgeshire\"}")
@@ -347,7 +322,7 @@ class DraftAccountControllerIntegrationTest {
             .timelineData("{\"stuff\":\"yes\"}")
             .build();
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         when(draftAccountService.replaceDraftAccount(eq(draftAccountId), any(ReplaceDraftAccountRequestDto.class)))
             .thenReturn(updatedEntity);
@@ -355,14 +330,14 @@ class DraftAccountControllerIntegrationTest {
         MvcResult result = mockMvc.perform(put(URL_BASE + "/" + draftAccountId)
                                                .header("authorization", "Bearer some_value")
                                                .contentType(MediaType.APPLICATION_JSON)
-                                               .content(requestBody))
+                                               .content(validCreateRequestBody()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.business_unit_id").value(5))
             .andExpect(jsonPath("$.created_at").value("2024-09-26T15:00:00Z"))
             .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
-            .andExpect(jsonPath("$.account.accountCreateRequest.Defendant.CompanyName")
+            .andExpect(jsonPath("$.account.account_create_request.defendant.company_name")
                            .value("Company ABC"))
             .andExpect(jsonPath("$.account_snapshot.defendant_name").value("Company ABC"))
             .andExpect(jsonPath("$.account_type").value("Fines"))
@@ -381,43 +356,13 @@ class DraftAccountControllerIntegrationTest {
     @Test
     void testReplaceDraftAccount_no_permission() throws Exception {
         Long draftAccountId = 241L;
-        String requestBody = """
-    {
-        "account": {
-            "accountCreateRequest": {
-                "Defendant": {
-                    "CompanyName": "Company ABC",
-                    "Surname": "LNAME",
-                    "Fornames": "FNAME",
-                    "DOB": "2000-01-01"
-                },
-                "Account": {
-                    "AccountType": "Fine"
-                }
-            }
-        },
-        "account_status": "",
-        "account_summary_data": "",
-        "account_type": "Fines",
-        "business_unit_id": 5,
-        "submitted_by": "BUUID1",
-        "timeline_data": {
-            "stuff": "yes"
-        },
-        "court": "test"
-    }
-            """;
 
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState(1L,
-                                                                                      "test",
-                                                                                      new HashSet<>()
-        ));
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
 
         mockMvc.perform(put(URL_BASE + "/" + draftAccountId)
                                                .header("authorization", "Bearer some_value")
                                                .contentType(MediaType.APPLICATION_JSON)
-                                               .content(requestBody))
+                                               .content(validCreateRequestBody()))
             .andExpect(status().isForbidden())
             .andReturn();
 
@@ -435,10 +380,7 @@ class DraftAccountControllerIntegrationTest {
             }
             """;
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState(1L,
-                                                                                      "test",
-                                                                                      new HashSet<>()
-        ));
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
 
         mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                                                .header("authorization", "Bearer some_value")
@@ -452,14 +394,6 @@ class DraftAccountControllerIntegrationTest {
     @Test
     void testUpdateDraftAccount() throws Exception {
         Long draftAccountId = 241L;
-        String requestBody = """
-            {
-                "account_status": "PENDING",
-                "validated_by": "BUUID1",
-                "business_unit_id": 5,
-                "timeline_data": {"test":"yes"}
-            }
-            """;
 
         LocalDateTime testDateTime = LocalDateTime.of(2024, 10, 3, 14, 30, 0);
 
@@ -471,8 +405,9 @@ class DraftAccountControllerIntegrationTest {
             .submittedBy("BUUID1")
             .validatedDate(testDateTime)
             .validatedBy("BUUID1")
-            .account("{\"accountCreateRequest\":{\"Defendant\":{\"CompanyName\":\"Company ABC\",\"Surname\":\"LNAME\","
-                         + "\"Fornames\":\"FNAME\",\"DOB\":\"2000-01-01\"},\"Account\":{\"AccountType\":\"Fine\"}}}")
+            .account("{\"account_create_request\":{\"defendant\":{\"company_name\":\"Company ABC\","
+                         + "\"surname\":\"LNAME\",\"fornames\":\"FNAME\",\"dob\":\"2000-01-01\"},"
+                         + "\"account\":{\"account_type\":\"Fine\"}}}")
             .accountSnapshot("{\"defendant_name\":\"Company ABC\",\"created_date\":\"2024-10-02T14:30:00Z\","
                                  + "\"account_type\":\"Fine\",\"submitted_by\":\"BUUID1\","
                                  + "\"business_unit_name\":\"Cambridgeshire\","
@@ -485,12 +420,12 @@ class DraftAccountControllerIntegrationTest {
         when(draftAccountService.updateDraftAccount(eq(draftAccountId), any(UpdateDraftAccountRequestDto.class)))
             .thenReturn(updatedEntity);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         MvcResult result = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                                                .header("authorization", "Bearer some_value")
                                                .contentType(MediaType.APPLICATION_JSON)
-                                               .content(requestBody))
+                                               .content(validUpdateRequestBody()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
@@ -499,7 +434,7 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
             .andExpect(jsonPath("$.validated_at").value("2024-10-03T14:30:00Z"))
             .andExpect(jsonPath("$.validated_by").value("BUUID1"))
-            .andExpect(jsonPath("$.account.accountCreateRequest.Defendant.CompanyName")
+            .andExpect(jsonPath("$.account.account_create_request.defendant.company_name")
                            .value("Company ABC"))
             .andExpect(jsonPath("$.account_snapshot.defendant_name").value("Company ABC"))
             .andExpect(jsonPath("$.account_snapshot.approved_date")
@@ -519,34 +454,17 @@ class DraftAccountControllerIntegrationTest {
 
     @Test
     void testPostDraftAccount_JsonSchemaValidationException() throws Exception {
-        String invalidRequestBody = """
-        {
-            "invalid_field": "This field shouldn't be here",
-            "account": {
-                "accountCreateRequest": {
-                    "Defendant": {
-                        "CompanyName": "Company ABC",
-                        "Surname": "LNAME",
-                        "Fornames": "FNAME",
-                        "DOB": "2000-01-01"
-                    },
-                    "Account": {
-                        "AccountType": "Invalid"
-                    }
-                }
-            },
-            "business_unit_id": 1
-        }
-            """;
 
         String expectedErrorMessageStart =
             "JSON Schema Validation Error: Validating against JSON schema 'addDraftAccountRequest.json',"
                 + " found 3 validation errors:";
 
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
         mockMvc.perform(post(URL_BASE)
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(invalidRequestBody))
+                            .content(invalidCreateRequestBody()))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.error").value("Bad Request"))
@@ -556,4 +474,160 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(jsonPath("$.message").value(containsString("required property 'timeline_data' not found")));
 
     }
+
+    @Test
+    void testPostDraftAccount_permission() throws Exception {
+
+        String validRequestBody = validCreateRequestBody();
+        AddDraftAccountRequestDto dto = ToJsonString.toClassInstance(validRequestBody, AddDraftAccountRequestDto.class);
+        LocalDateTime created = LocalDateTime.now();
+        DraftAccountEntity entity = toEntity(dto, created);
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(draftAccountService.submitDraftAccount(any())).thenReturn(entity);
+
+        MvcResult result = mockMvc.perform(post(URL_BASE)
+                            .header("authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(validCreateRequestBody()))
+            .andExpect(status().isCreated())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
+            .andExpect(jsonPath("$.account_type").value("Fines"))
+            .andExpect(jsonPath("$.account_status").value("Submitted"))
+            .andExpect(jsonPath("$.account.accountCreateRequest.Account.AccountType")
+                           .value("Fine"))
+            .andExpect(jsonPath("$.account.accountCreateRequest.Defendant.Surname")
+                           .value("LNAME"))
+            .andReturn();
+
+        String body = result.getResponse().getContentAsString();
+
+        logger.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
+    }
+
+    @Test
+    void testPostDraftAccount_noPermission() throws Exception {
+
+        String validRequestBody = validCreateRequestBody();
+        AddDraftAccountRequestDto dto = ToJsonString.toClassInstance(validRequestBody, AddDraftAccountRequestDto.class);
+        LocalDateTime created = LocalDateTime.now();
+        DraftAccountEntity entity = toEntity(dto, created);
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
+        when(draftAccountService.submitDraftAccount(any())).thenReturn(entity);
+
+        MvcResult result = mockMvc.perform(post(URL_BASE)
+                            .header("authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(validCreateRequestBody()))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.error").value("Forbidden"))
+            .andExpect(jsonPath("$.message").value(
+                "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS] permission(s) are not allowed for the user."))
+            .andReturn();
+
+        String body = result.getResponse().getContentAsString();
+
+        logger.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
+    }
+
+    @Test
+    void testPostDraftAccount_wrongPermission() throws Exception {
+
+        String validRequestBody = validCreateRequestBody();
+        AddDraftAccountRequestDto dto = ToJsonString.toClassInstance(validRequestBody, AddDraftAccountRequestDto.class);
+        LocalDateTime created = LocalDateTime.now();
+        DraftAccountEntity entity = toEntity(dto, created);
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            permissionUser((short)5, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS, Permissions.ACCOUNT_ENQUIRY));
+        when(draftAccountService.submitDraftAccount(any())).thenReturn(entity);
+
+        MvcResult result = mockMvc.perform(post(URL_BASE)
+                            .header("authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(validCreateRequestBody()))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.error").value("Forbidden"))
+            .andExpect(jsonPath("$.message").value(
+                "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS] permission(s) are not allowed for the user."))
+            .andReturn();
+
+        String body = result.getResponse().getContentAsString();
+
+        logger.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
+    }
+
+    private String validCreateRequestBody() {
+        return """
+{
+    "account": {
+        "accountCreateRequest": {
+            "Defendant": {
+                "CompanyName": "Company ABC",
+                "Surname": "LNAME",
+                "Fornames": "FNAME",
+                "DOB": "2000-01-01"
+            },
+            "Account": {
+                "AccountType": "Fine"
+            }
+        }
+    },
+    "account_type": "Fines",
+    "business_unit_id": 5,
+    "submitted_by": "BUUID1",
+    "timeline_data": {
+        "stuff": "yes"
+    }
+}""";
+    }
+
+    private String invalidCreateRequestBody() {
+        return """
+{
+    "invalid_field": "This field shouldn't be here",
+    "account": {
+        "account_create_request": {
+            "defendant": {
+                "company_name": "Company ABC",
+                "surname": "LNAME",
+                "fornames": "FNAME",
+                "dob": "2000-01-01"
+            },
+            "account": {
+                "account_type": "Invalid"
+            }
+        }
+    },
+    "business_unit_id": 1
+}""";
+    }
+
+    private String validUpdateRequestBody() {
+        return """
+{
+    "account_status": "PENDING",
+    "validated_by": "BUUID1",
+    "business_unit_id": 5,
+    "timeline_data": {"test":"yes"}
+}""";
+    }
+
+    private DraftAccountEntity toEntity(AddDraftAccountRequestDto dto,  LocalDateTime created) {
+        return DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().build())
+            .createdDate(created)
+            .submittedBy(dto.getSubmittedBy())
+            .account(dto.getAccount())
+            .accountSnapshot("{ \"data\": \"something snappy\"}")
+            .accountType(dto.getAccountType())
+            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .timelineData(dto.getTimelineData())
+            .build();
+    }
+
 }

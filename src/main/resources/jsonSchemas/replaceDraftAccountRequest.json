@@ -38,7 +38,6 @@
       "submitted_by",
       "account",
       "account_type",
-      "account_status",
       "timeline_data"
   ]
 }
