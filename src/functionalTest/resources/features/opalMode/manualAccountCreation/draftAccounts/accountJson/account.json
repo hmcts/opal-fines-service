@@ -1,6 +1,6 @@
 {
-  "accountCreateRequest": {
-    "Defendant": {},
-    "Account": {}
+  "account_create_request": {
+    "defendant": {},
+    "account": {}
   }
 }

@@ -1,12 +1,12 @@
 {
-  "accountCreateRequest": {
-    "Defendant": {
-      "Surname": "LNAME",
-      "Forenames": "FNAME",
-      "DOB": "01/01/2000"
+  "account_create_request": {
+    "defendant": {
+      "surname": "LNAME",
+      "forenames": "FNAME",
+      "dob": "01/01/2000"
     },
-    "Account": {
-      "AccountType": "Fine"
+    "account": {
+      "account_type": "Fine"
     }
   }
 }

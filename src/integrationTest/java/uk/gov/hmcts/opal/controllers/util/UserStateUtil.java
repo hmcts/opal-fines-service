@@ -6,6 +6,7 @@ import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -16,7 +17,12 @@ public class UserStateUtil {
         return UserState.builder()
             .userId(999L)
             .userName("no-permissions@users.com")
+            .businessUnitUser(Collections.emptySet())
             .build();
+    }
+
+    public static final UserState allPermissionsUser() {
+        return new UserState.DeveloperUserState();
     }
 
     public static final UserState permissionUser(Short buid, Permissions... permissions) {

@@ -102,7 +102,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
         JSONObject postBody = new JSONObject();
 
         postBody.put("business_unit_id", "77");
-        postBody.put("account", "{\"accountCreateRequest\":{\"Defendant\":{},\"Account\":{}}}");
+        postBody.put("account", "{\"account_create_request\":{\"defendant\":{},\"account\":{}}}");
         postBody.put("account_type", "Fine");
         postBody.put("account_status", "");
         postBody.put("submitted_by", "BUUID");

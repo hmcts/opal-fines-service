@@ -60,4 +60,12 @@ public interface ToJsonString {
     static ObjectMapper getObjectMapper() {
         return OBJECT_MAPPER;
     }
+
+    static <T> T toClassInstance(String json, Class<T> clss) {
+        try {
+            return OBJECT_MAPPER.readValue(json, clss);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

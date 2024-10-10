@@ -71,9 +71,9 @@ public class GlobalExceptionHandler {
                                                                       HttpServletRequest request) {
         String authorization = request.getHeader(AUTH_HEADER);
         String preferredName = extractPreferredUsername(authorization, tokenService);
-        String message = String.format("{\"error\": \"Forbidden\", \"message\" : \"For user %s, %s \"}", preferredName,
+        String message = String.format("{\"error\": \"Forbidden\", \"message\" : \"For user %s, %s\"}", preferredName,
                                        ex.getMessage());
-        log.error(message);
+        log.error(":handlePermissionNotAllowedException: {}", message);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body(message);
     }
 
