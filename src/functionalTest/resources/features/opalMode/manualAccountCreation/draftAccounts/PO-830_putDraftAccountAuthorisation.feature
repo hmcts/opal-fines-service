@@ -3,6 +3,7 @@ Feature: PO-830 - Authorisation for put/update draft account
 
   @PO-830 @cleanUpData
   Scenario: Update draft account - no auth
+    Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id | 73                                     |
       | account          | draftAccounts/accountJson/account.json |
@@ -10,7 +11,20 @@ Feature: PO-830 - Authorisation for put/update draft account
       | account_status   |                                        |
       | submitted_by     | BUUID                                  |
       | timeline_data    |                                        |
+    Then The draft account response returns 201
+    And I store the created draft account ID
+
+    When I set an invalid token
+    And I update the draft account that was just created with the following details
+      | business_unit_id | 73                                          |
+      | account          | draftAccounts/accountJson/adultAccount.json |
+      | account_type     | Fine                                        |
+      | account_status   |                                             |
+      | submitted_by     | BUUID_Updated                               |
+      | timeline_data    |                                             |
     Then The draft account response returns 401
+
+    Then I am testing as the "opal-test@hmcts.net" user
 
   @PO-830 @cleanUpData
   Scenario: Update draft account - user with no permissions
