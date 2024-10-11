@@ -50,6 +50,11 @@ public class BearerTokenStepDef extends BaseStepDef {
         ALT_TOKEN.set(getAccessTokenForUser(user));
     }
 
+    @When("I set an invalid token")
+    public void setInvalidToken() {
+        ALT_TOKEN.set("invalid-token");
+    }
+
     @AfterAll
     public static void clearCache() {
         tokenCache.clear();

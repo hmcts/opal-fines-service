@@ -19,11 +19,12 @@ public class DraftAccountPatchSteps extends BaseStepDef {
     public void patchDraftAccount(DataTable data) throws JSONException {
         Map<String, String> dataToPatch = data.asMap(String.class, String.class);
         JSONObject patchBody = new JSONObject();
-        JSONObject timelineData = new JSONObject();
 
+        patchBody.put("business_unit_id", dataToPatch.get("business_unit_id"));
         patchBody.put("account_status", dataToPatch.get("account_status"));
         patchBody.put("validated_by", dataToPatch.get("validated_by"));
 
+        JSONObject timelineData = new JSONObject();
         timelineData.put("username", dataToPatch.get("validated_by"));
         timelineData.put("status", dataToPatch.get("account_status"));
 
@@ -37,12 +38,12 @@ public class DraftAccountPatchSteps extends BaseStepDef {
 
         String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
         SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body(patchBody.toString())
-            .when()
-            .patch(getTestUrl() + "/draft-accounts/" + draftAccountId);
+                .given()
+                .header("Authorization", "Bearer " + getToken())
+                .accept("*/*")
+                .contentType("application/json")
+                .body(patchBody.toString())
+                .when()
+                .patch(getTestUrl() + "/draft-accounts/" + draftAccountId);
     }
 }
