@@ -15,8 +15,9 @@ Feature: PO-745 patch draft account
     And I store the created draft account ID
 
     When I patch the draft account with the following details
-      | account_status | Pending        |
-      | validated_by   | BUUID_REVIEWER |
+      | business_unit_id | 73             |
+      | account_status   | Pending        |
+      | validated_by     | BUUID_REVIEWER |
     Then The draft account response returns 200
 
     Then I get the single created draft account and the response contains
@@ -47,9 +48,10 @@ Feature: PO-745 patch draft account
     And I store the created draft account ID
 
     When I patch the draft account with the following details
-      | account_status | Rejected             |
-      | validated_by   | BUUID_REVIEWER       |
-      | reason_text    | Reason for rejection |
+      | business_unit_id | 73                   |
+      | account_status   | Rejected             |
+      | validated_by     | BUUID_REVIEWER       |
+      | reason_text      | Reason for rejection |
     Then The draft account response returns 200
 
     Then I get the single created draft account and the response contains
@@ -81,9 +83,10 @@ Feature: PO-745 patch draft account
     And I store the created draft account ID
 
     When I patch the draft account with the following details
-      | account_status | Deleted             |
-      | validated_by   | BUUID_REVIEWER      |
-      | reason_text    | Reason for deletion |
+      | business_unit_id | 73                  |
+      | account_status   | Deleted             |
+      | validated_by     | BUUID_REVIEWER      |
+      | reason_text      | Reason for deletion |
     Then The draft account response returns 200
 
     Then I get the single created draft account and the response contains

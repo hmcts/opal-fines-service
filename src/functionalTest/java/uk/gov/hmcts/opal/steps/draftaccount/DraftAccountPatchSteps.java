@@ -21,6 +21,7 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         JSONObject patchBody = new JSONObject();
         JSONObject timelineData = new JSONObject();
 
+        patchBody.put("business_unit_id", dataToPatch.get("business_unit_id"));
         patchBody.put("account_status", dataToPatch.get("account_status"));
         patchBody.put("validated_by", dataToPatch.get("validated_by"));
 
