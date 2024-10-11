@@ -29,6 +29,7 @@ import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.OpalApiException;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
 import java.net.ConnectException;
@@ -274,6 +275,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .contentType(MediaType.APPLICATION_JSON)
             .body(body);
+    }
+
+    @ExceptionHandler(ResourceConflictException.class)
+    public ResponseEntity<Map<String, String>> handleResourceConflictException(ResourceConflictException e) {
+        log.error(":handleResourceConflictException: {}", e.getMessage());
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "Conflict");
+        body.put("resourceType", e.getResourceType());
+        body.put("conflictReason", e.getConflictReason());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body);
+
     }
 
 
