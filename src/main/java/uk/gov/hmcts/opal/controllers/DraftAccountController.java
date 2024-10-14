@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.annotation.CheckAcceptHeader;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
@@ -138,6 +139,7 @@ public class DraftAccountController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Creates a Draft Account Entity in the DB based upon data in request body")
+    @CheckAcceptHeader
     public ResponseEntity<DraftAccountResponseDto> postDraftAccount(@RequestBody AddDraftAccountRequestDto dto,
                 @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.info(":POST:postDraftAccount: creating a new draft account entity.");
