@@ -26,33 +26,33 @@ public class DraftAccountPostSteps extends BaseStepDef {
         JSONObject postBody = new JSONObject();
 
         postBody.put(
-                "business_unit_id",
-                dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
+            "business_unit_id",
+            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
         );
         postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
         postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
         postBody.put(
-                "account_status",
-                dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
+            "account_status",
+            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
         );
 
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-                + dataToPost.get(
-                "account");
+            + dataToPost.get(
+            "account");
         String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
         JSONObject accountObject = new JSONObject(account);
 
         JSONObject timelineObject;
         if (dataToPost.get("timeline_data") != null) {
             String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-                    + dataToPost.get(
-                    "account");
+                + dataToPost.get(
+                "account");
             String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
             timelineObject = new JSONObject(timeline);
         } else {
             String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-                    + "/draftAccounts/timelineJson/default.json";
+                + "/draftAccounts/timelineJson/default.json";
             String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
             timelineObject = new JSONObject(timeline);
         }
@@ -60,13 +60,13 @@ public class DraftAccountPostSteps extends BaseStepDef {
         postBody.put("timeline_data", timelineObject);
 
         SerenityRest
-                .given()
-                .header("Authorization", "Bearer " + getToken())
-                .accept("*/*")
-                .contentType("application/json")
-                .body(postBody.toString())
-                .when()
-                .post(getTestUrl() + DRAFT_ACCOUNT_URI);
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .body(postBody.toString())
+            .when()
+            .post(getTestUrl() + DRAFT_ACCOUNT_URI);
     }
 
     @Then("I store the created draft account ID")
@@ -94,7 +94,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
     @Then("The draft account response returns {int}")
     public void draftAccountResponse(int statusCode) {
         then().assertThat()
-                .statusCode(statusCode);
+            .statusCode(statusCode);
     }
 
     @When("I attempt to create a draft account with an invalid token")
@@ -109,13 +109,13 @@ public class DraftAccountPostSteps extends BaseStepDef {
         postBody.put("timeline_data", "");
 
         SerenityRest
-                .given()
-                .header("Authorization", "Bearer " + "invalidToken")
-                .accept("*/*")
-                .contentType("application/json")
-                .body(postBody.toString())
-                .when()
-                .post(getTestUrl() + DRAFT_ACCOUNT_URI);
+            .given()
+            .header("Authorization", "Bearer " + "invalidToken")
+            .accept("*/*")
+            .contentType("application/json")
+            .body(postBody.toString())
+            .when()
+            .post(getTestUrl() + DRAFT_ACCOUNT_URI);
 
     }
 
@@ -123,7 +123,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
     public void postDraftAccountWithUnsupportedContentType() throws JSONException, IOException {
         JSONObject postBody = new JSONObject();
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-                + "draftAccounts/accountJson/account.json";
+            + "draftAccounts/accountJson/account.json";
         String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
         JSONObject accountObject = new JSONObject(account);
         postBody.put("business_unit_id", 77);
@@ -134,13 +134,13 @@ public class DraftAccountPostSteps extends BaseStepDef {
         postBody.put("timeline_data", new JSONObject());
 
         SerenityRest
-                .given()
-                .header("Authorization", "Bearer " + getToken())
-                .accept("text/plain")
-                .contentType("application/json")
-                .body(postBody.toString())
-                .when()
-                .post(getTestUrl() + DRAFT_ACCOUNT_URI);
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("text/plain")
+            .contentType("application/json")
+            .body(postBody.toString())
+            .when()
+            .post(getTestUrl() + DRAFT_ACCOUNT_URI);
 
     }
 
@@ -148,7 +148,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
     public void postDraftAccountWithUnsupportedMediaType() throws JSONException, IOException {
         JSONObject postBody = new JSONObject();
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-                + "draftAccounts/accountJson/account.json";
+            + "draftAccounts/accountJson/account.json";
         String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
         JSONObject accountObject = new JSONObject(account);
 
@@ -160,13 +160,13 @@ public class DraftAccountPostSteps extends BaseStepDef {
         postBody.put("timeline_data", new JSONObject());
 
         SerenityRest
-                .given()
-                .header("Authorization", "Bearer " + getToken())
-                .accept("*/*")
-                .contentType("application/xml")
-                .body(postBody.toString())
-                .when()
-                .post(getTestUrl() + DRAFT_ACCOUNT_URI);
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/xml")
+            .body(postBody.toString())
+            .when()
+            .post(getTestUrl() + DRAFT_ACCOUNT_URI);
 
     }
 }
