@@ -11,16 +11,14 @@ public class AcceptHeaderInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
         throws Exception {
-        if (handler instanceof HandlerMethod) {
-            HandlerMethod handlerMethod = (HandlerMethod) handler;
-            if (handlerMethod.hasMethodAnnotation(CheckAcceptHeader.class)) {
-                String acceptHeader = request.getHeader("Accept");
-                if (!isAcceptableMediaType(acceptHeader)) {
-                    response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
-                    response.getWriter().write("{\"error\":\"Not Acceptable\",\"message\""
-                                                   + ":\"The requested media type is not supported\"}");
-                    return false;
-                }
+        if (handler instanceof HandlerMethod handlerMethod
+            && handlerMethod.hasMethodAnnotation(CheckAcceptHeader.class)) {
+            String acceptHeader = request.getHeader("Accept");
+            if (!isAcceptableMediaType(acceptHeader)) {
+                response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+                response.getWriter().write("{\"error\":\"Not Acceptable\",\"message\""
+                                               + ":\"The requested media type is not supported\"}");
+                return false;
             }
         }
         return true;
