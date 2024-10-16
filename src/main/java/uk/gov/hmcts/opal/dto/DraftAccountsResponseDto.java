@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import java.util.Optional;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL) // This line forces the HTTP Response to be of type 'application/json'
 public class DraftAccountsResponseDto {
     private Integer count;
     private List<DraftAccountSummaryDto> summaries;

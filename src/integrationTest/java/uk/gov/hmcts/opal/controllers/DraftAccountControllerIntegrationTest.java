@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.QueryTimeoutException;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.mockito.stubbing.OngoingStubbing;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +18,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
@@ -44,7 +45,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -89,7 +89,7 @@ class DraftAccountControllerIntegrationTest {
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
-    void testGetDraftAccountById() throws Exception {
+    void testGetDraftAccountById_success() throws Exception {
         DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(draftAccountEntity);
@@ -112,13 +112,30 @@ class DraftAccountControllerIntegrationTest {
         assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNT_RESPONSE));
     }
 
-
     @Test
-    void testGetDraftAccountById_WhenDraftAccountDoesNotExist() throws Exception {
+    void testGetDraftAccountById_notFound_404Response() throws Exception {
         when(draftAccountService.getDraftAccount(2L)).thenReturn(null);
 
         mockMvc.perform(get(URL_BASE + "/2").header("authorization", "Bearer some_value"))
             .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testGetDraftAccountById_trap406Response() throws Exception {
+        when(draftAccountService.getDraftAccount(1L)).thenReturn(createDraftAccountEntity());
+        shouldReturn406WhenResponseContentTypeNotSupported(get(URL_BASE + "/1"));
+    }
+
+    @Test
+    void testGetDraftAccountById_trap408Response() throws Exception {
+        shouldReturn408WhenTimeout(get(URL_BASE + "/1"),
+                                   when(draftAccountService.getDraftAccount(1L)));
+    }
+
+    @Test
+    void testGetDraftAccountById_trap503Response() throws Exception {
+        shouldReturn503WhenDownstreamServiceIsUnavailable(get(URL_BASE + "/1"),
+                                                          when(draftAccountService.getDraftAccount(1L)));
     }
 
     @Test
@@ -179,6 +196,22 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
+    @Test
+    void testGetDraftAccountsSummaries_trap406Response() throws Exception {
+        shouldReturn406WhenResponseContentTypeNotSupported(get(URL_BASE));
+    }
+
+    @Test
+    void testGetDraftAccountsSummaries_trap408Response() throws Exception {
+        shouldReturn408WhenTimeout(get(URL_BASE), when(draftAccountService.getDraftAccounts(any(), any(), any())));
+    }
+
+    @Test
+    void testGetDraftAccountsSummaries_trap503Response() throws Exception {
+        shouldReturn503WhenDownstreamServiceIsUnavailable(get(URL_BASE),
+                                             when(draftAccountService.getDraftAccounts(any(), any(), any())));
+    }
+
     private String checkStandardSummaryExpectations(ResultActions actions) throws Exception {
         return actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -220,32 +253,6 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(status().isOk());
     }
 
-    @Test
-    void shouldReturn408WhenTimeout() throws Exception {
-        // Simulating a timeout exception when the repository is called
-        doThrow(new QueryTimeoutException()).when(draftAccountService).getDraftAccount(1L);
-
-        mockMvc.perform(get(URL_BASE + "/1")
-                            .header("Authorization", "Bearer " + "some_value"))
-            .andExpect(status().isRequestTimeout())
-            .andExpect(content().contentType("application/json"))
-            .andExpect(content().json("""
-                {
-                    "error": "Request Timeout",
-                    "message": "The request did not receive a response from the database within the timeout period"
-                }"""));
-    }
-
-    @Test
-    void shouldReturn406WhenResponseContentTypeNotSupported() throws Exception {
-
-        when(draftAccountService.getDraftAccount(1L)).thenReturn(createDraftAccountEntity());
-
-        mockMvc.perform(get(URL_BASE + "/1")
-                            .header("Authorization", "Bearer " + "some_value")
-                            .accept("application/xml"))
-            .andExpect(status().isNotAcceptable());
-    }
 
     private DraftAccountEntity createDraftAccountEntity() {
         return DraftAccountEntity.builder()
@@ -261,26 +268,6 @@ class DraftAccountControllerIntegrationTest {
             .build();
     }
 
-    @Test
-    void shouldReturn503WhenDownstreamServiceIsUnavailable() throws Exception {
-
-        Mockito.doAnswer(
-                invocation -> {
-                    throw new PSQLException("Connection refused", PSQLState.CONNECTION_FAILURE, new ConnectException());
-                })
-            .when(draftAccountService).getDraftAccount(1L);
-
-
-        mockMvc.perform(get(URL_BASE + "/1")
-                            .header("Authorization", "Bearer " + "some_value"))
-            .andExpect(status().isServiceUnavailable())
-            .andExpect(content().contentType("application/json"))
-            .andExpect(content().json("""
-                {
-                    "error": "Service Unavailable",
-                    "message": "Opal Fines Database is currently unavailable"
-                }"""));
-    }
 
     @Test
     void testDeleteDraftAccountById() throws Exception {
@@ -478,18 +465,13 @@ class DraftAccountControllerIntegrationTest {
     @Test
     void testPostDraftAccount_permission() throws Exception {
 
-        String validRequestBody = validCreateRequestBody();
-        AddDraftAccountRequestDto dto = ToJsonString.toClassInstance(validRequestBody, AddDraftAccountRequestDto.class);
-        LocalDateTime created = LocalDateTime.now();
-        DraftAccountEntity entity = toEntity(dto, created);
-
+        String validRequestBody = setupValidPostRequest();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-        when(draftAccountService.submitDraftAccount(any())).thenReturn(entity);
 
         MvcResult result = mockMvc.perform(post(URL_BASE)
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(validCreateRequestBody()))
+                            .content(validRequestBody))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
@@ -509,18 +491,13 @@ class DraftAccountControllerIntegrationTest {
     @Test
     void testPostDraftAccount_noPermission() throws Exception {
 
-        String validRequestBody = validCreateRequestBody();
-        AddDraftAccountRequestDto dto = ToJsonString.toClassInstance(validRequestBody, AddDraftAccountRequestDto.class);
-        LocalDateTime created = LocalDateTime.now();
-        DraftAccountEntity entity = toEntity(dto, created);
-
+        String validRequestBody = setupValidPostRequest();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
-        when(draftAccountService.submitDraftAccount(any())).thenReturn(entity);
 
         MvcResult result = mockMvc.perform(post(URL_BASE)
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(validCreateRequestBody()))
+                            .content(validRequestBody))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.error").value("Forbidden"))
@@ -536,19 +513,15 @@ class DraftAccountControllerIntegrationTest {
     @Test
     void testPostDraftAccount_wrongPermission() throws Exception {
 
-        String validRequestBody = validCreateRequestBody();
-        AddDraftAccountRequestDto dto = ToJsonString.toClassInstance(validRequestBody, AddDraftAccountRequestDto.class);
-        LocalDateTime created = LocalDateTime.now();
-        DraftAccountEntity entity = toEntity(dto, created);
+        String validRequestBody = setupValidPostRequest();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             permissionUser((short)5, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS, Permissions.ACCOUNT_ENQUIRY));
-        when(draftAccountService.submitDraftAccount(any())).thenReturn(entity);
 
         MvcResult result = mockMvc.perform(post(URL_BASE)
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(validCreateRequestBody()))
+                            .content(validRequestBody))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.error").value("Forbidden"))
@@ -559,6 +532,86 @@ class DraftAccountControllerIntegrationTest {
         String body = result.getResponse().getContentAsString();
 
         logger.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
+    }
+
+    @Test
+    void testPostDraftAccount_trap406Response() throws Exception {
+        String validRequestBody = setupValidPostRequest();
+        shouldReturn406WhenResponseContentTypeNotSupported(
+            post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(validRequestBody));
+    }
+
+    @Test
+    void testPostDraftAccount_trap408Response() throws Exception {
+        String validRequestBody = setupValidPostRequest();
+        shouldReturn408WhenTimeout(
+            post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(validRequestBody),
+            when(draftAccountService.submitDraftAccount(any())));
+    }
+
+    @Test
+    void testPostDraftAccount_trap503Response() throws Exception {
+        String validRequestBody = setupValidPostRequest();
+        shouldReturn503WhenDownstreamServiceIsUnavailable(
+            post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(validRequestBody),
+            when(draftAccountService.submitDraftAccount(any())));
+    }
+
+    private String setupValidPostRequest() {
+        String validRequestBody = validCreateRequestBody();
+        AddDraftAccountRequestDto dto = ToJsonString.toClassInstance(validRequestBody, AddDraftAccountRequestDto.class);
+        LocalDateTime created = LocalDateTime.now();
+        DraftAccountEntity entity = toEntity(dto, created);
+        when(draftAccountService.submitDraftAccount(any())).thenReturn(entity);
+        return validRequestBody;
+    }
+
+    void shouldReturn406WhenResponseContentTypeNotSupported(MockHttpServletRequestBuilder reqBuilder) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        mockMvc.perform(reqBuilder
+                            .header("Authorization", "Bearer " + "some_value")
+                            .accept("application/xml"))
+            .andExpect(status().isNotAcceptable());
+    }
+
+
+    void shouldReturn408WhenTimeout(MockHttpServletRequestBuilder reqBuilder, OngoingStubbing<?> stubbing)
+        throws Exception {
+        // Simulating a timeout exception when the service is called
+        stubbing.thenThrow(new QueryTimeoutException());
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        mockMvc.perform(reqBuilder
+                            .header("Authorization", "Bearer " + "some_value"))
+            .andExpect(status().isRequestTimeout())
+            .andExpect(content().contentType("application/json"))
+            .andExpect(content().json("""
+                {
+                    "error": "Request Timeout",
+                    "message": "The request did not receive a response from the database within the timeout period"
+                }"""));
+    }
+
+
+    void shouldReturn503WhenDownstreamServiceIsUnavailable(MockHttpServletRequestBuilder reqBuilder,
+                                                           OngoingStubbing<?> stubbing) throws Exception {
+        stubbing.thenAnswer(
+            invocation -> {
+                throw new PSQLException("Connection refused", PSQLState.CONNECTION_FAILURE, new ConnectException());
+            });
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        mockMvc.perform(reqBuilder
+                            .header("Authorization", "Bearer " + "some_value"))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType("application/json"))
+            .andExpect(content().json("""
+                                          {
+                                              "error": "Service Unavailable",
+                                              "message": "Opal Fines Database is currently unavailable"
+                                          }"""));
     }
 
     private String validCreateRequestBody() {
