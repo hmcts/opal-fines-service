@@ -95,8 +95,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleMethodArgumentTypeMismatchException(
         MethodArgumentTypeMismatchException ex) {
 
-        log.error(":handleHttpMediaTypeNotAcceptableException: {}", ex.getMessage());
-        log.error(":handleHttpMediaTypeNotAcceptableException:", ex.getCause());
+        log.error(":handleMethodArgumentTypeMismatchException: {}", ex.getMessage());
+        log.error(":handleMethodArgumentTypeMismatchException:", ex.getCause());
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Not Acceptable");
