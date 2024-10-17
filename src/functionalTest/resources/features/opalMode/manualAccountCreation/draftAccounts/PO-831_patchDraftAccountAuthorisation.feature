@@ -1,4 +1,4 @@
-@Opal @CF
+@Opal
 Feature: PO-831 - Authorisation for patch draft account
 
   @PO-831 @cleanUpData
