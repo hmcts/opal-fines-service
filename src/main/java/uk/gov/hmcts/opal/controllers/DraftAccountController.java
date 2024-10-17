@@ -79,8 +79,7 @@ public class DraftAccountController {
 
         log.info(":GET:getDraftAccountById: draftAccountId: {}", draftAccountId);
 
-        userStateService.checkForAuthorisedUser(authHeaderValue);
-
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         DraftAccountEntity response = draftAccountService.getDraftAccount(draftAccountId);
 
         return buildResponse(Optional.ofNullable(response).map(this::toGetResponseDto).orElse(null));
