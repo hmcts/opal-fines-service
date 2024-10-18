@@ -3,6 +3,9 @@ package uk.gov.hmcts.opal.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.QueryTimeoutException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.stubbing.OngoingStubbing;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
@@ -11,6 +14,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -22,6 +26,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.config.WebConfig;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
@@ -39,6 +44,7 @@ import java.net.ConnectException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsString;
@@ -47,6 +53,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.PATCH;
+import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.PUT;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -61,7 +71,7 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 
 @WebMvcTest
-@ContextConfiguration(classes = {DraftAccountController.class, GlobalExceptionHandler.class})
+@ContextConfiguration(classes = {DraftAccountController.class, GlobalExceptionHandler.class, WebConfig.class})
 @ActiveProfiles({"integration"})
 class DraftAccountControllerIntegrationTest {
     private static final Logger logger = Logger.getLogger(DraftAccountControllerIntegrationTest.class.getSimpleName());
@@ -614,7 +624,7 @@ class DraftAccountControllerIntegrationTest {
                                           }"""));
     }
 
-    private String validCreateRequestBody() {
+    private static String validCreateRequestBody() {
         return """
 {
     "account": {
@@ -683,4 +693,33 @@ class DraftAccountControllerIntegrationTest {
             .build();
     }
 
+    @ParameterizedTest
+    @MethodSource("endpointsWithValidBodiesProvider")
+    void methodsShouldReturn406WhenAcceptHeaderIsNotSupported(HttpMethod method, String fullPath, String requestBody)
+        throws Exception {
+        MockHttpServletRequestBuilder requestBuilder = switch (method.name()) {
+            case "GET" -> get(fullPath);
+            case "POST" -> post(fullPath);
+            case "PUT" -> put(fullPath);
+            case "PATCH" -> patch(fullPath);
+            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
+        };
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        mockMvc.perform(requestBuilder
+                            .header("Authorization", "Bearer some_value")
+                            .header("Accept", "application/xml")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                            .andExpect(status().isNotAcceptable());
+    }
+
+    private static Stream<Arguments> endpointsWithValidBodiesProvider() {
+        return Stream.of(Arguments.of(POST, "/draft-accounts",validCreateRequestBody()),
+            Arguments.of(PUT, "/draft-accounts/1","{}"),
+            Arguments.of(PATCH, "/draft-accounts/1","{}"),
+            Arguments.of(GET, "/draft-accounts/1","{}")
+        );
+    }
 }

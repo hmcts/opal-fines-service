@@ -72,6 +72,7 @@ public class DraftAccountController {
     }
 
     @GetMapping(value = "/{draftAccountId}")
+    @CheckAcceptHeader
     @Operation(summary = "Returns the Draft Account for the given draftAccountId.")
     public ResponseEntity<DraftAccountResponseDto> getDraftAccountById(
         @PathVariable Long draftAccountId,
@@ -86,6 +87,7 @@ public class DraftAccountController {
     }
 
     @GetMapping()
+    @CheckAcceptHeader
     @Operation(summary = "Returns a collection of draft accounts summaries for the given user.")
     public ResponseEntity<DraftAccountsResponseDto> getDraftAccountSummaries(
         @RequestParam(value = "business_unit") Optional<List<Short>> optionalBusinessUnitIds,
@@ -176,6 +178,7 @@ public class DraftAccountController {
 
     @PutMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Replaces an existing Draft Account Entity in the DB with data in request body")
+    @CheckAcceptHeader
     public ResponseEntity<DraftAccountResponseDto> replaceDraftAccount(
         @PathVariable Long draftAccountId,
         @RequestBody ReplaceDraftAccountRequestDto dto,
@@ -199,6 +202,7 @@ public class DraftAccountController {
 
     @PatchMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Updates an existing Draft Account Entity in the DB with data in request body")
+    @CheckAcceptHeader
     public ResponseEntity<DraftAccountResponseDto> updateDraftAccount(
         @PathVariable Long draftAccountId,
         @RequestBody UpdateDraftAccountRequestDto dto,
