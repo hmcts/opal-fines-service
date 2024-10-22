@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -113,7 +112,7 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testGetDraftAccountById_notFound_404Response() throws Exception {
+    void testGetDraftAccountById_trap404Response() throws Exception {
         when(draftAccountService.getDraftAccount(2L)).thenReturn(null);
 
         mockMvc.perform(get(URL_BASE + "/2").header("authorization", "Bearer some_value"))
@@ -178,7 +177,7 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testGetDraftAccountsSummaries_noPermission() throws Exception {
+    void testGetDraftAccountsSummaries_trap403Response_noPermission() throws Exception {
         DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
         final Short businessId = (short)1;
 
@@ -192,7 +191,7 @@ class DraftAccountControllerIntegrationTest {
                             .header("authorization", "Bearer some_value")
                             .param("business_unit", businessId.toString())
                             .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().is(HttpStatus.FORBIDDEN.value()))
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
@@ -245,7 +244,7 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testSearchDraftAccountsPost_WhenDraftAccountDoesNotExist() throws Exception {
+    void testSearchDraftAccountsPost_whenDraftAccountDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -270,7 +269,7 @@ class DraftAccountControllerIntegrationTest {
 
 
     @Test
-    void testDeleteDraftAccountById() throws Exception {
+    void testDeleteDraftAccountById_success() throws Exception {
         DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(draftAccountEntity);
@@ -287,7 +286,7 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testReplaceDraftAccount() throws Exception {
+    void testReplaceDraftAccount_success() throws Exception {
         Long draftAccountId = 241L;
 
         LocalDateTime testDateTime = LocalDateTime.of(2024, 9, 26, 15, 0, 0);
@@ -341,7 +340,7 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testReplaceDraftAccount_no_permission() throws Exception {
+    void testReplaceDraftAccount_trap403Response_boPermission() throws Exception {
         Long draftAccountId = 241L;
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
@@ -356,30 +355,7 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testUpdateDraftAccount_no_permission() throws Exception {
-        Long draftAccountId = 241L;
-        String requestBody = """
-            {
-                "account_status": "PENDING",
-                "validated_by": "BUUID1",
-                "business_unit_id": 5,
-                "timeline_data": {"test":"yes"}
-            }
-            """;
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
-
-        mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-                                               .header("authorization", "Bearer some_value")
-                                               .contentType(MediaType.APPLICATION_JSON)
-                                               .content(requestBody))
-            .andExpect(status().isForbidden())
-            .andReturn();
-
-    }
-
-    @Test
-    void testUpdateDraftAccount() throws Exception {
+    void testUpdateDraftAccount_success() throws Exception {
         Long draftAccountId = 241L;
 
         LocalDateTime testDateTime = LocalDateTime.of(2024, 10, 3, 14, 30, 0);
@@ -440,7 +416,54 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testPostDraftAccount_JsonSchemaValidationException() throws Exception {
+    void testUpdateDraftAccount_trap403Response_noPermission() throws Exception {
+        Long draftAccountId = 241L;
+        String requestBody = """
+            {
+                "account_status": "PENDING",
+                "validated_by": "BUUID1",
+                "business_unit_id": 5,
+                "timeline_data": {"test":"yes"}
+            }
+            """;
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
+
+        mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+                            .header("authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+            .andExpect(status().isForbidden())
+            .andReturn();
+
+    }
+
+    @Test
+    void testUpdateDraftAccount_trap406Response() throws Exception {
+        when(draftAccountService.updateDraftAccount(any(), any())).thenReturn(createDraftAccountEntity());
+        shouldReturn406WhenResponseContentTypeNotSupported(
+            patch(URL_BASE + "/1").contentType(MediaType.APPLICATION_JSON).content(validUpdateRequestBody())
+        );
+    }
+
+    @Test
+    void testUpdateDraftAccount_trap408Response() throws Exception {
+        shouldReturn408WhenTimeout(
+            patch(URL_BASE + "/1").contentType(MediaType.APPLICATION_JSON).content(validUpdateRequestBody()),
+            when(draftAccountService.updateDraftAccount(any(), any()))
+        );
+    }
+
+    @Test
+    void testUpdateDraftAccount_trap503Response() throws Exception {
+        shouldReturn503WhenDownstreamServiceIsUnavailable(
+            patch(URL_BASE + "/1").contentType(MediaType.APPLICATION_JSON).content(validUpdateRequestBody()),
+            when(draftAccountService.updateDraftAccount(any(), any()))
+        );
+    }
+
+    @Test
+    void testPostDraftAccount_trap400Response() throws Exception {
 
         String expectedErrorMessageStart =
             "JSON Schema Validation Error: Validating against JSON schema 'addDraftAccountRequest.json',"
@@ -489,7 +512,7 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testPostDraftAccount_noPermission() throws Exception {
+    void testPostDraftAccount_trap403Response_noPermission() throws Exception {
 
         String validRequestBody = setupValidPostRequest();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
@@ -511,7 +534,7 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testPostDraftAccount_wrongPermission() throws Exception {
+    void testPostDraftAccount_trap403Response_wrongPermission() throws Exception {
 
         String validRequestBody = setupValidPostRequest();
 
