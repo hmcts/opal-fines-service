@@ -42,7 +42,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
     }
 
     @When("I attempt to get a draft account with an invalid token")
-    public void getDraftAccountWithInvalidToken() throws JSONException {
+    public void getDraftAccountWithInvalidToken() {
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + "invalidToken")
@@ -53,7 +53,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
     }
 
     @When("I attempt to get a draft account with an unsupported content type")
-    public void getDraftAccountWithUnsupportedContentType() throws JSONException {
+    public void getDraftAccountWithUnsupportedContentType() {
         assertEquals(
             1,
             DraftAccountUtils.getAllDraftAccountIds().size(),
