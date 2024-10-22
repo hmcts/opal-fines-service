@@ -8,6 +8,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.service.opal.NoteService;
@@ -22,7 +25,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.opal.controllers.UserStateBuilder.createUserState;
 
 @ExtendWith(MockitoExtension.class)
 class NoteControllerTest {
@@ -44,9 +46,11 @@ class NoteControllerTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
         NoteDto noteDtoRequest = NoteDto.builder().businessUnitId((short) 50).build();
         NoteDto noteDtoResponse = NoteDto.builder().noteId(1L).build();
+        UserState userState = UserStateUtil.permissionUser(
+            (short)50, Permissions.ACCOUNT_ENQUIRY, Permissions.ACCOUNT_ENQUIRY_NOTES);
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(noteDtoResponse);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(createUserState());
+        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(userState);
 
         // Act
         ResponseEntity<NoteDto> response = noteController.createNote(noteDtoRequest, BEARER_TOKEN);

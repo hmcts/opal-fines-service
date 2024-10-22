@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
@@ -52,9 +53,10 @@ class DraftAccountControllerTest {
     void testGetDraftAccount_Success() {
         // Arrange
         DraftAccountEntity entity = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)1).build())
             .build();
 
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
         when(draftAccountService.getDraftAccount(any(Long.class))).thenReturn(entity);
 
         // Act
