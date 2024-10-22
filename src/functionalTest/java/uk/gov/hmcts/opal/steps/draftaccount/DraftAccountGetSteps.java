@@ -4,6 +4,7 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
+import org.json.JSONException;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 
@@ -22,6 +23,47 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .given()
             .header("Authorization", "Bearer " + getToken())
             .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
+    }
+
+    @When("I get the draft account trying to provoke an internal server error")
+    public void getDraftAccountInternalServerError() {
+        SerenityRest
+            .given()
+            .urlEncodingEnabled(false)
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/%20");
+    }
+
+    @When("I attempt to get a draft account with an invalid token")
+    public void getDraftAccountWithInvalidToken() throws JSONException {
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + "invalidToken")
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/1234");
+    }
+
+    @When("I attempt to get a draft account with an unsupported content type")
+    public void getDraftAccountWithUnsupportedContentType() throws JSONException {
+        assertEquals(
+            1,
+            DraftAccountUtils.getAllDraftAccountIds().size(),
+            "There should be only one draft account but found multiple: "
+                + DraftAccountUtils.getAllDraftAccountIds()
+        );
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("text/plain")
             .contentType("application/json")
             .when()
             .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
