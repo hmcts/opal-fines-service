@@ -1,22 +1,44 @@
+@Opal
+Feature: PO-690 get draft account error handling
 
-Feature: PO-690 get draft account error handling scenarios
-
-  @PO-690
-    #When request includes an invalid access token or does not include access token
-  Scenario: Get draft account id - unhappy path -Response code 401
+  @PO-690 @cleanUpData
+  Scenario: Get draft account - CEP2 - Invalid or No Access Token
     Given I am testing as the "opal-test@hmcts.net" user
-    When I request the draft account id with invalid token
+    When I attempt to get a draft account with an invalid token
     Then The draft account response returns 401
-    Then I delete the created draft accounts
 
-  Scenario: Get draft account id - unhappy path -Response code 404
+  @PO-690 @cleanUpData
+  Scenario: Get draft account - CEP4 - Resource Not Found
     Given I am testing as the "opal-test@hmcts.net" user
-    When I request the draft account with incorrect account id
+    When I attempt to hit an endpoint that doesn't exist
     Then The draft account response returns 404
-    Then I delete the created draft accounts
 
-  Scenario: Get draft account id - unhappy path -Response code 406
+
+  @PO-690 @cleanUpData
+  Scenario: Get draft account - CEP5 - Unsupported Content Type
     Given I am testing as the "opal-test@hmcts.net" user
-    When I request the draft account with content type mismatch
-    Then The draft account response returns 404
-    Then I delete the created draft accounts
+    When I create a draft account with the following details
+      | business_unit_id | 73                                     |
+      | account          | draftAccounts/accountJson/account.json |
+      | account_type     | Fine                                   |
+      | account_status   |                                        |
+      | submitted_by     | BUUID                                  |
+      | timeline_data    |                                        |
+    Then The draft account response returns 201
+    And I store the created draft account ID
+
+    When I attempt to get a draft account with an unsupported content type
+    Then The draft account response returns 406
+
+  @PO-690 @cleanUpData
+  Scenario: Get draft account - CEP5 - Unsupported Content Type in Url parameter
+    Given I am testing as the "opal-test@hmcts.net" user
+    When I get the draft account "not A Long"
+    Then The draft account response returns 406
+
+
+  @PO-690 @cleanUpData
+  Scenario: Get draft account - CEP9 - Other Server Error
+    Given I am testing as the "opal-test@hmcts.net" user
+    When I get the draft account trying to provoke an internal server error
+    Then The draft account response returns 500
