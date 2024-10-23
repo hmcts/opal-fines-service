@@ -1,5 +1,5 @@
 @Opal
-Feature: PO-647 get draft account error handling
+Feature: PO-647 get draft accounts error handling
 
   @PO-647 @cleanUpData
   Scenario: Get draft account - CEP2 - Invalid or No Access Token

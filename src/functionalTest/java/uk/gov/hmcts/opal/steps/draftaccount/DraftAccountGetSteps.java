@@ -4,7 +4,6 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
-import org.json.JSONException;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 
@@ -214,18 +213,18 @@ public class DraftAccountGetSteps extends BaseStepDef {
     }
 
     @When("I attempt to get draft accounts with an invalid token")
-    public void iAttemptToGetDraftAccountsWithAnInvalidToken() {
+    public void getDraftAccountsWithAnInvalidToken() {
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + "invalidToken")
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/1234");
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/12");
     }
 
     @When("I attempt to get draft accounts with an unsupported content type")
-    public void iAttemptToGetDraftAccountsWithAnUnsupportedContentType() {
+    public void getDraftAccountsWithAnUnsupportedContentType() {
         String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
         SerenityRest
             .given()
