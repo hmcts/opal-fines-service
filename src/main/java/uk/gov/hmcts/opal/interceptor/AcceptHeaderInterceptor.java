@@ -25,6 +25,6 @@ public class AcceptHeaderInterceptor implements HandlerInterceptor {
     }
 
     private boolean isAcceptableMediaType(String acceptHeader) {
-        return acceptHeader != null && (acceptHeader.contains("application/json") || acceptHeader.contains("*/*"));
+        return acceptHeader == null || (acceptHeader.contains("application/json") || acceptHeader.contains("*/*"));
     }
 }

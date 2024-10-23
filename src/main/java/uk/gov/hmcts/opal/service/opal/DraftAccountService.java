@@ -4,6 +4,7 @@ package uk.gov.hmcts.opal.service.opal;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -100,7 +101,7 @@ public class DraftAccountService {
 
     public DraftAccountEntity replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto) {
         DraftAccountEntity existingAccount = draftAccountRepository.findById(draftAccountId)
-            .orElseThrow(() -> new RuntimeException("Draft Account not found with id: " + draftAccountId));
+            .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
 
         BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId())
             .orElseThrow(() -> new RuntimeException("Business Unit not found with id: " + dto.getBusinessUnitId()));
@@ -133,7 +134,7 @@ public class DraftAccountService {
 
     public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto)  {
         DraftAccountEntity existingAccount = draftAccountRepository.findById(draftAccountId)
-            .orElseThrow(() -> new RuntimeException("Draft Account not found with id: " + draftAccountId));
+            .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
 
         if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
             log.info("DTO BU does not match entity for draft account with ID: {}", draftAccountId);

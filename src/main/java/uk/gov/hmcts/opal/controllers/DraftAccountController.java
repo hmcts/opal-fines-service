@@ -185,12 +185,12 @@ public class DraftAccountController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
             log.info(":PUT:replaceDraftAccount: replacing draft account entity with ID: {} and data: {}",
                      draftAccountId, dto);
-            jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
 
             DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto);
 
@@ -209,6 +209,7 @@ public class DraftAccountController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
@@ -217,7 +218,6 @@ public class DraftAccountController {
                      draftAccountId, dto
             );
 
-            jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
 
             DraftAccountEntity updatedEntity = draftAccountService.updateDraftAccount(draftAccountId, dto);
 
