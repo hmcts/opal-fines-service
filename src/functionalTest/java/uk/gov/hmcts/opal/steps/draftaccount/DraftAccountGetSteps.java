@@ -4,7 +4,6 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
-import org.json.JSONException;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 
@@ -28,6 +27,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
     }
 
+
     @When("I get the draft account trying to provoke an internal server error")
     public void getDraftAccountInternalServerError() {
         SerenityRest
@@ -41,7 +41,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
     }
 
     @When("I attempt to get a draft account with an invalid token")
-    public void getDraftAccountWithInvalidToken() throws JSONException {
+    public void getDraftAccountWithInvalidToken() {
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + "invalidToken")
@@ -52,7 +52,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
     }
 
     @When("I attempt to get a draft account with an unsupported content type")
-    public void getDraftAccountWithUnsupportedContentType() throws JSONException {
+    public void getDraftAccountWithUnsupportedContentType() {
         assertEquals(
             1,
             DraftAccountUtils.getAllDraftAccountIds().size(),
@@ -210,5 +210,40 @@ public class DraftAccountGetSteps extends BaseStepDef {
             String submittedBy = then().extract().body().jsonPath().getString("summaries[" + i + "].submitted_by");
             assertNotEquals(filter, submittedBy, "should not contain " + filter);
         }
+    }
+
+    @When("I attempt to get draft accounts with an invalid token")
+    public void getDraftAccountsWithAnInvalidToken() {
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + "invalidToken")
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI);
+    }
+
+    @When("I attempt to get draft accounts with an unsupported content type")
+    public void getDraftAccountsWithAnUnsupportedContentType() {
+        //String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getLast();
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("text/plain")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI);
+    }
+
+    @When("I get the draft accounts trying to provoke an internal server error")
+    public void getDraftAccountsToProvokeInternalServerError() {
+        SerenityRest
+            .given()
+            .urlEncodingEnabled(false)
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?business_unit=%20");
     }
 }
