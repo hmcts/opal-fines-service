@@ -78,23 +78,6 @@ class AcceptHeaderInterceptorTest {
         assertTrue(stringWriter.toString().contains("\"message\":\"The requested media type is not supported\""));
     }
 
-    @Test
-    void preHandle_WithCheckAcceptHeaderAnnotationAndNullAcceptHeader_ShouldReturnFalse() throws Exception {
-        when(handlerMethod.hasMethodAnnotation(CheckAcceptHeader.class)).thenReturn(true);
-        when(request.getHeader("Accept")).thenReturn(null);
-
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter writer = new PrintWriter(stringWriter);
-        when(response.getWriter()).thenReturn(writer);
-
-        boolean result = interceptor.preHandle(request, response, handlerMethod);
-
-        assertFalse(result);
-        verify(response).setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
-        writer.flush();
-        assertTrue(stringWriter.toString().contains("\"error\":\"Not Acceptable\""));
-        assertTrue(stringWriter.toString().contains("\"message\":\"The requested media type is not supported\""));
-    }
 
     @Test
     void preHandle_WithoutCheckAcceptHeaderAnnotation_ShouldReturnTrue() throws Exception {

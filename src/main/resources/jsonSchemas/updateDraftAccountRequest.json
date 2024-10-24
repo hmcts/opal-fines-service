@@ -20,5 +20,10 @@
       "type": "object",
       "description": "Status changes to the Draft Account in chronological order (JSON Array) - System generated (UI)"
     }
-  }
+  },
+  "required": [
+    "business_unit_id",
+    "validated_by",
+    "account_status"
+  ]
 }

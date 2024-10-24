@@ -3,6 +3,9 @@ package uk.gov.hmcts.opal.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.QueryTimeoutException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.stubbing.OngoingStubbing;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
@@ -11,6 +14,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -21,6 +25,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.config.WebConfig;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
@@ -38,6 +43,7 @@ import java.net.ConnectException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsString;
@@ -46,6 +52,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.PATCH;
+import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.PUT;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -60,7 +70,7 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 
 @WebMvcTest
-@ContextConfiguration(classes = {DraftAccountController.class, GlobalExceptionHandler.class})
+@ContextConfiguration(classes = {DraftAccountController.class, GlobalExceptionHandler.class, WebConfig.class})
 @ActiveProfiles({"integration"})
 class DraftAccountControllerIntegrationTest {
     private static final Logger logger = Logger.getLogger(DraftAccountControllerIntegrationTest.class.getSimpleName());
@@ -637,7 +647,7 @@ class DraftAccountControllerIntegrationTest {
                                           }"""));
     }
 
-    private String validCreateRequestBody() {
+    private static String validCreateRequestBody() {
         return """
 {
     "account": {
@@ -662,7 +672,7 @@ class DraftAccountControllerIntegrationTest {
 }""";
     }
 
-    private String invalidCreateRequestBody() {
+    private static String invalidCreateRequestBody() {
         return """
 {
     "invalid_field": "This field shouldn't be here",
@@ -683,7 +693,7 @@ class DraftAccountControllerIntegrationTest {
 }""";
     }
 
-    private String validUpdateRequestBody() {
+    private static String validUpdateRequestBody() {
         return """
 {
     "account_status": "PENDING",
@@ -705,5 +715,147 @@ class DraftAccountControllerIntegrationTest {
             .timelineData(dto.getTimelineData())
             .build();
     }
+
+    //CEP 1 CEP1 - Invalid Request Payload (400)
+    @ParameterizedTest
+    @MethodSource("endpointsWithInvalidBodiesProvider")
+    void methodsShouldReturn400WhenRequestPayloadIsInvalid(HttpMethod method, String fullPath, String requestBody)
+        throws Exception {
+        MockHttpServletRequestBuilder requestBuilder = switch (method.name()) {
+            case "GET" -> get(fullPath);
+            case "POST" -> post(fullPath);
+            case "PUT" -> put(fullPath);
+            case "PATCH" -> patch(fullPath);
+            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
+        };
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        mockMvc.perform(requestBuilder
+                            .header("Authorization", "Bearer some_value")
+                            .header("Accept", "application/json")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                            .andExpect(status().isBadRequest());
+    }
+
+    private static Stream<Arguments> endpointsWithInvalidBodiesProvider() {
+        return Stream.of(Arguments.of(POST, "/draft-accounts",invalidCreateRequestBody()),
+                         Arguments.of(PUT, "/draft-accounts/1",invalidCreateRequestBody()),
+                         Arguments.of(PATCH, "/draft-accounts/1",invalidCreateRequestBody())
+        );
+    }
+
+    //CEP2 - Invalid or No Access Token (401) - Security Context required - test elsewhere
+
+    //CEP3 - Not Authorised to perform the requested action (403)
+    @ParameterizedTest
+    @MethodSource("testCasesRequiringAuthorizationProvider")
+    void methodsShouldReturn403WhenUserLacksPermission(HttpMethod method, String fullPath, String requestBody)
+        throws Exception {
+        MockHttpServletRequestBuilder requestBuilder = switch (method.name()) {
+            case "GET" -> get(fullPath);
+            case "POST" -> post(fullPath);
+            case "PUT" -> put(fullPath);
+            case "PATCH" -> patch(fullPath);
+            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
+        };
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
+
+        mockMvc.perform(requestBuilder
+                            .header("Authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.error").value("Forbidden"));
+    }
+
+    private static Stream<Arguments> testCasesRequiringAuthorizationProvider() {
+        return Stream.of(
+            Arguments.of(POST, "/draft-accounts", validCreateRequestBody()),
+            Arguments.of(PUT, "/draft-accounts/1", validCreateRequestBody()),
+            Arguments.of(PATCH, "/draft-accounts/1", validUpdateRequestBody()),
+            Arguments.of(GET, "/draft-accounts", "")  // GET endpoints with empty body
+        );
+    }
+
+    //CEP4 - Resource Not Found (404) - applies to GET PUT PATCH & DELETE
+    @ParameterizedTest
+    @MethodSource("testCasesForResourceNotFoundProvider")
+    void methodsShouldReturn404WhenResourceNotFound(HttpMethod method, String fullPath, String requestBody)
+        throws Exception {
+        // Set up a non-existent ID
+        long nonExistentId = 999L;
+
+        MockHttpServletRequestBuilder requestBuilder = switch (method.name()) {
+            case "GET" -> get(fullPath);
+            case "PUT" -> put(fullPath);
+            case "PATCH" -> patch(fullPath);
+            case "DELETE" -> delete(fullPath);
+            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
+        };
+
+        // Mock the service behavior
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // For GET return null
+        when(draftAccountService.getDraftAccount(nonExistentId)).thenReturn(null);
+
+        // For PUT, throw EntityNotFoundException
+        when(draftAccountService.replaceDraftAccount(eq(nonExistentId), any(ReplaceDraftAccountRequestDto.class)))
+            .thenThrow(new jakarta.persistence.EntityNotFoundException("Draft Account not found with id: "
+                                                                           + nonExistentId));
+        // For PATCH, throw EntityNotFoundException
+        when(draftAccountService.updateDraftAccount(eq(nonExistentId), any(UpdateDraftAccountRequestDto.class)))
+            .thenThrow(new jakarta.persistence.EntityNotFoundException("Draft Account not found with id: "
+                                                                           + nonExistentId));
+        mockMvc.perform(requestBuilder
+                            .header("Authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+            .andExpect(status().isNotFound());
+    }
+
+    private static Stream<Arguments> testCasesForResourceNotFoundProvider() {
+        return Stream.of(
+            Arguments.of(GET, "/draft-accounts/999", ""),
+            Arguments.of(PUT, "/draft-accounts/999", validCreateRequestBody()),
+            Arguments.of(PATCH, "/draft-accounts/999", validUpdateRequestBody())
+        );
+    }
+
+    //CEP5 - Unsupported Content Type for Response (406)
+    @ParameterizedTest
+    @MethodSource("testCasesWithValidBodiesProvider")
+    void methodsShouldReturn406WhenAcceptHeaderIsNotSupported(HttpMethod method, String fullPath, String requestBody)
+        throws Exception {
+        MockHttpServletRequestBuilder requestBuilder = switch (method.name()) {
+            case "GET" -> get(fullPath);
+            case "POST" -> post(fullPath);
+            case "PUT" -> put(fullPath);
+            case "PATCH" -> patch(fullPath);
+            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
+        };
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        mockMvc.perform(requestBuilder
+                            .header("Authorization", "Bearer some_value")
+                            .header("Accept", "application/xml")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+                            .andExpect(status().isNotAcceptable());
+    }
+
+    private static Stream<Arguments> testCasesWithValidBodiesProvider() {
+        return Stream.of(Arguments.of(POST, "/draft-accounts",validCreateRequestBody()),
+            Arguments.of(PUT, "/draft-accounts/1","{}"),
+            Arguments.of(PATCH, "/draft-accounts/1","{}"),
+            Arguments.of(GET, "/draft-accounts/1","{}")
+        );
+    }
+
 
 }
