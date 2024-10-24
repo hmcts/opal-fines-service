@@ -27,7 +27,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
     }
 
-    @When("I get the draft accounts trying to provoke an internal server error")
+
     @When("I get the draft account trying to provoke an internal server error")
     public void getDraftAccountInternalServerError() {
         SerenityRest
@@ -220,18 +220,30 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/12");
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI);
     }
 
     @When("I attempt to get draft accounts with an unsupported content type")
     public void getDraftAccountsWithAnUnsupportedContentType() {
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        //String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getLast();
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
             .accept("text/plain")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI);
+    }
+
+    @When("I get the draft accounts trying to provoke an internal server error")
+    public void getDraftAccountsToProvokeInternalServerError() {
+        SerenityRest
+            .given()
+            .urlEncodingEnabled(false)
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?business_unit=%20");
     }
 }
