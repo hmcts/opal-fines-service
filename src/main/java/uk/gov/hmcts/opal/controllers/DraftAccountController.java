@@ -72,6 +72,7 @@ public class DraftAccountController {
     }
 
     @GetMapping(value = "/{draftAccountId}")
+    @CheckAcceptHeader
     @Operation(summary = "Returns the Draft Account for the given draftAccountId.")
     public ResponseEntity<DraftAccountResponseDto> getDraftAccountById(
         @PathVariable Long draftAccountId,
@@ -86,6 +87,7 @@ public class DraftAccountController {
     }
 
     @GetMapping()
+    @CheckAcceptHeader
     @Operation(summary = "Returns a collection of draft accounts summaries for the given user.")
     public ResponseEntity<DraftAccountsResponseDto> getDraftAccountSummaries(
         @RequestParam(value = "business_unit") Optional<List<Short>> optionalBusinessUnitIds,
@@ -176,18 +178,19 @@ public class DraftAccountController {
 
     @PutMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Replaces an existing Draft Account Entity in the DB with data in request body")
+    @CheckAcceptHeader
     public ResponseEntity<DraftAccountResponseDto> replaceDraftAccount(
         @PathVariable Long draftAccountId,
         @RequestBody ReplaceDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
             log.info(":PUT:replaceDraftAccount: replacing draft account entity with ID: {} and data: {}",
                      draftAccountId, dto);
-            jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
 
             DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto);
 
@@ -199,12 +202,14 @@ public class DraftAccountController {
 
     @PatchMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Updates an existing Draft Account Entity in the DB with data in request body")
+    @CheckAcceptHeader
     public ResponseEntity<DraftAccountResponseDto> updateDraftAccount(
         @PathVariable Long draftAccountId,
         @RequestBody UpdateDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
@@ -213,7 +218,6 @@ public class DraftAccountController {
                      draftAccountId, dto
             );
 
-            jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
 
             DraftAccountEntity updatedEntity = draftAccountService.updateDraftAccount(draftAccountId, dto);
 
