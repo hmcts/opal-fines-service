@@ -139,6 +139,7 @@ Feature: PO-749 put draft account error handling
       | submitted_by     | BUUID                                  |
       | timeline_data    |                                        |
     Then The draft account response returns 406
+    Then I delete the created draft accounts
 
   @PO-749 @cleanUpData
   Scenario: Put draft account - CEP9 - Other Server Error
