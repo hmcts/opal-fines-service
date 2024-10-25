@@ -225,7 +225,6 @@ public class DraftAccountGetSteps extends BaseStepDef {
 
     @When("I attempt to get draft accounts with an unsupported content type")
     public void getDraftAccountsWithAnUnsupportedContentType() {
-        //String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getLast();
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
