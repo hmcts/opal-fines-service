@@ -104,7 +104,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI);
+            .put(getTestUrl() + DRAFT_ACCOUNT_URI);
     }
 
     @When("I attempt to put a draft account with an invalid request payload")
