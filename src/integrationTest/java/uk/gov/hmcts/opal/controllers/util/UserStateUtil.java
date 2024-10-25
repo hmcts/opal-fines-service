@@ -33,6 +33,18 @@ public class UserStateUtil {
             .build();
     }
 
+    public static final UserState permissionUser(Short[] buids, Permissions... permissions) {
+        return UserState.builder()
+            .userId(1L)
+            .userName("normal@users.com")
+            .businessUnitUser(
+                Arrays
+                    .stream(buids)
+                    .map(buid -> permissions(buid, permissionsFor(permissions)))
+                    .collect(Collectors.toSet()))
+            .build();
+    }
+
     public static final UserState permissionUser(Short buid, Permission... permissions) {
         return UserState.builder()
             .userId(1L)

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.QueryTimeoutException;
 import org.junit.jupiter.api.Test;
@@ -65,6 +64,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
+import static uk.gov.hmcts.opal.entity.DraftAccountStatus.ERROR_IN_PUBLISHING;
+import static uk.gov.hmcts.opal.entity.DraftAccountStatus.SUBMITTED;
 
 
 @WebMvcTest
@@ -76,11 +77,10 @@ class DraftAccountControllerIntegrationTest {
     private static final String GET_DRAFT_ACCOUNT_RESPONSE = "getDraftAccountResponse.json";
     private static final String GET_DRAFT_ACCOUNTS_RESPONSE = "getDraftAccountsResponse.json";
 
-    @Autowired
-    MockMvc mockMvc;
+    private static final Short BU_ID = (short)007;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    MockMvc mockMvc;
 
     @MockBean
     @Qualifier("draftAccountService")
@@ -97,7 +97,7 @@ class DraftAccountControllerIntegrationTest {
 
     @Test
     void testGetDraftAccountById_success() throws Exception {
-        DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
+        DraftAccountEntity draftAccountEntity = createDraftAccountEntity(BU_ID);
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(draftAccountEntity);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -122,10 +122,10 @@ class DraftAccountControllerIntegrationTest {
 
     @Test
     void testGetDraftAccountById_trap403Response_wrongPermission() throws Exception {
-        DraftAccountEntity entity = createDraftAccountEntity();
+        DraftAccountEntity entity = createDraftAccountEntity(BU_ID);
         when(draftAccountService.getDraftAccount(2L)).thenReturn(entity);
 
-        UserState userState = permissionUser((short)007, Permissions.COLLECTION_ORDER);
+        UserState userState = permissionUser(BU_ID, Permissions.COLLECTION_ORDER);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
         mockMvc.perform(
@@ -141,7 +141,7 @@ class DraftAccountControllerIntegrationTest {
 
     @Test
     void testGetDraftAccountById_trap403Response_wrongBusinessUnit() throws Exception {
-        DraftAccountEntity entity = createDraftAccountEntity();
+        DraftAccountEntity entity = createDraftAccountEntity(BU_ID);
         when(draftAccountService.getDraftAccount(2L)).thenReturn(entity);
 
         UserState userState = permissionUser((short)005, Permissions.DRAFT_ACCOUNT_PERMISSIONS);
@@ -175,7 +175,7 @@ class DraftAccountControllerIntegrationTest {
 
     @Test
     void testGetDraftAccountById_trap406Response() throws Exception {
-        when(draftAccountService.getDraftAccount(1L)).thenReturn(createDraftAccountEntity());
+        when(draftAccountService.getDraftAccount(1L)).thenReturn(createDraftAccountEntity(BU_ID));
         shouldReturn406WhenResponseContentTypeNotSupported(get(URL_BASE + "/1"));
     }
 
@@ -199,8 +199,7 @@ class DraftAccountControllerIntegrationTest {
 
         String body = checkStandardSummaryExpectations(mockMvc.perform(get(URL_BASE)
                             .header("authorization", "Bearer some_value")
-                            // .param("business_unit", "1")
-                            .contentType(MediaType.APPLICATION_JSON)));
+                            .contentType(MediaType.APPLICATION_JSON)), 1);
 
         logger.info(":testGetDraftAccountsSummaries_noParams: body:\n" + ToJsonString.toPrettyJson(body));
 
@@ -208,11 +207,10 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testGetDraftAccountsSummaries_permission1() throws Exception {
+    void testGetDraftAccountsSummaries_paramBusinessUnit() throws Exception {
         List<DraftAccountEntity> draftAccountEntities = createDraftAccountEntityList("Tony");
-        final Short businessId = (short)1;
 
-        UserState user = permissionUser(businessId, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        UserState user = permissionUser(BU_ID, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
         when(draftAccountService.getDraftAccounts(any(), any(), any(), any()))
@@ -220,8 +218,8 @@ class DraftAccountControllerIntegrationTest {
 
         String body = checkStandardSummaryExpectations(mockMvc.perform(get(URL_BASE)
                             .header("authorization", "Bearer some_value")
-                            .param("business_unit", businessId.toString())
-                            .contentType(MediaType.APPLICATION_JSON)));
+                            .param("business_unit", BU_ID.toString())
+                            .contentType(MediaType.APPLICATION_JSON)), 1);
 
         logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
 
@@ -229,11 +227,10 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testGetDraftAccountsSummaries_permission2() throws Exception {
-        List<DraftAccountEntity> draftAccountEntities = createDraftAccountEntityList("Dave");
-        final Short businessId = (short)1;
+    void testGetDraftAccountsSummaries_paramStatus() throws Exception {
+        List<DraftAccountEntity> draftAccountEntities = createDraftAccountEntityList("Tony");
 
-        UserState user = permissionUser(businessId, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        UserState user = permissionUser(BU_ID, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
         when(draftAccountService.getDraftAccounts(any(), any(), any(), any()))
@@ -241,9 +238,92 @@ class DraftAccountControllerIntegrationTest {
 
         String body = checkStandardSummaryExpectations(mockMvc.perform(get(URL_BASE)
                             .header("authorization", "Bearer some_value")
-                            .param("business_unit", businessId.toString())
+                            .param("status", ERROR_IN_PUBLISHING.getLabel())
+                            .contentType(MediaType.APPLICATION_JSON)), 1);
+
+        logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
+
+        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+    }
+
+    @Test
+    void testGetDraftAccountsSummaries_paramSubmittedBy() throws Exception {
+        List<DraftAccountEntity> draftAccountEntities = createDraftAccountEntityList("Tony");
+
+        UserState user = permissionUser(BU_ID, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        when(draftAccountService.getDraftAccounts(any(), any(), any(), any()))
+            .thenReturn(draftAccountEntities);
+
+        String body = checkStandardSummaryExpectations(mockMvc.perform(get(URL_BASE)
+                            .header("authorization", "Bearer some_value")
+                            .param("submitted_by", "Tony")
+                            .contentType(MediaType.APPLICATION_JSON)), "Tony", 1);
+
+        logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
+
+        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+    }
+
+    @Test
+    void testGetDraftAccountsSummaries_paramNotSubmittedBy() throws Exception {
+        List<DraftAccountEntity> draftAccountEntities = createDraftAccountEntityList("Dave");
+
+        UserState user = permissionUser(BU_ID, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        when(draftAccountService.getDraftAccounts(any(), any(), any(), any()))
+            .thenReturn(draftAccountEntities);
+
+        String body = checkStandardSummaryExpectations(mockMvc.perform(get(URL_BASE)
+                            .header("authorization", "Bearer some_value")
                             .param("not_submitted_by", "Tony")
-                            .contentType(MediaType.APPLICATION_JSON)), "Dave");
+                            .contentType(MediaType.APPLICATION_JSON)), "Dave", 1);
+
+        logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
+
+        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+    }
+
+    @Test
+    void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits1() throws Exception {
+        DraftAccountEntity draftAccountEntity7 = createDraftAccountEntity(BU_ID);
+        DraftAccountEntity draftAccountEntity6 = createDraftAccountEntity((short)6);
+
+        UserState user = permissionUser(BU_ID, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        when(draftAccountService.getDraftAccounts(any(), any(), any(), any()))
+            .thenReturn(List.of(draftAccountEntity7, draftAccountEntity6));
+
+        String body = checkStandardSummaryExpectations(
+            mockMvc.perform(get(URL_BASE)
+                            .header("authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)), 1);
+
+        logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
+
+        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+    }
+
+    @Test
+    void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits2() throws Exception {
+        DraftAccountEntity draftAccountEntity7 = createDraftAccountEntity(BU_ID);
+        DraftAccountEntity draftAccountEntity6 = createDraftAccountEntity((short)6);
+
+        UserState user = permissionUser(new Short[] {BU_ID, (short)6}, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        when(draftAccountService.getDraftAccounts(any(), any(), any(), any()))
+            .thenReturn(List.of(draftAccountEntity7, draftAccountEntity6));
+
+        String body = checkStandardSummaryExpectations(
+            mockMvc.perform(get(URL_BASE)
+                            .header("authorization", "Bearer some_value")
+                            .param("business_unit", "7")
+                            // .param("business_unit", BU_ID.toString())
+                            .contentType(MediaType.APPLICATION_JSON)), 2);
 
         logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
 
@@ -310,14 +390,15 @@ class DraftAccountControllerIntegrationTest {
                                                                                        any())));
     }
 
-    private String checkStandardSummaryExpectations(ResultActions actions) throws Exception {
-        return checkStandardSummaryExpectations(actions, "Tony");
+    private String checkStandardSummaryExpectations(ResultActions actions, int expectedCount) throws Exception {
+        return checkStandardSummaryExpectations(actions, "Tony", expectedCount);
     }
 
-    private String checkStandardSummaryExpectations(ResultActions actions, String submittedBy) throws Exception {
+    private String checkStandardSummaryExpectations(ResultActions actions,
+                                                    String submittedBy, int expectedCount) throws Exception {
         return actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(expectedCount))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(7))
             .andExpect(jsonPath("$.summaries[0].account_type").value("DRAFT"))
@@ -354,18 +435,22 @@ class DraftAccountControllerIntegrationTest {
     }
 
 
-    private DraftAccountEntity createDraftAccountEntity() {
-        return createDraftAccountEntity("Tony");
+    private DraftAccountEntity createDraftAccountEntity(short businessUnitId) {
+        return createDraftAccountEntity("Tony", businessUnitId);
     }
 
     private DraftAccountEntity createDraftAccountEntity(String submittedBy) {
+        return createDraftAccountEntity(submittedBy, BU_ID);
+    }
+
+    private DraftAccountEntity createDraftAccountEntity(String submittedBy, short businessUnit) {
         return DraftAccountEntity.builder()
             .draftAccountId(1L)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)007).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId(businessUnit).build())
             .createdDate(LocalDate.of(2023, 1, 2).atStartOfDay())
             .submittedBy(submittedBy)
             .accountType("DRAFT")
-            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .accountStatus(SUBMITTED)
             .account("{}")
             .accountSnapshot("{ \"data\": \"something snappy\"}")
             .timelineData("{}")
@@ -376,9 +461,13 @@ class DraftAccountControllerIntegrationTest {
         return Arrays.stream(submittedBys).map(this::createDraftAccountEntity).toList();
     }
 
+    private List<DraftAccountEntity> createDraftAccountEntityList(Short... businessUnits) {
+        return Arrays.stream(businessUnits).map(this::createDraftAccountEntity).toList();
+    }
+
     @Test
     void testDeleteDraftAccountById_success() throws Exception {
-        DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
+        DraftAccountEntity draftAccountEntity = createDraftAccountEntity(BU_ID);
 
         when(draftAccountService.getDraftAccount(1L)).thenReturn(draftAccountEntity);
 
@@ -548,7 +637,7 @@ class DraftAccountControllerIntegrationTest {
 
     @Test
     void testUpdateDraftAccount_trap406Response() throws Exception {
-        when(draftAccountService.updateDraftAccount(any(), any())).thenReturn(createDraftAccountEntity());
+        when(draftAccountService.updateDraftAccount(any(), any())).thenReturn(createDraftAccountEntity(BU_ID));
         shouldReturn406WhenResponseContentTypeNotSupported(
             patch(URL_BASE + "/1").contentType(MediaType.APPLICATION_JSON).content(validUpdateRequestBody())
         );
@@ -809,7 +898,7 @@ class DraftAccountControllerIntegrationTest {
             .account(dto.getAccount())
             .accountSnapshot("{ \"data\": \"something snappy\"}")
             .accountType(dto.getAccountType())
-            .accountStatus(DraftAccountStatus.SUBMITTED)
+            .accountStatus(SUBMITTED)
             .timelineData(dto.getTimelineData())
             .build();
     }
