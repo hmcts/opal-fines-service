@@ -37,6 +37,8 @@ class DraftAccountControllerTest {
 
     static final String BEARER_TOKEN = "Bearer a_token_here";
 
+    private static final short BU_ID = (short)1;
+
     @Mock
     private DraftAccountService draftAccountService;
 
@@ -53,7 +55,7 @@ class DraftAccountControllerTest {
     void testGetDraftAccount_Success() {
         // Arrange
         DraftAccountEntity entity = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)1).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId(BU_ID).build())
             .build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
@@ -74,7 +76,7 @@ class DraftAccountControllerTest {
     void testGetDraftAccounts_Success() {
         // Arrange
         DraftAccountEntity entity = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId(BU_ID).build())
             .build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
@@ -82,7 +84,7 @@ class DraftAccountControllerTest {
 
         // Act
         ResponseEntity<DraftAccountsResponseDto> response = draftAccountController
-            .getDraftAccountSummaries(Optional.of(List.of((short)1)),
+            .getDraftAccountSummaries(Optional.of(List.of(BU_ID)),
                                       Optional.of(List.of(DraftAccountStatus.PENDING)),
                                       Optional.of(List.of()),
                                       Optional.of(List.of()), BEARER_TOKEN);

@@ -36,4 +36,4 @@ Feature: PO-647 get draft accounts error handling
   Scenario: Get draft account - CEP9 - Other Server Error
     Given I am testing as the "opal-test@hmcts.net" user
     When I get the draft accounts trying to provoke an internal server error
-    Then The draft account response returns 500
+    Then The draft account response returns 400

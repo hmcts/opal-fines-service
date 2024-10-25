@@ -39,7 +39,6 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toOffsetDateTime;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
@@ -118,24 +117,28 @@ public class DraftAccountController {
             }
 
             List<DraftAccountStatus> statuses = optionalStatus.orElse(Collections.emptyList());
-            Set<Short> filteredBusinessUnitIds = userState
-                .filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
-                    optionalBusinessUnitIds,
-                    Permissions.DRAFT_ACCOUNT_PERMISSIONS
-                );
-            log.info(":GET:getDraftAccountSummaries: status: {}; filtered business units: {}", statuses,
-                     filteredBusinessUnitIds);
+            log.info(":GET:getDraftAccountSummaries: status: {}; business ids: {}", statuses, optionalBusinessUnitIds);
 
-            List<DraftAccountEntity> response = draftAccountService
-                .getDraftAccounts(filteredBusinessUnitIds, statuses, submittedBys, notSubmitted);
+            List<DraftAccountEntity> entities = draftAccountService
+                .getDraftAccounts(optionalBusinessUnitIds.orElse(Collections.emptyList()),
+                                  statuses, submittedBys, notSubmitted);
 
-            log.info(":GET:getDraftAccountSummaries: summaries count: {}", response.size());
+            log.info(":GET:getDraftAccountSummaries: pre-auth summaries count: {}", entities.size());
 
-            // TODO filter responses by permissions of logged in user
+            List<DraftAccountEntity> filtered = entities.stream()
+                .filter(e -> userState.hasBusinessUnitUserWithAnyPermission(
+                    e.getBusinessUnit().getBusinessUnitId(), Permissions.DRAFT_ACCOUNT_PERMISSIONS))
+                .toList();
+
+            log.info(":GET:getDraftAccountSummaries: filtered summaries count: {}", filtered.size());
 
             return buildResponse(
                 DraftAccountsResponseDto.builder()
-                    .summaries(response.stream().map(this::toSummaryDto).toList()).build());
+                    .summaries(
+                        filtered.stream()
+                            .map(this::toSummaryDto)
+                            .toList()
+                    ).build());
         } else {
             throw new PermissionNotAllowedException(Permissions.DRAFT_ACCOUNT_PERMISSIONS);
         }

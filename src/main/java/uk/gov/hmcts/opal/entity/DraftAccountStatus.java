@@ -1,6 +1,9 @@
 package uk.gov.hmcts.opal.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+
+import java.util.Arrays;
 
 public enum DraftAccountStatus {
 
@@ -21,5 +24,11 @@ public enum DraftAccountStatus {
     @JsonValue
     public String getLabel() {
         return label;
+    }
+
+    @JsonCreator
+    public static DraftAccountStatus fromLabel(String label) {
+        return Arrays.stream(values()).filter(s -> s.getLabel().equals(label)).findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("'" + label + "' is not a valid Draft Account Status."));
     }
 }
