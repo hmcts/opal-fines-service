@@ -14,20 +14,26 @@ public class PermissionNotAllowedException extends RuntimeException {
     private final BusinessUnitUser businessUnitUser;
 
     public PermissionNotAllowedException(Permissions... value) {
-        super(Arrays.toString(value) + " permission(s) are not allowed for the user.");
+        super(Arrays.toString(value) + " permission(s) are not enabled for the user.");
+        this.permission = value;
+        this.businessUnitUser = null;
+    }
+
+    public PermissionNotAllowedException(Short buIds, Permissions... value) {
+        super(Arrays.toString(value) + " permission(s) are not enabled in business unit: " + buIds);
         this.permission = value;
         this.businessUnitUser = null;
     }
 
     public PermissionNotAllowedException(Collection<Short> buIds, Permissions... value) {
-        super(Arrays.toString(value) + " permission(s) are not allowed for the user in business units: " + buIds);
+        super(Arrays.toString(value) + " permission(s) are not enabled in business units: " + buIds);
         this.permission = value;
         this.businessUnitUser = null;
     }
 
     public PermissionNotAllowedException(Permissions permission,
                                          BusinessUnitUser businessUnitUser) {
-        super(permission + " permission is not allowed for the business unit user: "
+        super(permission + " permission is not enabled for the business unit user: "
                   + businessUnitUser.getBusinessUnitUserId());
         this.permission = new Permissions[] {permission};
         this.businessUnitUser = businessUnitUser;

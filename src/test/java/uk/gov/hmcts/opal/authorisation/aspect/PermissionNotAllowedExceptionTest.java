@@ -21,7 +21,7 @@ class PermissionNotAllowedExceptionTest {
         Permissions permission = Permissions.ACCOUNT_ENQUIRY_NOTES;
         PermissionNotAllowedException exception = new PermissionNotAllowedException(permission);
 
-        assertEquals("[" + permission + "]" + " permission(s) are not allowed for the user.",
+        assertEquals("[" + permission + "]" + " permission(s) are not enabled for the user.",
                      exception.getMessage());
     }
 
@@ -31,7 +31,7 @@ class PermissionNotAllowedExceptionTest {
         PermissionNotAllowedException exception = new PermissionNotAllowedException(
             permission, BusinessUnitUser.builder().businessUnitUserId("A001").build());
 
-        assertEquals(permission + " permission is not allowed for the business unit user: A001",
+        assertEquals(permission + " permission is not enabled for the business unit user: A001",
                      exception.getMessage());
     }
 }

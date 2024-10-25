@@ -81,9 +81,17 @@ public class DraftAccountController {
         log.info(":GET:getDraftAccountById: draftAccountId: {}", draftAccountId);
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
-        DraftAccountEntity response = draftAccountService.getDraftAccount(draftAccountId);
-
-        return buildResponse(Optional.ofNullable(response).map(this::toGetResponseDto).orElse(null));
+        if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
+            DraftAccountEntity response = draftAccountService.getDraftAccount(draftAccountId);
+            Short buId = response.getBusinessUnit().getBusinessUnitId();
+            if (userState.hasBusinessUnitUserWithAnyPermission(buId, Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
+                return buildResponse(Optional.ofNullable(response).map(this::toGetResponseDto).orElse(null));
+            } else {
+                throw new PermissionNotAllowedException(buId, Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+            }
+        } else {
+            throw new PermissionNotAllowedException(Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+        }
     }
 
     @GetMapping()
@@ -114,6 +122,8 @@ public class DraftAccountController {
                 .getDraftAccounts(filteredBusinessUnitIds, statuses, submittedBys);
 
             log.info(":GET:getDraftAccountSummaries: summaries count: {}", response.size());
+
+            // TODO filter responses by permissions of logged in user
 
             return buildResponse(
                 DraftAccountsResponseDto.builder()
