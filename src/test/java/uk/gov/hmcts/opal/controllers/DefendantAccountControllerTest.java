@@ -7,6 +7,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
@@ -26,7 +29,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.opal.controllers.UserStateBuilder.createUserState;
 
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountControllerTest {
@@ -143,9 +145,11 @@ class DefendantAccountControllerTest {
     public void testAddNote_Success() {
         // Arrange
         NoteDto mockResponse = new NoteDto();
+        UserState userState = UserStateUtil.permissionUser(
+            (short)50, Permissions.ACCOUNT_ENQUIRY, Permissions.ACCOUNT_ENQUIRY_NOTES);
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(mockResponse);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(createUserState());
+        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(userState);
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().businessUnitId((short) 50).build();
@@ -162,9 +166,11 @@ class DefendantAccountControllerTest {
     @Test
     public void testAddNote_NoContent() {
         // Arrange
+        UserState userState = UserStateUtil.permissionUser(
+            (short)50, Permissions.ACCOUNT_ENQUIRY, Permissions.ACCOUNT_ENQUIRY_NOTES);
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(null);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(createUserState());
+        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(userState);
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().businessUnitId((short) 50).build();

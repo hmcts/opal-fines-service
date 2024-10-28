@@ -4,10 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.QueryTimeoutException;
 import org.junit.jupiter.api.Test;
+<<<<<<< HEAD
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+=======
 import org.mockito.Mockito;
+>>>>>>> a65ca2e0 (PO-828: Check authorisation for GET Draft Account endpoint)
 import org.mockito.stubbing.OngoingStubbing;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
@@ -849,9 +852,7 @@ class DraftAccountControllerIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // For GET return null
-        DraftAccountEntity entity = Mockito.mock(DraftAccountEntity.class);
-        when(entity.getBusinessUnit()).thenThrow(new EntityNotFoundException());
-        when(draftAccountService.getDraftAccount(nonExistentId)).thenReturn(entity);
+        when(draftAccountService.getDraftAccount(nonExistentId)).thenReturn(null);
 
         // For PUT, throw EntityNotFoundException
         when(draftAccountService.replaceDraftAccount(eq(nonExistentId), any(ReplaceDraftAccountRequestDto.class)))
