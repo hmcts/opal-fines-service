@@ -28,11 +28,13 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
 
     public Specification<DraftAccountEntity> findForSummaries(Collection<Short> businessUnitIds,
                                                               Collection<DraftAccountStatus> statuses,
-                                                              Collection<String> submittedBys) {
+                                                              Collection<String> submittedBys,
+                                                              Collection<String> notSubmitted) {
         return Specification.allOf(specificationList(
             equalsAnyBusinessUnitId(businessUnitIds),
             equalsAnyAccountStatus(statuses),
-            equalsAnySubmittedBy(submittedBys)
+            equalsAnySubmittedBy(submittedBys),
+            equalsNotSubmittedBy(notSubmitted)
         ));
     }
 
@@ -51,6 +53,16 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
         }
 
         return Optional.of((root, query, builder) -> root.get(DraftAccountEntity_.submittedBy).in(submittedBys));
+    }
+
+    public static Optional<Specification<DraftAccountEntity>> equalsNotSubmittedBy(Collection<String> notSubmittedBy) {
+
+        if (notSubmittedBy.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of((root, query, builder) ->
+                               root.get(DraftAccountEntity_.submittedBy).in(notSubmittedBy).not());
     }
 
     public static Specification<DraftAccountEntity> equalsBusinessUnitId(Short businessUnitId) {
