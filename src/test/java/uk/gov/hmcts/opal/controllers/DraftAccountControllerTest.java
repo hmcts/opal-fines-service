@@ -78,12 +78,13 @@ class DraftAccountControllerTest {
             .build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
-        when(draftAccountService.getDraftAccounts(any(), any(), any())).thenReturn(List.of(entity));
+        when(draftAccountService.getDraftAccounts(any(), any(), any(), any())).thenReturn(List.of(entity));
 
         // Act
         ResponseEntity<DraftAccountsResponseDto> response = draftAccountController
             .getDraftAccountSummaries(Optional.of(List.of((short)1)),
                                       Optional.of(List.of(DraftAccountStatus.PENDING)),
+                                      Optional.of(List.of()),
                                       Optional.of(List.of()), BEARER_TOKEN);
         DraftAccountsResponseDto dto = response.getBody();
 
@@ -91,7 +92,7 @@ class DraftAccountControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, dto.getCount());
         assertEquals(toSummaryDto(entity), dto.getSummaries().get(0));
-        verify(draftAccountService, times(1)).getDraftAccounts(any(), any(), any());
+        verify(draftAccountService, times(1)).getDraftAccounts(any(), any(), any(), any());
     }
 
     @Test

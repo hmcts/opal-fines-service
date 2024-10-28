@@ -296,6 +296,19 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void testHandleIllegalArgumentException() {
+        IllegalArgumentException exception =
+            new IllegalArgumentException("Cannot include both A and B parameters");
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler
+            .handleIllegalArgumentException(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Bad Request", response.getBody().get("error"));
+        assertEquals("Cannot include both A and B parameters",
+                     response.getBody().get("message"));
+    }
+
+    @Test
     void testHandleResourceConflictException() {
         ResourceConflictException e = new ResourceConflictException("DraftAccount","BusinessUnits mismatch");
         ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleResourceConflictException(e);

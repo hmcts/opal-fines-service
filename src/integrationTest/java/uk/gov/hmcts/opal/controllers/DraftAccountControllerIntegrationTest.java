@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -44,20 +43,17 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 import java.net.ConnectException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.PATCH;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpMethod.PUT;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -197,11 +193,9 @@ class DraftAccountControllerIntegrationTest {
 
     @Test
     void testGetDraftAccountsSummaries_noParams() throws Exception {
-        DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
-
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-        when(draftAccountService.getDraftAccounts(any(),any(), any()))
-            .thenReturn(singletonList(draftAccountEntity));
+        when(draftAccountService.getDraftAccounts(any(), any(), any(), any()))
+            .thenReturn(createDraftAccountEntityList("Tony"));
 
         String body = checkStandardSummaryExpectations(mockMvc.perform(get(URL_BASE)
                             .header("authorization", "Bearer some_value")
@@ -214,15 +208,15 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
-    void testGetDraftAccountsSummaries_permission() throws Exception {
-        DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
+    void testGetDraftAccountsSummaries_permission1() throws Exception {
+        List<DraftAccountEntity> draftAccountEntities = createDraftAccountEntityList("Tony");
         final Short businessId = (short)1;
 
         UserState user = permissionUser(businessId, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
-        when(draftAccountService.getDraftAccounts(any(), any(), any()))
-            .thenReturn(singletonList(draftAccountEntity));
+        when(draftAccountService.getDraftAccounts(any(), any(), any(), any()))
+            .thenReturn(draftAccountEntities);
 
         String body = checkStandardSummaryExpectations(mockMvc.perform(get(URL_BASE)
                             .header("authorization", "Bearer some_value")
@@ -235,15 +229,60 @@ class DraftAccountControllerIntegrationTest {
     }
 
     @Test
+    void testGetDraftAccountsSummaries_permission2() throws Exception {
+        List<DraftAccountEntity> draftAccountEntities = createDraftAccountEntityList("Dave");
+        final Short businessId = (short)1;
+
+        UserState user = permissionUser(businessId, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        when(draftAccountService.getDraftAccounts(any(), any(), any(), any()))
+            .thenReturn(draftAccountEntities);
+
+        String body = checkStandardSummaryExpectations(mockMvc.perform(get(URL_BASE)
+                            .header("authorization", "Bearer some_value")
+                            .param("business_unit", businessId.toString())
+                            .param("not_submitted_by", "Tony")
+                            .contentType(MediaType.APPLICATION_JSON)), "Dave");
+
+        logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
+
+        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+    }
+
+    @Test
+    void testGetDraftAccountsSummaries_trap400Response() throws Exception {
+        List<DraftAccountEntity> draftAccountEntities = createDraftAccountEntityList("Dave");
+        final Short businessId = (short)1;
+
+        UserState user = permissionUser(businessId, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+        when(draftAccountService.getDraftAccounts(any(), any(), any(), any()))
+            .thenReturn(draftAccountEntities);
+
+        mockMvc.perform(get(URL_BASE)
+                            .header("authorization", "Bearer some_value")
+                            .param("business_unit", businessId.toString())
+                            .param("submitted_by", "Dave")
+                            .param("not_submitted_by", "Tony")
+                            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.error").value("Bad Request"))
+            .andExpect(jsonPath("$.message")
+                           .value("Cannot include both 'submitted_by' and 'not_submitted_by' parameters."));
+    }
+
+    @Test
     void testGetDraftAccountsSummaries_trap403Response_noPermission() throws Exception {
-        DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
         final Short businessId = (short)1;
 
         UserState user = permissionUser(businessId, Permissions.COLLECTION_ORDER);
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
-        when(draftAccountService.getDraftAccounts(any(), any(), any()))
-            .thenReturn(singletonList(draftAccountEntity));
+        when(draftAccountService.getDraftAccounts(any(), any(), any(), any()))
+            .thenReturn(createDraftAccountEntityList("Tony"));
 
         mockMvc.perform(get(URL_BASE)
                             .header("authorization", "Bearer some_value")
@@ -260,33 +299,37 @@ class DraftAccountControllerIntegrationTest {
 
     @Test
     void testGetDraftAccountsSummaries_trap408Response() throws Exception {
-        shouldReturn408WhenTimeout(get(URL_BASE), when(draftAccountService.getDraftAccounts(any(), any(), any())));
+        shouldReturn408WhenTimeout(get(URL_BASE), when(draftAccountService.getDraftAccounts(any(), any(), any(),
+                                                                                            any())));
     }
 
     @Test
     void testGetDraftAccountsSummaries_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(get(URL_BASE),
-                                             when(draftAccountService.getDraftAccounts(any(), any(), any())));
+                                             when(draftAccountService.getDraftAccounts(any(), any(), any(),
+                                                                                       any())));
     }
 
     private String checkStandardSummaryExpectations(ResultActions actions) throws Exception {
+        return checkStandardSummaryExpectations(actions, "Tony");
+    }
+
+    private String checkStandardSummaryExpectations(ResultActions actions, String submittedBy) throws Exception {
         return actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(7))
             .andExpect(jsonPath("$.summaries[0].account_type").value("DRAFT"))
-            .andExpect(jsonPath("$.summaries[0].submitted_by").value("Tony"))
+            .andExpect(jsonPath("$.summaries[0].submitted_by").value(submittedBy))
             .andExpect(jsonPath("$.summaries[0].account_status").value("Submitted"))
             .andReturn().getResponse().getContentAsString();
     }
 
     @Test
     void testSearchDraftAccountsPost() throws Exception {
-        DraftAccountEntity draftAccountEntity = createDraftAccountEntity();
-
         when(draftAccountService.searchDraftAccounts(any(DraftAccountSearchDto.class)))
-            .thenReturn(singletonList(draftAccountEntity));
+            .thenReturn(createDraftAccountEntityList("Tony"));
 
         mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer some_value")
@@ -312,11 +355,15 @@ class DraftAccountControllerIntegrationTest {
 
 
     private DraftAccountEntity createDraftAccountEntity() {
+        return createDraftAccountEntity("Tony");
+    }
+
+    private DraftAccountEntity createDraftAccountEntity(String submittedBy) {
         return DraftAccountEntity.builder()
             .draftAccountId(1L)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)007).build())
             .createdDate(LocalDate.of(2023, 1, 2).atStartOfDay())
-            .submittedBy("Tony")
+            .submittedBy(submittedBy)
             .accountType("DRAFT")
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .account("{}")
@@ -325,6 +372,9 @@ class DraftAccountControllerIntegrationTest {
             .build();
     }
 
+    private List<DraftAccountEntity> createDraftAccountEntityList(String... submittedBys) {
+        return Arrays.stream(submittedBys).map(this::createDraftAccountEntity).toList();
+    }
 
     @Test
     void testDeleteDraftAccountById_success() throws Exception {
@@ -767,15 +817,8 @@ class DraftAccountControllerIntegrationTest {
     //CEP 1 CEP1 - Invalid Request Payload (400)
     @ParameterizedTest
     @MethodSource("endpointsWithInvalidBodiesProvider")
-    void methodsShouldReturn400WhenRequestPayloadIsInvalid(HttpMethod method, String fullPath, String requestBody)
-        throws Exception {
-        MockHttpServletRequestBuilder requestBuilder = switch (method.name()) {
-            case "GET" -> get(fullPath);
-            case "POST" -> post(fullPath);
-            case "PUT" -> put(fullPath);
-            case "PATCH" -> patch(fullPath);
-            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
-        };
+    void methodsShouldReturn400_whenRequestPayloadIsInvalid(
+        MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -788,9 +831,9 @@ class DraftAccountControllerIntegrationTest {
     }
 
     private static Stream<Arguments> endpointsWithInvalidBodiesProvider() {
-        return Stream.of(Arguments.of(POST, "/draft-accounts",invalidCreateRequestBody()),
-                         Arguments.of(PUT, "/draft-accounts/1",invalidCreateRequestBody()),
-                         Arguments.of(PATCH, "/draft-accounts/1",invalidCreateRequestBody())
+        return Stream.of(Arguments.of(post(URL_BASE), invalidCreateRequestBody()),
+                         Arguments.of(put(URL_BASE + "/1"), invalidCreateRequestBody()),
+                         Arguments.of(patch(URL_BASE + "/1"), invalidCreateRequestBody())
         );
     }
 
@@ -799,15 +842,8 @@ class DraftAccountControllerIntegrationTest {
     //CEP3 - Not Authorised to perform the requested action (403)
     @ParameterizedTest
     @MethodSource("testCasesRequiringAuthorizationProvider")
-    void methodsShouldReturn403WhenUserLacksPermission(HttpMethod method, String fullPath, String requestBody)
-        throws Exception {
-        MockHttpServletRequestBuilder requestBuilder = switch (method.name()) {
-            case "GET" -> get(fullPath);
-            case "POST" -> post(fullPath);
-            case "PUT" -> put(fullPath);
-            case "PATCH" -> patch(fullPath);
-            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
-        };
+    void methodsShouldReturn403_whenUserLacksPermission(
+        MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
 
@@ -822,28 +858,20 @@ class DraftAccountControllerIntegrationTest {
 
     private static Stream<Arguments> testCasesRequiringAuthorizationProvider() {
         return Stream.of(
-            Arguments.of(POST, "/draft-accounts", validCreateRequestBody()),
-            Arguments.of(PUT, "/draft-accounts/1", validCreateRequestBody()),
-            Arguments.of(PATCH, "/draft-accounts/1", validUpdateRequestBody()),
-            Arguments.of(GET, "/draft-accounts", "")  // GET endpoints with empty body
+            Arguments.of(post(URL_BASE), validCreateRequestBody()),
+            Arguments.of(put(URL_BASE + "/1"), validCreateRequestBody()),
+            Arguments.of(patch(URL_BASE + "/1"), validUpdateRequestBody()),
+            Arguments.of(get(URL_BASE), "")  // GET endpoints with empty body
         );
     }
 
     //CEP4 - Resource Not Found (404) - applies to GET PUT PATCH & DELETE
     @ParameterizedTest
     @MethodSource("testCasesForResourceNotFoundProvider")
-    void methodsShouldReturn404WhenResourceNotFound(HttpMethod method, String fullPath, String requestBody)
-        throws Exception {
+    void methodsShouldReturn404_whenResourceNotFound(
+        MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
         // Set up a non-existent ID
         long nonExistentId = 999L;
-
-        MockHttpServletRequestBuilder requestBuilder = switch (method.name()) {
-            case "GET" -> get(fullPath);
-            case "PUT" -> put(fullPath);
-            case "PATCH" -> patch(fullPath);
-            case "DELETE" -> delete(fullPath);
-            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
-        };
 
         // Mock the service behavior
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -870,27 +898,19 @@ class DraftAccountControllerIntegrationTest {
 
     private static Stream<Arguments> testCasesForResourceNotFoundProvider() {
         return Stream.of(
-            Arguments.of(GET, "/draft-accounts/999", ""),
-            Arguments.of(PUT, "/draft-accounts/999", validCreateRequestBody()),
-            Arguments.of(PATCH, "/draft-accounts/999", validUpdateRequestBody())
+            Arguments.of(get(URL_BASE + "/999"), ""),
+            Arguments.of(put(URL_BASE + "/999"), validCreateRequestBody()),
+            Arguments.of(patch(URL_BASE + "/999"), validUpdateRequestBody())
         );
     }
 
     //CEP5 - Unsupported Content Type for Response (406)
     @ParameterizedTest
     @MethodSource("testCasesWithValidBodiesProvider")
-    void methodsShouldReturn406WhenAcceptHeaderIsNotSupported(HttpMethod method, String fullPath, String requestBody)
-        throws Exception {
-        MockHttpServletRequestBuilder requestBuilder = switch (method.name()) {
-            case "GET" -> get(fullPath);
-            case "POST" -> post(fullPath);
-            case "PUT" -> put(fullPath);
-            case "PATCH" -> patch(fullPath);
-            default -> throw new IllegalArgumentException("Unsupported HTTP method: " + method);
-        };
+    void methodsShouldReturn406_whenAcceptHeaderIsNotSupported(
+        MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
         mockMvc.perform(requestBuilder
                             .header("Authorization", "Bearer some_value")
                             .header("Accept", "application/xml")
@@ -900,10 +920,10 @@ class DraftAccountControllerIntegrationTest {
     }
 
     private static Stream<Arguments> testCasesWithValidBodiesProvider() {
-        return Stream.of(Arguments.of(POST, "/draft-accounts",validCreateRequestBody()),
-            Arguments.of(PUT, "/draft-accounts/1","{}"),
-            Arguments.of(PATCH, "/draft-accounts/1","{}"),
-            Arguments.of(GET, "/draft-accounts/1","{}")
+        return Stream.of(Arguments.of(post(URL_BASE), validCreateRequestBody()),
+            Arguments.of(put(URL_BASE + "/1"), "{}"),
+            Arguments.of(patch(URL_BASE + "/1"), "{}"),
+            Arguments.of(get(URL_BASE + "/1"), "{}")
         );
     }
 

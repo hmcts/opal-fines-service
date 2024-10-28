@@ -61,9 +61,10 @@ public class DraftAccountService {
 
     public List<DraftAccountEntity> getDraftAccounts(Collection<Short> businessUnitIds,
                                                      Collection<DraftAccountStatus> statuses,
-                                                     Collection<String> submittedBy) {
+                                                     Collection<String> submittedBy,
+                                                     Collection<String> notSubmitted) {
         Page<DraftAccountEntity> page = draftAccountRepository
-            .findBy(specs.findForSummaries(businessUnitIds, statuses, submittedBy),
+            .findBy(specs.findForSummaries(businessUnitIds, statuses, submittedBy, notSubmitted),
                     ffq -> ffq.page(Pageable.unpaged()));
 
         return page.getContent();
