@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.steps.draftaccount;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
+import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
@@ -244,5 +245,28 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .contentType("application/json")
             .when()
             .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?business_unit=%20");
+    }
+
+    @Then("I get the draft accounts count and the response contains draft account ids")
+    public void getTheDraftAccountsCountAndTheResponseContainsDraftAccountIds(DataTable data) {
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI);
+        Map<String, String> expectedData = data.asMap(String.class, String.class);
+        String count = then().extract().body().jsonPath().getString("count");
+
+        for (String key : expectedData.keySet()) {
+            for (int i = 0; i < Integer.parseInt(count); i++) {
+
+                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
+                                                                                           + key);
+                assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
+                //assertEquals(expectedData.get(key),count, "The number of draft accounts are equal: ");
+            }
+        }
     }
 }
