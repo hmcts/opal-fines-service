@@ -24,14 +24,22 @@ Feature: PO-828 Authorization for get draft account
     Then The draft account response returns 201
     And I store the created draft account ID
 
-    Then I get the draft accounts count and the response contains draft account ids
-      | count            | 2  |
-      | business_unit_id | 73 |
+    When I get the draft accounts filtering on the Business unit "73" then the response contains
+      | business_unit_id                    | 73          |
+      | account_snapshot.business_unit_name | West London |
+    And The draft account filtered response does not contain accounts in the "77" business unit
+    And The draft account filtered response does not contain accounts in the "65" business unit
+
+    When I get the draft accounts filtering on the Business unit "80" then the response contains
+      | business_unit_id                    | 80               |
+      | account_snapshot.business_unit_name | Historical Debt |
+    And The draft account filtered response does not contain accounts in the "73" business unit
+    And The draft account filtered response does not contain accounts in the "65" business unit
 
     Then I delete the created draft accounts
 
   @PO-828 @cleanUpData
-  Scenario: Authorization for Test User 2 to Check and Validate Draft Accounts or Create or manage draft accounts
+  Scenario: No Authorization for Test User 2 to Check and Validate Draft Accounts or Create or manage draft accounts
     Given I am testing as the "opal-test-2@HMCTS.NET" user
     When I create a draft account with the following details
       | business_unit_id | 26                                          |
