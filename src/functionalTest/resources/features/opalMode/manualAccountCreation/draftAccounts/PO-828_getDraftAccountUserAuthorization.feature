@@ -40,19 +40,7 @@ Feature: PO-828 Authorization for get draft account
       | account_status   |                                             |
       | submitted_by     | BUUID                                       |
       | timeline_data    |                                             |
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    And The draft account response contains the following data
-      | business_unit_id                    | 26            |
-      | account_type                        | Fine          |
-      | account_status                      | Submitted     |
-      | account_snapshot.defendant_name     | LNAME, FNAME  |
-      | account_snapshot.date_of_birth      | 01/01/2000    |
-      | account_snapshot.account_type       | Fine          |
-      | account_snapshot.submitted_by       | BUUID         |
-      | account_snapshot.business_unit_name | Hertfordshire |
-    Then I delete the created draft accounts
+    Then The draft account response returns 403
 
   @PO-828 @cleanUpData
   Scenario: Authorization for Test User 3 to Check and Validate Draft Accounts or Create or manage draft accounts
@@ -86,26 +74,6 @@ Feature: PO-828 Authorization for get draft account
   @PO-828 @cleanUpData
   Scenario: Authorization for Test User 4 to Check and Validate Draft Accounts or Create or manage draft accounts
     Given I am testing as the "opal-test-4@HMCTS.NET" user
-    When I create a draft account with the following details
-      | business_unit_id | 47                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   |                                             |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
-    Then The draft account response returns 201
-    And I store the created draft account ID
-
-    And The draft account response contains the following data
-      | business_unit_id                    | 47           |
-      | account_type                        | Fine         |
-      | account_status                      | Submitted    |
-      | account_snapshot.defendant_name     | LNAME, FNAME |
-      | account_snapshot.date_of_birth      | 01/01/1998   |
-      | account_snapshot.account_type       | Fine         |
-      | account_snapshot.submitted_by       | BUUID        |
-      | account_snapshot.business_unit_name | Bristol      |
-
     When I get the draft accounts filtering on the Business unit "47" then the response contains
       | business_unit_id                    | 47      |
       | account_snapshot.business_unit_name | Bristol |
