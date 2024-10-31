@@ -18,7 +18,7 @@ import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNT_URI;
+import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class DraftAccountPutSteps extends BaseStepDef {
@@ -78,7 +78,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             .contentType("application/json")
             .body(postBody.toString())
             .when()
-            .put(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
+            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
     }
 
     @Then("I see the created at time hasn't changed")
@@ -104,7 +104,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .put(getTestUrl() + DRAFT_ACCOUNT_URI);
+            .put(getTestUrl() + DRAFT_ACCOUNTS_URI);
     }
 
     @When("I attempt to put a draft account with an invalid request payload")
@@ -163,7 +163,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             .contentType("application/json")
             .body(postBody.toString())
             .when()
-            .put(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
+            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
     }
 
     @When("I attempt to put a draft account with resource not found")
@@ -221,7 +221,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             .contentType("application/json")
             .body(postBody.toString())
             .when()
-            .put(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + "10");
+            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + "10");
     }
 
     @When("I attempt to put a draft account with unsupported content type for response")
@@ -279,7 +279,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             .contentType("application/json")
             .body(postBody.toString())
             .when()
-            .put(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
+            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
     }
 
     @When("I attempt to put a draft account with unsupported media type for request")
@@ -337,7 +337,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             .accept("text/plain")
             .contentType("application/json")
             .when()
-            .put(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
+            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
     }
 
     @When("I put the draft account trying to provoke an internal server error")
@@ -348,6 +348,6 @@ public class DraftAccountPutSteps extends BaseStepDef {
             .accept("application/json")
             .contentType("application/xml")
             .when()
-            .put(getTestUrl() + DRAFT_ACCOUNT_URI + "?business_unit=%20");
+            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "?business_unit=%20");
     }
 }
