@@ -79,7 +79,7 @@ class DraftAccountServiceTest {
 
         // Act
         List<DraftAccountEntity> result = draftAccountService.getDraftAccounts(Set.of((short)1), Set.of(
-            DraftAccountStatus.REJECTED), Set.of());
+            DraftAccountStatus.REJECTED), Set.of(), Set.of());
 
         // Assert
         assertNotNull(result);

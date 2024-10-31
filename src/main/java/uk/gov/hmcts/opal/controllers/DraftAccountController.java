@@ -101,25 +101,33 @@ public class DraftAccountController {
         @RequestParam(value = "business_unit") Optional<List<Short>> optionalBusinessUnitIds,
         @RequestParam(value = "status") Optional<List<DraftAccountStatus>> optionalStatus,
         @RequestParam(value = "submitted_by") Optional<List<String>> optionalSubmittedBys,
+        @RequestParam(value = "not_submitted_by") Optional<List<String>> optionalNotSubmittedBys,
         @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
 
         log.info(":GET:getDraftAccountSummaries:");
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
 
-            List<DraftAccountStatus> statuses = optionalStatus.orElse(Collections.emptyList());
             List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
-            log.info(":GET:getDraftAccountSummaries: statuses: {}; submitted bys: {}", statuses, submittedBys);
+            List<String> notSubmitted = optionalNotSubmittedBys.orElse(Collections.emptyList());
+            log.info(":GET:getDraftAccountSummaries: submitted by: {}; not submitted: {}", submittedBys, notSubmitted);
+            if (!submittedBys.isEmpty() && !notSubmitted.isEmpty()) {
+                // Request cannot include both submitted_by and not_submitted_by parameters
+                throw new IllegalArgumentException(
+                    "Cannot include both 'submitted_by' and 'not_submitted_by' parameters.");
+            }
 
+            List<DraftAccountStatus> statuses = optionalStatus.orElse(Collections.emptyList());
             Set<Short> filteredBusinessUnitIds = userState
                 .filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
                     optionalBusinessUnitIds,
                     Permissions.DRAFT_ACCOUNT_PERMISSIONS
                 );
-            log.info(":GET:getDraftAccountSummaries: filtered business units: {}", filteredBusinessUnitIds);
+            log.info(":GET:getDraftAccountSummaries: status: {}; filtered business units: {}", statuses,
+                     filteredBusinessUnitIds);
 
             List<DraftAccountEntity> response = draftAccountService
-                .getDraftAccounts(filteredBusinessUnitIds, statuses, submittedBys);
+                .getDraftAccounts(filteredBusinessUnitIds, statuses, submittedBys, notSubmitted);
 
             log.info(":GET:getDraftAccountSummaries: summaries count: {}", response.size());
 
