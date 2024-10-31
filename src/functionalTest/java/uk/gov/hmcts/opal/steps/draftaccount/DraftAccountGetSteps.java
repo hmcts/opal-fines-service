@@ -13,6 +13,7 @@ import java.util.Map;
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNT_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
@@ -103,7 +104,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?business_unit=" + filter);
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?business_unit=" + filter);
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
         String count = then().extract().body().jsonPath().getString("count");
@@ -124,7 +125,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?status=" + filter);
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?status=" + filter);
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
 
@@ -147,7 +148,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?submitted_by=" + filter);
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?submitted_by=" + filter);
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
 
@@ -171,7 +172,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?status=" + statusFilter + "&submitted_by="
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?status=" + statusFilter + "&submitted_by="
                      + submittedByFilter);
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
@@ -247,26 +248,16 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?business_unit=%20");
     }
 
-    @Then("I get the draft accounts count and the response contains draft account ids")
-    public void getTheDraftAccountsCountAndTheResponseContainsDraftAccountIds(DataTable data) {
+    @When("I attempt to get the draft accounts filtering on the other Business unit {string} then the response is {int}")
+    public void theDraftAccountsFilteringOnTheBusinessUnitOtherBU(String filter, int statusCode) {
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI);
-        Map<String, String> expectedData = data.asMap(String.class, String.class);
-        String count = then().extract().body().jsonPath().getString("count");
-
-        for (String key : expectedData.keySet()) {
-            for (int i = 0; i < Integer.parseInt(count); i++) {
-
-                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
-                                                                                           + key);
-                assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
-                //assertEquals(expectedData.get(key),count, "The number of draft accounts are equal: ");
-            }
-        }
+            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?business_unit=" + filter);
+        then().assertThat()
+            .statusCode(statusCode);
     }
 }
