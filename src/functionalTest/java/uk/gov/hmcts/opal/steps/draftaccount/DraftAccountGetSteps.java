@@ -13,7 +13,7 @@ import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNT_URI;
+import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class DraftAccountGetSteps extends BaseStepDef {
@@ -169,7 +169,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?not_submitted_by=" + filter);
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?not_submitted_by=" + filter);
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
 
@@ -192,7 +192,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?submitted_by=" + submittedByFilter + "&not_submitted_by="
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?submitted_by=" + submittedByFilter + "&not_submitted_by="
                      + notSubmittedByFilter);
     }
 
