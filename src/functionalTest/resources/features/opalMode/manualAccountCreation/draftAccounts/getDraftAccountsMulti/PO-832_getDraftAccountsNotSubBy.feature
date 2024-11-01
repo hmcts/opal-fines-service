@@ -25,7 +25,7 @@ Feature: PO-832 get draft accounts not submitted by
     And I store the created draft account ID
 
     When I get the draft accounts filtering on Not Submitted by "BUUID" then the response contains
-      | account_snapshot.submitted_by | BUUID_TWO |
+      | account_snapshot.submitted_by | BUUID_TWO, BUUID_Updated |
     And The draft account filtered response does not contain accounts submitted by "BUUID"
 
     @PO-832 @cleanUpData

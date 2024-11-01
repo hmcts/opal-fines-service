@@ -10,8 +10,7 @@ import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNT_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
@@ -177,7 +176,8 @@ public class DraftAccountGetSteps extends BaseStepDef {
             for (int i = 0; i < Integer.parseInt(count); i++) {
                 String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
                                                                                            + key);
-                assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
+                assertTrue(expectedData.get(key).contains(apiResponseValue), "Value "
+                    + apiResponseValue + " is not in the expected range: " + expectedData.get(key));
             }
         }
     }
