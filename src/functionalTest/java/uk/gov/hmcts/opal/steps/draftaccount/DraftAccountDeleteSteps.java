@@ -10,7 +10,7 @@ import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 
 import java.util.ArrayList;
 
-import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNT_URI;
+import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class DraftAccountDeleteSteps extends BaseStepDef {
@@ -24,7 +24,7 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .delete(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId + "?ignore_missing=true");
+            .delete(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId + "?ignore_missing=true");
     }
 
     @Then("I delete the created draft accounts")
