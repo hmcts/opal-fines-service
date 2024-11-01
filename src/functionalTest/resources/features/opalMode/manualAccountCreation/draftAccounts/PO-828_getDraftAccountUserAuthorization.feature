@@ -29,7 +29,7 @@ Feature: PO-828 Authorization for Get Draft Account
 
     Then I delete the created draft accounts
 
-  @PO-828 @cleanUpData @Ignore
+  @PO-828 @cleanUpData
     ### This test is currently ignored as the permissions are not quite right for this test to pass.
   Scenario: Get Draft Account - No Permission in same BU
     Given I am testing as the "opal-test@hmcts.net" user
