@@ -10,7 +10,9 @@ import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNT_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
