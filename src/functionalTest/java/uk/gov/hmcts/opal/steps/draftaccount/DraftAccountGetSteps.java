@@ -183,7 +183,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
     }
 
     @When("I get the draft accounts filtering on Submitted by {string} and Not Submitted by {string}")
-    public void getDraftAccountsFilteringOnSubmittedByAndNotSubmittedBy(String submittedByFilter, String notSubmittedByFilter) {
+    public void getDraftAccountsFilterOnSubByAndNotSubBy(String submittedByFilter, String notSubmittedByFilter) {
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
