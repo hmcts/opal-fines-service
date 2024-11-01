@@ -12,7 +12,7 @@ import java.util.Map;
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNT_URI;
+import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class DraftAccountGetSteps extends BaseStepDef {
@@ -24,7 +24,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
     }
 
 
@@ -37,7 +37,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/%20");
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/%20");
     }
 
     @When("I attempt to get a draft account with an invalid token")
@@ -48,7 +48,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/1234");
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/1234");
     }
 
     @When("I attempt to get a draft account with an unsupported content type")
@@ -66,7 +66,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("text/plain")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
     }
 
     @When("I get the single created draft account and the response contains")
@@ -84,7 +84,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "/" + draftAccountId);
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
 
@@ -102,7 +102,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?business_unit=" + filter);
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?business_unit=" + filter);
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
         String count = then().extract().body().jsonPath().getString("count");
@@ -123,7 +123,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?status=" + filter);
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?status=" + filter);
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
 
@@ -146,7 +146,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?submitted_by=" + filter);
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?submitted_by=" + filter);
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
 
@@ -170,7 +170,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?status=" + statusFilter + "&submitted_by="
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?status=" + statusFilter + "&submitted_by="
                      + submittedByFilter);
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
@@ -220,7 +220,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI);
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI);
     }
 
     @When("I attempt to get draft accounts with an unsupported content type")
@@ -231,7 +231,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("text/plain")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI);
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI);
     }
 
     @When("I get the draft accounts trying to provoke an internal server error")
@@ -243,6 +243,6 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNT_URI + "?business_unit=%20");
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?business_unit=%20");
     }
 }
