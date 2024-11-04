@@ -12,6 +12,7 @@ import java.util.Map;
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
@@ -158,6 +159,41 @@ public class DraftAccountGetSteps extends BaseStepDef {
                 assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
             }
         }
+    }
+
+    @When("I get the draft accounts filtering on Not Submitted by {string} then the response contains")
+    public void getDraftAccountsFilteringOnNotSubmittedBy(String filter, DataTable data) {
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?not_submitted_by=" + filter);
+
+        Map<String, String> expectedData = data.asMap(String.class, String.class);
+
+        String count = then().extract().body().jsonPath().getString("count");
+        for (String key : expectedData.keySet()) {
+            for (int i = 0; i < Integer.parseInt(count); i++) {
+                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
+                                                                                           + key);
+                assertTrue(expectedData.get(key).contains(apiResponseValue), "Value "
+                    + apiResponseValue + " is not in the expected range: " + expectedData.get(key));
+            }
+        }
+    }
+
+    @When("I get the draft accounts filtering on Submitted by {string} and Not Submitted by {string}")
+    public void getDraftAccountsFilterOnSubByAndNotSubBy(String submittedByFilter, String notSubmittedByFilter) {
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?submitted_by=" + submittedByFilter + "&not_submitted_by="
+                     + notSubmittedByFilter);
     }
 
     @When("I get the draft accounts filtering on the Status {string} and Submitted by {string} "
