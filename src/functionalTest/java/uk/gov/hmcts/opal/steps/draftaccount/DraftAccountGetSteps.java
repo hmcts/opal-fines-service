@@ -279,6 +279,6 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?business_unit=%20");
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?submitted_by=me&not_submitted_by=you");
     }
 }
