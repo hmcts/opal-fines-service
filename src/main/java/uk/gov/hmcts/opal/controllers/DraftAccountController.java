@@ -257,6 +257,8 @@ public class DraftAccountController {
             .accountSnapshot(entity.getAccountSnapshot())
             .accountType(entity.getAccountType())
             .accountStatus(entity.getAccountStatus())
+            .accountStatusDate(toOffsetDateTime(entity.getAccountStatusDate()))
+            .statusMessage(entity.getStatusMessage())
             .timelineData(entity.getTimelineData())
             .accountNumber(entity.getAccountNumber())
             .accountId(entity.getAccountId())

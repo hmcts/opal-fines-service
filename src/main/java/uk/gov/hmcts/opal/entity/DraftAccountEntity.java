@@ -82,6 +82,9 @@ public class DraftAccountEntity {
     @Column(name = "account_status_date", nullable = false)
     private LocalDateTime accountStatusDate;
 
+    @Column(name = "status_message")
+    private String statusMessage;
+
     @Column(name = "timeline_data", columnDefinition = "json")
     @ColumnTransformer(write = "?::jsonb")
     @JsonRawValue

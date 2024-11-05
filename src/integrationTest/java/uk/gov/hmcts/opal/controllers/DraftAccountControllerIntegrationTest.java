@@ -111,6 +111,8 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(jsonPath("$.account_type").value("DRAFT"))
             .andExpect(jsonPath("$.submitted_by").value("Tony"))
             .andExpect(jsonPath("$.account_status").value("Submitted"))
+            .andExpect(jsonPath("$.status_message").value("Status is OK"))
+            .andExpect(jsonPath("$.account_status_date").value("2024-11-11T11:11:00Z"))
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
@@ -451,6 +453,8 @@ class DraftAccountControllerIntegrationTest {
             .submittedBy(submittedBy)
             .accountType("DRAFT")
             .accountStatus(SUBMITTED)
+            .statusMessage("Status is OK")
+            .accountStatusDate(LocalDateTime.of(2024, 11, 11, 11, 11))
             .account("{}")
             .accountSnapshot("{ \"data\": \"something snappy\"}")
             .timelineData("{}")
