@@ -53,6 +53,12 @@ public class DraftAccountResponseDto implements ToJsonString {
     @JsonProperty("account_status")
     private DraftAccountStatus accountStatus;
 
+    @JsonProperty("status_message")
+    private String statusMessage;
+
+    @JsonProperty("account_status_date")
+    private OffsetDateTime accountStatusDate;
+
     @JsonProperty("timeline_data")
     @JsonRawValue
     private String timelineData;
