@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.steps.draftaccount;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
+import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
@@ -280,5 +281,65 @@ public class DraftAccountGetSteps extends BaseStepDef {
             .contentType("application/json")
             .when()
             .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?submitted_by=me&not_submitted_by=you");
+    }
+
+    @Then("I get all the draft accounts and the response contains")
+    public void getDraftAccountsAndTheResponseContains(DataTable data) {
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI);
+
+        Map<String, String> expectedData = data.asMap(String.class, String.class);
+        String count = then().extract().body().jsonPath().getString("count");
+        for (String key : expectedData.keySet()) {
+            for (int i = 0; i < Integer.parseInt(count); i++) {
+                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
+                                                                                           + key);
+                assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
+            }
+        }
+    }
+
+
+    @When("I get no draft accounts related to business unit {string} then the response contains")
+    public void getNoDraftAccountsRelatedToBusinessUnitThenTheResponseContains(String filter, DataTable data) {
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?business_unit=" + filter);
+
+        Map<String, String> expectedData = data.asMap(String.class, String.class);
+
+
+        String count = then().extract().body().jsonPath().getString("count");
+        if (Integer.parseInt(count) == 0) {
+
+            for (String key : expectedData.keySet()) {
+                for (int i = 0; i < Integer.parseInt(count); i++) {
+                    String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
+                                                                                               + key);
+                    assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
+                }
+            }
+        }
+    }
+
+    @Then("I get the draft accounts filtering on the Business unit {string}")
+    public void getTheDraftAccountsFilteringOnTheBusinessUnit(String filter) {
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?business_unit=" + filter);
+
     }
 }
