@@ -333,4 +333,16 @@ public class DraftAccountGetSteps extends BaseStepDef {
         }
         }
     }
+
+    @Then("I get the draft accounts filtering on the Business unit {string}")
+    public void iGetTheDraftAccountsFilteringOnTheBusinessUnit(String filter) {
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?business_unit=" + filter);
+
+    }
 }

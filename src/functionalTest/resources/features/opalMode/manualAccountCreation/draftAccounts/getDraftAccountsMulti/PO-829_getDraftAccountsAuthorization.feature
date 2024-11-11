@@ -16,10 +16,7 @@ Feature: PO-829 Authorization for Get Draft Accounts
 
     #the test user2 doesn't have permission to business unit id 78
     Given I am testing as the "opal-test-2@hmcts.net" user
-    Then I get the draft accounts filtering on the Business unit "78" then the response contains
-      | business_unit_id                    |  |
-      | account_snapshot.business_unit_name |  |
-
+    Then I get the draft accounts filtering on the Business unit "78"
     Then The draft account response returns 403
     Given I am testing as the "opal-test@hmcts.net" user
 
