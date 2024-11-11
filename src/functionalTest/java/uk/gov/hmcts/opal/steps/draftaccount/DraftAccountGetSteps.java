@@ -8,6 +8,7 @@ import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
@@ -306,7 +307,30 @@ public class DraftAccountGetSteps extends BaseStepDef {
         }
     }
 
-    @When("I get the draft accounts filtering on the draft account id then the response contains")
-    public void iGetTheDraftAccountsFilteringOnTheDraftAccountIdThenTheResponseContains(DataTable data) {
+
+    @When("I get no draft accounts related to business unit {string} then the response contains")
+    public void getNoDraftAccountsRelatedToBusinessUnitThenTheResponseContains(String  filter, DataTable data) {
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "?business_unit=" + filter);
+
+        Map<String, String> expectedData = data.asMap(String.class, String.class);
+
+
+        String count = then().extract().body().jsonPath().getString("count");
+        if(Integer.parseInt(count)==0){
+
+        for (String key : expectedData.keySet()) {
+            for (int i = 0; i < Integer.parseInt(count); i++) {
+                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
+                                                                                           + key);
+                assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
+            }
+        }
+        }
     }
 }
