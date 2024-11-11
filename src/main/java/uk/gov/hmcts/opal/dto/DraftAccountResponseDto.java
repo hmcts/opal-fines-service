@@ -30,6 +30,9 @@ public class DraftAccountResponseDto implements ToJsonString {
     @JsonProperty("submitted_by")
     private String submittedBy;
 
+    @JsonProperty("submitted_by_name")
+    private String submittedByName;
+
     @JsonProperty("validated_at")
     private OffsetDateTime validatedDate;
 

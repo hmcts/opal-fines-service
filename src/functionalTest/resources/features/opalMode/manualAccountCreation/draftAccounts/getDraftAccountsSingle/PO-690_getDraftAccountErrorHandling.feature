@@ -18,12 +18,13 @@ Feature: PO-690 get draft account error handling
   Scenario: Get draft account - CEP5 - Unsupported Content Type
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                     |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   |                                        |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    |                                        |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 201
     And I store the created draft account ID
 

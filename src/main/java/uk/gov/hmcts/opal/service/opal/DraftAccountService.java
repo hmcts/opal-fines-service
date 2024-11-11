@@ -96,7 +96,7 @@ public class DraftAccountService {
         LocalDateTime created = LocalDateTime.now();
         BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId()).orElse(null);
         String snapshot = createInitialSnapshot(dto, created, businessUnit);
-        log.info(":submitDraftAccount: snapshot: \n{}", snapshot);
+        log.info(":submitDraftAccount: dto: \n{}", dto);
         return draftAccountRepository.save(toEntity(dto, created, businessUnit, snapshot));
     }
 
@@ -118,13 +118,14 @@ public class DraftAccountService {
             );
         }
 
-        LocalDateTime updatedTime = LocalDateTime.now();
-        String newSnapshot = createInitialSnapshot(dto, updatedTime, businessUnit);
+        String newSnapshot = createUpdateSnapshot(dto, existingAccount.getCreatedDate(), businessUnit);
         existingAccount.setSubmittedBy(dto.getSubmittedBy());
+        existingAccount.setSubmittedByName(dto.getSubmittedByName());
         existingAccount.setAccount(dto.getAccount());
         existingAccount.setAccountSnapshot(newSnapshot);
         existingAccount.setAccountType(dto.getAccountType());
         existingAccount.setAccountStatus(DraftAccountStatus.RESUBMITTED);
+        existingAccount.setAccountStatusDate(LocalDateTime.now());
         existingAccount.setTimelineData(dto.getTimelineData());
 
         log.info(":replaceDraftAccount: Replacing draft account with ID: {} and new snapshot: \n{}",
@@ -187,13 +188,21 @@ public class DraftAccountService {
         }
     }
 
-    private String createInitialSnapshot(DraftAccountRequestDto dto, LocalDateTime created,
+    private String createInitialSnapshot(AddDraftAccountRequestDto dto, LocalDateTime created,
                                          BusinessUnitEntity businessUnit) {
-        return buildInitialSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy()).toPrettyJson();
+        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName())
+            .toPrettyJson();
     }
 
-    private  DraftAccountSnapshots.Snapshot  buildInitialSnapshot(String document, LocalDateTime created,
-                                                                  BusinessUnitEntity businessUnit, String userName) {
+    private String createUpdateSnapshot(ReplaceDraftAccountRequestDto dto, LocalDateTime created,
+                                         BusinessUnitEntity businessUnit) {
+        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(),dto.getSubmittedByName())
+            .toPrettyJson();
+    }
+
+    private  DraftAccountSnapshots.Snapshot buildSnapshot(String document, LocalDateTime created,
+                                                          BusinessUnitEntity businessUnit, String submittedBy,
+                                                          String submittedByName) {
 
         JsonPathUtil.DocContext docContext = createDocContext(document);
 
@@ -216,7 +225,8 @@ public class DraftAccountService {
             .dateOfBirth(dob)
             .createdDate(created.atOffset(ZoneOffset.UTC))
             .accountType(accType)
-            .submittedBy(userName)
+            .submittedBy(submittedBy)
+            .submittedByName(submittedByName)
             .businessUnitName(businessUnit.getBusinessUnitName())
             .build();
     }
@@ -227,10 +237,12 @@ public class DraftAccountService {
             .businessUnit(businessUnit)
             .createdDate(created)
             .submittedBy(dto.getSubmittedBy())
+            .submittedByName(dto.getSubmittedByName())
             .account(dto.getAccount())
             .accountSnapshot(snapshot)
             .accountType(dto.getAccountType())
             .accountStatus(DraftAccountStatus.SUBMITTED)
+            .accountStatusDate(LocalDateTime.now())
             .timelineData(dto.getTimelineData())
             .build();
     }

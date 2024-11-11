@@ -6,12 +6,13 @@ Feature: PO-749 put draft account error handling
   Scenario: Put draft account - CEP1 - Invalid Request Payload
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                     |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   |                                        |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    |                                        |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -27,12 +28,13 @@ Feature: PO-749 put draft account error handling
       | account_snapshot.business_unit_name | West London |
 
     When I attempt to put a draft account with an invalid request payload
-      | business_unit_id |                                        |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   |                                        |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  |                                        |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    |                                        |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 400
     Then I delete the created draft accounts
 
@@ -46,12 +48,13 @@ Feature: PO-749 put draft account error handling
   Scenario: Put draft account - CEP4 - Resource Not Found
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                     |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   |                                        |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    |                                        |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -66,12 +69,13 @@ Feature: PO-749 put draft account error handling
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
     When I attempt to put a draft account with resource not found
-      | business_unit_id | 73                                     |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   |                                        |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    |                                        |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 404
     Then I delete the created draft accounts
 
@@ -79,12 +83,13 @@ Feature: PO-749 put draft account error handling
   Scenario: Put draft account - CEP5 - Unsupported Content Type for Response
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                     |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   |                                        |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    |                                        |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -99,12 +104,13 @@ Feature: PO-749 put draft account error handling
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
     When I attempt to put a draft account with unsupported content type for response
-      | business_unit_id | 73                                     |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   |                                        |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    |                                        |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 406
     Then I delete the created draft accounts
 
@@ -112,12 +118,13 @@ Feature: PO-749 put draft account error handling
   Scenario: Put draft account - CEP7 - Unsupported Media Type for Request
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                     |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   |                                        |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    |                                        |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -132,12 +139,13 @@ Feature: PO-749 put draft account error handling
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
     When I attempt to put a draft account with unsupported media type for request
-      | business_unit_id | 73                                     |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   |                                        |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    |                                        |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 406
     Then I delete the created draft accounts
 
@@ -146,5 +154,3 @@ Feature: PO-749 put draft account error handling
     Given I am testing as the "opal-test@hmcts.net" user
     When I put the draft account trying to provoke an internal server error
     Then The draft account response returns 500
-
-
