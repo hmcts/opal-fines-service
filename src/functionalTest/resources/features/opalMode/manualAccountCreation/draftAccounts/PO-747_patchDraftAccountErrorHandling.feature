@@ -5,12 +5,13 @@ Feature: PO-747 patch draft account error handling
   Scenario: Patch draft account - CEP1 - Invalid Request Payload
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                     |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   |                                        |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    |                                        |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -25,12 +26,13 @@ Feature: PO-747 patch draft account error handling
       Scenario: Patch draft account - CEP2 - Invalid or No Access Token
         Given I am testing as the "opal-test@hmcts.net" user
         When I create a draft account with the following details
-          | business_unit_id | 73                                     |
-          | account          | draftAccounts/accountJson/account.json |
-          | account_type     | Fine                                   |
-          | account_status   |                                        |
-          | submitted_by     | BUUID                                  |
-          | timeline_data    |                                        |
+          | business_unit_id  | 73                                     |
+          | account           | draftAccounts/accountJson/account.json |
+          | account_type      | Fine                                   |
+          | account_status    |                                        |
+          | submitted_by      | BUUID                                  |
+          | submitted_by_name | Laura Clerk                            |
+          | timeline_data     |                                        |
         Then The draft account response returns 201
         And I store the created draft account ID
 

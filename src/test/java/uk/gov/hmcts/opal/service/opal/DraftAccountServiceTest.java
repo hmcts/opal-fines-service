@@ -206,6 +206,7 @@ class DraftAccountServiceTest {
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .createdDate(LocalDateTime.now())
             .build();
 
         BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()

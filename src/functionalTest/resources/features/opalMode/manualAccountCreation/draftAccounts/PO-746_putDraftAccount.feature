@@ -5,12 +5,13 @@ Feature: PO-746 put/update draft account
   Scenario: Update draft account - update account details
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                     |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   |                                        |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    |                                        |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -26,12 +27,13 @@ Feature: PO-746 put/update draft account
       | account_snapshot.business_unit_name | West London |
 
     When I update the draft account that was just created with the following details
-      | business_unit_id | 73                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   |                                             |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | business_unit_id  | 73                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    |                                             |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 200
 
 

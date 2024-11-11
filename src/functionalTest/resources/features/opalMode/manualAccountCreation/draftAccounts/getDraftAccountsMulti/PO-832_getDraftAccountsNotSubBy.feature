@@ -5,22 +5,24 @@ Feature: PO-832 get draft accounts not submitted by
   Scenario: Get draft accounts not submitted by - happy path
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   |                                             |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | business_unit_id  | 73                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    |                                             |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     When I create a draft account with the following details
-      | business_unit_id | 73                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   |                                             |
-      | submitted_by     | BUUID_TWO                                   |
-      | timeline_data    |                                             |
+      | business_unit_id  | 73                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    |                                             |
+      | submitted_by      | BUUID_TWO                                   |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -32,22 +34,24 @@ Feature: PO-832 get draft accounts not submitted by
     Scenario: Get draft accounts both not submitted by and submitted by parameters
       Given I am testing as the "opal-test@hmcts.net" user
       When I create a draft account with the following details
-        | business_unit_id | 73                                          |
-        | account          | draftAccounts/accountJson/adultAccount.json |
-        | account_type     | Fine                                        |
-        | account_status   |                                             |
-        | submitted_by     | BUUID                                       |
-        | timeline_data    |                                             |
+        | business_unit_id  | 73                                          |
+        | account           | draftAccounts/accountJson/adultAccount.json |
+        | account_type      | Fine                                        |
+        | account_status    |                                             |
+        | submitted_by      | BUUID                                       |
+        | submitted_by_name | Laura Clerk                                 |
+        | timeline_data     |                                             |
       Then The draft account response returns 201
       And I store the created draft account ID
 
       When I create a draft account with the following details
-        | business_unit_id | 73                                          |
-        | account          | draftAccounts/accountJson/adultAccount.json |
-        | account_type     | Fine                                        |
-        | account_status   |                                             |
-        | submitted_by     | BUUID_TWO                                   |
-        | timeline_data    |                                             |
+        | business_unit_id  | 73                                          |
+        | account           | draftAccounts/accountJson/adultAccount.json |
+        | account_type      | Fine                                        |
+        | account_status    |                                             |
+        | submitted_by      | BUUID_TWO                                   |
+        | submitted_by_name | Laura Clerk                                 |
+        | timeline_data     |                                             |
       Then The draft account response returns 201
       And I store the created draft account ID
 

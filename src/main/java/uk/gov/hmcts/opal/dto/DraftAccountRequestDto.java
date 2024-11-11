@@ -6,6 +6,8 @@ public interface DraftAccountRequestDto {
 
     String getSubmittedBy();
 
+    String getSubmittedByName();
+
     String getAccountType();
 
     String getTimelineData();

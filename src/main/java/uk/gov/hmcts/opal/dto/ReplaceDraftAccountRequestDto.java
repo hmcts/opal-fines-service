@@ -25,6 +25,9 @@ public class ReplaceDraftAccountRequestDto implements ToJsonString, DraftAccount
     @JsonProperty(value = "submitted_by", required = true)
     private String submittedBy;
 
+    @JsonProperty(value = "submitted_by_name", required = true)
+    private String submittedByName;
+
     @JsonProperty("validated_by")
     private String validatedBy;
 
