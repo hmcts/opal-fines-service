@@ -8,7 +8,6 @@ import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
@@ -109,7 +108,6 @@ public class DraftAccountGetSteps extends BaseStepDef {
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
         String count = then().extract().body().jsonPath().getString("count");
-        System.out.println("Count is----"+count);
         for (String key : expectedData.keySet()) {
             for (int i = 0; i < Integer.parseInt(count); i++) {
                 String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
@@ -297,7 +295,6 @@ public class DraftAccountGetSteps extends BaseStepDef {
 
         Map<String, String> expectedData = data.asMap(String.class, String.class);
         String count = then().extract().body().jsonPath().getString("count");
-        System.out.println("Count is----" + count);
         for (String key : expectedData.keySet()) {
             for (int i = 0; i < Integer.parseInt(count); i++) {
                 String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
@@ -309,7 +306,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
 
 
     @When("I get no draft accounts related to business unit {string} then the response contains")
-    public void getNoDraftAccountsRelatedToBusinessUnitThenTheResponseContains(String  filter, DataTable data) {
+    public void getNoDraftAccountsRelatedToBusinessUnitThenTheResponseContains(String filter, DataTable data) {
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
@@ -322,20 +319,20 @@ public class DraftAccountGetSteps extends BaseStepDef {
 
 
         String count = then().extract().body().jsonPath().getString("count");
-        if(Integer.parseInt(count)==0){
+        if (Integer.parseInt(count) == 0) {
 
-        for (String key : expectedData.keySet()) {
-            for (int i = 0; i < Integer.parseInt(count); i++) {
-                String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
-                                                                                           + key);
-                assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
+            for (String key : expectedData.keySet()) {
+                for (int i = 0; i < Integer.parseInt(count); i++) {
+                    String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
+                                                                                               + key);
+                    assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
+                }
             }
-        }
         }
     }
 
     @Then("I get the draft accounts filtering on the Business unit {string}")
-    public void iGetTheDraftAccountsFilteringOnTheBusinessUnit(String filter) {
+    public void getTheDraftAccountsFilteringOnTheBusinessUnit(String filter) {
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
