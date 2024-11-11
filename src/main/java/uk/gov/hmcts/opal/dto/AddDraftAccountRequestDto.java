@@ -62,4 +62,7 @@ public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequ
 
     @JsonProperty(value = "submitted_by", required = true)
     private String submittedBy;
+
+    @JsonProperty(value = "submitted_by_name", required = true)
+    private String submittedByName;
 }

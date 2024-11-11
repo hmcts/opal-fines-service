@@ -17,7 +17,6 @@ import java.util.Map;
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
-import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class DraftAccountPostSteps extends BaseStepDef {
@@ -31,6 +30,8 @@ public class DraftAccountPostSteps extends BaseStepDef {
             dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
         );
         postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
+        postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
+            ? dataToPost.get("submitted_by_name") : "");
         postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
         postBody.put(
             "account_status",

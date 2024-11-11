@@ -193,28 +193,26 @@ public class DraftAccountController {
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
         draftAccountService.deleteDraftAccount(draftAccountId, ignoreMissing);
-
         return buildResponse(String.format(ACCOUNT_DELETED_MESSAGE_FORMAT, draftAccountId));
     }
 
     @PutMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Replaces an existing Draft Account Entity in the DB with data in request body")
     @CheckAcceptHeader
-    public ResponseEntity<DraftAccountResponseDto> replaceDraftAccount(
+    public ResponseEntity<DraftAccountResponseDto> putDraftAccount(
         @PathVariable Long draftAccountId,
         @RequestBody ReplaceDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.info(":PUT:putDraftAccount: replacing draft account entity: {}", draftAccountId);
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
-            log.info(":PUT:replaceDraftAccount: replacing draft account entity with ID: {} and data: {}",
-                     draftAccountId, dto);
 
             DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto);
-
             return buildResponse(toGetResponseDto(replacedEntity));
         } else {
             throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -224,10 +222,12 @@ public class DraftAccountController {
     @PatchMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Updates an existing Draft Account Entity in the DB with data in request body")
     @CheckAcceptHeader
-    public ResponseEntity<DraftAccountResponseDto> updateDraftAccount(
+    public ResponseEntity<DraftAccountResponseDto> patchDraftAccount(
         @PathVariable Long draftAccountId,
         @RequestBody UpdateDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.info(":PATCH:patchDraftAccount: updating draft account entity: {}", draftAccountId);
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
@@ -235,13 +235,7 @@ public class DraftAccountController {
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
-            log.info(":PATCH:updateDraftAccount: replacing draft account entity with ID: {} and data: {}",
-                     draftAccountId, dto
-            );
-
-
             DraftAccountEntity updatedEntity = draftAccountService.updateDraftAccount(draftAccountId, dto);
-
             return buildResponse(toGetResponseDto(updatedEntity));
         } else {
             throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -256,6 +250,7 @@ public class DraftAccountController {
                                 .map(BusinessUnitEntity::getBusinessUnitId).orElse(null))
             .createdDate(toOffsetDateTime(entity.getCreatedDate()))
             .submittedBy(entity.getSubmittedBy())
+            .submittedByName(entity.getSubmittedByName())
             .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
             .validatedBy(entity.getValidatedBy())
             .account(entity.getAccount())

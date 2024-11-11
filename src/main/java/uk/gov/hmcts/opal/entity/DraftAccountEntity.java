@@ -50,6 +50,9 @@ public class DraftAccountEntity {
     @Column(name = "submitted_by", length = 20, nullable = false)
     private String submittedBy;
 
+    @Column(name = "submitted_by_name", length = 100, nullable = false)
+    private String submittedByName;
+
     @Column(name = "validated_date")
     private LocalDateTime validatedDate;
 
@@ -75,6 +78,9 @@ public class DraftAccountEntity {
     @Column(name = "account_status", length = 30, nullable = false)
     @Enumerated(EnumType.STRING)
     private DraftAccountStatus accountStatus;
+
+    @Column(name = "account_status_date", nullable = false)
+    private LocalDateTime accountStatusDate;
 
     @Column(name = "timeline_data", columnDefinition = "json")
     @ColumnTransformer(write = "?::jsonb")

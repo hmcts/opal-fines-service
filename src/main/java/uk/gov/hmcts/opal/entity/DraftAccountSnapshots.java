@@ -41,6 +41,9 @@ public class DraftAccountSnapshots implements ToJsonString {
         @JsonProperty("submitted_by")
         private String submittedBy;
 
+        @JsonProperty("submitted_by_name")
+        private String submittedByName;
+
         @JsonProperty("approved_date")
         private OffsetDateTime approvedDate;
 

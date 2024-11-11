@@ -5,12 +5,13 @@ Feature: PO-828 Authorization for Get Draft Account
   Scenario: Get Draft Account - No Permission
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   |                                             |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | business_unit_id  | 73                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    |                                             |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -34,12 +35,13 @@ Feature: PO-828 Authorization for Get Draft Account
   Scenario: Get Draft Account - No Permission in same BU
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   |                                             |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | business_unit_id  | 73                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    |                                             |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
 
     Then The draft account response returns 201
     And I store the created draft account ID
@@ -60,12 +62,13 @@ Feature: PO-828 Authorization for Get Draft Account
   Scenario: Get Draft Account - Permission in different BU
     Given I am testing as the "opal-test@HMCTS.NET" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   |                                             |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | business_unit_id  | 73                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    |                                             |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -83,12 +86,3 @@ Feature: PO-828 Authorization for Get Draft Account
 
     Given I am testing as the "opal-test@hmcts.net" user
     Then I delete the created draft accounts
-
-
-
-
-
-
-
-
-

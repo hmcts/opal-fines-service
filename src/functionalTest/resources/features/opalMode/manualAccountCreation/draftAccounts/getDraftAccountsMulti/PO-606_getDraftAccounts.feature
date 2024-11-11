@@ -5,32 +5,35 @@ Feature: PO-606 get draft accounts
   Scenario: Get draft accounts - filtering on business unit
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   |                                             |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | business_unit_id  | 73                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    |                                             |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     When I create a draft account with the following details
-      | business_unit_id | 77                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   |                                             |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | business_unit_id  | 77                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    |                                             |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     When I create a draft account with the following details
-      | business_unit_id | 65                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   |                                             |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | business_unit_id  | 65                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    |                                             |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -58,40 +61,44 @@ Feature: PO-606 get draft accounts
   Scenario: Get draft accounts - filtering on status
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                     |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   | Submitted                              |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    | Submitted                              |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     When I update the draft account that was just created with the following details
-      | business_unit_id | 73                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   |                                             |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | business_unit_id  | 73                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    |                                             |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
 
     When I create a draft account with the following details
-      | business_unit_id | 77                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   | Submitted                                   |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | business_unit_id  | 77                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     When I create a draft account with the following details
-      | business_unit_id | 65                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   | Submitted                                   |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | business_unit_id  | 65                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -109,32 +116,35 @@ Feature: PO-606 get draft accounts
   Scenario: Get draft accounts - filtering on submitted_by
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                     |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   | Submitted                              |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    | Submitted                              |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     When I create a draft account with the following details
-      | business_unit_id | 77                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   | Submitted                                   |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | business_unit_id  | 77                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     When I create a draft account with the following details
-      | business_unit_id | 65                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   | Submitted                                   |
-      | submitted_by     | BUUID_TWO                                   |
-      | timeline_data    |                                             |
+      | business_unit_id  | 65                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | BUUID_TWO                                   |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -152,32 +162,35 @@ Feature: PO-606 get draft accounts
   Scenario: Get draft accounts - filtering on multiple fields
     Given I am testing as the "opal-test@HMCTS.net" user
     When I create a draft account with the following details
-      | business_unit_id | 73                                     |
-      | account          | draftAccounts/accountJson/account.json |
-      | account_type     | Fine                                   |
-      | account_status   | Submitted                              |
-      | submitted_by     | BUUID                                  |
-      | timeline_data    |                                        |
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    | Submitted                              |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     |                                        |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     When I create a draft account with the following details
-      | business_unit_id | 77                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   | Submitted                                   |
-      | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | business_unit_id  | 77                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     When I create a draft account with the following details
-      | business_unit_id | 65                                          |
-      | account          | draftAccounts/accountJson/adultAccount.json |
-      | account_type     | Fine                                        |
-      | account_status   | Submitted                                   |
-      | submitted_by     | BUUID_TWO                                   |
-      | timeline_data    |                                             |
+      | business_unit_id  | 65                                          |
+      | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fine                                        |
+      | account_status    | Submitted                                   |
+      | submitted_by      | BUUID_TWO                                   |
+      | submitted_by_name | Laura Clerk                                 |
+      | timeline_data     |                                             |
     Then The draft account response returns 201
     And I store the created draft account ID
 
