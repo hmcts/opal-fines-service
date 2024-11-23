@@ -54,4 +54,7 @@ public class FixedPenaltyOffenceEntity {
     @Column(name = "licence_number", length = 20)
     private String licenceNumber;
 
+    @Column(name = "vehicle_fixed_penalty")
+    private Boolean vehicleFixedPenalty;
+
 }
