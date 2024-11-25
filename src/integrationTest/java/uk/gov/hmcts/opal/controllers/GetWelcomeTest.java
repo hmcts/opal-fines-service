@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @ContextConfiguration(classes = RootController.class)
 @ActiveProfiles({"integration"})
+@Slf4j(topic = "GetWelcomeTest")
 class GetWelcomeTest {
 
     @Autowired
@@ -24,6 +26,7 @@ class GetWelcomeTest {
     @DisplayName("Should welcome upon root request with 200 response code")
     @Test
     void welcomeRootEndpoint() throws Exception {
+        log.info(":welcomeRootEndpoint:");
         MvcResult response = mockMvc.perform(get("/")).andExpect(status().isOk()).andReturn();
 
         assertThat(response.getResponse().getContentAsString()).startsWith("Welcome");
