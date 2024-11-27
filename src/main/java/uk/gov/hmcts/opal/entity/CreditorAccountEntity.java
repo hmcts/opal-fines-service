@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -20,7 +21,7 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
@@ -28,7 +29,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "creditor_accounts")
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -58,8 +59,8 @@ public class CreditorAccountEntity {
     @Column(name = "prosecution_service", nullable = false)
     private boolean prosecutionService;
 
-    @ManyToOne
-    @JoinColumn(name = "major_creditor_id", updatable = false)
+    @OneToOne
+    @JoinColumn(name = "major_creditor_id")
     private MajorCreditorEntity majorCreditor;
 
     @Column(name = "minor_creditor_party_id")

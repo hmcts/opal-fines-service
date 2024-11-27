@@ -64,14 +64,28 @@ public class MajorCreditorService implements MajorCreditorServiceInterface {
 
     private MajorCreditorReferenceData toRefData(MajorCreditorEntity entity) {
         log.info(":toRefData: entity: {}", entity);
-        MajorCreditorReferenceData m = new MajorCreditorReferenceData(
-            entity.getMajorCreditorId(),
-            entity.getBusinessUnit().getBusinessUnitId(),
-            entity.getMajorCreditorCode(),
-            entity.getName(),
-            entity.getPostcode()
-        );
-        log.info(":toRefData: refData: \n{}", m.toPrettyJson());
-        return m;
+
+        MajorCreditorReferenceData.MajorCreditorReferenceDataBuilder builder = MajorCreditorReferenceData.builder()
+            .majorCreditorId(entity.getMajorCreditorId())
+            .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
+            .majorCreditorCode(entity.getMajorCreditorCode())
+            .name(entity.getName())
+            .postcode(entity.getPostcode());
+
+        MajorCreditorReferenceData mcrd = Optional.ofNullable(entity.getCreditorAccountEntity())
+            .map(cae -> builder
+                .creditorAccountId(cae.getCreditorAccountId())
+                .accountNumber(cae.getAccountsNumber())
+                .creditorAccountType(cae.getCreditorAccountType())
+                .prosecutionService(cae.isProsecutionService())
+                .minorCreditorPartyId(cae.getMinorCreditorPartyId())
+                .fromSuspense(cae.isFromSuspense())
+                .holdPayout(cae.isHoldPayout())
+                .lastChangedDate(cae.getLastChangedDate())
+                .build())
+            .orElse(builder.build());
+
+        log.info(":toRefData: refData: \n{}", mcrd.toPrettyJson());
+        return mcrd;
     }
 }

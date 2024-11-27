@@ -13,6 +13,7 @@ import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
 import uk.gov.hmcts.opal.entity.projection.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,8 +70,22 @@ class MajorCreditorControllerTest {
     @Test
     void testGetMajorCreditorRefData_Success() {
         // Arrange
-        MajorCreditorReferenceData refData = new MajorCreditorReferenceData(1L, (short)007, "MC_001",
-                                                                            "Major Credit Card Ltd", "MN12 4TT");
+        MajorCreditorReferenceData refData  = MajorCreditorReferenceData.builder()
+            .majorCreditorId(1L)
+            .businessUnitId((short)007)
+            .majorCreditorCode("MC_001")
+            .name("Major Credit Card Ltd")
+            .postcode("MN12 4TT")
+            .creditorAccountId(99L)
+            .accountNumber("AN001-002")
+            .creditorAccountType("AT8")
+            .prosecutionService(Boolean.TRUE)
+            .minorCreditorPartyId(505L)
+            .fromSuspense(Boolean.FALSE)
+            .holdPayout(Boolean.TRUE)
+            .lastChangedDate(LocalDateTime.now())
+            .build();
+
         List<MajorCreditorReferenceData> refDataList = List.of(refData);
 
         when(majorCreditorService.getReferenceData(any(), any())).thenReturn(refDataList);

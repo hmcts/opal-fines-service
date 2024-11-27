@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.QueryTimeoutException;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -44,7 +45,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.containsString;
@@ -71,8 +71,8 @@ import static uk.gov.hmcts.opal.entity.DraftAccountStatus.SUBMITTED;
 @WebMvcTest
 @ContextConfiguration(classes = {DraftAccountController.class, GlobalExceptionHandler.class, WebConfig.class})
 @ActiveProfiles({"integration"})
+@Slf4j(topic = "DraftAccountControllerIntegrationTest")
 class DraftAccountControllerIntegrationTest {
-    private static final Logger logger = Logger.getLogger(DraftAccountControllerIntegrationTest.class.getSimpleName());
     private static final String URL_BASE = "/draft-accounts";
     private static final String GET_DRAFT_ACCOUNT_RESPONSE = "getDraftAccountResponse.json";
     private static final String GET_DRAFT_ACCOUNTS_RESPONSE = "getDraftAccountsResponse.json";
@@ -117,7 +117,7 @@ class DraftAccountControllerIntegrationTest {
 
         String body = result.getResponse().getContentAsString();
 
-        logger.info(":testGetDraftAccountById: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetDraftAccountById: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNT_RESPONSE));
     }
@@ -203,7 +203,7 @@ class DraftAccountControllerIntegrationTest {
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)), 1);
 
-        logger.info(":testGetDraftAccountsSummaries_noParams: body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetDraftAccountsSummaries_noParams: body:\n" + ToJsonString.toPrettyJson(body));
 
         assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
     }
@@ -223,7 +223,7 @@ class DraftAccountControllerIntegrationTest {
                             .param("business_unit", BU_ID.toString())
                             .contentType(MediaType.APPLICATION_JSON)), 1);
 
-        logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
 
         assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
     }
@@ -243,7 +243,7 @@ class DraftAccountControllerIntegrationTest {
                             .param("status", ERROR_IN_PUBLISHING.getLabel())
                             .contentType(MediaType.APPLICATION_JSON)), 1);
 
-        logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
 
         assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
     }
@@ -263,7 +263,7 @@ class DraftAccountControllerIntegrationTest {
                             .param("submitted_by", "Tony")
                             .contentType(MediaType.APPLICATION_JSON)), "Tony", 1);
 
-        logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
 
         assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
     }
@@ -283,7 +283,7 @@ class DraftAccountControllerIntegrationTest {
                             .param("not_submitted_by", "Tony")
                             .contentType(MediaType.APPLICATION_JSON)), "Dave", 1);
 
-        logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
 
         assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
     }
@@ -304,7 +304,7 @@ class DraftAccountControllerIntegrationTest {
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)), 1);
 
-        logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
 
         assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
     }
@@ -327,7 +327,7 @@ class DraftAccountControllerIntegrationTest {
                             // .param("business_unit", BU_ID.toString())
                             .contentType(MediaType.APPLICATION_JSON)), 2);
 
-        logger.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
 
         assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
     }
@@ -483,7 +483,7 @@ class DraftAccountControllerIntegrationTest {
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
-        logger.info(":testGetDraftAccountById: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetDraftAccountById: Response body:\n" + ToJsonString.toPrettyJson(body));
     }
 
     @Test
@@ -533,7 +533,7 @@ class DraftAccountControllerIntegrationTest {
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
-        logger.info(":testReplaceDraftAccount: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testReplaceDraftAccount: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNT_RESPONSE));
 
@@ -609,7 +609,7 @@ class DraftAccountControllerIntegrationTest {
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
-        logger.info(":testUpdateDraftAccount: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testUpdateDraftAccount: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNT_RESPONSE));
 
@@ -709,7 +709,7 @@ class DraftAccountControllerIntegrationTest {
 
         String body = result.getResponse().getContentAsString();
 
-        logger.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
     }
 
     @Test
@@ -731,7 +731,7 @@ class DraftAccountControllerIntegrationTest {
 
         String body = result.getResponse().getContentAsString();
 
-        logger.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
     }
 
     @Test
@@ -755,7 +755,7 @@ class DraftAccountControllerIntegrationTest {
 
         String body = result.getResponse().getContentAsString();
 
-        logger.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
     }
 
     @Test
