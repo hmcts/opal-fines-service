@@ -23,7 +23,6 @@ import java.util.Optional;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-
 @RestController
 @RequestMapping("/major-creditors")
 @Slf4j(topic = "MajorCreditorController")
