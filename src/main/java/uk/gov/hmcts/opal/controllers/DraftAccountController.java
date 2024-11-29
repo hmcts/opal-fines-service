@@ -203,8 +203,7 @@ public class DraftAccountController {
         @PathVariable Long draftAccountId,
         @RequestBody ReplaceDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-
-        log.info(":PUT:putDraftAccount: replacing draft account entity: {}", draftAccountId);
+        log.info(":PUT:putDraftAccount: replacing draft account '{}' with: \n{}", draftAccountId, dto.toPrettyJson());
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
