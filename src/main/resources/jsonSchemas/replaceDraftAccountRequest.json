@@ -12,9 +12,9 @@
       "type": "string",
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
-    "validated_by": {
+    "submitted_by_name": {
       "type": "string",
-      "description": "ID of the User that validated the Draft Account for checking"
+      "description": "Value of the name claim in the AAD Access Token"
     },
     "account": {
       "type": "object",
@@ -36,6 +36,7 @@
   "required": [
       "business_unit_id",
       "submitted_by",
+      "submitted_by_name",
       "account",
       "account_type",
       "timeline_data"

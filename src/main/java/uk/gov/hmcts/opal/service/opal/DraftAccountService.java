@@ -96,7 +96,7 @@ public class DraftAccountService {
         LocalDateTime created = LocalDateTime.now();
         BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId()).orElse(null);
         String snapshot = createInitialSnapshot(dto, created, businessUnit);
-        log.info(":submitDraftAccount: dto: \n{}", dto);
+        log.info(":submitDraftAccount: dto: \n{}", dto.toPrettyJson());
         return draftAccountRepository.save(toEntity(dto, created, businessUnit, snapshot));
     }
 
@@ -196,7 +196,7 @@ public class DraftAccountService {
 
     private String createUpdateSnapshot(ReplaceDraftAccountRequestDto dto, LocalDateTime created,
                                          BusinessUnitEntity businessUnit) {
-        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(),dto.getSubmittedByName())
+        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName())
             .toPrettyJson();
     }
 
