@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -27,6 +29,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "configurationItemId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ConfigurationItemEntity {
@@ -42,7 +45,7 @@ public class ConfigurationItemEntity {
     private String itemName;
 
     @ManyToOne
-    @JoinColumn(name = "business_unit_id", updatable = false)
+    @JoinColumn(name = "business_unit_id")
     private BusinessUnitEntity businessUnit;
 
     @Column(name = "item_value")

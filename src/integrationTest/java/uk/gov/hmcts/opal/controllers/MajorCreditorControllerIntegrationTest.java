@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -9,11 +10,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
 import uk.gov.hmcts.opal.entity.projection.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
+
+import java.time.LocalDateTime;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @ContextConfiguration(classes = MajorCreditorController.class)
 @ActiveProfiles({"integration"})
+@Slf4j(topic = "MajorCreditorControllerIntegrationTest")
 class MajorCreditorControllerIntegrationTest {
 
     private static final String URL_BASE = "/major-creditors";
@@ -96,12 +102,26 @@ class MajorCreditorControllerIntegrationTest {
 
     @Test
     void testGetMajorCreditorRefData() throws Exception {
-        MajorCreditorReferenceData refData = new MajorCreditorReferenceData(1L, (short)007, "MC_001",
-                                                                            "Major Credit Card Ltd", "MN12 4TT");
+
+        MajorCreditorReferenceData refData  = MajorCreditorReferenceData.builder()
+            .majorCreditorId(1L)
+            .businessUnitId((short)007)
+            .majorCreditorCode("MC_001")
+            .name("Major Credit Card Ltd")
+            .postcode("MN12 4TT")
+            .creditorAccountId(99L)
+            .accountNumber("AN001-002")
+            .creditorAccountType("AT8")
+            .prosecutionService(Boolean.TRUE)
+            .minorCreditorPartyId(505L)
+            .fromSuspense(Boolean.FALSE)
+            .holdPayout(Boolean.TRUE)
+            .lastChangedDate(LocalDateTime.now())
+            .build();
 
         when(majorCreditorService.getReferenceData(any(), any())).thenReturn(singletonList(refData));
 
-        mockMvc.perform(get(URL_BASE)
+        MvcResult result = mockMvc.perform(get(URL_BASE)
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -109,7 +129,19 @@ class MajorCreditorControllerIntegrationTest {
             .andExpect(jsonPath("$.refData[0].major_creditor_id").value(1))
             .andExpect(jsonPath("$.refData[0].major_creditor_code").value("MC_001"))
             .andExpect(jsonPath("$.refData[0].name").value("Major Credit Card Ltd"))
-            .andExpect(jsonPath("$.refData[0].postcode").value("MN12 4TT"));
+            .andExpect(jsonPath("$.refData[0].postcode").value("MN12 4TT"))
+            .andExpect(jsonPath("$.refData[0].creditor_account_id").value(99L))
+            .andExpect(jsonPath("$.refData[0].account_number").value("AN001-002"))
+            .andExpect(jsonPath("$.refData[0].creditor_account_type").value("AT8"))
+            .andExpect(jsonPath("$.refData[0].prosecution_service").value(Boolean.TRUE))
+            .andExpect(jsonPath("$.refData[0].minor_creditor_party_id").value(505L))
+            .andExpect(jsonPath("$.refData[0].from_suspense").value(Boolean.FALSE))
+            .andExpect(jsonPath("$.refData[0].hold_payout").value(Boolean.TRUE))
+            .andReturn();
+
+        String body = result.getResponse().getContentAsString();
+
+        log.info(":testGetDraftAccountById: Response body:\n" + ToJsonString.toPrettyJson(body));
     }
 
     private MajorCreditorEntity createMajorCreditorEntity() {
