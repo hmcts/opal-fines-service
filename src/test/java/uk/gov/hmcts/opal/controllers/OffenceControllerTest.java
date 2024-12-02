@@ -8,9 +8,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceDataResults;
+import uk.gov.hmcts.opal.dto.reference.OffenceSearchDataResults;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
 import uk.gov.hmcts.opal.entity.OffenceEntity;
 import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
+import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
 
 import java.time.LocalDateTime;
@@ -51,18 +53,20 @@ class OffenceControllerTest {
     @Test
     void testSearchOffences_Success() {
         // Arrange
-        OffenceEntity entity = OffenceEntity.builder().build();
-        List<OffenceEntity> offenceList = List.of(entity);
+        OffenceSearchData entity = createOffenceSearchData();
+        List<OffenceSearchData> offenceList = List.of(entity);
 
         when(offenceService.searchOffences(any())).thenReturn(offenceList);
 
         // Act
         OffenceSearchDto searchDto = OffenceSearchDto.builder().build();
-        ResponseEntity<List<OffenceEntity>> response = offenceController.postOffencesSearch(searchDto);
+        ResponseEntity<OffenceSearchDataResults> response = offenceController.postOffencesSearch(searchDto);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(offenceList, response.getBody());
+        OffenceSearchDataResults searchDataResults = response.getBody();
+        assertEquals(1, searchDataResults.getCount());
+        assertEquals(offenceList, searchDataResults.getSearchData());
         verify(offenceService, times(1)).searchOffences(any());
     }
 
@@ -90,6 +94,13 @@ class OffenceControllerTest {
 
     private OffenceReferenceData createOffenceReferenceData() {
         return new OffenceReferenceData(1L, "TH123456", (short)007,
+                                        "Thief of Time", null,
+                                        LocalDateTime.of(1909, 3, 3, 3, 30),
+                                        null, "", "");
+    }
+
+    private OffenceSearchData createOffenceSearchData() {
+        return new OffenceSearchData(1L, "TH123456",
                                         "Thief of Time", null,
                                         LocalDateTime.of(1909, 3, 3, 3, 30),
                                         null, "", "");
