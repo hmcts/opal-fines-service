@@ -166,7 +166,6 @@ printservice:
 logging:
   level:
     org:
-      flywaydb: DEBUG
       hibernate:
         SQL: INFO
         type:
