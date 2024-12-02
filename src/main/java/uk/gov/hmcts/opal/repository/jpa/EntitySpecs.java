@@ -80,8 +80,16 @@ public abstract class EntitySpecs<E> {
         return Optional.ofNullable(candidate).map(DateDto::toLocalDate).map(d -> d.atTime(0, 0, 0));
     }
 
+    public Optional<LocalDateTime> notNullLocalDateTime(LocalDateTime candidate) {
+        return Optional.ofNullable(candidate);
+    }
+
     public <T> Optional<Collection<T>> notEmpty(Collection<T> collection) {
         return collection.isEmpty() ? Optional.empty() : Optional.of(collection);
+    }
+
+    public static Predicate likeStartsWithPredicate(Path<String> path, CriteriaBuilder builder, String candidate) {
+        return likeLowerCasePredicate(path, builder, candidate + "%");
     }
 
     public static Predicate likeWildcardPredicate(Path<String> path, CriteriaBuilder builder, String candidate) {

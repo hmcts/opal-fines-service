@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceDataResults;
+import uk.gov.hmcts.opal.dto.reference.OffenceSearchDataResults;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
 import uk.gov.hmcts.opal.entity.OffenceEntity;
 import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
+import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
 import uk.gov.hmcts.opal.service.OffenceServiceInterface;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
 
@@ -47,19 +49,20 @@ public class OffenceController {
 
         log.info(":GET:getOffenceById: offenceId: {}", offenceId);
 
-        OffenceEntity response = offenceService.getOffence(offenceId);
+        OffenceEntity response = opalOffenceService.getOffence(offenceId);
 
         return buildResponse(response);
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Offences based upon criteria in request body")
-    public ResponseEntity<List<OffenceEntity>> postOffencesSearch(@RequestBody OffenceSearchDto criteria) {
-        log.info(":POST:postOffencesSearch: query: \n{}", criteria);
+    public ResponseEntity<OffenceSearchDataResults> postOffencesSearch(@RequestBody OffenceSearchDto criteria) {
+        log.info(":POST:postOffencesSearch: query: \n{}", criteria.toPrettyJson());
 
-        List<OffenceEntity> response = offenceService.searchOffences(criteria);
+        List<OffenceSearchData> searchData = opalOffenceService.searchOffences(criteria);
 
-        return buildResponse(response);
+        log.info(":GET:postOffencesSearch: offences reference data count: {}", searchData.size());
+        return ResponseEntity.ok(OffenceSearchDataResults.builder().searchData(searchData).build());
     }
 
     @GetMapping
