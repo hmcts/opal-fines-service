@@ -11,5 +11,6 @@ public class DataCleanUp extends BaseStepDef {
         DraftAccountDeleteSteps.deleteAllCreatedDraftAccounts();
         DraftAccountUtils.clearDraftAccountIds();
         DraftAccountUtils.clearDraftAccountCreatedAtTime();
+        DraftAccountUtils.clearInitialAccountStatusDate();
     }
 }
