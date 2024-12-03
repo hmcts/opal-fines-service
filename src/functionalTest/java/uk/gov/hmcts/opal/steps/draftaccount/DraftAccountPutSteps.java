@@ -102,27 +102,40 @@ public class DraftAccountPutSteps extends BaseStepDef {
 
     @Then("I see the account status date is now after the initial account status date")
     public void checkAccountStatusDate() {
-        Instant apiAccountStatusDate = Instant.parse(then().extract().body().jsonPath().getString("account_status_date"));
+        Instant apiAccountStatusDate = Instant.parse(then().extract()
+                                                         .body().jsonPath().getString("account_status_date"));
         Instant initialAccountStatusDate = Instant.parse(DraftAccountUtils.getInitialAccountStatusDate());
 
-        String accountStatusDate = String.valueOf(initialAccountStatusDate.truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
-        String accountStatus = String.valueOf(apiAccountStatusDate.truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+        String accountStatusDate = String.valueOf(initialAccountStatusDate
+                                                      .truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+        String accountStatus = String.valueOf(apiAccountStatusDate
+                                                  .truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+
         Serenity.recordReportData().withTitle("Times").andContents(
-            "Initial account status date: " + accountStatusDate + "\nResponse account status date: " + accountStatus);
+            "Initial account status date: " + accountStatusDate
+                + "\nResponse account status date: " + accountStatus);
+
         assertTrue(
             apiAccountStatusDate.isAfter(initialAccountStatusDate),
             "Account status date is not after the initial account status date"
         );
     }
+
     @Then("I see the account status date hasn't changed")
     public void checkAccountStatusDateNotChanged() {
-        Instant apiAccountStatusDate = Instant.parse(then().extract().body().jsonPath().getString("account_status_date"));
+        Instant apiAccountStatusDate = Instant.parse(then().extract()
+                                                         .body().jsonPath().getString("account_status_date"));
         Instant initialAccountStatusDate = Instant.parse(DraftAccountUtils.getInitialAccountStatusDate());
 
-        String accountStatusDate = String.valueOf(initialAccountStatusDate.truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
-        String accountStatus = String.valueOf(apiAccountStatusDate.truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+        String accountStatusDate = String.valueOf(initialAccountStatusDate
+                                                      .truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+        String accountStatus = String.valueOf(apiAccountStatusDate
+                                                  .truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+
         Serenity.recordReportData().withTitle("Times").andContents(
-            "Initial account status date: " + accountStatusDate + "\nResponse account status date: " + accountStatus);
+            "Initial account status date: " + accountStatusDate
+                + "\nResponse account status date: " + accountStatus);
+
         assertEquals(
             accountStatusDate,
             accountStatus,
