@@ -498,11 +498,12 @@ class DraftAccountControllerIntegrationTest {
                               .businessUnitName("Cambridgeshire").build())
             .createdDate(testDateTime)
             .submittedBy("BUUID1")
+            .submittedByName("Tony Typist")
             .account("{\"account_create_request\":{\"defendant\":{\"company_name\":\"Company ABC\",\"surname\""
                          + ":\"LNAME\",\"fornames\":\"FNAME\",\"dob\":\"2000-01-01\"},\"account\""
                          + ":{\"account_type\":\"Fine\"}}}")
             .accountSnapshot("{\"defendant_name\":\"Company ABC\",\"created_date\":\"2024-09-26T15:00:00Z\","
-                                 + "\"account_type\":\"Fine\",\"submitted_by\":\"BUUID1\","
+                                 + "\"account_type\":\"Fine\",\"submitted_by_name\":\"Tony Typist\","
                                  + "\"business_unit_name\":\"Cambridgeshire\"}")
             .accountType("Fines")
             .accountStatus(DraftAccountStatus.RESUBMITTED)
@@ -857,6 +858,7 @@ class DraftAccountControllerIntegrationTest {
     "account_type": "Fines",
     "business_unit_id": 5,
     "submitted_by": "BUUID1",
+    "submitted_by_name": "Tony Typist",
     "timeline_data": {
         "stuff": "yes"
     }

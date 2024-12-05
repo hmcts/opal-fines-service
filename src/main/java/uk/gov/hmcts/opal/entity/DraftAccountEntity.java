@@ -59,6 +59,9 @@ public class DraftAccountEntity {
     @Column(name = "validated_by", length = 20)
     private String validatedBy;
 
+    // @Column(name = "validate_by_name", length = 100)
+    // private String validateByName;
+
     @Column(name = "account", columnDefinition = "json", nullable = false)
     @ColumnTransformer(write = "?::jsonb")
     @JsonRawValue
