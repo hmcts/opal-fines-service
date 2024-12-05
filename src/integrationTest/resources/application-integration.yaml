@@ -1,6 +1,4 @@
 spring:
-  flyway:
-    enabled: false
   security:
     oauth2:
       resourceserver:
@@ -13,4 +11,12 @@ spring:
       - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
       - org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration
       - org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration
-
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: INFO
+        type:
+          descriptor:
+            sql:
+              BasicBinder: WARN
