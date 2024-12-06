@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
@@ -17,16 +18,17 @@ import java.util.Optional;
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
 
+@Slf4j(topic = "OffenceSpecs")
 public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
 
     public Specification<OffenceEntity> findBySearchCriteria(OffenceSearchDto criteria) {
         return Specification.allOf(specificationList(
             notBlank(criteria.getOffenceId()).map(OffenceSpecs::equalsOffenceId),
-            notBlank(criteria.getCjsCode()).map(OffenceSpecs::likeCjsCode),
-            numericShort(criteria.getBusinessUnitId()).map(OffenceSpecs::equalsBusinessUnitId),
-            notBlank(criteria.getBusinessUnitName()).map(OffenceSpecs::likeBusinessUnitName),
-            notBlank(criteria.getOffenceTitle()).map(OffenceSpecs::likeOffenceTitle),
-            notBlank(criteria.getOffenceTitleCy()).map(OffenceSpecs::likeOffenceTitleCy)
+            notBlank(criteria.getCjsCode()).map(OffenceSpecs::likeCjsCodeStartsWith),
+            notNullLocalDateTime(criteria.getActiveDate()).map(OffenceSpecs::usedFromDateLessThenEqualToDate),
+            notNullLocalDateTime(criteria.getActiveDate()).map(OffenceSpecs::usedToDateGreaterThenEqualToDate),
+            notBlank(criteria.getTitle()).map(OffenceSpecs::likeEitherTitle),
+            notBlank(criteria.getActSection()).map(OffenceSpecs::likeEitherOas)
         ));
     }
 
@@ -58,7 +60,13 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
             likeWildcardPredicate(root.get(OffenceEntity_.cjsCode), builder, cjsCode);
     }
 
+    public static Specification<OffenceEntity> likeCjsCodeStartsWith(String cjsCode) {
+        return (root, query, builder) ->
+            likeStartsWithPredicate(root.get(OffenceEntity_.cjsCode), builder, cjsCode);
+    }
+
     public static Specification<OffenceEntity> likeOffenceTitle(String offenceTitle) {
+        log.info(":likeOffenceTitle: like offence title: '{}'", offenceTitle);
         return (root, query, builder) ->
             likeWildcardPredicate(root.get(OffenceEntity_.offenceTitle), builder, offenceTitle);
     }
@@ -66,6 +74,16 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
     public static Specification<OffenceEntity> likeOffenceTitleCy(String offenceTitleCy) {
         return (root, query, builder) ->
             likeWildcardPredicate(root.get(OffenceEntity_.offenceTitleCy), builder, offenceTitleCy);
+    }
+
+    public static Specification<OffenceEntity> likeOffenceOas(String actSection) {
+        return (root, query, builder) ->
+            likeWildcardPredicate(root.get(OffenceEntity_.offenceOas), builder, actSection);
+    }
+
+    public static Specification<OffenceEntity> likeOffenceOasCy(String actSection) {
+        return (root, query, builder) ->
+            likeWildcardPredicate(root.get(OffenceEntity_.offenceOasCy), builder, actSection);
     }
 
     public static Specification<OffenceEntity> usedFromDateLessThenEqualToDate(LocalDateTime offenceStillValidDate) {
@@ -96,6 +114,20 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
             likeCjsCode(filter),
             likeOffenceTitle(filter),
             likeOffenceTitleCy(filter)
+        );
+    }
+
+    public static Specification<OffenceEntity> likeEitherTitle(String title) {
+        return Specification.anyOf(
+            likeOffenceTitle(title),
+            likeOffenceTitleCy(title)
+        );
+    }
+
+    public static Specification<OffenceEntity> likeEitherOas(String oas) {
+        return Specification.anyOf(
+            likeOffenceOas(oas),
+            likeOffenceOasCy(oas)
         );
     }
 

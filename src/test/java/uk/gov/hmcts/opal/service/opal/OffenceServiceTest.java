@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
 import uk.gov.hmcts.opal.entity.OffenceEntity;
 import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
+import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,6 +57,8 @@ class OffenceServiceTest {
     void testSearchOffences() {
         // Arrange
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        when(ffq.sortBy(any())).thenReturn(ffq);
+        when(ffq.limit(anyInt())).thenReturn(ffq);
 
         OffenceEntity offenceEntity = OffenceEntity.builder().build();
         Page<OffenceEntity> mockPage = new PageImpl<>(List.of(offenceEntity), Pageable.unpaged(), 999L);
@@ -64,10 +68,11 @@ class OffenceServiceTest {
         });
 
         // Act
-        List<OffenceEntity> result = offenceService.searchOffences(OffenceSearchDto.builder().build());
-
+        List<OffenceSearchData> result = offenceService.searchOffences(OffenceSearchDto.builder().build());
+        OffenceSearchData expected = new OffenceSearchData(null, null, null, null, null,
+                                                           null, null, null);
         // Assert
-        assertEquals(List.of(offenceEntity), result);
+        assertEquals(List.of(expected), result);
 
     }
 
