@@ -206,7 +206,7 @@ public class DraftAccountService {
 
         JsonPathUtil.DocContext docContext = createDocContext(document);
 
-        String companyName = docContext.read(DEFENDANT_JSON_PATH + ".company_name");
+        String companyName = docContext.readOrNull(DEFENDANT_JSON_PATH + ".company_name");
 
         final boolean notCompany = companyName == null || companyName.isBlank();
 
