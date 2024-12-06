@@ -83,6 +83,12 @@ public class DraftAccountPostSteps extends BaseStepDef {
         DraftAccountUtils.addDraftAccountCreatedAtTime(createdAt);
     }
 
+    @Then("I store the created draft account initial account_status_date")
+    public void storeDraftAccountInitialAccountStatusDate() {
+        String initialAccountStatusDate = then().extract().body().jsonPath().getString("account_status_date");
+        DraftAccountUtils.addInitialAccountStatusDate(initialAccountStatusDate);
+    }
+
     @Then("The draft account response contains the following data")
     public void draftAccountResponseContains(DataTable data) {
         Map<String, String> expectedData = data.asMap(String.class, String.class);

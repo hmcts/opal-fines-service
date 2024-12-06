@@ -18,6 +18,7 @@ import java.util.Map;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
@@ -41,8 +42,9 @@ public class DraftAccountPutSteps extends BaseStepDef {
             dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
         );
         postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
-        postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
-            ? dataToPost.get("submitted_by_name") : "");
+        if (dataToPost.get("submitted_by_name") != null) {
+            postBody.put("submitted_by_name", dataToPost.get("submitted_by_name"));
+        }
         postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
         postBody.put(
             "account_status",
@@ -96,6 +98,49 @@ public class DraftAccountPutSteps extends BaseStepDef {
 
         Serenity.recordReportData().withTitle("Times").andContents(
             "Created at time: " + createdAtTime + "\nResponse created at time: " + createdAt);
+    }
+
+    @Then("I see the account status date is now after the initial account status date")
+    public void checkAccountStatusDate() {
+        Instant apiAccountStatusDate = Instant.parse(then().extract()
+                                                         .body().jsonPath().getString("account_status_date"));
+        Instant initialAccountStatusDate = Instant.parse(DraftAccountUtils.getInitialAccountStatusDate());
+
+        String accountStatusDate = String.valueOf(initialAccountStatusDate
+                                                      .truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+        String accountStatus = String.valueOf(apiAccountStatusDate
+                                                  .truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+
+        Serenity.recordReportData().withTitle("Times").andContents(
+            "Initial account status date: " + accountStatusDate
+                + "\nResponse account status date: " + accountStatus);
+
+        assertTrue(
+            apiAccountStatusDate.isAfter(initialAccountStatusDate),
+            "Account status date is not after the initial account status date"
+        );
+    }
+
+    @Then("I see the account status date hasn't changed")
+    public void checkAccountStatusDateNotChanged() {
+        Instant apiAccountStatusDate = Instant.parse(then().extract()
+                                                         .body().jsonPath().getString("account_status_date"));
+        Instant initialAccountStatusDate = Instant.parse(DraftAccountUtils.getInitialAccountStatusDate());
+
+        String accountStatusDate = String.valueOf(initialAccountStatusDate
+                                                      .truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+        String accountStatus = String.valueOf(apiAccountStatusDate
+                                                  .truncatedTo(java.time.temporal.ChronoUnit.MILLIS));
+
+        Serenity.recordReportData().withTitle("Times").andContents(
+            "Initial account status date: " + accountStatusDate
+                + "\nResponse account status date: " + accountStatus);
+
+        assertEquals(
+            accountStatusDate,
+            accountStatus,
+            "Account status date has changed"
+        );
     }
 
     @When("I attempt to put a draft account with an invalid token")
@@ -227,7 +272,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             .contentType("application/json")
             .body(postBody.toString())
             .when()
-            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + "10");
+            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + "10999999999");
     }
 
     @When("I attempt to put a draft account with unsupported content type for response")

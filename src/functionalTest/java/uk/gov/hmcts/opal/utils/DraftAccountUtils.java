@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class DraftAccountUtils {
     private static final ThreadLocal<ArrayList<String>> draftAccountId = ThreadLocal.withInitial(ArrayList::new);
     private static final ThreadLocal<String> createdAtTime = ThreadLocal.withInitial(() -> "");
+    private static final ThreadLocal<String> initialAccountStatusDate = ThreadLocal.withInitial(() -> "");
 
     public static void addDraftAccountId(String id) {
         draftAccountId.get().add(id);
@@ -28,6 +29,18 @@ public class DraftAccountUtils {
 
     public static void clearDraftAccountCreatedAtTime() {
         createdAtTime.remove();
+    }
+
+    public static void addInitialAccountStatusDate(String date) {
+        initialAccountStatusDate.set(date);
+    }
+
+    public static String getInitialAccountStatusDate() {
+        return initialAccountStatusDate.get();
+    }
+
+    public static void clearInitialAccountStatusDate() {
+        initialAccountStatusDate.remove();
     }
 
 }

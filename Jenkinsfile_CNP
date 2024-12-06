@@ -7,19 +7,55 @@ def product = "opal"
 def component = "fines-service"
 
 withPipeline(type, product, component) {
-  afterAlways('smokeTest:dev') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'
-  }
-
-  afterAlways('smokeTest:stg') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'
-  }
-
   afterAlways('functionalTest:dev') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
+
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "functional-test-report/",
+      reportFiles          : "index.html",
+      reportName           : "Serenity Functional Test Report"
+    ]
+  }
+
+  afterAlways('smoketest:dev') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'
+
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "smoke-test-report/",
+      reportFiles          : "index.html",
+      reportName           : "Serenity Smoke Test Report"
+    ]
   }
 
   afterAlways('functionalTest:stg') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
+
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "functional-test-report/",
+      reportFiles          : "index.html",
+      reportName           : "Serenity Functional Test Report"
+    ]
+
+  }
+  afterAlways('smoketest:stg') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'
+
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "smoke-test-report/",
+      reportFiles          : "index.html",
+      reportName           : "Serenity Smoke Test Report"
+    ]
   }
 }
