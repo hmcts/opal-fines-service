@@ -81,7 +81,7 @@ spring:
       host: ${OPAL_REDIS_HOST:localhost}
       port: ${OPAL_REDIS_PORT:6379}
   flyway:
-    locations: ${FLYWAY_LOCATIONS:classpath:db/migration/allEnvs}
+    locations: ${FLYWAY_LOCATIONS:classpath:db/migration}
     baseline-on-migrate: true
     ignoreMigrationPatterns: "*:missing"
 
