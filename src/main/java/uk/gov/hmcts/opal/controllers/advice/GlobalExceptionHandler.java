@@ -108,6 +108,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<Map<String, String>> handlePropertyValueException(PropertyValueException pve) {
         log.error(":handlePropertyValueException: {}", pve.getMessage());
+        log.error(":handlePropertyValueException:", pve);
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, pve.getMessage());
         body.put("entity", pve.getEntityName());

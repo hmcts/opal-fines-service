@@ -32,5 +32,13 @@ public class JsonPathUtil {
                 throw new RuntimeException(pnfe.getMessage());
             }
         }
+
+        public <T> T readOrNull(String path) {
+            try {
+                return documentContext.read(path);
+            } catch (PathNotFoundException pnfe) {
+                return null;
+            }
+        }
     }
 }
