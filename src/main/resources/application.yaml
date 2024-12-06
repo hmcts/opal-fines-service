@@ -83,6 +83,7 @@ spring:
   flyway:
     locations: ${FLYWAY_LOCATIONS:classpath:db/migration}
     baseline-on-migrate: true
+    ignoreMigrationPatterns: "*:missing"
 
 
 dbMigration:
