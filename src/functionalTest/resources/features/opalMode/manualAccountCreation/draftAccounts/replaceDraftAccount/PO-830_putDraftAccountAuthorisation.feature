@@ -62,7 +62,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
 
@@ -101,7 +101,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
 
@@ -140,7 +140,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | account_status                      | Submitted     |
       | account_snapshot.defendant_name     | null, null    |
       | account_snapshot.date_of_birth      |               |
-      | account_snapshot.account_type       |               |
+      | account_snapshot.account_type       | Fine          |
       | account_snapshot.submitted_by       | BUUID         |
       | account_snapshot.business_unit_name | Hertfordshire |
 
@@ -214,7 +214,7 @@ Feature: PO-830 - Authorisation for put/update draft account
         | account_status                      | Submitted    |
         | account_snapshot.defendant_name     | null, null  |
         | account_snapshot.date_of_birth      |             |
-        | account_snapshot.account_type       |             |
+        | account_snapshot.account_type       | Fine        |
         | account_snapshot.submitted_by       | BUUID       |
         | account_snapshot.business_unit_name | West London |
 

@@ -24,7 +24,7 @@ Feature: PO-749 put draft account error handling
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
 
@@ -68,7 +68,7 @@ Feature: PO-749 put draft account error handling
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
     When I attempt to put a draft account with resource not found
@@ -105,7 +105,7 @@ Feature: PO-749 put draft account error handling
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
     When I attempt to put a draft account with unsupported content type for response
@@ -142,7 +142,7 @@ Feature: PO-749 put draft account error handling
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
     When I attempt to put a draft account with unsupported media type for request
