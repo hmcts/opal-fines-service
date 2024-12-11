@@ -31,7 +31,7 @@
       "description": "[Optional] ID of the User that validated the Draft Account"
     },
     "account": {
-      "type": "object",
+      "ref": "resource:/jsonSchemas/account.json",
       "description": "The structured Account data (JSON)"
     },
     "account_snapshot": {
@@ -47,7 +47,7 @@
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
     },
     "timeline_data": {
-      "type": "object",
+      "ref": "resource:/jsonSchemas/timelineData.json",
       "description": "Status changes to the Draft Account in chronological order (JSON Array) - System generated (UI)"
     },
     "account_number": {
