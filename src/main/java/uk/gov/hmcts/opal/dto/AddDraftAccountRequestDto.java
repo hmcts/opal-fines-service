@@ -49,6 +49,9 @@ public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequ
     @JsonProperty(value = "account_type", required = true)
     private String accountType;
 
+    @JsonProperty(value = "account_status")
+    private String accountStatus;
+
     @JsonProperty(value = "timeline_data", required = true)
     @JsonDeserialize(using = KeepAsJsonDeserializer.class)
     @JsonRawValue
