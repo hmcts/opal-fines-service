@@ -1,8 +1,8 @@
 {
   "account_type": "Fine",
-  "defendant_type": "Adult",
-  "originator_name": "Police Force",
-  "originator_id": "PF12345",
+  "defendant_type": "DEFENDANT",
+  "originator_name": "ORIGINATOR_NAME",
+  "originator_id": "ORIGINATOR_ID",
   "enforcement_court_id": 101,
   "collection_order_made": true,
   "collection_order_made_today": false,
@@ -10,14 +10,11 @@
   "account_sentence_date": "2023-12-01",
   "defendant": {
     "company_flag": false,
-    "surname": "LNAME",
-    "forenames": "FNAME",
-    "dob": "01/01/2000",
-    "address_line_1": "123 Elm Street"
+    "address_line_1": "1 High Street"
   },
   "offences": [
     {
-      "date_of_sentence": "2023-11-15",
+      "date_of_sentence": "2023-01-01",
       "offence_id": 1234,
       "impositions": [
         {

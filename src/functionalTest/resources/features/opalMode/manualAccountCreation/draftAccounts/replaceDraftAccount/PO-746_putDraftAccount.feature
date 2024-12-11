@@ -34,7 +34,7 @@ Feature: PO-746 put/update draft account
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
 
     Then The draft account response returns 200
 
@@ -43,7 +43,7 @@ Feature: PO-746 put/update draft account
       | business_unit_id                    | 73           |
       | account_type                        | Fine         |
       | account_status                      | Resubmitted  |
-      | account_snapshot.defendant_name     | LNAME, FNAME |
+      | account_snapshot.defendant_name     | null, null   |
       | account_snapshot.date_of_birth      | 01/01/2000   |
       | account_snapshot.account_type       | Fine         |
       | account_snapshot.submitted_by       | BUUID        |
@@ -75,7 +75,7 @@ Feature: PO-746 put/update draft account
       | business_unit_id                    | 73          |
       | account_type                        | Fine        |
       | account_status                      | Submitted   |
-      | account_snapshot.defendant_name     | null, null  |
+      | account_snapshot.defendant_name     | LNAME, FNAME|
       | account_snapshot.date_of_birth      |             |
       | account_snapshot.account_type       |             |
       | account_snapshot.submitted_by       | BUUID       |
