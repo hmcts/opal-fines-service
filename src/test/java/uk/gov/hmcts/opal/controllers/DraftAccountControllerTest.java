@@ -131,6 +131,7 @@ class DraftAccountControllerTest {
             .account("{\"acc\": \"1\"}")
             .businessUnitId((short)1)
             .submittedBy("USER_ID")
+            .submittedByName("USER_NAME")
             .timelineData("{\"dat\": \"2\"}")
             .build();
 

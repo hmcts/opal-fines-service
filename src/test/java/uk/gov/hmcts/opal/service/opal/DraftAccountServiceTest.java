@@ -147,7 +147,7 @@ class DraftAccountServiceTest {
             draftAccountService.submitDraftAccount(addDraftAccountDto));
 
         // Assert
-        assertEquals("Missing property in path $['account_create_request']", re.getMessage());
+        assertEquals("Missing property in path $['defendant']", re.getMessage());
     }
 
     @Test
@@ -220,7 +220,7 @@ class DraftAccountServiceTest {
             .account(createAccountString())
             .accountType("Fine")
             .accountStatus(DraftAccountStatus.RESUBMITTED)
-            .timelineData("Timeline data")
+            .timelineData(createTimelineDataString())
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
@@ -237,7 +237,7 @@ class DraftAccountServiceTest {
         assertEquals(createAccountString(), result.getAccount());
         assertEquals("Fine", result.getAccountType());
         assertEquals(DraftAccountStatus.RESUBMITTED, result.getAccountStatus());
-        assertEquals("Timeline data", result.getTimelineData());
+        assertEquals(createTimelineDataString(), result.getTimelineData());
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(businessUnitRepository).findById((short) 2);
@@ -399,20 +399,100 @@ class DraftAccountServiceTest {
         verify(draftAccountRepository, never()).save(any(DraftAccountEntity.class));
     }
 
+    private String createTimelineDataString() {
+        return """
+            {
+                         "username": "johndoe123",
+                         "status": "Active",
+                         "status_date": "2023-11-01",
+                         "reason_text": "Account successfully activated after review."
+                     },
+                     {
+                         "username": "janedoe456",
+                         "status": "Pending",
+                         "status_date": "2023-12-05",
+                         "reason_text": "Awaiting additional documentation for verification."
+                     },
+                     {
+                         "username": "mikebrown789",
+                         "status": "Suspended",
+                         "status_date": "2023-10-15",
+                         "reason_text": "Violation of terms of service."
+                     }
+            """;
+    }
+
     private String createAccountString() {
         return """
             {
-                "account_create_request": {
+                    "account_type": "Fine",
+                    "defendant_type": "Adult",
+                    "originator_name": "Police Force",
+                    "originator_id": "PF12345",
+                    "enforcement_court_id": 101,
+                    "collection_order_made": true,
+                    "collection_order_made_today": false,
+                    "payment_card_request": true,
+                    "account_sentence_date": "2023-12-01",
                     "defendant": {
-                        "surname": "Windsor",
-                        "forenames": "Charles",
-                        "dob": "August 1958"
+                        "company_flag": false,
+                        "title": "Mr",
+                        "surname": "Doe",
+                        "forenames": "John",
+                        "dob": "1985-04-15",
+                        "address_line_1": "123 Elm Street",
+                        "address_line_2": "Suite 45",
+                        "post_code": "AB1 2CD",
+                        "telephone_number_home": "0123456789",
+                        "telephone_number_mobile": "07712345678",
+                        "email_address_1": "john.doe@example.com",
+                        "national_insurance_number": "AB123456C",
+                        "nationality_1": "British",
+                        "occupation": "Engineer",
+                        "debtor_detail": {
+                            "document_language": "English",
+                            "hearing_language": "English",
+                            "vehicle_make": "Toyota",
+                            "vehicle_registration_mark": "ABC123",
+                            "aliases": [
+                                {
+                                    "alias_forenames": "Jon",
+                                    "alias_surname": "Smith"
+                                }
+                            ]
+                        }
                     },
-                    "account": {
-                        "account_type": "Fine"
-                    }
-                }
-            }
+                    "offences": [
+                        {
+                            "date_of_sentence": "2023-11-15",
+                            "imposing_court_id": 202,
+                            "offence_id": 1234,
+                            "impositions": [
+                                {
+                                    "result_id": 1,
+                                    "amount_imposed": 500.0,
+                                    "amount_paid": 200.0,
+                                    "major_creditor_id": 999
+                                }
+                            ]
+                        }
+                    ],
+                    "payment_terms": {
+                        "payment_terms_type_code": "P",
+                        "effective_date": "2023-11-01",
+                        "instalment_period": "M",
+                        "lump_sum_amount": 1000.0,
+                        "instalment_amount": 200.0,
+                        "default_days_in_jail": 5
+                    },
+                    "account_notes": [
+                        {
+                            "account_note_serial": 1,
+                            "account_note_text": "Defendant requested an installment plan.",
+                            "note_type": "AC"
+                        }
+                    ]
+               }
             """;
     }
 }
