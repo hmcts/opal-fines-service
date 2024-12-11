@@ -280,7 +280,7 @@
         },
         "parent_guardian": {
             "type": "object",
-            "required": ["company_flag", "address_line1"],
+            "required": ["company_flag", "address_line_1"],
             "properties": {
                 "company_flag": {
                     "type": "boolean",
@@ -539,7 +539,7 @@
         },
         "defendant": {
             "type": "object",
-            "required": ["company_flag", "address_line1"],
+            "required": ["company_flag", "address_line_1"],
             "properties": {
                 "company_flag": {
                     "type": "boolean",
