@@ -12,7 +12,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -34,7 +35,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 400
     Then I delete the created draft accounts
 
@@ -54,7 +56,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -75,7 +78,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 404
     Then I delete the created draft accounts
 
@@ -89,7 +93,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -110,7 +115,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 406
     Then I delete the created draft accounts
 
@@ -124,7 +130,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -145,7 +152,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 406
     Then I delete the created draft accounts
 

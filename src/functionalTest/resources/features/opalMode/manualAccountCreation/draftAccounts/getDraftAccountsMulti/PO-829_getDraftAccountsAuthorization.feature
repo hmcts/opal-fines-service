@@ -10,7 +10,8 @@ Feature: PO-829 Authorization for Get Draft Accounts
       | account_type     | Fine                                        |
       | account_status   |                                             |
       | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -32,7 +33,8 @@ Feature: PO-829 Authorization for Get Draft Accounts
       | account_type     | Fine                                        |
       | account_status   |                                             |
       | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -42,7 +44,8 @@ Feature: PO-829 Authorization for Get Draft Accounts
       | account_type     | Fine                                        |
       | account_status   |                                             |
       | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -53,7 +56,8 @@ Feature: PO-829 Authorization for Get Draft Accounts
       | account_type     | Fine                                        |
       | account_status   |                                             |
       | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 

@@ -64,7 +64,8 @@ Feature: PO-746 put/update draft account
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -86,7 +87,8 @@ Feature: PO-746 put/update draft account
       | account_type     | Fine                                        |
       | account_status   |                                             |
       | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 400
 
     And I get the single created draft account and the response contains
