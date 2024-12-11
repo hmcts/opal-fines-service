@@ -141,7 +141,8 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     And I store the created draft account ID
     Then The draft account response returns 201
 

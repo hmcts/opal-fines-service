@@ -23,7 +23,8 @@ Feature: PO-830 - Authorisation for put/update draft account
       | account_status    |                                             |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 401
 
     Then I am testing as the "opal-test@hmcts.net" user
@@ -50,7 +51,8 @@ Feature: PO-830 - Authorisation for put/update draft account
       | account_status    |                                             |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 403
 
     When I am testing as the "opal-test@hmcts.net" user
@@ -88,7 +90,8 @@ Feature: PO-830 - Authorisation for put/update draft account
       | account_status    |                                             |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 403
 
     When I am testing as the "opal-test@hmcts.net" user
@@ -126,7 +129,8 @@ Feature: PO-830 - Authorisation for put/update draft account
       | account_status    |                                             |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 403
 
     When I am testing as the "opal-test-3@hmcts.net" user
@@ -163,7 +167,8 @@ Feature: PO-830 - Authorisation for put/update draft account
       | account_status    |                                             |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 200
 
     And I get the single created draft account and the response contains
@@ -199,7 +204,8 @@ Feature: PO-830 - Authorisation for put/update draft account
         | account_status    |                                             |
         | submitted_by      | BUUID_Updated                               |
         | submitted_by_name | Laura Clerk                                 |
-        | timeline_data     |                                             |
+        | timeline_data     | draftAccounts/timelineJson/default.json|
+
       Then The draft account response returns 409
 
       And I get the single created draft account and the response contains
