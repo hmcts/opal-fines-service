@@ -42,9 +42,7 @@ import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 @Qualifier("draftAccountService")
 public class DraftAccountService {
 
-    private static final String A_C_R_JSON_PATH = "$.account_create_request";
-    private static final String DEFENDANT_JSON_PATH = A_C_R_JSON_PATH + ".defendant";
-    private static final String ACCOUNT_JSON_PATH = A_C_R_JSON_PATH + ".account";
+    private static final String DEFENDANT_JSON_PATH = "$.defendant";
 
     private static final EnumSet<DraftAccountStatus> VALID_UPDATE_STATUSES =
         EnumSet.of(DraftAccountStatus.PENDING, DraftAccountStatus.REJECTED, DraftAccountStatus.DELETED);
@@ -218,7 +216,7 @@ public class DraftAccountService {
         String dob = notCompany
             ? docContext.read(DEFENDANT_JSON_PATH + ".dob")
             : null;
-        String accType = docContext.read(ACCOUNT_JSON_PATH + ".account_type");
+        String accType = docContext.read("$.account_type");
 
         return DraftAccountSnapshots.Snapshot.builder()
             .defendantName(defendantName)
