@@ -11,7 +11,8 @@ Feature: PO-606 get draft accounts
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -22,7 +23,8 @@ Feature: PO-606 get draft accounts
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -33,7 +35,8 @@ Feature: PO-606 get draft accounts
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -67,7 +70,8 @@ Feature: PO-606 get draft accounts
       | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -78,7 +82,8 @@ Feature: PO-606 get draft accounts
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
 
     When I create a draft account with the following details
       | business_unit_id  | 77                                          |
@@ -87,7 +92,8 @@ Feature: PO-606 get draft accounts
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -98,7 +104,8 @@ Feature: PO-606 get draft accounts
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -122,7 +129,8 @@ Feature: PO-606 get draft accounts
       | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -133,7 +141,8 @@ Feature: PO-606 get draft accounts
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -144,7 +153,8 @@ Feature: PO-606 get draft accounts
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID_TWO                                   |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -168,7 +178,8 @@ Feature: PO-606 get draft accounts
       | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -179,7 +190,8 @@ Feature: PO-606 get draft accounts
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -190,7 +202,8 @@ Feature: PO-606 get draft accounts
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID_TWO                                   |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 

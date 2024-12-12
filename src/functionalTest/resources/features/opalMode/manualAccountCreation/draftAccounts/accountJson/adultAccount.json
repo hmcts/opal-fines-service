@@ -1,12 +1,34 @@
 {
-  "account_create_request": {
-    "defendant": {
-      "surname": "LNAME",
-      "forenames": "FNAME",
-      "dob": "01/01/2000"
-    },
-    "account": {
-      "account_type": "Fine"
+  "account_type": "Fine",
+  "defendant_type": "Adult",
+  "originator_name": "Police Force",
+  "originator_id": "PF12345",
+  "enforcement_court_id": 101,
+  "collection_order_made": true,
+  "collection_order_made_today": false,
+  "payment_card_request": true,
+  "account_sentence_date": "2023-12-01",
+  "defendant": {
+    "company_flag": false,
+    "surname": "LNAME",
+    "forenames": "FNAME",
+    "dob": "01/01/2000",
+    "address_line_1": "123 Elm Street"
+  },
+  "offences": [
+    {
+      "date_of_sentence": "2023-11-15",
+      "offence_id": 1234,
+      "impositions": [
+        {
+          "result_id": 1,
+          "amount_imposed": 500.0,
+          "amount_paid": 200.0
+        }
+      ]
     }
+  ],
+  "payment_terms": {
+    "payment_terms_type_code": "P"
   }
 }

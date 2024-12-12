@@ -1,0 +1,676 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://opal-fines-service/account.json",
+    "title": "Account",
+    "description": "A Defendant Account",
+    "type":"object",
+    "required": [
+        "account_type",
+        "defendant_type",
+        "originator_name",
+        "originator_id",
+        "enforcement_court_id",
+        "collection_order_made",
+        "collection_order_made_today",
+        "payment_card_request",
+        "account_sentence_date",
+        "defendant",
+        "offences",
+        "payment_terms"
+    ],
+    "properties": {
+        "account_type": {
+            "type": "string",
+            "description": "Type of the account"
+        },
+        "defendant_type": {
+            "type": "string",
+            "description": "Type of the defendant account - Adult/Youth, PG to Pay, Company"
+        },
+        "originator_name": {
+            "type": "string",
+            "description": "Name of the originator - LJS, Police Force or CTO"
+        },
+        "originator_id": {
+            "type": "string",
+            "description": "ID for the originator"
+        },
+        "prosecutor_case_reference": {
+            "type": "string",
+            "description": "Reference for the prosecutor case"
+        },
+        "enforcement_court_id": {
+            "type": "integer",
+            "description": "Enforcing court"
+        },
+        "collection_order_made": {
+            "type": "boolean",
+            "description": "Indicator if collection order is made"
+        },
+        "collection_order_made_today": {
+            "type": "boolean",
+            "description": "Indicator if collection order is made today"
+        },
+        "collection_order_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date of the collection order"
+        },
+        "suspended_committal_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date for suspended committal"
+        },
+        "payment_card_request": {
+            "type": "boolean",
+            "description": "Indicator if payment card is requested"
+        },
+        "account_sentence_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Date for suspended committal"
+        },
+        "defendant": {
+            "$ref": "#/$defs/defendant",
+            "description": "Details of the defendant"
+        },
+        "offences": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/offence"
+            },
+            "description": "Details of an account offence"
+        },
+        "fp_ticket_detail": {
+            "$ref": "#/$defs/fp_ticket_detail",
+            "description": "Fixed penalty details for the account"
+        },
+        "payment_terms": {
+            "$ref": "#/$defs/payment_terms",
+            "description": "Payment terms for the account"
+        },
+        "account_notes": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/account_note"
+            },
+            "description": "Payment terms for the account"
+        }
+    },
+    "$defs": {
+        "payment_terms": {
+            "type": "object",
+            "required": ["payment_terms_type_code"],
+            "properties": {
+                "payment_terms_type_code": {
+                    "type": "string",
+                    "enum": ["B", "P", "I"],
+                    "description": "Type code for payment terms"
+                },
+                "effective_date": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Effective date for the payment terms"
+                },
+                "instalment_period": {
+                    "type": "string",
+                    "enum": ["W", "M", "F"],
+                    "description": "Period for installment payments"
+                },
+                "lump_sum_amount": {
+                    "type": "number",
+                    "multipleOf": 0.01,
+                    "description": "Lump sum amount for payment"
+                },
+                "instalment_amount": {
+                    "type": "number",
+                    "multipleOf": 0.01,
+                    "description": "Amount for each installment"
+                },
+                "default_days_in_jail": {
+                    "type": "integer",
+                    "description": "Default days in jail if payment is not made"
+                },
+                "enforcements": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/enforcement"
+                    },
+                    "description": "Enforcements details"
+                }
+            }
+        },
+        "enforcement": {
+            "type": "object",
+            "required": ["result_id"],
+            "properties": {
+                "result_id": {
+                    "type": "string",
+                    "enum": ["PRIS", "NOENF", "COLLO"],
+                    "description": "Identifier for the result"
+                },
+                "enforcement_result_responses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/enforcement_result_response"
+                    },
+                    "description": "Enforcements result response"
+                }
+            }
+        },
+        "enforcement_result_response": {
+            "type": "object",
+            "required": ["parameter_name", "response"],
+            "properties": {
+                "parameter_name": {
+                    "type": "string",
+                    "description": "Parameter name for the prompt"
+                },
+                "response": {
+                    "type": "string",
+                    "description": "User response to the prompt"
+                }
+            }
+        },
+        "account_note": {
+            "type": "object",
+            "required": ["account_note_serial", "account_note_text", "note_type"],
+            "properties": {
+                "account_note_serial": {
+                    "type": "integer",
+                    "description": "Serial order for the note"
+                },
+                "account_note_text": {
+                    "type": "string",
+                    "description": "Text of the account note"
+                },
+                "note_type": {
+                    "type": "string",
+                    "enum": ["AC", "AA", "AN"],
+                    "description": "Type of the note"
+                }
+            }
+        },
+        "alias": {
+            "type": "object",
+            "properties": {
+                "alias_forenames": {
+                    "type": "string",
+                    "description": "Forenames of the alias"
+                },
+                "alias_surname": {
+                    "type": "string",
+                    "description": "Surname of the alias"
+                },
+                "alias_company_name": {
+                    "type": "string",
+                    "description": "Organisation name of the alias"
+                }
+            }
+        },
+        "debtor_detail": {
+            "type": "object",
+            "required": ["document_language", "hearing_language"],
+            "properties": {
+                "vehicle_make": {
+                    "type": "string",
+                    "description": "Make of the vehicle"
+                },
+                "vehicle_registration_mark": {
+                    "type": "string",
+                    "description": "Registration mark of the vehicle"
+                },
+                "document_language": {
+                    "type": "string",
+                    "description": "Language of the document"
+                },
+                "hearing_language": {
+                    "type": "string",
+                    "description": "Language for the hearing"
+                },
+                "employee_reference": {
+                    "type": "string",
+                    "description": "Reference for the employer"
+                },
+                "employer_company_name": {
+                    "type": "string",
+                    "description": "Name of the employer company"
+                },
+                "employer_address_line_1": {
+                    "type": "string",
+                    "description": "Address line 1 of the employer"
+                },
+                "employer_address_line_2": {
+                    "type": "string",
+                    "description": "Address line 2 of the employer"
+                },
+                "employer_address_line_3": {
+                    "type": "string",
+                    "description": "Address line 3 of the employer"
+                },
+                "employer_address_line_4": {
+                    "type": "string",
+                    "description": "Address line 4 of the employer"
+                },
+                "employer_address_line_5": {
+                    "type": "string",
+                    "description": "Address line 5 of the employer"
+                },
+                "employer_post_code": {
+                    "type": "string",
+                    "description": "Postcode of the employer"
+                },
+                "employer_telephone_number": {
+                    "type": "string",
+                    "description": "Telephone number of the employer"
+                },
+                "employer_email_address": {
+                    "type": "string",
+                    "description": "Email address of the employer"
+                },
+                "aliases": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/alias"
+                    },
+                    "maxItems": 5,
+                    "description": "Aliases of the party"
+                }
+            }
+        },
+        "parent_guardian": {
+            "type": "object",
+            "required": ["company_flag", "address_line_1"],
+            "properties": {
+                "company_flag": {
+                    "type": "boolean",
+                    "description": "Flag indicating if it's an organisation"
+                },
+                "company_name": {
+                    "type": "string",
+                    "description": "Name of the organisation"
+                },
+                "surname": {
+                    "type": "string",
+                    "description": "Surname of the parent/guardian"
+                },
+                "forenames": {
+                    "type": "string",
+                    "description": "Forename of the parent/guardian"
+                },
+                "dob": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Date of birth of the parent/guardian"
+                },
+                "national_insurance_number": {
+                    "type": "string",
+                    "description": "National insurance number"
+                },
+                "address_line_1": {
+                    "type": "string",
+                    "description": "Address line 1"
+                },
+                "address_line_2": {
+                    "type": "string",
+                    "description": "Address line 2"
+                },
+                "address_line_3": {
+                    "type": "string",
+                    "description": "Address line 3"
+                },
+                "address_line_4": {
+                    "type": "string",
+                    "description": "Address line 4"
+                },
+                "address_line_5": {
+                    "type": "string",
+                    "description": "Address line 5"
+                },
+                "post_code": {
+                    "type": "string",
+                    "description": "Postcode"
+                },
+                "telephone_number_home": {
+                    "type": "string",
+                    "description": "Home telephone number"
+                },
+                "telephone_number_business": {
+                    "type": "string",
+                    "description": "Business telephone number"
+                },
+                "telephone_number_mobile": {
+                    "type": "string",
+                    "description": "Mobile telephone number"
+                },
+                "email_address_1": {
+                    "type": "string",
+                    "description": "Primary email address"
+                },
+                "email_address_2": {
+                    "type": "string",
+                    "description": "Secondary email address"
+                },
+                "debtor_detail": {
+                    "$ref": "#/$defs/debtor_detail",
+                    "description": "Details of the debtor"
+                }
+            }
+        },
+        "fp_ticket_detail": {
+            "type": "object",
+            "properties": {
+                "notice_number": {
+                    "type": "string",
+                    "description": "Notice number"
+                },
+                "date_of_issue": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Date of issue"
+                },
+                "time_of_issue": {
+                    "type": "string",
+                    "format": "time",
+                    "description": "Date of issue"
+                },
+                "fp_registration_number": {
+                    "type": "string",
+                    "description": "FP registration number"
+                },
+                "notice_to_owner_hirer": {
+                    "type": "string",
+                    "description": "Notice to owner/hirer"
+                },
+                "place_of_offence": {
+                    "type": "string",
+                    "description": "Place of offence"
+                },
+                "fp_driving_licence_number": {
+                    "type": "string",
+                    "description": "Driving licence number"
+                }
+            }
+        },
+        "offence": {
+            "type": "object",
+            "required": ["date_of_sentence", "offence_id", "impositions"],
+            "properties": {
+                "date_of_sentence": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Date of sentence"
+                },
+                "imposing_court_id": {
+                    "type": "integer",
+                    "description": "Court imposing the sentence"
+                },
+                "offence_id": {
+                    "type": "integer",
+                    "description": "Offence identifier"
+                },
+                "impositions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/imposition"
+                    },
+                    "description": "Details of an account imposition"
+                }
+            }
+        },
+        "imposition": {
+            "type": "object",
+            "required": ["result_id", "amount_imposed", "amount_paid"],
+            "properties": {
+                "result_id": {
+                    "type": "integer",
+                    "description": "Result identifier"
+                },
+                "amount_imposed": {
+                    "type": "number",
+                    "multipleOf": 0.01,
+                    "description": "Amount imposed"
+                },
+                "amount_paid": {
+                    "type": "number",
+                    "multipleOf": 0.01,
+                    "description": "Amount paid"
+                },
+                "major_creditor_id": {
+                    "type": "integer",
+                    "description": "Major creditor id"
+                },
+                "minor_creditor": {
+                    "$ref": "#/$defs/minor_creditor",
+                    "description": "Details of the minor creditor"
+                }
+            }
+        },
+        "minor_creditor": {
+            "type": "object",
+            "required": ["company_flag", "payout_hold", "pay_by_bacs"],
+            "properties": {
+                "company_flag": {
+                    "type": "boolean",
+                    "description": "Flag indicating if it's an organisation"
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Title of the minor creditor"
+                },
+                "company_name": {
+                    "type": "string",
+                    "description": "Company name"
+                },
+                "surname": {
+                    "type": "string",
+                    "description": "Surname of the minor creditor"
+                },
+                "forenames": {
+                    "type": "string",
+                    "description": "Forenames of the minor creditor"
+                },
+                "dob": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Date of birth"
+                },
+                "address_line_1": {
+                    "type": "string",
+                    "description": "Address"
+                },
+                "address_line_2": {
+                    "type": "string",
+                    "description": "Address line 2"
+                },
+                "address_line_3": {
+                    "type": "string",
+                    "description": "Address line 3"
+                },
+                "address_line_4": {
+                    "type": "string",
+                    "description": "Address line 4"
+                },
+                "address_line_5": {
+                    "type": "string",
+                    "description": "Address line 5"
+                },
+                "post_code": {
+                    "type": "string",
+                    "description": "Postcode"
+                },
+                "telephone": {
+                    "type": "string",
+                    "description": "Telephone number"
+                },
+                "email_address": {
+                    "type": "string",
+                    "description": "Email address"
+                },
+                "payout_hold": {
+                    "type": "boolean",
+                    "description": "Indicator if payout is on hold"
+                },
+                "pay_by_bacs": {
+                    "type": "boolean",
+                    "description": "Indicator if payment is by BACS"
+                },
+                "bank_account_type": {
+                    "type": "string",
+                    "description": "Type of bank account"
+                },
+                "bank_sort_code": {
+                    "type": "string",
+                    "description": "Bank sort code"
+                },
+                "bank_account_number": {
+                    "type": "string",
+                    "description": "Bank account number"
+                },
+                "bank_account_name": {
+                    "type": "string",
+                    "description": "Name of the account"
+                },
+                "bank_account_ref": {
+                    "type": "string",
+                    "description": "Bank account reference"
+                }
+            }
+        },
+        "defendant": {
+            "type": "object",
+            "required": ["company_flag", "address_line_1"],
+            "properties": {
+                "company_flag": {
+                    "type": "boolean",
+                    "description": "Flag indicating if it's an organisation"
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Title of the defendant"
+                },
+                "surname": {
+                    "type": "string",
+                    "description": "Surname of the defendant"
+                },
+                "company_name": {
+                    "type": "string",
+                    "description": "Company name of the defendant"
+                },
+                "forenames": {
+                    "type": "string",
+                    "description": "First forename of the defendant"
+                },
+                "dob": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Date of birth of the defendant"
+                },
+                "address_line_1": {
+                    "type": "string",
+                    "description": "Address line 1"
+                },
+                "address_line_2": {
+                    "type": "string",
+                    "description": "Address line 2"
+                },
+                "address_line_3": {
+                    "type": "string",
+                    "description": "Address line 3"
+                },
+                "address_line_4": {
+                    "type": "string",
+                    "description": "Address line 4"
+                },
+                "address_line_5": {
+                    "type": "string",
+                    "description": "Address line 5"
+                },
+                "post_code": {
+                    "type": "string",
+                    "description": "Postcode"
+                },
+                "telephone_number_home": {
+                    "type": "string",
+                    "description": "Home telephone number"
+                },
+                "telephone_number_business": {
+                    "type": "string",
+                    "description": "Business telephone number"
+                },
+                "telephone_number_mobile": {
+                    "type": "string",
+                    "description": "Mobile telephone number"
+                },
+                "email_address_1": {
+                    "type": "string",
+                    "description": "Primary email address"
+                },
+                "email_address_2": {
+                    "type": "string",
+                    "description": "Secondary email address"
+                },
+                "national_insurance_number": {
+                    "type": "string",
+                    "description": "National insurance number"
+                },
+                "driving_licence_number": {
+                    "type": "string",
+                    "description": "Driving licence number"
+                },
+                "pnc_id": {
+                    "type": "string",
+                    "description": "PNC ID"
+                },
+                "nationality_1": {
+                    "type": "string",
+                    "description": "Primary nationality"
+                },
+                "nationality_2": {
+                    "type": "string",
+                    "description": "Secondary nationality"
+                },
+                "ethnicity_self_defined": {
+                    "type": "string",
+                    "description": "Self-defined ethnicity"
+                },
+                "ethnicity_observed": {
+                    "type": "string",
+                    "description": "Observed ethnicity"
+                },
+                "cro_number": {
+                    "type": "string",
+                    "description": "CRO number"
+                },
+                "occupation": {
+                    "type": "string",
+                    "description": "Occupation"
+                },
+                "gender": {
+                    "type": "string",
+                    "description": "Gender"
+                },
+                "custody_status": {
+                    "type": "string",
+                    "description": "Custody status"
+                },
+                "prison_number": {
+                    "type": "string",
+                    "description": "Prison number"
+                },
+                "interpreter_lang": {
+                    "type": "string",
+                    "description": "Interpreter language"
+                },
+                "debtor_detail": {
+                    "$ref": "#/$defs/debtor_detail",
+                    "description": "Details of the debtor"
+                },
+                "parent_guardian": {
+                    "$ref": "#/$defs/parent_guardian",
+                    "description": "Details of parent/guardian"
+                }
+            }
+        }
+    }
+}

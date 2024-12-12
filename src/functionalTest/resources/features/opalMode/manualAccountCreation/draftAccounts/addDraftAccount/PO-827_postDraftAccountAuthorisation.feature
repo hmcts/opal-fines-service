@@ -11,7 +11,8 @@ Feature: PO-827 - Authorisation for Post Draft Account
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 401
 
   @PO-827 @cleanUpData
@@ -24,7 +25,8 @@ Feature: PO-827 - Authorisation for Post Draft Account
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 403
 
   @PO-827 @cleanUpData
@@ -37,5 +39,6 @@ Feature: PO-827 - Authorisation for Post Draft Account
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 403
