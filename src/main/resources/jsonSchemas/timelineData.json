@@ -1,0 +1,36 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://opal-fines-service/timelineData.json",
+    "title": "Timeline Data",
+    "description": "Timeline Data for a Draft Account",
+    "type": "array",
+    "minItems": 0,
+    "items": {
+        "$ref": "#/$defs/timeline_data_entry"
+    },
+    "$defs": {
+        "timeline_data_entry": {
+            "type": "object",
+            "required": ["username", "status", "status_date"],
+            "properties": {
+                "username": {
+                    "type": "string",
+                    "description": "Username involved in the timeline event"
+                },
+                "status": {
+                    "type": "string",
+                    "description": "Status of the timeline event"
+                },
+                "status_date": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Date when the state was changed"
+                },
+                "reason_text": {
+                    "type": "string",
+                    "description": "Reason text for the timeline event"
+                }
+            }
+        }
+    }
+}

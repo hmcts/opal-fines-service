@@ -11,7 +11,7 @@ Feature: PO-746 put/update draft account
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -23,7 +23,7 @@ Feature: PO-746 put/update draft account
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
 
@@ -34,7 +34,8 @@ Feature: PO-746 put/update draft account
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
+
     Then The draft account response returns 200
 
 
@@ -63,7 +64,8 @@ Feature: PO-746 put/update draft account
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -75,7 +77,7 @@ Feature: PO-746 put/update draft account
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
 
@@ -85,7 +87,8 @@ Feature: PO-746 put/update draft account
       | account_type     | Fine                                        |
       | account_status   |                                             |
       | submitted_by     | BUUID                                       |
-      | timeline_data    |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 400
 
     And I get the single created draft account and the response contains
@@ -94,7 +97,7 @@ Feature: PO-746 put/update draft account
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
 

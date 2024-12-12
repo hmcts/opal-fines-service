@@ -1,10 +1,8 @@
-{
-  "timeline": [
-    {
-      "username": "",
-      "status": "",
-      "status_date": "",
-      "reason_text": ""
-    }
-  ]
-}
+[
+  {
+    "username": "johndoe123",
+    "status": "Active",
+    "status_date": "2023-11-01",
+    "reason_text": "Account successfully activated after review."
+  }
+]

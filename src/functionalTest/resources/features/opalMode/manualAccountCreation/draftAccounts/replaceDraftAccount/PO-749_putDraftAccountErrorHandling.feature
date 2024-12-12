@@ -12,7 +12,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -23,7 +24,7 @@ Feature: PO-749 put draft account error handling
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
 
@@ -34,7 +35,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 400
     Then I delete the created draft accounts
 
@@ -54,7 +56,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -65,7 +68,7 @@ Feature: PO-749 put draft account error handling
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
     When I attempt to put a draft account with resource not found
@@ -75,7 +78,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 404
     Then I delete the created draft accounts
 
@@ -89,7 +93,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -100,7 +105,7 @@ Feature: PO-749 put draft account error handling
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
     When I attempt to put a draft account with unsupported content type for response
@@ -110,7 +115,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 406
     Then I delete the created draft accounts
 
@@ -124,7 +130,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
     And I store the created draft account created_at time
@@ -135,7 +142,7 @@ Feature: PO-749 put draft account error handling
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
     When I attempt to put a draft account with unsupported media type for request
@@ -145,7 +152,8 @@ Feature: PO-749 put draft account error handling
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 406
     Then I delete the created draft accounts
 

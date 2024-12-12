@@ -11,7 +11,8 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -36,7 +37,8 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
+
     And I store the created draft account ID
     Then The draft account response returns 201
 
@@ -55,7 +57,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
 
@@ -71,7 +73,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
     And I store the created draft account ID
     Then The draft account response returns 201
 
@@ -90,7 +92,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
 
@@ -106,7 +108,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
     And I store the created draft account ID
     Then The draft account response returns 201
 
@@ -125,7 +127,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_status                      | Submitted     |
       | account_snapshot.defendant_name     | null, null    |
       | account_snapshot.date_of_birth      |               |
-      | account_snapshot.account_type       |               |
+      | account_snapshot.account_type       | Fine          |
       | account_snapshot.submitted_by       | BUUID         |
       | account_snapshot.business_unit_name | Hertfordshire |
 
@@ -141,7 +143,8 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     |                                             |
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
+
     And I store the created draft account ID
     Then The draft account response returns 201
 
@@ -174,7 +177,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_status    |                                        |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
-      | timeline_data     |                                        |
+      | timeline_data     | draftAccounts/timelineJson/default.json|
     And I store the created draft account ID
     Then The draft account response returns 201
 
@@ -191,7 +194,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_status                      | Submitted   |
       | account_snapshot.defendant_name     | null, null  |
       | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       |             |
+      | account_snapshot.account_type       | Fine        |
       | account_snapshot.submitted_by       | BUUID       |
       | account_snapshot.business_unit_name | West London |
 

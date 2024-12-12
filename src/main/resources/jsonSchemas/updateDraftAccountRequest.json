@@ -7,6 +7,10 @@
       "type": "string",
       "description": "ID of the User that validated the Draft Account for checking"
     },
+    "validated_by_name": {
+      "type": "string",
+      "description": "Value of the name claim in the AAD Acces Token"
+    },
     "business_unit_id": {
       "type": "integer",
       "format": "int32",
@@ -17,13 +21,13 @@
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Pending, Deleted"
     },
     "timeline_data": {
-      "type": "object",
+      "ref": "resource:/jsonSchemas/timelineData.json",
       "description": "Status changes to the Draft Account in chronological order (JSON Array) - System generated (UI)"
     }
   },
   "required": [
     "business_unit_id",
-    "validated_by",
-    "account_status"
+    "account_status",
+	"timeline_data"
   ]
 }

@@ -669,7 +669,7 @@ class DraftAccountControllerIntegrationTest {
 
         String expectedErrorMessageStart =
             "JSON Schema Validation Error: Validating against JSON schema 'addDraftAccountRequest.json',"
-                + " found 3 validation errors:";
+                + " found 4 validation errors:";
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -683,6 +683,7 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(jsonPath("$.message").value(containsString(expectedErrorMessageStart)))
             .andExpect(jsonPath("$.message").value(containsString("required property 'account_type' not found")))
             .andExpect(jsonPath("$.message").value(containsString("required property 'submitted_by' not found")))
+            .andExpect(jsonPath("$.message").value(containsString("required property 'submitted_by_name' not found")))
             .andExpect(jsonPath("$.message").value(containsString("required property 'timeline_data' not found")));
 
     }
@@ -702,9 +703,9 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
             .andExpect(jsonPath("$.account_type").value("Fines"))
             .andExpect(jsonPath("$.account_status").value("Submitted"))
-            .andExpect(jsonPath("$.account.accountCreateRequest.Account.AccountType")
+            .andExpect(jsonPath("$.account.account_type")
                            .value("Fine"))
-            .andExpect(jsonPath("$.account.accountCreateRequest.Defendant.Surname")
+            .andExpect(jsonPath("$.account.defendant.surname")
                            .value("LNAME"))
             .andReturn();
 
@@ -841,28 +842,103 @@ class DraftAccountControllerIntegrationTest {
 
     private static String validCreateRequestBody() {
         return """
-{
-    "account": {
-        "accountCreateRequest": {
-            "Defendant": {
-                "CompanyName": "Company ABC",
-                "Surname": "LNAME",
-                "Fornames": "FNAME",
-                "DOB": "2000-01-01"
-            },
-            "Account": {
-                "AccountType": "Fine"
+            {
+              "business_unit_id": 77,
+              "submitted_by": "BUUID1",
+              "submitted_by_name": "John",
+              "account": {
+              "account_type": "Fine",
+              "defendant_type": "Adult",
+              "originator_name": "Police Force",
+              "originator_id": "PF12345",
+              "enforcement_court_id": 101,
+              "collection_order_made": true,
+              "collection_order_made_today": false,
+              "payment_card_request": true,
+              "account_sentence_date": "2023-12-01",
+              "defendant": {
+                "company_flag": false,
+                "title": "Mr",
+                "surname": "LNAME",
+                "forenames": "John",
+                "dob": "1985-04-15",
+                "address_line_1": "123 Elm Street",
+                "address_line_2": "Suite 45",
+                "post_code": "AB1 2CD",
+                "telephone_number_home": "0123456789",
+                "telephone_number_mobile": "07712345678",
+                "email_address_1": "john.doe@example.com",
+                "national_insurance_number": "AB123456C",
+                "nationality_1": "British",
+                "occupation": "Engineer",
+                "debtor_detail": {
+                  "document_language": "English",
+                  "hearing_language": "English",
+                  "vehicle_make": "Toyota",
+                  "vehicle_registration_mark": "ABC123",
+                  "aliases": [
+                    {
+                      "alias_forenames": "Jon",
+                      "alias_surname": "Smith"
+                    }
+                  ]
+                }
+              },
+              "offences": [
+                {
+                  "date_of_sentence": "2023-11-15",
+                  "imposing_court_id": 202,
+                  "offence_id": 1234,
+                  "impositions": [
+                    {
+                      "result_id": 1,
+                      "amount_imposed": 500.00,
+                      "amount_paid": 200.00,
+                      "major_creditor_id": 999
+                    }
+                  ]
+                }
+              ],
+              "payment_terms": {
+                "payment_terms_type_code": "P",
+                "effective_date": "2023-11-01",
+                "instalment_period": "M",
+                "lump_sum_amount": 1000.00,
+                "instalment_amount": 200.00,
+                "default_days_in_jail": 5
+              },
+              "account_notes": [
+                {
+                  "account_note_serial": 1,
+                  "account_note_text": "Defendant requested an installment plan.",
+                  "note_type": "AC"
+                }
+              ]
             }
-        }
-    },
-    "account_type": "Fines",
-    "business_unit_id": 5,
-    "submitted_by": "BUUID1",
-    "submitted_by_name": "Tony Typist",
-    "timeline_data": {
-        "stuff": "yes"
-    }
-}""";
+            ,
+              "account_type": "Fines",
+              "account_status": "Submitted",
+              "timeline_data": [
+                    {
+                        "username": "johndoe123",
+                        "status": "Active",
+                        "status_date": "2023-11-01",
+                        "reason_text": "Account successfully activated after review."
+                    },
+                    {
+                        "username": "janedoe456",
+                        "status": "Pending",
+                        "status_date": "2023-12-05",
+                        "reason_text": "Awaiting additional documentation for verification."
+                    },
+                    {
+                        "username": "mikebrown789",
+                        "status": "Suspended",
+                        "status_date": "2023-10-15",
+                        "reason_text": "Violation of terms of service."
+                    }
+                ]
+            }""";
     }
 
     private static String invalidCreateRequestBody() {
