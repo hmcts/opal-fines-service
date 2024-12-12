@@ -10,3 +10,5 @@ Feature: Tests to confirm unauthenticated requests are not authenticated
     When I make a request to the defendant account details api with an invalid token
       | defendantID | 500000009 |
     Then the response from the defendant account details api is unauthorised
+
+    @test
