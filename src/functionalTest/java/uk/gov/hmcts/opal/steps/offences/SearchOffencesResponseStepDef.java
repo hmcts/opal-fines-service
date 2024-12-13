@@ -3,8 +3,8 @@ package uk.gov.hmcts.opal.steps.offences;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import net.serenitybdd.rest.SerenityRest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 import java.util.List;
