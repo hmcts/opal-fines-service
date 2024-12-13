@@ -4,6 +4,7 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
@@ -49,10 +50,10 @@ public class DraftAccountPostSteps extends BaseStepDef {
         String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
             + "/draftAccounts/timelineJson/default.json";
         String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-        JSONObject timelineObject = new JSONObject(timeline);
+        JSONArray timelineArray = new JSONArray(timeline);
 
         postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineObject);
+        postBody.put("timeline_data", timelineArray);
 
         SerenityRest
             .given()
