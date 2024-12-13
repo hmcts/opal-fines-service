@@ -51,7 +51,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | account_status    |                                             |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
 
     Then The draft account response returns 403
 
@@ -90,7 +90,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | account_status    |                                             |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
 
     Then The draft account response returns 403
 
@@ -129,7 +129,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | account_status    |                                             |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
 
     Then The draft account response returns 403
 
@@ -167,7 +167,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | account_status    |                                             |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
 
     Then The draft account response returns 200
 
