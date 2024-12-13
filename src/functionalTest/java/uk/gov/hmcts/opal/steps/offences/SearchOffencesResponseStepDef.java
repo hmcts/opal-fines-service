@@ -49,6 +49,7 @@ public class SearchOffencesResponseStepDef extends BaseStepDef {
             }
         }
     }
+
     @Then("there are {int} offences in the response")
     public void offenceResponseContainsCount(int count) {
         int responseCount = then().extract().jsonPath().getInt("count");
