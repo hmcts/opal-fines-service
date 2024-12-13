@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SearchOffencesResponseStepDef extends BaseStepDef {
-    static Logger log = LoggerFactory.getLogger(SearchOffencesResponseStepDef.class.getName());
+    //static Logger log = LoggerFactory.getLogger(SearchOffencesResponseStepDef.class.getName());
 
     @Then("The offence search response returns {int}")
     public void draftAccountResponse(int statusCode) {
