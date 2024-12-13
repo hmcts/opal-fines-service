@@ -85,4 +85,4 @@ Feature: PO-926 Offences Search API
       ### need to test inactive offences are returned when active date is null
 
   Scenario: Offence Search API - No Results
-      ### need to test no results are returned when no offences match the search criteria
+      ### need to test no results are returned when no offences match the search criteria and the status is 200
