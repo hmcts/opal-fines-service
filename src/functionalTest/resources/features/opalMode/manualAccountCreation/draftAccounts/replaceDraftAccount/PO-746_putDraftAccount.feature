@@ -87,7 +87,7 @@ Feature: PO-746 put/update draft account
       | account_type     | Fine                                        |
       | account_status   |                                             |
       | submitted_by     | BUUID                                       |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
+      | timeline_data    | draftAccounts/timelineJson/default.json     |
 
     Then The draft account response returns 400
 

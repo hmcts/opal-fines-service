@@ -455,9 +455,9 @@ class DraftAccountControllerIntegrationTest {
             .accountStatus(SUBMITTED)
             .statusMessage("Status is OK")
             .accountStatusDate(LocalDateTime.of(2024, 11, 11, 11, 11))
-            .account("{}")
+            .account(validAccountJson())
             .accountSnapshot("{ \"data\": \"something snappy\"}")
-            .timelineData("{}")
+            .timelineData(validTimelineDataJson())
             .build();
     }
 
@@ -499,15 +499,13 @@ class DraftAccountControllerIntegrationTest {
             .createdDate(testDateTime)
             .submittedBy("BUUID1")
             .submittedByName("Tony Typist")
-            .account("{\"account_create_request\":{\"defendant\":{\"company_name\":\"Company ABC\",\"surname\""
-                         + ":\"LNAME\",\"fornames\":\"FNAME\",\"dob\":\"2000-01-01\"},\"account\""
-                         + ":{\"account_type\":\"Fine\"}}}")
+            .account(validAccountJson())
             .accountSnapshot("{\"defendant_name\":\"Company ABC\",\"created_date\":\"2024-09-26T15:00:00Z\","
                                  + "\"account_type\":\"Fine\",\"submitted_by_name\":\"Tony Typist\","
                                  + "\"business_unit_name\":\"Cambridgeshire\"}")
             .accountType("Fines")
             .accountStatus(DraftAccountStatus.RESUBMITTED)
-            .timelineData("{\"stuff\":\"yes\"}")
+            .timelineData(validTimelineDataJson())
             .build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -525,12 +523,12 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(jsonPath("$.business_unit_id").value(5))
             .andExpect(jsonPath("$.created_at").value("2024-09-26T15:00:00Z"))
             .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
-            .andExpect(jsonPath("$.account.account_create_request.defendant.company_name")
-                           .value("Company ABC"))
+            .andExpect(jsonPath("$.account.defendant.company_name")
+                           .value("company"))
             .andExpect(jsonPath("$.account_snapshot.defendant_name").value("Company ABC"))
             .andExpect(jsonPath("$.account_type").value("Fines"))
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
-            .andExpect(jsonPath("$.timeline_data.stuff").value("yes"))
+            .andExpect(jsonPath("$.timeline_data").isArray())
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
@@ -570,16 +568,14 @@ class DraftAccountControllerIntegrationTest {
             .submittedBy("BUUID1")
             .validatedDate(testDateTime)
             .validatedBy("BUUID1")
-            .account("{\"account_create_request\":{\"defendant\":{\"company_name\":\"Company ABC\","
-                         + "\"surname\":\"LNAME\",\"fornames\":\"FNAME\",\"dob\":\"2000-01-01\"},"
-                         + "\"account\":{\"account_type\":\"Fine\"}}}")
+            .account(validAccountJson())
             .accountSnapshot("{\"defendant_name\":\"Company ABC\",\"created_date\":\"2024-10-02T14:30:00Z\","
                                  + "\"account_type\":\"Fine\",\"submitted_by\":\"BUUID1\","
                                  + "\"business_unit_name\":\"Cambridgeshire\","
                                  + "\"approved_date\":\"2024-10-03T14:30:00Z\"}")
             .accountType("Fines")
             .accountStatus(DraftAccountStatus.PENDING)
-            .timelineData("{\"test\":\"yes\"}")
+            .timelineData(validTimelineDataJson())
             .build();
 
         when(draftAccountService.updateDraftAccount(eq(draftAccountId), any(UpdateDraftAccountRequestDto.class)))
@@ -599,14 +595,14 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
             .andExpect(jsonPath("$.validated_at").value("2024-10-03T14:30:00Z"))
             .andExpect(jsonPath("$.validated_by").value("BUUID1"))
-            .andExpect(jsonPath("$.account.account_create_request.defendant.company_name")
-                           .value("Company ABC"))
+            .andExpect(jsonPath("$.account.defendant.company_name")
+                           .value("company"))
             .andExpect(jsonPath("$.account_snapshot.defendant_name").value("Company ABC"))
             .andExpect(jsonPath("$.account_snapshot.approved_date")
                            .value("2024-10-03T14:30:00Z"))
             .andExpect(jsonPath("$.account_type").value("Fines"))
             .andExpect(jsonPath("$.account_status").value("Pending"))
-            .andExpect(jsonPath("$.timeline_data.test").value("yes"))
+            .andExpect(jsonPath("$.timeline_data").isArray())
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
@@ -620,14 +616,14 @@ class DraftAccountControllerIntegrationTest {
     @Test
     void testUpdateDraftAccount_trap403Response_noPermission() throws Exception {
         Long draftAccountId = 241L;
-        String requestBody = """
-            {
-                "account_status": "PENDING",
-                "validated_by": "BUUID1",
-                "business_unit_id": 5,
-                "timeline_data": {"test":"yes"}
-            }
-            """;
+        String requestBody = "            {\n"
+            + "                \"account_status\": \"PENDING\",\n"
+            + "                \"validated_by\": \"BUUID1\",\n"
+            + "                \"business_unit_id\": 5,\n"
+            + "                \"timeline_data\": "
+            + validTimelineDataJson()
+            + "\n"
+            + "            }";
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
 
@@ -669,7 +665,7 @@ class DraftAccountControllerIntegrationTest {
 
         String expectedErrorMessageStart =
             "JSON Schema Validation Error: Validating against JSON schema 'addDraftAccountRequest.json',"
-                + " found 4 validation errors:";
+                + " found 16 validation errors:";
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -963,13 +959,107 @@ class DraftAccountControllerIntegrationTest {
     }
 
     private static String validUpdateRequestBody() {
+        return "{\n"
+            + "    \"account_status\": \"PENDING\",\n"
+            + "    \"validated_by\": \"BUUID1\",\n"
+            + "    \"business_unit_id\": 5,\n"
+            + "    \"timeline_data\": " + validTimelineDataJson() + "\n"
+            + "}";
+    }
+
+    private static String validTimelineDataJson() {
         return """
-{
-    "account_status": "PENDING",
-    "validated_by": "BUUID1",
-    "business_unit_id": 5,
-    "timeline_data": {"test":"yes"}
-}""";
+            [
+                {
+                    "username": "johndoe123",
+                    "status": "Active",
+                    "status_date": "2023-11-01",
+                    "reason_text": "Account successfully activated after review."
+                },
+                {
+                    "username": "janedoe456",
+                    "status": "Pending",
+                    "status_date": "2023-12-05",
+                    "reason_text": "Awaiting additional documentation for verification."
+                },
+                {
+                    "username": "mikebrown789",
+                    "status": "Suspended",
+                    "status_date": "2023-10-15",
+                    "reason_text": "Violation of terms of service."
+                }
+            ]""";
+    }
+
+    private final String validAccountJson() {
+        return """
+            {
+              "account_type": "Fine",
+              "defendant_type": "Adult",
+              "originator_name": "Police Force",
+              "originator_id": "PF12345",
+              "enforcement_court_id": 101,
+              "collection_order_made": true,
+              "collection_order_made_today": false,
+              "payment_card_request": true,
+              "account_sentence_date": "2023-12-01",
+              "defendant": {
+                "company_flag": true,
+                "company_name": "company",
+                "dob": "1985-04-15",
+                "address_line_1": "123 Elm Street",
+                "address_line_2": "Suite 45",
+                "post_code": "AB1 2CD",
+                "telephone_number_home": "0123456789",
+                "telephone_number_mobile": "07712345678",
+                "email_address_1": "john.doe@example.com",
+                "national_insurance_number": "AB123456C",
+                "nationality_1": "British",
+                "occupation": "Engineer",
+                "debtor_detail": {
+                  "document_language": "English",
+                  "hearing_language": "English",
+                  "vehicle_make": "Toyota",
+                  "vehicle_registration_mark": "ABC123",
+                  "aliases": [
+                    {
+                      "alias_forenames": "Jon",
+                      "alias_surname": "Smith"
+                    }
+                  ]
+                }
+              },
+              "offences": [
+                {
+                  "date_of_sentence": "2023-11-15",
+                  "imposing_court_id": 202,
+                  "offence_id": 1234,
+                  "impositions": [
+                    {
+                      "result_id": 1,
+                      "amount_imposed": 500.00,
+                      "amount_paid": 200.00,
+                      "major_creditor_id": 999
+                    }
+                  ]
+                }
+              ],
+              "payment_terms": {
+                "payment_terms_type_code": "P",
+                "effective_date": "2023-11-01",
+                "instalment_period": "M",
+                "lump_sum_amount": 1000.00,
+                "instalment_amount": 200.00,
+                "default_days_in_jail": 5
+              },
+              "account_notes": [
+                {
+                  "account_note_serial": 1,
+                  "account_note_text": "Defendant requested an installment plan.",
+                  "note_type": "AC"
+                }
+              ]
+            }""";
     }
 
     private DraftAccountEntity toEntity(AddDraftAccountRequestDto dto,  LocalDateTime created) {
