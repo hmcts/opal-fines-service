@@ -222,7 +222,7 @@ dependencyManagement {
   }
 
   dependencies {
-    dependency group: 'com.google.guava', name: 'guava', version: '33.3.1-jre'
+    dependency group: 'com.google.guava', name: 'guava', version: '33.4.0-jre'
   }
 }
 
@@ -275,7 +275,7 @@ dependencies {
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
-  implementation group: 'com.google.guava', name: 'guava', version: '33.3.1-jre'
+  implementation group: 'com.google.guava', name: 'guava', version: '33.4.0-jre'
 
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.6.0'
 
