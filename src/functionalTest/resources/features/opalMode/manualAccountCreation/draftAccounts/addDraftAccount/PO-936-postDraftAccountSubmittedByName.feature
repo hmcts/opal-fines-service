@@ -9,8 +9,8 @@
         | account_type      | Fine                                        |
         | account_status    |                                             |
         | submitted_by      | BUUID                                       |
-        | submitted_by_name | Laura Clerk1                                 |
-        | timeline_data     | draftAccounts/timelineJson/default.json|
+        | submitted_by_name | Laura Clerk1                                |
+        | timeline_data     | draftAccounts/timelineJson/default.json     |
 
       Then The draft account response returns 201
       And I store the created draft account ID
@@ -23,7 +23,7 @@
         | account_snapshot.date_of_birth      | 01/01/2000          |
         | account_snapshot.account_type       | Fine                |
         | account_snapshot.submitted_by       | BUUID               |
-        | account_snapshot.submitted_by_name  | Laura Clerk1         |
+        | account_snapshot.submitted_by_name  | Laura Clerk1        |
         | account_snapshot.business_unit_name | West London         |
 
       Then I delete the created draft accounts

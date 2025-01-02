@@ -11,7 +11,7 @@ Feature: PO-745 patch draft account
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
 
     Then The draft account response returns 201
     And I store the created draft account ID
@@ -31,8 +31,8 @@ Feature: PO-745 patch draft account
       | account_snapshot.account_type       | Fine           |
       | account_snapshot.submitted_by       | BUUID          |
       | account_snapshot.business_unit_name | West London    |
-      | timeline_data.status                | Pending        |
-      | timeline_data.username              | BUUID_REVIEWER |
+      | timeline_data[0].status             | Pending        |
+      | timeline_data[0].username           | BUUID_REVIEWER |
 
     Then I delete the created draft accounts
 
@@ -46,7 +46,7 @@ Feature: PO-745 patch draft account
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
 
     Then The draft account response returns 201
     And I store the created draft account ID
@@ -67,9 +67,9 @@ Feature: PO-745 patch draft account
       | account_snapshot.account_type       | Fine                 |
       | account_snapshot.submitted_by       | BUUID                |
       | account_snapshot.business_unit_name | West London          |
-      | timeline_data.status                | Rejected             |
-      | timeline_data.username              | BUUID_REVIEWER       |
-      | timeline_data.reason_text           | Reason for rejection |
+      | timeline_data[0].status             | Rejected             |
+      | timeline_data[0].username           | BUUID_REVIEWER       |
+      | timeline_data[0].reason_text        | Reason for rejection |
 
     Then I delete the created draft accounts
 
@@ -83,7 +83,7 @@ Feature: PO-745 patch draft account
       | account_status    |                                             |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
+      | timeline_data     | draftAccounts/timelineJson/default.json     |
 
     Then The draft account response returns 201
     And I store the created draft account ID
@@ -104,8 +104,8 @@ Feature: PO-745 patch draft account
       | account_snapshot.account_type       | Fine                |
       | account_snapshot.submitted_by       | BUUID               |
       | account_snapshot.business_unit_name | West London         |
-      | timeline_data.status                | Deleted             |
-      | timeline_data.username              | BUUID_REVIEWER      |
-      | timeline_data.reason_text           | Reason for deletion |
+      | timeline_data[0].status             | Deleted             |
+      | timeline_data[0].username           | BUUID_REVIEWER      |
+      | timeline_data[0].reason_text        | Reason for deletion |
 
     Then I delete the created draft accounts
