@@ -44,11 +44,11 @@
             "description": "Enforcing court"
         },
         "collection_order_made": {
-            "type": ["boolean", "null"],,
+            "type": ["boolean", "null"],
             "description": "Indicator if collection order is made"
         },
         "collection_order_made_today": {
-            "type": ["boolean", "null"],,
+            "type": ["boolean", "null"],
             "description": "Indicator if collection order is made today"
         },
         "collection_order_date": {
@@ -451,7 +451,7 @@
             "required": ["company_flag", "payout_hold", "pay_by_bacs"],
             "properties": {
                 "company_flag": {
-                    "type": ["boolean", "null"],,
+                    "type": ["boolean", "null"],
                     "description": "Flag indicating if it's an organisation"
                 },
                 "title": {
@@ -508,11 +508,11 @@
                     "description": "Email address"
                 },
                 "payout_hold": {
-                    "type": ["boolean", "null"],,
+                    "type": ["boolean", "null"],
                     "description": "Indicator if payout is on hold"
                 },
                 "pay_by_bacs": {
-                    "type": ["boolean", "null"],,
+                    "type": ["boolean", "null"],
                     "description": "Indicator if payment is by BACS"
                 },
                 "bank_account_type": {
@@ -542,7 +542,7 @@
             "required": ["company_flag", "address_line_1"],
             "properties": {
                 "company_flag": {
-                    "type": ["boolean", "null"],,
+                    "type": ["boolean", "null"],
                     "description": "Flag indicating if it's an organisation"
                 },
                 "title": {
