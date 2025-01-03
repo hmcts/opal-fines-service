@@ -62,7 +62,7 @@
             "description": "Date for suspended committal"
         },
         "payment_card_request": {
-            "type": ["boolean", "null"],,
+            "type": ["boolean", "null"],
             "description": "Indicator if payment card is requested"
         },
         "account_sentence_date": {
