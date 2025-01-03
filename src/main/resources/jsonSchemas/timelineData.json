@@ -27,7 +27,7 @@
                     "description": "Date when the state was changed"
                 },
                 "reason_text": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "description": "Reason text for the timeline event"
                 }
             }

@@ -22,12 +22,12 @@
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
     "validated_at": {
-      "type": "string",
+      "type": ["string", "null"],
       "format": "date-time",
       "description": "[Optional] Date the Draft Account was validated - System generated (BE)"
     },
     "validated_by": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "[Optional] ID of the User that validated the Draft Account"
     },
     "account": {
@@ -51,11 +51,11 @@
       "description": "Status changes to the Draft Account in chronological order (JSON Array) - System generated (UI)"
     },
     "account_number": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "[Optional] The Opal Account Number (2char letter code+account number) created on validation - System generated (BE)"
     },
     "account_id": {
-      "type": "integer",
+      "type": ["integer", "null"],
       "format": "int64",
       "description": "[Optional] Opal Account ID created on validation - System generated (BE)"
     }
