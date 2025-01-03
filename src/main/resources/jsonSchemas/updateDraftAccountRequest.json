@@ -12,12 +12,12 @@
       "description": "Value of the name claim in the AAD Acces Token"
     },
     "business_unit_id": {
-      "type": "integer",
+      "type": ["integer", "null"],
       "format": "int32",
       "description": "ID of the Business Unit the Draft Account belongs to"
     },
     "account_status": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Pending, Deleted"
     },
     "timeline_data": {

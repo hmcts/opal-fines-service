@@ -3,7 +3,7 @@
     "$id": "https://opal-fines-service/timelineData.json",
     "title": "Timeline Data",
     "description": "Timeline Data for a Draft Account",
-    "type": "array",
+    "type": ["array", "null"],
     "minItems": 0,
     "items": {
         "$ref": "#/$defs/timeline_data_entry"
@@ -14,15 +14,15 @@
             "required": ["username", "status", "status_date"],
             "properties": {
                 "username": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "description": "Username involved in the timeline event"
                 },
                 "status": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "description": "Status of the timeline event"
                 },
                 "status_date": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "format": "date",
                     "description": "Date when the state was changed"
                 },
