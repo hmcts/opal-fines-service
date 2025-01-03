@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
+  "type": ["object", "null"],
   "properties": {
     "draft_account_id": {
       "type": ["integer", "null"],
@@ -35,7 +35,7 @@
       "description": "The structured Account data (JSON)"
     },
     "account_snapshot": {
-      "type": "object",
+      "type": ["object", "null"],
       "description": "Summary business data to identify the Account - System generated (BE) from Account data (JSON)"
     },
     "account_type": {

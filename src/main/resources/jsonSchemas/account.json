@@ -44,11 +44,11 @@
             "description": "Enforcing court"
         },
         "collection_order_made": {
-            "type": "boolean",
+            "type": ["boolean", "null"],,
             "description": "Indicator if collection order is made"
         },
         "collection_order_made_today": {
-            "type": "boolean",
+            "type": ["boolean", "null"],,
             "description": "Indicator if collection order is made today"
         },
         "collection_order_date": {
@@ -62,7 +62,7 @@
             "description": "Date for suspended committal"
         },
         "payment_card_request": {
-            "type": "boolean",
+            "type": ["boolean", "null"],,
             "description": "Indicator if payment card is requested"
         },
         "account_sentence_date": {
@@ -99,7 +99,7 @@
     },
     "$defs": {
         "payment_terms": {
-            "type": "object",
+            "type": ["object", "null"],
             "required": ["payment_terms_type_code"],
             "properties": {
                 "payment_terms_type_code": {
@@ -141,7 +141,7 @@
             }
         },
         "enforcement": {
-            "type": "object",
+            "type": ["object", "null"],
             "required": ["result_id"],
             "properties": {
                 "result_id": {
@@ -159,7 +159,7 @@
             }
         },
         "enforcement_result_response": {
-            "type": "object",
+            "type": ["object", "null"],
             "required": ["parameter_name", "response"],
             "properties": {
                 "parameter_name": {
@@ -173,7 +173,7 @@
             }
         },
         "account_note": {
-            "type": "object",
+            "type": ["object", "null"],
             "required": ["account_note_serial", "account_note_text", "note_type"],
             "properties": {
                 "account_note_serial": {
@@ -192,7 +192,7 @@
             }
         },
         "alias": {
-            "type": "object",
+            "type": ["object", "null"],
             "properties": {
                 "alias_forenames": {
                     "type": ["string", "null"],
@@ -209,7 +209,7 @@
             }
         },
         "debtor_detail": {
-            "type": "object",
+            "type": ["object", "null"],
             "required": ["document_language", "hearing_language"],
             "properties": {
                 "vehicle_make": {
@@ -279,11 +279,11 @@
             }
         },
         "parent_guardian": {
-            "type": "object",
+            "type": ["object", "null"],
             "required": ["company_flag", "address_line_1"],
             "properties": {
                 "company_flag": {
-                    "type": "boolean",
+                    "type": ["boolean", "null"],
                     "description": "Flag indicating if it's an organisation"
                 },
                 "company_name": {
@@ -358,7 +358,7 @@
             }
         },
         "fp_ticket_detail": {
-            "type": "object",
+            "type": ["object", "null"],
             "properties": {
                 "notice_number": {
                     "type": ["string", "null"],
@@ -393,7 +393,7 @@
             }
         },
         "offence": {
-            "type": "object",
+            "type": ["object", "null"],
             "required": ["date_of_sentence", "offence_id", "impositions"],
             "properties": {
                 "date_of_sentence": {
@@ -419,7 +419,7 @@
             }
         },
         "imposition": {
-            "type": "object",
+            "type": ["object", "null"],
             "required": ["result_id", "amount_imposed", "amount_paid"],
             "properties": {
                 "result_id": {
@@ -447,11 +447,11 @@
             }
         },
         "minor_creditor": {
-            "type": "object",
+            "type": ["object", "null"],
             "required": ["company_flag", "payout_hold", "pay_by_bacs"],
             "properties": {
                 "company_flag": {
-                    "type": "boolean",
+                    "type": ["boolean", "null"],,
                     "description": "Flag indicating if it's an organisation"
                 },
                 "title": {
@@ -508,11 +508,11 @@
                     "description": "Email address"
                 },
                 "payout_hold": {
-                    "type": "boolean",
+                    "type": ["boolean", "null"],,
                     "description": "Indicator if payout is on hold"
                 },
                 "pay_by_bacs": {
-                    "type": "boolean",
+                    "type": ["boolean", "null"],,
                     "description": "Indicator if payment is by BACS"
                 },
                 "bank_account_type": {
@@ -538,11 +538,11 @@
             }
         },
         "defendant": {
-            "type": "object",
+            "type": ["object", "null"],
             "required": ["company_flag", "address_line_1"],
             "properties": {
                 "company_flag": {
-                    "type": "boolean",
+                    "type": ["boolean", "null"],,
                     "description": "Flag indicating if it's an organisation"
                 },
                 "title": {

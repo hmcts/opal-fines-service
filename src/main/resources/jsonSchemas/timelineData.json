@@ -10,7 +10,7 @@
     },
     "$defs": {
         "timeline_data_entry": {
-            "type": "object",
+            "type": ["object", "null"],
             "required": ["username", "status", "status_date"],
             "properties": {
                 "username": {

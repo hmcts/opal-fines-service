@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://opal-fines-service/getDraftAccountRequest.json",
-  "type": "object",
+  "type": ["object", "null"],
   "properties": {
     "count": {
       "type": ["integer", "null"],
@@ -48,7 +48,7 @@
           "description": "[Optional] ID of the User that validated the Draft Account"
         },
         "account_snapshot": {
-          "type": "object",
+          "type": ["object", "null"],
           "description": "Summary business data to identify the Account - System generated (BE) from Account data (JSON)"
         },
         "account_type": {
