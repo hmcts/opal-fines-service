@@ -1,5 +1,6 @@
 @Opal @PO-926
 Feature: PO-926 Offences Search API
+
   Scenario: Offence Search API - Search by CJS code
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the offence search api filtering by
@@ -77,9 +78,18 @@ Feature: PO-926 Offences Search API
 
     Then The offence search response returns 200
     And there are 20 offences in the response
-
+@CF
   Scenario: Offence Search API - Search by Active Date
-      ### need to test only dates before active date are returned
+    Given I am testing as the "opal-test@hmcts.net" user
+    When I make a request to the offence search api filtering by
+      | cjs_code    |  PA1101                   |
+      | title       |                     |
+      | act_section |                     |
+      | active_date | 1920-03-12 00:00:00 |
+      | max_results | 100                 |
+
+    Then The offence search response returns 200
+    Then the offences in the response are before "1920-03-12 00:00:00" only
 
   Scenario: Offence Search API - Inactive Offences
       ### need to test inactive offences are returned when active date is null
