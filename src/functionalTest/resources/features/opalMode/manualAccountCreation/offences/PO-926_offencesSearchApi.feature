@@ -1,4 +1,4 @@
-@Opal @PO-926
+@Opal @PO-926 @CF
 Feature: PO-926 Offences Search API
 
   Scenario: Offence Search API - Search by CJS code
@@ -78,11 +78,11 @@ Feature: PO-926 Offences Search API
 
     Then The offence search response returns 200
     And there are 20 offences in the response
-@CF
+
   Scenario: Offence Search API - Search by Active Date
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the offence search api filtering by
-      | cjs_code    |  PA1101                   |
+      | cjs_code    | PA1101              |
       | title       |                     |
       | act_section |                     |
       | active_date | 1920-03-12 00:00:00 |
@@ -91,8 +91,37 @@ Feature: PO-926 Offences Search API
     Then The offence search response returns 200
     Then the offences in the response are before "1920-03-12 00:00:00" only
 
-  Scenario: Offence Search API - Inactive Offences
-      ### need to test inactive offences are returned when active date is null
+
+  Scenario: Offence Search API - Inactive Offences - Active Date Null - Inactive offences returned
+    Given I am testing as the "opal-test@hmcts.net" user
+    When I make a request to the offence search api filtering by
+      | cjs_code    | PA1101 |
+      | title       |        |
+      | act_section |        |
+      | active_date |        |
+      | max_results | 100    |
+    Then The offence search response returns 200
+    And there are 3 offences in the response
+
+  Scenario: Offence Search API - Inactive Offences - Active Date populated - Inactive offences not returned
+    Given I am testing as the "opal-test@hmcts.net" user
+    When I make a request to the offence search api filtering by
+      | cjs_code    | PA1101              |
+      | title       |                     |
+      | act_section |                     |
+      | active_date | 2024-03-12 00:00:00 |
+      | max_results | 100                 |
+    Then The offence search response returns 200
+    And there are 0 offences in the response
 
   Scenario: Offence Search API - No Results
       ### need to test no results are returned when no offences match the search criteria and the status is 200
+    Given I am testing as the "opal-test@hmcts.net" user
+    When I make a request to the offence search api filtering by
+      | cjs_code    | AB12345          |
+      | title       | Offence not real |
+      | act_section |                  |
+      | active_date |                  |
+      | max_results | 10               |
+    Then The offence search response returns 200
+    And there are 0 offences in the response

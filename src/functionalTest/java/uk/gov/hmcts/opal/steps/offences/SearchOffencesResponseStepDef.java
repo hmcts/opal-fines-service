@@ -77,7 +77,7 @@ public class SearchOffencesResponseStepDef extends BaseStepDef {
             LocalDateTime parsedDateFromResponse = LocalDateTime.parse(dateFromResponse);
             // Assert that the active date is before the used to date from the response
             assertTrue(parsedActiveDate.isBefore(parsedDateFromResponse),
-                    "Response date is not before Active date: "
+                    "Active date is not before Response date: "
                             + "\n Date from response: " + parsedDateFromResponse
                             + "\n Active Date: " + parsedActiveDate);
         }
