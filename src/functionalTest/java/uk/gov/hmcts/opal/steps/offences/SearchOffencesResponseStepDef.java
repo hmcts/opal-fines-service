@@ -54,15 +54,15 @@ public class SearchOffencesResponseStepDef extends BaseStepDef {
 
     @Then("the offences in the response are before {string} only")
     public void offenceResponseBeforeDate(String activeDate) {
-// Format the active date string to a LocalDateTime object
+        // Format the active date string to a LocalDateTime object
         DateTimeFormatter activeDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime parsedActiveDate = LocalDateTime.parse(activeDate, activeDateFormatter);
 
-// Extract the list of dates from the response
+        // Extract the list of dates from the response
         List<String> usedFromDates = SerenityRest.then().extract().jsonPath().getList("searchData.date_used_from");
         List<String> usedToDates = SerenityRest.then().extract().jsonPath().getList("searchData.date_used_to");
 
-    // Iterate through each date in the response
+        // Iterate through each date in the response
         for (String dateFromResponse : usedFromDates) {
             // Parse the date from the response to a LocalDateTime object
             LocalDateTime parsedDateFromResponse = LocalDateTime.parse(dateFromResponse);
