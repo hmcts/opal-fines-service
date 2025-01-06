@@ -4,16 +4,16 @@
   "type": ["object", "null"],
   "properties": {
     "business_unit_id": {
-      "type": ["integer", "null"],
+      "type": "integer",
       "format": "int32",
       "description": "ID of the Business Unit the Draft Account belongs to"
     },
     "submitted_by": {
-      "type": ["string", "null"],
+      "type": "string",
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
     "submitted_by_name": {
-      "type": ["string", "null"],
+      "type": "string",
       "description": "Value of the name claim in the AAD Acces Token"
     },
     "validated_by": {
@@ -25,7 +25,7 @@
       "description": "The structured Account data (JSON)"
     },
     "account_type": {
-      "type": ["string", "null"],
+      "type": "string",
       "description": "Type of Account, such as Fixed Penalty Registration"
     },
     "account_status": {

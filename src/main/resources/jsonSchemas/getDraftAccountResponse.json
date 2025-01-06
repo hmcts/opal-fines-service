@@ -3,22 +3,22 @@
   "type": ["object", "null"],
   "properties": {
     "draft_account_id": {
-      "type": ["integer", "null"],
+      "type": "integer",
       "format": "int64",
       "description": "Unique ID for the Draft Account - System generated (BE)"
     },
     "business_unit_id": {
-      "type": ["integer", "null"],
+      "type": "integer",
       "format": "int32",
       "description": "ID of the Business Unit the Draft Account belongs to"
     },
     "created_at": {
-      "type": ["string", "null"],
+      "type": "string",
       "format": "date-time",
       "description": "Date the Draft Account was created (first submitted) - System generated (BE)"
     },
     "submitted_by": {
-      "type": ["string", "null"],
+      "type": "string",
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
     "validated_at": {
@@ -35,15 +35,15 @@
       "description": "The structured Account data (JSON)"
     },
     "account_snapshot": {
-      "type": ["object", "null"],
+      "type": "object",
       "description": "Summary business data to identify the Account - System generated (BE) from Account data (JSON)"
     },
     "account_type": {
-      "type": ["string", "null"],
+      "type": "string",
       "description": "Type of Account, such as Fixed Penalty Registration"
     },
     "account_status": {
-      "type": ["string", "null"],
+      "type": "string",
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
     },
     "timeline_data": {

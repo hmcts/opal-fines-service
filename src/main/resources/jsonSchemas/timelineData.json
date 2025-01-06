@@ -14,15 +14,15 @@
             "required": ["username", "status", "status_date"],
             "properties": {
                 "username": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "description": "Username involved in the timeline event"
                 },
                 "status": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "description": "Status of the timeline event"
                 },
                 "status_date": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "format": "date",
                     "description": "Date when the state was changed"
                 },

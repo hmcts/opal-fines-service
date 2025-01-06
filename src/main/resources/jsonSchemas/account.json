@@ -20,19 +20,19 @@
     ],
     "properties": {
         "account_type": {
-            "type": ["string", "null"],
+            "type": "string",
             "description": "Type of the account"
         },
         "defendant_type": {
-            "type": ["string", "null"],
+            "type": "string",
             "description": "Type of the defendant account - Adult/Youth, PG to Pay, Company"
         },
         "originator_name": {
-            "type": ["string", "null"],
+            "type": "string",
             "description": "Name of the originator - LJS, Police Force or CTO"
         },
         "originator_id": {
-            "type": ["string", "null"],
+            "type": "string",
             "description": "ID for the originator"
         },
         "prosecutor_case_reference": {
@@ -40,15 +40,15 @@
             "description": "Reference for the prosecutor case"
         },
         "enforcement_court_id": {
-            "type": ["integer", "null"],
+            "type": "integer",
             "description": "Enforcing court"
         },
         "collection_order_made": {
-            "type": ["boolean", "null"],
+            "type": "boolean",
             "description": "Indicator if collection order is made"
         },
         "collection_order_made_today": {
-            "type": ["boolean", "null"],
+            "type": "boolean",
             "description": "Indicator if collection order is made today"
         },
         "collection_order_date": {
@@ -62,11 +62,11 @@
             "description": "Date for suspended committal"
         },
         "payment_card_request": {
-            "type": ["boolean", "null"],
+            "type": "boolean",
             "description": "Indicator if payment card is requested"
         },
         "account_sentence_date": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "date",
             "description": "Date for suspended committal"
         },
@@ -75,7 +75,7 @@
             "description": "Details of the defendant"
         },
         "offences": {
-            "type": ["array", "null"],
+            "type": "array",
             "items": {
                 "$ref": "#/$defs/offence"
             },
@@ -99,11 +99,11 @@
     },
     "$defs": {
         "payment_terms": {
-            "type": ["object", "null"],
+            "type": "object",
             "required": ["payment_terms_type_code"],
             "properties": {
                 "payment_terms_type_code": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "enum": ["B", "P", "I"],
                     "description": "Type code for payment terms"
                 },
@@ -145,7 +145,7 @@
             "required": ["result_id"],
             "properties": {
                 "result_id": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "enum": ["PRIS", "NOENF", "COLLO"],
                     "description": "Identifier for the result"
                 },
@@ -163,11 +163,11 @@
             "required": ["parameter_name", "response"],
             "properties": {
                 "parameter_name": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "description": "Parameter name for the prompt"
                 },
                 "response": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "description": "User response to the prompt"
                 }
             }
@@ -177,15 +177,15 @@
             "required": ["account_note_serial", "account_note_text", "note_type"],
             "properties": {
                 "account_note_serial": {
-                    "type": ["integer", "null"],
+                    "type": "integer",
                     "description": "Serial order for the note"
                 },
                 "account_note_text": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "description": "Text of the account note"
                 },
                 "note_type": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "enum": ["AC", "AA", "AN"],
                     "description": "Type of the note"
                 }
@@ -221,11 +221,11 @@
                     "description": "Registration mark of the vehicle"
                 },
                 "document_language": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "description": "Language of the document"
                 },
                 "hearing_language": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "description": "Language for the hearing"
                 },
                 "employee_reference": {
@@ -283,7 +283,7 @@
             "required": ["company_flag", "address_line_1"],
             "properties": {
                 "company_flag": {
-                    "type": ["boolean", "null"],
+                    "type": "boolean",
                     "description": "Flag indicating if it's an organisation"
                 },
                 "company_name": {
@@ -308,7 +308,7 @@
                     "description": "National insurance number"
                 },
                 "address_line_1": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "description": "Address line 1"
                 },
                 "address_line_2": {
@@ -393,11 +393,11 @@
             }
         },
         "offence": {
-            "type": ["object", "null"],
+            "type": "object",
             "required": ["date_of_sentence", "offence_id", "impositions"],
             "properties": {
                 "date_of_sentence": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "format": "date",
                     "description": "Date of sentence"
                 },
@@ -406,11 +406,11 @@
                     "description": "Court imposing the sentence"
                 },
                 "offence_id": {
-                    "type": ["integer", "null"],
+                    "type": "integer",
                     "description": "Offence identifier"
                 },
                 "impositions": {
-                    "type": ["array", "null"],
+                    "type": "array",
                     "items": {
                         "$ref": "#/$defs/imposition"
                     },
@@ -419,20 +419,20 @@
             }
         },
         "imposition": {
-            "type": ["object", "null"],
+            "type": "object",
             "required": ["result_id", "amount_imposed", "amount_paid"],
             "properties": {
                 "result_id": {
-                    "type": ["integer", "null"],
+                    "type": "integer",
                     "description": "Result identifier"
                 },
                 "amount_imposed": {
-                    "type": ["number", "null"],
+                    "type": "number",
                     "multipleOf": 0.01,
                     "description": "Amount imposed"
                 },
                 "amount_paid": {
-                    "type": ["number", "null"],
+                    "type": "number",
                     "multipleOf": 0.01,
                     "description": "Amount paid"
                 },
@@ -451,7 +451,7 @@
             "required": ["company_flag", "payout_hold", "pay_by_bacs"],
             "properties": {
                 "company_flag": {
-                    "type": ["boolean", "null"],
+                    "type": "boolean",
                     "description": "Flag indicating if it's an organisation"
                 },
                 "title": {
@@ -508,11 +508,11 @@
                     "description": "Email address"
                 },
                 "payout_hold": {
-                    "type": ["boolean", "null"],
+                    "type": "boolean",
                     "description": "Indicator if payout is on hold"
                 },
                 "pay_by_bacs": {
-                    "type": ["boolean", "null"],
+                    "type": "boolean",
                     "description": "Indicator if payment is by BACS"
                 },
                 "bank_account_type": {
@@ -538,11 +538,11 @@
             }
         },
         "defendant": {
-            "type": ["object", "null"],
+            "type": "object",
             "required": ["company_flag", "address_line_1"],
             "properties": {
                 "company_flag": {
-                    "type": ["boolean", "null"],
+                    "type": "boolean",
                     "description": "Flag indicating if it's an organisation"
                 },
                 "title": {
@@ -567,7 +567,7 @@
                     "description": "Date of birth of the defendant"
                 },
                 "address_line_1": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "description": "Address line 1"
                 },
                 "address_line_2": {
