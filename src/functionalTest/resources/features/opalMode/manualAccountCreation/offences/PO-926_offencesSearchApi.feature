@@ -1,4 +1,4 @@
-@Opal @PO-926 @CF
+@Opal @PO-926
 Feature: PO-926 Offences Search API
 
   Scenario: Offence Search API - Search by CJS code
@@ -90,7 +90,6 @@ Feature: PO-926 Offences Search API
 
     Then The offence search response returns 200
     Then the offences in the response are before "1920-03-12 00:00:00" only
-
 
   Scenario: Offence Search API - Inactive Offences - Active Date Null - Inactive offences returned
     Given I am testing as the "opal-test@hmcts.net" user
