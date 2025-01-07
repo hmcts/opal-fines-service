@@ -6,6 +6,7 @@ public class Constants {
     public static final String COURTS_REF_DATA_URI = "/courts";
     public static final String LJA_REF_DATA_URI = "/local-justice-areas";
     public static final String OFFENCES_REF_DATA_URI = "/offences";
+    public static final String OFFENCES_SEARCH_URI = "/offences/search";
 
     public static final String ENFORCERS_REF_DATA_URI = "/enforcers?q=Aldridge";
     public static final String MAJOR_CREDITORS_URI = "/major-creditors";
