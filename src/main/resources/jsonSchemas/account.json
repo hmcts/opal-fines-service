@@ -44,11 +44,11 @@
             "description": "Enforcing court"
         },
         "collection_order_made": {
-            "type": "boolean",
+            "type": ["boolean", "null"],
             "description": "Indicator if collection order is made"
         },
         "collection_order_made_today": {
-            "type": "boolean",
+            "type": ["boolean", "null"],
             "description": "Indicator if collection order is made today"
         },
         "collection_order_date": {
@@ -62,7 +62,7 @@
             "description": "Date for suspended committal"
         },
         "payment_card_request": {
-            "type": "boolean",
+            "type": ["boolean", "null"],
             "description": "Indicator if payment card is requested"
         },
         "account_sentence_date": {
@@ -113,8 +113,7 @@
                     "description": "Effective date for the payment terms"
                 },
                 "instalment_period": {
-                    "type": ["string", "null"],
-                    "enum": ["W", "M", "F"],
+                    "enum": ["W", "M", "F", null],
                     "description": "Period for installment payments"
                 },
                 "lump_sum_amount": {
@@ -221,11 +220,11 @@
                     "description": "Registration mark of the vehicle"
                 },
                 "document_language": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "description": "Language of the document"
                 },
                 "hearing_language": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "description": "Language for the hearing"
                 },
                 "employee_reference": {
