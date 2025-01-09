@@ -206,7 +206,7 @@ class DraftAccountControllerTest {
                  "account_type": "fine",
                  "defendant_type": "company",
                  "originator_name": "Asylum & Immigration Tribunal",
-                 "originator_id": "3865",
+                 "originator_id": 3865,
                  "prosecutor_case_reference": "AB123456",
                  "enforcement_court_id": 6255,
                  "collection_order_made": true,
@@ -272,7 +272,7 @@ class DraftAccountControllerTest {
                          "offence_id": 35014,
                          "impositions": [
                              {
-                                 "result_id": 100,
+                                 "result_id": "100",
                                  "amount_imposed": 100,
                                  "amount_paid": 0,
                                  "major_creditor_id": null,
@@ -285,7 +285,7 @@ class DraftAccountControllerTest {
                  "payment_terms": {
                      "payment_terms_type_code": "B",
                      "effective_date": "2025-01-31",
-                     "instalment_period": "W",
+                     "instalment_period": null,
                      "lump_sum_amount": null,
                      "instalment_amount": null,
                      "default_days_in_jail": null,

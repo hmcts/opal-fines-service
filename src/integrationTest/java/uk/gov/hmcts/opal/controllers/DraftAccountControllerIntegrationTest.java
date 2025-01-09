@@ -846,7 +846,7 @@ class DraftAccountControllerIntegrationTest {
               "account_type": "Fine",
               "defendant_type": "Adult",
               "originator_name": "Police Force",
-              "originator_id": "PF12345",
+              "originator_id": 12345,
               "enforcement_court_id": 101,
               "collection_order_made": true,
               "collection_order_made_today": false,
@@ -887,7 +887,7 @@ class DraftAccountControllerIntegrationTest {
                   "offence_id": 1234,
                   "impositions": [
                     {
-                      "result_id": 1,
+                      "result_id": "1",
                       "amount_imposed": 500.00,
                       "amount_paid": 200.00,
                       "major_creditor_id": 999
@@ -997,7 +997,7 @@ class DraftAccountControllerIntegrationTest {
               "account_type": "Fine",
               "defendant_type": "Adult",
               "originator_name": "Police Force",
-              "originator_id": "PF12345",
+              "originator_id": 12345,
               "enforcement_court_id": 101,
               "collection_order_made": true,
               "collection_order_made_today": false,
@@ -1036,7 +1036,7 @@ class DraftAccountControllerIntegrationTest {
                   "offence_id": 1234,
                   "impositions": [
                     {
-                      "result_id": 1,
+                      "result_id": "1",
                       "amount_imposed": 500.00,
                       "amount_paid": 200.00,
                       "major_creditor_id": 999
