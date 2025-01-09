@@ -32,7 +32,7 @@
             "description": "Name of the originator - LJS, Police Force or CTO"
         },
         "originator_id": {
-            "type": "string",
+            "type": "integer",
             "description": "ID for the originator"
         },
         "prosecutor_case_reference": {
@@ -422,7 +422,7 @@
             "required": ["result_id", "amount_imposed", "amount_paid"],
             "properties": {
                 "result_id": {
-                    "type": "integer",
+                    "type": "string",
                     "description": "Result identifier"
                 },
                 "amount_imposed": {
