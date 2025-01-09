@@ -1,14 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://opal-fines-service/updateDraftAccountRequest.json",
-  "type": "object",
+  "type": ["object", "null"],
   "properties": {
     "validated_by": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "ID of the User that validated the Draft Account for checking"
     },
     "validated_by_name": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Value of the name claim in the AAD Acces Token"
     },
     "business_unit_id": {
