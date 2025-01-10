@@ -10,8 +10,6 @@
         "originator_name",
         "originator_id",
         "enforcement_court_id",
-        "collection_order_made",
-        "collection_order_made_today",
         "payment_card_request",
         "account_sentence_date",
         "defendant",
@@ -209,7 +207,6 @@
         },
         "debtor_detail": {
             "type": ["object", "null"],
-            "required": ["document_language", "hearing_language"],
             "properties": {
                 "vehicle_make": {
                     "type": ["string", "null"],

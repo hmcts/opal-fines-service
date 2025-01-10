@@ -665,7 +665,7 @@ class DraftAccountControllerIntegrationTest {
 
         String expectedErrorMessageStart =
             "JSON Schema Validation Error: Validating against JSON schema 'addDraftAccountRequest.json',"
-                + " found 16 validation errors:";
+                + " found 14 validation errors:";
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
