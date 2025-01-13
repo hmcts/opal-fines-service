@@ -27,7 +27,6 @@ import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -160,7 +159,9 @@ public class DraftAccountService {
         if (newStatus == DraftAccountStatus.PENDING) {
             existingAccount.setValidatedDate(LocalDateTime.now());
             existingAccount.setValidatedBy(dto.getValidatedBy());
+            existingAccount.setValidatedByName(dto.getValidatedByName());
             existingAccount.setAccountSnapshot(addSnapshotApprovedDate(existingAccount));
+            existingAccount.setAccountStatusDate(LocalDateTime.now());
         }
         // Set the timeline data as received from the front end
         existingAccount.setTimelineData(dto.getTimelineData());
@@ -176,8 +177,7 @@ public class DraftAccountService {
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode rootNode = (ObjectNode) mapper.readTree(existingAccount.getAccountSnapshot());
 
-            String approvedDate = existingAccount.getValidatedDate()
-                .atOffset(ZoneOffset.UTC)
+            String approvedDate = toUtcDateTime(existingAccount.getValidatedDate())
                 .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
             rootNode.put("approved_date", approvedDate);
 

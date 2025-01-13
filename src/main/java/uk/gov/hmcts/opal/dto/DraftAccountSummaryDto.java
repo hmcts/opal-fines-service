@@ -36,6 +36,9 @@ public class DraftAccountSummaryDto implements ToJsonString {
     @JsonProperty("validated_by")
     private String validatedBy;
 
+    @JsonProperty("validated_by_name")
+    private String validatedByName;
+
     @JsonProperty("account_snapshot")
     @JsonRawValue
     private String accountSnapshot;
