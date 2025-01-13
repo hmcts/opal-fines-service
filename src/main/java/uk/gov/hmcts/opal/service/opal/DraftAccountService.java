@@ -34,6 +34,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
+import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 
 @Service
@@ -221,7 +222,7 @@ public class DraftAccountService {
         return DraftAccountSnapshots.Snapshot.builder()
             .defendantName(defendantName)
             .dateOfBirth(dob)
-            .createdDate(created.atOffset(ZoneOffset.UTC))
+            .createdDate(toUtcDateTime(created))
             .accountType(accType)
             .submittedBy(submittedBy)
             .submittedByName(submittedByName)
