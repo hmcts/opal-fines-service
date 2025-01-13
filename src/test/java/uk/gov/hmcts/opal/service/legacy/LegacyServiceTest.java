@@ -91,6 +91,39 @@ class LegacyServiceTest extends LegacyTestsBase {
 
     }
 
+    @Test
+    void testPostToGatewayRawResponse() {
+
+        // Arrange
+        mockRestClientPost();
+
+        String xml = """
+            <note>
+                 <noteId>1</noteId>
+                 <noteType>AC</noteType>
+                 <associatedRecordType>defendants_accounts</associatedRecordType>
+                 <associatedRecordId>123456</associatedRecordId>
+                 <businessUnitId>10</businessUnitId>
+                 <noteText>This is a sample note text.</noteText>
+                 <postedDate>2022-12-01T12:00:00</postedDate>
+                 <postedBy>user123</postedBy>
+                 <postedByUserId>1001</postedByUserId>
+             </note>
+            """;
+
+        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(xml, HttpStatus.OK);
+        when(requestBodySpec.body(anyString())).thenReturn(requestBodySpec);
+        when(requestBodySpec.header(anyString(),anyString())).thenReturn(requestBodySpec);
+        when(responseSpec.toEntity(String.class)).thenReturn(successfulResponseEntity);
+
+        // Act
+        ResponseEntity<String> response = legacy.postToGatewayRawResponse("", "");
+
+        // Assert
+        assertNotNull(response);
+
+    }
+
     class BrokenMapImplementation<K, V> implements Map<K, V> {
 
         @Override
