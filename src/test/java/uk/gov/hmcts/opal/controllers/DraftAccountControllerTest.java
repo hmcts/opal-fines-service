@@ -203,73 +203,95 @@ class DraftAccountControllerTest {
     private String getAccountJson() {
         return """
                {
-              "account_type": "Fine",
-              "defendant_type": "Adult",
-              "originator_name": "Police Force",
-              "originator_id": "PF12345",
-              "enforcement_court_id": 101,
-              "collection_order_made": true,
-              "collection_order_made_today": false,
-              "payment_card_request": true,
-              "account_sentence_date": "2023-12-01",
-              "defendant": {
-                "company_flag": false,
-                "title": "Mr",
-                "surname": "LNAME",
-                "forenames": "John",
-                "dob": "1985-04-15",
-                "address_line_1": "123 Elm Street",
-                "address_line_2": "Suite 45",
-                "post_code": "AB1 2CD",
-                "telephone_number_home": "0123456789",
-                "telephone_number_mobile": "07712345678",
-                "email_address_1": "john.doe@example.com",
-                "national_insurance_number": "AB123456C",
-                "nationality_1": "British",
-                "occupation": "Engineer",
-                "debtor_detail": {
-                  "document_language": "English",
-                  "hearing_language": "English",
-                  "vehicle_make": "Toyota",
-                  "vehicle_registration_mark": "ABC123",
-                  "aliases": [
-                    {
-                      "alias_forenames": "Jon",
-                      "alias_surname": "Smith"
-                    }
-                  ]
-                }
-              },
-              "offences": [
-                {
-                  "date_of_sentence": "2023-11-15",
-                  "imposing_court_id": 202,
-                  "offence_id": 1234,
-                  "impositions": [
-                    {
-                      "result_id": 1,
-                      "amount_imposed": 500.00,
-                      "amount_paid": 200.00,
-                      "major_creditor_id": 999
-                    }
-                  ]
-                }
-              ],
-              "payment_terms": {
-                "payment_terms_type_code": "P",
-                "effective_date": "2023-11-01",
-                "instalment_period": "M",
-                "lump_sum_amount": 1000.00,
-                "instalment_amount": 200.00,
-                "default_days_in_jail": 5
-              },
-              "account_notes": [
-                {
-                  "account_note_serial": 1,
-                  "account_note_text": "Defendant requested an installment plan.",
-                  "note_type": "AC"
-                }
-              ]
+                 "account_type": "fine",
+                 "defendant_type": "company",
+                 "originator_name": "Asylum & Immigration Tribunal",
+                 "originator_id": 3865,
+                 "prosecutor_case_reference": "AB123456",
+                 "enforcement_court_id": 6255,
+                 "collection_order_made": true,
+                 "collection_order_made_today": true,
+                 "collection_order_date": null,
+                 "suspended_committal_date": null,
+                 "payment_card_request": true,
+                 "account_sentence_date": "2025-01-01",
+                 "defendant": {
+                     "company_flag": true,
+                     "title": null,
+                     "surname": null,
+                     "forenames": null,
+                     "company_name": "Acme Co Ltd",
+                     "dob": null,
+                     "address_line_1": "1 Test Lane",
+                     "address_line_2": null,
+                     "address_line_3": null,
+                     "address_line_4": null,
+                     "address_line_5": null,
+                     "post_code": null,
+                     "telephone_number_home": null,
+                     "telephone_number_business": null,
+                     "telephone_number_mobile": null,
+                     "email_address_1": null,
+                     "email_address_2": null,
+                     "national_insurance_number": null,
+                     "driving_licence_number": null,
+                     "pnc_id": null,
+                     "nationality_1": null,
+                     "nationality_2": null,
+                     "ethnicity_self_defined": null,
+                     "ethnicity_observed": null,
+                     "cro_number": null,
+                     "occupation": null,
+                     "gender": null,
+                     "custody_status": null,
+                     "prison_number": null,
+                     "interpreter_lang": null,
+                     "debtor_detail": {
+                         "vehicle_make": null,
+                         "vehicle_registration_mark": null,
+                         "document_language": "EN",
+                         "hearing_language": "EN",
+                         "employee_reference": null,
+                         "employer_company_name": null,
+                         "employer_address_line_1": null,
+                         "employer_address_line_2": null,
+                         "employer_address_line_3": null,
+                         "employer_address_line_4": null,
+                         "employer_address_line_5": null,
+                         "employer_post_code": null,
+                         "employer_telephone_number": null,
+                         "employer_email_address": null,
+                         "aliases": null
+                     },
+                     "parent_guardian": null
+                 },
+                 "offences": [
+                     {
+                         "date_of_sentence": "01/01/2025",
+                         "imposing_court_id": 6255,
+                         "offence_id": 35014,
+                         "impositions": [
+                             {
+                                 "result_id": "100",
+                                 "amount_imposed": 100,
+                                 "amount_paid": 0,
+                                 "major_creditor_id": null,
+                                 "minor_creditor": null
+                             }
+                         ]
+                     }
+                 ],
+                 "fp_ticket_detail": null,
+                 "payment_terms": {
+                     "payment_terms_type_code": "B",
+                     "effective_date": "2025-01-31",
+                     "instalment_period": null,
+                     "lump_sum_amount": null,
+                     "instalment_amount": null,
+                     "default_days_in_jail": null,
+                     "enforcements": null
+                 },
+                 "account_notes": null
             }""";
     }
 

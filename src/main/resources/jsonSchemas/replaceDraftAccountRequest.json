@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://opal-fines-service/replaceDraftAccountRequest.json",
-  "type": "object",
+  "type": ["object", "null"],
   "properties": {
     "business_unit_id": {
       "type": "integer",
@@ -17,7 +17,7 @@
       "description": "Value of the name claim in the AAD Acces Token"
     },
     "validated_by": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "ID of the User that validated the Draft Account for checking"
     },
     "account": {
@@ -29,7 +29,7 @@
       "description": "Type of Account, such as Fixed Penalty Registration"
     },
     "account_status": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
     },
     "timeline_data": {
