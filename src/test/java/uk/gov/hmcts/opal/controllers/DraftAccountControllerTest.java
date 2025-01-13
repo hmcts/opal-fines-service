@@ -30,7 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.opal.util.DateTimeUtils.toOffsetDateTime;
+import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountControllerTest {
@@ -170,9 +170,9 @@ class DraftAccountControllerTest {
         return DraftAccountResponseDto.builder()
             .draftAccountId(entity.getDraftAccountId())
             .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
-            .createdDate(toOffsetDateTime(entity.getCreatedDate()))
+            .createdDate(toUtcDateTime(entity.getCreatedDate()))
             .submittedBy(entity.getSubmittedBy())
-            .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
+            .validatedDate(toUtcDateTime(entity.getValidatedDate()))
             .validatedBy(entity.getValidatedBy())
             .account(entity.getAccount())
             .accountSnapshot(entity.getAccountSnapshot())
@@ -188,9 +188,9 @@ class DraftAccountControllerTest {
         return DraftAccountSummaryDto.builder()
             .draftAccountId(entity.getDraftAccountId())
             .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
-            .createdDate(toOffsetDateTime(entity.getCreatedDate()))
+            .createdDate(toUtcDateTime(entity.getCreatedDate()))
             .submittedBy(entity.getSubmittedBy())
-            .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
+            .validatedDate(toUtcDateTime(entity.getValidatedDate()))
             .validatedBy(entity.getValidatedBy())
             .accountSnapshot(entity.getAccountSnapshot())
             .accountType(entity.getAccountType())

@@ -40,7 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.opal.util.DateTimeUtils.toOffsetDateTime;
+import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
@@ -247,16 +247,16 @@ public class DraftAccountController {
             .draftAccountId(entity.getDraftAccountId())
             .businessUnitId(Optional.ofNullable(entity.getBusinessUnit())
                                 .map(BusinessUnitEntity::getBusinessUnitId).orElse(null))
-            .createdDate(toOffsetDateTime(entity.getCreatedDate()))
+            .createdDate(toUtcDateTime(entity.getCreatedDate()))
             .submittedBy(entity.getSubmittedBy())
             .submittedByName(entity.getSubmittedByName())
-            .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
+            .validatedDate(toUtcDateTime(entity.getValidatedDate()))
             .validatedBy(entity.getValidatedBy())
             .account(entity.getAccount())
             .accountSnapshot(entity.getAccountSnapshot())
             .accountType(entity.getAccountType())
             .accountStatus(entity.getAccountStatus())
-            .accountStatusDate(toOffsetDateTime(entity.getAccountStatusDate()))
+            .accountStatusDate(toUtcDateTime(entity.getAccountStatusDate()))
             .statusMessage(entity.getStatusMessage())
             .timelineData(entity.getTimelineData())
             .accountNumber(entity.getAccountNumber())
@@ -268,9 +268,9 @@ public class DraftAccountController {
         return DraftAccountSummaryDto.builder()
             .draftAccountId(entity.getDraftAccountId())
             .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
-            .createdDate(toOffsetDateTime(entity.getCreatedDate()))
+            .createdDate(toUtcDateTime(entity.getCreatedDate()))
             .submittedBy(entity.getSubmittedBy())
-            .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
+            .validatedDate(toUtcDateTime(entity.getValidatedDate()))
             .validatedBy(entity.getValidatedBy())
             .accountSnapshot(entity.getAccountSnapshot())
             .accountType(entity.getAccountType())
