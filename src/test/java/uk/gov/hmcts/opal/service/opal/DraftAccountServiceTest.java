@@ -348,6 +348,7 @@ class DraftAccountServiceTest {
             .draftAccountId(draftAccountId)
             .accountStatus(DraftAccountStatus.PENDING)
             .validatedBy("TestValidator")
+            .validatedByName("Tester McValidator")
             .validatedDate(LocalDateTime.now())
             .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\",\"approved_date\":\"2024-10-03T14:30:00Z\"}")
             .timelineData("Updated timeline data")
@@ -364,6 +365,7 @@ class DraftAccountServiceTest {
         assertEquals(draftAccountId, result.getDraftAccountId());
         assertEquals(DraftAccountStatus.PENDING, result.getAccountStatus());
         assertEquals("TestValidator", result.getValidatedBy());
+        assertEquals("Tester McValidator", result.getValidatedByName());
         assertNotNull(result.getValidatedDate());
         assertTrue(result.getAccountSnapshot().contains("approved_date"));
         assertEquals("Updated timeline data", result.getTimelineData());
