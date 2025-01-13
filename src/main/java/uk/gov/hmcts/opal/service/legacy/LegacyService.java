@@ -87,7 +87,7 @@ public abstract class LegacyService {
     }
 
     public <T> T postToGateway(String actionType, Class<T> responseType, Object request) {
-        getLog().info("postToGateway: POST to Gateway: {}", legacyGateway.getUrl()
+        getLog().debug("postToGateway: POST to Gateway: {}", legacyGateway.getUrl()
             + "?" + ACTION_TYPE + "=" + actionType);
 
         // Create a UriComponentsBuilder and add parameters
@@ -106,8 +106,7 @@ public abstract class LegacyService {
     }
 
     public ResponseEntity<String> postToGatewayRawResponse(String actionType, Object request) {
-        getLog().info("postToGateway: POST to Gateway: {}", legacyGateway.getUrl()
-            + "?" + ACTION_TYPE + "=" + actionType);
+        getLog().debug("postToGateway: POST to Gateway: {}", legacyGateway.getUrl());
 
         // Create a UriComponentsBuilder and add parameters
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
