@@ -122,6 +122,7 @@ public abstract class LegacyService {
     }
 
     private String encodeBasic(String username, String password) {
+        getLog().info("encodeBasic: Encoding username and password for Basic Auth {}", username);
         return "Basic " + Base64
             .getEncoder()
             .encodeToString((username + ":" + password).getBytes());
