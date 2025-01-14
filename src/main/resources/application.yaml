@@ -98,9 +98,9 @@ azure:
 app-mode: opal
 
 legacy-gateway:
-  url: ${OPAL_LEGACY_GATEWAY_URL:http://localhost:4553/opal}
-  username: ${OPAL_LEGACY_GATEWAY_USERNAME:username}
-  password: ${OPAL_LEGACY_GATEWAY_PASSWORD:password}
+  url: ${OPAL_LEGACY_GATEWAY_URL:https://opal.clouddev.online/opal}
+  username: ${OPAL_LEGACY_GATEWAY_USERNAME:Declan.Clarke@cgi.com}
+  password: ${OPAL_LEGACY_GATEWAY_PASSWORD:TripWayAgain}
 
 launchdarkly:
   sdk-key: ${LAUNCH_DARKLY_SDK_KEY:}
@@ -173,3 +173,6 @@ logging:
           descriptor:
             sql:
               BasicBinder: WARN
+javax:
+  net:
+    debug: all
