@@ -568,6 +568,7 @@ class DraftAccountControllerIntegrationTest {
             .submittedBy("BUUID1")
             .validatedDate(testDateTime)
             .validatedBy("BUUID1")
+            .validatedByName("Donald Tester")
             .account(validAccountJson())
             .accountSnapshot("{\"defendant_name\":\"Company ABC\",\"created_date\":\"2024-10-02T14:30:00Z\","
                                  + "\"account_type\":\"Fine\",\"submitted_by\":\"BUUID1\","
@@ -595,6 +596,7 @@ class DraftAccountControllerIntegrationTest {
             .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
             .andExpect(jsonPath("$.validated_at").value("2024-10-03T14:30:00Z"))
             .andExpect(jsonPath("$.validated_by").value("BUUID1"))
+            .andExpect(jsonPath("$.validated_by_name").value("Donald Tester"))
             .andExpect(jsonPath("$.account.defendant.company_name")
                            .value("company"))
             .andExpect(jsonPath("$.account_snapshot.defendant_name").value("Company ABC"))
