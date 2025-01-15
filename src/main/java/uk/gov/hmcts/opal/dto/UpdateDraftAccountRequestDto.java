@@ -20,6 +20,9 @@ public class UpdateDraftAccountRequestDto implements ToJsonString {
     @JsonProperty("validated_by")
     private String validatedBy;
 
+    @JsonProperty("validated_by_name")
+    private String validatedByName;
+
     @JsonProperty("business_unit_id")
     private Short businessUnitId;
 
