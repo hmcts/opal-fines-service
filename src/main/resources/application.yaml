@@ -66,12 +66,18 @@ spring:
       poolName: OpalHikariCP
       maxLifetime: 7200000
       connectionTimeout: 30000
+      auto-commit: false
+      leak-detection-threshold: 1000
   jpa:
     show-sql: false
+    open-in-view: false
     properties:
       hibernate:
+        enable_lazy_load_no_trans: true
         format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
+#        The following mode is advised against? Used only with a JTA Datasource.
+#        connection.handling_mode: DELAYED_ACQUISITION_AND_RELEASE_AFTER_STATEMENT
         jdbc:
           lob:
             # silence the 'wall-of-text' - unnecessary exception throw about blob types

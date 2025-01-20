@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.QueryTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.hibernate.LazyInitializationException;
 import org.hibernate.PropertyValueException;
 import org.junit.jupiter.api.Test;
 import org.postgresql.util.PSQLException;
@@ -255,6 +256,18 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertEquals("Service Unavailable", response.getBody().get("error"));
         assertEquals("Opal Fines Database is currently unavailable", response.getBody().get("message"));
+    }
+
+    @Test
+    void testHandleLazyInitializationException() {
+        LazyInitializationException exception =
+            new LazyInitializationException("Could not access Lazy Loaded Entity");
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler
+            .handleLazyInitializationException(exception);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Internal Server Error", response.getBody().get("error"));
+        assertEquals("Lazy Entity Initialisation Exception. Expired DB Session?", response.getBody().get("message"));
     }
 
     @Test
