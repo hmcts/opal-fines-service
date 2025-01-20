@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.LazyInitializationException;
 import org.hibernate.PropertyValueException;
 import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -96,7 +97,7 @@ public class GlobalExceptionHandler {
         MethodArgumentTypeMismatchException ex) {
 
         log.error(":handleMethodArgumentTypeMismatchException: {}", ex.getMessage());
-        log.error(":handleMethodArgumentTypeMismatchException:", ex.getCause());
+        log.error(":handleMethodArgumentTypeMismatchException:", getNonNullCause(ex));
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Not Acceptable");
@@ -177,7 +178,7 @@ public class GlobalExceptionHandler {
         EntityNotFoundException entityNotFoundException) {
 
         log.error(":handleEntityNotFoundException: {}", entityNotFoundException.getMessage());
-        log.error(":handleEntityNotFoundException:", entityNotFoundException.getCause());
+        log.error(":handleEntityNotFoundException:", getNonNullCause(entityNotFoundException));
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Entity Not Found");
@@ -190,7 +191,7 @@ public class GlobalExceptionHandler {
         OpalApiException opalApiException) {
 
         log.error(":handleOpalApiException: {}", opalApiException.getMessage());
-        log.error(":handleOpalApiException:", opalApiException.getCause());
+        log.error(":handleOpalApiException:", getNonNullCause(opalApiException));
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, opalApiException.getError().getHttpStatus().getReasonPhrase());
@@ -233,7 +234,7 @@ public class GlobalExceptionHandler {
         PSQLException psqlException) {
 
         log.error(":handlePSQLException: {}", psqlException.getMessage());
-        log.error(":handlePSQLException:", psqlException.getCause());
+        log.error(":handlePSQLException: ", getNonNullCause(psqlException));
 
         if (psqlException.getCause() instanceof ConnectException || psqlException.getCause()
             instanceof UnknownHostException) {
@@ -257,12 +258,27 @@ public class GlobalExceptionHandler {
         DataAccessResourceFailureException dataAccessResourceFailureException) {
 
         log.error(":handleDataAccessResourceFailureException: {}", dataAccessResourceFailureException.getMessage());
-        log.error(":handleDataAccessResourceFailureException:", dataAccessResourceFailureException.getCause());
+        log.error(":handleDataAccessResourceFailureException: ", getNonNullCause(dataAccessResourceFailureException));
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Service Unavailable");
         body.put(MESSAGE, DB_UNAVAILABLE_MESSAGE);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).contentType(MediaType.APPLICATION_JSON).body(body);
+    }
+
+    @ExceptionHandler(LazyInitializationException.class)
+    public ResponseEntity<Map<String, String>> handleLazyInitializationException(
+        LazyInitializationException lazyInitializationException) {
+
+        log.error(":handleLazyInitializationException: {}", lazyInitializationException.getMessage());
+        log.error(":handleLazyInitializationException: ", getNonNullCause(lazyInitializationException));
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "Internal Server Error");
+        body.put(MESSAGE, "Lazy Entity Initialisation Exception. Expired DB Session?");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body);
     }
 
     @ExceptionHandler(JsonSchemaValidationException.class)
@@ -304,6 +320,10 @@ public class GlobalExceptionHandler {
             .contentType(MediaType.APPLICATION_JSON)
             .body(body);
 
+    }
+
+    private Throwable getNonNullCause(Throwable t) {
+        return t.getCause() == null ? t : t.getCause();
     }
 
 

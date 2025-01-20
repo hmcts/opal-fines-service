@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -55,7 +54,7 @@ class DraftAccountServiceTest {
     void testGetDraftAccount() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
-        when(draftAccountRepository.getReferenceById(any())).thenReturn(draftAccountEntity);
+        when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
         // Act
         DraftAccountEntity result = draftAccountService.getDraftAccount(1);
@@ -119,7 +118,7 @@ class DraftAccountServiceTest {
             .businessUnitName("Old Bailey")
             .build();
 
-        when(businessUnitRepository.findById(any())).thenReturn(Optional.of(businessUnit));
+        when(businessUnitRepository.getReferenceById(any())).thenReturn(businessUnit);
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(draftAccountEntity);
 
         // Act
@@ -140,7 +139,7 @@ class DraftAccountServiceTest {
             .businessUnitName("Old Bailey")
             .build();
 
-        when(businessUnitRepository.findById(any())).thenReturn(Optional.of(businessUnit));
+        when(businessUnitRepository.getReferenceById(any())).thenReturn(businessUnit);
 
         // Act
         RuntimeException re = assertThrows(RuntimeException.class, () ->
@@ -154,7 +153,7 @@ class DraftAccountServiceTest {
     void testDeleteDraftAccount_success() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().createdDate(LocalDateTime.now()).build();
-        when(draftAccountRepository.getReferenceById(any())).thenReturn(draftAccountEntity);
+        when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
         // Act
         draftAccountService.deleteDraftAccount(1, Optional.empty());
@@ -163,9 +162,7 @@ class DraftAccountServiceTest {
     @Test
     void testDeleteDraftAccount_fail1() {
         // Arrange
-        DraftAccountEntity draftAccountEntity = mock(DraftAccountEntity.class);
-        when(draftAccountEntity.getCreatedDate()).thenThrow(new EntityNotFoundException("No Entity in DB"));
-        when(draftAccountRepository.getReferenceById(any())).thenReturn(draftAccountEntity);
+        when(draftAccountRepository.findById(any())).thenReturn(Optional.empty());
 
         // Act
         EntityNotFoundException enfe = assertThrows(
@@ -173,22 +170,19 @@ class DraftAccountServiceTest {
         );
 
         // Assert
-        assertEquals("No Entity in DB", enfe.getMessage());
+        assertEquals("Draft Account not found with id: 1", enfe.getMessage());
     }
 
     @Test
     void testDeleteDraftAccount_fail2() {
         // Arrange
-        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
-        when(draftAccountRepository.getReferenceById(any())).thenReturn(draftAccountEntity);
+        when(draftAccountRepository.findById(any())).thenReturn(Optional.empty());
 
         // Act
-        RuntimeException re = assertThrows(
-            RuntimeException.class, () -> draftAccountService.deleteDraftAccount(8, Optional.empty())
-        );
+        boolean response = draftAccountService.deleteDraftAccount(8, Optional.of(true));
 
         // Assert
-        assertEquals("Draft Account entity '8' does not exist in the DB.", re.getMessage());
+        assertEquals(false, response);
     }
 
     @Test

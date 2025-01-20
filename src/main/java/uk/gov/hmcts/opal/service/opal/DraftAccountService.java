@@ -54,7 +54,8 @@ public class DraftAccountService {
     private final DraftAccountSpecs specs = new DraftAccountSpecs();
 
     public DraftAccountEntity getDraftAccount(long draftAccountId) {
-        return draftAccountRepository.getReferenceById(draftAccountId);
+        return draftAccountRepository.findById(draftAccountId)
+            .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
     }
 
     public List<DraftAccountEntity> getDraftAccounts(Collection<Short> businessUnitIds,
@@ -68,17 +69,16 @@ public class DraftAccountService {
         return page.getContent();
     }
 
-    public void deleteDraftAccount(long draftAccountId, Optional<Boolean> ignoreMissing) {
-        DraftAccountEntity entity = getDraftAccount(draftAccountId);
-        // If the DB doesn't hold the target entity to be deleted, then no exception is thrown when a deletion is
-        // attempted. So we need to retrieve the entity first and try to access any property.
-        // This will throw an exception if the entity doesn't exist.
-        boolean checkExists = !(ignoreMissing.orElse(false));
-        if (checkExists && entity.getCreatedDate() == null) {
-            // Will not get here, as JPA should throw an exception. But for testing, throw an Exception.
-            throw new RuntimeException("Draft Account entity '" + draftAccountId + "' does not exist in the DB.");
-        } else {
-            draftAccountRepository.delete(entity);
+    public boolean deleteDraftAccount(long draftAccountId, Optional<Boolean> ignoreMissing) {
+        try {
+            draftAccountRepository.delete(getDraftAccount(draftAccountId));
+            return true;
+        } catch (EntityNotFoundException enfe) {
+            boolean checkExists = !(ignoreMissing.orElse(false));
+            if (checkExists) {
+                throw enfe;
+            }
+            return false;
         }
     }
 
@@ -92,7 +92,7 @@ public class DraftAccountService {
 
     public DraftAccountEntity submitDraftAccount(AddDraftAccountRequestDto dto) {
         LocalDateTime created = LocalDateTime.now();
-        BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId()).orElse(null);
+        BusinessUnitEntity businessUnit = businessUnitRepository.getReferenceById(dto.getBusinessUnitId());
         String snapshot = createInitialSnapshot(dto, created, businessUnit);
         log.info(":submitDraftAccount: dto: \n{}", dto.toPrettyJson());
         return draftAccountRepository.save(toEntity(dto, created, businessUnit, snapshot));
@@ -133,8 +133,8 @@ public class DraftAccountService {
     }
 
     public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto)  {
-        DraftAccountEntity existingAccount = draftAccountRepository.findById(draftAccountId)
-            .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
+
+        DraftAccountEntity existingAccount = getDraftAccount(draftAccountId);
 
         if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
             log.info("DTO BU does not match entity for draft account with ID: {}", draftAccountId);

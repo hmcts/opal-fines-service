@@ -155,6 +155,9 @@ class DraftAccountControllerTest {
 
     @Test
     void testDeleteDraftAccount_Success() {
+        // Arrange
+        when(draftAccountService.deleteDraftAccount(any(Long.class), any())).thenReturn(true);
+
         // Act
         ResponseEntity<String> response = draftAccountController
             .deleteDraftAccountById(7L, BEARER_TOKEN, Optional.empty());

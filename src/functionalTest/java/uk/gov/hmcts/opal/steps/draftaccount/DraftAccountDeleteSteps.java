@@ -17,22 +17,26 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
     static Logger log = LoggerFactory.getLogger(DraftAccountDeleteSteps.class.getName());
 
     @When("I delete the draft account {string}")
-    public static void deleteDraftAccount(String draftAccountId) {
+    public static void deleteDraftAccount(String draftAccountId, boolean ignoreMissing) {
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
             .accept("*/*")
             .contentType("application/json")
             .when()
-            .delete(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId + "?ignore_missing=true");
+            .delete(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId + "?ignore_missing=" + ignoreMissing);
     }
 
     @Then("I delete the created draft accounts")
     public static void deleteAllCreatedDraftAccounts() {
+        actualDeleteAllCreatedDraftAccounts(false);
+    }
+
+    public static void actualDeleteAllCreatedDraftAccounts(boolean ignoreMissing) {
         ArrayList<String> accounts = DraftAccountUtils.getAllDraftAccountIds();
         for (String account : accounts) {
-            log.info("Deleting draft account: {}", account);
-            deleteDraftAccount(account);
+            log.info("Deleting draft account: {}, ignore if missing: {}", account, ignoreMissing);
+            deleteDraftAccount(account, ignoreMissing);
         }
     }
 
