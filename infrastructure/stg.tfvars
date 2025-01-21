@@ -5,7 +5,7 @@ local_db_name = "opal-fines-db"
 # PostgreSQL Database Configuration
 pgsql_databases = [
   {
-    name = var.local_db_name # Main database
+    name = "opal-fines-db" # Main database
   },
   {
     name = "test-gob-fines-db" # Test database for ETL
