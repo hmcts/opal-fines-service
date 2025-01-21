@@ -27,13 +27,7 @@ variable "pgsql_databases" {
   }))
   default = [
     {
-      name = var.fines_db_name # Default database
+      name = "opal-fines-db"
     }
   ]
 }
-
-variable "fines_db_name" {
-  description = "Name of the fines database"
-  default     = "opal-fines-db"
-}
-
