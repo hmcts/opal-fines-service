@@ -25,9 +25,9 @@ variable "pgsql_databases" {
   type        = list(object({
     name = string
   }))
-  default = [
-    {
-      name = "opal-fines-db"
-    }
-  ]
+
+}
+
+variable "local_db_name" {
+  description = "Name of the local database"
 }
