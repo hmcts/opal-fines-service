@@ -106,15 +106,23 @@ public abstract class LegacyService {
     }
 
     public ResponseEntity<String> postToGatewayRawResponse(String actionType, Object request) {
-        getLog().debug("postToGateway: POST to Gateway: {}", legacyGateway.getUrl());
-
-        // Create a UriComponentsBuilder and add parameters
+        // Log the URL with query parameters
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
             .queryParam(ACTION_TYPE, actionType);
+        String fullUrl = legacyGateway.getUrl() + builder.toUriString();
+        getLog().debug("postToGateway: POST to Gateway URL: {}", fullUrl);
+
+        // Log the headers
+        String authorizationHeader = encodeBasic(legacyGateway.getUsername(), legacyGateway.getPassword());
+        getLog().debug("postToGateway: Headers: AUTHORIZATION={}, Content-Type={}", authorizationHeader,
+                       MediaType.APPLICATION_JSON);
+
+        // Log the request body
+        getLog().debug("postToGateway: Request Body: {}", request);
 
         return restClient.post()
-            .uri(legacyGateway.getUrl() + builder.toUriString())
-            .header("AUTHORIZATION", encodeBasic(legacyGateway.getUsername(), legacyGateway.getPassword()))
+            .uri(fullUrl)
+            .header("AUTHORIZATION", authorizationHeader)
             .contentType(MediaType.APPLICATION_JSON)
             .body(request)
             .retrieve()

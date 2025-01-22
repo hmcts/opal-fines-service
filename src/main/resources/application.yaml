@@ -173,3 +173,11 @@ logging:
           descriptor:
             sql:
               BasicBinder: WARN
+
+
+      springframework:
+        web: DEBUG
+
+      apache:
+        http: DEBUG
+        http.wire: DEBUG
