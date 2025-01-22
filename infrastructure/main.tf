@@ -64,6 +64,6 @@ resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
   name         = "${var.component}-POSTGRES-DATABASE"
-  value        = var.local_db_name
+  value        = var.db_name
   key_vault_id = data.azurerm_key_vault.key_vault.id
 }
