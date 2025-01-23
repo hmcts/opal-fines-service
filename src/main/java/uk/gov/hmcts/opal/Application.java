@@ -14,6 +14,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class Application {
 
     public static void main(final String[] args) {
+        System.setProperty("javax.net.debug", "all");
         SpringApplication.run(Application.class, args);
     }
 }
