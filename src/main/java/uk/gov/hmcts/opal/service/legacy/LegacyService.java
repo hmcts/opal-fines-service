@@ -105,7 +105,7 @@ public abstract class LegacyService {
         return extractResponse(responseEntity, responseType);
     }
 
-    private boolean pingUrl(String url) {
+    private void pingUrl(String url) {
         getLog().info("Pinging URL: {}", url);
         try {
             ResponseEntity<String> response = restClient.get()
@@ -113,20 +113,16 @@ public abstract class LegacyService {
                 .retrieve()
                 .toEntity(String.class);
             getLog().info("Ping response: {}", response.getStatusCode());
-            return response.getStatusCode().is2xxSuccessful();
         } catch (Exception e) {
             getLog().error("Ping failed for URL: {}", url, e);
-            return false;
         }
     }
 
     public ResponseEntity<String> postToGatewayRawResponse(String actionType, Object request) {
         String legacyGatewayUrl = legacyGateway.getUrl();
         String googleUrl = "https://www.google.com";
-
-        if (!pingUrl(legacyGatewayUrl) || !pingUrl(googleUrl)) {
-            throw new RuntimeException("Ping to legacy gateway or Google failed.");
-        }
+        pingUrl(googleUrl);
+        pingUrl(legacyGatewayUrl);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
             .queryParam(ACTION_TYPE, actionType);
