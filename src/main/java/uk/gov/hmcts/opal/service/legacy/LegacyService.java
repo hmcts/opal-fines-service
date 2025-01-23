@@ -118,7 +118,7 @@ public abstract class LegacyService {
                        MediaType.APPLICATION_JSON);
 
         // Log the request body
-        getLog().debug("postToGateway: Request Body: {}", request);
+        //getLog().debug("postToGateway: Request Body: {}", request);
 
         return restClient.post()
             .uri(fullUrl)
