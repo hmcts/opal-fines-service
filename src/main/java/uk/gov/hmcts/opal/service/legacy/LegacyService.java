@@ -106,11 +106,13 @@ public abstract class LegacyService {
     }
 
     private boolean pingUrl(String url) {
+        getLog().info("Pinging URL: {}", url);
         try {
             ResponseEntity<String> response = restClient.get()
                 .uri(url)
                 .retrieve()
                 .toEntity(String.class);
+            getLog().info("Ping response: {}", response.getStatusCode());
             return response.getStatusCode().is2xxSuccessful();
         } catch (Exception e) {
             getLog().error("Ping failed for URL: {}", url, e);
