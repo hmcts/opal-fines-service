@@ -181,3 +181,7 @@ logging:
       apache:
         http: DEBUG
         http.wire: DEBUG
+      java:
+        net:
+          ssl: DEBUG
+          http: DEBUG
