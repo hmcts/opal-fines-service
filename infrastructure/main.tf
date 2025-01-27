@@ -9,10 +9,6 @@ provider "azurerm" {
   subscription_id            = var.aks_subscription_id
 }
 
-locals {
-  db_name = "opal-fines-db"
-}
-
 module "opal-fines-db" {
   providers = {
     azurerm.postgres_network = azurerm.postgres_network
@@ -25,11 +21,7 @@ module "opal-fines-db" {
   component     = var.component
   business_area = "sds"
 
-  pgsql_databases = [
-    {
-      name : local.db_name
-    }
-  ]
+  pgsql_databases = var.pgsql_databases
 
   pgsql_version = "15"
 
@@ -72,6 +64,6 @@ resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
   name         = "${var.component}-POSTGRES-DATABASE"
-  value        = local.db_name
+  value        = var.db_name
   key_vault_id = data.azurerm_key_vault.key_vault.id
 }
