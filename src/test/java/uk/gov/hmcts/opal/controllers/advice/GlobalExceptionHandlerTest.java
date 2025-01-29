@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -39,6 +40,7 @@ import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 import java.lang.reflect.Method;
 import java.net.ConnectException;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -184,6 +186,15 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void testHandleNoSuchElementException() {
+        NoSuchElementException exception = new NoSuchElementException();
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleNoSuchElementException(exception);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No value present", response.getBody().get("error"));
+    }
+
+    @Test
     void handleOpalApiException_ReturnsInternalServerError() {
         OpalApiException ex = new OpalApiException(
             AuthenticationError.FAILED_TO_OBTAIN_AUTHENTICATION_CONFIG);
@@ -268,6 +279,17 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Internal Server Error", response.getBody().get("error"));
         assertEquals("Lazy Entity Initialisation Exception. Expired DB Session?", response.getBody().get("message"));
+    }
+
+    @Test
+    void testHandleJpaSystemException() {
+        JpaSystemException jse = new JpaSystemException(new RuntimeException("Problem with JPA"));
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler
+            .handleJpaSystemException(jse);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Internal Server Error", response.getBody().get("error"));
+        assertEquals("Unknown Entity Persistence Error. Expired DB Session?", response.getBody().get("message"));
     }
 
     @Test

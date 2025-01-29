@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -187,15 +188,23 @@ public class DraftAccountController {
         @RequestHeader(value = "Authorization", required = false)  String authHeaderValue,
         @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
 
+        boolean checkExists = !(ignoreMissing.orElse(false));
         log.info(":DELETE:deleteDraftAccountById: Delete Draft Account: {}{}", draftAccountId,
-                 ignoreMissing.orElse(true) ? ", ignore if missing" : "");
+                 checkExists ? "" : ", ignore if missing");
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        boolean deleted = draftAccountService.deleteDraftAccount(draftAccountId, ignoreMissing);
-        if (deleted) {
-            log.info(":DELETE:deleteDraftAccountById: Deleted Draft Account: {}", draftAccountId);
+        try {
+            boolean deleted = draftAccountService.deleteDraftAccount(draftAccountId, checkExists, draftAccountService);
+            if (deleted) {
+                log.info(":DELETE:deleteDraftAccountById: Deleted Draft Account: {}", draftAccountId);
+            }
+        } catch (UnexpectedRollbackException ure) {
+            if (checkExists) {
+                throw ure;
+            }
         }
+
 
         return buildResponse(String.format(ACCOUNT_DELETED_MESSAGE_FORMAT, draftAccountId));
     }
@@ -238,7 +247,8 @@ public class DraftAccountController {
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
-            DraftAccountEntity updatedEntity = draftAccountService.updateDraftAccount(draftAccountId, dto);
+            DraftAccountEntity updatedEntity = draftAccountService
+                .updateDraftAccount(draftAccountId, dto, draftAccountService);
             return buildResponse(toGetResponseDto(updatedEntity));
         } else {
             throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);

@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.authorisation.service;
 
-import groovy.util.logging.Slf4j;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
@@ -10,9 +10,10 @@ import uk.gov.hmcts.opal.service.opal.UserService;
 
 import java.util.Optional;
 
-@Slf4j
+
 @Service
 @RequiredArgsConstructor
+@Slf4j(topic = "AuthorisationService")
 public class AuthorisationService {
 
     private final UserService userService;
@@ -23,10 +24,11 @@ public class AuthorisationService {
     }
 
     public SecurityToken getSecurityToken(String accessToken) {
-        var securityTokenBuilder = SecurityToken.builder()
+        SecurityToken.SecurityTokenBuilder securityTokenBuilder = SecurityToken.builder()
             .accessToken(accessToken);
         Optional<String> preferredUsernameOptional = Optional.ofNullable(
             accessTokenService.extractPreferredUsername(accessToken));
+        log.info(":getSecurityToken: preferred user name: {}", preferredUsernameOptional);
 
         if (preferredUsernameOptional.isPresent()) {
             UserState userStateOptional = this.getAuthorisation(preferredUsernameOptional.get());

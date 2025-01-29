@@ -54,7 +54,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
     @Test
     void testUpdateDraftAccount_trap406Response() throws Exception {
-        when(draftAccountService.updateDraftAccount(any(), any()))
+        when(draftAccountService.updateDraftAccount(any(), any(), any()))
             .thenReturn(createDraftAccountEntity("Test",BU_ID));
         shouldReturn406WhenResponseContentTypeNotSupported(
             patch(URL_BASE + "/1").contentType(MediaType.APPLICATION_JSON).content(validUpdateRequestBody())
@@ -65,7 +65,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     void testUpdateDraftAccount_trap408Response() throws Exception {
         shouldReturn408WhenTimeout(
             patch(URL_BASE + "/1").contentType(MediaType.APPLICATION_JSON).content(validUpdateRequestBody()),
-            when(draftAccountService.updateDraftAccount(any(), any()))
+            when(draftAccountService.updateDraftAccount(any(), any(), any()))
         );
     }
 
@@ -73,7 +73,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     void testUpdateDraftAccount_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(
             patch(URL_BASE + "/1").contentType(MediaType.APPLICATION_JSON).content(validUpdateRequestBody()),
-            when(draftAccountService.updateDraftAccount(any(), any()))
+            when(draftAccountService.updateDraftAccount(any(), any(), any()))
         );
     }
 
