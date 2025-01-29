@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
@@ -24,6 +25,7 @@ import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
+import uk.gov.hmcts.opal.service.opal.proxy.DraftAccountServiceProxy;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 import java.time.LocalDateTime;
@@ -40,7 +42,7 @@ import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 @Slf4j(topic = "DraftAccountService")
 @RequiredArgsConstructor
 @Qualifier("draftAccountService")
-public class DraftAccountService {
+public class DraftAccountService implements DraftAccountServiceProxy {
 
     private static final String DEFENDANT_JSON_PATH = "$.defendant";
 
@@ -53,11 +55,13 @@ public class DraftAccountService {
 
     private final DraftAccountSpecs specs = new DraftAccountSpecs();
 
+    @Transactional(readOnly = true)
     public DraftAccountEntity getDraftAccount(long draftAccountId) {
         return draftAccountRepository.findById(draftAccountId)
             .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
     }
 
+    @Transactional(readOnly = true)
     public List<DraftAccountEntity> getDraftAccounts(Collection<Short> businessUnitIds,
                                                      Collection<DraftAccountStatus> statuses,
                                                      Collection<String> submittedBy,
@@ -69,12 +73,13 @@ public class DraftAccountService {
         return page.getContent();
     }
 
-    public boolean deleteDraftAccount(long draftAccountId, Optional<Boolean> ignoreMissing) {
+    @Transactional
+    public boolean deleteDraftAccount(long draftAccountId, boolean checkExists,
+                                      DraftAccountServiceProxy proxy) {
         try {
-            draftAccountRepository.delete(getDraftAccount(draftAccountId));
+            draftAccountRepository.delete(proxy.getDraftAccount(draftAccountId));
             return true;
         } catch (EntityNotFoundException enfe) {
-            boolean checkExists = !(ignoreMissing.orElse(false));
             if (checkExists) {
                 throw enfe;
             }
@@ -82,6 +87,7 @@ public class DraftAccountService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<DraftAccountEntity> searchDraftAccounts(DraftAccountSearchDto criteria) {
         Page<DraftAccountEntity> page = draftAccountRepository
             .findBy(specs.findBySearchCriteria(criteria),
@@ -90,6 +96,7 @@ public class DraftAccountService {
         return page.getContent();
     }
 
+    @Transactional
     public DraftAccountEntity submitDraftAccount(AddDraftAccountRequestDto dto) {
         LocalDateTime created = LocalDateTime.now();
         BusinessUnitEntity businessUnit = businessUnitRepository.getReferenceById(dto.getBusinessUnitId());
@@ -98,6 +105,7 @@ public class DraftAccountService {
         return draftAccountRepository.save(toEntity(dto, created, businessUnit, snapshot));
     }
 
+    @Transactional
     public DraftAccountEntity replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto) {
         DraftAccountEntity existingAccount = draftAccountRepository.findById(draftAccountId)
             .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
@@ -132,9 +140,11 @@ public class DraftAccountService {
         return draftAccountRepository.save(existingAccount);
     }
 
-    public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto)  {
+    @Transactional
+    public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
+                                                 DraftAccountServiceProxy proxy)  {
 
-        DraftAccountEntity existingAccount = getDraftAccount(draftAccountId);
+        DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
 
         if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
             log.info("DTO BU does not match entity for draft account with ID: {}", draftAccountId);

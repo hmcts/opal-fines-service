@@ -156,7 +156,7 @@ class DraftAccountServiceTest {
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
         // Act
-        draftAccountService.deleteDraftAccount(1, Optional.empty());
+        draftAccountService.deleteDraftAccount(1, true, draftAccountService);
     }
 
     @Test
@@ -166,7 +166,7 @@ class DraftAccountServiceTest {
 
         // Act
         EntityNotFoundException enfe = assertThrows(
-            EntityNotFoundException.class, () -> draftAccountService.deleteDraftAccount(1, Optional.empty())
+            EntityNotFoundException.class, () -> draftAccountService.deleteDraftAccount(1, true, draftAccountService)
         );
 
         // Assert
@@ -179,7 +179,7 @@ class DraftAccountServiceTest {
         when(draftAccountRepository.findById(any())).thenReturn(Optional.empty());
 
         // Act
-        boolean response = draftAccountService.deleteDraftAccount(8, Optional.of(true));
+        boolean response = draftAccountService.deleteDraftAccount(8, false, draftAccountService);
 
         // Assert
         assertEquals(false, response);
@@ -316,7 +316,7 @@ class DraftAccountServiceTest {
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () ->
-            draftAccountService.updateDraftAccount(draftAccountId, updateDto)
+            draftAccountService.updateDraftAccount(draftAccountId, updateDto, draftAccountService)
         );
     }
 
@@ -352,7 +352,8 @@ class DraftAccountServiceTest {
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(updatedAccount);
 
         // Act
-        DraftAccountEntity result = draftAccountService.updateDraftAccount(draftAccountId, updateDto);
+        DraftAccountEntity result = draftAccountService.updateDraftAccount(draftAccountId,
+                                                                           updateDto, draftAccountService);
 
         // Assert
         assertNotNull(result);
@@ -387,7 +388,7 @@ class DraftAccountServiceTest {
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-            draftAccountService.updateDraftAccount(draftAccountId, updateDto)
+            draftAccountService.updateDraftAccount(draftAccountId, updateDto, draftAccountService)
         );
         assertEquals("Invalid account status for update: SUBMITTED", exception.getMessage());
 

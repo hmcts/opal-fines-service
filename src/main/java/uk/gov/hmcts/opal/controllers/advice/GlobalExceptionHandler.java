@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -37,6 +38,7 @@ import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static uk.gov.hmcts.opal.authentication.service.AccessTokenService.AUTH_HEADER;
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
@@ -97,7 +99,7 @@ public class GlobalExceptionHandler {
         MethodArgumentTypeMismatchException ex) {
 
         log.error(":handleMethodArgumentTypeMismatchException: {}", ex.getMessage());
-        log.error(":handleMethodArgumentTypeMismatchException:", getNonNullCause(ex));
+        log.error(":handleMethodArgumentTypeMismatchException:", ex);
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Not Acceptable");
@@ -173,16 +175,28 @@ public class GlobalExceptionHandler {
             .contentType(MediaType.APPLICATION_JSON).body(body);
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleEntityNotFoundException(
         EntityNotFoundException entityNotFoundException) {
 
-        log.error(":handleEntityNotFoundException: {}", entityNotFoundException.getMessage());
-        log.error(":handleEntityNotFoundException:", getNonNullCause(entityNotFoundException));
+        log.warn(":handleEntityNotFoundException: {}", entityNotFoundException.getMessage());
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Entity Not Found");
         body.put(MESSAGE, entityNotFoundException.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(body);
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<Map<String, String>> handleNoSuchElementException(
+        NoSuchElementException noSuchElementException) {
+
+        log.warn(":handleNoSuchElementException: {}", noSuchElementException.getMessage());
+        log.warn(":handleNoSuchElementException:", getNonNullCause(noSuchElementException));
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "No value present");
+        body.put(MESSAGE, noSuchElementException.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(body);
     }
 
@@ -276,6 +290,20 @@ public class GlobalExceptionHandler {
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Internal Server Error");
         body.put(MESSAGE, "Lazy Entity Initialisation Exception. Expired DB Session?");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body);
+    }
+
+    @ExceptionHandler(JpaSystemException.class)
+    public ResponseEntity<Map<String, String>> handleJpaSystemException(JpaSystemException jpaSystemException) {
+
+        log.error(":handleJpaSystemException: {}", jpaSystemException.getMessage());
+        log.error(":handleJpaSystemException: ", getNonNullCause(jpaSystemException));
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "Internal Server Error");
+        body.put(MESSAGE, "Unknown Entity Persistence Error. Expired DB Session?");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .contentType(MediaType.APPLICATION_JSON)
             .body(body);
