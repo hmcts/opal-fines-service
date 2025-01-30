@@ -8,7 +8,7 @@ public class DataCleanUp extends BaseStepDef {
 
     @After("@cleanUpData")
     public void cleanUpData() {
-        DraftAccountDeleteSteps.deleteAllCreatedDraftAccounts();
+        DraftAccountDeleteSteps.actualDeleteAllCreatedDraftAccounts(true);
         DraftAccountUtils.clearDraftAccountIds();
         DraftAccountUtils.clearDraftAccountCreatedAtTime();
         DraftAccountUtils.clearInitialAccountStatusDate();

@@ -172,8 +172,7 @@ public class DraftAccountController {
                                                         Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
 
-            DraftAccountEntity response = draftAccountService.submitDraftAccount(dto);
-            return buildCreatedResponse(toGetResponseDto(response));
+            return buildCreatedResponse(toGetResponseDto(draftAccountService.submitDraftAccount(dto)));
         } else {
             throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
         }
@@ -188,11 +187,16 @@ public class DraftAccountController {
         @RequestHeader(value = "Authorization", required = false)  String authHeaderValue,
         @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
 
-        log.info(":DELETE:deleteDraftAccountById: draftAccountId: {}", draftAccountId);
+        log.info(":DELETE:deleteDraftAccountById: Delete Draft Account: {}{}", draftAccountId,
+                 ignoreMissing.orElse(true) ? ", ignore if missing" : "");
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        draftAccountService.deleteDraftAccount(draftAccountId, ignoreMissing);
+        boolean deleted = draftAccountService.deleteDraftAccount(draftAccountId, ignoreMissing);
+        if (deleted) {
+            log.info(":DELETE:deleteDraftAccountById: Deleted Draft Account: {}", draftAccountId);
+        }
+
         return buildResponse(String.format(ACCOUNT_DELETED_MESSAGE_FORMAT, draftAccountId));
     }
 
@@ -281,5 +285,4 @@ public class DraftAccountController {
             .accountId(entity.getAccountId())
             .build();
     }
-
 }
