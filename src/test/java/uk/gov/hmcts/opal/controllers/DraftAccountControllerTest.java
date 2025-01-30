@@ -166,6 +166,8 @@ class DraftAccountControllerTest {
         verify(draftAccountService, times(1)).deleteDraftAccount(any(Long.class), any());
     }
 
+
+
     DraftAccountResponseDto toGetDto(DraftAccountEntity entity) {
         return DraftAccountResponseDto.builder()
             .draftAccountId(entity.getDraftAccountId())
