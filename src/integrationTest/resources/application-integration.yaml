@@ -1,4 +1,6 @@
 spring:
+  main:
+    allow-bean-definition-overriding: true
   security:
     oauth2:
       resourceserver:
@@ -20,3 +22,23 @@ logging:
           descriptor:
             sql:
               BasicBinder: WARN
+
+      springframework:
+        jdbc:
+          datasource:
+            init: DEBUG
+# Flyway
+flyway:
+  locations: classpath:db/migration/allEnvs, classpath:db/migration/devOnly
+  baseline-on-migrate: true
+  ignoreMigrationPatterns: "*:missing"
+
+# Hibernate
+jpa:
+  hibernate:
+    ddl-auto: validate
+  show-sql: true
+
+testcontainers:
+  reuse:
+    enable: true
