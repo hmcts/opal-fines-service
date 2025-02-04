@@ -19,7 +19,7 @@ class LogRetentionServiceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         logRetentionService = new LogRetentionService(jdbcTemplate);
     }
 
@@ -39,4 +39,3 @@ class LogRetentionServiceTest {
         verify(jdbcTemplate).execute("CALL delete_expired_log_audit()");
     }
 }
-
