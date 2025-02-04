@@ -58,7 +58,11 @@ configurations {
 }
 
 tasks.withType(JavaCompile).configureEach {
-  options.compilerArgs << "-Xlint:unchecked" << "-Werror"
+  options.compilerArgs << "-Xlint:unchecked"
+//  Enable the following to highlight all deprecated build errors
+  options.compilerArgs << "-Xlint:deprecation"
+//  Enable the following to stop the build on any warning messages (not just error messages)
+  options.compilerArgs << "-Werror"
 }
 
 // https://github.com/gradle/gradle/issues/16791

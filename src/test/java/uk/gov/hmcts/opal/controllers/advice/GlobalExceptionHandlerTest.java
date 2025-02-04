@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.hibernate.LazyInitializationException;
 import org.hibernate.PropertyValueException;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.core.MethodParameter;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -307,7 +309,8 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void testHandleHttpMessageNotReadableException() {
-        HttpMessageNotReadableException exception = new HttpMessageNotReadableException("Cannot read message");
+        HttpInputMessage msg = Mockito.mock(HttpInputMessage.class);
+        HttpMessageNotReadableException exception = new HttpMessageNotReadableException("Cannot read message", msg);
         ResponseEntity<Map<String, String>> response = globalExceptionHandler
             .handleHttpMessageNotReadableException(exception);
 
