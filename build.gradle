@@ -320,7 +320,7 @@ dependencies {
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
   testImplementation 'org.junit.platform:junit-platform-suite:1.11.4'
-  testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.20.1'
+  testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.21.0'
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-rest-assured:${serenityVersion}"
