@@ -225,6 +225,7 @@ public class DraftAccountController {
                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
             DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto);
+            log.info(":PUT:putDraftAccount: replaced with version: {}", replacedEntity.getVersion());
             return buildResponse(toGetResponseDto(replacedEntity));
         } else {
             throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -276,6 +277,7 @@ public class DraftAccountController {
             .timelineData(entity.getTimelineData())
             .accountNumber(entity.getAccountNumber())
             .accountId(entity.getAccountId())
+            .version(entity.getVersion())
             .build();
     }
 

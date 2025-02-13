@@ -14,7 +14,7 @@
 *
 **/
 INSERT INTO draft_accounts(
-    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by, account, account_type, account_id, account_snapshot, account_status, timeline_data, account_number, submitted_by_name, account_status_date, status_message, validated_by_name)
+    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by, account, account_type, account_id, account_snapshot, account_status, timeline_data, account_number, submitted_by_name, account_status_date, status_message, validated_by_name, version_number)
 VALUES
 (
     1,
@@ -75,11 +75,12 @@ VALUES
     'John Smith',
     '2024-12-10 16:27:01.023126',
     NULL,
-    NULL
+    NULL,
+    0
 );
 
 INSERT INTO draft_accounts(
-    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by, account, account_type, account_id, account_snapshot, account_status, timeline_data, account_number, submitted_by_name, account_status_date, status_message, validated_by_name)
+    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by, account, account_type, account_id, account_snapshot, account_status, timeline_data, account_number, submitted_by_name, account_status_date, status_message, validated_by_name, version_number)
 VALUES
 (
     2,
@@ -140,11 +141,12 @@ VALUES
     'Jane Doe',
     '2024-12-10 16:27:01.023126',
     NULL,
-    NULL
+    NULL,
+    0
 );
 
 INSERT INTO draft_accounts(
-    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by, account, account_type, account_id, account_snapshot, account_status, timeline_data, account_number, submitted_by_name, account_status_date, status_message, validated_by_name)
+    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by, account, account_type, account_id, account_snapshot, account_status, timeline_data, account_number, submitted_by_name, account_status_date, status_message, validated_by_name, version_number)
 VALUES
 (
     3,
@@ -205,11 +207,12 @@ VALUES
     'Joe Bloggs',
     '2024-12-10 16:27:01.023126',
     NULL,
-    NULL
+    NULL,
+    0
 );
 
 INSERT INTO draft_accounts(
-    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by, account, account_type, account_id, account_snapshot, account_status, timeline_data, account_number, submitted_by_name, account_status_date, status_message, validated_by_name)
+    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by, account, account_type, account_id, account_snapshot, account_status, timeline_data, account_number, submitted_by_name, account_status_date, status_message, validated_by_name, version_number)
 VALUES
 (
     4,
@@ -270,11 +273,12 @@ VALUES
     'Joe Bloggs',
     '2024-12-10 16:27:01.023126',
     NULL,
-    NULL
+    NULL,
+    0
 );
 
 INSERT INTO draft_accounts(
-    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by, account, account_type, account_id, account_snapshot, account_status, timeline_data, account_number, submitted_by_name, account_status_date, status_message, validated_by_name)
+    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by, account, account_type, account_id, account_snapshot, account_status, timeline_data, account_number, submitted_by_name, account_status_date, status_message, validated_by_name, version_number)
 VALUES
 (
     5,
@@ -335,6 +339,6 @@ VALUES
     'Joe Bloggs',
     '2024-12-10 16:27:01.023126',
     NULL,
-    NULL
+    NULL,
+    0
 );
-
