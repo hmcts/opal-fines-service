@@ -23,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -34,6 +35,7 @@ import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -45,6 +47,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @ContextConfiguration(classes = GlobalExceptionHandler.class)
@@ -223,7 +226,7 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Internal Server Error", response.getBody().get("error"));
-        assertEquals("An unexpected error occurred", response.getBody().get("message"));
+        assertEquals("An unexpected error occurred. Persistence exception", response.getBody().get("message"));
     }
 
     @Test
@@ -347,13 +350,28 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void testHandleObjectOptimisticLockingFailureException() {
+        ObjectOptimisticLockingFailureException e = new ObjectOptimisticLockingFailureException(
+            DraftAccountEntity.class, "123");
+        ResponseEntity<Map<String, String>> response =
+            globalExceptionHandler.handleObjectOptimisticLockingFailureException(e);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals("Conflict", response.getBody().get("error"));
+        assertEquals(DraftAccountEntity.class.getName(), response.getBody().get("resourceType"));
+        assertEquals("123", response.getBody().get("resourceId"));
+        assertTrue(response.getBody().get("conflictReason").startsWith("Object of class ["));
+    }
+
+    @Test
     void testHandleResourceConflictException() {
-        ResourceConflictException e = new ResourceConflictException("DraftAccount","BusinessUnits mismatch");
+        ResourceConflictException e = new ResourceConflictException("DraftAccount", "123","BusinessUnits mismatch");
         ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleResourceConflictException(e);
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertEquals("Conflict", response.getBody().get("error"));
         assertEquals("DraftAccount", response.getBody().get("resourceType"));
+        assertEquals("123", response.getBody().get("resourceId"));
         assertEquals("BusinessUnits mismatch", response.getBody().get("conflictReason"));
     }
 

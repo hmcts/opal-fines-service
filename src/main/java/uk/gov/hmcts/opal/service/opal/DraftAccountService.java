@@ -35,6 +35,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
+import static uk.gov.hmcts.opal.service.opal.util.VersionUtils.verifyVersions;
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 
@@ -110,13 +111,15 @@ public class DraftAccountService implements DraftAccountServiceProxy {
         DraftAccountEntity existingAccount = draftAccountRepository.findById(draftAccountId)
             .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
 
+        verifyVersions(existingAccount, dto, draftAccountId);
+
         BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId())
             .orElseThrow(() -> new RuntimeException("Business Unit not found with id: " + dto.getBusinessUnitId()));
 
         if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
             log.info("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
             throw new ResourceConflictException(
-                "DraftAccount",
+                "DraftAccount", Long.toString(draftAccountId),
                 "Business Unit ID mismatch. Existing: "
                     + existingAccount.getBusinessUnit().getBusinessUnitId()
                     + ", Requested: "
@@ -147,9 +150,9 @@ public class DraftAccountService implements DraftAccountServiceProxy {
         DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
 
         if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
-            log.info("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
+            log.warn("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
             throw new ResourceConflictException(
-                "DraftAccount",
+                "DraftAccount", Long.toString(draftAccountId),
                 "Business Unit ID mismatch. Existing: "
                     + existingAccount.getBusinessUnit().getBusinessUnitId()
                     + ", Requested: "
@@ -165,6 +168,7 @@ public class DraftAccountService implements DraftAccountServiceProxy {
                                                                 + dto.getAccountStatus()));
 
         existingAccount.setAccountStatus(newStatus);
+        existingAccount.setVersion(dto.getVersion());
 
         if (newStatus == DraftAccountStatus.PENDING) {
             existingAccount.setValidatedDate(LocalDateTime.now());

@@ -35,6 +35,7 @@ Feature: PO-746 put/update draft account
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
+      | version           | 0                                           |
 
     Then The draft account response returns 200
 
@@ -88,6 +89,7 @@ Feature: PO-746 put/update draft account
       | account_status   |                                             |
       | submitted_by     | BUUID                                       |
       | timeline_data    | draftAccounts/timelineJson/default.json     |
+      | version          | 0                                           |
 
     Then The draft account response returns 400
 

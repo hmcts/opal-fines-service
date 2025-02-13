@@ -47,6 +47,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             postBody.put("submitted_by_name", dataToPost.get("submitted_by_name"));
         }
         postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
+        postBody.put("version", dataToPost.get("version") != null ? dataToPost.get("version") : "0");
         postBody.put(
             "account_status",
             dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""

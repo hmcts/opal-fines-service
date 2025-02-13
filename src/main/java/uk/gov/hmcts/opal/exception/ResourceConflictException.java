@@ -6,10 +6,12 @@ import lombok.Getter;
 public class ResourceConflictException extends RuntimeException {
 
     private final String resourceType;
+    private final String resourceId;
     private final String conflictReason;
 
-    public ResourceConflictException(String resourceType, String conflictReason) {
+    public ResourceConflictException(String resourceType,  String resourceId, String conflictReason) {
         this.resourceType = resourceType;
+        this.resourceId = resourceId;
         this.conflictReason = conflictReason;
     }
 

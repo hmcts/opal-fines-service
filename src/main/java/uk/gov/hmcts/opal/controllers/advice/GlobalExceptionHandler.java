@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.TransactionSystemException;
@@ -39,6 +40,7 @@ import java.net.UnknownHostException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import static uk.gov.hmcts.opal.authentication.service.AccessTokenService.AUTH_HEADER;
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
@@ -235,10 +237,10 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(body);
         }
 
-
+        log.error(":handleServletExceptions: {}: {}",  ex.getClass(), ex.getMessage());
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Internal Server Error");
-        body.put(MESSAGE, "An unexpected error occurred");
+        body.put(MESSAGE, "An unexpected error occurred. " + ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .contentType(MediaType.APPLICATION_JSON).body(body);
     }
@@ -335,6 +337,23 @@ public class GlobalExceptionHandler {
             .body(body);
     }
 
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, String>> handleObjectOptimisticLockingFailureException(
+        ObjectOptimisticLockingFailureException e) {
+        log.warn(":handleObjectOptimisticLockingFailureException: {}", e.getMessage());
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "Conflict");
+        body.put("resourceType", e.getPersistentClassName());
+        body.put("resourceId", Optional.ofNullable(e.getIdentifier()).map(Object::toString).orElse(""));
+        body.put("conflictReason", e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body);
+
+    }
+
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<Map<String, String>> handleResourceConflictException(ResourceConflictException e) {
         log.error(":handleResourceConflictException: {}", e.getMessage());
@@ -342,6 +361,7 @@ public class GlobalExceptionHandler {
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Conflict");
         body.put("resourceType", e.getResourceType());
+        body.put("resourceId", e.getResourceId());
         body.put("conflictReason", e.getConflictReason());
 
         return ResponseEntity.status(HttpStatus.CONFLICT)

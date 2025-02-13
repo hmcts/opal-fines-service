@@ -15,11 +15,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
+import uk.gov.hmcts.opal.dto.Versioned;
 
 import java.time.LocalDateTime;
 
@@ -31,7 +33,7 @@ import java.time.LocalDateTime;
 @Builder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "draftAccountId")
-public class DraftAccountEntity {
+public class DraftAccountEntity implements Versioned {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "draft_account_id_seq_generator")
@@ -95,4 +97,8 @@ public class DraftAccountEntity {
 
     @Column(name = "account_number", length = 25)
     private String accountNumber;
+
+    @Column(name = "version_number")
+    @Version
+    private Long version;
 }

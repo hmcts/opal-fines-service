@@ -195,12 +195,14 @@ class DraftAccountServiceTest {
             .account(createAccountString())
             .accountType("Fine")
             .timelineData("Timeline data")
+            .version(0L)
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
             .createdDate(LocalDateTime.now())
+            .version(0L)
             .build();
 
         BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
@@ -261,9 +263,10 @@ class DraftAccountServiceTest {
         Long draftAccountId = 1L;
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
+            .version(0L)
             .build();
 
-        DraftAccountEntity existingAccount = DraftAccountEntity.builder().build();
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder().version(0L).build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
         when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.empty());
@@ -281,10 +284,12 @@ class DraftAccountServiceTest {
         Long draftAccountId = 1L;
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
+            .version(0L)
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
+            .version(0L)
             .build();
 
         BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()

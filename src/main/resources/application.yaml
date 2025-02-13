@@ -76,7 +76,7 @@ spring:
         enable_lazy_load_no_trans: true
         format_sql: false
         generate_statistics: false
-        log_slow_query: 1
+        log_slow_query: 4
         dialect: org.hibernate.dialect.PostgreSQLDialect
         connection:
           # Following setting is 'generally' suggested to be false, or a lot of work otherwise
