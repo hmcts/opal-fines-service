@@ -6,14 +6,14 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
 import uk.gov.hmcts.opal.entity.MajorCreditorEntity_;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
 import java.util.Optional;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.likeBusinessUnitNamePredicate;
 
 public class MajorCreditorSpecs extends AddressSpecs<MajorCreditorEntity> {
 
@@ -70,7 +70,7 @@ public class MajorCreditorSpecs extends AddressSpecs<MajorCreditorEntity> {
         );
     }
 
-    public static Join<MajorCreditorEntity, BusinessUnitEntity> joinBusinessUnit(From<?, MajorCreditorEntity> from) {
+    public static Join<MajorCreditorEntity, BusinessUnit.Lite> joinBusinessUnit(From<?, MajorCreditorEntity> from) {
         return from.join(MajorCreditorEntity_.businessUnit);
     }
 

@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.projection.CourtReferenceData;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
@@ -40,9 +40,9 @@ class CourtControllerTest {
     @Test
     void testGetCourt_Success() {
         // Arrange
-        CourtEntity entity = CourtEntity.builder().build();
+        CourtEntity.Lite entity = CourtEntity.Lite.builder().build();
 
-        when(courtService.getCourt(any(Long.class))).thenReturn(entity);
+        when(courtService.getCourtLite(any(Long.class))).thenReturn(entity);
 
         // Act
         ResponseEntity<CourtEntity> response = courtController.getCourtById(1L, BEARER_TOKEN);
@@ -50,20 +50,20 @@ class CourtControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
-        verify(courtService, times(1)).getCourt(any(Long.class));
+        verify(courtService, times(1)).getCourtLite(any(Long.class));
     }
 
     @Test
     void testSearchCourts_Success() {
         // Arrange
-        CourtEntity entity = CourtEntity.builder().build();
-        List<CourtEntity> courtList = List.of(entity);
+        CourtEntity.Lite entity = CourtEntity.Lite.builder().build();
+        List<CourtEntity.Lite> courtList = List.of(entity);
 
         when(courtService.searchCourts(any())).thenReturn(courtList);
 
         // Act
         CourtSearchDto searchDto = CourtSearchDto.builder().build();
-        ResponseEntity<List<CourtEntity>> response = courtController.postCourtsSearch(searchDto, BEARER_TOKEN);
+        ResponseEntity<List<CourtEntity.Lite>> response = courtController.postCourtsSearch(searchDto, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

@@ -1,14 +1,14 @@
 package uk.gov.hmcts.opal.dto;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static uk.gov.hmcts.opal.dto.DateDto.fromLocalDate;
-
-import java.time.LocalDate;
-
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static uk.gov.hmcts.opal.dto.DateDto.fromLocalDate;
 
 @Slf4j(topic = "opal.AccountSearchDtoTest")
 public class AccountSearchDtoTest {

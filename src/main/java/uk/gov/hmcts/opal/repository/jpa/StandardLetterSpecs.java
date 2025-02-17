@@ -4,11 +4,11 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.StandardLetterSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.StandardLetterEntity;
 import uk.gov.hmcts.opal.entity.StandardLetterEntity_;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
 
 public class StandardLetterSpecs extends EntitySpecs<StandardLetterEntity> {
 
@@ -29,7 +29,7 @@ public class StandardLetterSpecs extends EntitySpecs<StandardLetterEntity> {
             equalsBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
     }
 
-    public static Join<StandardLetterEntity, BusinessUnitEntity> joinBusinessUnit(From<?, StandardLetterEntity> from) {
+    public static Join<StandardLetterEntity, BusinessUnit.Lite> joinBusinessUnit(From<?, StandardLetterEntity> from) {
         return from.join(StandardLetterEntity_.businessUnit);
     }
 }

@@ -2,8 +2,8 @@ package uk.gov.hmcts.opal.interceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerInterceptor;
 import uk.gov.hmcts.opal.annotation.CheckAcceptHeader;
 
 public class AcceptHeaderInterceptor implements HandlerInterceptor {

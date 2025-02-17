@@ -8,7 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.service.CourtServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyCourtService;
 import uk.gov.hmcts.opal.service.opal.CourtService;
@@ -51,27 +51,27 @@ class CourtServiceProxyTest extends ProxyTestsBase {
 
     void testGetCourt(CourtServiceInterface targetService, CourtServiceInterface otherService) {
         // Given: a CourtEntity is returned from the target service
-        CourtEntity entity = CourtEntity.builder().build();
-        when(targetService.getCourt(anyLong())).thenReturn(entity);
+        CourtEntity.Lite entity = CourtEntity.Lite.builder().build();
+        when(targetService.getCourtLite(anyLong())).thenReturn(entity);
 
         // When: getCourt is called on the proxy
-        CourtEntity courtResult = courtServiceProxy.getCourt(1);
+        CourtEntity courtResult = courtServiceProxy.getCourtLite(1);
 
         // Then: target service should be used, and the returned court should be as expected
-        verify(targetService).getCourt(1);
+        verify(targetService).getCourtLite(1);
         verifyNoInteractions(otherService);
         Assertions.assertEquals(entity, courtResult);
     }
 
     void testSearchCourts(CourtServiceInterface targetService, CourtServiceInterface otherService) {
         // Given: a courts list result is returned from the target service
-        CourtEntity entity = CourtEntity.builder().build();
-        List<CourtEntity> courtsList = List.of(entity);
+        CourtEntity.Lite entity = CourtEntity.Lite.builder().build();
+        List<CourtEntity.Lite> courtsList = List.of(entity);
         when(targetService.searchCourts(any())).thenReturn(courtsList);
 
         // When: searchCourts is called on the proxy
         CourtSearchDto criteria = CourtSearchDto.builder().build();
-        List<CourtEntity> listResult = courtServiceProxy.searchCourts(criteria);
+        List<CourtEntity.Lite> listResult = courtServiceProxy.searchCourts(criteria);
 
         // Then: target service should be used, and the returned list should be as expected
         verify(targetService).searchCourts(criteria);

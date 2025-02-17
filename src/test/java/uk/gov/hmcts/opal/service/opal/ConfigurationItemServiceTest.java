@@ -12,7 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.ConfigurationItemLite;
 import uk.gov.hmcts.opal.repository.ConfigurationItemRepository;
 
 import java.util.List;
@@ -36,11 +36,11 @@ class ConfigurationItemServiceTest {
     void testGetConfigurationItem() {
         // Arrange
 
-        ConfigurationItemEntity configurationItemEntity = ConfigurationItemEntity.builder().build();
+        ConfigurationItemLite configurationItemEntity = ConfigurationItemLite.builder().build();
         when(configurationItemRepository.getReferenceById(any())).thenReturn(configurationItemEntity);
 
         // Act
-        ConfigurationItemEntity result = configurationItemService.getConfigurationItem(1);
+        ConfigurationItemLite result = configurationItemService.getConfigurationItem(1);
 
         // Assert
         assertNotNull(result);
@@ -53,8 +53,8 @@ class ConfigurationItemServiceTest {
         // Arrange
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
 
-        ConfigurationItemEntity configurationItemEntity = ConfigurationItemEntity.builder().build();
-        Page<ConfigurationItemEntity> mockPage = new PageImpl<>(List.of(configurationItemEntity),
+        ConfigurationItemLite configurationItemEntity = ConfigurationItemLite.builder().build();
+        Page<ConfigurationItemLite> mockPage = new PageImpl<>(List.of(configurationItemEntity),
                                                                 Pageable.unpaged(), 999L);
         when(configurationItemRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
@@ -62,7 +62,7 @@ class ConfigurationItemServiceTest {
         });
 
         // Act
-        List<ConfigurationItemEntity> result = configurationItemService.searchConfigurationItems(
+        List<ConfigurationItemLite> result = configurationItemService.searchConfigurationItems(
             ConfigurationItemSearchDto.builder().build());
 
         // Assert

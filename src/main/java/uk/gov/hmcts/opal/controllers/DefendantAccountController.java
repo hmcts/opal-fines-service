@@ -24,7 +24,7 @@ import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountCore;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.opal.NoteService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
@@ -61,7 +61,7 @@ public class DefendantAccountController {
 
     @GetMapping
     @Operation(summary = "Searches for a defendant account in the Opal DB")
-    public ResponseEntity<DefendantAccountEntity> getDefendantAccount(
+    public ResponseEntity<DefendantAccountCore> getDefendantAccount(
         @RequestParam(name = "businessUnitId") Short businessUnitId,
         @RequestParam(name = "accountNumber") String accountNumber,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
@@ -71,18 +71,18 @@ public class DefendantAccountController {
             .accountNumber(accountNumber)
             .build();
 
-        DefendantAccountEntity response = defendantAccountService.getDefendantAccount(enquiryDto);
+        DefendantAccountCore response = defendantAccountService.getDefendantAccount(enquiryDto);
 
         return buildResponse(response);
     }
 
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Updates defendant account information")
-    public ResponseEntity<DefendantAccountEntity> putDefendantAccount(
-        @RequestBody DefendantAccountEntity defendantAccountEntity,
+    public ResponseEntity<DefendantAccountCore> putDefendantAccount(
+        @RequestBody DefendantAccountCore defendantAccountEntity,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
-        DefendantAccountEntity response = defendantAccountService.putDefendantAccount(defendantAccountEntity);
+        DefendantAccountCore response = defendantAccountService.putDefendantAccount(defendantAccountEntity);
 
         return buildResponse(response);
     }
