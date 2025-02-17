@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -200,7 +199,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
             .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
             .andExpect(jsonPath("$.summaries[1].business_unit_id").value(77))
-            .andExpect(jsonPath("$.summaries[2].draft_account_id").value(4))
+            .andExpect(jsonPath("$.summaries[2].draft_account_id").value(5))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(78))
             .andReturn().getResponse().getContentAsString();
 
@@ -312,7 +311,6 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testDeleteDraftAccountById_success() throws Exception {
 
         MvcResult result = mockMvc.perform(delete(URL_BASE + "/4")
@@ -327,11 +325,10 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testReplaceDraftAccount_success() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-        String requestBody = validCreateRequestBody();
+        String requestBody = validReplaceRequestBody(1L);
         log.info(":testReplaceDraftAccount_success: Request Body:\n{}", ToJsonString.toPrettyJson(requestBody));
 
         String body  = mockMvc.perform(put(URL_BASE + "/" + 5)
@@ -355,7 +352,6 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testPostDraftAccount_permission() throws Exception {
 
         String validRequestBody = validCreateRequestBody();
@@ -380,7 +376,6 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Transactional
     void testUpdateDraftAccount_success() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -388,7 +383,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         MvcResult result = mockMvc.perform(patch(URL_BASE + "/" + 5)
                                                .header("authorization", "Bearer some_value")
                                                .contentType(MediaType.APPLICATION_JSON)
-                                               .content(validUpdateRequestBody()))
+                                               .content(validUpdateRequestBody("A")))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").value(5))
@@ -644,7 +639,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         return Stream.of(
             Arguments.of(post(URL_BASE), validCreateRequestBody()),
             Arguments.of(put(URL_BASE + "/1"), validCreateRequestBody()),
-            Arguments.of(patch(URL_BASE + "/1"), validUpdateRequestBody()),
+            Arguments.of(patch(URL_BASE + "/1"), validUpdateRequestBody("B")),
             Arguments.of(get(URL_BASE), "")  // GET endpoints with empty body
         );
     }
@@ -671,7 +666,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         return Stream.of(
             Arguments.of(get(URL_BASE + "/999"), ""),
             Arguments.of(put(URL_BASE + "/999"), validCreateRequestBody()),
-            Arguments.of(patch(URL_BASE + "/999"), validUpdateRequestBody())
+            Arguments.of(patch(URL_BASE + "/999"), validUpdateRequestBody("C"))
         );
     }
 
@@ -870,11 +865,117 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             }""";
     }
 
-    private static String validUpdateRequestBody() {
+    private static String validReplaceRequestBody(Long version) {
+        return """
+            {
+              "business_unit_id": 78,
+              "submitted_by": "BUUID1",
+              "submitted_by_name": "John",
+              "account": {
+                "account_type": "Fine",
+                "defendant_type": "Adult",
+                "originator_name": "Police Force",
+                "originator_id": 12345,
+                "enforcement_court_id": 101,
+                "collection_order_made": true,
+                "collection_order_made_today": false,
+                "payment_card_request": true,
+                "account_sentence_date": "2023-12-01",
+                "defendant": {
+                  "company_flag": false,
+                  "title": "Mr",
+                  "surname": "LNAME",
+                  "forenames": "John",
+                  "dob": "1985-04-15",
+                  "address_line_1": "123 Elm Street",
+                  "address_line_2": "Suite 45",
+                  "post_code": "AB1 2CD",
+                  "telephone_number_home": "0123456789",
+                  "telephone_number_mobile": "07712345678",
+                  "email_address_1": "john.doe@example.com",
+                  "national_insurance_number": "AB123456C",
+                  "nationality_1": "British",
+                  "occupation": "Engineer",
+                  "debtor_detail": {
+                    "document_language": "English",
+                    "hearing_language": "English",
+                    "vehicle_make": "Toyota",
+                    "vehicle_registration_mark": "ABC123",
+                    "aliases": [
+                      {
+                        "alias_forenames": "Jon",
+                        "alias_surname": "Smith"
+                      }
+                    ]
+                  }
+                },
+                "offences": [
+                  {
+                    "date_of_sentence": "2023-11-15",
+                    "imposing_court_id": 202,
+                    "offence_id": 1234,
+                    "impositions": [
+                      {
+                        "result_id": "1",
+                        "amount_imposed": 500.00,
+                        "amount_paid": 200.00,
+                        "major_creditor_id": 999
+                      }
+                    ]
+                  }
+                ],
+                "payment_terms": {
+                  "payment_terms_type_code": "P",
+                  "effective_date": "2023-11-01",
+                  "instalment_period": "M",
+                  "lump_sum_amount": 1000.00,
+                  "instalment_amount": 200.00,
+                  "default_days_in_jail": 5
+                },
+                "account_notes": [
+                  {
+                    "account_note_serial": 1,
+                    "account_note_text": "Defendant requested an installment plan.",
+                    "note_type": "AC"
+                  }
+                ]
+              },
+              "account_type": "Fines",
+              "account_status": "Submitted",
+              "version": """ + version
+            +
+              """
+              ,
+              "timeline_data": [
+                {
+                  "username": "johndoe123",
+                  "status": "Active",
+                  "status_date": "2023-11-01",
+                  "reason_text": "Account successfully activated after review."
+                },
+                {
+                  "username": "janedoe456",
+                  "status": "Pending",
+                  "status_date": "2023-12-05",
+                  "reason_text": "Awaiting additional documentation for verification."
+                },
+                {
+                  "username": "mikebrown789",
+                  "status": "Suspended",
+                  "status_date": "2023-10-15",
+                  "reason_text": "Violation of terms of service."
+                }
+              ]
+            }""";
+    }
+
+    private static String validUpdateRequestBody(String delta) {
         return "{\n"
             + "    \"account_status\": \"PENDING\",\n"
-            + "    \"validated_by\": \"BUUID1\",\n"
+            + "    \"validated_by\": \"BUUID1" + delta + "\",\n"
+            + "    \"validated_by_name\": \"" + delta + "\",\n"
             + "    \"business_unit_id\": 78,\n"
+            + "    \"version\": 0,\n"
             + "    \"timeline_data\": " + validTimelineDataJson() + "\n"
             + "}";
     }

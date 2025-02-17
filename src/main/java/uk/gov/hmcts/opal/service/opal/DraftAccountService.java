@@ -35,7 +35,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.opal.service.opal.util.VersionUtils.verifyVersions;
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyVersions;
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 
@@ -107,11 +107,11 @@ public class DraftAccountService implements DraftAccountServiceProxy {
     }
 
     @Transactional
-    public DraftAccountEntity replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto) {
-        DraftAccountEntity existingAccount = draftAccountRepository.findById(draftAccountId)
-            .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
+    public DraftAccountEntity replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto,
+                                                  DraftAccountServiceProxy proxy) {
 
-        verifyVersions(existingAccount, dto, draftAccountId);
+        DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
+        verifyVersions(existingAccount, dto, draftAccountId, "replaceDraftAccount");
 
         BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId())
             .orElseThrow(() -> new RuntimeException("Business Unit not found with id: " + dto.getBusinessUnitId()));
@@ -137,7 +137,7 @@ public class DraftAccountService implements DraftAccountServiceProxy {
         existingAccount.setAccountStatusDate(LocalDateTime.now());
         existingAccount.setTimelineData(dto.getTimelineData());
 
-        log.info(":replaceDraftAccount: Replacing draft account with ID: {} and new snapshot: \n{}",
+        log.debug(":replaceDraftAccount: Replacing draft account with ID: {} and new snapshot: \n{}",
                  draftAccountId, newSnapshot);
 
         return draftAccountRepository.save(existingAccount);
@@ -148,6 +148,7 @@ public class DraftAccountService implements DraftAccountServiceProxy {
                                                  DraftAccountServiceProxy proxy)  {
 
         DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
+        verifyVersions(existingAccount, dto, draftAccountId, "updateDraftAccount");
 
         if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
             log.warn("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
@@ -203,21 +204,23 @@ public class DraftAccountService implements DraftAccountServiceProxy {
 
     private String createInitialSnapshot(AddDraftAccountRequestDto dto, LocalDateTime created,
                                          BusinessUnitEntity businessUnit) {
-        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName())
+        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName(),
+                             "AddDraftAccountRequestDto.account")
             .toPrettyJson();
     }
 
     private String createUpdateSnapshot(ReplaceDraftAccountRequestDto dto, LocalDateTime created,
                                          BusinessUnitEntity businessUnit) {
-        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName())
+        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName(),
+                             "ReplaceDraftAccountRequestDto.account")
             .toPrettyJson();
     }
 
     private  DraftAccountSnapshots.Snapshot buildSnapshot(String document, LocalDateTime created,
                                                           BusinessUnitEntity businessUnit, String submittedBy,
-                                                          String submittedByName) {
+                                                          String submittedByName, String errorSource) {
 
-        JsonPathUtil.DocContext docContext = createDocContext(document);
+        JsonPathUtil.DocContext docContext = createDocContext(document, errorSource);
 
         String companyName = docContext.readOrNull(DEFENDANT_JSON_PATH + ".company_name");
 
@@ -257,6 +260,7 @@ public class DraftAccountService implements DraftAccountServiceProxy {
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .accountStatusDate(LocalDateTime.now())
             .timelineData(dto.getTimelineData())
+            .draftAccountId(null)
             .build();
     }
 }
