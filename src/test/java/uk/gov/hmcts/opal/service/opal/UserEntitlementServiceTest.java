@@ -15,10 +15,10 @@ import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.search.UserEntitlementSearchDto;
 import uk.gov.hmcts.opal.entity.ApplicationFunctionEntity;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity;
 import uk.gov.hmcts.opal.entity.UserEntitlementEntity;
 import uk.gov.hmcts.opal.entity.UserEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 import uk.gov.hmcts.opal.repository.UserEntitlementRepository;
 
 import java.util.List;
@@ -107,7 +107,7 @@ class UserEntitlementServiceTest {
                                   .businessUnitUserId("BUU_001")
                                   .user(UserEntity.builder()
                                             .userId(123L).username("John Smith").build())
-                                  .businessUnit(BusinessUnitEntity.builder()
+                                  .businessUnit(BusinessUnit.Lite.builder()
                                             .businessUnitId((short)101).build())
                                   .build())
             .applicationFunction(ApplicationFunctionEntity.builder()

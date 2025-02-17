@@ -1,58 +1,47 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.defendant;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 
 @Entity
-@Table(name = "defendant_account_parties")
 @Data
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Table(name = "defendant_account_parties")
+@ToString(callSuper = true)
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "defendantAccountPartyId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class DefendantAccountPartiesEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "defendant_account_party_id_seq")
-    @SequenceGenerator(name = "defendant_account_party_id_seq", sequenceName = "defendant_account_party_id_seq",
-        allocationSize = 1)
-    @Column(name = "defendant_account_party_id")
-    private Long defendantAccountPartyId;
+@XmlType(name = "Offence")
+public class DefendantAccountPartiesEntityFull extends DefendantAccountPartiesEntity {
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "defendant_account_id", nullable = false)
-    private DefendantAccountEntity defendantAccount;
+    private DefendantAccountFull defendantAccount;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "party_id",  nullable = false)
+    @JoinColumn(name = "party_id", nullable = false)
     private PartyEntity party;
 
-    @Column(name = "association_type", nullable = false, length = 30)
-    private String associationType;
-
-    @Column(name = "debtor", nullable = false)
-    private Boolean debtor;
 }

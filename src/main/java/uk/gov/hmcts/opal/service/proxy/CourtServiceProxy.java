@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.service.CourtServiceInterface;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyCourtService;
@@ -26,12 +26,12 @@ public class CourtServiceProxy implements CourtServiceInterface, ProxyInterface 
     }
 
     @Override
-    public CourtEntity getCourt(long courtId) {
-        return getCurrentModeService().getCourt(courtId);
+    public CourtEntity.Lite getCourtLite(long courtId) {
+        return getCurrentModeService().getCourtLite(courtId);
     }
 
     @Override
-    public List<CourtEntity> searchCourts(CourtSearchDto criteria) {
+    public List<CourtEntity.Lite> searchCourts(CourtSearchDto criteria) {
         return getCurrentModeService().searchCourts(criteria);
     }
 }

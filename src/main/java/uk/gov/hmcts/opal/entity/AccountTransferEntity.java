@@ -22,6 +22,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccount;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;
@@ -46,11 +48,11 @@ public class AccountTransferEntity {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", referencedColumnName = "business_unit_id", nullable = false)
-    private BusinessUnitEntity businessUnit;
+    private BusinessUnit.Lite businessUnit;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "defendant_account_id", nullable = false)
-    private DefendantAccountEntity defendantAccount;
+    private DefendantAccount.Lite defendantAccount;
 
     @Column(name = "initiated_date")
     @Temporal(TemporalType.TIMESTAMP)

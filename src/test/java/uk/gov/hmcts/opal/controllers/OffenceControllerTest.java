@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceDataResults;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchDataResults;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.OffenceEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
 import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
 import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
@@ -37,9 +37,9 @@ class OffenceControllerTest {
     @Test
     void testGetOffence_Success() {
         // Arrange
-        OffenceEntity entity = OffenceEntity.builder().build();
+        OffenceEntity entity = OffenceEntity.Lite.builder().build();
 
-        when(offenceService.getOffence(any(Long.class))).thenReturn(entity);
+        when(offenceService.getOffenceById(any(Long.class))).thenReturn(entity);
 
         // Act
         ResponseEntity<OffenceEntity> response = offenceController.getOffenceById(1L);
@@ -47,7 +47,7 @@ class OffenceControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
-        verify(offenceService, times(1)).getOffence(any(Long.class));
+        verify(offenceService, times(1)).getOffenceById(any(Long.class));
     }
 
     @Test

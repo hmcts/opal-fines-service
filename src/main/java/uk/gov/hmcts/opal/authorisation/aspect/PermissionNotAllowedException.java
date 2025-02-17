@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.authorisation.aspect;
 
 import lombok.Getter;
-import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
 
 import java.util.Arrays;
 import java.util.Collection;

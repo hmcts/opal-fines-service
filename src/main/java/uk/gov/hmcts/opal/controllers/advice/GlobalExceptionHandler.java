@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.LazyInitializationException;
 import org.hibernate.PropertyValueException;
+import org.hibernate.StaleObjectStateException;
 import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -351,7 +352,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT)
             .contentType(MediaType.APPLICATION_JSON)
             .body(body);
+    }
 
+    @ExceptionHandler(StaleObjectStateException.class)
+    public ResponseEntity<Map<String, String>> handleStaleObjectStateException(
+        StaleObjectStateException e) {
+        log.warn(":handleStaleObjectStateException: {}", e.getMessage());
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "Conflict");
+        body.put("resourceType", e.getEntityName());
+        body.put("resourceId", Optional.ofNullable(e.getIdentifier()).map(Object::toString).orElse(""));
+        body.put("conflictReason", e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body);
     }
 
     @ExceptionHandler(ResourceConflictException.class)

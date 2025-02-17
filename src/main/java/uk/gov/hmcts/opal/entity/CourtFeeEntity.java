@@ -19,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
 import java.math.BigDecimal;
 
@@ -42,7 +43,7 @@ public class CourtFeeEntity {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", updatable = false)
-    private BusinessUnitEntity businessUnit;
+    private BusinessUnit.Lite businessUnit;
 
     @Column(name = "court_fee_code", length = 10, nullable = false)
     private String courtFeeCode;

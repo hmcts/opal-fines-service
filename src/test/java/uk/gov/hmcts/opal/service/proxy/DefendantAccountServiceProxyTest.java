@@ -11,11 +11,10 @@ import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountCore;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
-
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -57,12 +56,12 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
     void testGetDefendantAccount(DefendantAccountServiceInterface targetService,
                                  DefendantAccountServiceInterface otherService) {
         // Given: a DefendantAccountEntity is returned from the target service
-        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+        DefendantAccountCore entity = DefendantAccountCore.builder().build();
         AccountEnquiryDto enquiryDto = AccountEnquiryDto.builder().build();
         when(targetService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(entity);
 
         // When: getDefendantAccount is called on the proxy
-        DefendantAccountEntity defendantAccountResult = defendantAccountServiceProxy.getDefendantAccount(enquiryDto);
+        DefendantAccountCore defendantAccountResult = defendantAccountServiceProxy.getDefendantAccount(enquiryDto);
 
         // Then: target service should be used, and the returned defendantAccount should be as expected
         verify(targetService).getDefendantAccount(enquiryDto);
@@ -105,11 +104,11 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
     void testPutDefendantAccount(DefendantAccountServiceInterface targetService,
                                  DefendantAccountServiceInterface otherService) {
         // Given: a DefendantAccountEntity is returned from the target service
-        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
-        when(targetService.putDefendantAccount(any(DefendantAccountEntity.class))).thenReturn(entity);
+        DefendantAccountCore entity = DefendantAccountCore.builder().build();
+        when(targetService.putDefendantAccount(any(DefendantAccountCore.class))).thenReturn(entity);
 
         // When: putDefendantAccount is called on the proxy
-        DefendantAccountEntity defendantAccountResult = defendantAccountServiceProxy.putDefendantAccount(entity);
+        DefendantAccountCore defendantAccountResult = defendantAccountServiceProxy.putDefendantAccount(entity);
 
         // Then: target service should be used, and the returned defendantAccount should be as expected
         verify(targetService).putDefendantAccount(entity);

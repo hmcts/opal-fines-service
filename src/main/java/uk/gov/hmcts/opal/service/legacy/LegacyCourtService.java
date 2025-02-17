@@ -7,7 +7,7 @@ import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyCourtSearchResults;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.service.CourtServiceInterface;
 
 import java.util.List;
@@ -27,14 +27,14 @@ public class LegacyCourtService extends LegacyService implements CourtServiceInt
     }
 
     @Override
-    public CourtEntity getCourt(long courtId) {
+    public CourtEntity.Lite getCourtLite(long courtId) {
         log.debug("getCourt for {} from {}", courtId, legacyGateway.getUrl());
-        return postToGateway("getCourt", CourtEntity.class, courtId);
+        return postToGateway("getCourt", CourtEntity.Lite.class, courtId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<CourtEntity> searchCourts(CourtSearchDto criteria) {
+    public List<CourtEntity.Lite> searchCourts(CourtSearchDto criteria) {
         log.debug(":searchCourts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchCourts", LegacyCourtSearchResults.class, criteria)
             .getCourtEntities();

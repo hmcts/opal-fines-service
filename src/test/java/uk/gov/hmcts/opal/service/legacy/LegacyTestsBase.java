@@ -9,12 +9,11 @@ import uk.gov.hmcts.opal.util.XmlUtil;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-
-import static org.springframework.web.client.RestClient.ResponseSpec;
 import static org.springframework.web.client.RestClient.RequestBodySpec;
 import static org.springframework.web.client.RestClient.RequestBodyUriSpec;
 import static org.springframework.web.client.RestClient.RequestHeadersSpec;
 import static org.springframework.web.client.RestClient.RequestHeadersUriSpec;
+import static org.springframework.web.client.RestClient.ResponseSpec;
 
 public abstract class LegacyTestsBase {
 

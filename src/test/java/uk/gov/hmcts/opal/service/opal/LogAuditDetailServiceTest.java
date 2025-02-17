@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.authorisation.model.LogActions;
 import uk.gov.hmcts.opal.dto.AddLogAuditDetailDto;
 import uk.gov.hmcts.opal.dto.search.LogAuditDetailSearchDto;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
-import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.LogActionRepository;
 import uk.gov.hmcts.opal.repository.LogAuditDetailRepository;
 
@@ -38,7 +38,7 @@ class LogAuditDetailServiceTest {
     private LogActionRepository logActionRepository;
 
     @Mock
-    private BusinessUnitRepository businessUnitRepository;
+    private BusinessUnitLiteRepository businessUnitLiteRepository;
 
     @InjectMocks
     private LogAuditDetailService logAuditDetailService;

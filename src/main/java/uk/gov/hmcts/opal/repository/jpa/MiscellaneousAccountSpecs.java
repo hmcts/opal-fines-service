@@ -4,15 +4,14 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.MiscellaneousAccountSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity_;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsParentBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitTypePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.likeBusinessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.likeBusinessUnitTypePredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.equalsPartyIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeAnyAddressLinesPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeForenamesPredicate;
@@ -30,7 +29,6 @@ public class MiscellaneousAccountSpecs extends EntitySpecs<MiscellaneousAccountE
             numericShort(criteria.getBusinessUnitId()).map(MiscellaneousAccountSpecs::equalsBusinessUnitId),
             notBlank(criteria.getBusinessUnitName()).map(MiscellaneousAccountSpecs::likeBusinessUnitName),
             notBlank(criteria.getBusinessUnitType()).map(MiscellaneousAccountSpecs::likeBusinessUnitType),
-            numericShort(criteria.getParentBusinessUnitId()).map(MiscellaneousAccountSpecs::equalsParentBusinessUnitId),
             notBlank(criteria.getAccountNumber()).map(MiscellaneousAccountSpecs::likeAccountNumber),
             numericLong(criteria.getPartyId()).map(MiscellaneousAccountSpecs::equalsPartyId),
             notBlank(criteria.getSurname()).map(MiscellaneousAccountSpecs::likeSurname),
@@ -62,10 +60,10 @@ public class MiscellaneousAccountSpecs extends EntitySpecs<MiscellaneousAccountE
             likeBusinessUnitTypePredicate(joinBusinessUnit(root), builder, businessUnitType);
     }
 
-    public static Specification<MiscellaneousAccountEntity> equalsParentBusinessUnitId(Short parentBusinessUnitId) {
-        return (root, query, builder) ->
-            equalsParentBusinessUnitIdPredicate(joinBusinessUnit(root), builder, parentBusinessUnitId);
-    }
+    // public static Specification<MiscellaneousAccountEntity> equalsParentBusinessUnitId(Short parentBusinessUnitId) {
+    //     return (root, query, builder) ->
+    //         equalsParentBusinessUnitIdPredicate(joinBusinessUnit(root), builder, parentBusinessUnitId);
+    // }
 
     public static Specification<MiscellaneousAccountEntity> likeAccountNumber(String accountNumber) {
         return (root, query, builder) ->
@@ -106,7 +104,7 @@ public class MiscellaneousAccountSpecs extends EntitySpecs<MiscellaneousAccountE
             likePostcodePredicate(joinParty(root), builder, postcode);
     }
 
-    public static Join<MiscellaneousAccountEntity, BusinessUnitEntity> joinBusinessUnit(
+    public static Join<MiscellaneousAccountEntity, BusinessUnit.Lite> joinBusinessUnit(
         From<?, MiscellaneousAccountEntity> from) {
         return from.join(MiscellaneousAccountEntity_.businessUnit);
     }

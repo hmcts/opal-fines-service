@@ -4,13 +4,13 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.LogAuditDetailSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.LogActionEntity;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity_;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.likeBusinessUnitNamePredicate;
 import static uk.gov.hmcts.opal.repository.jpa.LogActionSpecs.equalsLogActionIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.LogActionSpecs.likeLogActionNamePredicate;
 
@@ -61,7 +61,7 @@ public class LogAuditDetailSpecs extends EntitySpecs<LogAuditDetailEntity> {
         return (root, query, builder) -> builder.equal(root.get(LogAuditDetailEntity_.userId), userId);
     }
 
-    public static Join<LogAuditDetailEntity, BusinessUnitEntity> joinBusinessUnit(
+    public static Join<LogAuditDetailEntity, BusinessUnit.Lite> joinBusinessUnit(
         From<?, LogAuditDetailEntity> from) {
         return from.join(LogAuditDetailEntity_.businessUnit);
     }

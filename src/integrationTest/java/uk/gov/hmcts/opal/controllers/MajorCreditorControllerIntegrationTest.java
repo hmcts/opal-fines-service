@@ -14,8 +14,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 import uk.gov.hmcts.opal.entity.projection.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 
@@ -154,7 +154,7 @@ class MajorCreditorControllerIntegrationTest {
     private MajorCreditorEntity createMajorCreditorEntity() {
         return MajorCreditorEntity.builder()
             .majorCreditorId(1L)
-            .businessUnit(BusinessUnitEntity.builder().build())
+            .businessUnit(BusinessUnit.Lite.builder().build())
             .majorCreditorCode("CODE")
             .name("Major Creditor Corp")
             .addressLine1("Major Creditor Avenue")

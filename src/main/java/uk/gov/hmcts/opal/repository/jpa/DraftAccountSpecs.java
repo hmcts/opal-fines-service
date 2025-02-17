@@ -4,16 +4,16 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
 import java.util.Collection;
 import java.util.Optional;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsAnyBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsAnyBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
 
 public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
 
@@ -99,7 +99,7 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
         return Optional.of((root, query, builder) -> root.get(DraftAccountEntity_.accountStatus).in(accountStatuses));
     }
 
-    public static Join<DraftAccountEntity, BusinessUnitEntity> joinBusinessUnit(From<?, DraftAccountEntity> from) {
+    public static Join<DraftAccountEntity, BusinessUnit.Lite> joinBusinessUnit(From<?, DraftAccountEntity> from) {
         return from.join(DraftAccountEntity_.businessUnit);
     }
 }

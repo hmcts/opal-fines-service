@@ -12,10 +12,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.ConfigurationItemLite;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitCore;
 import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
-import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.repository.BusinessUnitCoreRepository;
+import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +32,10 @@ import static org.mockito.Mockito.when;
 class BusinessUnitServiceTest {
 
     @Mock
-    private BusinessUnitRepository businessUnitRepository;
+    private BusinessUnitCoreRepository businessUnitCoreRepository;
+
+    @Mock
+    private BusinessUnitLiteRepository businessUnitLiteRepository;
 
     @InjectMocks
     private BusinessUnitService businessUnitService;
@@ -39,11 +44,11 @@ class BusinessUnitServiceTest {
     void testGetBusinessUnit() {
         // Arrange
 
-        BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder().build();
-        when(businessUnitRepository.getReferenceById(any())).thenReturn(businessUnitEntity);
+        BusinessUnitCore businessUnitEntity = BusinessUnitCore.builder().build();
+        when(businessUnitCoreRepository.getReferenceById(any())).thenReturn(businessUnitEntity);
 
         // Act
-        BusinessUnitEntity result = businessUnitService.getBusinessUnit((short)1);
+        BusinessUnitCore result = businessUnitService.getBusinessUnit((short)1);
 
         // Assert
         assertNotNull(result);
@@ -56,15 +61,15 @@ class BusinessUnitServiceTest {
         // Arrange
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
 
-        BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder().build();
-        Page<BusinessUnitEntity> mockPage = new PageImpl<>(List.of(businessUnitEntity), Pageable.unpaged(), 999L);
-        when(businessUnitRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+        BusinessUnit.Lite businessUnitEntity = BusinessUnit.Lite.builder().build();
+        Page<BusinessUnit.Lite> mockPage = new PageImpl<>(List.of(businessUnitEntity), Pageable.unpaged(), 999L);
+        when(businessUnitLiteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
             return mockPage;
         });
 
         // Act
-        List<BusinessUnitEntity> result = businessUnitService
+        List<BusinessUnit.Lite> result = businessUnitService
             .searchBusinessUnits(BusinessUnitSearchDto.builder().build());
 
         // Assert
@@ -79,19 +84,19 @@ class BusinessUnitServiceTest {
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
         when(ffq.sortBy(any())).thenReturn(ffq);
 
-        BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder()
+        BusinessUnitCore businessUnitEntity = BusinessUnitCore.builder()
             .businessUnitId((short)3)
             .businessUnitName("Big Business Unit")
             .welshLanguage(true)
             .configurationItems(List.of(
-                ConfigurationItemEntity.builder()
+                ConfigurationItemLite.builder()
                     .itemName("A Config Item")
                     .itemValue("A value")
-                    .itemValues(List.of("Item Values One", "Item Values Two"))
+                    .itemValues(List.of("Item Values ActionMain", "Item Values SrvcReplace"))
                     .build()))
             .build();
-        Page<BusinessUnitEntity> mockPage = new PageImpl<>(List.of(businessUnitEntity), Pageable.unpaged(), 999L);
-        when(businessUnitRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+        Page<BusinessUnitCore> mockPage = new PageImpl<>(List.of(businessUnitEntity), Pageable.unpaged(), 999L);
+        when(businessUnitCoreRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
             return mockPage;
         });
@@ -103,7 +108,7 @@ class BusinessUnitServiceTest {
         assertEquals(List.of(new BusinessUnitReferenceData(
             (short)3, "Big Business Unit", null, null, null,
             null, Boolean.TRUE, List.of(new BusinessUnitReferenceData.ConfigItemRefData(
-                "A Config Item", "A value", List.of("Item Values One", "Item Values Two"))))), result);
+                "A Config Item", "A value", List.of("Item Values ActionMain", "Item Values SrvcReplace"))))), result);
 
     }
 

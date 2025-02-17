@@ -4,12 +4,12 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.ImpositionSearchDto;
-import uk.gov.hmcts.opal.entity.CourtEntity;
 import uk.gov.hmcts.opal.entity.CreditorAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.ImpositionEntity;
 import uk.gov.hmcts.opal.entity.ImpositionEntity_;
 import uk.gov.hmcts.opal.entity.UserEntity;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccount;
 
 import static uk.gov.hmcts.opal.repository.jpa.CourtSpecs.equalsCourtIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.CreditorAccountSpecs.equalsCreditorAccountIdPredicate;
@@ -77,11 +77,11 @@ public class ImpositionSpecs extends EntitySpecs<ImpositionEntity> {
         return (root, query, builder) -> builder.equal(root.get(ImpositionEntity_.unitFineUnits), unitFineUnits);
     }
 
-    public static Join<ImpositionEntity, DefendantAccountEntity> joinDefendantAccount(Root<ImpositionEntity> root) {
+    public static Join<ImpositionEntity, DefendantAccount.Lite> joinDefendantAccount(Root<ImpositionEntity> root) {
         return root.join(ImpositionEntity_.defendantAccount);
     }
 
-    public static Join<ImpositionEntity, CourtEntity> joinImposingCourt(Root<ImpositionEntity> root) {
+    public static Join<ImpositionEntity, CourtEntity.Lite> joinImposingCourt(Root<ImpositionEntity> root) {
         return root.join(ImpositionEntity_.imposingCourt);
     }
 

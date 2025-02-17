@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.ConfigurationItemLite;
 import uk.gov.hmcts.opal.service.ConfigurationItemServiceInterface;
 
 import java.util.List;
@@ -36,22 +36,22 @@ public class ConfigurationItemController {
 
     @GetMapping(value = "/{configurationItemId}")
     @Operation(summary = "Returns the ConfigurationItem for the given configurationItemId.")
-    public ResponseEntity<ConfigurationItemEntity> getConfigurationItemById(@PathVariable Long configurationItemId) {
+    public ResponseEntity<ConfigurationItemLite> getConfigurationItemById(@PathVariable Long configurationItemId) {
 
         log.debug(":GET:getConfigurationItemById: configurationItemId: {}", configurationItemId);
 
-        ConfigurationItemEntity response = configurationItemService.getConfigurationItem(configurationItemId);
+        ConfigurationItemLite response = configurationItemService.getConfigurationItem(configurationItemId);
 
         return buildResponse(response);
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches ConfigurationItems based upon criteria in request body")
-    public ResponseEntity<List<ConfigurationItemEntity>> postConfigurationItemsSearch(
+    public ResponseEntity<List<ConfigurationItemLite>> postConfigurationItemsSearch(
         @RequestBody ConfigurationItemSearchDto criteria) {
         log.debug(":POST:postConfigurationItemsSearch: query: \n{}", criteria);
 
-        List<ConfigurationItemEntity> response = configurationItemService.searchConfigurationItems(criteria);
+        List<ConfigurationItemLite> response = configurationItemService.searchConfigurationItems(criteria);
 
         return buildResponse(response);
     }

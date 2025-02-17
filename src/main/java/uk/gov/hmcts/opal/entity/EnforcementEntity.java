@@ -22,6 +22,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccount;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;
@@ -46,7 +48,7 @@ public class EnforcementEntity {
 
     @ManyToOne
     @JoinColumn(name = "defendant_account_id", referencedColumnName = "defendant_account_id", nullable = false)
-    private DefendantAccountEntity defendantAccount;
+    private DefendantAccount.Lite defendantAccount;
 
     @Column(name = "posted_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -82,7 +84,7 @@ public class EnforcementEntity {
 
     @ManyToOne
     @JoinColumn(name = "hearing_court_id", referencedColumnName = "court_id", nullable = false)
-    private CourtEntity hearingCourt;
+    private CourtEntity.Lite hearingCourt;
 
     @Column(name = "account_type", length = 20)
     private String accountType;

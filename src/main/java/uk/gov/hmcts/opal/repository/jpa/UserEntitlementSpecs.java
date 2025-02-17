@@ -10,15 +10,14 @@ import uk.gov.hmcts.opal.entity.UserEntitlementEntity;
 import uk.gov.hmcts.opal.entity.UserEntitlementEntity_;
 
 import static uk.gov.hmcts.opal.repository.jpa.ApplicationFunctionSpecs.likeFunctionNamePredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitTypePredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsParentBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.likeBusinessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.likeBusinessUnitTypePredicate;
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitUserSpecs.equalsBusinessUnitUserIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitUserSpecs.joinBusinessUnit;
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitUserSpecs.joinUser;
-import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.likeUserDescriptionPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.equalsUserIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.likeUserDescriptionPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.likeUsernamePredicate;
 
 public class UserEntitlementSpecs extends EntitySpecs<UserEntitlementEntity> {
@@ -30,7 +29,6 @@ public class UserEntitlementSpecs extends EntitySpecs<UserEntitlementEntity> {
             numericShort(criteria.getBusinessUnitId()).map(UserEntitlementSpecs::equalsBusinessUnitId),
             notBlank(criteria.getBusinessUnitName()).map(UserEntitlementSpecs::likeBusinessUnitName),
             notBlank(criteria.getBusinessUnitType()).map(UserEntitlementSpecs::likeBusinessUnitType),
-            numericShort(criteria.getParentBusinessUnitId()).map(UserEntitlementSpecs::equalsParentBusinessUnitId),
             numericLong(criteria.getUserId()).map(UserEntitlementSpecs::likeUserId),
             notBlank(criteria.getUsername()).map(UserEntitlementSpecs::likeUsername),
             notBlank(criteria.getUserDescription()).map(UserEntitlementSpecs::likeUserDescription),
@@ -61,12 +59,6 @@ public class UserEntitlementSpecs extends EntitySpecs<UserEntitlementEntity> {
     public static Specification<UserEntitlementEntity> likeBusinessUnitType(String businessUnitType) {
         return (root, query, builder) ->
             likeBusinessUnitTypePredicate(joinBusinessUnit(joinBusinessUnitUser(root)), builder, businessUnitType);
-    }
-
-    public static Specification<UserEntitlementEntity> equalsParentBusinessUnitId(Short parentBusinessUnitId) {
-        return (root, query, builder) ->
-            equalsParentBusinessUnitIdPredicate(joinBusinessUnit(joinBusinessUnitUser(root)), builder,
-                                                parentBusinessUnitId);
     }
 
     public static Specification<UserEntitlementEntity> likeUserId(Long userId) {

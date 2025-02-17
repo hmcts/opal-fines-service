@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.defendant;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

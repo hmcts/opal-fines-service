@@ -10,8 +10,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.TillSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 import uk.gov.hmcts.opal.service.opal.TillService;
 
 import static java.util.Collections.singletonList;
@@ -90,7 +90,7 @@ class TillControllerIntegrationTest {
         return TillEntity.builder()
             .tillId(1L)
             .tillNumber((short)2)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)3).build())
+            .businessUnit(BusinessUnit.Lite.builder().businessUnitId((short)3).build())
             .ownedBy("Owner Keith")
             .build();
     }

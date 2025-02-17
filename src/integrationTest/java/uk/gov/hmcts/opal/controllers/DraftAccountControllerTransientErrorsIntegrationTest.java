@@ -15,8 +15,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
@@ -417,7 +417,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     private DraftAccountEntity createDraftAccountEntity(String submittedBy, short businessUnit) {
         return DraftAccountEntity.builder()
             .draftAccountId(1L)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId(businessUnit).build())
+            .businessUnit(BusinessUnit.Lite.builder().businessUnitId(businessUnit).build())
             .createdDate(LocalDate.of(2023, 1, 2).atStartOfDay())
             .submittedBy(submittedBy)
             .accountType("DRAFT")

@@ -21,7 +21,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
-import uk.gov.hmcts.opal.util.Versioned;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
+import uk.gov.hmcts.opal.util.Lockable;
 
 import java.time.LocalDateTime;
 
@@ -33,7 +34,7 @@ import java.time.LocalDateTime;
 @Builder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "draftAccountId")
-public class DraftAccountEntity implements Versioned {
+public class DraftAccountEntity implements Lockable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "draft_account_id_seq_generator")
@@ -44,7 +45,7 @@ public class DraftAccountEntity implements Versioned {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", nullable = false)
-    private BusinessUnitEntity businessUnit;
+    private BusinessUnit.Lite businessUnit;
 
     @Column(name = "created_date", nullable = false)
     private LocalDateTime createdDate;
@@ -101,4 +102,10 @@ public class DraftAccountEntity implements Versioned {
     @Column(name = "version_number")
     @Version
     private Long version;
+
+    @Column(name = "lock_id_data", length = 100)
+    private String lockIdData;
+
+    @Column(name = "lock_timeout")
+    private LocalDateTime lockTimeout;
 }

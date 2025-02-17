@@ -188,6 +188,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_status   | Rejected             |
       | validated_by     | BUUID_REVIEWER       |
       | reason_text      | Reason for rejection |
+      | version          | 0                    |
     Then The draft account response returns 409
 
     And I get the single created draft account and the response contains

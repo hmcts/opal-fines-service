@@ -10,7 +10,7 @@ import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyConfigurationItemSearchResults;
 import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.ConfigurationItemLite;
 
 import java.util.Collections;
 import java.util.List;
@@ -42,10 +42,10 @@ class LegacyConfigurationItemServiceTest extends LegacyTestsBase {
     @Test
     public void testGetConfigurationItem() {
         long id = 1L;
-        ConfigurationItemEntity expectedEntity = new ConfigurationItemEntity();
+        ConfigurationItemLite expectedEntity = new ConfigurationItemLite();
         doReturn(expectedEntity).when(legacyConfigurationItemService).postToGateway(anyString(), any(), anyLong());
 
-        ConfigurationItemEntity result = legacyConfigurationItemService.getConfigurationItem(id);
+        ConfigurationItemLite result = legacyConfigurationItemService.getConfigurationItem(id);
 
         assertEquals(expectedEntity, result);
     }
@@ -53,12 +53,12 @@ class LegacyConfigurationItemServiceTest extends LegacyTestsBase {
     @Test
     public void testSearchConfigurationItems() {
         ConfigurationItemSearchDto criteria = ConfigurationItemSearchDto.builder().build();
-        List<ConfigurationItemEntity> expectedEntities = Collections.singletonList(new ConfigurationItemEntity());
+        List<ConfigurationItemLite> expectedEntities = Collections.singletonList(new ConfigurationItemLite());
         LegacyConfigurationItemSearchResults searchResults = LegacyConfigurationItemSearchResults.builder().build();
         searchResults.setConfigurationItemEntities(expectedEntities);
         doReturn(searchResults).when(legacyConfigurationItemService).postToGateway(anyString(), any(), any());
 
-        List<ConfigurationItemEntity> result = legacyConfigurationItemService.searchConfigurationItems(criteria);
+        List<ConfigurationItemLite> result = legacyConfigurationItemService.searchConfigurationItems(criteria);
 
         assertEquals(expectedEntities, result);
     }

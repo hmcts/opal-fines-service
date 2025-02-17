@@ -21,6 +21,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
 @Getter
 @Entity
@@ -44,7 +45,7 @@ public class MajorCreditorEntity extends AddressEntity {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", updatable = false)
-    private BusinessUnitEntity businessUnit;
+    private BusinessUnit.Lite businessUnit;
 
     @Column(name = "major_creditor_code", length = 4)
     private String majorCreditorCode;

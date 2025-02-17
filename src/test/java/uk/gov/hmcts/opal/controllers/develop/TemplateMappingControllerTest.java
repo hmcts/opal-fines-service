@@ -7,7 +7,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.controllers.develop.TemplateMappingController;
 import uk.gov.hmcts.opal.dto.search.TemplateMappingSearchDto;
 import uk.gov.hmcts.opal.entity.TemplateMappingEntity;
 import uk.gov.hmcts.opal.service.opal.TemplateMappingService;

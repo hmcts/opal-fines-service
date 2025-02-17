@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.BacsPaymentSearchDto;
 import uk.gov.hmcts.opal.entity.BacsPaymentEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.BacsPaymentServiceInterface;
+import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyBacsPaymentService;
 import uk.gov.hmcts.opal.service.opal.BacsPaymentService;
 

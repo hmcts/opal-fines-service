@@ -4,11 +4,11 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.ChequeSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.ChequeEntity;
 import uk.gov.hmcts.opal.entity.ChequeEntity_;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
 
 public class ChequeSpecs extends EntitySpecs<ChequeEntity> {
 
@@ -32,7 +32,7 @@ public class ChequeSpecs extends EntitySpecs<ChequeEntity> {
         return (root, query, builder) -> builder.equal(root.get(ChequeEntity_.chequeNumber), chequeNumber);
     }
 
-    public static Join<ChequeEntity, BusinessUnitEntity> joinBusinessUnit(From<?, ChequeEntity> from) {
+    public static Join<ChequeEntity, BusinessUnit.Lite> joinBusinessUnit(From<?, ChequeEntity> from) {
         return from.join(ChequeEntity_.businessUnit);
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.ConfigurationItemLite;
 import uk.gov.hmcts.opal.repository.ConfigurationItemRepository;
 import uk.gov.hmcts.opal.repository.jpa.ConfigurationItemSpecs;
 import uk.gov.hmcts.opal.service.ConfigurationItemServiceInterface;
@@ -24,13 +24,13 @@ public class ConfigurationItemService implements ConfigurationItemServiceInterfa
     private final ConfigurationItemSpecs specs = new ConfigurationItemSpecs();
 
     @Override
-    public ConfigurationItemEntity getConfigurationItem(long configurationItemId) {
+    public ConfigurationItemLite getConfigurationItem(long configurationItemId) {
         return configurationItemRepository.getReferenceById(configurationItemId);
     }
 
     @Override
-    public List<ConfigurationItemEntity> searchConfigurationItems(ConfigurationItemSearchDto criteria) {
-        Page<ConfigurationItemEntity> page = configurationItemRepository
+    public List<ConfigurationItemLite> searchConfigurationItems(ConfigurationItemSearchDto criteria) {
+        Page<ConfigurationItemLite> page = configurationItemRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq.page(Pageable.unpaged()));
 

@@ -12,10 +12,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.projection.CourtReferenceData;
 import uk.gov.hmcts.opal.repository.CourtRepository;
+import uk.gov.hmcts.opal.repository.CourtRepositoryFull;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +32,9 @@ class CourtServiceTest {
     @Mock
     private CourtRepository courtRepository;
 
+    @Mock
+    private CourtRepositoryFull courtRepositoryFull;
+
     @InjectMocks
     private CourtService courtService;
 
@@ -39,11 +42,11 @@ class CourtServiceTest {
     void testGetCourt() {
         // Arrange
 
-        CourtEntity courtEntity = CourtEntity.builder().build();
-        when(courtRepository.getReferenceById(any())).thenReturn(courtEntity);
+        CourtEntity.Lite courtLiteEntity = CourtEntity.Lite.builder().build();
+        when(courtRepository.findById(any())).thenReturn(Optional.of(courtLiteEntity));
 
         // Act
-        CourtEntity result = courtService.getCourt(1);
+        CourtEntity result = courtService.getCourtLite(1);
 
         // Assert
         assertNotNull(result);
@@ -56,7 +59,7 @@ class CourtServiceTest {
         // Arrange
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
 
-        CourtEntity courtEntity = CourtEntity.builder().build();
+        CourtEntity.Lite courtEntity = CourtEntity.Lite.builder().build();
         Page<CourtEntity> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 999L);
         when(courtRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
@@ -64,7 +67,7 @@ class CourtServiceTest {
         });
 
         // Act
-        List<CourtEntity> result = courtService.searchCourts(CourtSearchDto.builder().build());
+        List<CourtEntity.Lite> result = courtService.searchCourts(CourtSearchDto.builder().build());
 
         // Assert
         assertEquals(List.of(courtEntity), result);
@@ -78,8 +81,8 @@ class CourtServiceTest {
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
         when(ffq.sortBy(any())).thenReturn(ffq);
 
-        CourtEntity courtEntity = CourtEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)007).build()).build();
+        CourtEntity.Lite courtEntity = CourtEntity.Lite.builder()
+            .businessUnitId((short)007).build();
         Page<CourtEntity> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 999L);
         when(courtRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
@@ -91,7 +94,7 @@ class CourtServiceTest {
 
         CourtReferenceData refData =  new CourtReferenceData(
             courtEntity.getCourtId(),
-            courtEntity.getBusinessUnit().getBusinessUnitId(),
+            courtEntity.getBusinessUnitId(),
             courtEntity.getCourtCode(),
             courtEntity.getName(),
             courtEntity.getNameCy(),

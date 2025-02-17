@@ -4,11 +4,11 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.ControlTotalSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.ControlTotalEntity;
 import uk.gov.hmcts.opal.entity.ControlTotalEntity_;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
 
 public class ControlTotalSpecs extends EntitySpecs<ControlTotalEntity> {
 
@@ -28,7 +28,7 @@ public class ControlTotalSpecs extends EntitySpecs<ControlTotalEntity> {
             equalsBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
     }
 
-    public static Join<ControlTotalEntity, BusinessUnitEntity> joinBusinessUnit(From<?, ControlTotalEntity> from) {
+    public static Join<ControlTotalEntity, BusinessUnit.Lite> joinBusinessUnit(From<?, ControlTotalEntity> from) {
         return from.join(ControlTotalEntity_.businessUnit);
     }
 }

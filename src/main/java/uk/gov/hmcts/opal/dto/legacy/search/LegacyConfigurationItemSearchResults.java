@@ -6,7 +6,7 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.Builder;
 import lombok.Data;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.ConfigurationItemLite;
 
 import java.util.List;
 
@@ -17,6 +17,6 @@ import java.util.List;
 public class LegacyConfigurationItemSearchResults {
 
     @XmlElement(name = "configurationItemEntity")
-    private List<ConfigurationItemEntity> configurationItemEntities;
+    private List<ConfigurationItemLite> configurationItemEntities;
     private int totalCount;
 }

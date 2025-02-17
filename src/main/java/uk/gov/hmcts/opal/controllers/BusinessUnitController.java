@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitCore;
 import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
-import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
@@ -36,38 +35,34 @@ import static uk.gov.hmcts.opal.util.PermissionUtil.filterBusinessUnitsByPermiss
 @Tag(name = "BusinessUnit Controller")
 public class BusinessUnitController {
 
-    private final BusinessUnitServiceInterface businessUnitService;
-
-    private final BusinessUnitService opalBusinessUnitService;
+    private final BusinessUnitService businessUnitService;
 
     private final UserStateService userStateService;
 
     public BusinessUnitController(
-        @Qualifier("businessUnitServiceProxy") BusinessUnitServiceInterface businessUnitService,
-        BusinessUnitService opalBusinessUnitService, UserStateService userStateService) {
+        BusinessUnitService businessUnitService, UserStateService userStateService) {
         this.businessUnitService = businessUnitService;
-        this.opalBusinessUnitService = opalBusinessUnitService;
         this.userStateService = userStateService;
     }
 
     @GetMapping(value = "/{businessUnitId}")
     @Operation(summary = "Returns the BusinessUnit for the given businessUnitId.")
-    public ResponseEntity<BusinessUnitEntity> getBusinessUnitById(@PathVariable Short businessUnitId) {
+    public ResponseEntity<BusinessUnitCore> getBusinessUnitById(@PathVariable Short businessUnitId) {
 
         log.debug(":GET:getBusinessUnitById: businessUnitId: {}", businessUnitId);
 
-        BusinessUnitEntity response = businessUnitService.getBusinessUnit(businessUnitId);
+        BusinessUnitCore response = businessUnitService.getBusinessUnit(businessUnitId);
 
         return buildResponse(response);
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches BusinessUnits based upon criteria in request body")
-    public ResponseEntity<List<BusinessUnitEntity>> postBusinessUnitsSearch(
+    public ResponseEntity<List<BusinessUnit.Lite>> postBusinessUnitsSearch(
         @RequestBody BusinessUnitSearchDto criteria) {
         log.debug(":POST:postBusinessUnitsSearch: query: \n{}", criteria);
 
-        List<BusinessUnitEntity> response = businessUnitService.searchBusinessUnits(criteria);
+        List<BusinessUnit.Lite> response = businessUnitService.searchBusinessUnits(criteria);
 
         return buildResponse(response);
     }
@@ -80,8 +75,8 @@ public class BusinessUnitController {
 
         log.debug(":GET:getBusinessUnitRefData: permission: {}, query: \n{}", permission, filter);
 
-        List<BusinessUnitReferenceData> refData =  filterBusinessUnitsByPermission(userStateService,
-            opalBusinessUnitService.getReferenceData(filter), permission, authHeaderValue);
+        List<BusinessUnitReferenceData> refData =  filterBusinessUnitsByPermission(
+            userStateService, businessUnitService.getReferenceData(filter), permission, authHeaderValue);
 
         log.debug(":GET:getBusinessUnitRefData: business unit reference data count: {}", refData.size());
         return ResponseEntity.ok(BusinessUnitReferenceDataResults.builder().refData(refData).build());

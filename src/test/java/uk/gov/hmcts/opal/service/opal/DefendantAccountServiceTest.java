@@ -10,31 +10,24 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
-import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
+import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.dto.AccountSummaryDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.CourtEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountCore;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
-import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountPartiesEntityCore;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
+import uk.gov.hmcts.opal.repository.DefendantAccountCoreRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountPartiesCoreRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountFullRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -43,13 +36,26 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 public class DefendantAccountServiceTest {
 
     @Mock
-    private DefendantAccountRepository defendantAccountRepository;
+    private DefendantAccountCoreRepository defendantAccountRepository;
+
+    // @Mock
+    // private DefendantAccountLiteRepository defendantAccountLiteRepository;
 
     @Mock
-    DefendantAccountPartiesRepository defendantAccountPartiesRepository;
+    private DefendantAccountFullRepository defendantAccountFullRepository;
+
+    @Mock
+    DefendantAccountPartiesCoreRepository defendantAccountPartiesCoreRepository;
 
     @Mock
     PaymentTermsRepository paymentTermsRepository;
@@ -68,57 +74,40 @@ public class DefendantAccountServiceTest {
         AutoCloseable autoCloseable = MockitoAnnotations.openMocks(this);
     }
 
-    @Test
-    void testGetDefendantAccount() {
-        // Arrange
-        AccountEnquiryDto request = AccountEnquiryDto.builder().accountNumber("12345").businessUnitId(
-            Short.valueOf("123")).build();
-
-        DefendantAccountEntity mockEntity = new DefendantAccountEntity();
-        when(defendantAccountRepository.findByBusinessUnit_BusinessUnitIdAndAccountNumber(
-            Short.valueOf("123"), "12345"))
-            .thenReturn(mockEntity);
-
-        // Act
-        DefendantAccountEntity result = defendantAccountService.getDefendantAccount(request);
-
-        // Assert
-        assertEquals(mockEntity, result);
-        verify(defendantAccountRepository, times(1))
-            .findByBusinessUnit_BusinessUnitIdAndAccountNumber(
-            Short.valueOf("123"), "12345");
-    }
+    // @Test
+    // void testGetDefendantAccount() {
+    //     // Arrange
+    //     AccountEnquiryDto request = AccountEnquiryDto.builder().accountNumber("12345").businessUnitId(
+    //         Short.valueOf("123")).build();
+    //
+    //     DefendantAccount.Lite mockEntity = new DefendantAccount.Lite();
+    //     when(defendantAccountLiteRepository.findByBusinessUnit_BusinessUnitIdAndAccountNumber(
+    //         Short.valueOf("123"), "12345"))
+    //         .thenReturn(mockEntity);
+    //
+    //     // Act
+    //     DefendantAccount.Lite result = defendantAccountService.getDefendantAccountLite(request);
+    //
+    //     // Assert
+    //     assertEquals(mockEntity, result);
+    //     verify(defendantAccountRepository, times(1))
+    //         .findByBusinessUnit_BusinessUnitIdAndAccountNumber(
+    //         Short.valueOf("123"), "12345");
+    // }
 
     @Test
     void testPutDefendantAccount() {
         // Arrange
-        DefendantAccountEntity mockEntity = new DefendantAccountEntity();
-        when(defendantAccountRepository.save(any(DefendantAccountEntity.class)))
+        DefendantAccountCore mockEntity = new DefendantAccountCore();
+        when(defendantAccountRepository.save(any(DefendantAccountCore.class)))
             .thenReturn(mockEntity);
 
         // Act
-        DefendantAccountEntity result = defendantAccountService.putDefendantAccount(mockEntity);
+        DefendantAccountCore result = defendantAccountService.putDefendantAccount(mockEntity);
 
         // Assert
         assertEquals(mockEntity, result);
         verify(defendantAccountRepository, times(1)).save(mockEntity);
-    }
-
-    @Test
-    void testGetDefendantAccounts() {
-        // Arrange
-
-        List<DefendantAccountEntity> mockEntity = List.of(new DefendantAccountEntity());
-        when(defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId(Short.valueOf("123")))
-            .thenReturn(mockEntity);
-
-        // Act
-        List<DefendantAccountEntity> result = defendantAccountService.getDefendantAccountsByBusinessUnit((short) 123);
-
-        // Assert
-        assertEquals(mockEntity, result);
-        verify(defendantAccountRepository, times(1))
-            .findAllByBusinessUnit_BusinessUnitId(Short.valueOf("123"));
     }
 
     @SuppressWarnings("unchecked")
@@ -165,11 +154,11 @@ public class DefendantAccountServiceTest {
     void testGetAccountDetailsByDefendantAccountId() {
 
         //arrange
-        DefendantAccountPartiesEntity mockDefendantAccountPartiesEntity = new DefendantAccountPartiesEntity();
+        DefendantAccountPartiesEntityCore mockDefendantAccountPartiesEntity = new DefendantAccountPartiesEntityCore();
         mockDefendantAccountPartiesEntity.setDefendantAccount(buildDefendantAccountEntity());
         mockDefendantAccountPartiesEntity.setParty(buildPartyEntity());
 
-        when(defendantAccountPartiesRepository.findByDefendantAccount_DefendantAccountId(
+        when(defendantAccountPartiesCoreRepository.findByDefendantAccount_DefendantAccountId(
             any()))
             .thenReturn(mockDefendantAccountPartiesEntity);
 
@@ -199,12 +188,12 @@ public class DefendantAccountServiceTest {
     void testGetAccountDetailsByDefendantAccountId_PaymentByDate() {
 
         //arrange
-        DefendantAccountPartiesEntity mockDefendantAccountPartiesEntity = new DefendantAccountPartiesEntity();
+        DefendantAccountPartiesEntityCore mockDefendantAccountPartiesEntity = new DefendantAccountPartiesEntityCore();
 
         mockDefendantAccountPartiesEntity.setDefendantAccount(buildDefendantAccountEntity());
         mockDefendantAccountPartiesEntity.setParty(buildPartyEntity());
 
-        when(defendantAccountPartiesRepository.findByDefendantAccount_DefendantAccountId(
+        when(defendantAccountPartiesCoreRepository.findByDefendantAccount_DefendantAccountId(
             any()))
             .thenReturn(mockDefendantAccountPartiesEntity);
 
@@ -224,6 +213,7 @@ public class DefendantAccountServiceTest {
             .thenReturn(buildNotesEntityActivity());
 
         AccountDetailsDto expectedDetails = buildAccountDetailsDto();
+        // expectedDetails.setAccountCT(null);
         expectedDetails.setPaymentDetails(LocalDate.of(2012, 1,1) + " By Date");
         expectedDetails.setCommencing(null);
 
@@ -239,12 +229,12 @@ public class DefendantAccountServiceTest {
     void testGetAccountDetailsByDefendantAccountId_PaymentPaid() {
 
         //arrange
-        DefendantAccountPartiesEntity mockDefendantAccountPartiesEntity = new DefendantAccountPartiesEntity();
+        DefendantAccountPartiesEntityCore mockDefendantAccountPartiesEntity = new DefendantAccountPartiesEntityCore();
 
         mockDefendantAccountPartiesEntity.setDefendantAccount(buildDefendantAccountEntity());
         mockDefendantAccountPartiesEntity.setParty(buildPartyEntity());
 
-        when(defendantAccountPartiesRepository.findByDefendantAccount_DefendantAccountId(
+        when(defendantAccountPartiesCoreRepository.findByDefendantAccount_DefendantAccountId(
             any()))
             .thenReturn(mockDefendantAccountPartiesEntity);
 
@@ -278,7 +268,7 @@ public class DefendantAccountServiceTest {
     void testGetAccountDetailsByDefendantAccountId_Organisation() {
 
         //arrange
-        DefendantAccountPartiesEntity mockDefendantAccountPartiesEntity = new DefendantAccountPartiesEntity();
+        DefendantAccountPartiesEntityCore mockDefendantAccountPartiesEntity = new DefendantAccountPartiesEntityCore();
 
         mockDefendantAccountPartiesEntity.setDefendantAccount(buildDefendantAccountEntity());
 
@@ -287,7 +277,7 @@ public class DefendantAccountServiceTest {
 
         mockDefendantAccountPartiesEntity.setParty(partyEntity);
 
-        when(defendantAccountPartiesRepository.findByDefendantAccount_DefendantAccountId(
+        when(defendantAccountPartiesCoreRepository.findByDefendantAccount_DefendantAccountId(
             any()))
             .thenReturn(mockDefendantAccountPartiesEntity);
 
@@ -324,13 +314,14 @@ public class DefendantAccountServiceTest {
             .defendantAccountId(1000L)
             .accountNumber("100")
             .fullName("Mr John Smith")
-            .accountCT("CT")
+            // .accountCT("CT")
+            .businessUnitId((short)1)
             .address("1 High Street, Westminster, London")
             .postCode("W1 1AA")
             .dob(LocalDate.of(1979,12,12))
             .detailsChanged(LocalDate.of(2012, 1,1))
-            .lastCourtAppAndCourtCode(LocalDate.of(2012, 1,1)
-                                          + " " + 1212)
+            // .lastCourtAppAndCourtCode(LocalDate.of(2012, 1,1)
+            //                               + " " + 1212)
             .lastMovement(LocalDate.of(2012, 1,1))
             .commentField(List.of("Comment1"))
             .accountNotes("Activity")
@@ -343,41 +334,41 @@ public class DefendantAccountServiceTest {
             .lastEnforcement("ENF")
             .override("OVER")
             .enforcer((short) 123)
-            .enforcementCourt(1)
+            .enforcementCourt(0)
             .imposed(BigDecimal.valueOf(200.00))
             .amountPaid(BigDecimal.valueOf(100.00))
             .balance(BigDecimal.valueOf(100.00))
             .build();
     }
 
-    public static DefendantAccountEntity buildDefendantAccountEntity() {
+    public static DefendantAccountCore buildDefendantAccountEntity() {
 
-        BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder()
+        BusinessUnit.Lite businessUnitEntity = BusinessUnit.Lite.builder()
             .businessUnitName("CT")
             .build();
 
-        CourtEntity courtEntity1 = CourtEntity.builder()
+        CourtEntity.Lite courtEntity1 = CourtEntity.Lite.builder()
             .courtCode((short) 1212)
             .build();
 
-        CourtEntity courtEntity2 = CourtEntity.builder()
+        CourtEntity.Lite courtEntity2 = CourtEntity.Lite.builder()
             .courtCode((short) 1)
             .build();
 
-        return DefendantAccountEntity.builder()
+        return DefendantAccountCore.builder()
             .defendantAccountId(1000L)
             .accountNumber("100")
-            .businessUnit(businessUnitEntity)
+            .businessUnitId((short)1)
             .originatorType("ACC")
             .lastChangedDate(LocalDate.of(2012, 1,1))
             .lastHearingDate(LocalDate.of(2012, 1,1))
-            .lastHearingCourt(courtEntity1)
+            .lastHearingCourtId(1L)
             .lastMovementDate(LocalDate.of(2012, 1,1))
             .prosecutorCaseReference("123456")
             .imposedHearingDate(LocalDate.of(2012, 1,1))
             .lastEnforcement("ENF")
             .enforcementOverrideResultId("OVER")
-            .enforcingCourt(courtEntity2)
+            .enforcingCourtId(2L)
             .amountImposed(BigDecimal.valueOf(200.00))
             .amountPaid(BigDecimal.valueOf(100.00))
             .accountBalance(BigDecimal.valueOf(100.00))

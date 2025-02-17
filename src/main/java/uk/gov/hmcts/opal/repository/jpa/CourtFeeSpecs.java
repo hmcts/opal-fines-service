@@ -4,12 +4,12 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.CourtFeeSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.CourtFeeEntity;
 import uk.gov.hmcts.opal.entity.CourtFeeEntity_;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.likeBusinessUnitNamePredicate;
 
 public class CourtFeeSpecs extends EntitySpecs<CourtFeeEntity> {
 
@@ -53,7 +53,7 @@ public class CourtFeeSpecs extends EntitySpecs<CourtFeeEntity> {
             likeWildcardPredicate(root.get(CourtFeeEntity_.statsCode), builder, statsCode);
     }
 
-    public static Join<CourtFeeEntity, BusinessUnitEntity> joinBusinessUnit(From<?, CourtFeeEntity> from) {
+    public static Join<CourtFeeEntity, BusinessUnit.Lite> joinBusinessUnit(From<?, CourtFeeEntity> from) {
         return from.join(CourtFeeEntity_.businessUnit);
     }
 

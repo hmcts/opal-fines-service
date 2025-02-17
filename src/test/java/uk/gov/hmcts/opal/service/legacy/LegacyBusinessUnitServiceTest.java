@@ -10,7 +10,8 @@ import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyBusinessUnitSearchResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitCore;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,10 +42,10 @@ class LegacyBusinessUnitServiceTest extends LegacyTestsBase {
     @Test
     public void testGetBusinessUnit() {
         short id = 1;
-        BusinessUnitEntity expectedEntity = new BusinessUnitEntity();
+        BusinessUnitCore expectedEntity = new BusinessUnitCore();
         doReturn(expectedEntity).when(legacyBusinessUnitService).postToGateway(anyString(), any(), anyShort());
 
-        BusinessUnitEntity result = legacyBusinessUnitService.getBusinessUnit(id);
+        BusinessUnitCore result = legacyBusinessUnitService.getBusinessUnit(id);
 
         assertEquals(expectedEntity, result);
     }
@@ -52,12 +53,12 @@ class LegacyBusinessUnitServiceTest extends LegacyTestsBase {
     @Test
     public void testSearchBusinessUnits() {
         BusinessUnitSearchDto criteria = BusinessUnitSearchDto.builder().build();
-        List<BusinessUnitEntity> expectedEntities = Collections.singletonList(new BusinessUnitEntity());
+        List<BusinessUnit.Lite> expectedEntities = Collections.singletonList(new BusinessUnit.Lite());
         LegacyBusinessUnitSearchResults searchResults = LegacyBusinessUnitSearchResults.builder().build();
         searchResults.setBusinessUnitEntities(expectedEntities);
         doReturn(searchResults).when(legacyBusinessUnitService).postToGateway(anyString(), any(), any());
 
-        List<BusinessUnitEntity> result = legacyBusinessUnitService.searchBusinessUnits(criteria);
+        List<BusinessUnit.Lite> result = legacyBusinessUnitService.searchBusinessUnits(criteria);
 
         assertEquals(expectedEntities, result);
     }

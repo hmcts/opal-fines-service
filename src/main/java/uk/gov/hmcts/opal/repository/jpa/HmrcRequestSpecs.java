@@ -4,11 +4,11 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.HmrcRequestSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.HmrcRequestEntity;
 import uk.gov.hmcts.opal.entity.HmrcRequestEntity_;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
 
 public class HmrcRequestSpecs extends EntitySpecs<HmrcRequestEntity> {
 
@@ -28,7 +28,7 @@ public class HmrcRequestSpecs extends EntitySpecs<HmrcRequestEntity> {
             equalsBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
     }
 
-    public static Join<HmrcRequestEntity, BusinessUnitEntity> joinBusinessUnit(From<?, HmrcRequestEntity> from) {
+    public static Join<HmrcRequestEntity, BusinessUnit.Lite> joinBusinessUnit(From<?, HmrcRequestEntity> from) {
         return from.join(HmrcRequestEntity_.businessUnit);
     }
 }

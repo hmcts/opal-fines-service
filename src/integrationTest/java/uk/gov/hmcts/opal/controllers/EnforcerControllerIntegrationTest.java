@@ -11,8 +11,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 import uk.gov.hmcts.opal.entity.projection.EnforcerReferenceData;
 import uk.gov.hmcts.opal.service.opal.EnforcerService;
 
@@ -135,7 +135,7 @@ class EnforcerControllerIntegrationTest {
             .enforcerCode((short)7)
             .warrantReferenceSequence("WARR-REF-SEQ-666")
             .warrantRegisterSequence(666)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)3).build())
+            .businessUnit(BusinessUnit.Lite.builder().businessUnitId((short)3).build())
             .name("Herbert the Enforcer")
             .addressLine1("Enforcer Road")
             .addressLine2("Enforcer Town")

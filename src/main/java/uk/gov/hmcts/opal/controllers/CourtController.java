@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.projection.CourtReferenceData;
 import uk.gov.hmcts.opal.service.CourtServiceInterface;
 import uk.gov.hmcts.opal.service.opal.CourtService;
@@ -49,27 +49,29 @@ public class CourtController {
 
     @GetMapping(value = "/{courtId}")
     @Operation(summary = "Returns the court for the given courtId.")
-    public ResponseEntity<CourtEntity> getCourtById(@PathVariable Long courtId,
-              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+    public ResponseEntity<CourtEntity> getCourtById(
+        @PathVariable Long courtId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":GET:getCourtById: courtId: {}", courtId);
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
-
-        CourtEntity response = courtService.getCourt(courtId);
+        CourtEntity response = opalCourtService.getCourtLite(courtId);
 
         return buildResponse(response);
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches courts based upon criteria in request body")
-    public ResponseEntity<List<CourtEntity>> postCourtsSearch(@RequestBody CourtSearchDto criteria,
-                  @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+    public ResponseEntity<List<CourtEntity.Lite>> postCourtsSearch(
+        @RequestBody CourtSearchDto criteria,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
         log.debug(":POST:postCourtsSearch: query: \n{}", criteria);
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        List<CourtEntity> response = courtService.searchCourts(criteria);
+        List<CourtEntity.Lite> response = courtService.searchCourts(criteria);
 
         return buildResponse(response);
     }

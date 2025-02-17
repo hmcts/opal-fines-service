@@ -1,13 +1,13 @@
 package uk.gov.hmcts.opal.service;
 
 import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.ConfigurationItemLite;
 
 import java.util.List;
 
 public interface ConfigurationItemServiceInterface {
 
-    ConfigurationItemEntity getConfigurationItem(long configurationItemId);
+    ConfigurationItemLite getConfigurationItem(long configurationItemId);
 
-    List<ConfigurationItemEntity> searchConfigurationItems(ConfigurationItemSearchDto criteria);
+    List<ConfigurationItemLite> searchConfigurationItems(ConfigurationItemSearchDto criteria);
 }

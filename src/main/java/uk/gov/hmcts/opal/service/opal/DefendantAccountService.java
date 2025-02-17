@@ -1,34 +1,37 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.transaction.Transactional;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyDefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyLink;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountCore;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountFull;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountPartiesEntityCore;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyDefendantAccountSummary;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyLink;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountCoreRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountPartiesCoreRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountFullRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
-import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
+import uk.gov.hmcts.opal.repository.jpa.DefendantAccountCoreSpecs;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 
 import java.io.InputStream;
@@ -43,15 +46,20 @@ import java.util.stream.Collectors;
 import static uk.gov.hmcts.opal.dto.ToJsonString.getObjectMapper;
 
 @Service
-@Transactional
 @Slf4j(topic = "opal.DefendantAccountService")
 @RequiredArgsConstructor
 @Qualifier("defendantAccountService")
 public class DefendantAccountService implements DefendantAccountServiceInterface {
 
-    private final DefendantAccountRepository defendantAccountRepository;
+    // private final DefendantAccountRepository defendantAccountRepository;
 
-    private final DefendantAccountPartiesRepository defendantAccountPartiesRepository;
+    // private final DefendantAccountLiteRepository defendantAccountLiteRepository;
+
+    private final DefendantAccountCoreRepository defendantAccountCoreRepository;
+
+    private final DefendantAccountFullRepository defendantAccountFullRepository;
+
+    private final DefendantAccountPartiesCoreRepository defendantAccountPartiesCoreRepository;
 
     private final PaymentTermsRepository paymentTermsRepository;
 
@@ -61,29 +69,86 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
     private final NoteRepository noteRepository;
 
-    private final DefendantAccountSpecs specs = new DefendantAccountSpecs();
+    private final DefendantAccountCoreSpecs specs = new DefendantAccountCoreSpecs();
+
+    @Transactional(readOnly = true)
+    public DefendantAccountFull getDefendantAccountFull(long defendantAccountId) {
+        log.info(":getDefendantAccountPhat:\n");
+        log.info(":getDefendantAccountPhat: get id: {}", defendantAccountId);
+        try {
+            return defendantAccountFullRepository.findById(defendantAccountId)
+                .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: "
+                                                                   + defendantAccountId));
+        } finally {
+            log.info(":getDefendantAccountPhat: got id: {}\n", defendantAccountId);
+        }
+    }
+
+    @Transactional
+    public boolean deleteDefendantAccount(long defendantAccountId, boolean checkExists) {
+        log.info(":deleteDefendantAccount:\n");
+        log.info(":deleteDefendantAccount: delete id: {}", defendantAccountId);
+        try {
+            defendantAccountCoreRepository.deleteById(defendantAccountId);
+            // defendantAccountRepository.delete(getDefendantAccount(defendantAccountId));
+            log.info(":deleteDefendantAccount: deleted id: {}\n", defendantAccountId);
+            return true;
+        } catch (EntityNotFoundException enfe) {
+            if (checkExists) {
+                throw enfe;
+            }
+            return false;
+        }
+    }
+
+    // @Transactional(readOnly = true)
+    // public DefendantAccount.Lite getDefendantAccountLite(long defendantAccountId) {
+    //     log.info(":getDefendantAccountLite:\n");
+    //     log.info(":getDefendantAccountLite: get id: {}", defendantAccountId);
+    //     try {
+    //         return defendantAccountLiteRepository.findById(defendantAccountId)
+    //             .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: "
+    //                                                                + defendantAccountId));
+    //     } finally {
+    //         log.info(":getDefendantAccountLite: got id: {}\n", defendantAccountId);
+    //     }
+    // }
+
+    @Transactional(readOnly = true)
+    public DefendantAccountCore getDefendantAccount(long defendantAccountId) {
+        log.info(":getDefendantAccount:\n");
+        log.info(":getDefendantAccount: get id: {}", defendantAccountId);
+        try {
+            return defendantAccountCoreRepository.findById(defendantAccountId)
+                .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: "
+                                                                   + defendantAccountId));
+        } finally {
+            log.info(":getDefendantAccount: got id: {}\n", defendantAccountId);
+        }
+    }
 
     @Override
-    public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
-
-        return defendantAccountRepository.findByBusinessUnit_BusinessUnitIdAndAccountNumber(
+    @Transactional(readOnly = true)
+    public DefendantAccountCore getDefendantAccount(AccountEnquiryDto request) {
+        return defendantAccountCoreRepository.findByBusinessUnit_BusinessUnitIdAndAccountNumber(
             request.getBusinessUnitId(), request.getAccountNumber());
     }
 
     @Override
-    public DefendantAccountEntity putDefendantAccount(DefendantAccountEntity defendantAccountEntity) {
-
-        return defendantAccountRepository.save(defendantAccountEntity);
+    @Transactional
+    public DefendantAccountCore putDefendantAccount(DefendantAccountCore defendantAccountEntity) {
+        return defendantAccountCoreRepository.save(defendantAccountEntity);
     }
 
     @Override
-    public List<DefendantAccountEntity> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
-
+    @Transactional
+    public List<DefendantAccountCore> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
         log.debug(":getDefendantAccountsByBusinessUnit: busUnit: {}", businessUnitId);
-        return defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId(businessUnitId);
+        return defendantAccountCoreRepository.findAllByBusinessUnit_BusinessUnitId(businessUnitId);
     }
 
     @Override
+    @Transactional
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts: criteria: {}", accountSearchDto.toJson());
 
@@ -102,7 +167,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             }
         }
 
-        Page<DefendantAccountSummary> summariesPage = defendantAccountRepository
+        Page<DefendantAccountSummary> summariesPage = defendantAccountCoreRepository
             .findBy(specs.findByAccountSearch(accountSearchDto),
                     ffq -> ffq.as(DefendantAccountSummary.class).page(Pageable.unpaged()));
 
@@ -117,6 +182,12 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .build();
     }
 
+    // @Transactional
+    // public DefendantAccount.Lite postDefendantAccount(DefendantAccount.Lite defendantAccountEntity) {
+    //     return defendantAccountLiteRepository.save(defendantAccountEntity);
+    // }
+
+    @Transactional
     public AccountDetailsDto getAccountDetailsByDefendantAccountId(Long defendantAccountId) {
 
         // TODO - 25/06/2024 - remove this Disco+ 'test' code soon?
@@ -142,11 +213,12 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
 
         //query db for defendantAccountPartiesEntity
-        DefendantAccountPartiesEntity defendantAccountPartiesEntity = defendantAccountPartiesRepository
+        DefendantAccountPartiesEntityCore defendantAccountPartiesEntity = defendantAccountPartiesCoreRepository
             .findByDefendantAccount_DefendantAccountId(defendantAccountId);
 
         //Extract unique defendantAccount and party entities
-        final DefendantAccountEntity defendantAccountEntity = defendantAccountPartiesEntity.getDefendantAccount();
+        final DefendantAccountCore defendantAccountEntity = defendantAccountPartiesEntity.getDefendantAccount();
+
         final PartyEntity partyEntity = defendantAccountPartiesEntity.getParty();
 
 
@@ -192,14 +264,14 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .fullName(partyEntity.getOrganisationName() == null
                           ? partyEntity.getFullName()
                           : partyEntity.getOrganisationName())
-            .accountCT(defendantAccountEntity.getBusinessUnit().getBusinessUnitName())
-            .businessUnitId(defendantAccountEntity.getBusinessUnit().getBusinessUnitId())
+            // .accountCT(defendantAccountEntity.getBusinessUnitId().getBusinessUnitName())
+            .businessUnitId(defendantAccountEntity.getBusinessUnitId())
             .address(fullAddress)
             .postCode(partyEntity.getPostcode())
             .dob(partyEntity.getDateOfBirth())
             .detailsChanged(defendantAccountEntity.getLastChangedDate())
-            .lastCourtAppAndCourtCode(defendantAccountEntity.getLastHearingDate().toString()
-                                          + " " + defendantAccountEntity.getLastHearingCourt().getCourtCode())
+            // .lastCourtAppAndCourtCode(defendantAccountEntity.getLastHearingDate().toString()
+            //                               + " " + defendantAccountEntity.getLastHearingCourtId().getCourtCode())
             .lastMovement(defendantAccountEntity.getLastMovementDate())
             .commentField(comments)
             .accountNotes(noteEntityAA.map(NoteEntity::getNoteText).orElse(null))
@@ -214,7 +286,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .lastEnforcement(defendantAccountEntity.getLastEnforcement())
             .override(defendantAccountEntity.getEnforcementOverrideResultId())
             .enforcer(enforcerEntity.getEnforcerCode())
-            .enforcementCourt(defendantAccountEntity.getEnforcingCourt().getCourtCode())
+            // .enforcementCourt(defendantAccountEntity.getEnforcingCourtId().getCourtCode())
             .imposed(defendantAccountEntity.getAmountImposed())
             .amountPaid(defendantAccountEntity.getAmountPaid())
             .balance(defendantAccountEntity.getAccountBalance())

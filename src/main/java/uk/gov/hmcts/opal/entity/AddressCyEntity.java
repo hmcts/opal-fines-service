@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -15,12 +14,11 @@ import lombok.experimental.SuperBuilder;
 
 @Data
 @SuperBuilder
-@ToString(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class AddressCyEntity extends AddressEntity {

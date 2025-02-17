@@ -1,13 +1,13 @@
 package uk.gov.hmcts.opal.util;
 
+import org.hibernate.StaleObjectStateException;
 import org.junit.jupiter.api.Test;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class VersionUtilsTest {
+class VersionUtilsTest {
 
     @Test
     void testVerifyVersions_success() {
@@ -21,15 +21,14 @@ public class VersionUtilsTest {
         Versioned entity = new UtilVersioned(1L);
         Versioned dto = new UtilVersioned(2L);
 
-        ObjectOptimisticLockingFailureException rte = assertThrows(ObjectOptimisticLockingFailureException.class, () ->
+        StaleObjectStateException rte = assertThrows(StaleObjectStateException.class, () ->
             VersionUtils.verifyVersions(entity, dto, "test id", "testVerifyVersions_fail")
         );
 
-        assertEquals("uk.gov.hmcts.opal.entity.DraftAccountEntity", rte.getPersistentClassName());
+        assertEquals("UtilVersioned", rte.getEntityName());
         assertEquals("test id", rte.getIdentifier());
-        assertEquals("Object of class [uk.gov.hmcts.opal.entity.DraftAccountEntity] with identifier "
-                         + "[test id]: optimistic locking failed",
-                     rte.getMessage());
+        assertEquals("Row was updated or deleted by another transaction "
+                         + "(or unsaved-value mapping was incorrect) : [UtilVersioned#test id]", rte.getMessage());
     }
 
     @Test

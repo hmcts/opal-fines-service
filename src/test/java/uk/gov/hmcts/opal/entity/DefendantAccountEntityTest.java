@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.entity;
 
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccount;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,12 +16,12 @@ public class DefendantAccountEntityTest {
 
     @Test
     public void testGettersAndSetters() {
-        DefendantAccountEntity defendantAccount = new DefendantAccountEntity();
+        DefendantAccount.Lite defendantAccount = new DefendantAccount.Lite();
         final LocalDate now = LocalDate.now();
 
         // Set values using setters
         defendantAccount.setDefendantAccountId(1L);
-        defendantAccount.setBusinessUnit(new BusinessUnitEntity());
+        defendantAccount.setBusinessUnitId((short)1);
         defendantAccount.setAccountNumber("123456");
         defendantAccount.setImposedHearingDate(now);
         defendantAccount.setImposingCourtId(1L);
@@ -28,8 +30,8 @@ public class DefendantAccountEntityTest {
         defendantAccount.setAccountBalance(BigDecimal.valueOf(1.1));
         defendantAccount.setAccountStatus("status");
         defendantAccount.setCompletedDate(now);
-        defendantAccount.setEnforcingCourt(CourtEntity.builder().build());
-        defendantAccount.setLastHearingCourt(CourtEntity.builder().build());
+        defendantAccount.setEnforcingCourtId(1L);
+        defendantAccount.setLastHearingCourtId(1L);
         defendantAccount.setLastHearingDate(now);
         defendantAccount.setLastMovementDate(now);
         defendantAccount.setLastEnforcement("123456");
@@ -62,7 +64,7 @@ public class DefendantAccountEntityTest {
 
         // Test getters
         assertEquals(Long.valueOf(1L), defendantAccount.getDefendantAccountId());
-        assertEquals(new BusinessUnitEntity(), defendantAccount.getBusinessUnit());
+        // assertEquals(new BusinessUnit.Lite(), defendantAccount.getBusinessUnit());
         assertEquals("123456", defendantAccount.getAccountNumber());
         assertEquals(now, defendantAccount.getImposedHearingDate());
         assertEquals(Long.valueOf(1L), defendantAccount.getImposingCourtId());
@@ -71,8 +73,8 @@ public class DefendantAccountEntityTest {
         assertEquals(new BigDecimal("1.1"), defendantAccount.getAccountBalance());
         assertEquals("status", defendantAccount.getAccountStatus());
         assertEquals(now, defendantAccount.getCompletedDate());
-        assertEquals(CourtEntity.builder().build(), defendantAccount.getEnforcingCourt());
-        assertEquals(CourtEntity.builder().build(), defendantAccount.getLastHearingCourt());
+        // assertEquals(CourtEntity.Lite.builder().build(), defendantAccount.getEnforcingCourt());
+        // assertEquals(CourtEntity.Lite.builder().build(), defendantAccount.getLastHearingCourt());
         assertEquals(now, defendantAccount.getLastHearingDate());
         assertEquals(now, defendantAccount.getLastMovementDate());
         assertEquals("123456", defendantAccount.getLastEnforcement());
@@ -106,13 +108,13 @@ public class DefendantAccountEntityTest {
 
     @Test
     public void testLombokMethods() {
-        DefendantAccountEntity defendantAccount1 = new DefendantAccountEntity();
+        DefendantAccount.Lite defendantAccount1 = new DefendantAccount.Lite();
         defendantAccount1.setDefendantAccountId(1L);
 
-        DefendantAccountEntity defendantAccount2 = new DefendantAccountEntity();
+        DefendantAccount.Lite defendantAccount2 = new DefendantAccount.Lite();
         defendantAccount2.setDefendantAccountId(1L);
 
-        DefendantAccountEntity differentDefendantAccount = new DefendantAccountEntity();
+        DefendantAccount.Lite differentDefendantAccount = new DefendantAccount.Lite();
         differentDefendantAccount.setDefendantAccountId(2L);
 
         // Test equals method

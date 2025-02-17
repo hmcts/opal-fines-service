@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.ApplicationFunctionSearchDto;
 import uk.gov.hmcts.opal.entity.ApplicationFunctionEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.ApplicationFunctionServiceInterface;
+import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyApplicationFunctionService;
 import uk.gov.hmcts.opal.service.opal.ApplicationFunctionService;
 
