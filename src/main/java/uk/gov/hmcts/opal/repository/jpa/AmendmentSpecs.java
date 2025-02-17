@@ -4,14 +4,13 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.AmendmentEntity;
 import uk.gov.hmcts.opal.entity.AmendmentEntity_;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsParentBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitTypePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.likeBusinessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.likeBusinessUnitTypePredicate;
 
 public class AmendmentSpecs extends EntitySpecs<AmendmentEntity> {
 
@@ -21,7 +20,7 @@ public class AmendmentSpecs extends EntitySpecs<AmendmentEntity> {
             numericShort(criteria.getBusinessUnitId()).map(AmendmentSpecs::equalsBusinessUnitId),
             notBlank(criteria.getBusinessUnitName()).map(AmendmentSpecs::likeBusinessUnitName),
             notBlank(criteria.getBusinessUnitType()).map(AmendmentSpecs::likeBusinessUnitType),
-            numericShort(criteria.getParentBusinessUnitId()).map(AmendmentSpecs::equalsParentBusinessUnitId),
+            // numericShort(criteria.getParentBusinessUnitId()).map(AmendmentSpecs::equalsParentBusinessUnitId),
             notBlank(criteria.getAssociatedRecordType()).map(AmendmentSpecs::likeAssociatedRecordType),
             notBlank(criteria.getAssociatedRecordId()).map(AmendmentSpecs::likeAssociatedRecordId),
             notBlank(criteria.getAmendedBy()).map(AmendmentSpecs::likeAmendedBy),
@@ -52,10 +51,10 @@ public class AmendmentSpecs extends EntitySpecs<AmendmentEntity> {
             likeBusinessUnitTypePredicate(joinBusinessUnit(root), builder, businessUnitType);
     }
 
-    public static Specification<AmendmentEntity> equalsParentBusinessUnitId(Short parentBusinessUnitId) {
-        return (root, query, builder) ->
-            equalsParentBusinessUnitIdPredicate(joinBusinessUnit(root), builder, parentBusinessUnitId);
-    }
+    // public static Specification<AmendmentEntity> equalsParentBusinessUnitId(Short parentBusinessUnitId) {
+    //     return (root, query, builder) ->
+    //         equalsParentBusinessUnitIdPredicate(joinBusinessUnit(root), builder, parentBusinessUnitId);
+    // }
 
     public static Specification<AmendmentEntity> likeAssociatedRecordType(String associatedRecordType) {
         return (root, query, builder) ->
@@ -97,7 +96,7 @@ public class AmendmentSpecs extends EntitySpecs<AmendmentEntity> {
     }
 
 
-    public static Join<AmendmentEntity, BusinessUnitEntity> joinBusinessUnit(
+    public static Join<AmendmentEntity, BusinessUnit.Lite> joinBusinessUnit(
         From<?, AmendmentEntity> from) {
         return from.join(AmendmentEntity_.businessUnit);
     }

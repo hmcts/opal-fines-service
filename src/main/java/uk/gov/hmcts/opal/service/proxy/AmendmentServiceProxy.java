@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
 import uk.gov.hmcts.opal.entity.AmendmentEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.AmendmentServiceInterface;
+import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyAmendmentService;
 import uk.gov.hmcts.opal.service.opal.AmendmentService;
 

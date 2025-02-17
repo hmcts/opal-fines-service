@@ -16,9 +16,9 @@ import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
@@ -57,7 +57,7 @@ class DraftAccountControllerTest {
     void testGetDraftAccount_Success() {
         // Arrange
         DraftAccountEntity entity = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId(BU_ID).build())
+            .businessUnit(BusinessUnit.Lite.builder().businessUnitId(BU_ID).build())
             .build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
@@ -78,7 +78,7 @@ class DraftAccountControllerTest {
     void testGetDraftAccounts_Success() {
         // Arrange
         DraftAccountEntity entity = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId(BU_ID).build())
+            .businessUnit(BusinessUnit.Lite.builder().businessUnitId(BU_ID).build())
             .build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
@@ -124,7 +124,7 @@ class DraftAccountControllerTest {
             .accountType("Large")
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .account(getAccountJson())
-            .businessUnit(BusinessUnitEntity.builder().build())
+            .businessUnit(BusinessUnit.Lite.builder().build())
             .submittedBy("USER_ID")
             .timelineData(getTimelineJson())
             .build();

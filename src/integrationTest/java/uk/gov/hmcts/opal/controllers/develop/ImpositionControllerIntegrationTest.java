@@ -10,9 +10,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.ImpositionSearchDto;
-import uk.gov.hmcts.opal.entity.CourtEntity;
 import uk.gov.hmcts.opal.entity.CreditorAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.ImpositionEntity;
 import uk.gov.hmcts.opal.entity.UserEntity;
 import uk.gov.hmcts.opal.service.opal.ImpositionService;
@@ -102,13 +101,13 @@ class ImpositionControllerIntegrationTest {
     private ImpositionEntity createImpositionEntity() {
         return ImpositionEntity.builder()
             .impositionId(1L)
-            .defendantAccount(DefendantAccountEntity.builder().build())
+            // .defendantAccount(DefendantAccount.Lite.builder().build())
             .postedDate(LocalDateTime.now())
             .postedBy("ADMIN")
             .postedByUser(UserEntity.builder().build())
             .originalPostedDate(LocalDateTime.now())
             .resultId("AAABBB")
-            .imposingCourt(CourtEntity.builder().build())
+            .imposingCourt(CourtEntity.Lite.builder().build())
             .imposedDate(LocalDateTime.now())
             .imposedAmount(BigDecimal.TEN)
             .paidAmount(BigDecimal.ONE)

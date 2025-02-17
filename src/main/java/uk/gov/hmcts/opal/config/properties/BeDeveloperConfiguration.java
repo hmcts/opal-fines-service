@@ -9,4 +9,5 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "be-developer-config")
 public class BeDeveloperConfiguration {
     private String userRolePermissions;
+    private String techSpike;
 }

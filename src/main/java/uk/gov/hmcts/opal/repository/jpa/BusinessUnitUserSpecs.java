@@ -6,17 +6,16 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitUserSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity_;
 import uk.gov.hmcts.opal.entity.UserEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitTypePredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsParentBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.likeUserDescriptionPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.likeBusinessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.likeBusinessUnitTypePredicate;
 import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.equalsUserIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.likeUserDescriptionPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.UserSpecs.likeUsernamePredicate;
 
 public class BusinessUnitUserSpecs extends EntitySpecs<BusinessUnitUserEntity> {
@@ -27,7 +26,6 @@ public class BusinessUnitUserSpecs extends EntitySpecs<BusinessUnitUserEntity> {
             numericShort(criteria.getBusinessUnitId()).map(BusinessUnitUserSpecs::equalsBusinessUnitId),
             notBlank(criteria.getBusinessUnitName()).map(BusinessUnitUserSpecs::likeBusinessUnitName),
             notBlank(criteria.getBusinessUnitType()).map(BusinessUnitUserSpecs::likeBusinessUnitType),
-            numericShort(criteria.getParentBusinessUnitId()).map(BusinessUnitUserSpecs::equalsParentBusinessUnitId),
             numericLong(criteria.getUserId()).map(BusinessUnitUserSpecs::likeUserId),
             notBlank(criteria.getUsername()).map(BusinessUnitUserSpecs::likeUsername),
             notBlank(criteria.getUserDescription()).map(BusinessUnitUserSpecs::likeUserDescription)
@@ -58,11 +56,6 @@ public class BusinessUnitUserSpecs extends EntitySpecs<BusinessUnitUserEntity> {
             likeBusinessUnitTypePredicate(joinBusinessUnit(root), builder, businessUnitType);
     }
 
-    public static Specification<BusinessUnitUserEntity> equalsParentBusinessUnitId(Short parentBusinessUnitId) {
-        return (root, query, builder) ->
-            equalsParentBusinessUnitIdPredicate(joinBusinessUnit(root), builder, parentBusinessUnitId);
-    }
-
     public static Specification<BusinessUnitUserEntity> likeUserId(Long userId) {
         return (root, query, builder) -> equalsUserIdPredicate(joinUser(root), builder, userId);
     }
@@ -75,7 +68,7 @@ public class BusinessUnitUserSpecs extends EntitySpecs<BusinessUnitUserEntity> {
         return (root, query, builder) -> likeUserDescriptionPredicate(joinUser(root), builder, description);
     }
 
-    public static Join<BusinessUnitUserEntity, BusinessUnitEntity> joinBusinessUnit(
+    public static Join<BusinessUnitUserEntity, BusinessUnit.Lite> joinBusinessUnit(
         From<?, BusinessUnitUserEntity> from) {
         return from.join(BusinessUnitUserEntity_.businessUnit);
     }

@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.DefendantTransactionSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantTransactionEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.DefendantTransactionServiceInterface;
+import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantTransactionService;
 import uk.gov.hmcts.opal.service.opal.DefendantTransactionService;
 
