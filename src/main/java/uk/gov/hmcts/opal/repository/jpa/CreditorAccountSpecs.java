@@ -6,13 +6,13 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.CreditorAccountSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.CreditorAccountEntity_;
 import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.likeBusinessUnitNamePredicate;
 import static uk.gov.hmcts.opal.repository.jpa.MajorCreditorSpecs.equalsMajorCreditorIdPredicate;
 
 public class CreditorAccountSpecs extends EntitySpecs<CreditorAccountEntity> {
@@ -99,7 +99,7 @@ public class CreditorAccountSpecs extends EntitySpecs<CreditorAccountEntity> {
             likeWildcardPredicate(root.get(CreditorAccountEntity_.bankAccountType), builder, bankAccountType);
     }
 
-    public static Join<CreditorAccountEntity, BusinessUnitEntity> joinBusinessUnit(
+    public static Join<CreditorAccountEntity, BusinessUnit.Lite> joinBusinessUnit(
         From<?, CreditorAccountEntity> from) {
         return from.join(CreditorAccountEntity_.businessUnit);
     }

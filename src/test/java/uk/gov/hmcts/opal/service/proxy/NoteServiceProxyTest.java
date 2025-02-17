@@ -7,9 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-
-
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.service.NoteServiceInterface;

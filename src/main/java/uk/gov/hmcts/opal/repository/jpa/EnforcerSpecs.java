@@ -4,13 +4,13 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity_;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
 import java.util.Optional;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
 
 public class EnforcerSpecs extends AddressCySpecs<EnforcerEntity> {
 
@@ -60,7 +60,7 @@ public class EnforcerSpecs extends AddressCySpecs<EnforcerEntity> {
         );
     }
 
-    public static Join<EnforcerEntity, BusinessUnitEntity> joinBusinessUnit(From<?, EnforcerEntity> from) {
+    public static Join<EnforcerEntity, BusinessUnit.Lite> joinBusinessUnit(From<?, EnforcerEntity> from) {
         return from.join(EnforcerEntity_.businessUnit);
     }
 }

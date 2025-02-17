@@ -10,7 +10,7 @@ import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyCourtSearchResults;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 
 import java.util.Collections;
 import java.util.List;
@@ -42,10 +42,10 @@ class LegacyCourtServiceTest extends LegacyTestsBase {
     @Test
     public void testGetCourt() {
         long id = 1L;
-        CourtEntity expectedEntity = new CourtEntity();
+        CourtEntity.Lite expectedEntity = new CourtEntity.Lite();
         doReturn(expectedEntity).when(legacyCourtService).postToGateway(anyString(), any(), anyLong());
 
-        CourtEntity result = legacyCourtService.getCourt(id);
+        CourtEntity result = legacyCourtService.getCourtLite(id);
 
         assertEquals(expectedEntity, result);
     }
@@ -53,12 +53,12 @@ class LegacyCourtServiceTest extends LegacyTestsBase {
     @Test
     public void testSearchCourts() {
         CourtSearchDto criteria = CourtSearchDto.builder().build();
-        List<CourtEntity> expectedEntities = Collections.singletonList(new CourtEntity());
+        List<CourtEntity.Lite> expectedEntities = Collections.singletonList(new CourtEntity.Lite());
         LegacyCourtSearchResults searchResults = LegacyCourtSearchResults.builder().build();
         searchResults.setCourtEntities(expectedEntities);
         doReturn(searchResults).when(legacyCourtService).postToGateway(anyString(), any(), any());
 
-        List<CourtEntity> result = legacyCourtService.searchCourts(criteria);
+        List<CourtEntity.Lite> result = legacyCourtService.searchCourts(criteria);
 
         assertEquals(expectedEntities, result);
     }

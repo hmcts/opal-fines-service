@@ -7,7 +7,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.controllers.develop.ApplicationFunctionController;
 import uk.gov.hmcts.opal.dto.search.ApplicationFunctionSearchDto;
 import uk.gov.hmcts.opal.entity.ApplicationFunctionEntity;
 import uk.gov.hmcts.opal.service.opal.ApplicationFunctionService;

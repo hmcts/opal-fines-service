@@ -8,7 +8,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitCore;
 import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyBusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
@@ -51,11 +52,11 @@ class BusinessUnitServiceProxyTest extends ProxyTestsBase {
 
     void testGetBusinessUnit(BusinessUnitServiceInterface targetService, BusinessUnitServiceInterface otherService) {
         // Given: a BusinessUnitEntity is returned from the target service
-        BusinessUnitEntity entity = BusinessUnitEntity.builder().build();
+        BusinessUnitCore entity = BusinessUnitCore.builder().build();
         when(targetService.getBusinessUnit(anyShort())).thenReturn(entity);
 
         // When: getBusinessUnit is called on the proxy
-        BusinessUnitEntity businessUnitResult = businessUnitServiceProxy.getBusinessUnit((short)1);
+        BusinessUnitCore businessUnitResult = businessUnitServiceProxy.getBusinessUnit((short)1);
 
         // Then: target service should be used, and the returned businessUnit should be as expected
         verify(targetService).getBusinessUnit((short)1);
@@ -66,13 +67,13 @@ class BusinessUnitServiceProxyTest extends ProxyTestsBase {
     void testSearchBusinessUnits(BusinessUnitServiceInterface targetService,
                                  BusinessUnitServiceInterface otherService) {
         // Given: a businessUnits list result is returned from the target service
-        BusinessUnitEntity entity = BusinessUnitEntity.builder().build();
-        List<BusinessUnitEntity> businessUnitsList = List.of(entity);
+        BusinessUnit.Lite entity = BusinessUnit.Lite.builder().build();
+        List<BusinessUnit.Lite> businessUnitsList = List.of(entity);
         when(targetService.searchBusinessUnits(any())).thenReturn(businessUnitsList);
 
         // When: searchBusinessUnits is called on the proxy
         BusinessUnitSearchDto criteria = BusinessUnitSearchDto.builder().build();
-        List<BusinessUnitEntity> listResult = businessUnitServiceProxy.searchBusinessUnits(criteria);
+        List<BusinessUnit.Lite> listResult = businessUnitServiceProxy.searchBusinessUnits(criteria);
 
         // Then: target service should be used, and the returned list should be as expected
         verify(targetService).searchBusinessUnits(criteria);

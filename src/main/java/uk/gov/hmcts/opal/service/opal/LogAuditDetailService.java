@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AddLogAuditDetailDto;
 import uk.gov.hmcts.opal.dto.search.LogAuditDetailSearchDto;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
-import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.LogActionRepository;
 import uk.gov.hmcts.opal.repository.LogAuditDetailRepository;
 import uk.gov.hmcts.opal.repository.jpa.LogAuditDetailSpecs;
@@ -28,7 +28,7 @@ public class LogAuditDetailService implements LogAuditDetailServiceInterface {
 
     private final LogActionRepository logActionRepository;
 
-    private final BusinessUnitRepository businessUnitRepository;
+    private final BusinessUnitLiteRepository businessUnitLiteRepository;
 
     private final LogAuditDetailSpecs specs = new LogAuditDetailSpecs();
 
@@ -56,7 +56,7 @@ public class LogAuditDetailService implements LogAuditDetailServiceInterface {
             .logAction(logActionRepository.getReferenceById(dto.getLogAction().id))
             .accountNumber(dto.getAccountNumber())
             .businessUnit(Optional.ofNullable(dto.getBusinessUnitId())
-                              .map(businessUnitRepository::getReferenceById).orElse(null))
+                              .flatMap(businessUnitLiteRepository::findById).orElse(null))
             .jsonRequest(dto.getJsonRequest())
             .logTimestamp(LocalDateTime.now())
             .build();
