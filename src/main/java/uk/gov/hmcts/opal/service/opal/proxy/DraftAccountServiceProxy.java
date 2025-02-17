@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal.proxy;
 
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 
 /**
@@ -9,5 +10,6 @@ import uk.gov.hmcts.opal.entity.DraftAccountEntity;
  * routed through a proxy object that captures all the JPA Transactional 'overhead'.
  */
 public interface DraftAccountServiceProxy {
+    @Transactional(readOnly = true)
     DraftAccountEntity getDraftAccount(long draftAccountId);
 }

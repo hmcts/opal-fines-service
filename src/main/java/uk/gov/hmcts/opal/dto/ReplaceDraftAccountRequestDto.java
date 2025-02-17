@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
+import uk.gov.hmcts.opal.util.Versioned;
 
 @Data
 @NoArgsConstructor
@@ -45,5 +46,6 @@ public class ReplaceDraftAccountRequestDto implements ToJsonString, DraftAccount
     private String timelineData;
 
     @JsonProperty(value = "version")
+    @NonNull
     private Long version;
 }

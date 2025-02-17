@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
@@ -224,7 +225,9 @@ public class DraftAccountController {
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
-            DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto);
+            DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto,
+                                                                                        draftAccountService);
+            verifyUpdated(replacedEntity, dto, draftAccountId, "putDraftAccount");
             log.info(":PUT:putDraftAccount: replaced with version: {}", replacedEntity.getVersion());
             return buildResponse(toGetResponseDto(replacedEntity));
         } else {
@@ -250,6 +253,7 @@ public class DraftAccountController {
 
             DraftAccountEntity updatedEntity = draftAccountService
                 .updateDraftAccount(draftAccountId, dto, draftAccountService);
+            verifyUpdated(updatedEntity, dto, draftAccountId, "patchDraftAccount");
             return buildResponse(toGetResponseDto(updatedEntity));
         } else {
             throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);

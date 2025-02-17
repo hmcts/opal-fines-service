@@ -21,7 +21,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
-import uk.gov.hmcts.opal.dto.Versioned;
+import uk.gov.hmcts.opal.util.Versioned;
 
 import java.time.LocalDateTime;
 

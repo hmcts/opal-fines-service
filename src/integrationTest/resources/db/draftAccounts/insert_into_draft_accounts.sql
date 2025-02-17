@@ -342,3 +342,5 @@ VALUES
     NULL,
     0
 );
+
+SELECT setval('draft_account_id_seq', 99);

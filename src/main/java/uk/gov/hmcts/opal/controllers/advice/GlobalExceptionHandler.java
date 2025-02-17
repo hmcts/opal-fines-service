@@ -357,6 +357,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<Map<String, String>> handleResourceConflictException(ResourceConflictException e) {
         log.error(":handleResourceConflictException: {}", e.getMessage());
+        log.error(":handleResourceConflictException: {}", getNonNullCause(e));
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Conflict");
