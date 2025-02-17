@@ -41,10 +41,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 
 
 @RestController
@@ -84,6 +84,52 @@ public class DraftAccountController {
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
             DraftAccountEntity response = draftAccountService.getDraftAccount(draftAccountId);
+            Short buId = response.getBusinessUnit().getBusinessUnitId();
+            if (userState.hasBusinessUnitUserWithAnyPermission(buId, Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
+                return buildResponse(Optional.ofNullable(response).map(this::toGetResponseDto).orElse(null));
+            } else {
+                throw new PermissionNotAllowedException(buId, Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+            }
+        } else {
+            throw new PermissionNotAllowedException(Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+        }
+    }
+
+    @GetMapping(value = "/olock/{draftAccountId}")
+    @CheckAcceptHeader
+    @Operation(summary = "Returns the Draft Account for the given draftAccountId.")
+    public ResponseEntity<DraftAccountResponseDto> getDraftAccountByIdWithOLock(
+        @PathVariable Long draftAccountId,
+        @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
+
+        log.debug(":GET:getDraftAccountById: draftAccountId: {}", draftAccountId);
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
+            DraftAccountEntity response = draftAccountService.getDraftAccountWithOLock(draftAccountId);
+            Short buId = response.getBusinessUnit().getBusinessUnitId();
+            if (userState.hasBusinessUnitUserWithAnyPermission(buId, Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
+                return buildResponse(Optional.ofNullable(response).map(this::toGetResponseDto).orElse(null));
+            } else {
+                throw new PermissionNotAllowedException(buId, Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+            }
+        } else {
+            throw new PermissionNotAllowedException(Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+        }
+    }
+
+    @GetMapping(value = "/plock/{draftAccountId}")
+    @CheckAcceptHeader
+    @Operation(summary = "Returns the Draft Account for the given draftAccountId.")
+    public ResponseEntity<DraftAccountResponseDto> getDraftAccountByIdWithPLock(
+        @PathVariable Long draftAccountId,
+        @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
+
+        log.debug(":GET:getDraftAccountById: draftAccountId: {}", draftAccountId);
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
+            DraftAccountEntity response = draftAccountService.getDraftAccountWithOLock(draftAccountId);
             Short buId = response.getBusinessUnit().getBusinessUnitId();
             if (userState.hasBusinessUnitUserWithAnyPermission(buId, Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
                 return buildResponse(Optional.ofNullable(response).map(this::toGetResponseDto).orElse(null));

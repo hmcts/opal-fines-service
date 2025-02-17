@@ -87,7 +87,7 @@ class BusinessUnitServiceTest {
                 ConfigurationItemEntity.builder()
                     .itemName("A Config Item")
                     .itemValue("A value")
-                    .itemValues(List.of("Item Values One", "Item Values Two"))
+                    .itemValues(List.of("Item Values ActionMain", "Item Values SrvcReplace"))
                     .build()))
             .build();
         Page<BusinessUnitEntity> mockPage = new PageImpl<>(List.of(businessUnitEntity), Pageable.unpaged(), 999L);
@@ -103,7 +103,7 @@ class BusinessUnitServiceTest {
         assertEquals(List.of(new BusinessUnitReferenceData(
             (short)3, "Big Business Unit", null, null, null,
             null, Boolean.TRUE, List.of(new BusinessUnitReferenceData.ConfigItemRefData(
-                "A Config Item", "A value", List.of("Item Values One", "Item Values Two"))))), result);
+                "A Config Item", "A value", List.of("Item Values ActionMain", "Item Values SrvcReplace"))))), result);
 
     }
 
