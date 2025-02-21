@@ -1,0 +1,343 @@
+/**
+* OPAL Program
+*
+* MODULE      : insert_enforcements.sql
+*
+* DESCRIPTION : Inserts rows of data into the ENFORCEMENTS table. 
+*
+* VERSION HISTORY:
+*
+* Date          Author      Version     Nature of Change
+* ----------    -------     --------    ---------------------------------------------------------------------------------------------------------
+* 21/01/2024    A Dennis    1.0         PO-147 Inserts rows of data into the ENFORCEMENTS table
+*
+**/
+INSERT INTO enforcements
+(               
+ enforcement_id            
+,defendant_account_id      
+,posted_date                       
+,posted_by                 
+,result_id                 
+,reason                    
+,enforcer_id               
+,jail_days                 
+,warrant_reference         
+,case_reference            
+,hearing_date              
+,hearing_court_id          
+,account_type                       
+)
+VALUES
+(
+ 500000000
+,500000000
+,'2023-11-01'
+,'100000001'
+,'1838'
+,'Broke bail'
+,500000000
+,30
+,'WAR0000001'
+,'CA00000001'
+,'2023-12-01'
+,500000000
+,'Adult'
+);
+
+INSERT INTO enforcements
+(               
+ enforcement_id            
+,defendant_account_id      
+,posted_date                       
+,posted_by                 
+,result_id                 
+,reason                    
+,enforcer_id               
+,jail_days                 
+,warrant_reference         
+,case_reference            
+,hearing_date              
+,hearing_court_id          
+,account_type                       
+)
+VALUES
+(
+ 500000001
+,500000001
+,'2023-11-02'
+,'100000002'
+,'2223'
+,'Stolen goods'
+,500000001
+,31
+,'WAR0000002'
+,'CA00000002'
+,'2023-12-02'
+,500000001
+,'Adult'
+);
+
+INSERT INTO enforcements
+(               
+ enforcement_id            
+,defendant_account_id      
+,posted_date                       
+,posted_by                 
+,result_id                 
+,reason                    
+,enforcer_id               
+,jail_days                 
+,warrant_reference         
+,case_reference            
+,hearing_date              
+,hearing_court_id          
+,account_type                       
+)
+VALUES
+(
+ 500000002
+,500000002
+,'2023-11-03'
+,'100000003'
+,'2396'
+,'Illegal Dumping of rubbish'
+,500000002
+,34
+,'WAR0000003'
+,'CA00000003'
+,'2023-12-03'
+,500000002
+,'Adult'
+);
+
+INSERT INTO enforcements
+(               
+ enforcement_id            
+,defendant_account_id      
+,posted_date                       
+,posted_by                 
+,result_id                 
+,reason                    
+,enforcer_id               
+,jail_days                 
+,warrant_reference         
+,case_reference            
+,hearing_date              
+,hearing_court_id          
+,account_type                       
+)
+VALUES
+(
+ 500000003
+,500000003
+,'2023-11-04'
+,'100000004'
+,'2406'
+,'Cyber attack'
+,500000003
+,23
+,'WAR0000004'
+,'CA00000004'
+,'2023-12-04'
+,500000003
+,'Adult'
+);
+
+INSERT INTO enforcements
+(               
+ enforcement_id            
+,defendant_account_id      
+,posted_date                       
+,posted_by                 
+,result_id                 
+,reason                    
+,enforcer_id               
+,jail_days                 
+,warrant_reference         
+,case_reference            
+,hearing_date              
+,hearing_court_id          
+,account_type                       
+)
+VALUES
+(
+ 500000004
+,500000004
+,'2023-11-05'
+,'100000005'
+,'2409'
+,'Speeding'
+,500000004
+,21
+,'WAR0000005'
+,'CA00000005'
+,'2023-12-05'
+,500000004
+,'Adult'
+);
+
+INSERT INTO enforcements
+(               
+ enforcement_id            
+,defendant_account_id      
+,posted_date                       
+,posted_by                 
+,result_id                 
+,reason                    
+,enforcer_id               
+,jail_days                 
+,warrant_reference         
+,case_reference            
+,hearing_date              
+,hearing_court_id          
+,account_type                       
+)
+VALUES
+(
+ 500000005
+,500000005
+,'2023-11-06'
+,'100000006'
+,'2607'
+,'Squatting'
+,500000005
+,20
+,'WAR0000006'
+,'CA00000006'
+,'2023-12-06'
+,500000005
+,'Adult'
+);
+
+INSERT INTO enforcements
+(               
+ enforcement_id            
+,defendant_account_id      
+,posted_date                       
+,posted_by                 
+,result_id                 
+,reason                    
+,enforcer_id               
+,jail_days                 
+,warrant_reference         
+,case_reference            
+,hearing_date              
+,hearing_court_id          
+,account_type                       
+)
+VALUES
+(
+ 500000006
+,500000006
+,'2023-11-07'
+,'100000007'
+,'2631'
+,'Squatting'
+,500000006
+,16
+,'WAR0000007'
+,'CA00000007'
+,'2023-12-07'
+,500000006
+,'Company'
+);
+
+INSERT INTO enforcements
+(               
+ enforcement_id            
+,defendant_account_id      
+,posted_date                       
+,posted_by                 
+,result_id                 
+,reason                    
+,enforcer_id               
+,jail_days                 
+,warrant_reference         
+,case_reference            
+,hearing_date              
+,hearing_court_id          
+,account_type                       
+)
+VALUES
+(
+ 500000007
+,500000007
+,'2023-11-08'
+,'100000008'
+,'2646'
+,'Squatting'
+,500000007
+,38
+,'WAR0000008'
+,'CA00000008'
+,'2023-12-08'
+,500000007
+,'Company'
+);
+
+INSERT INTO enforcements
+(               
+ enforcement_id            
+,defendant_account_id      
+,posted_date                       
+,posted_by                 
+,result_id                 
+,reason                    
+,enforcer_id               
+,jail_days                 
+,warrant_reference         
+,case_reference            
+,hearing_date              
+,hearing_court_id          
+,account_type                       
+)
+VALUES
+(
+ 500000008
+,500000008
+,'2023-11-09'
+,'100000009'
+,'2679'
+,'Robery'
+,500000008
+,50
+,'WAR0000009'
+,'CA00000009'
+,'2023-12-09'
+,500000008
+,'Company'
+);
+
+INSERT INTO enforcements
+(               
+ enforcement_id            
+,defendant_account_id      
+,posted_date                       
+,posted_by                 
+,result_id                 
+,reason                    
+,enforcer_id               
+,jail_days                 
+,warrant_reference         
+,case_reference            
+,hearing_date              
+,hearing_court_id          
+,account_type                       
+)
+VALUES
+(
+ 500000009
+,500000009
+,'2023-11-10'
+,'100000010'
+,'2723'
+,'Fraud'
+,500000009
+,45
+,'WAR0000010'
+,'CA00000010'
+,'2023-12-10'
+,500000009
+,'Adult'
+);
