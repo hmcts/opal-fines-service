@@ -8,3 +8,4 @@ java:
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
     OPAL_SFTP_INBOUND_CREATE_SUB_LOCATIONS: true
     OPAL_SFTP_OUTBOUND_CREATE_SUB_LOCATIONS: true
+    FLYWAY_LOCATIONS: classpath:db/migration/allEnvs, classpath:db/migration/stgOnly
