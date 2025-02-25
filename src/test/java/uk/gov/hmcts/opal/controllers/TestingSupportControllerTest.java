@@ -6,15 +6,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.legacy.LegacyTestingSupportService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -24,7 +28,10 @@ import static org.mockito.Mockito.when;
         {
             TestingSupportController.class,
             DynamicConfigService.class,
-            FeatureToggleService.class
+            FeatureToggleService.class,
+            LegacyTestingSupportService.class,
+            LegacyGatewayProperties.class,
+            RestClient.class
         },
     properties = {
         "opal.testing-support-endpoints.enabled=true"
@@ -49,6 +56,9 @@ class TestingSupportControllerTest {
 
     @MockBean
     private AuthorisationService authorisationService;
+
+    @MockBean
+    private LegacyTestingSupportService legacyTestingSupportService;
 
     @Test
     void getAppMode() {
@@ -163,5 +173,19 @@ class TestingSupportControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("my@email.com", response.getBody());
+    }
+
+    @Test
+    void legacyTestFunctionReturnsResponse() {
+        String functionName = "testFunction";
+        String requestBody = "testBody";
+        String responseBody = "testResponse";
+
+        when(legacyTestingSupportService.postLegacyFunction(functionName, requestBody))
+            .thenReturn(ResponseEntity.ok(responseBody));
+
+        ResponseEntity<String> response = controller.legacyTestFunction(functionName, requestBody);
+
+        assertNotNull(response);
     }
 }
