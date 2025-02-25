@@ -8,11 +8,11 @@
 *
 * VERSION HISTORY:
 *
-* Date          Author       Version     Nature of Change 
+* Date          Author       Version     Nature of Change
 * ----------    --------     --------    -------------------------------------------------------------
 * 19/08/2024    I Readman    1.0         PO-613 Update the OAS Sections of the OFFENCE table
 *
-**/     
+**/
  UPDATE OFFENCES SET offence_oas = 'Contrary to Section 1 of the Abandonment of Animals Act 1960 and Section 1(1) of the Protection of Animals Act 1911.' WHERE offence_id = 290434;
  UPDATE OFFENCES SET offence_oas = 'Contrary to Section 1 of the Abandonment of Animals Act 1960 and Section 1(1) of the Protection of Animals Act 1911.' WHERE offence_id = 290435;
  UPDATE OFFENCES SET offence_oas = 'Contrary to Section 1 of the Abandonment of Animals Act 1960 and Section 1(1) of the Protection of Animals Act 1911.' WHERE offence_id = 290436;
