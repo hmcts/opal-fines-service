@@ -95,7 +95,6 @@ spring:
     locations: ${FLYWAY_LOCATIONS:classpath:db/migration}
     baseline-on-migrate: true
     ignoreMigrationPatterns: "*:missing"
-    out-of-order: true
 
 
 dbMigration:
