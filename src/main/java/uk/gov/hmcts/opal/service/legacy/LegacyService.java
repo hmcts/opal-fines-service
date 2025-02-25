@@ -105,24 +105,10 @@ public abstract class LegacyService {
         return extractResponse(responseEntity, responseType);
     }
 
-    private void pingUrl(String url) {
-        getLog().info("Pinging URL: {}", url);
-        try {
-            ResponseEntity<String> response = restClient.get()
-                .uri(url)
-                .retrieve()
-                .toEntity(String.class);
-            getLog().info("Ping response: {}", response.getStatusCode());
-        } catch (Exception e) {
-            getLog().error("Ping failed for URL: {}", url, e);
-        }
-    }
+
 
     public ResponseEntity<String> postToGatewayRawResponse(String actionType, Object request) {
         String legacyGatewayUrl = legacyGateway.getUrl();
-        String googleUrl = "https://www.google.com";
-        pingUrl(googleUrl);
-        pingUrl(legacyGatewayUrl);
 
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
             .queryParam(ACTION_TYPE, actionType);
@@ -130,8 +116,6 @@ public abstract class LegacyService {
         getLog().debug("postToGateway: POST to Gateway URL: {}", fullUrl);
 
         String authorizationHeader = encodeBasic(legacyGateway.getUsername(), legacyGateway.getPassword());
-        getLog().debug("postToGateway: Headers: AUTHORIZATION={}, Content-Type={}", authorizationHeader,
-                       MediaType.APPLICATION_JSON);
 
         return restClient.post()
             .uri(fullUrl)
