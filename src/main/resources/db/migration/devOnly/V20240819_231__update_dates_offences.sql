@@ -8,11 +8,11 @@
 *
 * VERSION HISTORY:
 *
-* Date          Author       Version     Nature of Change 
+* Date          Author       Version     Nature of Change
 * ----------    --------     --------    ----------------------------------------------------------------
 * 19/08/2024    I Readman    1.0         PO-613 Update date_from and date_to columns of the OFFENCE table
 *
-**/     
+**/
  UPDATE OFFENCES SET date_used_to = '2007-04-05 00:00:00' WHERE offence_id = 290434;
  UPDATE OFFENCES SET date_used_to = '2007-04-05 00:00:00' WHERE offence_id = 290435;
  UPDATE OFFENCES SET date_used_to = '2004-12-31 00:00:00' WHERE offence_id = 290436;

@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
@@ -24,6 +26,7 @@ import uk.gov.hmcts.opal.service.legacy.LegacyTestingSupportService;
 @RestController
 @RequestMapping("/testing-support")
 @RequiredArgsConstructor
+@Slf4j(topic = "TestingSupportController")
 @Tag(name = "Testing Support Controller")
 @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
 public class TestingSupportController {
@@ -69,8 +72,8 @@ public class TestingSupportController {
     @GetMapping("/token/user")
     @Operation(summary = "Retrieves the token for a given user")
     public ResponseEntity<SecurityToken> getTokenForUser(@RequestHeader(value = X_USER_EMAIL) String userEmail) {
-        var accessTokenResponse = this.accessTokenService.getTestUserToken(userEmail);
-        var securityToken = authorisationService.getSecurityToken(accessTokenResponse.getAccessToken());
+        AccessTokenResponse accessTokenResponse = this.accessTokenService.getTestUserToken(userEmail);
+        SecurityToken securityToken = authorisationService.getSecurityToken(accessTokenResponse.getAccessToken());
         return ResponseEntity.ok(securityToken);
     }
 

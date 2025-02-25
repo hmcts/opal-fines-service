@@ -31,6 +31,7 @@ module "opal-fines-db" {
   admin_user_object_id = var.jenkins_AAD_objectId
 
   common_tags = var.common_tags
+  pgsql_server_configuration     = var.pgsql_server_configuration
 }
 
 data "azurerm_key_vault" "key_vault" {

@@ -10,9 +10,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j(topic = "JsonPathUtil")
 public class JsonPathUtil {
 
-    public static DocContext createDocContext(String document) {
+    public static DocContext createDocContext(String document, String errorSource) {
         Configuration config = Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL);
-        return new DocContext(JsonPath.parse(document, config), document);
+        try {
+            return new DocContext(JsonPath.parse(document, config), document);
+        } catch (IllegalArgumentException iae) {
+            throw new IllegalArgumentException(
+                "Cannot create a JSON Document Context from an empty or null String. See " + errorSource, iae);
+        }
     }
 
     public static class DocContext {

@@ -8,6 +8,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.search.UserSearchDto;
 import uk.gov.hmcts.opal.entity.UserEntity;
@@ -31,11 +32,13 @@ public class UserService implements UserServiceInterface {
     private final UserSpecs specs = new UserSpecs();
 
     @Override
+    @Transactional(readOnly = true)
     public UserEntity getUser(String userId) {
         return userRepository.getReferenceById(userId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserEntity> searchUsers(UserSearchDto criteria) {
         Page<UserEntity> page = userRepository
             .findBy(specs.findBySearchCriteria(criteria),
@@ -51,7 +54,9 @@ public class UserService implements UserServiceInterface {
      * but the User <i>does</i> exist in the table.
      */
     @Cacheable(cacheNames = "users", key = "#username")
+    @Transactional(readOnly = true)
     public UserState getUserStateByUsername(String username) {
+        log.info(":getUserStateByUsername: user name: {}", username);
         UserEntity user = userRepository.findByUsername(username);
         return UserState.builder()
             .userId(user.getUserId())

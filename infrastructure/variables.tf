@@ -37,3 +37,14 @@ variable "db_name" {
   description = "Name of the app database"
   default = "opal-fines-db"
 }
+
+variable "pgsql_server_configuration" {
+  description = "Postgres server configuration"
+  type        = list(object({ name : string, value : string }))
+  default = [
+    {
+      name  = "azure.extensions"
+      value = "POSTGRES_FDW"
+    }
+  ]
+}

@@ -8,14 +8,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
+import uk.gov.hmcts.opal.util.Versioned;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UpdateDraftAccountRequestDto implements ToJsonString {
+public class UpdateDraftAccountRequestDto implements ToJsonString, Versioned {
 
     @JsonProperty("validated_by")
     private String validatedBy;
@@ -33,4 +35,9 @@ public class UpdateDraftAccountRequestDto implements ToJsonString {
     @JsonDeserialize(using = KeepAsJsonDeserializer.class)
     @JsonRawValue
     private String timelineData;
+
+    @JsonProperty(value = "version")
+    @NonNull
+    private Long version;
+
 }

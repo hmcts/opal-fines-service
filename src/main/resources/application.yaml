@@ -66,12 +66,23 @@ spring:
       poolName: OpalHikariCP
       maxLifetime: 7200000
       connectionTimeout: 30000
+      auto-commit: false
+      leak-detection-threshold: 1000
   jpa:
     show-sql: false
+    open-in-view: false
     properties:
       hibernate:
+        enable_lazy_load_no_trans: true
         format_sql: false
+        generate_statistics: false
+        log_slow_query: 4
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        connection:
+          # Following setting is 'generally' suggested to be false, or a lot of work otherwise
+          provider_disables_autocommit: false
+          # The following mode is advised against? Used only with a JTA Datasource.
+          # handling_mode: DELAYED_ACQUISITION_AND_RELEASE_AFTER_STATEMENT
         jdbc:
           lob:
             # silence the 'wall-of-text' - unnecessary exception throw about blob types
@@ -168,6 +179,7 @@ logging:
   level:
     org:
       hibernate:
+        stat: INFO
         SQL: INFO
         type:
           descriptor:

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.authentication.exception.AuthenticationException;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
@@ -39,11 +40,13 @@ public class UserEntitlementService implements UserEntitlementServiceInterface {
     private final UserEntitlementSpecs specs = new UserEntitlementSpecs();
 
     @Override
+    @Transactional(readOnly = true)
     public UserEntitlementEntity getUserEntitlement(long userEntitlementId) {
         return userEntitlementRepository.getReferenceById(userEntitlementId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserEntitlementEntity> searchUserEntitlements(UserEntitlementSearchDto criteria) {
         Page<UserEntitlementEntity> page = userEntitlementRepository
             .findBy(specs.findBySearchCriteria(criteria),
@@ -52,7 +55,9 @@ public class UserEntitlementService implements UserEntitlementServiceInterface {
         return page.getContent();
     }
 
+    @Transactional(readOnly = true)
     public Set<Permission> getPermissionsByBusinessUnitUserId(String businessUnitUserId) {
+        log.info(":getPermissionsByBusinessUnitUserId: business unit user id {}", businessUnitUserId);
         return toPermissions(userEntitlementRepository
                                  .findAllByBusinessUnitUser_BusinessUnitUserId(businessUnitUserId));
     }
@@ -62,6 +67,7 @@ public class UserEntitlementService implements UserEntitlementServiceInterface {
      * During some limited developer testing, this method was more performant than the similar method
      * in the UserService, but won't return a UserState if no Entitlements exist for that user.
      */
+    @Transactional(readOnly = true)
     public Optional<UserState> getUserStateByUsername(String username) {
 
         List<UserEntitlementEntity> entitlements = userEntitlementRepository

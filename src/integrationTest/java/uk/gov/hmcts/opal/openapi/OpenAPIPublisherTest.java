@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
-import uk.gov.hmcts.opal.BaseIntegrationTest;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Each CI run on master should automatically save and upload (if updated) documentation.
  */
 @AutoConfigureMockMvc
-class OpenAPIPublisherTest extends BaseIntegrationTest {
+class OpenAPIPublisherTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mvc;

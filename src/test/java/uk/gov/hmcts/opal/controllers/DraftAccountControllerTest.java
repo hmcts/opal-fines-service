@@ -8,6 +8,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.UnexpectedRollbackException;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -155,6 +157,9 @@ class DraftAccountControllerTest {
 
     @Test
     void testDeleteDraftAccount_Success() {
+        // Arrange
+        when(draftAccountService.deleteDraftAccount(any(Long.class), any(Boolean.class), any())).thenReturn(true);
+
         // Act
         ResponseEntity<String> response = draftAccountController
             .deleteDraftAccountById(7L, BEARER_TOKEN, Optional.empty());
@@ -163,7 +168,26 @@ class DraftAccountControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("""
                          { "message": "Draft Account '7' deleted"}""", response.getBody());
-        verify(draftAccountService, times(1)).deleteDraftAccount(any(Long.class), any());
+        verify(draftAccountService, times(1)).deleteDraftAccount(any(Long.class),
+                                                                 any(Boolean.class), any());
+    }
+
+    @Test
+    void testDeleteDraftAccount_Fail() {
+        // Arrange
+        when(draftAccountService.deleteDraftAccount(any(Long.class), any(Boolean.class), any())).thenThrow(
+            new UnexpectedRollbackException("Entity 7L not found.")
+        );
+
+        // Act
+        RuntimeException rte = assertThrows(UnexpectedRollbackException.class, () ->
+            draftAccountController.deleteDraftAccountById(7L, BEARER_TOKEN, Optional.empty())
+        );
+
+        // Assert
+        assertEquals("Entity 7L not found.", rte.getMessage());
+        verify(draftAccountService, times(1)).deleteDraftAccount(any(Long.class),
+                                                                 any(Boolean.class), any());
     }
 
     DraftAccountResponseDto toGetDto(DraftAccountEntity entity) {

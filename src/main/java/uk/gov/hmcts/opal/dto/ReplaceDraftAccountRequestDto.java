@@ -10,13 +10,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
+import uk.gov.hmcts.opal.util.Versioned;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ReplaceDraftAccountRequestDto implements ToJsonString, DraftAccountRequestDto {
+public class ReplaceDraftAccountRequestDto implements ToJsonString, DraftAccountRequestDto, Versioned {
 
     @JsonProperty(value = "business_unit_id", required = true)
     @NonNull
@@ -43,4 +44,8 @@ public class ReplaceDraftAccountRequestDto implements ToJsonString, DraftAccount
     @JsonDeserialize(using = KeepAsJsonDeserializer.class)
     @JsonRawValue
     private String timelineData;
+
+    @JsonProperty(value = "version")
+    @NonNull
+    private Long version;
 }
