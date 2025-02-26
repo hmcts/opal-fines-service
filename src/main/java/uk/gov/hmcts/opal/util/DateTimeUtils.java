@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public class DateTimeUtils {
 
-    public static OffsetDateTime toOffsetDateTime(LocalDateTime localDateTime) {
+    public static OffsetDateTime toUtcDateTime(LocalDateTime localDateTime) {
         return Optional.ofNullable(localDateTime)
             .map(ldt -> ldt.atOffset(ZoneOffset.UTC))
             .orElse(null);

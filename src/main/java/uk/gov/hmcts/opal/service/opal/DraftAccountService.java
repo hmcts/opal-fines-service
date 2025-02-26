@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
@@ -24,23 +25,25 @@ import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
+import uk.gov.hmcts.opal.service.opal.proxy.DraftAccountServiceProxy;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyVersions;
+import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 
 @Service
 @Slf4j(topic = "DraftAccountService")
 @RequiredArgsConstructor
 @Qualifier("draftAccountService")
-public class DraftAccountService {
+public class DraftAccountService implements DraftAccountServiceProxy {
 
     private static final String DEFENDANT_JSON_PATH = "$.defendant";
 
@@ -53,10 +56,13 @@ public class DraftAccountService {
 
     private final DraftAccountSpecs specs = new DraftAccountSpecs();
 
+    @Transactional(readOnly = true)
     public DraftAccountEntity getDraftAccount(long draftAccountId) {
-        return draftAccountRepository.getReferenceById(draftAccountId);
+        return draftAccountRepository.findById(draftAccountId)
+            .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
     }
 
+    @Transactional(readOnly = true)
     public List<DraftAccountEntity> getDraftAccounts(Collection<Short> businessUnitIds,
                                                      Collection<DraftAccountStatus> statuses,
                                                      Collection<String> submittedBy,
@@ -68,20 +74,21 @@ public class DraftAccountService {
         return page.getContent();
     }
 
-    public void deleteDraftAccount(long draftAccountId, Optional<Boolean> ignoreMissing) {
-        DraftAccountEntity entity = getDraftAccount(draftAccountId);
-        // If the DB doesn't hold the target entity to be deleted, then no exception is thrown when a deletion is
-        // attempted. So we need to retrieve the entity first and try to access any property.
-        // This will throw an exception if the entity doesn't exist.
-        boolean checkExists = !(ignoreMissing.orElse(false));
-        if (checkExists && entity.getCreatedDate() == null) {
-            // Will not get here, as JPA should throw an exception. But for testing, throw an Exception.
-            throw new RuntimeException("Draft Account entity '" + draftAccountId + "' does not exist in the DB.");
-        } else {
-            draftAccountRepository.delete(entity);
+    @Transactional
+    public boolean deleteDraftAccount(long draftAccountId, boolean checkExists,
+                                      DraftAccountServiceProxy proxy) {
+        try {
+            draftAccountRepository.delete(proxy.getDraftAccount(draftAccountId));
+            return true;
+        } catch (EntityNotFoundException enfe) {
+            if (checkExists) {
+                throw enfe;
+            }
+            return false;
         }
     }
 
+    @Transactional(readOnly = true)
     public List<DraftAccountEntity> searchDraftAccounts(DraftAccountSearchDto criteria) {
         Page<DraftAccountEntity> page = draftAccountRepository
             .findBy(specs.findBySearchCriteria(criteria),
@@ -90,17 +97,21 @@ public class DraftAccountService {
         return page.getContent();
     }
 
+    @Transactional
     public DraftAccountEntity submitDraftAccount(AddDraftAccountRequestDto dto) {
         LocalDateTime created = LocalDateTime.now();
-        BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId()).orElse(null);
+        BusinessUnitEntity businessUnit = businessUnitRepository.getReferenceById(dto.getBusinessUnitId());
         String snapshot = createInitialSnapshot(dto, created, businessUnit);
         log.info(":submitDraftAccount: dto: \n{}", dto.toPrettyJson());
         return draftAccountRepository.save(toEntity(dto, created, businessUnit, snapshot));
     }
 
-    public DraftAccountEntity replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto) {
-        DraftAccountEntity existingAccount = draftAccountRepository.findById(draftAccountId)
-            .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
+    @Transactional
+    public DraftAccountEntity replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto,
+                                                  DraftAccountServiceProxy proxy) {
+
+        DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
+        verifyVersions(existingAccount, dto, draftAccountId, "replaceDraftAccount");
 
         BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId())
             .orElseThrow(() -> new RuntimeException("Business Unit not found with id: " + dto.getBusinessUnitId()));
@@ -108,7 +119,7 @@ public class DraftAccountService {
         if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
             log.info("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
             throw new ResourceConflictException(
-                "DraftAccount",
+                "DraftAccount", Long.toString(draftAccountId),
                 "Business Unit ID mismatch. Existing: "
                     + existingAccount.getBusinessUnit().getBusinessUnitId()
                     + ", Requested: "
@@ -126,20 +137,23 @@ public class DraftAccountService {
         existingAccount.setAccountStatusDate(LocalDateTime.now());
         existingAccount.setTimelineData(dto.getTimelineData());
 
-        log.info(":replaceDraftAccount: Replacing draft account with ID: {} and new snapshot: \n{}",
+        log.debug(":replaceDraftAccount: Replacing draft account with ID: {} and new snapshot: \n{}",
                  draftAccountId, newSnapshot);
 
         return draftAccountRepository.save(existingAccount);
     }
 
-    public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto)  {
-        DraftAccountEntity existingAccount = draftAccountRepository.findById(draftAccountId)
-            .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
+    @Transactional
+    public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
+                                                 DraftAccountServiceProxy proxy)  {
+
+        DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
+        verifyVersions(existingAccount, dto, draftAccountId, "updateDraftAccount");
 
         if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
-            log.info("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
+            log.warn("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
             throw new ResourceConflictException(
-                "DraftAccount",
+                "DraftAccount", Long.toString(draftAccountId),
                 "Business Unit ID mismatch. Existing: "
                     + existingAccount.getBusinessUnit().getBusinessUnitId()
                     + ", Requested: "
@@ -155,11 +169,14 @@ public class DraftAccountService {
                                                                 + dto.getAccountStatus()));
 
         existingAccount.setAccountStatus(newStatus);
+        existingAccount.setVersion(dto.getVersion());
 
         if (newStatus == DraftAccountStatus.PENDING) {
             existingAccount.setValidatedDate(LocalDateTime.now());
             existingAccount.setValidatedBy(dto.getValidatedBy());
+            existingAccount.setValidatedByName(dto.getValidatedByName());
             existingAccount.setAccountSnapshot(addSnapshotApprovedDate(existingAccount));
+            existingAccount.setAccountStatusDate(LocalDateTime.now());
         }
         // Set the timeline data as received from the front end
         existingAccount.setTimelineData(dto.getTimelineData());
@@ -175,8 +192,7 @@ public class DraftAccountService {
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode rootNode = (ObjectNode) mapper.readTree(existingAccount.getAccountSnapshot());
 
-            String approvedDate = existingAccount.getValidatedDate()
-                .atOffset(ZoneOffset.UTC)
+            String approvedDate = toUtcDateTime(existingAccount.getValidatedDate())
                 .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
             rootNode.put("approved_date", approvedDate);
 
@@ -188,21 +204,23 @@ public class DraftAccountService {
 
     private String createInitialSnapshot(AddDraftAccountRequestDto dto, LocalDateTime created,
                                          BusinessUnitEntity businessUnit) {
-        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName())
+        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName(),
+                             "AddDraftAccountRequestDto.account")
             .toPrettyJson();
     }
 
     private String createUpdateSnapshot(ReplaceDraftAccountRequestDto dto, LocalDateTime created,
                                          BusinessUnitEntity businessUnit) {
-        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName())
+        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName(),
+                             "ReplaceDraftAccountRequestDto.account")
             .toPrettyJson();
     }
 
     private  DraftAccountSnapshots.Snapshot buildSnapshot(String document, LocalDateTime created,
                                                           BusinessUnitEntity businessUnit, String submittedBy,
-                                                          String submittedByName) {
+                                                          String submittedByName, String errorSource) {
 
-        JsonPathUtil.DocContext docContext = createDocContext(document);
+        JsonPathUtil.DocContext docContext = createDocContext(document, errorSource);
 
         String companyName = docContext.readOrNull(DEFENDANT_JSON_PATH + ".company_name");
 
@@ -221,7 +239,7 @@ public class DraftAccountService {
         return DraftAccountSnapshots.Snapshot.builder()
             .defendantName(defendantName)
             .dateOfBirth(dob)
-            .createdDate(created.atOffset(ZoneOffset.UTC))
+            .createdDate(toUtcDateTime(created))
             .accountType(accType)
             .submittedBy(submittedBy)
             .submittedByName(submittedByName)
@@ -242,6 +260,7 @@ public class DraftAccountService {
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .accountStatusDate(LocalDateTime.now())
             .timelineData(dto.getTimelineData())
+            .draftAccountId(null)
             .build();
     }
 }

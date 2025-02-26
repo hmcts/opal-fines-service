@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
+  "type": ["object", "null"],
   "properties": {
     "draft_account_id": {
       "type": "integer",
@@ -22,16 +22,16 @@
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
     "validated_at": {
-      "type": "string",
+      "type": ["string", "null"],
       "format": "date-time",
       "description": "[Optional] Date the Draft Account was validated - System generated (BE)"
     },
     "validated_by": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "[Optional] ID of the User that validated the Draft Account"
     },
     "account": {
-      "ref": "resource:/jsonSchemas/account.json",
+      "$ref": "resource:/jsonSchemas/account.json",
       "description": "The structured Account data (JSON)"
     },
     "account_snapshot": {
@@ -47,15 +47,15 @@
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
     },
     "timeline_data": {
-      "ref": "resource:/jsonSchemas/timelineData.json",
+      "$ref": "resource:/jsonSchemas/timelineData.json",
       "description": "Status changes to the Draft Account in chronological order (JSON Array) - System generated (UI)"
     },
     "account_number": {
-      "type": "string",
+      "type": ["string", "null"],
       "description": "[Optional] The Opal Account Number (2char letter code+account number) created on validation - System generated (BE)"
     },
     "account_id": {
-      "type": "integer",
+      "type": ["integer", "null"],
       "format": "int64",
       "description": "[Optional] Opal Account ID created on validation - System generated (BE)"
     }

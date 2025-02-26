@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -40,7 +41,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.opal.util.DateTimeUtils.toOffsetDateTime;
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
+import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
@@ -172,8 +174,7 @@ public class DraftAccountController {
                                                         Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
 
-            DraftAccountEntity response = draftAccountService.submitDraftAccount(dto);
-            return buildCreatedResponse(toGetResponseDto(response));
+            return buildCreatedResponse(toGetResponseDto(draftAccountService.submitDraftAccount(dto)));
         } else {
             throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
         }
@@ -188,11 +189,24 @@ public class DraftAccountController {
         @RequestHeader(value = "Authorization", required = false)  String authHeaderValue,
         @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
 
-        log.info(":DELETE:deleteDraftAccountById: draftAccountId: {}", draftAccountId);
+        boolean checkExists = !(ignoreMissing.orElse(false));
+        log.info(":DELETE:deleteDraftAccountById: Delete Draft Account: {}{}", draftAccountId,
+                 checkExists ? "" : ", ignore if missing");
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        draftAccountService.deleteDraftAccount(draftAccountId, ignoreMissing);
+        try {
+            boolean deleted = draftAccountService.deleteDraftAccount(draftAccountId, checkExists, draftAccountService);
+            if (deleted) {
+                log.info(":DELETE:deleteDraftAccountById: Deleted Draft Account: {}", draftAccountId);
+            }
+        } catch (UnexpectedRollbackException ure) {
+            if (checkExists) {
+                throw ure;
+            }
+        }
+
+
         return buildResponse(String.format(ACCOUNT_DELETED_MESSAGE_FORMAT, draftAccountId));
     }
 
@@ -211,7 +225,10 @@ public class DraftAccountController {
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
-            DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto);
+            DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto,
+                                                                                        draftAccountService);
+            verifyUpdated(replacedEntity, dto, draftAccountId, "putDraftAccount");
+            log.info(":PUT:putDraftAccount: replaced with version: {}", replacedEntity.getVersion());
             return buildResponse(toGetResponseDto(replacedEntity));
         } else {
             throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -234,7 +251,9 @@ public class DraftAccountController {
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
-            DraftAccountEntity updatedEntity = draftAccountService.updateDraftAccount(draftAccountId, dto);
+            DraftAccountEntity updatedEntity = draftAccountService
+                .updateDraftAccount(draftAccountId, dto, draftAccountService);
+            verifyUpdated(updatedEntity, dto, draftAccountId, "patchDraftAccount");
             return buildResponse(toGetResponseDto(updatedEntity));
         } else {
             throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -247,20 +266,22 @@ public class DraftAccountController {
             .draftAccountId(entity.getDraftAccountId())
             .businessUnitId(Optional.ofNullable(entity.getBusinessUnit())
                                 .map(BusinessUnitEntity::getBusinessUnitId).orElse(null))
-            .createdDate(toOffsetDateTime(entity.getCreatedDate()))
+            .createdDate(toUtcDateTime(entity.getCreatedDate()))
             .submittedBy(entity.getSubmittedBy())
             .submittedByName(entity.getSubmittedByName())
-            .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
+            .validatedDate(toUtcDateTime(entity.getValidatedDate()))
             .validatedBy(entity.getValidatedBy())
+            .validatedByName(entity.getValidatedByName())
             .account(entity.getAccount())
             .accountSnapshot(entity.getAccountSnapshot())
             .accountType(entity.getAccountType())
             .accountStatus(entity.getAccountStatus())
-            .accountStatusDate(toOffsetDateTime(entity.getAccountStatusDate()))
+            .accountStatusDate(toUtcDateTime(entity.getAccountStatusDate()))
             .statusMessage(entity.getStatusMessage())
             .timelineData(entity.getTimelineData())
             .accountNumber(entity.getAccountNumber())
             .accountId(entity.getAccountId())
+            .version(entity.getVersion())
             .build();
     }
 
@@ -268,10 +289,11 @@ public class DraftAccountController {
         return DraftAccountSummaryDto.builder()
             .draftAccountId(entity.getDraftAccountId())
             .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
-            .createdDate(toOffsetDateTime(entity.getCreatedDate()))
+            .createdDate(toUtcDateTime(entity.getCreatedDate()))
             .submittedBy(entity.getSubmittedBy())
-            .validatedDate(toOffsetDateTime(entity.getValidatedDate()))
+            .validatedDate(toUtcDateTime(entity.getValidatedDate()))
             .validatedBy(entity.getValidatedBy())
+            .validatedByName(entity.getValidatedByName())
             .accountSnapshot(entity.getAccountSnapshot())
             .accountType(entity.getAccountType())
             .accountStatus(entity.getAccountStatus())
@@ -279,5 +301,4 @@ public class DraftAccountController {
             .accountId(entity.getAccountId())
             .build();
     }
-
 }

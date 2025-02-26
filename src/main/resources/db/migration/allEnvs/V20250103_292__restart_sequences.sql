@@ -3,13 +3,13 @@
 *
 * MODULE      : restart_sequences.sql
 *
-* DESCRIPTION : Recreate primary key sequences to start at 60000000000000 to avoid clash with Legacy and make it easier to idedntify post GoB keys.
+* DESCRIPTION : This is to put back a Pull Request that was reverted. Recreate primary key sequences to start at 60000000000000 to avoid clash with Legacy and make it easier to idedntify post GoB keys.
 *
 * VERSION HISTORY:
 *
 * Date          Author      Version     Nature of Change
-* ----------    -------     --------    ----------------------------------------------------------------------------------------------------------------------------------------------------
-* 10/12/2024    A Dennis    1.0         PO-962  Recreate primary key sequences to start at 60000000000000 to avoid clash with Legacy and make it easier to idedntify post GoB keys.
+* ----------    -------     --------    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+* 03/01/2025    A Dennis    1.0         PO-1076  This is to put back a Pull Request that was reverted.. Recreate primary key sequences to start at 60000000000000 to avoid clash with Legacy and make it easier to idedntify post GoB keys.
 *
 **/
 

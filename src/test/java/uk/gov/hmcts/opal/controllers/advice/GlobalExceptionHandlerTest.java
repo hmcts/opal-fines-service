@@ -4,8 +4,10 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.QueryTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.hibernate.LazyInitializationException;
 import org.hibernate.PropertyValueException;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +17,14 @@ import org.springframework.core.MethodParameter;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -30,6 +35,7 @@ import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -38,8 +44,10 @@ import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 import java.lang.reflect.Method;
 import java.net.ConnectException;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @ContextConfiguration(classes = GlobalExceptionHandler.class)
@@ -183,6 +191,15 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void testHandleNoSuchElementException() {
+        NoSuchElementException exception = new NoSuchElementException();
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleNoSuchElementException(exception);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("No value present", response.getBody().get("error"));
+    }
+
+    @Test
     void handleOpalApiException_ReturnsInternalServerError() {
         OpalApiException ex = new OpalApiException(
             AuthenticationError.FAILED_TO_OBTAIN_AUTHENTICATION_CONFIG);
@@ -209,7 +226,7 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Internal Server Error", response.getBody().get("error"));
-        assertEquals("An unexpected error occurred", response.getBody().get("message"));
+        assertEquals("An unexpected error occurred. Persistence exception", response.getBody().get("message"));
     }
 
     @Test
@@ -258,6 +275,29 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void testHandleLazyInitializationException() {
+        LazyInitializationException exception =
+            new LazyInitializationException("Could not access Lazy Loaded Entity");
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler
+            .handleLazyInitializationException(exception);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Internal Server Error", response.getBody().get("error"));
+        assertEquals("Lazy Entity Initialisation Exception. Expired DB Session?", response.getBody().get("message"));
+    }
+
+    @Test
+    void testHandleJpaSystemException() {
+        JpaSystemException jse = new JpaSystemException(new RuntimeException("Problem with JPA"));
+        ResponseEntity<Map<String, String>> response = globalExceptionHandler
+            .handleJpaSystemException(jse);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals("Internal Server Error", response.getBody().get("error"));
+        assertEquals("Unknown Entity Persistence Error. Expired DB Session?", response.getBody().get("message"));
+    }
+
+    @Test
     void testHandleHttpMediaTypeNotSupportedException() {
         HttpMediaTypeNotSupportedException exception =
             new HttpMediaTypeNotSupportedException("Unsupported media type");
@@ -272,7 +312,8 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void testHandleHttpMessageNotReadableException() {
-        HttpMessageNotReadableException exception = new HttpMessageNotReadableException("Cannot read message");
+        HttpInputMessage msg = Mockito.mock(HttpInputMessage.class);
+        HttpMessageNotReadableException exception = new HttpMessageNotReadableException("Cannot read message", msg);
         ResponseEntity<Map<String, String>> response = globalExceptionHandler
             .handleHttpMessageNotReadableException(exception);
 
@@ -309,13 +350,28 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void testHandleObjectOptimisticLockingFailureException() {
+        ObjectOptimisticLockingFailureException e = new ObjectOptimisticLockingFailureException(
+            DraftAccountEntity.class, "123");
+        ResponseEntity<Map<String, String>> response =
+            globalExceptionHandler.handleObjectOptimisticLockingFailureException(e);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertEquals("Conflict", response.getBody().get("error"));
+        assertEquals(DraftAccountEntity.class.getName(), response.getBody().get("resourceType"));
+        assertEquals("123", response.getBody().get("resourceId"));
+        assertTrue(response.getBody().get("conflictReason").startsWith("Object of class ["));
+    }
+
+    @Test
     void testHandleResourceConflictException() {
-        ResourceConflictException e = new ResourceConflictException("DraftAccount","BusinessUnits mismatch");
+        ResourceConflictException e = new ResourceConflictException("DraftAccount", "123","BusinessUnits mismatch");
         ResponseEntity<Map<String, String>> response = globalExceptionHandler.handleResourceConflictException(e);
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertEquals("Conflict", response.getBody().get("error"));
         assertEquals("DraftAccount", response.getBody().get("resourceType"));
+        assertEquals("123", response.getBody().get("resourceId"));
         assertEquals("BusinessUnits mismatch", response.getBody().get("conflictReason"));
     }
 

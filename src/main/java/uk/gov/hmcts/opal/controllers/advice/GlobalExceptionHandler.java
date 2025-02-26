@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.LazyInitializationException;
 import org.hibernate.PropertyValueException;
 import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -16,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -36,6 +39,8 @@ import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import static uk.gov.hmcts.opal.authentication.service.AccessTokenService.AUTH_HEADER;
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
@@ -96,7 +101,7 @@ public class GlobalExceptionHandler {
         MethodArgumentTypeMismatchException ex) {
 
         log.error(":handleMethodArgumentTypeMismatchException: {}", ex.getMessage());
-        log.error(":handleMethodArgumentTypeMismatchException:", ex.getCause());
+        log.error(":handleMethodArgumentTypeMismatchException:", ex);
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Not Acceptable");
@@ -172,16 +177,28 @@ public class GlobalExceptionHandler {
             .contentType(MediaType.APPLICATION_JSON).body(body);
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleEntityNotFoundException(
         EntityNotFoundException entityNotFoundException) {
 
-        log.error(":handleEntityNotFoundException: {}", entityNotFoundException.getMessage());
-        log.error(":handleEntityNotFoundException:", entityNotFoundException.getCause());
+        log.warn(":handleEntityNotFoundException: {}", entityNotFoundException.getMessage());
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Entity Not Found");
         body.put(MESSAGE, entityNotFoundException.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(body);
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<Map<String, String>> handleNoSuchElementException(
+        NoSuchElementException noSuchElementException) {
+
+        log.warn(":handleNoSuchElementException: {}", noSuchElementException.getMessage());
+        log.warn(":handleNoSuchElementException:", getNonNullCause(noSuchElementException));
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "No value present");
+        body.put(MESSAGE, noSuchElementException.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(body);
     }
 
@@ -190,7 +207,7 @@ public class GlobalExceptionHandler {
         OpalApiException opalApiException) {
 
         log.error(":handleOpalApiException: {}", opalApiException.getMessage());
-        log.error(":handleOpalApiException:", opalApiException.getCause());
+        log.error(":handleOpalApiException:", getNonNullCause(opalApiException));
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, opalApiException.getError().getHttpStatus().getReasonPhrase());
@@ -220,10 +237,10 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(body);
         }
 
-
+        log.error(":handleServletExceptions: {}: {}",  ex.getClass(), ex.getMessage());
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Internal Server Error");
-        body.put(MESSAGE, "An unexpected error occurred");
+        body.put(MESSAGE, "An unexpected error occurred. " + ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .contentType(MediaType.APPLICATION_JSON).body(body);
     }
@@ -233,7 +250,7 @@ public class GlobalExceptionHandler {
         PSQLException psqlException) {
 
         log.error(":handlePSQLException: {}", psqlException.getMessage());
-        log.error(":handlePSQLException:", psqlException.getCause());
+        log.error(":handlePSQLException: ", getNonNullCause(psqlException));
 
         if (psqlException.getCause() instanceof ConnectException || psqlException.getCause()
             instanceof UnknownHostException) {
@@ -257,12 +274,41 @@ public class GlobalExceptionHandler {
         DataAccessResourceFailureException dataAccessResourceFailureException) {
 
         log.error(":handleDataAccessResourceFailureException: {}", dataAccessResourceFailureException.getMessage());
-        log.error(":handleDataAccessResourceFailureException:", dataAccessResourceFailureException.getCause());
+        log.error(":handleDataAccessResourceFailureException: ", getNonNullCause(dataAccessResourceFailureException));
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Service Unavailable");
         body.put(MESSAGE, DB_UNAVAILABLE_MESSAGE);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).contentType(MediaType.APPLICATION_JSON).body(body);
+    }
+
+    @ExceptionHandler(LazyInitializationException.class)
+    public ResponseEntity<Map<String, String>> handleLazyInitializationException(
+        LazyInitializationException lazyInitializationException) {
+
+        log.error(":handleLazyInitializationException: {}", lazyInitializationException.getMessage());
+        log.error(":handleLazyInitializationException: ", getNonNullCause(lazyInitializationException));
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "Internal Server Error");
+        body.put(MESSAGE, "Lazy Entity Initialisation Exception. Expired DB Session?");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body);
+    }
+
+    @ExceptionHandler(JpaSystemException.class)
+    public ResponseEntity<Map<String, String>> handleJpaSystemException(JpaSystemException jpaSystemException) {
+
+        log.error(":handleJpaSystemException: {}", jpaSystemException.getMessage());
+        log.error(":handleJpaSystemException: ", getNonNullCause(jpaSystemException));
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "Internal Server Error");
+        body.put(MESSAGE, "Unknown Entity Persistence Error. Expired DB Session?");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body);
     }
 
     @ExceptionHandler(JsonSchemaValidationException.class)
@@ -291,19 +337,42 @@ public class GlobalExceptionHandler {
             .body(body);
     }
 
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, String>> handleObjectOptimisticLockingFailureException(
+        ObjectOptimisticLockingFailureException e) {
+        log.warn(":handleObjectOptimisticLockingFailureException: {}", e.getMessage());
+
+        Map<String, String> body = new LinkedHashMap<>();
+        body.put(ERROR, "Conflict");
+        body.put("resourceType", e.getPersistentClassName());
+        body.put("resourceId", Optional.ofNullable(e.getIdentifier()).map(Object::toString).orElse(""));
+        body.put("conflictReason", e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(body);
+
+    }
+
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<Map<String, String>> handleResourceConflictException(ResourceConflictException e) {
         log.error(":handleResourceConflictException: {}", e.getMessage());
+        log.error(":handleResourceConflictException: {}", getNonNullCause(e));
 
         Map<String, String> body = new LinkedHashMap<>();
         body.put(ERROR, "Conflict");
         body.put("resourceType", e.getResourceType());
+        body.put("resourceId", e.getResourceId());
         body.put("conflictReason", e.getConflictReason());
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
             .contentType(MediaType.APPLICATION_JSON)
             .body(body);
 
+    }
+
+    private Throwable getNonNullCause(Throwable t) {
+        return t.getCause() == null ? t : t.getCause();
     }
 
 

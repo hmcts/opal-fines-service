@@ -1,14 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://opal-fines-service/getDraftAccountRequest.json",
-  "type": "object",
+  "type": ["object", "null"],
   "properties": {
     "count": {
-      "type": "integer",
+      "type": ["integer", "null"],
       "description": "The count of Draft Accounts returned"
     },
     "draft_accounts": {
-      "type": "array",
+      "type": ["array", "null"],
       "items": {
         "$ref": "#/$defs/draft_account"
       }
@@ -39,12 +39,12 @@
             "description": "Identifier for the user that submitted the account"
         },
         "validated_at": {
-          "type": "string",
+          "type": ["string", "null"],
           "format": "date-time",
           "description": "[Optional] Date the Draft Account was validated - System generated (BE)"
         },
         "validated_by": {
-          "type": "string",
+          "type": ["string", "null"],
           "description": "[Optional] ID of the User that validated the Draft Account"
         },
         "account_snapshot": {
@@ -65,15 +65,15 @@
           "description": "Date of account_status"
         },
 		"status_message": {
-			"type": "string",
+			"type": ["string", "null"],
 			"description": "System message related to the account_status"
 		},
 		"account_number": {
-          "type": "string",
+          "type": ["string", "null"],
           "description": "[Optional] The Opal Account Number (2char letter code+account number) created on validation - System generated (BE)"
         },
         "account_id": {
-          "type": "integer",
+          "type": ["integer", "null"],
           "description": "[Optional] Opal Account ID created on validation - System generated (BE)"
         }
       },

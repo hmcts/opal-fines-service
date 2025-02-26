@@ -5,6 +5,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.core.Serenity;
 import net.serenitybdd.rest.SerenityRest;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
@@ -46,6 +47,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             postBody.put("submitted_by_name", dataToPost.get("submitted_by_name"));
         }
         postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
+        postBody.put("version", dataToPost.get("version") != null ? dataToPost.get("version") : "0");
         postBody.put(
             "account_status",
             dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
@@ -58,21 +60,13 @@ public class DraftAccountPutSteps extends BaseStepDef {
         String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
         JSONObject accountObject = new JSONObject(account);
 
-        JSONObject timelineObject;
-        if (dataToPost.get("timeline_data") != null) {
-            String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-                + dataToPost.get(
-                "account");
-            String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-            timelineObject = new JSONObject(timeline);
-        } else {
-            String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-                + "/draftAccounts/timelineJson/default.json";
-            String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-            timelineObject = new JSONObject(timeline);
-        }
+        String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
+            + "/draftAccounts/timelineJson/default.json";
+        String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
+        JSONArray timelineArray = new JSONArray(timeline);
+
         postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineObject);
+        postBody.put("timeline_data", timelineArray);
 
         String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
         SerenityRest
@@ -188,21 +182,14 @@ public class DraftAccountPutSteps extends BaseStepDef {
         String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
         JSONObject accountObject = new JSONObject(account);
 
-        JSONObject timelineObject;
-        if (dataToPost.get("timeline_data") != null) {
-            String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-                + dataToPost.get(
-                "account");
-            String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-            timelineObject = new JSONObject(timeline);
-        } else {
-            String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-                + "/draftAccounts/timelineJson/default.json";
-            String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-            timelineObject = new JSONObject(timeline);
-        }
+
+        String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
+            + "/draftAccounts/timelineJson/default.json";
+        String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
+        JSONArray timelineArray = new JSONArray(timeline);
+
         postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineObject);
+        postBody.put("timeline_data", timelineArray);
 
         String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
         SerenityRest
@@ -249,21 +236,14 @@ public class DraftAccountPutSteps extends BaseStepDef {
         String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
         JSONObject accountObject = new JSONObject(account);
 
-        JSONObject timelineObject;
-        if (dataToPost.get("timeline_data") != null) {
-            String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-                + dataToPost.get(
-                "account");
-            String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-            timelineObject = new JSONObject(timeline);
-        } else {
-            String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-                + "/draftAccounts/timelineJson/default.json";
-            String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-            timelineObject = new JSONObject(timeline);
-        }
+
+        String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
+            + "/draftAccounts/timelineJson/default.json";
+        String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
+        JSONArray timelineArray = new JSONArray(timeline);
+
         postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineObject);
+        postBody.put("timeline_data", timelineArray);
 
         SerenityRest
             .given()
@@ -309,21 +289,13 @@ public class DraftAccountPutSteps extends BaseStepDef {
         String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
         JSONObject accountObject = new JSONObject(account);
 
-        JSONObject timelineObject;
-        if (dataToPost.get("timeline_data") != null) {
-            String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-                + dataToPost.get(
-                "account");
-            String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-            timelineObject = new JSONObject(timeline);
-        } else {
-            String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-                + "/draftAccounts/timelineJson/default.json";
-            String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-            timelineObject = new JSONObject(timeline);
-        }
+        String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
+            + "/draftAccounts/timelineJson/default.json";
+        String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
+        JSONArray timelineArray = new JSONArray(timeline);
+
         postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineObject);
+        postBody.put("timeline_data", timelineArray);
         String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
         SerenityRest
             .given()
@@ -369,21 +341,13 @@ public class DraftAccountPutSteps extends BaseStepDef {
         String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
         JSONObject accountObject = new JSONObject(account);
 
-        JSONObject timelineObject;
-        if (dataToPost.get("timeline_data") != null) {
-            String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
-                + dataToPost.get(
-                "account");
-            String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-            timelineObject = new JSONObject(timeline);
-        } else {
-            String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
-                + "/draftAccounts/timelineJson/default.json";
-            String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
-            timelineObject = new JSONObject(timeline);
-        }
+        String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
+            + "/draftAccounts/timelineJson/default.json";
+        String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
+        JSONArray timelineArray = new JSONArray(timeline);
+
         postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineObject);
+        postBody.put("timeline_data", timelineArray);
 
         String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
         SerenityRest

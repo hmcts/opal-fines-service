@@ -3,11 +3,13 @@ package uk.gov.hmcts.opal.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 
 import java.time.OffsetDateTime;
 
@@ -39,11 +41,16 @@ public class DraftAccountResponseDto implements ToJsonString {
     @JsonProperty("validated_by")
     private String validatedBy;
 
+    @JsonProperty("validated_by_name")
+    private String validatedByName;
+
     @JsonProperty("account")
+    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
     @JsonRawValue
     private String account;
 
     @JsonProperty("account_snapshot")
+    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
     @JsonRawValue
     private String accountSnapshot;
 
@@ -60,6 +67,7 @@ public class DraftAccountResponseDto implements ToJsonString {
     private OffsetDateTime accountStatusDate;
 
     @JsonProperty("timeline_data")
+    @JsonDeserialize(using = KeepAsJsonDeserializer.class)
     @JsonRawValue
     private String timelineData;
 
@@ -68,4 +76,7 @@ public class DraftAccountResponseDto implements ToJsonString {
 
     @JsonProperty("account_id")
     private Long accountId;
+
+    @JsonProperty("version")
+    private Long version;
 }
