@@ -11,7 +11,7 @@ public class RestClientConfiguration {
 
     @Bean
     public RestClient restClient() {
-        return RestClient.builder().requestInterceptor(new LoggingInterceptor()).build();
+        return RestClient.create();
     }
 
 }
