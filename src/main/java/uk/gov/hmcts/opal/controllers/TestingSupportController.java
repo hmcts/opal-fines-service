@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.legacy.LegacyTestingSupportService;
 
 @RestController
 @RequestMapping("/testing-support")
@@ -35,6 +37,7 @@ public class TestingSupportController {
     private final FeatureToggleService featureToggleService;
     private final AccessTokenService accessTokenService;
     private final AuthorisationService authorisationService;
+    private final LegacyTestingSupportService legacyTestingSupportService;
 
     @GetMapping("/app-mode")
     @Operation(summary = "Retrieves the value for app mode.")
@@ -77,5 +80,12 @@ public class TestingSupportController {
     @GetMapping("/token/parse")
     public ResponseEntity<String> parseToken(@RequestHeader("Authorization") String authorization) {
         return ResponseEntity.ok(this.accessTokenService.extractPreferredUsername(authorization));
+    }
+
+    @PostMapping("/legacy/test-function/{functionName}")
+    @Operation(summary = "Posts to the legacy gateway for testing purposes.")
+    public ResponseEntity<String> legacyTestFunction(@PathVariable String functionName, @RequestBody String body) {
+        String response = legacyTestingSupportService.postLegacyFunction(functionName, body).getBody();
+        return ResponseEntity.ok(response);
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.legacy.LegacyTestingSupportService;
 
 import java.util.Set;
 
@@ -26,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -65,6 +68,9 @@ class TestingSupportControllerTest {
 
     @MockBean
     private AuthorisationService authorisationService;
+
+    @MockBean
+    private LegacyTestingSupportService legacyTestingSupportService;
 
     @Test
     void testGetAppMode() throws Exception {
@@ -216,5 +222,21 @@ class TestingSupportControllerTest {
             .andExpect(
                 jsonPath("$.user_state.business_unit_user[0].permissions[0].permission_name")
                            .value("Notes"));
+    }
+
+    @Test
+    void legacyTestFunctionReturnsResponse() throws Exception {
+        String functionName = "testFunction";
+        String requestBody = "testBody";
+        String responseBody = "testResponse";
+
+        when(legacyTestingSupportService.postLegacyFunction(functionName, requestBody))
+            .thenReturn(ResponseEntity.ok(responseBody));
+
+        mockMvc.perform(post("/testing-support/legacy/test-function/{functionName}", functionName)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestBody))
+            .andExpect(status().isOk())
+            .andExpect(content().string(responseBody));
     }
 }

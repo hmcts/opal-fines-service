@@ -87,7 +87,7 @@ public abstract class LegacyService {
     }
 
     public <T> T postToGateway(String actionType, Class<T> responseType, Object request) {
-        getLog().info("postToGateway: POST to Gateway: {}", legacyGateway.getUrl()
+        getLog().debug("postToGateway: POST to Gateway: {}", legacyGateway.getUrl()
             + "?" + ACTION_TYPE + "=" + actionType);
 
         // Create a UriComponentsBuilder and add parameters
@@ -103,6 +103,27 @@ public abstract class LegacyService {
             .toEntity(String.class);
 
         return extractResponse(responseEntity, responseType);
+    }
+
+
+
+    public ResponseEntity<String> postToGatewayRawResponse(String actionType, Object request) {
+        String legacyGatewayUrl = legacyGateway.getUrl();
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
+            .queryParam(ACTION_TYPE, actionType);
+        String fullUrl = legacyGatewayUrl + builder.toUriString();
+        getLog().debug("postToGateway: POST to Gateway URL: {}", fullUrl);
+
+        String authorizationHeader = encodeBasic(legacyGateway.getUsername(), legacyGateway.getPassword());
+
+        return restClient.post()
+            .uri(fullUrl)
+            .header("AUTHORIZATION", authorizationHeader)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(request)
+            .retrieve()
+            .toEntity(String.class);
     }
 
     private String encodeBasic(String username, String password) {

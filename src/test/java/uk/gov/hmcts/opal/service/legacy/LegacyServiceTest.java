@@ -17,7 +17,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -89,6 +91,61 @@ class LegacyServiceTest extends LegacyTestsBase {
         assertNotNull(thrown);
         assertTrue(thrown.getMessage().contains("JsonMappingException"));
 
+    }
+
+    @Test
+    void postToGatewayRawResponse_success() {
+        mockRestClientPost();
+        String actionType = "testAction";
+        String  request = "{}";
+        String responseBody = "{\"status\":\"success\"}";
+
+        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
+        when(requestBodySpec.body(any(String.class))).thenReturn(requestBodySpec);
+        when(responseSpec.toEntity(String.class)).thenReturn(successfulResponseEntity);
+
+        ResponseEntity<String> response = legacy.postToGatewayRawResponse(actionType, request);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(responseBody, response.getBody());
+    }
+
+    @Test
+    void postToGatewayRawResponse_emptyResponse() {
+        mockRestClientPost();
+        String actionType = "testAction";
+        String  request = "{}";
+
+        ResponseEntity<String> emptyResponseEntity = new ResponseEntity<>(null, HttpStatus.OK);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
+        when(requestBodySpec.body(any(String.class))).thenReturn(requestBodySpec);
+        when(responseSpec.toEntity(String.class)).thenReturn(emptyResponseEntity);
+
+        ResponseEntity<String> response = legacy.postToGatewayRawResponse(actionType, request);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNull(response.getBody());
+    }
+
+    @Test
+    void postToGatewayRawResponse_non2xxResponse() {
+        mockRestClientPost();
+        String actionType = "testAction";
+        String  request = "{}";
+
+        ResponseEntity<String> errorResponseEntity = new ResponseEntity<>("Error", HttpStatus.BAD_REQUEST);
+        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
+        when(requestBodySpec.body(any(String.class))).thenReturn(requestBodySpec);
+        when(responseSpec.toEntity(String.class)).thenReturn(errorResponseEntity);
+
+        ResponseEntity<String> response = legacy.postToGatewayRawResponse(actionType, request);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals("Error", response.getBody());
     }
 
     class BrokenMapImplementation<K, V> implements Map<K, V> {
