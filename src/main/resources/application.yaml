@@ -155,9 +155,11 @@ opal:
       create-sub-locations: ${OPAL_SFTP_OUTBOUND_CREATE_SUB_LOCATIONS:false}
   schedule:
     log-retention-job:
-      cron: ${OPAL_LOG_RETENTION_JOB_CRON:0 0 * * * ?}
+      # This default is once a day, at midnight (Quartz cron, not Linux cron - see org.quartz.CronExpression)
+      cron: ${OPAL_LOG_RETENTION_JOB_CRON:0 0 0 * * ?}
     file-handler-job:
-      cron: ${OPAL_FILE_HANDLER_JOB_CRON:0 0 * * * ?}
+      # This default is once a day, at midnight (Quartz cron, not Linux cron - see org.quartz.CronExpression)
+      cron: ${OPAL_FILE_HANDLER_JOB_CRON:0 0 0 * * ?}
   frontend:
     url: ${OPAL_FRONTEND_URL:http://localhost:4200}
   azure:

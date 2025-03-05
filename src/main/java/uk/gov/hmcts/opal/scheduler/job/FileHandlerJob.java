@@ -20,7 +20,7 @@ import static java.time.LocalTime.now;
 
 @Component
 @Getter
-@Slf4j
+@Slf4j(topic = "FileHandlerJob")
 @DisallowConcurrentExecution
 public class FileHandlerJob implements CronJob {
 
@@ -35,17 +35,18 @@ public class FileHandlerJob implements CronJob {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
 
-        log.info("Job ** {} ** starting @ {}", context.getJobDetail().getKey().getName(), context.getFireTime());
+        log.debug(":execute: Job ** {} ** starting @ {}",
+            context.getJobDetail().getKey().getName(),
+            context.getFireTime()
+        );
 
         String fileName = format("test-file-%s.txt", now());
         this.uploadFile("My file contents here...", fileName);
 
         sftpOutboundService.downloadFile("", fileName, this::logInputStream);
 
-        log.info(
-            "Job ** {} ** completed.  Next job scheduled @ {}",
+        log.debug(":execute:Job ** {} ** completed.  Next job scheduled @ {}",
             context.getJobDetail().getKey().getName(),
-
             context.getNextFireTime()
         );
     }
