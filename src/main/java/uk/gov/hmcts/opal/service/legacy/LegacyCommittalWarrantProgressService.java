@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.CommittalWarrantProgressServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyCommittalWarrantProgressService")
+@Slf4j(topic = "opal.LegacyCommittalWarrantProgressService")
 public class LegacyCommittalWarrantProgressService extends LegacyService
     implements CommittalWarrantProgressServiceInterface {
 
@@ -30,7 +30,7 @@ public class LegacyCommittalWarrantProgressService extends LegacyService
 
     @Override
     public CommittalWarrantProgressEntity getCommittalWarrantProgress(long committalWarrantProgressId) {
-        log.info("getCommittalWarrantProgress for {} from {}", committalWarrantProgressId, legacyGateway.getUrl());
+        log.debug("getCommittalWarrantProgress for {} from {}", committalWarrantProgressId, legacyGateway.getUrl());
         return postToGateway("getCommittalWarrantProgress", CommittalWarrantProgressEntity.class,
             committalWarrantProgressId);
     }
@@ -38,7 +38,7 @@ public class LegacyCommittalWarrantProgressService extends LegacyService
     @Override
     public List<CommittalWarrantProgressEntity> searchCommittalWarrantProgresss(
         CommittalWarrantProgressSearchDto criteria) {
-        log.info(":searchCommittalWarrantProgresss: criteria: {} via gateway {}", criteria.toJson(),
+        log.debug(":searchCommittalWarrantProgresss: criteria: {} via gateway {}", criteria.toJson(),
             legacyGateway.getUrl());
         return postToGateway("searchCommittalWarrantProgress",
                              LegacyCommittalWarrantProgressSearchResults.class, criteria)

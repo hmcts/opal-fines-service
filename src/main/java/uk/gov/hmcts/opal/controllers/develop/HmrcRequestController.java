@@ -37,7 +37,7 @@ public class HmrcRequestController {
     @Operation(summary = "Returns the HmrcRequest for the given hmrcRequestId.")
     public ResponseEntity<HmrcRequestEntity> getHmrcRequestById(@PathVariable Long hmrcRequestId) {
 
-        log.info(":GET:getHmrcRequestById: hmrcRequestId: {}", hmrcRequestId);
+        log.debug(":GET:getHmrcRequestById: hmrcRequestId: {}", hmrcRequestId);
 
         HmrcRequestEntity response = hmrcRequestService.getHmrcRequest(hmrcRequestId);
 
@@ -47,7 +47,7 @@ public class HmrcRequestController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches HMRC Requests based upon criteria in request body")
     public ResponseEntity<List<HmrcRequestEntity>> postHmrcRequestsSearch(@RequestBody HmrcRequestSearchDto criteria) {
-        log.info(":POST:postHmrcRequestsSearch: query: \n{}", criteria);
+        log.debug(":POST:postHmrcRequestsSearch: query: \n{}", criteria);
 
         List<HmrcRequestEntity> response = hmrcRequestService.searchHmrcRequests(criteria);
 

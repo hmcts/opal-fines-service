@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.PaymentTermsServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyPaymentTermsService")
+@Slf4j(topic = "opal.LegacyPaymentTermsService")
 public class LegacyPaymentTermsService extends LegacyService implements PaymentTermsServiceInterface {
 
 
@@ -28,14 +28,14 @@ public class LegacyPaymentTermsService extends LegacyService implements PaymentT
 
     @Override
     public PaymentTermsEntity getPaymentTerms(long paymentTermsId) {
-        log.info("getPaymentTerms for {} from {}", paymentTermsId, legacyGateway.getUrl());
+        log.debug("getPaymentTerms for {} from {}", paymentTermsId, legacyGateway.getUrl());
         return postToGateway("getPaymentTerms", PaymentTermsEntity.class, paymentTermsId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<PaymentTermsEntity> searchPaymentTerms(PaymentTermsSearchDto criteria) {
-        log.info(":searchPaymentTerms: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchPaymentTerms: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchPaymentTerms", LegacyPaymentTermsSearchResults.class, criteria)
             .getPaymentTermsEntities();
     }

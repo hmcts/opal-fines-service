@@ -38,7 +38,7 @@ public class AccountTransferController {
     @Operation(summary = "Returns the AccountTransfer for the given accountTransferId.")
     public ResponseEntity<AccountTransferEntity> getAccountTransferById(@PathVariable Long accountTransferId) {
 
-        log.info(":GET:getAccountTransferById: accountTransferId: {}", accountTransferId);
+        log.debug(":GET:getAccountTransferById: accountTransferId: {}", accountTransferId);
 
         AccountTransferEntity response = accountTransferService.getAccountTransfer(accountTransferId);
 
@@ -49,7 +49,7 @@ public class AccountTransferController {
     @Operation(summary = "Searches AccountTransfers based upon criteria in request body")
     public ResponseEntity<List<AccountTransferEntity>> postAccountTransfersSearch(
         @RequestBody AccountTransferSearchDto criteria) {
-        log.info(":POST:postAccountTransfersSearch: query: \n{}", criteria);
+        log.debug(":POST:postAccountTransfersSearch: query: \n{}", criteria);
 
         List<AccountTransferEntity> response = accountTransferService.searchAccountTransfers(criteria);
 

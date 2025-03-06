@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @ContextConfiguration(classes = MajorCreditorController.class)
 @ActiveProfiles({"integration"})
-@Slf4j(topic = "MajorCreditorControllerIntegrationTest")
+@Slf4j(topic = "opal.MajorCreditorControllerIntegrationTest")
 class MajorCreditorControllerIntegrationTest {
 
     private static final String URL_BASE = "/major-creditors";

@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.PrisonServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyPrisonService")
+@Slf4j(topic = "opal.LegacyPrisonService")
 public class LegacyPrisonService extends LegacyService implements PrisonServiceInterface {
 
     public LegacyPrisonService(LegacyGatewayProperties legacyGateway, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyPrisonService extends LegacyService implements PrisonServiceI
 
     @Override
     public PrisonEntity getPrison(long prisonId) {
-        log.info("getPrison for {} from {}", prisonId, legacyGateway.getUrl());
+        log.debug("getPrison for {} from {}", prisonId, legacyGateway.getUrl());
         return postToGateway("getPrison", PrisonEntity.class, prisonId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<PrisonEntity> searchPrisons(PrisonSearchDto criteria) {
-        log.info(":searchPrisons: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchPrisons: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchPrisons", LegacyPrisonSearchResults.class, criteria)
             .getPrisonEntities();
     }

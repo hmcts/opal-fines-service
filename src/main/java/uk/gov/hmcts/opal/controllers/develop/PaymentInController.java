@@ -37,7 +37,7 @@ public class PaymentInController {
     @Operation(summary = "Returns the PaymentIn for the given paymentInId.")
     public ResponseEntity<PaymentInEntity> getPaymentInById(@PathVariable Long paymentInId) {
 
-        log.info(":GET:getPaymentInById: paymentInId: {}", paymentInId);
+        log.debug(":GET:getPaymentInById: paymentInId: {}", paymentInId);
 
         PaymentInEntity response = paymentInService.getPaymentIn(paymentInId);
 
@@ -47,7 +47,7 @@ public class PaymentInController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches PaymentIns based upon criteria in request body")
     public ResponseEntity<List<PaymentInEntity>> postPaymentInsSearch(@RequestBody PaymentInSearchDto criteria) {
-        log.info(":POST:postPaymentInsSearch: query: \n{}", criteria);
+        log.debug(":POST:postPaymentInsSearch: query: \n{}", criteria);
 
         List<PaymentInEntity> response = paymentInService.searchPaymentIns(criteria);
 

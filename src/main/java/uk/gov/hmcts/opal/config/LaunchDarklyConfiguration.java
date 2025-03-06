@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 @Configuration
-@Slf4j
+@Slf4j(topic = "opal.LaunchDarklyConfiguration")
 public class LaunchDarklyConfiguration {
 
     /**

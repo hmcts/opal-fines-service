@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 
 import static uk.gov.hmcts.opal.sftp.SftpLocation.getOutboundLocations;
 
-@Slf4j
+@Slf4j(topic = "opal.SftpOutboundService")
 @Service
 @RequiredArgsConstructor
 public class SftpOutboundService {

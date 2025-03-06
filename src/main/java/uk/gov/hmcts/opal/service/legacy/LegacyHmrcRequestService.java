@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.service.HmrcRequestServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyHmrcRequestService")
+@Slf4j(topic = "opal.LegacyHmrcRequestService")
 public class LegacyHmrcRequestService extends LegacyService implements HmrcRequestServiceInterface {
 
     public LegacyHmrcRequestService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {

@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.SuspenseTransactionServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacySuspenseTransactionService")
+@Slf4j(topic = "opal.LegacySuspenseTransactionService")
 public class LegacySuspenseTransactionService extends LegacyService implements SuspenseTransactionServiceInterface {
 
     public LegacySuspenseTransactionService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,15 @@ public class LegacySuspenseTransactionService extends LegacyService implements S
 
     @Override
     public SuspenseTransactionEntity getSuspenseTransaction(long suspenseTransactionId) {
-        log.info("getSuspenseTransaction for {} from {}", suspenseTransactionId, legacyGateway.getUrl());
+        log.debug("getSuspenseTransaction for {} from {}", suspenseTransactionId, legacyGateway.getUrl());
         return postToGateway("getSuspenseTransaction", SuspenseTransactionEntity.class, suspenseTransactionId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<SuspenseTransactionEntity> searchSuspenseTransactions(SuspenseTransactionSearchDto criteria) {
-        log.info(":searchSuspenseTransactions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchSuspenseTransactions: criteria: {} via gateway {}",
+                  criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchSuspenseTransactions", LegacySuspenseTransactionSearchResults.class, criteria)
             .getSuspenseTransactionEntities();
     }

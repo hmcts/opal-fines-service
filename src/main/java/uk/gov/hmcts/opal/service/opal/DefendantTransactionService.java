@@ -17,7 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "DefendantTransactionService")
+@Slf4j(topic = "opal.DefendantTransactionService")
 @Qualifier("defendantTransactionService")
 public class DefendantTransactionService implements DefendantTransactionServiceInterface {
 
@@ -32,7 +32,7 @@ public class DefendantTransactionService implements DefendantTransactionServiceI
 
     @Override
     public List<DefendantTransactionEntity> searchDefendantTransactions(DefendantTransactionSearchDto criteria) {
-        log.info(":searchDefendantTransactions: criteria: {}", criteria);
+        log.debug(":searchDefendantTransactions: criteria: {}", criteria);
         Page<DefendantTransactionEntity> page = defendantTransactionRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq.page(Pageable.unpaged()));

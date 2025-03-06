@@ -28,7 +28,7 @@ public class AuthorisationService {
             .accessToken(accessToken);
         Optional<String> preferredUsernameOptional = Optional.ofNullable(
             accessTokenService.extractPreferredUsername(accessToken));
-        log.info(":getSecurityToken: preferred user name: {}", preferredUsernameOptional);
+        log.debug(":getSecurityToken: preferred user name: {}", preferredUsernameOptional);
 
         if (preferredUsernameOptional.isPresent()) {
             UserState userStateOptional = this.getAuthorisation(preferredUsernameOptional.get());

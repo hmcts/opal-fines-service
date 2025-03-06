@@ -38,7 +38,7 @@ public class LogAuditDetailController {
     @Operation(summary = "Returns the LogAuditDetail for the given logAuditDetailId.")
     public ResponseEntity<LogAuditDetailEntity> getLogAuditDetailById(@PathVariable Long logAuditDetailId) {
 
-        log.info(":GET:getLogAuditDetailById: logAuditDetailId: {}", logAuditDetailId);
+        log.debug(":GET:getLogAuditDetailById: logAuditDetailId: {}", logAuditDetailId);
 
         LogAuditDetailEntity response = logAuditDetailService.getLogAuditDetail(logAuditDetailId);
 
@@ -49,7 +49,7 @@ public class LogAuditDetailController {
     @Operation(summary = "Searches LogAuditDetails based upon criteria in request body")
     public ResponseEntity<List<LogAuditDetailEntity>> postLogAuditDetailsSearch(
         @RequestBody LogAuditDetailSearchDto criteria) {
-        log.info(":POST:postLogAuditDetailsSearch: query: \n{}", criteria);
+        log.debug(":POST:postLogAuditDetailsSearch: query: \n{}", criteria);
 
         List<LogAuditDetailEntity> response = logAuditDetailService.searchLogAuditDetails(criteria);
 

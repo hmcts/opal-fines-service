@@ -38,7 +38,7 @@ public class WarrantRegisterController {
     @Operation(summary = "Returns the WarrantRegister for the given warrantRegisterId.")
     public ResponseEntity<WarrantRegisterEntity> getWarrantRegisterById(@PathVariable Long warrantRegisterId) {
 
-        log.info(":GET:getWarrantRegisterById: warrantRegisterId: {}", warrantRegisterId);
+        log.debug(":GET:getWarrantRegisterById: warrantRegisterId: {}", warrantRegisterId);
 
         WarrantRegisterEntity response = warrantRegisterService.getWarrantRegister(warrantRegisterId);
 
@@ -49,7 +49,7 @@ public class WarrantRegisterController {
     @Operation(summary = "Searches Warrant Registers based upon criteria in request body")
     public ResponseEntity<List<WarrantRegisterEntity>> postWarrantRegistersSearch(
         @RequestBody WarrantRegisterSearchDto criteria) {
-        log.info(":POST:postWarrantRegistersSearch: query: \n{}", criteria);
+        log.debug(":POST:postWarrantRegistersSearch: query: \n{}", criteria);
 
         List<WarrantRegisterEntity> response = warrantRegisterService.searchWarrantRegisters(criteria);
 

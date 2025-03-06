@@ -38,7 +38,7 @@ public class CreditorAccountController {
     @Operation(summary = "Returns the CreditorAccount for the given creditorAccountId.")
     public ResponseEntity<CreditorAccountEntity> getCreditorAccountById(@PathVariable Long creditorAccountId) {
 
-        log.info(":GET:getCreditorAccountById: creditorAccountId: {}", creditorAccountId);
+        log.debug(":GET:getCreditorAccountById: creditorAccountId: {}", creditorAccountId);
 
         CreditorAccountEntity response = creditorAccountService.getCreditorAccount(creditorAccountId);
 
@@ -49,7 +49,7 @@ public class CreditorAccountController {
     @Operation(summary = "Searches CreditorAccounts based upon criteria in request body")
     public ResponseEntity<List<CreditorAccountEntity>> postCreditorAccountsSearch(
         @RequestBody CreditorAccountSearchDto criteria) {
-        log.info(":POST:postCreditorAccountsSearch: query: \n{}", criteria);
+        log.debug(":POST:postCreditorAccountsSearch: query: \n{}", criteria);
 
         List<CreditorAccountEntity> response = creditorAccountService.searchCreditorAccounts(criteria);
 

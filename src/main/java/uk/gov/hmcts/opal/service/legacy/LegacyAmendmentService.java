@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.AmendmentServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyAmendmentService")
+@Slf4j(topic = "opal.LegacyAmendmentService")
 public class LegacyAmendmentService extends LegacyService implements AmendmentServiceInterface {
 
     public LegacyAmendmentService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyAmendmentService extends LegacyService implements AmendmentSe
 
     @Override
     public AmendmentEntity getAmendment(long amendmentId) {
-        log.info("getAmendment for {} from {}", amendmentId, legacyGateway.getUrl());
+        log.debug("getAmendment for {} from {}", amendmentId, legacyGateway.getUrl());
         return postToGateway("getAmendment", AmendmentEntity.class, amendmentId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<AmendmentEntity> searchAmendments(AmendmentSearchDto criteria) {
-        log.info(":searchAmendments: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchAmendments: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchAmendments", LegacyAmendmentSearchResults.class, criteria)
             .getAmendmentEntities();
     }

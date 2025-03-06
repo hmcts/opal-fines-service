@@ -37,7 +37,7 @@ public class AliasController {
     @Operation(summary = "Returns the Alias for the given aliasId.")
     public ResponseEntity<AliasEntity> getAliasById(@PathVariable Long aliasId) {
 
-        log.info(":GET:getAliasById: aliasId: {}", aliasId);
+        log.debug(":GET:getAliasById: aliasId: {}", aliasId);
 
         AliasEntity response = aliasService.getAlias(aliasId);
 
@@ -47,7 +47,7 @@ public class AliasController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Aliased based upon criteria in request body")
     public ResponseEntity<List<AliasEntity>> postAliasesSearch(@RequestBody AliasSearchDto criteria) {
-        log.info(":POST:postAliasesSearch: query: \n{}", criteria);
+        log.debug(":POST:postAliasesSearch: query: \n{}", criteria);
 
         List<AliasEntity> response = aliasService.searchAliass(criteria);
 

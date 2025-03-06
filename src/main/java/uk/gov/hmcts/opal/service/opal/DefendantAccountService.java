@@ -44,7 +44,7 @@ import static uk.gov.hmcts.opal.dto.ToJsonString.getObjectMapper;
 
 @Service
 @Transactional
-@Slf4j(topic = "DefendantAccountService")
+@Slf4j(topic = "opal.DefendantAccountService")
 @RequiredArgsConstructor
 @Qualifier("defendantAccountService")
 public class DefendantAccountService implements DefendantAccountServiceInterface {
@@ -79,13 +79,13 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
     @Override
     public List<DefendantAccountEntity> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
 
-        log.info(":getDefendantAccountsByBusinessUnit: busUnit: {}", businessUnitId);
+        log.debug(":getDefendantAccountsByBusinessUnit: busUnit: {}", businessUnitId);
         return defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId(businessUnitId);
     }
 
     @Override
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
-        log.info(":searchDefendantAccounts: criteria: {}", accountSearchDto.toJson());
+        log.debug(":searchDefendantAccounts: criteria: {}", accountSearchDto.toJson());
 
         // TODO - 25/06/2024 - remove this Disco+ 'test' code soon?
         if ("test".equalsIgnoreCase(accountSearchDto.getCourt())) {
@@ -94,7 +94,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                 .getResourceAsStream("tempSearchData.json")) {
                 ObjectMapper mapper = getObjectMapper();
                 AccountSearchResultsDto dto = mapper.readValue(in, AccountSearchResultsDto.class);
-                log.info(":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
+                log.debug(":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
                          dto.toPrettyJsonString());
                 return dto;
             } catch (Exception e) {
@@ -128,7 +128,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
                 ObjectMapper mapper = getObjectMapper();
                 AccountDetailsDto dto = mapper.readValue(in, AccountDetailsDto.class);
-                log.info(
+                log.debug(
                         """
                         :getAccountDetailsByDefendantAccountId:
                         " temporary Hack for Front End testing. Read JSON file: \n{}

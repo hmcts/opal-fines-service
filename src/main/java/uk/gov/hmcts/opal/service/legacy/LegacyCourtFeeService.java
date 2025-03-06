@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.CourtFeeServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyCourtFeeService")
+@Slf4j(topic = "opal.LegacyCourtFeeService")
 public class LegacyCourtFeeService extends LegacyService implements CourtFeeServiceInterface {
 
     public LegacyCourtFeeService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyCourtFeeService extends LegacyService implements CourtFeeServ
 
     @Override
     public CourtFeeEntity getCourtFee(long courtFeeId) {
-        log.info("getCourtFee for {} from {}", courtFeeId, legacyGateway.getUrl());
+        log.debug("getCourtFee for {} from {}", courtFeeId, legacyGateway.getUrl());
         return postToGateway("getCourtFee", CourtFeeEntity.class, courtFeeId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<CourtFeeEntity> searchCourtFees(CourtFeeSearchDto criteria) {
-        log.info(":searchCourtFees: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchCourtFees: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchCourtFees", LegacyCourtFeeSearchResults.class, criteria)
             .getCourtFeeEntities();
     }

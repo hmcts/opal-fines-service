@@ -3,14 +3,13 @@ package uk.gov.hmcts.opal.dto.legacy;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria.DefendantAccountSearchCriteriaBuilder;
 
-@Slf4j
+@Slf4j(topic = "opal.DefendantAccountSearchCriteriaTest")
 public class DefendantAccountSearchCriteriaTest {
 
     @Test

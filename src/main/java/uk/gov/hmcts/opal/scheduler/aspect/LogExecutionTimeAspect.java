@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Aspect
 @Component
-@Slf4j
+@Slf4j(topic = "opal.LogExecutionTimeAspect")
 public class LogExecutionTimeAspect {
 
     @Around("@annotation(uk.gov.hmcts.opal.scheduler.aspect.LogExecutionTime)")
@@ -20,7 +20,7 @@ public class LogExecutionTimeAspect {
 
         long executionTime = endTime - startTime;
 
-        log.info(joinPoint.getSignature() + " executed in " + executionTime + "ms");
+        log.debug(joinPoint.getSignature() + " executed in " + executionTime + "ms");
 
         return result;
     }

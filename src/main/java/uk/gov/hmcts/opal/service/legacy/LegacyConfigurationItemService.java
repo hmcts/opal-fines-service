@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.ConfigurationItemServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyConfigurationItemService")
+@Slf4j(topic = "opal.LegacyConfigurationItemService")
 public class LegacyConfigurationItemService extends LegacyService implements ConfigurationItemServiceInterface {
 
     public LegacyConfigurationItemService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyConfigurationItemService extends LegacyService implements Con
 
     @Override
     public ConfigurationItemEntity getConfigurationItem(long configurationItemId) {
-        log.info("getConfigurationItem for {} from {}", configurationItemId, legacyGateway.getUrl());
+        log.debug("getConfigurationItem for {} from {}", configurationItemId, legacyGateway.getUrl());
         return postToGateway("getConfigurationItem", ConfigurationItemEntity.class, configurationItemId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<ConfigurationItemEntity> searchConfigurationItems(ConfigurationItemSearchDto criteria) {
-        log.info(":searchConfigurationItems: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchConfigurationItems: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchConfigurationItems", LegacyConfigurationItemSearchResults.class, criteria)
             .getConfigurationItemEntities();
     }

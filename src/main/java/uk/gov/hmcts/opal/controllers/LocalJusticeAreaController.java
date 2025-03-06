@@ -28,7 +28,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 @RestController
 @RequestMapping("/local-justice-areas")
-@Slf4j(topic = "LocalJusticeAreaController")
+@Slf4j(topic = "opal.LocalJusticeAreaController")
 @Tag(name = "LocalJusticeArea Controller")
 public class LocalJusticeAreaController {
 
@@ -47,7 +47,7 @@ public class LocalJusticeAreaController {
     @Operation(summary = "Returns the LocalJusticeArea for the given localJusticeAreaId.")
     public ResponseEntity<LocalJusticeAreaEntity> getLocalJusticeAreaById(@PathVariable Short localJusticeAreaId) {
 
-        log.info(":GET:getLocalJusticeAreaById: localJusticeAreaId: {}", localJusticeAreaId);
+        log.debug(":GET:getLocalJusticeAreaById: localJusticeAreaId: {}", localJusticeAreaId);
 
         LocalJusticeAreaEntity response = localJusticeAreaService.getLocalJusticeArea(localJusticeAreaId);
 
@@ -58,7 +58,7 @@ public class LocalJusticeAreaController {
     @Operation(summary = "Searches LocalJusticeAreas based upon criteria in request body")
     public ResponseEntity<List<LocalJusticeAreaEntity>> postLocalJusticeAreasSearch(
         @RequestBody LocalJusticeAreaSearchDto criteria) {
-        log.info(":POST:postLocalJusticeAreasSearch: query: \n{}", criteria);
+        log.debug(":POST:postLocalJusticeAreasSearch: query: \n{}", criteria);
 
         List<LocalJusticeAreaEntity> response = localJusticeAreaService.searchLocalJusticeAreas(criteria);
 
@@ -69,11 +69,11 @@ public class LocalJusticeAreaController {
     @Operation(summary = "Returns Local Justice Area as reference data with an optional filter applied")
     public ResponseEntity<LjaReferenceDataResults> getLocalJusticeAreaRefData(
         @RequestParam("q") Optional<String> filter) {
-        log.info(":GET:getLocalJusticeAreaRefData: query: \n{}", filter);
+        log.debug(":GET:getLocalJusticeAreaRefData: query: \n{}", filter);
 
         List<LjaReferenceData> refData = opalLocalJusticeAreaService.getReferenceData(filter);
 
-        log.info(":GET:getLocalJusticeAreaRefData: local justice area reference data count: {}", refData.size());
+        log.debug(":GET:getLocalJusticeAreaRefData: local justice area reference data count: {}", refData.size());
         return ResponseEntity.ok(LjaReferenceDataResults.builder().refData(refData).build());
     }
 }

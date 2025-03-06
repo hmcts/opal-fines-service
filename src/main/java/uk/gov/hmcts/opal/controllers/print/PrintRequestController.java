@@ -36,7 +36,7 @@ public class PrintRequestController {
     @PostMapping(value = "/enqueue-print-jobs", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Enqueues print jobs for a batch of documents")
     public ResponseEntity<String> enqueuePrintJobs(@RequestBody List<PrintJob> printJobs) {
-        log.info(":POST:enqueuePrintJobs: received {} documents", printJobs.size());
+        log.debug(":POST:enqueuePrintJobs: received {} documents", printJobs.size());
 
         UUID batchId = printService.savePrintJobs(printJobs);
 
@@ -47,7 +47,7 @@ public class PrintRequestController {
     @PostMapping(value = "/generate-pdf", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Generates a PDF from a provided print request")
     public ResponseEntity<byte[]> generatePdf(@RequestBody PrintJob printJob) {
-        log.info(":POST:generatePdf: query: \n{}", printJob.toString());
+        log.debug(":POST:generatePdf: query: \n{}", printJob.toString());
 
         byte[] response = printService.generatePdf(printJob);
         HttpHeaders headers = new HttpHeaders();
@@ -60,7 +60,7 @@ public class PrintRequestController {
     @PostMapping(value = "/process-pending-jobs")
     @Operation(summary = "Processes pending print jobs")
     public ResponseEntity<String> processPendingJobs() {
-        log.info(":POST:processPendingJobs: processing pending print jobs");
+        log.debug(":POST:processPendingJobs: processing pending print jobs");
 
         asyncPrintJobProcessor.processPendingJobsAsync(LocalDateTime.now());
 
@@ -68,4 +68,3 @@ public class PrintRequestController {
     }
 
 }
-

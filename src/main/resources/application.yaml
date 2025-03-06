@@ -179,6 +179,7 @@ printservice:
 
 logging:
   level:
+    opal: ${OPAL_LOG_LEVEL:INFO}
     org:
       hibernate:
         stat: INFO

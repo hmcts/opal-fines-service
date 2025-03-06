@@ -29,14 +29,14 @@ public class UserStateAspectService {
      * @return UserState object for the user
      */
     public UserState getUserState(ProceedingJoinPoint joinPoint) {
-        log.info(":getUserState:");
+        log.debug(":getUserState:");
         return authorizationAspectService.getUserState(joinPoint.getArgs())
             .orElseGet(getUserStateSupplier(joinPoint));
     }
 
     public Supplier<UserState> getUserStateSupplier(ProceedingJoinPoint joinPoint) {
         return () -> {
-            log.info(":getUserStateSupplier:");
+            log.debug(":getUserStateSupplier:");
             String authHeaderValue = authorizationAspectService.getAccessTokenParam(joinPoint).orElse(null);
             String bearerToken = authorizationAspectService.getAuthorization(authHeaderValue)
                 .orElseThrow(() -> new MissingRequestHeaderException(AUTHORIZATION));

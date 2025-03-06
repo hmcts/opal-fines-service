@@ -38,7 +38,7 @@ public class ConfigurationItemController {
     @Operation(summary = "Returns the ConfigurationItem for the given configurationItemId.")
     public ResponseEntity<ConfigurationItemEntity> getConfigurationItemById(@PathVariable Long configurationItemId) {
 
-        log.info(":GET:getConfigurationItemById: configurationItemId: {}", configurationItemId);
+        log.debug(":GET:getConfigurationItemById: configurationItemId: {}", configurationItemId);
 
         ConfigurationItemEntity response = configurationItemService.getConfigurationItem(configurationItemId);
 
@@ -49,7 +49,7 @@ public class ConfigurationItemController {
     @Operation(summary = "Searches ConfigurationItems based upon criteria in request body")
     public ResponseEntity<List<ConfigurationItemEntity>> postConfigurationItemsSearch(
         @RequestBody ConfigurationItemSearchDto criteria) {
-        log.info(":POST:postConfigurationItemsSearch: query: \n{}", criteria);
+        log.debug(":POST:postConfigurationItemsSearch: query: \n{}", criteria);
 
         List<ConfigurationItemEntity> response = configurationItemService.searchConfigurationItems(criteria);
 

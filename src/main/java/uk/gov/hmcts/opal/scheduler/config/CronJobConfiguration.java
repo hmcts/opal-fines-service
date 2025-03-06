@@ -9,7 +9,7 @@ import uk.gov.hmcts.opal.scheduler.model.CronJob;
 import uk.gov.hmcts.opal.scheduler.model.JobData;
 import uk.gov.hmcts.opal.scheduler.service.JobService;
 
-@Slf4j
+@Slf4j(topic = "opal.CronJobConfiguration")
 @Configuration
 public class CronJobConfiguration {
 

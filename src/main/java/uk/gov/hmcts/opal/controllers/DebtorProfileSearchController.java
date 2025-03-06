@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.dto.OpalS2SResponseWrapper;
 
 @RestController
 @RequestMapping("/s2s/debtor-profiles")
-@Slf4j(topic = "DebtorProfileSearchController")
+@Slf4j(topic = "opal.DebtorProfileSearchController")
 @Tag(name = "Debtor Profile Search Controller")
 public class DebtorProfileSearchController {
 
@@ -22,7 +22,7 @@ public class DebtorProfileSearchController {
     @Operation(summary = "cpp interface: Searches for debtor profile by criteia in request body xml.")
     public ResponseEntity<OpalS2SResponseWrapper> searchDebtorProfile(OpalS2SRequestWrapper debtorProfileRequest) {
 
-        log.info(":POST:searchDebtorProfile: request: \n{}", debtorProfileRequest);
+        log.debug(":POST:searchDebtorProfile: request: \n{}", debtorProfileRequest);
         OpalS2SResponseWrapper response = OpalS2SResponseWrapper.builder()
             .opalResponsePayload(responseXML)
             .build();

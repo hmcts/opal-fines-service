@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@Slf4j(topic = "MajorCreditorService")
+@Slf4j(topic = "opal.MajorCreditorService")
 @RequiredArgsConstructor
 @Qualifier("majorCreditorService")
 public class MajorCreditorService implements MajorCreditorServiceInterface {
@@ -50,7 +50,7 @@ public class MajorCreditorService implements MajorCreditorServiceInterface {
     )
     public List<MajorCreditorReferenceData> getReferenceData(Optional<String> filter, Optional<Short> businessUnitId) {
 
-        log.info(":getReferenceData: filter: {}, businessUnitId: {}", filter, businessUnitId);
+        log.debug(":getReferenceData: filter: {}, businessUnitId: {}", filter, businessUnitId);
         Sort nameSort = Sort.by(Sort.Direction.ASC, MajorCreditorEntity_.NAME);
 
         Page<MajorCreditorEntity> page = majorCreditorRepository
@@ -63,7 +63,7 @@ public class MajorCreditorService implements MajorCreditorServiceInterface {
     }
 
     private MajorCreditorReferenceData toRefData(MajorCreditorEntity entity) {
-        log.info(":toRefData: entity: {}", entity);
+        log.debug(":toRefData: entity: {}", entity);
 
         MajorCreditorReferenceData.MajorCreditorReferenceDataBuilder builder = MajorCreditorReferenceData.builder()
             .majorCreditorId(entity.getMajorCreditorId())
@@ -85,7 +85,7 @@ public class MajorCreditorService implements MajorCreditorServiceInterface {
                 .build())
             .orElse(builder.build());
 
-        log.info(":toRefData: refData: \n{}", mcrd.toPrettyJson());
+        log.debug(":toRefData: refData: \n{}", mcrd.toPrettyJson());
         return mcrd;
     }
 }

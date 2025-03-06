@@ -38,7 +38,7 @@ import static uk.gov.hmcts.opal.util.PermissionUtil.getRequiredBusinessUnitUser;
 
 @RestController
 @RequestMapping("/defendant-accounts")
-@Slf4j(topic = "DefendantAccountController")
+@Slf4j(topic = "opal.DefendantAccountController")
 @Tag(name = "Defendant Account Controller")
 public class DefendantAccountController {
 
@@ -102,7 +102,7 @@ public class DefendantAccountController {
     public ResponseEntity<AccountSearchResultsDto> postDefendantAccountSearch(
         @RequestBody AccountSearchDto accountSearchDto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-        log.info(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
+        log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
         AccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
 
@@ -114,7 +114,7 @@ public class DefendantAccountController {
     public ResponseEntity<NoteDto> addNote(
         @RequestBody AddNoteDto addNote,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-        log.info(":POST:addNote: {}", addNote.toPrettyJson());
+        log.debug(":POST:addNote: {}", addNote.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
         BusinessUnitUser businessUnitUser = getRequiredBusinessUnitUser(userState,
@@ -133,7 +133,7 @@ public class DefendantAccountController {
 
         NoteDto response = opalNoteService.saveNote(noteDto);
 
-        log.info(":POST:addNote: response: {}", response);
+        log.debug(":POST:addNote: response: {}", response);
 
         return buildCreatedResponse(response);
 
@@ -145,7 +145,7 @@ public class DefendantAccountController {
         @PathVariable String defendantId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
-        log.info(":GET:getNotesForDefendantAccount: defendant account id: {}", defendantId);
+        log.debug(":GET:getNotesForDefendantAccount: defendant account id: {}", defendantId);
 
         NoteSearchDto criteria = NoteSearchDto.builder()
             .associatedType(NOTE_ASSOC_REC_TYPE)

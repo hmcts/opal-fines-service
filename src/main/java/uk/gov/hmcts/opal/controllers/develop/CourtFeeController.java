@@ -37,7 +37,7 @@ public class CourtFeeController {
     @Operation(summary = "Returns the CourtFee for the given courtFeeId.")
     public ResponseEntity<CourtFeeEntity> getCourtFeeById(@PathVariable Long courtFeeId) {
 
-        log.info(":GET:getCourtFeeById: courtFeeId: {}", courtFeeId);
+        log.debug(":GET:getCourtFeeById: courtFeeId: {}", courtFeeId);
 
         CourtFeeEntity response = courtFeeService.getCourtFee(courtFeeId);
 
@@ -47,7 +47,7 @@ public class CourtFeeController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches CourtFees based upon criteria in request body")
     public ResponseEntity<List<CourtFeeEntity>> postCourtFeesSearch(@RequestBody CourtFeeSearchDto criteria) {
-        log.info(":POST:postCourtFeesSearch: query: \n{}", criteria);
+        log.debug(":POST:postCourtFeesSearch: query: \n{}", criteria);
 
         List<CourtFeeEntity> response = courtFeeService.searchCourtFees(criteria);
 

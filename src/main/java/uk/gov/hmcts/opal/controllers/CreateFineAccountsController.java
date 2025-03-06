@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.dto.OpalS2SResponseWrapper;
 
 @RestController
 @RequestMapping("/s2s/create-fine-accounts")
-@Slf4j(topic = "CreateFineAccountController")
+@Slf4j(topic = "opal.CreateFineAccountController")
 @Tag(name = "Create Fine Account Controller")
 public class CreateFineAccountsController {
 
@@ -22,7 +22,7 @@ public class CreateFineAccountsController {
     @Operation(summary = "cpp interface: creates fine accounts by criteria in request body xml.")
     public ResponseEntity<OpalS2SResponseWrapper> createFineAccounts(OpalS2SRequestWrapper createFineAccountsRequest) {
 
-        log.info(":POST:createFineAccounts: request: \n{}", createFineAccountsRequest);
+        log.debug(":POST:createFineAccounts: request: \n{}", createFineAccountsRequest);
         OpalS2SResponseWrapper response = OpalS2SResponseWrapper.builder()
             .opalResponsePayload(responseXML)
             .build();

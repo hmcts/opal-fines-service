@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.TillServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyTillService")
+@Slf4j(topic = "opal.LegacyTillService")
 public class LegacyTillService extends LegacyService implements TillServiceInterface {
 
     public LegacyTillService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyTillService extends LegacyService implements TillServiceInter
 
     @Override
     public TillEntity getTill(long tillId) {
-        log.info("getTill for {} from {}", tillId, legacyGateway.getUrl());
+        log.debug("getTill for {} from {}", tillId, legacyGateway.getUrl());
         return postToGateway("getTill", TillEntity.class, tillId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<TillEntity> searchTills(TillSearchDto criteria) {
-        log.info(":searchTills: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchTills: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchTills", LegacyTillSearchResults.class, criteria)
             .getTillEntities();
     }

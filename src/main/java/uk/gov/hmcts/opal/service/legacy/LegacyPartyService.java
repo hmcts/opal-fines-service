@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@Slf4j(topic = "LegacyPartyService")
+@Slf4j(topic = "opal.LegacyPartyService")
 public class LegacyPartyService extends LegacyService implements PartyServiceInterface {
 
     public static final String GET_PARTY = "getParty";
@@ -35,13 +35,13 @@ public class LegacyPartyService extends LegacyService implements PartyServiceInt
 
     @Override
     public PartyDto getParty(long partyId) {
-        log.info("Get party for id: {}", partyId);
+        log.debug("Get party for id: {}", partyId);
         return postParamsToGateway(GET_PARTY, PartyDto.class, Map.of("party_id", partyId));
     }
 
     @Override
     public PartyDto saveParty(PartyDto partyDto) {
-        log.info("Sending party to {}", legacyGateway.getUrl());
+        log.debug("Sending party to {}", legacyGateway.getUrl());
         return postToGateway(POST_PARTY, PartyDto.class, partyDto);
     }
 
@@ -53,7 +53,7 @@ public class LegacyPartyService extends LegacyService implements PartyServiceInt
     @Override
     @SuppressWarnings("unchecked")
     public List<PartyEntity> searchParties(PartySearchDto criteria) {
-        log.info(":searchParties: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchParties: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchParties", LegacyPartySearchResults.class, criteria)
             .getPartyEntities();
     }

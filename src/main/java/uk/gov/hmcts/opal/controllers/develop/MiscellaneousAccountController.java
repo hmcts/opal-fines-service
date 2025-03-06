@@ -39,7 +39,7 @@ public class MiscellaneousAccountController {
     public ResponseEntity<MiscellaneousAccountEntity> getMiscellaneousAccountById(@PathVariable
                                                                                       Long miscellaneousAccountId) {
 
-        log.info(":GET:getMiscellaneousAccountById: miscellaneousAccountId: {}", miscellaneousAccountId);
+        log.debug(":GET:getMiscellaneousAccountById: miscellaneousAccountId: {}", miscellaneousAccountId);
 
         MiscellaneousAccountEntity response = miscellaneousAccountService
             .getMiscellaneousAccount(miscellaneousAccountId);
@@ -52,7 +52,7 @@ public class MiscellaneousAccountController {
     public ResponseEntity<List<MiscellaneousAccountEntity>> postMiscellaneousAccountsSearch(
         @RequestBody MiscellaneousAccountSearchDto criteria) {
 
-        log.info(":POST:postMiscellaneousAccountsSearch: query: \n{}", criteria);
+        log.debug(":POST:postMiscellaneousAccountsSearch: query: \n{}", criteria);
 
         List<MiscellaneousAccountEntity> response = miscellaneousAccountService.searchMiscellaneousAccounts(criteria);
 

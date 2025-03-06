@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.TemplateServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyTemplateService")
+@Slf4j(topic = "opal.LegacyTemplateService")
 public class LegacyTemplateService extends LegacyService implements TemplateServiceInterface {
 
     public LegacyTemplateService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyTemplateService extends LegacyService implements TemplateServ
 
     @Override
     public TemplateEntity getTemplate(long templateId) {
-        log.info("getTemplate for {} from {}", templateId, legacyGateway.getUrl());
+        log.debug("getTemplate for {} from {}", templateId, legacyGateway.getUrl());
         return postToGateway("getTemplate", TemplateEntity.class, templateId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<TemplateEntity> searchTemplates(TemplateSearchDto criteria) {
-        log.info(":searchTemplates: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchTemplates: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchTemplates", LegacyTemplateSearchResults.class, criteria)
             .getTemplateEntities();
     }

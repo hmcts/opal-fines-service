@@ -38,7 +38,7 @@ public class StandardLetterController {
     @Operation(summary = "Returns the StandardLetter for the given standardLetterId.")
     public ResponseEntity<StandardLetterEntity> getStandardLetterById(@PathVariable Long standardLetterId) {
 
-        log.info(":GET:getStandardLetterById: standardLetterId: {}", standardLetterId);
+        log.debug(":GET:getStandardLetterById: standardLetterId: {}", standardLetterId);
 
         StandardLetterEntity response = standardLetterService.getStandardLetter(standardLetterId);
 
@@ -49,7 +49,7 @@ public class StandardLetterController {
     @Operation(summary = "Searches Standard Letters based upon criteria in request body")
     public ResponseEntity<List<StandardLetterEntity>> postStandardLettersSearch(@RequestBody
                                                                                     StandardLetterSearchDto criteria) {
-        log.info(":POST:postStandardLettersSearch: query: \n{}", criteria);
+        log.debug(":POST:postStandardLettersSearch: query: \n{}", criteria);
 
         List<StandardLetterEntity> response = standardLetterService.searchStandardLetters(criteria);
 

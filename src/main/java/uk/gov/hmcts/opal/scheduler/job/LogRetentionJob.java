@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.scheduler.service.LogRetentionService;
 
 @Component
 @Getter
-@Slf4j
+@Slf4j(topic = "opal.LogRetentionJob")
 @DisallowConcurrentExecution
 public class LogRetentionJob implements CronJob {
 

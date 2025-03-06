@@ -38,7 +38,7 @@ public class SuspenseAccountController {
     @Operation(summary = "Returns the SuspenseAccount for the given suspenseAccountId.")
     public ResponseEntity<SuspenseAccountEntity> getSuspenseAccountById(@PathVariable Long suspenseAccountId) {
 
-        log.info(":GET:getSuspenseAccountById: suspenseAccountId: {}", suspenseAccountId);
+        log.debug(":GET:getSuspenseAccountById: suspenseAccountId: {}", suspenseAccountId);
 
         SuspenseAccountEntity response = suspenseAccountService.getSuspenseAccount(suspenseAccountId);
 
@@ -49,7 +49,7 @@ public class SuspenseAccountController {
     @Operation(summary = "Searches SuspenseAccounts based upon criteria in request body")
     public ResponseEntity<List<SuspenseAccountEntity>> postSuspenseAccountsSearch(
         @RequestBody SuspenseAccountSearchDto criteria) {
-        log.info(":POST:postSuspenseAccountsSearch: query: \n{}", criteria);
+        log.debug(":POST:postSuspenseAccountsSearch: query: \n{}", criteria);
 
         List<SuspenseAccountEntity> response = suspenseAccountService.searchSuspenseAccounts(criteria);
 

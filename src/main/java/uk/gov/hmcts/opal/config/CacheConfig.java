@@ -22,7 +22,7 @@ import org.springframework.data.redis.serializer.RedisSerializationContext.Seria
 
 import java.time.Duration;
 
-@Slf4j
+@Slf4j(topic = "opal.CacheConfig")
 @Configuration
 @EnableCaching
 public class CacheConfig {
@@ -106,7 +106,7 @@ public class CacheConfig {
 
         log.info("Available Caches:");
         if (cacheManager != null) {
-            cacheManager.getCacheNames().forEach(cacheName -> log.info("- {}", cacheName));
+            cacheManager.getCacheNames().forEach(cacheName -> log.debug("- {}", cacheName));
         }
         log.info("------------------------------");
     }

@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyDefendantAccountService")
+@Slf4j(topic = "opal.LegacyDefendantAccountService")
 public class LegacyDefendantAccountService extends LegacyService implements DefendantAccountServiceInterface {
 
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
@@ -40,13 +40,13 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
 
     @Override
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
-        log.info("Get defendant account for {} from {}", request.toJson(), legacyGateway.getUrl());
+        log.debug("Get defendant account for {} from {}", request.toJson(), legacyGateway.getUrl());
         return postToGateway(GET_DEFENDANT_ACCOUNT, DefendantAccountEntity.class, request);
     }
 
     @Override
     public DefendantAccountEntity putDefendantAccount(DefendantAccountEntity defendantAccountEntity) {
-        log.info("Sending defendantAccount to {}", legacyGateway.getUrl());
+        log.debug("Sending defendantAccount to {}", legacyGateway.getUrl());
         return postToGateway(PUT_DEFENDANT_ACCOUNT, DefendantAccountEntity.class, defendantAccountEntity);
     }
 
@@ -58,14 +58,14 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
     @Override
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         DefendantAccountSearchCriteria criteria = DefendantAccountSearchCriteria.fromAccountSearchDto(accountSearchDto);
-        log.info(":searchDefendantAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchDefendantAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway(SEARCH_DEFENDANT_ACCOUNTS, DefendantAccountsSearchResults.class, criteria)
             .toAccountSearchResultsDto();
     }
 
     @Override
     public AccountDetailsDto getAccountDetailsByDefendantAccountId(Long defendantAccountId) {
-        log.info("Get defendant account for id: {}", defendantAccountId);
+        log.debug("Get defendant account for id: {}", defendantAccountId);
 
         LegacyAccountDetailsRequestDto request = LegacyAccountDetailsRequestDto.builder()
             .defendantAccountId(defendantAccountId)

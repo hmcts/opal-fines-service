@@ -39,7 +39,7 @@ public class SuspenseTransactionController {
     public ResponseEntity<SuspenseTransactionEntity> getSuspenseTransactionById(
         @PathVariable Long suspenseTransactionId) {
 
-        log.info(":GET:getSuspenseTransactionById: suspenseTransactionId: {}", suspenseTransactionId);
+        log.debug(":GET:getSuspenseTransactionById: suspenseTransactionId: {}", suspenseTransactionId);
 
         SuspenseTransactionEntity response = suspenseTransactionService.getSuspenseTransaction(suspenseTransactionId);
 
@@ -50,7 +50,7 @@ public class SuspenseTransactionController {
     @Operation(summary = "Searches SuspenseTransactions based upon criteria in request body")
     public ResponseEntity<List<SuspenseTransactionEntity>> postSuspenseTransactionsSearch(
         @RequestBody SuspenseTransactionSearchDto criteria) {
-        log.info(":POST:postSuspenseTransactionsSearch: query: \n{}", criteria);
+        log.debug(":POST:postSuspenseTransactionsSearch: query: \n{}", criteria);
 
         List<SuspenseTransactionEntity> response = suspenseTransactionService.searchSuspenseTransactions(criteria);
 

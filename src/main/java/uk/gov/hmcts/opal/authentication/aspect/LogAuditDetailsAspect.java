@@ -39,7 +39,8 @@ public class LogAuditDetailsAspect {
                 .build();
 
             logAuditDetailService.writeLogAuditDetail(logAuditDetailDto);
-            log.info("LogAuditDetails logged action {} for user id {}", logAuditDetail.action(), userState.getUserId());
+            log.debug("LogAuditDetails logged action {} for user id {}",
+                      logAuditDetail.action(), userState.getUserId());
         } catch (MissingRequestHeaderException exception) {
             log.warn("Can't log action {} details as missing JWT access token in parameters", logAuditDetail.action());
         } catch (Exception exception) {
@@ -48,4 +49,3 @@ public class LogAuditDetailsAspect {
     }
 
 }
-

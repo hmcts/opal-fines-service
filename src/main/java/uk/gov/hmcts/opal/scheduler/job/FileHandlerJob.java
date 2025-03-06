@@ -20,7 +20,7 @@ import static java.time.LocalTime.now;
 
 @Component
 @Getter
-@Slf4j(topic = "FileHandlerJob")
+@Slf4j(topic = "opal.FileHandlerJob")
 @DisallowConcurrentExecution
 public class FileHandlerJob implements CronJob {
 
@@ -63,7 +63,7 @@ public class FileHandlerJob implements CronJob {
             while ((bytesRead = inputStream.read(buffer)) != -1) {
                 // Do something with the read bytes
                 String contents = new String(buffer, 0, bytesRead);
-                log.info(contents);
+                log.debug(contents);
             }
         } catch (IOException exception) {
             log.error(exception.getMessage(), exception);

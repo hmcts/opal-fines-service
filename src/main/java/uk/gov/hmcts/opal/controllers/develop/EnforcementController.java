@@ -37,7 +37,7 @@ public class EnforcementController {
     @Operation(summary = "Returns the Enforcement for the given enforcementId.")
     public ResponseEntity<EnforcementEntity> getEnforcementById(@PathVariable Long enforcementId) {
 
-        log.info(":GET:getEnforcementById: enforcementId: {}", enforcementId);
+        log.debug(":GET:getEnforcementById: enforcementId: {}", enforcementId);
 
         EnforcementEntity response = enforcementService.getEnforcement(enforcementId);
 
@@ -47,7 +47,7 @@ public class EnforcementController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Enforcements based upon criteria in request body")
     public ResponseEntity<List<EnforcementEntity>> postEnforcementsSearch(@RequestBody EnforcementSearchDto criteria) {
-        log.info(":POST:postEnforcementsSearch: query: \n{}", criteria);
+        log.debug(":POST:postEnforcementsSearch: query: \n{}", criteria);
 
         List<EnforcementEntity> response = enforcementService.searchEnforcements(criteria);
 

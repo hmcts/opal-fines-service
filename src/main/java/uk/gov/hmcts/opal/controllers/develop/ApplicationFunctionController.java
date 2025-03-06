@@ -39,7 +39,7 @@ public class ApplicationFunctionController {
     public ResponseEntity<ApplicationFunctionEntity> getApplicationFunctionById(
         @PathVariable Long applicationFunctionId) {
 
-        log.info(":GET:getApplicationFunctionById: applicationFunctionId: {}", applicationFunctionId);
+        log.debug(":GET:getApplicationFunctionById: applicationFunctionId: {}", applicationFunctionId);
 
         ApplicationFunctionEntity response = applicationFunctionService.getApplicationFunction(applicationFunctionId);
 
@@ -50,11 +50,11 @@ public class ApplicationFunctionController {
     @Operation(summary = "Searches ApplicationFunctions based upon criteria in request body")
     public ResponseEntity<List<ApplicationFunctionEntity>> postApplicationFunctionsSearch(
         @RequestBody ApplicationFunctionSearchDto criteria) {
-        log.info(":POST:postApplicationFunctionsSearch: query: \n{}", criteria);
+        log.debug(":POST:postApplicationFunctionsSearch: query: \n{}", criteria);
 
         List<ApplicationFunctionEntity> response = applicationFunctionService.searchApplicationFunctions(criteria);
 
-        log.info(":POST:postApplicationFunctionsSearch: response count: {}", response.size());
+        log.debug(":POST:postApplicationFunctionsSearch: response count: {}", response.size());
 
         return buildResponse(response);
     }

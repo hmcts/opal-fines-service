@@ -38,7 +38,7 @@ public class PaymentTermsController {
     @Operation(summary = "Returns the PaymentTerms for the given paymentTermsId.")
     public ResponseEntity<PaymentTermsEntity> getPaymentTermsById(@PathVariable Long paymentTermsId) {
 
-        log.info(":GET:getPaymentTermsById: paymentTermsId: {}", paymentTermsId);
+        log.debug(":GET:getPaymentTermsById: paymentTermsId: {}", paymentTermsId);
 
         PaymentTermsEntity response = paymentTermsService.getPaymentTerms(paymentTermsId);
 
@@ -49,7 +49,7 @@ public class PaymentTermsController {
     @Operation(summary = "Searches PaymentTerms based upon criteria in request body")
     public ResponseEntity<List<PaymentTermsEntity>> postPaymentTermsSearch(
         @RequestBody PaymentTermsSearchDto criteria) {
-        log.info(":POST:postPaymentTermsSearch: query: \n{}", criteria);
+        log.debug(":POST:postPaymentTermsSearch: query: \n{}", criteria);
 
         List<PaymentTermsEntity> response = paymentTermsService.searchPaymentTerms(criteria);
 

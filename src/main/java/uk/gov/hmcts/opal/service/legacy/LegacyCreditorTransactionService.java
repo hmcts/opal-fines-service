@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.CreditorTransactionServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyCreditorTransactionService")
+@Slf4j(topic = "opal.LegacyCreditorTransactionService")
 public class LegacyCreditorTransactionService extends LegacyService implements CreditorTransactionServiceInterface {
 
     public LegacyCreditorTransactionService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,15 @@ public class LegacyCreditorTransactionService extends LegacyService implements C
 
     @Override
     public CreditorTransactionEntity getCreditorTransaction(long creditorTransactionId) {
-        log.info("getCreditorTransaction for {} from {}", creditorTransactionId, legacyGateway.getUrl());
+        log.debug("getCreditorTransaction for {} from {}", creditorTransactionId, legacyGateway.getUrl());
         return postToGateway("getCreditorTransaction", CreditorTransactionEntity.class, creditorTransactionId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<CreditorTransactionEntity> searchCreditorTransactions(CreditorTransactionSearchDto criteria) {
-        log.info(":searchCreditorTransactions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchCreditorTransactions: criteria: {} via gateway {}",
+                  criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchCreditorTransactions", LegacyCreditorTransactionSearchResults.class, criteria)
             .getCreditorTransactionEntities();
     }

@@ -43,7 +43,7 @@ import java.util.UUID;
 @Setter
 @Getter
 @RequiredArgsConstructor
-@Slf4j(topic = "PrintService")
+@Slf4j(topic = "opal.PrintService")
 public class PrintService {
 
     private final FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());
@@ -105,7 +105,7 @@ public class PrintService {
     public UUID savePrintJobs(List<PrintJob> printJobs) {
         UUID batchId = UUID.randomUUID();
 
-        log.info("Saving print jobs for batch {}", batchId);
+        log.debug("Saving print jobs for batch {}", batchId);
 
         for (PrintJob printJob : printJobs) {
             printJob.setBatchId(batchId);
@@ -140,13 +140,13 @@ public class PrintService {
                 }
             }
         }
-        log.info("Processed pending jobs");
+        log.debug("Processed pending jobs");
     }
 
 
     protected void processJobsWithLock(LocalDateTime cutoffDate) {
         Pageable pageable = PageRequest.of(0, pageSize);
-        log.info("Page Size: {}", pageSize);
+        log.debug("Page Size: {}", pageSize);
         Page<PrintJob> page;
         do {
             page = this.findPendingJobsForUpdate(PrintStatus.PENDING, cutoffDate, pageable);
@@ -183,14 +183,14 @@ public class PrintService {
 
     private void savePdfToFile(byte[] pdfData, PrintJob job) {
         String fileName = job.getBatchId() + "_" + job.getJobId() + ".pdf";
-        log.info("Saving PDF to file: {}", fileName);
+        log.debug("Saving PDF to file: {}", fileName);
 
         sftpOutboundService.uploadFile(pdfData, SftpLocation.PRINT_LOCATION.getPath(), fileName);
     }
 
 
     private Page<PrintJob> findPendingJobsForUpdate(PrintStatus status, LocalDateTime cutoffDate, Pageable pageable) {
-        log.info("Finding pending jobs for update");
+        log.debug("Finding pending jobs for update");
         return printJobRepository.findPendingJobsForUpdate(status, cutoffDate, pageable);
     }
 }

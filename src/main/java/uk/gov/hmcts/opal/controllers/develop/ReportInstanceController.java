@@ -38,7 +38,7 @@ public class ReportInstanceController {
     @Operation(summary = "Returns the ReportInstance for the given reportInstanceId.")
     public ResponseEntity<ReportInstanceEntity> getReportInstanceById(@PathVariable Long reportInstanceId) {
 
-        log.info(":GET:getReportInstanceById: reportInstanceId: {}", reportInstanceId);
+        log.debug(":GET:getReportInstanceById: reportInstanceId: {}", reportInstanceId);
 
         ReportInstanceEntity response = reportInstanceService.getReportInstance(reportInstanceId);
 
@@ -49,7 +49,7 @@ public class ReportInstanceController {
     @Operation(summary = "Searches Report Instances based upon criteria in request body")
     public ResponseEntity<List<ReportInstanceEntity>> postReportInstancesSearch(@RequestBody
                                                                                     ReportInstanceSearchDto criteria) {
-        log.info(":POST:postReportInstancesSearch: query: \n{}", criteria);
+        log.debug(":POST:postReportInstancesSearch: query: \n{}", criteria);
 
         List<ReportInstanceEntity> response = reportInstanceService.searchReportInstances(criteria);
 

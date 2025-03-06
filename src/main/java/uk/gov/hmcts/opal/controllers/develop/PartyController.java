@@ -59,7 +59,7 @@ public class PartyController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches parties based upon criteria in request body")
     public ResponseEntity<List<PartyEntity>> postPartiesSearch(@RequestBody PartySearchDto criteria) {
-        log.info(":POST:postPartiesSearch: query: \n{}", criteria);
+        log.debug(":POST:postPartiesSearch: query: \n{}", criteria);
 
         List<PartyEntity> response = partyService.searchParties(criteria);
 

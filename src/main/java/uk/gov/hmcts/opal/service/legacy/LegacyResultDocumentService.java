@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.service.ResultDocumentServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyResultDocumentService")
+@Slf4j(topic = "opal.LegacyResultDocumentService")
 public class LegacyResultDocumentService extends LegacyService implements ResultDocumentServiceInterface {
 
     public LegacyResultDocumentService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {

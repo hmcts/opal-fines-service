@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.AliasServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyAliasService")
+@Slf4j(topic = "opal.LegacyAliasService")
 public class LegacyAliasService extends LegacyService implements AliasServiceInterface {
 
     public LegacyAliasService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyAliasService extends LegacyService implements AliasServiceInt
 
     @Override
     public AliasEntity getAlias(long aliasId) {
-        log.info("getAlias for {} from {}", aliasId, legacyGateway.getUrl());
+        log.debug("getAlias for {} from {}", aliasId, legacyGateway.getUrl());
         return postToGateway("getAlias", AliasEntity.class, aliasId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<AliasEntity> searchAliass(AliasSearchDto criteria) {
-        log.info(":searchAliass: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchAliass: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchAliass", LegacyAliasSearchResults.class, criteria)
             .getAliasEntities();
     }

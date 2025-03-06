@@ -37,7 +37,7 @@ public class ReportController {
     @Operation(summary = "Returns the Report for the given reportId.")
     public ResponseEntity<ReportEntity> getReportById(@PathVariable Long reportId) {
 
-        log.info(":GET:getReportById: reportId: {}", reportId);
+        log.debug(":GET:getReportById: reportId: {}", reportId);
 
         ReportEntity response = reportService.getReport(reportId);
 
@@ -47,7 +47,7 @@ public class ReportController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Reports based upon criteria in request body")
     public ResponseEntity<List<ReportEntity>> postReportsSearch(@RequestBody ReportSearchDto criteria) {
-        log.info(":POST:postReportsSearch: query: \n{}", criteria);
+        log.debug(":POST:postReportsSearch: query: \n{}", criteria);
 
         List<ReportEntity> response = reportService.searchReports(criteria);
 

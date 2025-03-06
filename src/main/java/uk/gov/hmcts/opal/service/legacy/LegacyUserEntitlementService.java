@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.UserEntitlementServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyUserEntitlementService")
+@Slf4j(topic = "opal.LegacyUserEntitlementService")
 public class LegacyUserEntitlementService extends LegacyService implements UserEntitlementServiceInterface {
 
     public LegacyUserEntitlementService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyUserEntitlementService extends LegacyService implements UserE
 
     @Override
     public UserEntitlementEntity getUserEntitlement(long userEntitlementId) {
-        log.info("getUserEntitlement for {} from {}", userEntitlementId, legacyGateway.getUrl());
+        log.debug("getUserEntitlement for {} from {}", userEntitlementId, legacyGateway.getUrl());
         return postToGateway("getUserEntitlement", UserEntitlementEntity.class, userEntitlementId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<UserEntitlementEntity> searchUserEntitlements(UserEntitlementSearchDto criteria) {
-        log.info(":searchUserEntitlements: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchUserEntitlements: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchUserEntitlements", LegacyUserEntitlementSearchResults.class, criteria)
             .getUserEntitlementEntities();
     }

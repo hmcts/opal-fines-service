@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.DebtorDetailServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyDebtorDetailService")
+@Slf4j(topic = "opal.LegacyDebtorDetailService")
 public class LegacyDebtorDetailService extends LegacyService implements DebtorDetailServiceInterface {
 
 
@@ -28,14 +28,14 @@ public class LegacyDebtorDetailService extends LegacyService implements DebtorDe
 
     @Override
     public DebtorDetailEntity getDebtorDetail(long debtorDetailId) {
-        log.info("getDebtorDetail for {} from {}", debtorDetailId, legacyGateway.getUrl());
+        log.debug("getDebtorDetail for {} from {}", debtorDetailId, legacyGateway.getUrl());
         return postToGateway("getDebtorDetail", DebtorDetailEntity.class, debtorDetailId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<DebtorDetailEntity> searchDebtorDetails(DebtorDetailSearchDto criteria) {
-        log.info(":searchDebtorDetails: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchDebtorDetails: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchDebtorDetails", LegacyDebtorDetailSearchResults.class, criteria)
             .getDebtorDetailEntities();
     }

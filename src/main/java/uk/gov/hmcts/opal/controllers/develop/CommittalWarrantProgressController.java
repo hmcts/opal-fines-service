@@ -39,7 +39,7 @@ public class CommittalWarrantProgressController {
     public ResponseEntity<CommittalWarrantProgressEntity> getCommittalWarrantProgressById(
         @PathVariable Long committalWarrantProgressId) {
 
-        log.info(":GET:getCommittalWarrantProgressById: committalWarrantProgressId: {}", committalWarrantProgressId);
+        log.debug(":GET:getCommittalWarrantProgressById: committalWarrantProgressId: {}", committalWarrantProgressId);
 
         CommittalWarrantProgressEntity response = committalWarrantProgressService.getCommittalWarrantProgress(
             committalWarrantProgressId);
@@ -51,7 +51,7 @@ public class CommittalWarrantProgressController {
     @Operation(summary = "Searches CommittalWarrantProgresss based upon criteria in request body")
     public ResponseEntity<List<CommittalWarrantProgressEntity>> postCommittalWarrantProgresssSearch(
         @RequestBody CommittalWarrantProgressSearchDto criteria) {
-        log.info(":POST:postCommittalWarrantProgresssSearch: query: \n{}", criteria);
+        log.debug(":POST:postCommittalWarrantProgresssSearch: query: \n{}", criteria);
 
         List<CommittalWarrantProgressEntity> response = committalWarrantProgressService
             .searchCommittalWarrantProgresss(criteria);

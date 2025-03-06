@@ -39,7 +39,7 @@ public class DefendantTransactionController {
     public ResponseEntity<DefendantTransactionEntity> getDefendantTransactionById(
         @PathVariable Long defendantTransactionId) {
 
-        log.info(":GET:getDefendantTransactionById: defendantTransactionId: {}", defendantTransactionId);
+        log.debug(":GET:getDefendantTransactionById: defendantTransactionId: {}", defendantTransactionId);
 
         DefendantTransactionEntity response = defendantTransactionService
             .getDefendantTransaction(defendantTransactionId);
@@ -51,11 +51,11 @@ public class DefendantTransactionController {
     @Operation(summary = "Searches DefendantTransactions based upon criteria in request body")
     public ResponseEntity<List<DefendantTransactionEntity>> postDefendantTransactionsSearch(
         @RequestBody DefendantTransactionSearchDto criteria) {
-        log.info(":POST:postDefendantTransactionsSearch: query: \n{}", criteria);
+        log.debug(":POST:postDefendantTransactionsSearch: query: \n{}", criteria);
 
         List<DefendantTransactionEntity> response = defendantTransactionService.searchDefendantTransactions(criteria);
 
-        log.info(":POST:postDefendantTransactionsSearch: results: \n{}", response.size());
+        log.debug(":POST:postDefendantTransactionsSearch: results: \n{}", response.size());
 
         return buildResponse(response);
     }

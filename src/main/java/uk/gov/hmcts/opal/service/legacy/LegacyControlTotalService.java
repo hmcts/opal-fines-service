@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.service.ControlTotalServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyControlTotalService")
+@Slf4j(topic = "opal.LegacyControlTotalService")
 public class LegacyControlTotalService extends LegacyService implements ControlTotalServiceInterface {
 
     public LegacyControlTotalService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {

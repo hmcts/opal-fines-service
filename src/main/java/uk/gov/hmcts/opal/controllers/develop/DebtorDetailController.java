@@ -38,7 +38,7 @@ public class DebtorDetailController {
     @Operation(summary = "Returns the DebtorDetail for the given debtorDetailId.")
     public ResponseEntity<DebtorDetailEntity> getDebtorDetailById(@PathVariable Long debtorDetailId) {
 
-        log.info(":GET:getDebtorDetailById: debtorDetailId: {}", debtorDetailId);
+        log.debug(":GET:getDebtorDetailById: debtorDetailId: {}", debtorDetailId);
 
         DebtorDetailEntity response = debtorDetailService.getDebtorDetail(debtorDetailId);
 
@@ -49,7 +49,7 @@ public class DebtorDetailController {
     @Operation(summary = "Searches DebtorDetails based upon criteria in request body")
     public ResponseEntity<List<DebtorDetailEntity>> postDebtorDetailsSearch(
         @RequestBody DebtorDetailSearchDto criteria) {
-        log.info(":POST:postDebtorDetailsSearch: query: \n{}", criteria);
+        log.debug(":POST:postDebtorDetailsSearch: query: \n{}", criteria);
 
         List<DebtorDetailEntity> response = debtorDetailService.searchDebtorDetails(criteria);
 

@@ -39,7 +39,7 @@ public class CreditorTransactionController {
     public ResponseEntity<CreditorTransactionEntity> getCreditorTransactionById(@PathVariable
                                                                                     Long creditorTransactionId) {
 
-        log.info(":GET:getCreditorTransactionById: creditorTransactionId: {}", creditorTransactionId);
+        log.debug(":GET:getCreditorTransactionById: creditorTransactionId: {}", creditorTransactionId);
 
         CreditorTransactionEntity response = creditorTransactionService.getCreditorTransaction(creditorTransactionId);
 
@@ -50,7 +50,7 @@ public class CreditorTransactionController {
     @Operation(summary = "Searches CreditorTransactions based upon criteria in request body")
     public ResponseEntity<List<CreditorTransactionEntity>> postCreditorTransactionsSearch(
         @RequestBody CreditorTransactionSearchDto criteria) {
-        log.info(":POST:postCreditorTransactionsSearch: query: \n{}", criteria);
+        log.debug(":POST:postCreditorTransactionsSearch: query: \n{}", criteria);
 
         List<CreditorTransactionEntity> response = creditorTransactionService.searchCreditorTransactions(criteria);
 

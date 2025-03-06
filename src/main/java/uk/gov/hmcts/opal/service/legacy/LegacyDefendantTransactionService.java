@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.DefendantTransactionServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyDefendantTransactionService")
+@Slf4j(topic = "opal.LegacyDefendantTransactionService")
 public class LegacyDefendantTransactionService extends LegacyService implements DefendantTransactionServiceInterface {
 
     public LegacyDefendantTransactionService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,13 +27,13 @@ public class LegacyDefendantTransactionService extends LegacyService implements 
 
     @Override
     public DefendantTransactionEntity getDefendantTransaction(long defendantTransactionId) {
-        log.info("getDefendantTransaction for {} from {}", defendantTransactionId, legacyGateway.getUrl());
+        log.debug("getDefendantTransaction for {} from {}", defendantTransactionId, legacyGateway.getUrl());
         return postToGateway("getDefendantTransaction", DefendantTransactionEntity.class, defendantTransactionId);
     }
 
     @Override
     public List<DefendantTransactionEntity> searchDefendantTransactions(DefendantTransactionSearchDto criteria) {
-        log.info(":searchDefendantTransactions: criteria: {} via gateway {}", criteria.toJson(),
+        log.debug(":searchDefendantTransactions: criteria: {} via gateway {}", criteria.toJson(),
                  legacyGateway.getUrl());
         return postToGateway("searchDefendantTransactions", LegacyDefendantTransactionSearchResults.class,
                              criteria)

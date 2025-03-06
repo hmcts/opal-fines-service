@@ -21,7 +21,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "UserService")
+@Slf4j(topic = "opal.UserService")
 @Qualifier("userService")
 public class UserService implements UserServiceInterface {
 
@@ -56,7 +56,7 @@ public class UserService implements UserServiceInterface {
     @Cacheable(cacheNames = "users", key = "#username")
     @Transactional(readOnly = true)
     public UserState getUserStateByUsername(String username) {
-        log.info(":getUserStateByUsername: user name: {}", username);
+        log.debug(":getUserStateByUsername: user name: {}", username);
         UserEntity user = userRepository.findByUsername(username);
         return UserState.builder()
             .userId(user.getUserId())

@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.SuspenseAccountServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacySuspenseAccountService")
+@Slf4j(topic = "opal.LegacySuspenseAccountService")
 public class LegacySuspenseAccountService extends LegacyService implements SuspenseAccountServiceInterface {
 
     public LegacySuspenseAccountService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacySuspenseAccountService extends LegacyService implements Suspe
 
     @Override
     public SuspenseAccountEntity getSuspenseAccount(long suspenseAccountId) {
-        log.info("getSuspenseAccount for {} from {}", suspenseAccountId, legacyGateway.getUrl());
+        log.debug("getSuspenseAccount for {} from {}", suspenseAccountId, legacyGateway.getUrl());
         return postToGateway("getSuspenseAccount", SuspenseAccountEntity.class, suspenseAccountId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<SuspenseAccountEntity> searchSuspenseAccounts(SuspenseAccountSearchDto criteria) {
-        log.info(":searchSuspenseAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchSuspenseAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchSuspenseAccounts", LegacySuspenseAccountSearchResults.class, criteria)
             .getSuspenseAccountEntities();
     }

@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.service.OffenceServiceInterface;
 
 @Service
-@Slf4j(topic = "LegacyOffenceService")
+@Slf4j(topic = "opal.LegacyOffenceService")
 public class LegacyOffenceService extends LegacyService implements OffenceServiceInterface {
 
     public LegacyOffenceService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {

@@ -39,7 +39,7 @@ public class TemplateMappingController {
     public ResponseEntity<TemplateMappingEntity> getTemplateMappingById(@PathVariable Long templateId,
                                                                         @PathVariable Long applicationFunctionId) {
 
-        log.info(":GET:getTemplateMappingById: templateId: {}, applicationFunctionId: {}",
+        log.debug(":GET:getTemplateMappingById: templateId: {}, applicationFunctionId: {}",
                  templateId, applicationFunctionId);
 
         TemplateMappingEntity response = templateMappingService.getTemplateMapping(templateId, applicationFunctionId);
@@ -51,11 +51,11 @@ public class TemplateMappingController {
     @Operation(summary = "Searches TemplateMappings based upon criteria in request body")
     public ResponseEntity<List<TemplateMappingEntity>> postTemplateMappingsSearch(
         @RequestBody TemplateMappingSearchDto criteria) {
-        log.info(":POST:postTemplateMappingsSearch: query: \n{}", criteria);
+        log.debug(":POST:postTemplateMappingsSearch: query: \n{}", criteria);
 
         List<TemplateMappingEntity> response = templateMappingService.searchTemplateMappings(criteria);
 
-        log.info(":POST:postTemplateMappingsSearch: response count: {}", response.size());
+        log.debug(":POST:postTemplateMappingsSearch: response count: {}", response.size());
 
         return buildResponse(response);
     }

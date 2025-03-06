@@ -37,7 +37,7 @@ public class DocumentController {
     @Operation(summary = "Returns the Document for the given documentId.")
     public ResponseEntity<DocumentEntity> getDocumentById(@PathVariable String documentId) {
 
-        log.info(":GET:getDocumentById: documentId: {}", documentId);
+        log.debug(":GET:getDocumentById: documentId: {}", documentId);
 
         DocumentEntity response = documentService.getDocument(documentId);
 
@@ -47,7 +47,7 @@ public class DocumentController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Documents based upon criteria in request body")
     public ResponseEntity<List<DocumentEntity>> postDocumentsSearch(@RequestBody DocumentSearchDto criteria) {
-        log.info(":POST:postDocumentsSearch: query: \n{}", criteria);
+        log.debug(":POST:postDocumentsSearch: query: \n{}", criteria);
 
         List<DocumentEntity> response = documentService.searchDocuments(criteria);
 

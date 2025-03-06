@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.FixedPenaltyOffenceServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyFixedPenaltyOffenceService")
+@Slf4j(topic = "opal.LegacyFixedPenaltyOffenceService")
 public class LegacyFixedPenaltyOffenceService extends LegacyService implements FixedPenaltyOffenceServiceInterface {
 
     public LegacyFixedPenaltyOffenceService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,15 @@ public class LegacyFixedPenaltyOffenceService extends LegacyService implements F
 
     @Override
     public FixedPenaltyOffenceEntity getFixedPenaltyOffence(long fixedPenaltyOffenceId) {
-        log.info("getFixedPenaltyOffence for {} from {}", fixedPenaltyOffenceId, legacyGateway.getUrl());
+        log.debug("getFixedPenaltyOffence for {} from {}", fixedPenaltyOffenceId, legacyGateway.getUrl());
         return postToGateway("getFixedPenaltyOffence", FixedPenaltyOffenceEntity.class, fixedPenaltyOffenceId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<FixedPenaltyOffenceEntity> searchFixedPenaltyOffences(FixedPenaltyOffenceSearchDto criteria) {
-        log.info(":searchFixedPenaltyOffences: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchFixedPenaltyOffences: criteria: {} via gateway {}",
+                  criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchFixedPenaltyOffences", LegacyFixedPenaltyOffenceSearchResults.class, criteria)
             .getFixedPenaltyOffenceEntities();
     }

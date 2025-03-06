@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.UserServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyUserService")
+@Slf4j(topic = "opal.LegacyUserService")
 public class LegacyUserService extends LegacyService implements UserServiceInterface {
 
     public LegacyUserService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyUserService extends LegacyService implements UserServiceInter
 
     @Override
     public UserEntity getUser(String userId) {
-        log.info("getUser for {} from {}", userId, legacyGateway.getUrl());
+        log.debug("getUser for {} from {}", userId, legacyGateway.getUrl());
         return postToGateway("getUser", UserEntity.class, userId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<UserEntity> searchUsers(UserSearchDto criteria) {
-        log.info(":searchUsers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchUsers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchUsers", LegacyUserSearchResults.class, criteria)
             .getUserEntities();
     }

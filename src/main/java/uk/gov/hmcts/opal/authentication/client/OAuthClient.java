@@ -29,7 +29,7 @@ public class OAuthClient {
                                          String clientId,
                                          String authClientSecret,
                                          String scope) {
-        log.info(":fetchAccessToken:");
+        log.debug(":fetchAccessToken:");
         AuthorizationCode code = new AuthorizationCode(authCode);
         URI callback = new URI(redirectType);
         AuthorizationGrant codeGrant = new AuthorizationCodeGrant(code, callback);

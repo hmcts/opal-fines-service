@@ -18,7 +18,7 @@ import java.util.Optional;
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
 
-@Slf4j(topic = "OffenceSpecs")
+@Slf4j(topic = "opal.OffenceSpecs")
 public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
 
     public Specification<OffenceEntity> findBySearchCriteria(OffenceSearchDto criteria) {
@@ -66,7 +66,7 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
     }
 
     public static Specification<OffenceEntity> likeOffenceTitle(String offenceTitle) {
-        log.info(":likeOffenceTitle: like offence title: '{}'", offenceTitle);
+        log.debug(":likeOffenceTitle: like offence title: '{}'", offenceTitle);
         return (root, query, builder) ->
             likeWildcardPredicate(root.get(OffenceEntity_.offenceTitle), builder, offenceTitle);
     }

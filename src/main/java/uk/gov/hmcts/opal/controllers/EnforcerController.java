@@ -28,7 +28,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 @RestController
 @RequestMapping("/enforcers")
-@Slf4j(topic = "EnforcerController")
+@Slf4j(topic = "opal.EnforcerController")
 @Tag(name = "Enforcer Controller")
 public class EnforcerController {
 
@@ -46,7 +46,7 @@ public class EnforcerController {
     @Operation(summary = "Returns the Enforcer for the given enforcerId.")
     public ResponseEntity<EnforcerEntity> getEnforcerById(@PathVariable Long enforcerId) {
 
-        log.info(":GET:getEnforcerById: enforcerId: {}", enforcerId);
+        log.debug(":GET:getEnforcerById: enforcerId: {}", enforcerId);
 
         EnforcerEntity response = enforcerService.getEnforcer(enforcerId);
 
@@ -56,7 +56,7 @@ public class EnforcerController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Enforcers based upon criteria in request body")
     public ResponseEntity<List<EnforcerEntity>> postEnforcersSearch(@RequestBody EnforcerSearchDto criteria) {
-        log.info(":POST:postEnforcersSearch: query: \n{}", criteria);
+        log.debug(":POST:postEnforcersSearch: query: \n{}", criteria);
 
         List<EnforcerEntity> response = enforcerService.searchEnforcers(criteria);
 
@@ -67,11 +67,11 @@ public class EnforcerController {
     @Operation(summary = "Returns Enforcers as reference data with an optional filter applied")
     public ResponseEntity<EnforcerReferenceDataResults> getEnforcersRefData(
         @RequestParam("q") Optional<String> filter) {
-        log.info(":GET:getEnforcersRefData: query: \n{}", filter);
+        log.debug(":GET:getEnforcersRefData: query: \n{}", filter);
 
         List<EnforcerReferenceData> refData = opalEnforcerService.getReferenceData(filter);
 
-        log.info(":GET:getEnforcersRefData: enforcer reference data count: {}", refData.size());
+        log.debug(":GET:getEnforcersRefData: enforcer reference data count: {}", refData.size());
         return ResponseEntity.ok(EnforcerReferenceDataResults.builder().refData(refData).build());
     }
 }

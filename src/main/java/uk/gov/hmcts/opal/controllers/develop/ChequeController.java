@@ -37,7 +37,7 @@ public class ChequeController {
     @Operation(summary = "Returns the Cheque for the given chequeId.")
     public ResponseEntity<ChequeEntity> getChequeById(@PathVariable Long chequeId) {
 
-        log.info(":GET:getChequeById: chequeId: {}", chequeId);
+        log.debug(":GET:getChequeById: chequeId: {}", chequeId);
 
         ChequeEntity response = chequeService.getCheque(chequeId);
 
@@ -47,7 +47,7 @@ public class ChequeController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Cheques based upon criteria in request body")
     public ResponseEntity<List<ChequeEntity>> postChequesSearch(@RequestBody ChequeSearchDto criteria) {
-        log.info(":POST:postChequesSearch: query: \n{}", criteria);
+        log.debug(":POST:postChequesSearch: query: \n{}", criteria);
 
         List<ChequeEntity> response = chequeService.searchCheques(criteria);
 

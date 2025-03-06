@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.CourtServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyCourtService")
+@Slf4j(topic = "opal.LegacyCourtService")
 public class LegacyCourtService extends LegacyService implements CourtServiceInterface {
 
 
@@ -28,14 +28,14 @@ public class LegacyCourtService extends LegacyService implements CourtServiceInt
 
     @Override
     public CourtEntity getCourt(long courtId) {
-        log.info("getCourt for {} from {}", courtId, legacyGateway.getUrl());
+        log.debug("getCourt for {} from {}", courtId, legacyGateway.getUrl());
         return postToGateway("getCourt", CourtEntity.class, courtId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<CourtEntity> searchCourts(CourtSearchDto criteria) {
-        log.info(":searchCourts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchCourts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchCourts", LegacyCourtSearchResults.class, criteria)
             .getCourtEntities();
     }

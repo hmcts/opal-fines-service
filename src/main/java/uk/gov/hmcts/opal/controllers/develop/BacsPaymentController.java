@@ -37,7 +37,7 @@ public class BacsPaymentController {
     @Operation(summary = "Returns the BacsPayment for the given bacsPaymentId.")
     public ResponseEntity<BacsPaymentEntity> getBacsPaymentById(@PathVariable Long bacsPaymentId) {
 
-        log.info(":GET:getBacsPaymentById: bacsPaymentId: {}", bacsPaymentId);
+        log.debug(":GET:getBacsPaymentById: bacsPaymentId: {}", bacsPaymentId);
 
         BacsPaymentEntity response = bacsPaymentService.getBacsPayment(bacsPaymentId);
 
@@ -47,7 +47,7 @@ public class BacsPaymentController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches BACS Payments based upon criteria in request body")
     public ResponseEntity<List<BacsPaymentEntity>> postBacsPaymentsSearch(@RequestBody BacsPaymentSearchDto criteria) {
-        log.info(":POST:postBacsPaymentsSearch: query: \n{}", criteria);
+        log.debug(":POST:postBacsPaymentsSearch: query: \n{}", criteria);
 
         List<BacsPaymentEntity> response = bacsPaymentService.searchBacsPayments(criteria);
 

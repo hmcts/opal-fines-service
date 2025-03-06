@@ -35,12 +35,12 @@ public class AuthenticationInternalUserController {
         @RequestParam(value = "redirect_uri", required = false) String redirectUri
     ) {
         if (authHeaderValue != null) {
-            log.info("Login attempt received with token {}", authHeaderValue);
+            log.debug("Login attempt received with token {}", authHeaderValue);
             String accessToken = authHeaderValue.replace("Bearer ", "");
             URI url = authenticationService.loginOrRefresh(accessToken, redirectUri);
             return new ModelAndView("redirect:" + url.toString());
         } else {
-            log.info("Login attempt received without any token.");
+            log.debug("Login attempt received without any token.");
             URI loginUri = authenticationService.getLoginUri(redirectUri);
             return new ModelAndView("redirect:" + loginUri.toString());
         }
@@ -53,7 +53,7 @@ public class AuthenticationInternalUserController {
         String accessToken = authenticationService.handleOauthCode(code);
         Optional<String> preferredUsernameOptional = Optional.ofNullable(
             accessTokenService.extractPreferredUsername(accessToken));
-        log.info(
+        log.debug(
             "Login successful received for user {} from Azure AD.",
             preferredUsernameOptional.orElse("unknown")
         );
@@ -69,7 +69,7 @@ public class AuthenticationInternalUserController {
         String accessToken = authHeaderValue.replace("Bearer ", "");
         Optional<String> preferredUsernameOptional = Optional.ofNullable(
             accessTokenService.extractPreferredUsername(accessToken));
-        log.info(
+        log.debug(
             "Logout successful received for user {}",
             preferredUsernameOptional.orElse("unknown")
         );
