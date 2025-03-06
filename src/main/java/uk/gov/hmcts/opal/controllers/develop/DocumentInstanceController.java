@@ -38,7 +38,7 @@ public class DocumentInstanceController {
     @Operation(summary = "Returns the DocumentInstance for the given documentInstanceId.")
     public ResponseEntity<DocumentInstanceEntity> getDocumentInstanceById(@PathVariable Long documentInstanceId) {
 
-        log.info(":GET:getDocumentInstanceById: documentInstanceId: {}", documentInstanceId);
+        log.debug(":GET:getDocumentInstanceById: documentInstanceId: {}", documentInstanceId);
 
         DocumentInstanceEntity response = documentInstanceService.getDocumentInstance(documentInstanceId);
 
@@ -49,7 +49,7 @@ public class DocumentInstanceController {
     @Operation(summary = "Searches DocumentInstances based upon criteria in request body")
     public ResponseEntity<List<DocumentInstanceEntity>> postDocumentInstancesSearch(
         @RequestBody DocumentInstanceSearchDto criteria) {
-        log.info(":POST:postDocumentInstancesSearch: query: \n{}", criteria);
+        log.debug(":POST:postDocumentInstancesSearch: query: \n{}", criteria);
 
         List<DocumentInstanceEntity> response = documentInstanceService.searchDocumentInstances(criteria);
 

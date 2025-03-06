@@ -17,7 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @ContextConfiguration(classes = RootController.class)
 @ActiveProfiles({"integration"})
-@Slf4j(topic = "GetWelcomeTest")
+@Slf4j(topic = "opal.GetWelcomeTest")
 class GetWelcomeTest {
 
     @Autowired

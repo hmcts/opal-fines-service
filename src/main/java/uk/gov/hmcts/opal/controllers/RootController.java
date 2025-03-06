@@ -13,7 +13,7 @@ import static org.springframework.http.ResponseEntity.ok;
  */
 @RestController
 @Tag(name = "Root Controller")
-@Slf4j(topic = "RootController")
+@Slf4j(topic = "opal.RootController")
 public class RootController {
 
     /**
@@ -27,7 +27,7 @@ public class RootController {
      */
     @GetMapping("/")
     public ResponseEntity<String> welcome() {
-        log.info(":welcome:");
+        log.debug(":welcome:");
         return ok("Welcome to opal-fines-service");
     }
 }

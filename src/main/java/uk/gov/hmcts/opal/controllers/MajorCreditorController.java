@@ -25,7 +25,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 @RestController
 @RequestMapping("/major-creditors")
-@Slf4j(topic = "MajorCreditorController")
+@Slf4j(topic = "opal.MajorCreditorController")
 @Tag(name = "Major Creditor Controller")
 public class MajorCreditorController {
 
@@ -39,7 +39,7 @@ public class MajorCreditorController {
     @Operation(summary = "Returns the MajorCreditor for the given majorCreditorId.")
     public ResponseEntity<MajorCreditorEntity> getMajorCreditorById(@PathVariable Long majorCreditorId) {
 
-        log.info(":GET:getMajorCreditorById: majorCreditorId: {}", majorCreditorId);
+        log.debug(":GET:getMajorCreditorById: majorCreditorId: {}", majorCreditorId);
 
         MajorCreditorEntity response = opalMajorCreditorService.getMajorCreditor(majorCreditorId);
 
@@ -50,7 +50,7 @@ public class MajorCreditorController {
     @Operation(summary = "Searches MajorCreditors based upon criteria in request body")
     public ResponseEntity<List<MajorCreditorEntity>> postMajorCreditorsSearch(
         @RequestBody MajorCreditorSearchDto criteria) {
-        log.info(":POST:postMajorCreditorsSearch: query: \n{}", criteria);
+        log.debug(":POST:postMajorCreditorsSearch: query: \n{}", criteria);
 
         List<MajorCreditorEntity> response = opalMajorCreditorService.searchMajorCreditors(criteria);
 
@@ -61,11 +61,11 @@ public class MajorCreditorController {
     @Operation(summary = "Returns MajorCreditors as reference data with an optional filter applied")
     public ResponseEntity<MajorCreditorReferenceDataResults> getMajorCreditorRefData(
         @RequestParam("q") Optional<String> filter, @RequestParam Optional<Short> businessUnit) {
-        log.info(":GET:getMajorCreditorRefData: business unit: {}, filter string: {}", businessUnit, filter);
+        log.debug(":GET:getMajorCreditorRefData: business unit: {}, filter string: {}", businessUnit, filter);
 
         List<MajorCreditorReferenceData> refData = opalMajorCreditorService.getReferenceData(filter, businessUnit);
 
-        log.info(":GET:getMajorCreditorRefData: major creditor reference data count: {}", refData.size());
+        log.debug(":GET:getMajorCreditorRefData: major creditor reference data count: {}", refData.size());
         return ResponseEntity.ok(MajorCreditorReferenceDataResults.builder().refData(refData).build());
     }
 }

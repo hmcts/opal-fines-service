@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.LogAuditDetailServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyLogAuditDetailService")
+@Slf4j(topic = "opal.LegacyLogAuditDetailService")
 public class LegacyLogAuditDetailService extends LegacyService implements LogAuditDetailServiceInterface {
 
     public LegacyLogAuditDetailService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyLogAuditDetailService extends LegacyService implements LogAud
 
     @Override
     public LogAuditDetailEntity getLogAuditDetail(long logAuditDetailId) {
-        log.info("getLogAuditDetail for {} from {}", logAuditDetailId, legacyGateway.getUrl());
+        log.debug("getLogAuditDetail for {} from {}", logAuditDetailId, legacyGateway.getUrl());
         return postToGateway("getLogAuditDetail", LogAuditDetailEntity.class, logAuditDetailId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<LogAuditDetailEntity> searchLogAuditDetails(LogAuditDetailSearchDto criteria) {
-        log.info("searchLogAuditDetails for {} from {}", criteria, legacyGateway.getUrl());
+        log.debug("searchLogAuditDetails for {} from {}", criteria, legacyGateway.getUrl());
         return postToGateway("searchLogAuditDetails", LegacyLogAuditDetailSearchResults.class, criteria)
             .getLogAuditDetailEntities();
     }

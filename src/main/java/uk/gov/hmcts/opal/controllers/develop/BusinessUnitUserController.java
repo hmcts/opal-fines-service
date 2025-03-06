@@ -38,7 +38,7 @@ public class BusinessUnitUserController {
     @Operation(summary = "Returns the BusinessUnitUser for the given businessUnitUserId.")
     public ResponseEntity<BusinessUnitUserEntity> getBusinessUnitUserById(@PathVariable String businessUnitUserId) {
 
-        log.info(":GET:getBusinessUnitUserById: businessUnitUserId: {}", businessUnitUserId);
+        log.debug(":GET:getBusinessUnitUserById: businessUnitUserId: {}", businessUnitUserId);
 
         BusinessUnitUserEntity response = businessUnitUserService.getBusinessUnitUser(businessUnitUserId);
 
@@ -49,11 +49,11 @@ public class BusinessUnitUserController {
     @Operation(summary = "Searches BusinessUnitUsers based upon criteria in request body")
     public ResponseEntity<List<BusinessUnitUserEntity>> postBusinessUnitUsersSearch(
         @RequestBody BusinessUnitUserSearchDto criteria) {
-        log.info(":POST:postBusinessUnitUsersSearch: query: \n{}", criteria);
+        log.debug(":POST:postBusinessUnitUsersSearch: query: \n{}", criteria);
 
         List<BusinessUnitUserEntity> response = businessUnitUserService.searchBusinessUnitUsers(criteria);
 
-        log.info(":POST:postBusinessUnitUsersSearch: response count: {}", response.size());
+        log.debug(":POST:postBusinessUnitUsersSearch: response count: {}", response.size());
 
         return buildResponse(response);
     }

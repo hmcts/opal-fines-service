@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.service.ChequeServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyChequeService")
+@Slf4j(topic = "opal.LegacyChequeService")
 public class LegacyChequeService extends LegacyService implements ChequeServiceInterface {
 
     public LegacyChequeService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {

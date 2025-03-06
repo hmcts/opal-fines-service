@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.PaymentInServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyPaymentInService")
+@Slf4j(topic = "opal.LegacyPaymentInService")
 public class LegacyPaymentInService extends LegacyService implements PaymentInServiceInterface {
 
     public LegacyPaymentInService(LegacyGatewayProperties legacyGateway, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyPaymentInService extends LegacyService implements PaymentInSe
 
     @Override
     public PaymentInEntity getPaymentIn(long paymentInId) {
-        log.info("getPaymentIn for {} from {}", paymentInId, legacyGateway.getUrl());
+        log.debug("getPaymentIn for {} from {}", paymentInId, legacyGateway.getUrl());
         return postToGateway("getPaymentIn", PaymentInEntity.class, paymentInId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<PaymentInEntity> searchPaymentIns(PaymentInSearchDto criteria) {
-        log.info(":searchPaymentIns: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchPaymentIns: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchPaymentIns", LegacyPaymentInSearchResults.class, criteria)
             .getPaymentInEntities();
     }

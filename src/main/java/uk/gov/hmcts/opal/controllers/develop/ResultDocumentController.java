@@ -38,7 +38,7 @@ public class ResultDocumentController {
     @Operation(summary = "Returns the ResultDocument for the given resultDocumentId.")
     public ResponseEntity<ResultDocumentEntity> getResultDocumentById(@PathVariable Long resultDocumentId) {
 
-        log.info(":GET:getResultDocumentById: resultDocumentId: {}", resultDocumentId);
+        log.debug(":GET:getResultDocumentById: resultDocumentId: {}", resultDocumentId);
 
         ResultDocumentEntity response = resultDocumentService.getResultDocument(resultDocumentId);
 
@@ -49,7 +49,7 @@ public class ResultDocumentController {
     @Operation(summary = "Searches Result Documents based upon criteria in request body")
     public ResponseEntity<List<ResultDocumentEntity>> postResultDocumentsSearch(@RequestBody
                                                                                     ResultDocumentSearchDto criteria) {
-        log.info(":POST:postResultDocumentsSearch: query: \n{}", criteria);
+        log.debug(":POST:postResultDocumentsSearch: query: \n{}", criteria);
 
         List<ResultDocumentEntity> response = resultDocumentService.searchResultDocuments(criteria);
 

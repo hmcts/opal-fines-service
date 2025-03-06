@@ -35,7 +35,7 @@ import static uk.gov.hmcts.opal.entity.DraftAccountStatus.SUBMITTED;
 
 
 @ActiveProfiles({"integration"})
-@Slf4j(topic = "DraftAccountControllerTransientErrorsIntegrationTest")
+@Slf4j(topic = "opal.DraftAccountControllerTransientErrorsIntegrationTest")
 class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractIntegrationTest {
     private static final String URL_BASE = "/draft-accounts";
 

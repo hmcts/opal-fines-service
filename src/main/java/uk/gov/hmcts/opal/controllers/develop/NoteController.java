@@ -48,7 +48,7 @@ public class NoteController {
     public ResponseEntity<NoteDto> createNote(
         @RequestBody NoteDto noteDto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-        log.info(":POST:createNote: {}", noteDto.toPrettyJson());
+        log.debug(":POST:createNote: {}", noteDto.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
         BusinessUnitUser businessUnitUser = getRequiredBusinessUnitUser(userState,
@@ -65,7 +65,8 @@ public class NoteController {
     public ResponseEntity<List<NoteDto>> getNotesByAssociatedRecord(
         @PathVariable String associatedType, @PathVariable String associatedId) {
 
-        log.info(":GET:getNotesByAssociatedRecord: associated record type: '{}'; id: {}", associatedType, associatedId);
+        log.debug(":GET:getNotesByAssociatedRecord: associated record type: '{}'; id: {}",
+                  associatedType, associatedId);
 
         NoteSearchDto criteria = NoteSearchDto.builder()
             .associatedType(associatedType)
@@ -82,7 +83,7 @@ public class NoteController {
     @Operation(summary = "Searches notes based upon criteria in request body")
     public ResponseEntity<List<NoteDto>> postNotesSearch(
         @RequestBody NoteSearchDto criteria) {
-        log.info(":POST:postNotesSearch: query: \n{}", criteria.toPrettyJson());
+        log.debug(":POST:postNotesSearch: query: \n{}", criteria.toPrettyJson());
 
         List<NoteDto> response = noteService
             .searchNotes(criteria);

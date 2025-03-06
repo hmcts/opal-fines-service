@@ -40,7 +40,7 @@ import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 
 @Service
-@Slf4j(topic = "DraftAccountService")
+@Slf4j(topic = "opal.DraftAccountService")
 @RequiredArgsConstructor
 @Qualifier("draftAccountService")
 public class DraftAccountService implements DraftAccountServiceProxy {
@@ -102,7 +102,7 @@ public class DraftAccountService implements DraftAccountServiceProxy {
         LocalDateTime created = LocalDateTime.now();
         BusinessUnitEntity businessUnit = businessUnitRepository.getReferenceById(dto.getBusinessUnitId());
         String snapshot = createInitialSnapshot(dto, created, businessUnit);
-        log.info(":submitDraftAccount: dto: \n{}", dto.toPrettyJson());
+        log.debug(":submitDraftAccount: dto: \n{}", dto.toPrettyJson());
         return draftAccountRepository.save(toEntity(dto, created, businessUnit, snapshot));
     }
 
@@ -117,7 +117,7 @@ public class DraftAccountService implements DraftAccountServiceProxy {
             .orElseThrow(() -> new RuntimeException("Business Unit not found with id: " + dto.getBusinessUnitId()));
 
         if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
-            log.info("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
+            log.debug("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
             throw new ResourceConflictException(
                 "DraftAccount", Long.toString(draftAccountId),
                 "Business Unit ID mismatch. Existing: "
@@ -181,7 +181,7 @@ public class DraftAccountService implements DraftAccountServiceProxy {
         // Set the timeline data as received from the front end
         existingAccount.setTimelineData(dto.getTimelineData());
 
-        log.info(":updateDraftAccount: Updating draft account with ID: {} and status: {}",
+        log.debug(":updateDraftAccount: Updating draft account with ID: {} and status: {}",
                  draftAccountId, existingAccount.getAccountStatus());
 
         return draftAccountRepository.save(existingAccount);

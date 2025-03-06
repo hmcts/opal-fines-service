@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.MisDebtorServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyMisDebtorService")
+@Slf4j(topic = "opal.LegacyMisDebtorService")
 public class LegacyMisDebtorService extends LegacyService implements MisDebtorServiceInterface {
 
 
@@ -28,14 +28,14 @@ public class LegacyMisDebtorService extends LegacyService implements MisDebtorSe
 
     @Override
     public MisDebtorEntity getMisDebtor(long misDebtorId) {
-        log.info("getMisDebtor for {} from {}", misDebtorId, legacyGateway.getUrl());
+        log.debug("getMisDebtor for {} from {}", misDebtorId, legacyGateway.getUrl());
         return postToGateway("getMisDebtor", MisDebtorEntity.class, misDebtorId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<MisDebtorEntity> searchMisDebtors(MisDebtorSearchDto criteria) {
-        log.info(":searchMisDebtors: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchMisDebtors: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchMisDebtors", LegacyMisDebtorSearchResults.class, criteria)
             .getMisDebtorEntities();
     }

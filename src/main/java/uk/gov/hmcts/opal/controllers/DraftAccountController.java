@@ -49,7 +49,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 @RestController
 @RequestMapping("/draft-accounts")
-@Slf4j(topic = "DraftAccountController")
+@Slf4j(topic = "opal.DraftAccountController")
 @Tag(name = "DraftAccount Controller")
 public class DraftAccountController {
 
@@ -79,7 +79,7 @@ public class DraftAccountController {
         @PathVariable Long draftAccountId,
         @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
 
-        log.info(":GET:getDraftAccountById: draftAccountId: {}", draftAccountId);
+        log.debug(":GET:getDraftAccountById: draftAccountId: {}", draftAccountId);
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
@@ -105,13 +105,13 @@ public class DraftAccountController {
         @RequestParam(value = "not_submitted_by") Optional<List<String>> optionalNotSubmittedBys,
         @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
 
-        log.info(":GET:getDraftAccountSummaries:");
+        log.debug(":GET:getDraftAccountSummaries:");
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
 
             List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
             List<String> notSubmitted = optionalNotSubmittedBys.orElse(Collections.emptyList());
-            log.info(":GET:getDraftAccountSummaries: submitted by: {}; not submitted: {}", submittedBys, notSubmitted);
+            log.debug(":GET:getDraftAccountSummaries: submitted by: {}; not submitted: {}", submittedBys, notSubmitted);
             if (!submittedBys.isEmpty() && !notSubmitted.isEmpty()) {
                 // Request cannot include both submitted_by and not_submitted_by parameters
                 throw new IllegalArgumentException(
@@ -119,20 +119,20 @@ public class DraftAccountController {
             }
 
             List<DraftAccountStatus> statuses = optionalStatus.orElse(Collections.emptyList());
-            log.info(":GET:getDraftAccountSummaries: status: {}; business ids: {}", statuses, optionalBusinessUnitIds);
+            log.debug(":GET:getDraftAccountSummaries: status: {}; business ids: {}", statuses, optionalBusinessUnitIds);
 
             List<DraftAccountEntity> entities = draftAccountService
                 .getDraftAccounts(optionalBusinessUnitIds.orElse(Collections.emptyList()),
                                   statuses, submittedBys, notSubmitted);
 
-            log.info(":GET:getDraftAccountSummaries: pre-auth summaries count: {}", entities.size());
+            log.debug(":GET:getDraftAccountSummaries: pre-auth summaries count: {}", entities.size());
 
             List<DraftAccountEntity> filtered = entities.stream()
                 .filter(e -> userState.hasBusinessUnitUserWithAnyPermission(
                     e.getBusinessUnit().getBusinessUnitId(), Permissions.DRAFT_ACCOUNT_PERMISSIONS))
                 .toList();
 
-            log.info(":GET:getDraftAccountSummaries: filtered summaries count: {}", filtered.size());
+            log.debug(":GET:getDraftAccountSummaries: filtered summaries count: {}", filtered.size());
 
             return buildResponse(
                 DraftAccountsResponseDto.builder()
@@ -152,7 +152,7 @@ public class DraftAccountController {
         @RequestBody DraftAccountSearchDto criteria,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
-        log.info(":POST:postDraftAccountsSearch: query: \n{}", criteria);
+        log.debug(":POST:postDraftAccountsSearch: query: \n{}", criteria);
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
@@ -166,7 +166,7 @@ public class DraftAccountController {
     @CheckAcceptHeader
     public ResponseEntity<DraftAccountResponseDto> postDraftAccount(@RequestBody AddDraftAccountRequestDto dto,
                 @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-        log.info(":POST:postDraftAccount: creating a new draft account entity: \n{}", dto.toPrettyJson());
+        log.debug(":POST:postDraftAccount: creating a new draft account entity: \n{}", dto.toPrettyJson());
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
@@ -190,7 +190,7 @@ public class DraftAccountController {
         @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
 
         boolean checkExists = !(ignoreMissing.orElse(false));
-        log.info(":DELETE:deleteDraftAccountById: Delete Draft Account: {}{}", draftAccountId,
+        log.debug(":DELETE:deleteDraftAccountById: Delete Draft Account: {}{}", draftAccountId,
                  checkExists ? "" : ", ignore if missing");
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
@@ -198,7 +198,7 @@ public class DraftAccountController {
         try {
             boolean deleted = draftAccountService.deleteDraftAccount(draftAccountId, checkExists, draftAccountService);
             if (deleted) {
-                log.info(":DELETE:deleteDraftAccountById: Deleted Draft Account: {}", draftAccountId);
+                log.debug(":DELETE:deleteDraftAccountById: Deleted Draft Account: {}", draftAccountId);
             }
         } catch (UnexpectedRollbackException ure) {
             if (checkExists) {
@@ -217,7 +217,7 @@ public class DraftAccountController {
         @PathVariable Long draftAccountId,
         @RequestBody ReplaceDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-        log.info(":PUT:putDraftAccount: replacing draft account '{}' with: \n{}", draftAccountId, dto.toPrettyJson());
+        log.debug(":PUT:putDraftAccount: replacing draft account '{}' with: \n{}", draftAccountId, dto.toPrettyJson());
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
@@ -228,7 +228,7 @@ public class DraftAccountController {
             DraftAccountEntity replacedEntity = draftAccountService.replaceDraftAccount(draftAccountId, dto,
                                                                                         draftAccountService);
             verifyUpdated(replacedEntity, dto, draftAccountId, "putDraftAccount");
-            log.info(":PUT:putDraftAccount: replaced with version: {}", replacedEntity.getVersion());
+            log.debug(":PUT:putDraftAccount: replaced with version: {}", replacedEntity.getVersion());
             return buildResponse(toGetResponseDto(replacedEntity));
         } else {
             throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -243,7 +243,7 @@ public class DraftAccountController {
         @RequestBody UpdateDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
-        log.info(":PATCH:patchDraftAccount: updating draft account entity: {}", draftAccountId);
+        log.debug(":PATCH:patchDraftAccount: updating draft account entity: {}", draftAccountId);
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);

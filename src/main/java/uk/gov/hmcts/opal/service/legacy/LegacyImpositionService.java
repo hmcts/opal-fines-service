@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.ImpositionServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyImpositionService")
+@Slf4j(topic = "opal.LegacyImpositionService")
 public class LegacyImpositionService extends LegacyService implements ImpositionServiceInterface {
 
     public LegacyImpositionService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyImpositionService extends LegacyService implements Imposition
 
     @Override
     public ImpositionEntity getImposition(long impositionId) {
-        log.info("getImposition for {} from {}", impositionId, legacyGateway.getUrl());
+        log.debug("getImposition for {} from {}", impositionId, legacyGateway.getUrl());
         return postToGateway("getImposition", ImpositionEntity.class, impositionId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<ImpositionEntity> searchImpositions(ImpositionSearchDto criteria) {
-        log.info(":searchImpositions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchImpositions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchImpositions", LegacyImpositionSearchResults.class, criteria)
             .getImpositionEntities();
     }

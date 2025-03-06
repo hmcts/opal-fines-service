@@ -7,7 +7,7 @@ import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.PathNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j(topic = "JsonPathUtil")
+@Slf4j(topic = "opal.JsonPathUtil")
 public class JsonPathUtil {
 
     public static DocContext createDocContext(String document, String errorSource) {

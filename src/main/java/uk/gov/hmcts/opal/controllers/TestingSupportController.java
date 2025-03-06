@@ -26,7 +26,7 @@ import uk.gov.hmcts.opal.service.legacy.LegacyTestingSupportService;
 @RestController
 @RequestMapping("/testing-support")
 @RequiredArgsConstructor
-@Slf4j(topic = "TestingSupportController")
+@Slf4j(topic = "opal.TestingSupportController")
 @Tag(name = "Testing Support Controller")
 @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
 public class TestingSupportController {

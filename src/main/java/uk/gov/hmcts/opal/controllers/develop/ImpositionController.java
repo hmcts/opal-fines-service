@@ -37,7 +37,7 @@ public class ImpositionController {
     @Operation(summary = "Returns the Imposition for the given impositionId.")
     public ResponseEntity<ImpositionEntity> getImpositionById(@PathVariable Long impositionId) {
 
-        log.info(":GET:getImpositionById: impositionId: {}", impositionId);
+        log.debug(":GET:getImpositionById: impositionId: {}", impositionId);
 
         ImpositionEntity response = impositionService.getImposition(impositionId);
 
@@ -47,7 +47,7 @@ public class ImpositionController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Impositions based upon criteria in request body")
     public ResponseEntity<List<ImpositionEntity>> postImpositionsSearch(@RequestBody ImpositionSearchDto criteria) {
-        log.info(":POST:postImpositionsSearch: query: \n{}", criteria);
+        log.debug(":POST:postImpositionsSearch: query: \n{}", criteria);
 
         List<ImpositionEntity> response = impositionService.searchImpositions(criteria);
 

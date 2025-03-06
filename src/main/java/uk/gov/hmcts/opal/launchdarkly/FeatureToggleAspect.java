@@ -22,7 +22,7 @@ public class FeatureToggleAspect {
     public Object checkFeatureEnabled(ProceedingJoinPoint joinPoint, FeatureToggle featureToggle) throws Throwable {
 
         if (!properties.getEnabled()) {
-            log.info("Launch darkly is disabled:: so feature toggle is ignoring launch darkly flag "
+            log.debug("Launch darkly is disabled:: so feature toggle is ignoring launch darkly flag "
                          + featureToggle.feature());
             return joinPoint.proceed();
         }

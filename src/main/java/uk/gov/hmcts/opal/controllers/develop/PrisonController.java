@@ -37,7 +37,7 @@ public class PrisonController {
     @Operation(summary = "Returns the Prison for the given prisonId.")
     public ResponseEntity<PrisonEntity> getPrisonById(@PathVariable Long prisonId) {
 
-        log.info(":GET:getPrisonById: prisonId: {}", prisonId);
+        log.debug(":GET:getPrisonById: prisonId: {}", prisonId);
 
         PrisonEntity response = prisonService.getPrison(prisonId);
 
@@ -47,7 +47,7 @@ public class PrisonController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Prisons based upon criteria in request body")
     public ResponseEntity<List<PrisonEntity>> postPrisonsSearch(@RequestBody PrisonSearchDto criteria) {
-        log.info(":POST:postPrisonsSearch: query: \n{}", criteria);
+        log.debug(":POST:postPrisonsSearch: query: \n{}", criteria);
 
         List<PrisonEntity> response = prisonService.searchPrisons(criteria);
 

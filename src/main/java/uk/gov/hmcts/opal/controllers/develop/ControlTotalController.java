@@ -37,7 +37,7 @@ public class ControlTotalController {
     @Operation(summary = "Returns the ControlTotal for the given controlTotalId.")
     public ResponseEntity<ControlTotalEntity> getControlTotalById(@PathVariable Long controlTotalId) {
 
-        log.info(":GET:getControlTotalById: controlTotalId: {}", controlTotalId);
+        log.debug(":GET:getControlTotalById: controlTotalId: {}", controlTotalId);
 
         ControlTotalEntity response = controlTotalService.getControlTotal(controlTotalId);
 
@@ -48,7 +48,7 @@ public class ControlTotalController {
     @Operation(summary = "Searches Control Totals based upon criteria in request body")
     public ResponseEntity<List<ControlTotalEntity>> postControlTotalsSearch(@RequestBody
                                                                                 ControlTotalSearchDto criteria) {
-        log.info(":POST:postControlTotalsSearch: query: \n{}", criteria);
+        log.debug(":POST:postControlTotalsSearch: query: \n{}", criteria);
 
         List<ControlTotalEntity> response = controlTotalService.searchControlTotals(criteria);
 

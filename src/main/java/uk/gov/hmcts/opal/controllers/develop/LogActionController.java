@@ -37,7 +37,7 @@ public class LogActionController {
     @Operation(summary = "Returns the LogAction for the given logActionId.")
     public ResponseEntity<LogActionEntity> getLogActionById(@PathVariable Short logActionId) {
 
-        log.info(":GET:getLogActionById: logActionId: {}", logActionId);
+        log.debug(":GET:getLogActionById: logActionId: {}", logActionId);
 
         LogActionEntity response = logActionService.getLogAction(logActionId);
 
@@ -47,7 +47,7 @@ public class LogActionController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches LogActions based upon criteria in request body")
     public ResponseEntity<List<LogActionEntity>> postLogActionsSearch(@RequestBody LogActionSearchDto criteria) {
-        log.info(":POST:postLogActionsSearch: query: \n{}", criteria);
+        log.debug(":POST:postLogActionsSearch: query: \n{}", criteria);
 
         List<LogActionEntity> response = logActionService.searchLogActions(criteria);
 

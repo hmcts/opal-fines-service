@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.BusinessUnitUserServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyBusinessUnitUserService")
+@Slf4j(topic = "opal.LegacyBusinessUnitUserService")
 public class LegacyBusinessUnitUserService extends LegacyService implements BusinessUnitUserServiceInterface {
 
     public LegacyBusinessUnitUserService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyBusinessUnitUserService extends LegacyService implements Busi
 
     @Override
     public BusinessUnitUserEntity getBusinessUnitUser(String businessUnitUserId) {
-        log.info("getBusinessUnitUser for {} from {}", businessUnitUserId, legacyGateway.getUrl());
+        log.debug("getBusinessUnitUser for {} from {}", businessUnitUserId, legacyGateway.getUrl());
         return postToGateway("getBusinessUnitUser", BusinessUnitUserEntity.class, businessUnitUserId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<BusinessUnitUserEntity> searchBusinessUnitUsers(BusinessUnitUserSearchDto criteria) {
-        log.info(":searchBusinessUnitUsers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchBusinessUnitUsers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchBusinessUnitUsers", LegacyBusinessUnitUserSearchResults.class, criteria)
             .getBusinessUnitUserEntities();
     }

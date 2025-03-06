@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.AccountTransferServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyAccountTransferService")
+@Slf4j(topic = "opal.LegacyAccountTransferService")
 public class LegacyAccountTransferService extends LegacyService implements AccountTransferServiceInterface {
 
 
@@ -28,14 +28,14 @@ public class LegacyAccountTransferService extends LegacyService implements Accou
 
     @Override
     public AccountTransferEntity getAccountTransfer(long accountTransferId) {
-        log.info("getAccountTransfer for {} from {}", accountTransferId, legacyGateway.getUrl());
+        log.debug("getAccountTransfer for {} from {}", accountTransferId, legacyGateway.getUrl());
         return postToGateway("getAccountTransfer", AccountTransferEntity.class, accountTransferId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<AccountTransferEntity> searchAccountTransfers(AccountTransferSearchDto criteria) {
-        log.info(":searchAccountTransfers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchAccountTransfers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchAccountTransfers", LegacyAccountTransferSearchResults.class, criteria)
             .getAccountTransferEntities();
     }

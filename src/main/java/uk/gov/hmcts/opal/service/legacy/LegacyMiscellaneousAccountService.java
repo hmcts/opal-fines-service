@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.MiscellaneousAccountServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyMiscellaneousAccountService")
+@Slf4j(topic = "opal.LegacyMiscellaneousAccountService")
 public class LegacyMiscellaneousAccountService extends LegacyService implements MiscellaneousAccountServiceInterface {
 
     public LegacyMiscellaneousAccountService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,13 +27,13 @@ public class LegacyMiscellaneousAccountService extends LegacyService implements 
 
     @Override
     public MiscellaneousAccountEntity getMiscellaneousAccount(long miscellaneousAccountId) {
-        log.info("getMiscellaneousAccount for {} from {}", miscellaneousAccountId, legacyGateway.getUrl());
+        log.debug("getMiscellaneousAccount for {} from {}", miscellaneousAccountId, legacyGateway.getUrl());
         return postToGateway("getMiscellaneousAccount", MiscellaneousAccountEntity.class, miscellaneousAccountId);
     }
 
     @Override
     public List<MiscellaneousAccountEntity> searchMiscellaneousAccounts(MiscellaneousAccountSearchDto criteria) {
-        log.info(":searchMiscellaneousAccounts: criteria: {} via gateway {}", criteria.toJson(),
+        log.debug(":searchMiscellaneousAccounts: criteria: {} via gateway {}", criteria.toJson(),
                  legacyGateway.getUrl());
         return postToGateway("searchMiscellaneousAccounts", LegacyMiscellaneousAccountSearchResults.class,
                              criteria)

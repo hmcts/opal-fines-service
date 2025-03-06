@@ -25,7 +25,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 import static org.quartz.TriggerKey.triggerKey;
 
 @Service
-@Slf4j
+@Slf4j(topic = "opal.JobService")
 @RequiredArgsConstructor
 public class JobService {
 

@@ -5,7 +5,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 
-@Slf4j(topic = "VersionUtils")
+@Slf4j(topic = "opal.VersionUtils")
 public class VersionUtils {
 
     private VersionUtils() {
@@ -36,7 +36,7 @@ public class VersionUtils {
             throw new ResourceConflictException(updatedFromDB.getClass().getSimpleName(), id,
                                                 "No differences detected between DB state and requested update.");
         } else {
-            log.info(":{}: Updated Entity '{}' - '{}", method, updatedFromDB.getClass().getSimpleName(), id);
+            log.debug(":{}: Updated Entity '{}' - '{}", method, updatedFromDB.getClass().getSimpleName(), id);
         }
     }
 

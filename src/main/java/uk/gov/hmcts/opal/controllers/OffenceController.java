@@ -30,7 +30,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 @RestController
 @RequestMapping("/offences")
-@Slf4j(topic = "OffenceController")
+@Slf4j(topic = "opal.OffenceController")
 @Tag(name = "Offence Controller")
 public class OffenceController {
 
@@ -47,7 +47,7 @@ public class OffenceController {
     @Operation(summary = "Returns the Offence for the given offenceId.")
     public ResponseEntity<OffenceEntity> getOffenceById(@PathVariable Long offenceId) {
 
-        log.info(":GET:getOffenceById: offenceId: {}", offenceId);
+        log.debug(":GET:getOffenceById: offenceId: {}", offenceId);
 
         OffenceEntity response = opalOffenceService.getOffence(offenceId);
 
@@ -57,11 +57,11 @@ public class OffenceController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Offences based upon criteria in request body")
     public ResponseEntity<OffenceSearchDataResults> postOffencesSearch(@RequestBody OffenceSearchDto criteria) {
-        log.info(":POST:postOffencesSearch: query: \n{}", criteria.toPrettyJson());
+        log.debug(":POST:postOffencesSearch: query: \n{}", criteria.toPrettyJson());
 
         List<OffenceSearchData> searchData = opalOffenceService.searchOffences(criteria);
 
-        log.info(":GET:postOffencesSearch: offences reference data count: {}", searchData.size());
+        log.debug(":GET:postOffencesSearch: offences reference data count: {}", searchData.size());
         return ResponseEntity.ok(OffenceSearchDataResults.builder().searchData(searchData).build());
     }
 
@@ -72,11 +72,11 @@ public class OffenceController {
     public ResponseEntity<OffenceReferenceDataResults> getOffenceRefData(
         @RequestParam("q") Optional<String> filter, @RequestParam("business_unit_id") Optional<Short> businessUnit) {
 
-        log.info(":GET:getOffenceRefData: business unit: {}, filter string: {}", businessUnit, filter);
+        log.debug(":GET:getOffenceRefData: business unit: {}, filter string: {}", businessUnit, filter);
 
         List<OffenceReferenceData> refData = opalOffenceService.getReferenceData(filter, businessUnit);
 
-        log.info(":GET:getOffenceRefData: offences reference data count: {}", refData.size());
+        log.debug(":GET:getOffenceRefData: offences reference data count: {}", refData.size());
         return ResponseEntity.ok(OffenceReferenceDataResults.builder().refData(refData).build());
     }
 }

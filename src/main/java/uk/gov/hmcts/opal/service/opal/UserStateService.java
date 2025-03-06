@@ -12,7 +12,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "UserStateService")
+@Slf4j(topic = "opal.UserStateService")
 public class UserStateService {
 
     protected static final String DEVELOPER_PERMISSIONS = "Dev-Role-Permissions";

@@ -30,7 +30,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 @RestController
 @RequestMapping("/courts")
-@Slf4j(topic = "CourtController")
+@Slf4j(topic = "opal.CourtController")
 @Tag(name = "Court Controller")
 public class CourtController {
 
@@ -52,7 +52,7 @@ public class CourtController {
     public ResponseEntity<CourtEntity> getCourtById(@PathVariable Long courtId,
               @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
-        log.info(":GET:getCourtById: courtId: {}", courtId);
+        log.debug(":GET:getCourtById: courtId: {}", courtId);
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
@@ -65,7 +65,7 @@ public class CourtController {
     @Operation(summary = "Searches courts based upon criteria in request body")
     public ResponseEntity<List<CourtEntity>> postCourtsSearch(@RequestBody CourtSearchDto criteria,
                   @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-        log.info(":POST:postCourtsSearch: query: \n{}", criteria);
+        log.debug(":POST:postCourtsSearch: query: \n{}", criteria);
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
@@ -78,11 +78,11 @@ public class CourtController {
     @Operation(summary = "Returns courts as reference data with an optional filter applied")
     public ResponseEntity<CourtReferenceDataResults> getCourtRefData(
         @RequestParam("q") Optional<String> filter, @RequestParam("business_unit") Optional<Short> businessUnit) {
-        log.info(":GET:getCourtRefData: business unit: {}, filter string: {}", businessUnit, filter);
+        log.debug(":GET:getCourtRefData: business unit: {}, filter string: {}", businessUnit, filter);
 
         List<CourtReferenceData> refData = opalCourtService.getReferenceData(filter, businessUnit);
 
-        log.info(":GET:getCourtRefData: court reference data count: {}", refData.size());
+        log.debug(":GET:getCourtRefData: court reference data count: {}", refData.size());
         return ResponseEntity.ok(CourtReferenceDataResults.builder().refData(refData).build());
     }
 }

@@ -31,7 +31,7 @@ import static java.util.stream.Collectors.toSet;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "UserEntitlementService")
+@Slf4j(topic = "opal.UserEntitlementService")
 @Qualifier("userEntitlementService")
 public class UserEntitlementService implements UserEntitlementServiceInterface {
 
@@ -57,7 +57,7 @@ public class UserEntitlementService implements UserEntitlementServiceInterface {
 
     @Transactional(readOnly = true)
     public Set<Permission> getPermissionsByBusinessUnitUserId(String businessUnitUserId) {
-        log.info(":getPermissionsByBusinessUnitUserId: business unit user id {}", businessUnitUserId);
+        log.debug(":getPermissionsByBusinessUnitUserId: business unit user id {}", businessUnitUserId);
         return toPermissions(userEntitlementRepository
                                  .findAllByBusinessUnitUser_BusinessUnitUserId(businessUnitUserId));
     }

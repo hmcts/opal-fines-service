@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "BusinessUnitUserService")
+@Slf4j(topic = "opal.BusinessUnitUserService")
 @Qualifier("businessUnitUserService")
 public class BusinessUnitUserService implements BusinessUnitUserServiceInterface {
 
@@ -54,7 +54,7 @@ public class BusinessUnitUserService implements BusinessUnitUserServiceInterface
      */
     @Transactional(readOnly = true)
     public Set<BusinessUnitUser> getAuthorisationBusinessUnitPermissionsByUserId(Long userId) {
-        log.info(":getAuthorisationBusinessUnitPermissionsByUserId: user id: {}", userId);
+        log.debug(":getAuthorisationBusinessUnitPermissionsByUserId: user id: {}", userId);
         List<BusinessUnitUserEntity> buuList =  businessUnitUserRepository.findAllByUser_UserId(userId);
 
         return buuList.stream().map(buu -> BusinessUnitUser.builder()

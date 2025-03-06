@@ -40,7 +40,7 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 import static uk.gov.hmcts.opal.entity.DraftAccountStatus.ERROR_IN_PUBLISHING;
 
-@Slf4j(topic = "DraftAccountControllerIntegrationTest")
+@Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
 @Sql(scripts = "classpath:db/draftAccounts/insert_into_draft_accounts.sql",
     executionPhase = BEFORE_TEST_CLASS)
 class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {

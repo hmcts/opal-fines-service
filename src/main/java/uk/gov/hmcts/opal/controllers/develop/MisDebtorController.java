@@ -37,7 +37,7 @@ public class MisDebtorController {
     @Operation(summary = "Returns the MisDebtor for the given misDebtorId.")
     public ResponseEntity<MisDebtorEntity> getMisDebtorById(@PathVariable Long misDebtorId) {
 
-        log.info(":GET:getMisDebtorById: misDebtorId: {}", misDebtorId);
+        log.debug(":GET:getMisDebtorById: misDebtorId: {}", misDebtorId);
 
         MisDebtorEntity response = misDebtorService.getMisDebtor(misDebtorId);
 
@@ -47,7 +47,7 @@ public class MisDebtorController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches MisDebtors based upon criteria in request body")
     public ResponseEntity<List<MisDebtorEntity>> postMisDebtorsSearch(@RequestBody MisDebtorSearchDto criteria) {
-        log.info(":POST:postMisDebtorsSearch: query: \n{}", criteria);
+        log.debug(":POST:postMisDebtorsSearch: query: \n{}", criteria);
 
         List<MisDebtorEntity> response = misDebtorService.searchMisDebtors(criteria);
 

@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyBusinessUnitService")
+@Slf4j(topic = "opal.LegacyBusinessUnitService")
 public class LegacyBusinessUnitService extends LegacyService implements BusinessUnitServiceInterface {
 
 
@@ -28,14 +28,14 @@ public class LegacyBusinessUnitService extends LegacyService implements Business
 
     @Override
     public BusinessUnitEntity getBusinessUnit(short businessUnitId) {
-        log.info("getBusinessUnit for {} from {}", businessUnitId, legacyGateway.getUrl());
+        log.debug("getBusinessUnit for {} from {}", businessUnitId, legacyGateway.getUrl());
         return postToGateway("getBusinessUnit", BusinessUnitEntity.class, businessUnitId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<BusinessUnitEntity> searchBusinessUnits(BusinessUnitSearchDto criteria) {
-        log.info(":searchBusinessUnits: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchBusinessUnits: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchBusinessUnits", LegacyBusinessUnitSearchResults.class, criteria)
             .getBusinessUnitEntities();
     }

@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 
 import static java.lang.String.format;
 
-@Slf4j
+@Slf4j(topic = "opal.SftpService")
 @Service
 public class SftpService {
 
@@ -21,7 +21,7 @@ public class SftpService {
         var template = new RemoteFileTemplate<>(sessionFactory);
         template.execute(session -> {
             session.write(new ByteArrayInputStream(fileBytes), path + "/" + fileName);
-            log.info(format("File %s uploaded successfully.", fileName));
+            log.debug(format("File %s uploaded successfully.", fileName));
             return true;
         });
     }
@@ -44,7 +44,7 @@ public class SftpService {
             String remoteDirectory = location.getPath();
             if (!directoryExists(sessionFactory, remoteDirectory)) {
                 sessionFactory.getSession().mkdir(remoteDirectory);
-                log.info(format(
+                log.debug(format(
                     "%s SFTP directory %s created for %s",
                     location.getDirection(),
                     remoteDirectory,

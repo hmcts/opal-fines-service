@@ -39,7 +39,7 @@ public class FixedPenaltyOffenceController {
     public ResponseEntity<FixedPenaltyOffenceEntity> getFixedPenaltyOffenceById(
         @PathVariable Long fixedPenaltyOffenceId) {
 
-        log.info(":GET:getFixedPenaltyOffenceById: fixedPenaltyOffenceId: {}", fixedPenaltyOffenceId);
+        log.debug(":GET:getFixedPenaltyOffenceById: fixedPenaltyOffenceId: {}", fixedPenaltyOffenceId);
 
         FixedPenaltyOffenceEntity response = fixedPenaltyOffenceService.getFixedPenaltyOffence(fixedPenaltyOffenceId);
 
@@ -50,7 +50,7 @@ public class FixedPenaltyOffenceController {
     @Operation(summary = "Searches FixedPenaltyOffences based upon criteria in request body")
     public ResponseEntity<List<FixedPenaltyOffenceEntity>> postFixedPenaltyOffencesSearch(
         @RequestBody FixedPenaltyOffenceSearchDto criteria) {
-        log.info(":POST:postFixedPenaltyOffencesSearch: query: \n{}", criteria);
+        log.debug(":POST:postFixedPenaltyOffencesSearch: query: \n{}", criteria);
 
         List<FixedPenaltyOffenceEntity> response = fixedPenaltyOffenceService.searchFixedPenaltyOffences(criteria);
 

@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.service.StandardLetterServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyStandardLetterService")
+@Slf4j(topic = "opal.LegacyStandardLetterService")
 public class LegacyStandardLetterService extends LegacyService implements StandardLetterServiceInterface {
 
     public LegacyStandardLetterService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {

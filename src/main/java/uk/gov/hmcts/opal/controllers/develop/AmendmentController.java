@@ -37,7 +37,7 @@ public class AmendmentController {
     @Operation(summary = "Returns the Amendment for the given amendmentId.")
     public ResponseEntity<AmendmentEntity> getAmendmentById(@PathVariable Long amendmentId) {
 
-        log.info(":GET:getAmendmentById: amendmentId: {}", amendmentId);
+        log.debug(":GET:getAmendmentById: amendmentId: {}", amendmentId);
 
         AmendmentEntity response = amendmentService.getAmendment(amendmentId);
 
@@ -47,7 +47,7 @@ public class AmendmentController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Amendments based upon criteria in request body")
     public ResponseEntity<List<AmendmentEntity>> postAmendmentsSearch(@RequestBody AmendmentSearchDto criteria) {
-        log.info(":POST:postAmendmentsSearch: query: \n{}", criteria);
+        log.debug(":POST:postAmendmentsSearch: query: \n{}", criteria);
 
         List<AmendmentEntity> response = amendmentService.searchAmendments(criteria);
 

@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.service.ReportEntryServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyReportEntryService")
+@Slf4j(topic = "opal.LegacyReportEntryService")
 public class LegacyReportEntryService extends LegacyService implements ReportEntryServiceInterface {
 
     public LegacyReportEntryService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {

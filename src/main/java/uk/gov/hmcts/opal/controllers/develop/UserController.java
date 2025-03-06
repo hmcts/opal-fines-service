@@ -37,7 +37,7 @@ public class UserController {
     @Operation(summary = "Returns the User for the given userId.")
     public ResponseEntity<UserEntity> getUserById(@PathVariable String userId) {
 
-        log.info(":GET:getUserById: userId: {}", userId);
+        log.debug(":GET:getUserById: userId: {}", userId);
 
         UserEntity response = userService.getUser(userId);
 
@@ -47,11 +47,11 @@ public class UserController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Users based upon criteria in request body")
     public ResponseEntity<List<UserEntity>> postUsersSearch(@RequestBody UserSearchDto criteria) {
-        log.info(":POST:postUsersSearch: query: \n{}", criteria);
+        log.debug(":POST:postUsersSearch: query: \n{}", criteria);
 
         List<UserEntity> response = userService.searchUsers(criteria);
 
-        log.info(":POST:postUsersSearch: response count: {}", response.size());
+        log.debug(":POST:postUsersSearch: response count: {}", response.size());
 
         return buildResponse(response);
     }

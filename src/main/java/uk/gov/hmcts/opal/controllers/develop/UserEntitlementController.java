@@ -38,7 +38,7 @@ public class UserEntitlementController {
     @Operation(summary = "Returns the UserEntitlement for the given userEntitlementId.")
     public ResponseEntity<UserEntitlementEntity> getUserEntitlementById(@PathVariable Long userEntitlementId) {
 
-        log.info(":GET:getUserEntitlementById: userEntitlementId: {}", userEntitlementId);
+        log.debug(":GET:getUserEntitlementById: userEntitlementId: {}", userEntitlementId);
 
         UserEntitlementEntity response = userEntitlementService.getUserEntitlement(userEntitlementId);
 
@@ -49,11 +49,11 @@ public class UserEntitlementController {
     @Operation(summary = "Searches UserEntitlements based upon criteria in request body")
     public ResponseEntity<List<UserEntitlementEntity>> postUserEntitlementsSearch(
         @RequestBody UserEntitlementSearchDto criteria) {
-        log.info(":POST:postUserEntitlementsSearch: query: \n{}", criteria);
+        log.debug(":POST:postUserEntitlementsSearch: query: \n{}", criteria);
 
         List<UserEntitlementEntity> response = userEntitlementService.searchUserEntitlements(criteria);
 
-        log.info(":POST:postUserEntitlementsSearch: response count: {}", response.size());
+        log.debug(":POST:postUserEntitlementsSearch: response count: {}", response.size());
 
         return buildResponse(response);
     }

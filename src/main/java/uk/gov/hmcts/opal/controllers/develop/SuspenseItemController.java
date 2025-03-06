@@ -38,7 +38,7 @@ public class SuspenseItemController {
     @Operation(summary = "Returns the SuspenseItem for the given suspenseItemId.")
     public ResponseEntity<SuspenseItemEntity> getSuspenseItemById(@PathVariable Long suspenseItemId) {
 
-        log.info(":GET:getSuspenseItemById: suspenseItemId: {}", suspenseItemId);
+        log.debug(":GET:getSuspenseItemById: suspenseItemId: {}", suspenseItemId);
 
         SuspenseItemEntity response = suspenseItemService.getSuspenseItem(suspenseItemId);
 
@@ -49,7 +49,7 @@ public class SuspenseItemController {
     @Operation(summary = "Searches SuspenseItems based upon criteria in request body")
     public ResponseEntity<List<SuspenseItemEntity>> postSuspenseItemsSearch(
         @RequestBody SuspenseItemSearchDto criteria) {
-        log.info(":POST:postSuspenseItemsSearch: query: \n{}", criteria);
+        log.debug(":POST:postSuspenseItemsSearch: query: \n{}", criteria);
 
         List<SuspenseItemEntity> response = suspenseItemService.searchSuspenseItems(criteria);
 

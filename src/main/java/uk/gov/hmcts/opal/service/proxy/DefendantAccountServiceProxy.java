@@ -20,7 +20,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "DefendantAccountServiceProxy")
+@Slf4j(topic = "opal.DefendantAccountServiceProxy")
 @Qualifier("defendantAccountServiceProxy")
 public class DefendantAccountServiceProxy implements DefendantAccountServiceInterface, ProxyInterface {
 
@@ -52,7 +52,7 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     @Override
     @AuthorizedAnyBusinessUnitUserHasPermission(Permissions.ACCOUNT_ENQUIRY)
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
-        log.info(":searchDefendantAccounts: isLegacyMode: {}", isLegacyMode(dynamicConfigService));
+        log.debug(":searchDefendantAccounts: isLegacyMode: {}", isLegacyMode(dynamicConfigService));
         return getCurrentModeService().searchDefendantAccounts(accountSearchDto);
     }
 

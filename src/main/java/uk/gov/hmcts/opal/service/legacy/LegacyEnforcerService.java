@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.EnforcerServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyEnforcerService")
+@Slf4j(topic = "opal.LegacyEnforcerService")
 public class LegacyEnforcerService extends LegacyService implements EnforcerServiceInterface {
 
     public LegacyEnforcerService(LegacyGatewayProperties legacyGateway, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyEnforcerService extends LegacyService implements EnforcerServ
 
     @Override
     public EnforcerEntity getEnforcer(long enforcerId) {
-        log.info("getEnforcer for {} from {}", enforcerId, legacyGateway.getUrl());
+        log.debug("getEnforcer for {} from {}", enforcerId, legacyGateway.getUrl());
         return postToGateway("getEnforcer", EnforcerEntity.class, enforcerId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<EnforcerEntity> searchEnforcers(EnforcerSearchDto criteria) {
-        log.info(":searchEnforcers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchEnforcers: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchEnforcers", LegacyEnforcerSearchResults.class, criteria)
             .getEnforcerEntities();
     }

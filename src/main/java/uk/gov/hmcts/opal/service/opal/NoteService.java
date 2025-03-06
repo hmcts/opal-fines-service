@@ -29,7 +29,7 @@ import static uk.gov.hmcts.opal.authorisation.model.Permissions.ACCOUNT_ENQUIRY_
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "NoteService")
+@Slf4j(topic = "opal.NoteService")
 public class NoteService implements NoteServiceInterface {
 
     private final NoteRepository noteRepository;

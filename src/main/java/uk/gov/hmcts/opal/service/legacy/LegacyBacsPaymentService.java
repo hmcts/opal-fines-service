@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.service.BacsPaymentServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyBacsPaymentService")
+@Slf4j(topic = "opal.LegacyBacsPaymentService")
 public class LegacyBacsPaymentService extends LegacyService implements BacsPaymentServiceInterface {
 
     public LegacyBacsPaymentService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {

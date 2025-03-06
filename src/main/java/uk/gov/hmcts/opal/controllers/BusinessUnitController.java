@@ -32,7 +32,7 @@ import static uk.gov.hmcts.opal.util.PermissionUtil.filterBusinessUnitsByPermiss
 
 @RestController
 @RequestMapping("/business-units")
-@Slf4j(topic = "BusinessUnitController")
+@Slf4j(topic = "opal.BusinessUnitController")
 @Tag(name = "BusinessUnit Controller")
 public class BusinessUnitController {
 
@@ -54,7 +54,7 @@ public class BusinessUnitController {
     @Operation(summary = "Returns the BusinessUnit for the given businessUnitId.")
     public ResponseEntity<BusinessUnitEntity> getBusinessUnitById(@PathVariable Short businessUnitId) {
 
-        log.info(":GET:getBusinessUnitById: businessUnitId: {}", businessUnitId);
+        log.debug(":GET:getBusinessUnitById: businessUnitId: {}", businessUnitId);
 
         BusinessUnitEntity response = businessUnitService.getBusinessUnit(businessUnitId);
 
@@ -65,7 +65,7 @@ public class BusinessUnitController {
     @Operation(summary = "Searches BusinessUnits based upon criteria in request body")
     public ResponseEntity<List<BusinessUnitEntity>> postBusinessUnitsSearch(
         @RequestBody BusinessUnitSearchDto criteria) {
-        log.info(":POST:postBusinessUnitsSearch: query: \n{}", criteria);
+        log.debug(":POST:postBusinessUnitsSearch: query: \n{}", criteria);
 
         List<BusinessUnitEntity> response = businessUnitService.searchBusinessUnits(criteria);
 
@@ -78,12 +78,12 @@ public class BusinessUnitController {
         @RequestParam("q") Optional<String> filter, @RequestParam Optional<Permissions> permission,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
-        log.info(":GET:getBusinessUnitRefData: permission: {}, query: \n{}", permission, filter);
+        log.debug(":GET:getBusinessUnitRefData: permission: {}, query: \n{}", permission, filter);
 
         List<BusinessUnitReferenceData> refData =  filterBusinessUnitsByPermission(userStateService,
             opalBusinessUnitService.getReferenceData(filter), permission, authHeaderValue);
 
-        log.info(":GET:getBusinessUnitRefData: business unit reference data count: {}", refData.size());
+        log.debug(":GET:getBusinessUnitRefData: business unit reference data count: {}", refData.size());
         return ResponseEntity.ok(BusinessUnitReferenceDataResults.builder().refData(refData).build());
     }
 }

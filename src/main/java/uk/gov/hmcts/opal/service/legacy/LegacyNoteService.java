@@ -17,7 +17,7 @@ import java.util.List;
 import static uk.gov.hmcts.opal.authorisation.model.Permissions.ACCOUNT_ENQUIRY_NOTES;
 
 @Service
-@Slf4j(topic = "LegacyNoteService")
+@Slf4j(topic = "opal.LegacyNoteService")
 public class LegacyNoteService extends LegacyService implements NoteServiceInterface {
 
     public static final String POST_ACCOUNT_NOTES = "postAccountNotes";
@@ -35,7 +35,7 @@ public class LegacyNoteService extends LegacyService implements NoteServiceInter
     @Override
     @AuthorizedBusinessUnitUserHasPermission(ACCOUNT_ENQUIRY_NOTES)
     public NoteDto saveNote(NoteDto noteDto) {
-        log.info("Saving Note: {}", noteDto);
+        log.debug("Saving Note: {}", noteDto);
 
         return postToGateway(POST_ACCOUNT_NOTES,
                     LegacySaveNoteResponseDto.class, LegacySaveNoteRequestDto.fromNoteDto(noteDto))
@@ -45,7 +45,7 @@ public class LegacyNoteService extends LegacyService implements NoteServiceInter
     @Override
     @SuppressWarnings("unchecked")
     public List<NoteDto> searchNotes(NoteSearchDto searchCriteria) {
-        log.info("Searching Notes: {}", searchCriteria);
+        log.debug("Searching Notes: {}", searchCriteria);
         return postToGateway("searchNotes", List.class, searchCriteria);
     }
 

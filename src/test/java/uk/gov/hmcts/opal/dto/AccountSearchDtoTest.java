@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 
-@Slf4j
+@Slf4j(topic = "opal.AccountSearchDtoTest")
 public class AccountSearchDtoTest {
 
     @Test

@@ -37,7 +37,7 @@ public class TillController {
     @Operation(summary = "Returns the Till for the given tillId.")
     public ResponseEntity<TillEntity> getTillById(@PathVariable Long tillId) {
 
-        log.info(":GET:getTillById: tillId: {}", tillId);
+        log.debug(":GET:getTillById: tillId: {}", tillId);
 
         TillEntity response = tillService.getTill(tillId);
 
@@ -47,7 +47,7 @@ public class TillController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Tills based upon criteria in request body")
     public ResponseEntity<List<TillEntity>> postTillsSearch(@RequestBody TillSearchDto criteria) {
-        log.info(":POST:postTillsSearch: query: \n{}", criteria);
+        log.debug(":POST:postTillsSearch: query: \n{}", criteria);
 
         List<TillEntity> response = tillService.searchTills(criteria);
 

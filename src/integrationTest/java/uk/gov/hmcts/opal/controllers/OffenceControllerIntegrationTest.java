@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @ContextConfiguration(classes = OffenceController.class)
 @ActiveProfiles({"integration"})
-@Slf4j(topic = "OffenceControllerIntegrationTest")
+@Slf4j(topic = "opal.OffenceControllerIntegrationTest")
 class OffenceControllerIntegrationTest {
 
     private static final String URL_BASE = "/offences";

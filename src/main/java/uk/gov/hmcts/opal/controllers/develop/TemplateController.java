@@ -23,7 +23,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 @RestController
 @RequestMapping("/dev/templates")
-@Slf4j(topic = "TemplateController")
+@Slf4j(topic = "opal.TemplateController")
 @Tag(name = "Template Controller")
 public class TemplateController {
 
@@ -37,7 +37,7 @@ public class TemplateController {
     @Operation(summary = "Returns the Template for the given templateId.")
     public ResponseEntity<TemplateEntity> getTemplateById(@PathVariable Long templateId) {
 
-        log.info(":GET:getTemplateById: templateId: {}", templateId);
+        log.debug(":GET:getTemplateById: templateId: {}", templateId);
 
         TemplateEntity response = templateService.getTemplate(templateId);
 
@@ -47,11 +47,11 @@ public class TemplateController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Templates based upon criteria in request body")
     public ResponseEntity<List<TemplateEntity>> postTemplatesSearch(@RequestBody TemplateSearchDto criteria) {
-        log.info(":POST:postTemplatesSearch: query: \n{}", criteria);
+        log.debug(":POST:postTemplatesSearch: query: \n{}", criteria);
 
         List<TemplateEntity> response = templateService.searchTemplates(criteria);
 
-        log.info(":POST:postTemplatesSearch: response count: {}", response.size());
+        log.debug(":POST:postTemplatesSearch: response count: {}", response.size());
 
         return buildResponse(response);
     }

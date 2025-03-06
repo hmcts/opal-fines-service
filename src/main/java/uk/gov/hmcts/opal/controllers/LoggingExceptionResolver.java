@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j(topic = "LoggingExceptionResolver")
+@Slf4j(topic = "opal.LoggingExceptionResolver")
 public class LoggingExceptionResolver implements HandlerExceptionResolver {
 
     private final AccessTokenService tokenService;

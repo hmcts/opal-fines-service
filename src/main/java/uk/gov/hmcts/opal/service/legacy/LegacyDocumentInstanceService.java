@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.DocumentInstanceServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyDocumentInstanceService")
+@Slf4j(topic = "opal.LegacyDocumentInstanceService")
 public class LegacyDocumentInstanceService extends LegacyService implements DocumentInstanceServiceInterface {
 
 
@@ -28,14 +28,14 @@ public class LegacyDocumentInstanceService extends LegacyService implements Docu
 
     @Override
     public DocumentInstanceEntity getDocumentInstance(long documentInstanceId) {
-        log.info("getDocumentInstance for {} from {}", documentInstanceId, legacyGateway.getUrl());
+        log.debug("getDocumentInstance for {} from {}", documentInstanceId, legacyGateway.getUrl());
         return postToGateway("getDocumentInstance", DocumentInstanceEntity.class, documentInstanceId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<DocumentInstanceEntity> searchDocumentInstances(DocumentInstanceSearchDto criteria) {
-        log.info(":searchDocumentInstances: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchDocumentInstances: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchDocumentInstances", LegacyDocumentInstanceSearchResults.class, criteria)
             .getDocumentInstanceEntities();
     }

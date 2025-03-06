@@ -45,7 +45,7 @@ import java.util.Optional;
 import static uk.gov.hmcts.opal.authentication.service.AccessTokenService.AUTH_HEADER;
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 
-@Slf4j(topic = "GlobalExceptionHandler")
+@Slf4j(topic = "opal.GlobalExceptionHandler")
 @ControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {

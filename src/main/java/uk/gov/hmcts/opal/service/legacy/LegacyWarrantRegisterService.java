@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.service.WarrantRegisterServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyWarrantRegisterService")
+@Slf4j(topic = "opal.LegacyWarrantRegisterService")
 public class LegacyWarrantRegisterService extends LegacyService implements WarrantRegisterServiceInterface {
 
     public LegacyWarrantRegisterService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {

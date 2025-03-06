@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.LogActionServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyLogActionService")
+@Slf4j(topic = "opal.LegacyLogActionService")
 public class LegacyLogActionService extends LegacyService implements LogActionServiceInterface {
 
     public LegacyLogActionService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
@@ -27,14 +27,14 @@ public class LegacyLogActionService extends LegacyService implements LogActionSe
 
     @Override
     public LogActionEntity getLogAction(short logActionId) {
-        log.info("getLogAction for {} from {}", logActionId, legacyGateway.getUrl());
+        log.debug("getLogAction for {} from {}", logActionId, legacyGateway.getUrl());
         return postToGateway("getLogAction", LogActionEntity.class, logActionId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<LogActionEntity> searchLogActions(LogActionSearchDto criteria) {
-        log.info(":searchLogActions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchLogActions: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchLogActions", LegacyLogActionSearchResults.class, criteria)
             .getLogActionEntities();
     }

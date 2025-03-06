@@ -8,7 +8,7 @@ import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 
 @Service
-@Slf4j(topic = "LegacyTestingSupportService")
+@Slf4j(topic = "opal.LegacyTestingSupportService")
 public class LegacyTestingSupportService extends LegacyService {
 
     public LegacyTestingSupportService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {

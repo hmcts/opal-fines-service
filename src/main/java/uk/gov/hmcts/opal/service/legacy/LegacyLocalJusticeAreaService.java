@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.LocalJusticeAreaServiceInterface;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "LegacyLocalJusticeAreaService")
+@Slf4j(topic = "opal.LegacyLocalJusticeAreaService")
 public class LegacyLocalJusticeAreaService extends LegacyService implements LocalJusticeAreaServiceInterface {
 
 
@@ -28,14 +28,14 @@ public class LegacyLocalJusticeAreaService extends LegacyService implements Loca
 
     @Override
     public LocalJusticeAreaEntity getLocalJusticeArea(short localJusticeAreaId) {
-        log.info("getLocalJusticeArea for {} from {}", localJusticeAreaId, legacyGateway.getUrl());
+        log.debug("getLocalJusticeArea for {} from {}", localJusticeAreaId, legacyGateway.getUrl());
         return postToGateway("getLocalJusticeArea", LocalJusticeAreaEntity.class, localJusticeAreaId);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public List<LocalJusticeAreaEntity> searchLocalJusticeAreas(LocalJusticeAreaSearchDto criteria) {
-        log.info(":searchLocalJusticeAreas: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
+        log.debug(":searchLocalJusticeAreas: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
         return postToGateway("searchLocalJusticeAreas", LegacyLocalJusticeAreaSearchResults.class, criteria)
             .getLocalJusticeAreaEntities();
     }

@@ -22,7 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 @RestController
 @RequestMapping("/results")
-@Slf4j(topic = "ResultController")
+@Slf4j(topic = "opal.ResultController")
 @Tag(name = "Result Controller")
 public class ResultController {
 
@@ -37,7 +37,7 @@ public class ResultController {
     @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
     public ResponseEntity<ResultReferenceData> getResultById(@PathVariable Optional<String> resultId) {
 
-        log.info(":GET:getResultById: resultId: {}", resultId);
+        log.debug(":GET:getResultById: resultId: {}", resultId);
 
         ResultReferenceData response = resultId
             .filter(id -> !id.isBlank())
@@ -54,7 +54,7 @@ public class ResultController {
     public ResponseEntity<ResultReferenceDataResults> getResults(
         @RequestParam(name = "result_ids") Optional<List<String>> resultIds) {
 
-        log.info("GET:getResults: resultIds: {}", resultIds);
+        log.debug("GET:getResults: resultIds: {}", resultIds);
 
         List<ResultReferenceData> refData = resultIds
             .filter(ids -> !ids.isEmpty())
