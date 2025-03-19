@@ -222,7 +222,7 @@ dependencyManagement {
   }
 
   imports {
-    mavenBom "org.springframework.integration:spring-integration-bom:6.4.2"
+    mavenBom "org.springframework.integration:spring-integration-bom:6.4.3"
   }
 
   dependencies {
