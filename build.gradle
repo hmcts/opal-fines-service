@@ -299,8 +299,8 @@ dependencies {
   testCompileOnly 'org.projectlombok:lombok:1.18.36'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
 
-  integrationTestCompileOnly 'org.projectlombok:lombok:1.18.34'
-  integrationTestAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
+  integrationTestCompileOnly 'org.projectlombok:lombok:1.18.36'
+  integrationTestAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
 
 
   implementation group: 'org.apache.xmlgraphics', name: 'fop', version: '2.10'
