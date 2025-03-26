@@ -1,6 +1,6 @@
 buildscript {
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:11.4.0")
+    classpath("org.flywaydb:flyway-database-postgresql:11.4.1")
   }
 }
 
@@ -288,7 +288,7 @@ dependencies {
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.4.0'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.4.1'
   implementation 'org.postgresql:postgresql'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
