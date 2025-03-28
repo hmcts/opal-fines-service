@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
@@ -13,7 +14,13 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SuppressWarnings("HideUtilityClassConstructor") // Spring needs a constructor, its not a utility class
 public class Application {
 
+    private static ConfigurableApplicationContext context;
+
     public static void main(final String[] args) {
-        SpringApplication.run(Application.class, args);
+        context = SpringApplication.run(Application.class, args);
+    }
+
+    public static ConfigurableApplicationContext getContext() {
+        return context;
     }
 }

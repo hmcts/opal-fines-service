@@ -13,8 +13,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitUserSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 import uk.gov.hmcts.opal.repository.BusinessUnitUserRepository;
 
 import java.util.Collections;
@@ -80,7 +80,7 @@ class BusinessUnitUserServiceTest {
     @Test
     void testGetAuthorisationBusinessUnitPermissionsByUserId() {
         // Arrange
-        BusinessUnitEntity bue = BusinessUnitEntity.builder().businessUnitId((short)100).build();
+        BusinessUnit.Lite bue = BusinessUnit.Lite.builder().businessUnitId((short)100).build();
         BusinessUnitUserEntity businessUnitUserEntity = BusinessUnitUserEntity.builder()
             .businessUnitUserId("BUUserABCD").businessUnit(bue).build();
         List<BusinessUnitUserEntity> list = List.of(businessUnitUserEntity);
@@ -100,7 +100,7 @@ class BusinessUnitUserServiceTest {
     @Test
     void testGetLimitedBusinessUnitPermissionsByUserId() {
         // Arrange
-        BusinessUnitEntity bue = BusinessUnitEntity.builder().businessUnitId((short)100).build();
+        BusinessUnit.Lite bue = BusinessUnit.Lite.builder().businessUnitId((short)100).build();
         BusinessUnitUserEntity businessUnitUserEntity = BusinessUnitUserEntity.builder()
             .businessUnitUserId("BUUserABCD").businessUnit(bue).build();
         List<BusinessUnitUserEntity> list = List.of(businessUnitUserEntity);

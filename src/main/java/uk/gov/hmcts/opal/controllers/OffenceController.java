@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceDataResults;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchDataResults;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.OffenceEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
 import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
 import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
 import uk.gov.hmcts.opal.service.OffenceServiceInterface;
@@ -49,7 +49,7 @@ public class OffenceController {
 
         log.debug(":GET:getOffenceById: offenceId: {}", offenceId);
 
-        OffenceEntity response = opalOffenceService.getOffence(offenceId);
+        OffenceEntity response = opalOffenceService.getOffenceById(offenceId);
 
         return buildResponse(response);
     }

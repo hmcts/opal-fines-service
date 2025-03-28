@@ -30,9 +30,9 @@ import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
@@ -41,10 +41,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 
 
 @RestController
@@ -265,7 +265,7 @@ public class DraftAccountController {
         return DraftAccountResponseDto.builder()
             .draftAccountId(entity.getDraftAccountId())
             .businessUnitId(Optional.ofNullable(entity.getBusinessUnit())
-                                .map(BusinessUnitEntity::getBusinessUnitId).orElse(null))
+                                .map(BusinessUnit.Lite::getBusinessUnitId).orElse(null))
             .createdDate(toUtcDateTime(entity.getCreatedDate()))
             .submittedBy(entity.getSubmittedBy())
             .submittedByName(entity.getSubmittedByName())

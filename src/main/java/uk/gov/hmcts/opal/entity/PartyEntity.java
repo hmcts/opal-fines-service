@@ -23,6 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 import java.time.LocalDate;

@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccount;
 import uk.gov.hmcts.opal.service.opal.NoteService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
@@ -125,7 +125,7 @@ class DefendantAccountControllerIntegrationTest {
 
     @Test
     public void testGetDefendantAccount() throws Exception {
-        DefendantAccountEntity entity = createDefendantAccountEntity();
+        DefendantAccount.Lite entity = createDefendantAccountEntity();
 
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
@@ -146,11 +146,11 @@ class DefendantAccountControllerIntegrationTest {
 
     @Test
     public void testPutDefendantAccount() throws Exception {
-        DefendantAccountEntity entity = createDefendantAccountEntity();
+        DefendantAccount.Lite entity = createDefendantAccountEntity();
 
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
-        when(defendantAccountService.putDefendantAccount(any())).thenReturn(entity);
+        when(defendantAccountService.putDefendantAccount(any(DefendantAccount.Lite.class))).thenReturn(entity);
 
         mockMvc.perform(put("/defendant-accounts")
                             .header("authorization", "Bearer some_value")
@@ -241,8 +241,8 @@ class DefendantAccountControllerIntegrationTest {
             .build();
     }
 
-    private DefendantAccountEntity createDefendantAccountEntity() {
-        return DefendantAccountEntity.builder()
+    private DefendantAccount.Lite createDefendantAccountEntity() {
+        return DefendantAccount.Lite.builder()
             .defendantAccountId(1L)
             .accountNumber("abc123")
             .accountStatus("in payment")

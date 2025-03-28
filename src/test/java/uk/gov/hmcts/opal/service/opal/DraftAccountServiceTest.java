@@ -16,11 +16,11 @@ import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 
 import java.time.LocalDateTime;
@@ -45,7 +45,7 @@ class DraftAccountServiceTest {
     private DraftAccountRepository draftAccountRepository;
 
     @Mock
-    private BusinessUnitRepository businessUnitRepository;
+    private BusinessUnitLiteRepository businessUnitLiteRepository;
 
     @InjectMocks
     private DraftAccountService draftAccountService;
@@ -114,11 +114,11 @@ class DraftAccountServiceTest {
             .businessUnitId((short)1)
             .account(createAccountString())
             .build();
-        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+        BusinessUnit.Lite businessUnit = BusinessUnit.Lite.builder()
             .businessUnitName("Old Bailey")
             .build();
 
-        when(businessUnitRepository.getReferenceById(any())).thenReturn(businessUnit);
+        when(businessUnitLiteRepository.getReferenceById(any())).thenReturn(businessUnit);
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(draftAccountEntity);
 
         // Act
@@ -135,11 +135,11 @@ class DraftAccountServiceTest {
             .businessUnitId((short)1)
             .account("{}")
             .build();
-        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+        BusinessUnit.Lite businessUnit = BusinessUnit.Lite.builder()
             .businessUnitName("Old Bailey")
             .build();
 
-        when(businessUnitRepository.getReferenceById(any())).thenReturn(businessUnit);
+        when(businessUnitLiteRepository.getReferenceById(any())).thenReturn(businessUnit);
 
         // Act
         RuntimeException re = assertThrows(RuntimeException.class, () ->
@@ -200,12 +200,12 @@ class DraftAccountServiceTest {
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnit.Lite.builder().businessUnitId((short) 2).build())
             .createdDate(LocalDateTime.now())
             .version(0L)
             .build();
 
-        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+        BusinessUnit.Lite businessUnit = BusinessUnit.Lite.builder()
             .businessUnitId(((short) 2))
             .businessUnitName("New Bailey")
             .build();
@@ -221,7 +221,7 @@ class DraftAccountServiceTest {
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
-        when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
+        when(businessUnitLiteRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(updatedAccount);
 
         // Act
@@ -238,7 +238,7 @@ class DraftAccountServiceTest {
         assertEquals(createTimelineDataString(), result.getTimelineData());
 
         verify(draftAccountRepository).findById(draftAccountId);
-        verify(businessUnitRepository).findById((short) 2);
+        verify(businessUnitLiteRepository).findById((short) 2);
         verify(draftAccountRepository).save(any(DraftAccountEntity.class));
     }
 
@@ -272,7 +272,7 @@ class DraftAccountServiceTest {
         DraftAccountEntity existingAccount = DraftAccountEntity.builder().version(0L).build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
-        when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.empty());
+        when(businessUnitLiteRepository.findById((short) 2)).thenReturn(Optional.empty());
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
@@ -291,16 +291,16 @@ class DraftAccountServiceTest {
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
+            .businessUnit(BusinessUnit.Lite.builder().businessUnitId((short) 3).build())
             .version(0L)
             .build();
 
-        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+        BusinessUnit.Lite businessUnit = BusinessUnit.Lite.builder()
             .businessUnitId(((short) 3))
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
-        when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
+        when(businessUnitLiteRepository.findById((short) 2)).thenReturn(Optional.of(businessUnit));
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () ->
@@ -318,7 +318,7 @@ class DraftAccountServiceTest {
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
+            .businessUnit(BusinessUnit.Lite.builder().businessUnitId((short) 3).build())
             .version(0L)
             .build();
 
@@ -346,7 +346,7 @@ class DraftAccountServiceTest {
             .draftAccountId(draftAccountId)
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\"}")
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnit.Lite.builder().businessUnitId((short) 2).build())
             .version(0L)
             .build();
 
@@ -394,7 +394,7 @@ class DraftAccountServiceTest {
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnit.Lite.builder().businessUnitId((short) 2).build())
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .version(0L)
             .build();
