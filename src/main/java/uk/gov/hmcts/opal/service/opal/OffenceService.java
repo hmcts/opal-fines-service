@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntityFull;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity_;
 import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
 import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
@@ -37,6 +38,12 @@ public class OffenceService implements OffenceServiceInterface {
 
     public OffenceEntity getOffenceById(long offenceId) {
         return offenceRepository.findById(offenceId)
+            .orElseThrow(() -> new EntityNotFoundException("Offence not found with id: "
+                                                               + offenceId));
+    }
+
+    public OffenceEntityFull getOffenceByIdFull(long offenceId) {
+        return offenceRepositoryFull.findById(offenceId)
             .orElseThrow(() -> new EntityNotFoundException("Offence not found with id: "
                                                                + offenceId));
     }

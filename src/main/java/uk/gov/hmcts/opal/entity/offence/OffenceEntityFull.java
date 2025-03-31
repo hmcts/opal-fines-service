@@ -13,6 +13,7 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
@@ -24,8 +25,9 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 @SuperBuilder
 @ToString(callSuper = true)
 @AllArgsConstructor
+@NoArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "courtId")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "offenceId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class OffenceEntityFull extends OffenceEntity {
