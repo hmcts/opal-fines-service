@@ -6,6 +6,7 @@
 bin/main/application.yaml
 smoke-test-report
 functional-test-report
+bin
 
 target
 
