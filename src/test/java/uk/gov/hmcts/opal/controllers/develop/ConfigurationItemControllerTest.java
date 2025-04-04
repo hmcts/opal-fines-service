@@ -8,7 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.ConfigurationItemLite;
 import uk.gov.hmcts.opal.service.opal.ConfigurationItemService;
 
 import java.util.List;
@@ -31,12 +31,12 @@ class ConfigurationItemControllerTest {
     @Test
     void testGetConfigurationItem_Success() {
         // Arrange
-        ConfigurationItemEntity entity = ConfigurationItemEntity.builder().build();
+        ConfigurationItemLite entity = ConfigurationItemLite.builder().build();
 
         when(configurationItemService.getConfigurationItem(any(Long.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<ConfigurationItemEntity> response = configurationItemController.getConfigurationItemById(1L);
+        ResponseEntity<ConfigurationItemLite> response = configurationItemController.getConfigurationItemById(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -47,14 +47,14 @@ class ConfigurationItemControllerTest {
     @Test
     void testSearchConfigurationItems_Success() {
         // Arrange
-        ConfigurationItemEntity entity = ConfigurationItemEntity.builder().build();
-        List<ConfigurationItemEntity> configurationItemList = List.of(entity);
+        ConfigurationItemLite entity = ConfigurationItemLite.builder().build();
+        List<ConfigurationItemLite> configurationItemList = List.of(entity);
 
         when(configurationItemService.searchConfigurationItems(any())).thenReturn(configurationItemList);
 
         // Act
         ConfigurationItemSearchDto searchDto = ConfigurationItemSearchDto.builder().build();
-        ResponseEntity<List<ConfigurationItemEntity>> response = configurationItemController
+        ResponseEntity<List<ConfigurationItemLite>> response = configurationItemController
             .postConfigurationItemsSearch(searchDto);
 
         // Assert

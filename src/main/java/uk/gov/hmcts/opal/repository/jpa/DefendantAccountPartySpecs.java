@@ -3,14 +3,14 @@ package uk.gov.hmcts.opal.repository.jpa;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.ListJoin;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity_;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccount;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountPartiesEntity_;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 
 public class DefendantAccountPartySpecs extends EntitySpecs<DefendantAccountPartiesEntity> {
 
-    public static Join<DefendantAccountPartiesEntity, DefendantAccountEntity> joinDefendantAccountOnAssociationType(
+    public static Join<DefendantAccountPartiesEntity, DefendantAccount.Lite> joinDefendantAccountOnAssociationType(
         ListJoin<?, DefendantAccountPartiesEntity> defendants,
                                                 CriteriaBuilder builder, String assocType) {
         return onAssociationType(builder, defendants, assocType).join(DefendantAccountPartiesEntity_.defendantAccount);

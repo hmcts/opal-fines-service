@@ -13,8 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.OffenceEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
 import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
 import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
@@ -49,7 +48,7 @@ class OffenceControllerIntegrationTest {
     void testGetOffenceById() throws Exception {
         OffenceEntity offenceEntity = createOffenceEntity();
 
-        when(offenceService.getOffence((short)1)).thenReturn(offenceEntity);
+        when(offenceService.getOffenceById(1)).thenReturn(offenceEntity);
 
         mockMvc.perform(get(URL_BASE + "/1"))
             .andExpect(status().isOk())
@@ -62,7 +61,7 @@ class OffenceControllerIntegrationTest {
 
     @Test
     void testGetOffenceById_WhenOffenceDoesNotExist() throws Exception {
-        when(offenceService.getOffence((short)2)).thenReturn(null);
+        when(offenceService.getOffenceById(2)).thenReturn(null);
 
         mockMvc.perform(get(URL_BASE + "/2"))
             .andExpect(status().isNotFound());
@@ -100,10 +99,10 @@ class OffenceControllerIntegrationTest {
     }
 
     private OffenceEntity createOffenceEntity() {
-        return OffenceEntity.builder()
+        return OffenceEntity.Lite.builder()
             .offenceId(1L)
             .cjsCode("cjs-code")
-            .businessUnit(BusinessUnitEntity.builder().build())
+            .businessUnitId((short)1)
             .offenceTitle("Title of Offence")
             .offenceTitleCy("Title of Offence CY")
             .build();

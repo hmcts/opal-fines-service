@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.defendant;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -21,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 
 
 @Entity
@@ -44,7 +45,7 @@ public class DefendantAccountPartiesEntity {
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "defendant_account_id", nullable = false)
-    private DefendantAccountEntity defendantAccount;
+    private DefendantAccount.Lite defendantAccount;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "party_id",  nullable = false)

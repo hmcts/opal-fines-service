@@ -10,8 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.ConfigurationItemLite;
 import uk.gov.hmcts.opal.service.opal.ConfigurationItemService;
 
 import java.util.List;
@@ -41,7 +40,7 @@ class ConfigurationItemControllerIntegrationTest {
 
     @Test
     void testGetConfigurationItemById() throws Exception {
-        ConfigurationItemEntity configurationItemEntity = createConfigurationItemEntity();
+        ConfigurationItemLite configurationItemEntity = createConfigurationItemEntity();
 
         when(configurationItemService.getConfigurationItem(1L)).thenReturn(configurationItemEntity);
 
@@ -50,7 +49,7 @@ class ConfigurationItemControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.configurationItemId").value(1))
             .andExpect(jsonPath("$.itemName").value("Config Name"))
-            .andExpect(jsonPath("$.businessUnit.businessUnitId").value(3))
+            .andExpect(jsonPath("$.businessUnitId").value(3))
             .andExpect(jsonPath("$.itemValue").value("Config Value"));
     }
 
@@ -65,7 +64,7 @@ class ConfigurationItemControllerIntegrationTest {
 
     @Test
     void testPostConfigurationItemsSearch() throws Exception {
-        ConfigurationItemEntity configurationItemEntity = createConfigurationItemEntity();
+        ConfigurationItemLite configurationItemEntity = createConfigurationItemEntity();
 
         when(configurationItemService.searchConfigurationItems(any(ConfigurationItemSearchDto.class)))
             .thenReturn(singletonList(configurationItemEntity));
@@ -77,7 +76,7 @@ class ConfigurationItemControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$[0].configurationItemId").value(1))
             .andExpect(jsonPath("$[0].itemName").value("Config Name"))
-            .andExpect(jsonPath("$[0].businessUnit.businessUnitId").value(3))
+            .andExpect(jsonPath("$[0].businessUnitId").value(3))
             .andExpect(jsonPath("$[0].itemValue").value("Config Value"));
     }
 
@@ -89,11 +88,11 @@ class ConfigurationItemControllerIntegrationTest {
             .andExpect(status().isOk());
     }
 
-    private ConfigurationItemEntity createConfigurationItemEntity() {
-        return ConfigurationItemEntity.builder()
+    private ConfigurationItemLite createConfigurationItemEntity() {
+        return ConfigurationItemLite.builder()
             .configurationItemId(1L)
             .itemName("Config Name")
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)3).build())
+            .businessUnitId((short)3)
             .itemValue("Config Value")
             .itemValues(List.of("Config V1", "Config V2"))
             .build();

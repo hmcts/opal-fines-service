@@ -19,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
 @Entity
 @Table(name = "tills")
@@ -40,7 +41,7 @@ public class TillEntity {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", nullable = false)
-    private BusinessUnitEntity businessUnit;
+    private BusinessUnit.Lite businessUnit;
 
     @Column(name = "till_number", nullable = false)
     private Short tillNumber;

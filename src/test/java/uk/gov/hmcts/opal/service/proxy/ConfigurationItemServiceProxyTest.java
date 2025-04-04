@@ -8,7 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.ConfigurationItemLite;
 import uk.gov.hmcts.opal.service.ConfigurationItemServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyConfigurationItemService;
 import uk.gov.hmcts.opal.service.opal.ConfigurationItemService;
@@ -52,11 +52,11 @@ class ConfigurationItemServiceProxyTest extends ProxyTestsBase {
     void testGetConfigurationItem(ConfigurationItemServiceInterface targetService,
                                   ConfigurationItemServiceInterface otherService) {
         // Given: a ConfigurationItemEntity is returned from the target service
-        ConfigurationItemEntity entity = ConfigurationItemEntity.builder().build();
+        ConfigurationItemLite entity = ConfigurationItemLite.builder().build();
         when(targetService.getConfigurationItem(anyLong())).thenReturn(entity);
 
         // When: getConfigurationItem is called on the proxy
-        ConfigurationItemEntity configurationItemResult = configurationItemServiceProxy.getConfigurationItem(1);
+        ConfigurationItemLite configurationItemResult = configurationItemServiceProxy.getConfigurationItem(1);
 
         // Then: target service should be used, and the returned configurationItem should be as expected
         verify(targetService).getConfigurationItem(1);
@@ -67,13 +67,13 @@ class ConfigurationItemServiceProxyTest extends ProxyTestsBase {
     void testSearchConfigurationItems(ConfigurationItemServiceInterface targetService,
                                       ConfigurationItemServiceInterface otherService) {
         // Given: a configurationItems list result is returned from the target service
-        ConfigurationItemEntity entity = ConfigurationItemEntity.builder().build();
-        List<ConfigurationItemEntity> configurationItemsList = List.of(entity);
+        ConfigurationItemLite entity = ConfigurationItemLite.builder().build();
+        List<ConfigurationItemLite> configurationItemsList = List.of(entity);
         when(targetService.searchConfigurationItems(any())).thenReturn(configurationItemsList);
 
         // When: searchConfigurationItems is called on the proxy
         ConfigurationItemSearchDto criteria = ConfigurationItemSearchDto.builder().build();
-        List<ConfigurationItemEntity> listResult = configurationItemServiceProxy.searchConfigurationItems(criteria);
+        List<ConfigurationItemLite> listResult = configurationItemServiceProxy.searchConfigurationItems(criteria);
 
         // Then: target service should be used, and the returned list should be as expected
         verify(targetService).searchConfigurationItems(criteria);
