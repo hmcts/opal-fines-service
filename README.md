@@ -17,7 +17,7 @@
 
 The following environment variables are required to run the service.
 
-```bash
+```bash / zsh
 AAD_CLIENT_ID= <Ask Team Memebers>
 AAD_CLIENT_SECRET=<Ask Team Memebers>
 AAD_TENANT_ID=<Ask Team Memebers>
@@ -34,7 +34,7 @@ If starting the opal-fines-service from Intellij or the command line you have th
 Follow instructions under 'Running the application locally'
 
 In local env by default opal-fines-service uses simple cache instead of Redis cache. This can be enabled by setting this env variable:
-```bash
+```bash / zsh
 OPAL_REDIS_ENABLED=true
 ```
 
@@ -49,15 +49,21 @@ sudo xattr -rd com.apple.quarantine /Applications/Another\ Redis\ Desktop\ Manag
 ```
 
 You can also run redis container in local docker:
+
+**Bash**:
 ```bash
   docker-compose up redis
+```
+**Zsh**:
+```zsh
+  docker compose up redis
 ```
 
 #### Approach 1: Dev Application (No existing dependencies)
 
 The simplest way to run the application is using the `bootTestRun` Gradle task:
 
-```bash
+```bash / zsh
   ./gradlew bootTestRun
 ```
 
@@ -71,7 +77,7 @@ Note this does **not** persist data if the Docker container is manually stopped,
 
 Use the standard Spring Boot `run` Gradle task:
 
-```bash
+```bash / zsh
   ./gradlew run
 ```
 
@@ -82,44 +88,59 @@ from the previous approach is an issue for development.
 
 Create the image of the application by executing the following command:
 
-```bash
+```bash / zsh
   ./gradlew assemble
 ```
 
 Create docker image:
 
+**Bash**:
 ```bash
   docker-compose build
+```
+**Zsh**:
+```zsh 
+  docker compose build
 ```
 
 Run the distribution (created in `build/install/opal-fines-service` directory)
 by executing the following command:
 
+**Bash**:
 ```bash
   docker-compose up
+```
+**Zsh**:
+```zsh
+  docker compose up
 ```
 
 To skip all the setting up and building with Docker, just execute the following command:
 
-```bash
+```bash / zsh
 ./bin/run-in-docker.sh
 ```
 
 For more information:
 
-```bash
+```bash / zsh
 ./bin/run-in-docker.sh -h
 ```
 
 Script includes bare minimum environment variables necessary to start api instance. Whenever any variable is changed or any other script regarding docker image/container build, the suggested way to ensure all is cleaned up properly is by this command:
 
+**Bash**:
 ```bash
 docker-compose rm
+```
+**Zsh**:
+```zsh
+docker compose rm
 ```
 
 It clears stopped containers correctly. Might consider removing clutter of images too, especially the ones fiddled with:
 
-```bash
+```bash / zsh
 docker images
 
 docker image rm <image-id>
@@ -131,7 +152,7 @@ There is no need to remove postgres and java or similar core images.
 
 Regardless of approach followed for starting the application, in order to test if the application is up, you can call its health endpoint:
 
-```bash
+```bash / zsh
   curl http://localhost:4550/health
 ```
 
@@ -148,7 +169,7 @@ The project uses [Gradle](https://gradle.org) as a build tool. It already contai
 
 To build the project execute the following command:
 
-```bash
+```bash / zsh
   ./gradlew build
 ```
 ## Manual api testing (Postman)
