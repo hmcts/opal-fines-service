@@ -87,7 +87,7 @@ task integration(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
-  failFast = true
+  failFast = false
 }
 
 task functionalOpal(type: Test) {
@@ -96,22 +96,25 @@ task functionalOpal(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
-  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional"))
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/Opal"))
   testLogging.showStandardStreams = true
   gradle.startParameter.continueOnFailure = true
-  systemProperty "cucumber.filter.tags", "@Opal and not @Smoke and not @Ignore"
   systemProperty "test.mode", "opal"
+
+  include '**/OpalTestRunner.class'
+
 }
 task functionalLegacy(type: Test) {
   description = "Runs functional tests against Legacy mode"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
-  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional"))
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/Legacy"))
   gradle.startParameter.continueOnFailure = true
   testLogging.showStandardStreams = true
-  systemProperty "cucumber.filter.tags", "@Legacy and not @Smoke and not @Ignore"
   systemProperty "test.mode", "legacy"
+
+  include '**/LegacyTestRunner.class'
 }
 task copyFunctionalReport(type: Copy) {
   from("${rootDir}/target/site/serenity")
@@ -138,7 +141,9 @@ task smokeOpal(type: Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/smoke"))
   testLogging.showStandardStreams = true
   gradle.startParameter.continueOnFailure = true
-  systemProperty "cucumber.filter.tags", "@Smoke and not @Ignore"
+
+  include '**/SmokeTestRunner.class'
+
 }
 task copySmokeReport(type: Copy) {
   from("${rootDir}/target/site/serenity")

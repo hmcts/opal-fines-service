@@ -7,6 +7,10 @@ def product = "opal"
 def component = "fines-service"
 
 withPipeline(type, product, component) {
+  afterAlways('test') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'test-results/integration/*.xml'
+  }
+
   afterAlways('functionalTest:dev') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
 
