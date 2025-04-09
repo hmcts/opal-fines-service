@@ -43,15 +43,18 @@ Alternatively the opal-fines-service can be run using a simple in-memory cache b
 To view the cache - when running against local Redis - Intellij has a free plugin called Redis Helper.
 However, if you want to view the cache in staging the plugin doesn't support SSL. Instead, install:
 
-```bash / zsh
+```bash
 brew install --cask another-redis-desktop-manager
 sudo xattr -rd com.apple.quarantine /Applications/Another\ Redis\ Desktop\ Manager.app
 ```
 
 You can also run redis container in local docker:
+
+**Bash**:
 ```bash
   docker-compose up redis
 ```
+**Zsh**:
 ```zsh
   docker compose up redis
 ```
@@ -91,9 +94,11 @@ Create the image of the application by executing the following command:
 
 Create docker image:
 
+**Bash**:
 ```bash
   docker-compose build
 ```
+**Zsh**:
 ```zsh 
   docker compose build
 ```
@@ -101,9 +106,11 @@ Create docker image:
 Run the distribution (created in `build/install/opal-fines-service` directory)
 by executing the following command:
 
+**Bash**:
 ```bash
   docker-compose up
 ```
+**Zsh**:
 ```zsh
   docker compose up
 ```
@@ -122,9 +129,11 @@ For more information:
 
 Script includes bare minimum environment variables necessary to start api instance. Whenever any variable is changed or any other script regarding docker image/container build, the suggested way to ensure all is cleaned up properly is by this command:
 
+**Bash**:
 ```bash
 docker-compose rm
 ```
+**Zsh**:
 ```zsh
 docker compose rm
 ```
