@@ -101,4 +101,5 @@ public class DraftAccountEntity implements Versioned {
     @Column(name = "version_number")
     @Version
     private Long version;
+
 }

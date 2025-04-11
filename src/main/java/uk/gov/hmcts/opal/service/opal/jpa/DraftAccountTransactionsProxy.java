@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal.proxy;
+package uk.gov.hmcts.opal.service.opal.jpa;
 
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
@@ -9,7 +9,7 @@ import uk.gov.hmcts.opal.entity.DraftAccountEntity;
  * Transactional method, then that can be problematic.  Direct method calls should be avoided, but instead
  * routed through a proxy object that captures all the JPA Transactional 'overhead'.
  */
-public interface DraftAccountServiceProxy {
+public interface DraftAccountTransactionsProxy {
     @Transactional(readOnly = true)
     DraftAccountEntity getDraftAccount(long draftAccountId);
 }
