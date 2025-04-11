@@ -129,6 +129,12 @@ task mergeFunctionalResults(type: Copy) {
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
+task generateTestSummary(type: JavaExec) {
+  group = "Reporting"
+  description = "Generate an HTML summary from test result XMLs"
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  mainClass = 'uk.gov.hmcts.opal.scripts.TestReportSummaryGenerator'
+}
 
 task functional() {
   description = "Runs functional tests"
@@ -170,12 +176,6 @@ task smoke() {
   tasks.aggregate.mustRunAfter smokeOpal
   tasks.copySmokeReport.mustRunAfter aggregate
 
-}
-task generateTestSummary(type: JavaExec) {
-  group = "Reporting"
-  description = "Generate an HTML summary from test result XMLs"
-  classpath = sourceSets.functionalTest.runtimeClasspath
-  mainClass = 'uk.gov.hmcts.opal.scripts.TestReportSummaryGenerator'
 }
 
 def coverageExclusions = [
