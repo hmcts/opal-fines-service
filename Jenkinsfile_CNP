@@ -13,7 +13,7 @@ withPipeline(type, product, component) {
   }
 
   afterAlways('functionalTest:dev') {
-    gradle("generateTestSummary")
+    steps.gradle tasks: 'generateTestSummary'
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
 
     publishHTML target: [
@@ -48,7 +48,7 @@ withPipeline(type, product, component) {
   }
 
   afterAlways('functionalTest:stg') {
-    gradle("generateTestSummary")
+    steps.gradle tasks: 'generateTestSummary'
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
 
     publishHTML target: [
