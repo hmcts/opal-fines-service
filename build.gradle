@@ -170,6 +170,12 @@ task smoke() {
   tasks.copySmokeReport.mustRunAfter aggregate
 
 }
+task generateTestSummary(type: JavaExec) {
+  group = "Reporting"
+  description = "Generate an HTML summary from test result XMLs"
+  classpath = sourceSets.functionalTest.runtimeClasspath
+  mainClass = 'uk.gov.hmcts.opal.scripts.TestReportSummaryGenerator'
+}
 
 def coverageExclusions = [
   '**/uk/gov/hmcts/opal/**/model/**',

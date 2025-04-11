@@ -13,6 +13,7 @@ withPipeline(type, product, component) {
   }
 
   afterAlways('functionalTest:dev') {
+    gradle("generateTestSummary")
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
 
     publishHTML target: [
@@ -22,6 +23,14 @@ withPipeline(type, product, component) {
       reportDir            : "functional-test-report/",
       reportFiles          : "index.html",
       reportName           : "Serenity Functional Test Report"
+    ]
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "functional-test-report/htmlReport/",
+      reportFiles          : "test-summary.html",
+      reportName           : "Test Summary Report"
     ]
   }
 
@@ -39,6 +48,7 @@ withPipeline(type, product, component) {
   }
 
   afterAlways('functionalTest:stg') {
+    gradle("generateTestSummary")
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
 
     publishHTML target: [
@@ -49,7 +59,14 @@ withPipeline(type, product, component) {
       reportFiles          : "index.html",
       reportName           : "Serenity Functional Test Report"
     ]
-
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "functional-test-report/htmlReport/",
+      reportFiles          : "test-summary.html",
+      reportName           : "Test Summary Report"
+    ]
   }
   afterAlways('smoketest:stg') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'
