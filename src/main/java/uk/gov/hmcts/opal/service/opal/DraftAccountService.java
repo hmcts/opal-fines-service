@@ -1,266 +1,237 @@
 package uk.gov.hmcts.opal.service.opal;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.UnexpectedRollbackException;
+import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
-import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
+import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
+import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
+import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
-import uk.gov.hmcts.opal.entity.DraftAccountSnapshots;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
-import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
-import uk.gov.hmcts.opal.repository.DraftAccountRepository;
-import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
-import uk.gov.hmcts.opal.service.opal.proxy.DraftAccountServiceProxy;
-import uk.gov.hmcts.opal.util.JsonPathUtil;
+import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.EnumSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static uk.gov.hmcts.opal.util.VersionUtils.verifyVersions;
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
-import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 
 @Service
 @Slf4j(topic = "opal.DraftAccountService")
 @RequiredArgsConstructor
 @Qualifier("draftAccountService")
-public class DraftAccountService implements DraftAccountServiceProxy {
+public class DraftAccountService {
 
-    private static final String DEFENDANT_JSON_PATH = "$.defendant";
 
-    private static final EnumSet<DraftAccountStatus> VALID_UPDATE_STATUSES =
-        EnumSet.of(DraftAccountStatus.PENDING, DraftAccountStatus.REJECTED, DraftAccountStatus.DELETED);
+    public static final String ADD_DRAFT_ACCOUNT_REQUEST_JSON = "addDraftAccountRequest.json";
+    public static final String REPLACE_DRAFT_ACCOUNT_REQUEST_JSON = "replaceDraftAccountRequest.json";
+    public static final String UPDATE_DRAFT_ACCOUNT_REQUEST_JSON = "updateDraftAccountRequest.json";
+    public static final String ACCOUNT_DELETED_MESSAGE_FORMAT = """
+        { "message": "Draft Account '%s' deleted"}""";
 
-    private final DraftAccountRepository draftAccountRepository;
+    private final DraftAccountTransactions draftAccountTransactions;
+
+    private final UserStateService userStateService;
 
     private final BusinessUnitRepository businessUnitRepository;
 
-    private final DraftAccountSpecs specs = new DraftAccountSpecs();
+    private final JsonSchemaValidationService jsonSchemaValidationService;
 
-    @Transactional(readOnly = true)
-    public DraftAccountEntity getDraftAccount(long draftAccountId) {
-        return draftAccountRepository.findById(draftAccountId)
-            .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
-    }
+    public DraftAccountResponseDto getDraftAccount(long draftAccountId, String authHeaderValue) {
 
-    @Transactional(readOnly = true)
-    public List<DraftAccountEntity> getDraftAccounts(Collection<Short> businessUnitIds,
-                                                     Collection<DraftAccountStatus> statuses,
-                                                     Collection<String> submittedBy,
-                                                     Collection<String> notSubmitted) {
-        Page<DraftAccountEntity> page = draftAccountRepository
-            .findBy(specs.findForSummaries(businessUnitIds, statuses, submittedBy, notSubmitted),
-                    ffq -> ffq.page(Pageable.unpaged()));
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        return page.getContent();
-    }
+        if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
+            DraftAccountEntity response = draftAccountTransactions.getDraftAccount(draftAccountId);
+            Short buId = response.getBusinessUnit().getBusinessUnitId();
 
-    @Transactional
-    public boolean deleteDraftAccount(long draftAccountId, boolean checkExists,
-                                      DraftAccountServiceProxy proxy) {
-        try {
-            draftAccountRepository.delete(proxy.getDraftAccount(draftAccountId));
-            return true;
-        } catch (EntityNotFoundException enfe) {
-            if (checkExists) {
-                throw enfe;
+            if (userState.hasBusinessUnitUserWithAnyPermission(buId, Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
+                return toGetResponseDto(response);
+
+            } else {
+                throw new PermissionNotAllowedException(buId, Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+
             }
-            return false;
+        } else {
+            throw new PermissionNotAllowedException(Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+
         }
     }
 
-    @Transactional(readOnly = true)
-    public List<DraftAccountEntity> searchDraftAccounts(DraftAccountSearchDto criteria) {
-        Page<DraftAccountEntity> page = draftAccountRepository
-            .findBy(specs.findBySearchCriteria(criteria),
-                    ffq -> ffq.page(Pageable.unpaged()));
+    public DraftAccountsResponseDto getDraftAccounts(
+        Optional<List<Short>> optionalBusinessUnitIds, Optional<List<DraftAccountStatus>> optionalStatus,
+        Optional<List<String>> optionalSubmittedBys, Optional<List<String>> optionalNotSubmittedBys,
+        String authHeaderValue) {
 
-        return page.getContent();
-    }
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
 
-    @Transactional
-    public DraftAccountEntity submitDraftAccount(AddDraftAccountRequestDto dto) {
-        LocalDateTime created = LocalDateTime.now();
-        BusinessUnitEntity businessUnit = businessUnitRepository.getReferenceById(dto.getBusinessUnitId());
-        String snapshot = createInitialSnapshot(dto, created, businessUnit);
-        log.debug(":submitDraftAccount: dto: \n{}", dto.toPrettyJson());
-        return draftAccountRepository.save(toEntity(dto, created, businessUnit, snapshot));
-    }
+            List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
+            List<String> notSubmitted = optionalNotSubmittedBys.orElse(Collections.emptyList());
+            log.debug(":GET:getDraftAccountSummaries: submitted by: {}; not submitted: {}", submittedBys, notSubmitted);
+            if (!submittedBys.isEmpty() && !notSubmitted.isEmpty()) {
+                // Request cannot include both submitted_by and not_submitted_by parameters
+                throw new IllegalArgumentException(
+                    "Cannot include both 'submitted_by' and 'not_submitted_by' parameters.");
+            }
 
-    @Transactional
-    public DraftAccountEntity replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto,
-                                                  DraftAccountServiceProxy proxy) {
+            List<DraftAccountStatus> statuses = optionalStatus.orElse(Collections.emptyList());
+            log.debug(":GET:getDraftAccountSummaries: status: {}; business ids: {}", statuses, optionalBusinessUnitIds);
 
-        DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
-        verifyVersions(existingAccount, dto, draftAccountId, "replaceDraftAccount");
+            List<DraftAccountEntity> entities = draftAccountTransactions
+                .getDraftAccounts(optionalBusinessUnitIds.orElse(Collections.emptyList()),
+                                  statuses, submittedBys, notSubmitted);
 
-        BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId())
-            .orElseThrow(() -> new RuntimeException("Business Unit not found with id: " + dto.getBusinessUnitId()));
+            log.debug(":GET:getDraftAccountSummaries: pre-auth summaries count: {}", entities.size());
 
-        if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
-            log.debug("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
-            throw new ResourceConflictException(
-                "DraftAccount", Long.toString(draftAccountId),
-                "Business Unit ID mismatch. Existing: "
-                    + existingAccount.getBusinessUnit().getBusinessUnitId()
-                    + ", Requested: "
-                    + dto.getBusinessUnitId()
-            );
+            List<DraftAccountEntity> filtered = entities.stream()
+                .filter(e -> userState.hasBusinessUnitUserWithAnyPermission(
+                    e.getBusinessUnit().getBusinessUnitId(), Permissions.DRAFT_ACCOUNT_PERMISSIONS))
+                .toList();
+
+            log.debug(":GET:getDraftAccountSummaries: filtered summaries count: {}", filtered.size());
+
+            return
+                DraftAccountsResponseDto.builder()
+                    .summaries(
+                        filtered.stream().map(this::toSummaryDto).toList()
+                    ).build();
+        } else {
+            throw new PermissionNotAllowedException(Permissions.DRAFT_ACCOUNT_PERMISSIONS);
         }
-
-        String newSnapshot = createUpdateSnapshot(dto, existingAccount.getCreatedDate(), businessUnit);
-        existingAccount.setSubmittedBy(dto.getSubmittedBy());
-        existingAccount.setSubmittedByName(dto.getSubmittedByName());
-        existingAccount.setAccount(dto.getAccount());
-        existingAccount.setAccountSnapshot(newSnapshot);
-        existingAccount.setAccountType(dto.getAccountType());
-        existingAccount.setAccountStatus(DraftAccountStatus.RESUBMITTED);
-        existingAccount.setAccountStatusDate(LocalDateTime.now());
-        existingAccount.setTimelineData(dto.getTimelineData());
-
-        log.debug(":replaceDraftAccount: Replacing draft account with ID: {} and new snapshot: \n{}",
-                 draftAccountId, newSnapshot);
-
-        return draftAccountRepository.save(existingAccount);
     }
 
-    @Transactional
-    public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
-                                                 DraftAccountServiceProxy proxy)  {
+    public String deleteDraftAccount(long draftAccountId, boolean checkExists, String authHeaderValue) {
+        userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
-        verifyVersions(existingAccount, dto, draftAccountId, "updateDraftAccount");
-
-        if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
-            log.warn("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
-            throw new ResourceConflictException(
-                "DraftAccount", Long.toString(draftAccountId),
-                "Business Unit ID mismatch. Existing: "
-                    + existingAccount.getBusinessUnit().getBusinessUnitId()
-                    + ", Requested: "
-                    + dto.getBusinessUnitId()
-            );
-        }
-
-        DraftAccountStatus newStatus = Optional.ofNullable(dto.getAccountStatus())
-            .map(String::toUpperCase)
-            .map(DraftAccountStatus::valueOf)
-            .filter(VALID_UPDATE_STATUSES::contains)
-            .orElseThrow(() -> new IllegalArgumentException("Invalid account status for update: "
-                                                                + dto.getAccountStatus()));
-
-        existingAccount.setAccountStatus(newStatus);
-        existingAccount.setVersion(dto.getVersion());
-
-        if (newStatus == DraftAccountStatus.PENDING) {
-            existingAccount.setValidatedDate(LocalDateTime.now());
-            existingAccount.setValidatedBy(dto.getValidatedBy());
-            existingAccount.setValidatedByName(dto.getValidatedByName());
-            existingAccount.setAccountSnapshot(addSnapshotApprovedDate(existingAccount));
-            existingAccount.setAccountStatusDate(LocalDateTime.now());
-        }
-        // Set the timeline data as received from the front end
-        existingAccount.setTimelineData(dto.getTimelineData());
-
-        log.debug(":updateDraftAccount: Updating draft account with ID: {} and status: {}",
-                 draftAccountId, existingAccount.getAccountStatus());
-
-        return draftAccountRepository.save(existingAccount);
-    }
-
-    private String addSnapshotApprovedDate(DraftAccountEntity existingAccount) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode rootNode = (ObjectNode) mapper.readTree(existingAccount.getAccountSnapshot());
+            boolean deleted =  draftAccountTransactions.deleteDraftAccount(draftAccountId, checkExists,
+                                                                           draftAccountTransactions);
+            if (deleted) {
+                log.debug(":DELETE:deleteDraftAccountById: Deleted Draft Account: {}", draftAccountId);
+            }
+        } catch (UnexpectedRollbackException | EntityNotFoundException ure) {
+            if (checkExists) {
+                throw ure;
+            }
+        }
+        return String.format(ACCOUNT_DELETED_MESSAGE_FORMAT, draftAccountId);
+    }
 
-            String approvedDate = toUtcDateTime(existingAccount.getValidatedDate())
-                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-            rootNode.put("approved_date", approvedDate);
+    public List<DraftAccountResponseDto> searchDraftAccounts(DraftAccountSearchDto criteria, String authHeaderValue) {
+        userStateService.checkForAuthorisedUser(authHeaderValue);
 
-            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error processing JSON in addSnapshotApprovedDate", e);
+        return draftAccountTransactions.searchDraftAccounts(criteria)
+            .stream()
+            .map(DraftAccountService::toGetResponseDto)
+            .toList();
+    }
+
+    public DraftAccountResponseDto submitDraftAccount(AddDraftAccountRequestDto dto, String authHeaderValue) {
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
+                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
+
+            jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
+            return toGetResponseDto(draftAccountTransactions.submitDraftAccount(dto));
+
+        } else {
+            throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        }
+
+    }
+
+    public DraftAccountResponseDto replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto,
+                                                       String authHeaderValue) {
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
+
+        if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
+                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
+            DraftAccountEntity replacedEntity = draftAccountTransactions.replaceDraftAccount(draftAccountId, dto,
+                                                                                             draftAccountTransactions);
+            verifyUpdated(replacedEntity, dto, draftAccountId, "replaceDraftAccount");
+            log.debug(":PUT:putDraftAccount: replaced with version: {}", replacedEntity.getVersion());
+
+            return toGetResponseDto(replacedEntity);
+        } else {
+            throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
         }
     }
 
-    private String createInitialSnapshot(AddDraftAccountRequestDto dto, LocalDateTime created,
-                                         BusinessUnitEntity businessUnit) {
-        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName(),
-                             "AddDraftAccountRequestDto.account")
-            .toPrettyJson();
+    public DraftAccountResponseDto updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
+                                                       String authHeaderValue) {
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+        jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
+
+        if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
+                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
+            DraftAccountEntity updatedEntity = draftAccountTransactions.updateDraftAccount(draftAccountId, dto,
+                                                                                           draftAccountTransactions);
+            verifyUpdated(updatedEntity, dto, draftAccountId, "updateDraftAccount");
+
+            return toGetResponseDto(updatedEntity);
+        } else {
+            throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        }
     }
 
-    private String createUpdateSnapshot(ReplaceDraftAccountRequestDto dto, LocalDateTime created,
-                                         BusinessUnitEntity businessUnit) {
-        return buildSnapshot(dto.getAccount(), created, businessUnit, dto.getSubmittedBy(), dto.getSubmittedByName(),
-                             "ReplaceDraftAccountRequestDto.account")
-            .toPrettyJson();
-    }
-
-    private  DraftAccountSnapshots.Snapshot buildSnapshot(String document, LocalDateTime created,
-                                                          BusinessUnitEntity businessUnit, String submittedBy,
-                                                          String submittedByName, String errorSource) {
-
-        JsonPathUtil.DocContext docContext = createDocContext(document, errorSource);
-
-        String companyName = docContext.readOrNull(DEFENDANT_JSON_PATH + ".company_name");
-
-        final boolean notCompany = companyName == null || companyName.isBlank();
-
-        String defendantName = notCompany
-            ? docContext.read(DEFENDANT_JSON_PATH + ".surname") + ", "
-            + docContext.read(DEFENDANT_JSON_PATH + ".forenames")
-            : companyName;
-
-        String dob = notCompany
-            ? docContext.read(DEFENDANT_JSON_PATH + ".dob")
-            : null;
-        String accType = docContext.read("$.account_type");
-
-        return DraftAccountSnapshots.Snapshot.builder()
-            .defendantName(defendantName)
-            .dateOfBirth(dob)
-            .createdDate(toUtcDateTime(created))
-            .accountType(accType)
-            .submittedBy(submittedBy)
-            .submittedByName(submittedByName)
-            .businessUnitName(businessUnit.getBusinessUnitName())
+    public static DraftAccountResponseDto toGetResponseDto(DraftAccountEntity entity) {
+        return DraftAccountResponseDto.builder()
+            .draftAccountId(entity.getDraftAccountId())
+            .businessUnitId(Optional.ofNullable(entity.getBusinessUnit())
+                                .map(BusinessUnitEntity::getBusinessUnitId).orElse(null))
+            .createdDate(toUtcDateTime(entity.getCreatedDate()))
+            .submittedBy(entity.getSubmittedBy())
+            .submittedByName(entity.getSubmittedByName())
+            .validatedDate(toUtcDateTime(entity.getValidatedDate()))
+            .validatedBy(entity.getValidatedBy())
+            .validatedByName(entity.getValidatedByName())
+            .account(entity.getAccount())
+            .accountSnapshot(entity.getAccountSnapshot())
+            .accountType(entity.getAccountType())
+            .accountStatus(entity.getAccountStatus())
+            .accountStatusDate(toUtcDateTime(entity.getAccountStatusDate()))
+            .statusMessage(entity.getStatusMessage())
+            .timelineData(entity.getTimelineData())
+            .accountNumber(entity.getAccountNumber())
+            .accountId(entity.getAccountId())
+            .version(entity.getVersion())
             .build();
     }
 
-    DraftAccountEntity toEntity(DraftAccountRequestDto dto, LocalDateTime created,
-                                BusinessUnitEntity businessUnit, String snapshot) {
-        return DraftAccountEntity.builder()
-            .businessUnit(businessUnit)
-            .createdDate(created)
-            .submittedBy(dto.getSubmittedBy())
-            .submittedByName(dto.getSubmittedByName())
-            .account(dto.getAccount())
-            .accountSnapshot(snapshot)
-            .accountType(dto.getAccountType())
-            .accountStatus(DraftAccountStatus.SUBMITTED)
-            .accountStatusDate(LocalDateTime.now())
-            .timelineData(dto.getTimelineData())
-            .draftAccountId(null)
+    public DraftAccountSummaryDto toSummaryDto(DraftAccountEntity entity) {
+        return DraftAccountSummaryDto.builder()
+            .draftAccountId(entity.getDraftAccountId())
+            .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
+            .createdDate(toUtcDateTime(entity.getCreatedDate()))
+            .submittedBy(entity.getSubmittedBy())
+            .validatedDate(toUtcDateTime(entity.getValidatedDate()))
+            .validatedBy(entity.getValidatedBy())
+            .validatedByName(entity.getValidatedByName())
+            .accountSnapshot(entity.getAccountSnapshot())
+            .accountType(entity.getAccountType())
+            .accountStatus(entity.getAccountStatus())
+            .accountNumber(entity.getAccountNumber())
+            .accountId(entity.getAccountId())
             .build();
     }
 }

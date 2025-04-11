@@ -9,8 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.UnexpectedRollbackException;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
@@ -21,7 +19,6 @@ import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +26,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,9 +42,6 @@ class DraftAccountControllerTest {
     @Mock
     private DraftAccountService draftAccountService;
 
-    @Mock
-    private UserStateService userStateService;
-
     @Spy
     private JsonSchemaValidationService jsonSchemaValidationService;
 
@@ -59,9 +54,9 @@ class DraftAccountControllerTest {
         DraftAccountEntity entity = DraftAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId(BU_ID).build())
             .build();
+        DraftAccountResponseDto responseDto = toGetDto(entity);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
-        when(draftAccountService.getDraftAccount(any(Long.class))).thenReturn(entity);
+        when(draftAccountService.getDraftAccount(any(Long.class),anyString())).thenReturn(responseDto);
 
         // Act
         ResponseEntity<DraftAccountResponseDto> response = draftAccountController
@@ -69,8 +64,8 @@ class DraftAccountControllerTest {
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(toGetDto(entity), response.getBody());
-        verify(draftAccountService, times(1)).getDraftAccount(any(Long.class));
+        assertEquals(responseDto, response.getBody());
+        verify(draftAccountService, times(1)).getDraftAccount(any(Long.class), anyString());
     }
 
 
@@ -80,9 +75,13 @@ class DraftAccountControllerTest {
         DraftAccountEntity entity = DraftAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId(BU_ID).build())
             .build();
+        DraftAccountsResponseDto responseDto = DraftAccountsResponseDto.builder()
+            .summaries(List.of(toSummaryDto(entity)))
+            .build();
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
-        when(draftAccountService.getDraftAccounts(any(), any(), any(), any())).thenReturn(List.of(entity));
+        when(draftAccountService.getDraftAccounts(any(), any(), any(), any(),any())).thenReturn(responseDto);
+
+        when(draftAccountService.getDraftAccounts(any(), any(), any(), any(),any())).thenReturn(responseDto);
 
         // Act
         ResponseEntity<DraftAccountsResponseDto> response = draftAccountController
@@ -96,16 +95,18 @@ class DraftAccountControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, dto.getCount());
         assertEquals(toSummaryDto(entity), dto.getSummaries().get(0));
-        verify(draftAccountService, times(1)).getDraftAccounts(any(), any(), any(), any());
+        verify(draftAccountService, times(1)).getDraftAccounts(any(), any(), any(), any(),any());
     }
 
     @Test
     void testSearchDraftAccounts_Success() {
         // Arrange
-        DraftAccountEntity entity = DraftAccountEntity.builder().build();
-        List<DraftAccountEntity> draftAccountList = List.of(entity);
+        DraftAccountEntity entity = DraftAccountEntity.builder().businessUnit(
+            BusinessUnitEntity.builder().businessUnitId((short)77).build())
+            .build();
+        DraftAccountResponseDto responseDto = toGetDto(entity);
 
-        when(draftAccountService.searchDraftAccounts(any())).thenReturn(draftAccountList);
+        when(draftAccountService.searchDraftAccounts(any(), any())).thenReturn(List.of(responseDto));
 
         // Act
         DraftAccountSearchDto searchDto = DraftAccountSearchDto.builder().build();
@@ -114,7 +115,7 @@ class DraftAccountControllerTest {
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(draftAccountService, times(1)).searchDraftAccounts(any());
+        verify(draftAccountService, times(1)).searchDraftAccounts(any(), any());
     }
 
     @Test
@@ -137,8 +138,7 @@ class DraftAccountControllerTest {
             .timelineData(getTimelineJson())
             .build();
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(new UserState.DeveloperUserState());
-        when(draftAccountService.submitDraftAccount(any())).thenReturn(entity);
+        when(draftAccountService.submitDraftAccount(any(), any())).thenReturn(toGetDto(entity));
 
         // Act
         ResponseEntity<DraftAccountResponseDto> response = draftAccountController.postDraftAccount(
@@ -152,13 +152,17 @@ class DraftAccountControllerTest {
         assertEquals(getAccountJson(), responseEntity.getAccount());
         assertEquals("USER_ID", responseEntity.getSubmittedBy());
         assertEquals(getTimelineJson(), responseEntity.getTimelineData());
-        verify(draftAccountService, times(1)).submitDraftAccount(any());
+        verify(draftAccountService, times(1)).submitDraftAccount(any(), any());
     }
 
     @Test
     void testDeleteDraftAccount_Success() {
         // Arrange
-        when(draftAccountService.deleteDraftAccount(any(Long.class), any(Boolean.class), any())).thenReturn(true);
+        when(draftAccountService.deleteDraftAccount(any(Long.class), any(Boolean.class), any()))
+            .thenReturn("""
+                         { "message": "Draft Account '7' deleted"}""");
+
+
 
         // Act
         ResponseEntity<String> response = draftAccountController

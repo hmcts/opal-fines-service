@@ -8,17 +8,18 @@ import org.mockito.stubbing.OngoingStubbing;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.net.ConnectException;
 import java.time.LocalDate;
@@ -31,7 +32,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import static uk.gov.hmcts.opal.entity.DraftAccountStatus.SUBMITTED;
 
 
@@ -47,18 +47,14 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     MockMvc mockMvc;
 
     @MockBean
-    @Qualifier("draftAccountService")
+    @Autowired
     DraftAccountService draftAccountService;
-
-    @MockBean
-    UserStateService userStateService;
-
 
     @Test
     @DisplayName("Update draft account - Should return 406 Not Acceptable [@PO-973, @PO-747]")
     void testUpdateDraftAccount_trap406Response() throws Exception {
-        when(draftAccountService.updateDraftAccount(any(), any(), any()))
-            .thenReturn(createDraftAccountEntity("Test",BU_ID));
+        DraftAccountResponseDto dto = DraftAccountService.toGetResponseDto(createDraftAccountEntity("Test", BU_ID));
+        when(draftAccountService.updateDraftAccount(any(), any(), any())).thenReturn(dto);
         shouldReturn406WhenResponseContentTypeNotSupported(
             patch(URL_BASE + "/1").contentType(MediaType.APPLICATION_JSON).content(validUpdateRequestBody())
         );
@@ -93,7 +89,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
         String validRequestBody = validCreateRequestBody();
         shouldReturn408WhenTimeout(
             post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(validRequestBody),
-            when(draftAccountService.submitDraftAccount(any())));
+            when(draftAccountService.submitDraftAccount(any(), any())));
     }
 
     @Test
@@ -101,21 +97,23 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
         String validRequestBody = validCreateRequestBody();
         shouldReturn503WhenDownstreamServiceIsUnavailable(
             post(URL_BASE).contentType(MediaType.APPLICATION_JSON).content(validRequestBody),
-            when(draftAccountService.submitDraftAccount(any()))
+            when(draftAccountService.submitDraftAccount(any(), any()))
         );
 
     }
 
     @Test
     void testGetDraftAccountById_trap408Response() throws Exception {
-        shouldReturn408WhenTimeout(get(URL_BASE + "/1"),
-                                   when(draftAccountService.getDraftAccount(1L)));
+        shouldReturn408WhenTimeout(
+            get(URL_BASE + "/1"), when(
+                draftAccountService.getDraftAccount(1L, "Bearer some_value")));
     }
 
     @Test
     void testGetDraftAccountById_trap503Response() throws Exception {
-        shouldReturn503WhenDownstreamServiceIsUnavailable(get(URL_BASE + "/1"),
-                                                          when(draftAccountService.getDraftAccount(1L)));
+        shouldReturn503WhenDownstreamServiceIsUnavailable(
+            get(URL_BASE + "/1"), when(
+                draftAccountService.getDraftAccount(1L, "Bearer some_value")));
     }
 
 
@@ -128,19 +126,17 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
     @Test
     void testGetDraftAccountsSummaries_trap408Response() throws Exception {
-        shouldReturn408WhenTimeout(get(URL_BASE), when(draftAccountService.getDraftAccounts(any(), any(), any(),
-                                                                                            any())));
+        shouldReturn408WhenTimeout(
+            get(URL_BASE), when(draftAccountService.getDraftAccounts(any(), any(), any(), any(), any())));
     }
 
     @Test
     void testGetDraftAccountsSummaries_trap503Response() throws Exception {
-        shouldReturn503WhenDownstreamServiceIsUnavailable(get(URL_BASE),
-                                                          when(draftAccountService.getDraftAccounts(any(), any(), any(),
-                                                                                                    any())));
+        shouldReturn503WhenDownstreamServiceIsUnavailable(
+            get(URL_BASE), when(draftAccountService.getDraftAccounts(any(), any(), any(), any(), any())));
     }
 
     void shouldReturn406WhenResponseContentTypeNotSupported(MockHttpServletRequestBuilder reqBuilder) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
         mockMvc.perform(reqBuilder
                             .header("Authorization", "Bearer " + "some_value")
                             .accept("application/xml"))
@@ -153,17 +149,19 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
         // Simulating a timeout exception when the service is called
         stubbing.thenThrow(new QueryTimeoutException());
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        ResultActions actions = mockMvc.perform(
+            reqBuilder.header("Authorization", "Bearer " + "some_value"));
+        String response = actions.andReturn().getResponse().getContentAsString();
+        log.info(":shouldReturn408WhenTimeout: response: \n{}", ToJsonString.toPrettyJson(response));
 
-        mockMvc.perform(reqBuilder
-                            .header("Authorization", "Bearer " + "some_value"))
+        actions
             .andExpect(status().isRequestTimeout())
             .andExpect(content().contentType("application/json"))
             .andExpect(content().json("""
-                {
-                    "error": "Request Timeout",
-                    "message": "The request did not receive a response from the database within the timeout period"
-                }"""));
+            {
+                "error": "Request Timeout",
+                "message": "The request did not receive a response from the database within the timeout period"
+            }"""));
     }
 
 
@@ -174,10 +172,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
                 throw new PSQLException("Connection refused", PSQLState.CONNECTION_FAILURE, new ConnectException());
             });
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
-        mockMvc.perform(reqBuilder
-                            .header("Authorization", "Bearer " + "some_value"))
+        mockMvc.perform(reqBuilder.header("Authorization", "Bearer " + "some_value"))
             .andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType("application/json"))
             .andExpect(content().json("""
