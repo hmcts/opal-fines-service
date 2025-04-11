@@ -216,8 +216,7 @@ public class DraftAccountService implements DraftAccountServiceProxy {
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
-            DraftAccountEntity existingAccount = draftAccountRepository.findById(draftAccountId)
-                .orElseThrow(() -> new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
+            DraftAccountEntity existingAccount = getDraftAccountEntity(draftAccountId);
             verifyVersions(existingAccount, dto, draftAccountId, "replaceDraftAccount");
 
             BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId())
