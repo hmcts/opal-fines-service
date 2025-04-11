@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
 @Entity
 @Table(name = "warrant_registers")
@@ -36,7 +37,7 @@ public class WarrantRegisterEntity {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", nullable = false)
-    private BusinessUnitEntity businessUnit;
+    private BusinessUnit.Lite businessUnit;
 
     @Column(name = "enforcer_id", nullable = false)
     private Long enforcerId;

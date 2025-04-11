@@ -6,12 +6,12 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.SuspenseAccountSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.SuspenseAccountEntity;
 import uk.gov.hmcts.opal.entity.SuspenseAccountEntity_;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.equalsBusinessUnitIdPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs.likeBusinessUnitNamePredicate;
 
 public class SuspenseAccountSpecs extends EntitySpecs<SuspenseAccountEntity> {
 
@@ -48,7 +48,7 @@ public class SuspenseAccountSpecs extends EntitySpecs<SuspenseAccountEntity> {
             likeWildcardPredicate(root.get(SuspenseAccountEntity_.accountNumber), builder, accountNumber);
     }
 
-    public static Join<SuspenseAccountEntity, BusinessUnitEntity> joinBusinessUnit(
+    public static Join<SuspenseAccountEntity, BusinessUnit.Lite> joinBusinessUnit(
         From<?, SuspenseAccountEntity> from) {
         return from.join(SuspenseAccountEntity_.businessUnit);
     }

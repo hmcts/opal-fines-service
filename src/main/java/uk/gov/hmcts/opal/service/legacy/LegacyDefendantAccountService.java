@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsRequestDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountCore;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 
 import java.util.Collections;
@@ -39,19 +39,19 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
     }
 
     @Override
-    public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
+    public DefendantAccountCore getDefendantAccount(AccountEnquiryDto request) {
         log.debug("Get defendant account for {} from {}", request.toJson(), legacyGateway.getUrl());
-        return postToGateway(GET_DEFENDANT_ACCOUNT, DefendantAccountEntity.class, request);
+        return postToGateway(GET_DEFENDANT_ACCOUNT, DefendantAccountCore.class, request);
     }
 
     @Override
-    public DefendantAccountEntity putDefendantAccount(DefendantAccountEntity defendantAccountEntity) {
+    public DefendantAccountCore putDefendantAccount(DefendantAccountCore defendantAccountEntity) {
         log.debug("Sending defendantAccount to {}", legacyGateway.getUrl());
-        return postToGateway(PUT_DEFENDANT_ACCOUNT, DefendantAccountEntity.class, defendantAccountEntity);
+        return postToGateway(PUT_DEFENDANT_ACCOUNT, DefendantAccountCore.class, defendantAccountEntity);
     }
 
     @Override
-    public List<DefendantAccountEntity> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
+    public List<DefendantAccountCore> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
         return Collections.emptyList();
     }
 

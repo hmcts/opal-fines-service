@@ -12,7 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.OffenceEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
 import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
 import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
@@ -41,11 +41,11 @@ class OffenceServiceTest {
     void testGetOffence() {
         // Arrange
 
-        OffenceEntity offenceEntity = OffenceEntity.builder().build();
-        when(offenceRepository.getReferenceById(any())).thenReturn(offenceEntity);
+        OffenceEntity.Lite offenceEntity = OffenceEntity.Lite.builder().build();
+        when(offenceRepository.findById(any())).thenReturn(Optional.of(offenceEntity));
 
         // Act
-        OffenceEntity result = offenceService.getOffence((short)1);
+        OffenceEntity result = offenceService.getOffenceById(1);
 
         // Assert
         assertNotNull(result);
@@ -60,7 +60,7 @@ class OffenceServiceTest {
         when(ffq.sortBy(any())).thenReturn(ffq);
         when(ffq.limit(anyInt())).thenReturn(ffq);
 
-        OffenceEntity offenceEntity = OffenceEntity.builder().build();
+        OffenceEntity offenceEntity = OffenceEntity.Lite.builder().build();
         Page<OffenceEntity> mockPage = new PageImpl<>(List.of(offenceEntity), Pageable.unpaged(), 999L);
         when(offenceRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
@@ -83,7 +83,7 @@ class OffenceServiceTest {
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
         when(ffq.sortBy(any())).thenReturn(ffq);
 
-        OffenceEntity offenceEntity = OffenceEntity.builder()
+        OffenceEntity offenceEntity = OffenceEntity.Lite.builder()
             .offenceId(1L)
             .cjsCode("NINE")
             .offenceTitle("Theft from a Palace")

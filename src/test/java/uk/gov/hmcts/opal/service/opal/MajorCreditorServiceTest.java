@@ -12,9 +12,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 import uk.gov.hmcts.opal.entity.projection.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 
@@ -83,7 +83,7 @@ class MajorCreditorServiceTest {
         when(ffq.sortBy(any())).thenReturn(ffq);
 
         MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)007).build())
+            .businessUnit(BusinessUnit.Lite.builder().businessUnitId((short)007).build())
             .creditorAccountEntity(
                 CreditorAccountEntity.builder()
                     .creditorAccountId(8L)

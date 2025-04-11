@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.offence;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -8,8 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -17,26 +16,28 @@ import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "offences")
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@MappedSuperclass
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "offenceId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class OffenceEntity {
+public abstract class OffenceEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "offence_id_seq_generator")
@@ -46,10 +47,6 @@ public class OffenceEntity {
 
     @Column(name = "cjs_code", length = 10, nullable = false)
     private String cjsCode;
-
-    @ManyToOne
-    @JoinColumn(name = "business_unit_id")
-    private BusinessUnitEntity businessUnit;
 
     @Column(name = "offence_title", length = 120)
     private String offenceTitle;
@@ -72,4 +69,22 @@ public class OffenceEntity {
 
     @Column(name = "offence_oas_cy")
     private String offenceOasCy;
+
+    @Column(name = "business_unit_id", insertable = false, updatable = false)
+    private Short businessUnitId;
+
+    @Data
+    @Entity
+    @EqualsAndHashCode(callSuper = true)
+    @Table(name = "offences")
+    @SuperBuilder
+    @ToString(callSuper = true)
+    @AllArgsConstructor
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "offenceId")
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.FIELD)
+    @XmlType(name = "Offence")
+    public static class Lite extends OffenceEntity {
+    }
 }

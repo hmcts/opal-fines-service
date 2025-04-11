@@ -1,12 +1,12 @@
 package uk.gov.hmcts.opal.dto;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class AccountSearchResultsDtoTest {
 

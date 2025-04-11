@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountCore;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.NoteService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
@@ -53,12 +53,12 @@ class DefendantAccountControllerTest {
     @Test
     public void testGetDefendantAccount_Success() {
         // Arrange
-        DefendantAccountEntity mockResponse = new DefendantAccountEntity();
+        DefendantAccountCore mockResponse = new DefendantAccountCore();
 
         when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(mockResponse);
 
         // Act
-        ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
+        ResponseEntity<DefendantAccountCore> responseEntity = defendantAccountController.getDefendantAccount(
             (short) 1, "", BEARER_TOKEN);
 
         // Assert
@@ -74,7 +74,7 @@ class DefendantAccountControllerTest {
         when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(null);
 
         // Act
-        ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
+        ResponseEntity<DefendantAccountCore> responseEntity = defendantAccountController.getDefendantAccount(
             (short) 1, "", BEARER_TOKEN);
 
         // Assert
@@ -83,24 +83,23 @@ class DefendantAccountControllerTest {
             AccountEnquiryDto.class));
     }
 
-
     @Test
     public void testPutDefendantAccount_Success() {
         // Arrange
-        DefendantAccountEntity requestEntity = new DefendantAccountEntity();
-        DefendantAccountEntity mockResponse = new DefendantAccountEntity();
+        DefendantAccountCore requestEntity = new DefendantAccountCore();
+        DefendantAccountCore mockResponse = new DefendantAccountCore();
 
-        when(defendantAccountService.putDefendantAccount(any(DefendantAccountEntity.class))).thenReturn(mockResponse);
+        when(defendantAccountService.putDefendantAccount(any(DefendantAccountCore.class))).thenReturn(mockResponse);
 
         // Act
-        ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.putDefendantAccount(
+        ResponseEntity<DefendantAccountCore> responseEntity = defendantAccountController.putDefendantAccount(
             requestEntity, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
         verify(defendantAccountService, times(1)).putDefendantAccount(any(
-            DefendantAccountEntity.class));
+            DefendantAccountCore.class));
     }
 
     @Test

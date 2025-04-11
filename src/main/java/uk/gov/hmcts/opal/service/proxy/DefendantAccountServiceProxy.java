@@ -10,7 +10,7 @@ import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountCore;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
@@ -34,18 +34,18 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
 
     @Override
     @AuthorizedAnyBusinessUnitUserHasPermission(Permissions.ACCOUNT_ENQUIRY)
-    public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
+    public DefendantAccountCore getDefendantAccount(AccountEnquiryDto request) {
         return getCurrentModeService().getDefendantAccount(request);
     }
 
     @Override
     @AuthorizedAnyBusinessUnitUserHasPermission(Permissions.ACCOUNT_ENQUIRY)
-    public DefendantAccountEntity putDefendantAccount(DefendantAccountEntity defendantAccountEntity) {
+    public DefendantAccountCore putDefendantAccount(DefendantAccountCore defendantAccountEntity) {
         return getCurrentModeService().putDefendantAccount(defendantAccountEntity);
     }
 
     @Override
-    public List<DefendantAccountEntity> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
+    public List<DefendantAccountCore> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
         return getCurrentModeService().getDefendantAccountsByBusinessUnit(businessUnitId);
     }
 
