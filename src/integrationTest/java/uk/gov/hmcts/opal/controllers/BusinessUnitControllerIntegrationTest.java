@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @ContextConfiguration(classes = BusinessUnitController.class)
 @ActiveProfiles({"integration"})
+@DisplayName("Business Unit Controller Integration Tests")
 class BusinessUnitControllerIntegrationTest {
 
     private static final String URL_BASE = "/business-units";
@@ -48,7 +49,6 @@ class BusinessUnitControllerIntegrationTest {
     UserStateService userStateService;
 
     @Test
-    @DisplayName("Get Business Unit by ID [@PO-304, @PO-313]")
     void testGetBusinessUnitById() throws Exception {
         BusinessUnitEntity businessUnitEntity = createBusinessUnitEntity();
 
@@ -105,6 +105,7 @@ class BusinessUnitControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get Business Unit by ID [@PO-304, @PO-313]")
     void testGetBusinessUnitRefData() throws Exception {
         BusinessUnitReferenceData refData = createBusinessUnitRefData();
 
