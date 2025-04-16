@@ -53,6 +53,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
 
     @Test
+    @DisplayName("Update draft account - Should return 406 Not Acceptable [@PO-973, @PO-747]")
     void testUpdateDraftAccount_trap406Response() throws Exception {
         when(draftAccountService.updateDraftAccount(any(), any(), any()))
             .thenReturn(createDraftAccountEntity("Test",BU_ID));
@@ -78,6 +79,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     }
 
     @Test
+    @DisplayName("Post draft account - Should return 406 Not Acceptable [@PO-973, @PO-691]")
     void testPostDraftAccount_trap406Response() throws Exception {
         String validRequestBody = validCreateRequestBody();
         shouldReturn406WhenResponseContentTypeNotSupported(
@@ -117,6 +119,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
 
     @Test
+    @DisplayName("Get draft account summaries - Should return 406 Not Acceptable [@PO-973, @PO-647]")
     void testGetDraftAccountsSummaries_trap406Response() throws Exception {
         shouldReturn406WhenResponseContentTypeNotSupported(get(URL_BASE));
     }

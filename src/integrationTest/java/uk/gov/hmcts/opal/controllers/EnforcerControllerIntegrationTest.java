@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @ContextConfiguration(classes = EnforcerController.class)
 @ActiveProfiles({"integration"})
+@DisplayName("Enforcer Controller Integration Tests")
 class EnforcerControllerIntegrationTest {
 
     private static final String URL_BASE = "/enforcers";
@@ -108,6 +109,7 @@ class EnforcerControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get Enforcer Ref Data [@PO-304, @PO-316]")
     void testGetEnforcerRefData() throws Exception {
         EnforcerReferenceData refData = new EnforcerReferenceData(1L, (short)2,
                                                                   "Enforcers UK Ltd", "Enforcers Wales Ltd");

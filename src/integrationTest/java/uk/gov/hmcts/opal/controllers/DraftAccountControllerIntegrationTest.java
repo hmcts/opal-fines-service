@@ -43,6 +43,7 @@ import static uk.gov.hmcts.opal.entity.DraftAccountStatus.ERROR_IN_PUBLISHING;
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
 @Sql(scripts = "classpath:db/draftAccounts/insert_into_draft_accounts.sql",
     executionPhase = BEFORE_TEST_CLASS)
+@DisplayName("DraftAccountController Integration Tests")
 class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String URL_BASE = "/draft-accounts";
     private static final String GET_DRAFT_ACCOUNT_RESPONSE = "getDraftAccountResponse.json";
@@ -64,6 +65,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
 
     @Test
+    @DisplayName("Get Draft Account by ID [@PO-973, @PO-559]")
     void testGetDraftAccountById_success() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -88,6 +90,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft accounts summaries - No query params [@PO-973, @PO-606]")
     void testGetDraftAccountsSummaries_noParams() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -111,6 +114,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft accounts summaries - Param business unit [@PO-973, @PO-606]")
     void testGetDraftAccountsSummaries_paramBusinessUnit() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -136,6 +140,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft accounts summaries - Param status [@PO-973, @PO-606]")
     void testGetDraftAccountsSummaries_paramStatus() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -160,6 +165,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft accounts summaries - Param submitted by [@PO-973, @PO-606]")
     void testGetDraftAccountsSummaries_paramSubmittedBy() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -184,6 +190,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft accounts summaries - Param not submitted by [@PO-973, @PO-832]")
     void testGetDraftAccountsSummaries_paramNotSubmittedBy() throws Exception {
 
 
@@ -209,6 +216,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft account summaries - Single business unit permission, no filter [@PO-973, @PO-829]")
     void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits1() throws Exception {
 
         UserState user = permissionUser(BU_ID, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -231,6 +239,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft account summaries - Multiple BU permissions, filtered to BU 73 [@PO-973, @PO-829]")
     void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits2() throws Exception {
 
         UserState user = permissionUser(new Short[] {BU_ID, (short)77}, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -254,6 +263,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft account summaries - Multiple BU permissions, no filter [@PO-973, @PO-829]")
     void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits3() throws Exception {
 
         UserState user = permissionUser(new Short[] {BU_ID, (short)77}, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -280,6 +290,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Search draft accounts - POST with draftAccountId - Should return matching draft account [@PO-973, @PO-559]")
     void testSearchDraftAccountsPost() throws Exception {
 
         String body = mockMvc.perform(post(URL_BASE + "/search")
@@ -311,6 +322,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Delete draft accounts [@PO-973, @PO-591]")
     void testDeleteDraftAccountById_success() throws Exception {
 
         MvcResult result = mockMvc.perform(delete(URL_BASE + "/4")
@@ -325,6 +337,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Replace draft account - Should return updated draft account [@PO-973, @PO-746]")
     void testReplaceDraftAccount_success() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -352,6 +365,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Create draft account - POST with valid request - Should return newly created account [@PO-973, @PO-591]")
     void testPostDraftAccount_permission() throws Exception {
 
         String validRequestBody = validCreateRequestBody();
@@ -376,6 +390,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Update draft account - Should return updated account details [@PO-973, @PO-745]")
     void testUpdateDraftAccount_success() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -398,6 +413,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft account by ID - User with wrong permission [@PO-973, @PO-828]")
     void testGetDraftAccountById_trap403Response_wrongPermission() throws Exception {
 
         UserState userState = permissionUser(BU_ID, Permissions.COLLECTION_ORDER);
@@ -415,6 +431,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft account by ID - user with wrong permission for business unit [@PO-973, @PO-828]")
     void testGetDraftAccountById_trap403Response_wrongBusinessUnit() throws Exception {
 
         UserState userState = permissionUser((short)005, Permissions.DRAFT_ACCOUNT_PERMISSIONS);
@@ -432,6 +449,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft account by ID - user with no permission [@PO-973, @PO-828]")
     void testGetDraftAccountsSummaries_trap403Response_noPermission() throws Exception {
         final Short businessId = (short)1;
 
@@ -448,6 +466,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft account by ID - Should return 404 Not Found [@PO-973, @PO-690]")
     void testGetDraftAccountById_trap404Response() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -459,6 +478,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft account by ID - Should return 406 Not Acceptable [@PO-973, @PO-690]")
     void testGetDraftAccountById_trap406Response() throws Exception {
         mockMvc.perform(get(URL_BASE + "/99")
                             .header("Authorization", "Bearer " + "some_value")
@@ -467,6 +487,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get draft account summaries - Should return 400 Bad Request [@PO-973, @PO-647]")
     void testGetDraftAccountsSummaries_trap400Response() throws Exception {
         final Short businessId = (short)1;
 
@@ -488,6 +509,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Replace draft account - user with no permission [@PO-973, @PO-830]")
     void testReplaceDraftAccount_trap403Response_noPermission() throws Exception {
         Long draftAccountId = 241L;
 
@@ -503,6 +525,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Update draft account - user with no permission [@PO-973, @PO-831]")
     void testUpdateDraftAccount_trap403Response_noPermission() throws Exception {
         Long draftAccountId = 241L;
         String requestBody = "            {\n"
@@ -526,6 +549,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Create draft account - Should return 400 Bad Request [@PO-973, @PO-691]")
     void testPostDraftAccount_trap400Response() throws Exception {
 
         String expectedErrorMessageStart =
@@ -550,6 +574,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Create draft account - user with no permission [@PO-973, @PO-827]")
     void testPostDraftAccount_trap403Response_noPermission() throws Exception {
 
         String validRequestBody = validCreateRequestBody();
@@ -572,6 +597,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Create draft account - user with wrong permission [@PO-973, @PO-827]")
     void testPostDraftAccount_trap403Response_wrongPermission() throws Exception {
 
         String validRequestBody = validCreateRequestBody();
