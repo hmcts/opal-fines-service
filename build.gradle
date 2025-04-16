@@ -1,6 +1,6 @@
 buildscript {
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:11.4.1")
+    classpath("org.flywaydb:flyway-database-postgresql:11.7.0")
   }
 }
 
@@ -12,7 +12,7 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.52.0'
   id 'org.sonarqube' version '6.1.0.5360'
   id 'uk.gov.hmcts.java' version '0.12.65'
-  id 'org.flywaydb.flyway' version '11.4.0'
+  id 'org.flywaydb.flyway' version '11.7.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.16'
 }
 
@@ -96,36 +96,48 @@ task functionalOpal(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
-  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional"))
+  outputs.upToDateWhen { false }
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal"))
   testLogging.showStandardStreams = true
   gradle.startParameter.continueOnFailure = true
-  systemProperty "cucumber.filter.tags", "@Opal and not @Smoke and not @Ignore"
   systemProperty "test.mode", "opal"
+
+  include '**/OpalTestRunner.class'
+
 }
 task functionalLegacy(type: Test) {
   description = "Runs functional tests against Legacy mode"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
-  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional"))
+  outputs.upToDateWhen { false }
+  reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/legacy"))
   gradle.startParameter.continueOnFailure = true
   testLogging.showStandardStreams = true
-  systemProperty "cucumber.filter.tags", "@Legacy and not @Smoke and not @Ignore"
   systemProperty "test.mode", "legacy"
+
+  include '**/LegacyTestRunner.class'
 }
 task copyFunctionalReport(type: Copy) {
   from("${rootDir}/target/site/serenity")
   into("${rootDir}/functional-test-report")
   logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
 }
+task mergeFunctionalResults(type: Copy) {
+  from layout.buildDirectory.dir("test-results/functional/opal")
+  from layout.buildDirectory.dir("test-results/functional/legacy")
+  into layout.buildDirectory.dir("test-results/functional")
+  include '*.xml'
+}
 
 task functional() {
   description = "Runs functional tests"
   group = "Verification"
   gradle.startParameter.continueOnFailure = true
-  dependsOn('clearReports', 'functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport')
+  dependsOn('clearReports', 'functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport','mergeFunctionalResults')
   tasks.functionalOpal.mustRunAfter clearReports
   tasks.functionalLegacy.mustRunAfter functionalOpal
+  tasks.mergeFunctionalResults.mustRunAfter functionalLegacy
   tasks.aggregate.mustRunAfter functionalLegacy
   tasks.copyFunctionalReport.mustRunAfter aggregate
 
@@ -138,7 +150,9 @@ task smokeOpal(type: Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/smoke"))
   testLogging.showStandardStreams = true
   gradle.startParameter.continueOnFailure = true
-  systemProperty "cucumber.filter.tags", "@Smoke and not @Ignore"
+
+  include '**/SmokeTestRunner.class'
+
 }
 task copySmokeReport(type: Copy) {
   from("${rootDir}/target/site/serenity")
@@ -226,7 +240,7 @@ dependencyManagement {
   }
 
   dependencies {
-    dependency group: 'com.google.guava', name: 'guava', version: '33.4.6-jre'
+    dependency group: 'com.google.guava', name: 'guava', version: '33.4.7-jre'
   }
 }
 
@@ -279,7 +293,7 @@ dependencies {
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
-  implementation group: 'com.google.guava', name: 'guava', version: '33.4.6-jre'
+  implementation group: 'com.google.guava', name: 'guava', version: '33.4.7-jre'
 
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.7.0'
 
@@ -288,7 +302,7 @@ dependencies {
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.4.1'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.7.0'
   implementation 'org.postgresql:postgresql'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
@@ -317,14 +331,14 @@ dependencies {
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:junit-jupiter:1.20.6'
   testImplementation 'org.testcontainers:postgresql'
-  testImplementation(platform('org.junit:junit-bom:5.12.1'))
+  testImplementation(platform('org.junit:junit-bom:5.12.2'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  testImplementation 'org.junit.platform:junit-platform-suite:1.12.1'
-  testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.21.1'
+  testImplementation 'org.junit.platform:junit-platform-suite:1.12.2'
+  testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.22.0'
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-rest-assured:${serenityVersion}"
