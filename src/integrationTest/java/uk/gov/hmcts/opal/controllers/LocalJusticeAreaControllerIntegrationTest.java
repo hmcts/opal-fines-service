@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @ContextConfiguration(classes = LocalJusticeAreaController.class)
 @ActiveProfiles({"integration"})
+@DisplayName("LocalJusticeAreaController Integration Test")
 class LocalJusticeAreaControllerIntegrationTest {
 
     private static final String URL_BASE = "/local-justice-areas/";
@@ -37,6 +39,7 @@ class LocalJusticeAreaControllerIntegrationTest {
     LocalJusticeAreaService localJusticeAreaService;
 
     @Test
+    @DisplayName("Get local justice area by ID [@PO-312, PO-304]")
     void testGetLocalJusticeAreaById() throws Exception {
         LocalJusticeAreaEntity localJusticeAreaEntity = createLocalJusticeAreaEntity();
 
@@ -55,6 +58,7 @@ class LocalJusticeAreaControllerIntegrationTest {
 
 
     @Test
+    @DisplayName("No local justice area returned when local justice area does not exist [@PO-312, PO-304]")
     void testGetLocalJusticeAreaById_WhenLocalJusticeAreaDoesNotExist() throws Exception {
         when(localJusticeAreaService.getLocalJusticeArea((short)2)).thenReturn(null);
 
@@ -63,6 +67,7 @@ class LocalJusticeAreaControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Verify search result for local justice area created by POST request [@PO-312, PO-304]")
     void testPostLocalJusticeAreasSearch() throws Exception {
         LocalJusticeAreaEntity localJusticeAreaEntity = createLocalJusticeAreaEntity();
 
@@ -83,6 +88,7 @@ class LocalJusticeAreaControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Verify no search result when local justice area does not exist [@PO-312, PO-304]")
     void testPostLocalJusticeAreasSearch_WhenLocalJusticeAreaDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "search")
                             .contentType(MediaType.APPLICATION_JSON)
