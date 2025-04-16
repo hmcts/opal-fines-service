@@ -105,7 +105,7 @@ class BusinessUnitControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("Get Business Unit by ID [@PO-304, @PO-313]")
+    @DisplayName("Get Business Unit Ref Data [@PO-304, @PO-313]")
     void testGetBusinessUnitRefData() throws Exception {
         BusinessUnitReferenceData refData = createBusinessUnitRefData();
 
