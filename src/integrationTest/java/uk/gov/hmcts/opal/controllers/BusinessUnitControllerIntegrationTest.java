@@ -48,6 +48,7 @@ class BusinessUnitControllerIntegrationTest {
     UserStateService userStateService;
 
     @Test
+    @DisplayName("Get Business Unit by ID [@PO-304, @PO-313]")
     void testGetBusinessUnitById() throws Exception {
         BusinessUnitEntity businessUnitEntity = createBusinessUnitEntity();
 

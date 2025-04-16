@@ -18,13 +18,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = RootController.class)
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.GetWelcomeTest")
+@DisplayName("Get Welcome Test Integration Tests")
 class GetWelcomeTest {
 
     @Autowired
     private transient MockMvc mockMvc;
 
-    @DisplayName("Should welcome upon root request with 200 response code")
     @Test
+    @DisplayName("Should welcome upon root request with 200 response code")
     void welcomeRootEndpoint() throws Exception {
         log.info(":welcomeRootEndpoint:");
         MvcResult response = mockMvc.perform(get("/")).andExpect(status().isOk()).andReturn();
