@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -290,7 +291,8 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Search draft accounts - POST with draftAccountId - Should return matching draft account [@PO-973, @PO-559]")
+    @DisplayName("Search draft accounts - POST with draftAccountId - Should return matching draft account"
+        + " [@PO-973, @PO-559]")
     void testSearchDraftAccountsPost() throws Exception {
 
         String body = mockMvc.perform(post(URL_BASE + "/search")
@@ -365,7 +367,8 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Create draft account - POST with valid request - Should return newly created account [@PO-973, @PO-591]")
+    @DisplayName("Create draft account - POST with valid request - Should return newly created account "
+        + "[@PO-973, @PO-591]")
     void testPostDraftAccount_permission() throws Exception {
 
         String validRequestBody = validCreateRequestBody();
