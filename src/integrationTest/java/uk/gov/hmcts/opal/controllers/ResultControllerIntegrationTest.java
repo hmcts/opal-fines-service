@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @ContextConfiguration(classes = ResultController.class)
 @ActiveProfiles({"integration"})
+@DisplayName("ResultController Integration Test")
 class ResultControllerIntegrationTest {
 
     private static final String URL_BASE = "/results/";
@@ -35,6 +37,7 @@ class ResultControllerIntegrationTest {
     ResultService resultService;
 
     @Test
+    @DisplayName("Get result by ID [@PO-703, PO-304]")
     void testGetResultById() throws Exception {
         ResultReferenceData resultRefData = createResultReferenceData();
 
@@ -50,6 +53,7 @@ class ResultControllerIntegrationTest {
 
 
     @Test
+    @DisplayName("No results returned when result does not exist [@PO-703, PO-304]")
     void testGetResultById_WhenResultDoesNotExist() throws Exception {
         when(resultService.getResult("xyz")).thenReturn(null);
 
@@ -59,6 +63,7 @@ class ResultControllerIntegrationTest {
 
 
     @Test
+    @DisplayName("Get all results from endpoint [@PO-703, PO-304]")
     void testGetAllResults() throws Exception {
         List<ResultReferenceData> resultList = List.of(
             new ResultReferenceData("ABC",
@@ -89,6 +94,7 @@ class ResultControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get all results by ID [@PO-703, PO-304]")
     void getResultsByIds() throws Exception {
         List<ResultReferenceData> resultList = List.of(
             new ResultReferenceData("ABC",

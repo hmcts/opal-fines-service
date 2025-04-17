@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = OffenceController.class)
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.OffenceControllerIntegrationTest")
+@DisplayName("OffenceController Integration Test")
 class OffenceControllerIntegrationTest {
 
     private static final String URL_BASE = "/offences";
@@ -46,6 +48,7 @@ class OffenceControllerIntegrationTest {
     OffenceService offenceService;
 
     @Test
+    @DisplayName("Get offence by ID [@PO-420, PO-272]")
     void testGetOffenceById() throws Exception {
         OffenceEntity offenceEntity = createOffenceEntity();
 
@@ -61,6 +64,7 @@ class OffenceControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("No offences returned when offence does not exist [@PO-420, PO-272]")
     void testGetOffenceById_WhenOffenceDoesNotExist() throws Exception {
         when(offenceService.getOffence((short)2)).thenReturn(null);
 
@@ -69,6 +73,7 @@ class OffenceControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Verify search result for offence created by POST request [@PO-926, PO-304]")
     void testPostOffencesSearch() throws Exception {
         OffenceSearchData entity = createOffenceSearchData();
 
@@ -92,6 +97,7 @@ class OffenceControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Verify no search result when offence does not exist [@PO-926, PO-304]")
     void testPostOffencesSearch_WhenOffenceDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)

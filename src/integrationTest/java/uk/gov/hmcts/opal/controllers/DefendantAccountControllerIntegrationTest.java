@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -40,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @ContextConfiguration(classes = DefendantAccountController.class)
 @ActiveProfiles({"integration"})
+@DisplayName("Defendant Account Controller Integration Tests")
 class DefendantAccountControllerIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts/";
@@ -57,6 +59,7 @@ class DefendantAccountControllerIntegrationTest {
     private UserStateService userStateService;
 
     @Test
+    @DisplayName("Get Defendant Account by ID [@PO-33, @PO-130]")
     void testGetDefendantAccountById() throws Exception {
         AccountDetailsDto defendantAccountEntity = createAccountDetailsDto();
 
@@ -75,6 +78,7 @@ class DefendantAccountControllerIntegrationTest {
 
 
     @Test
+    @DisplayName("Get Defendant Account by ID - Account does not exist [@PO-33, @PO-130]")
     void testGetDefendantAccountById_WhenDefendantAccountDoesNotExist() throws Exception {
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
@@ -86,6 +90,7 @@ class DefendantAccountControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Search defendant accounts - POST with valid criteria [@PO-33, @PO-119]")
     void testPostDefendantAccountsSearch() throws Exception {
         AccountSummaryDto dto = createAccountSummaryDto();
         AccountSearchResultsDto results = AccountSearchResultsDto.builder().searchResults(List.of(dto)).build();
@@ -109,6 +114,7 @@ class DefendantAccountControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Search defendant accounts - Account does not exist [@PO-33, @PO-119]")
     void testPostDefendantAccountsSearch_WhenDefendantAccountDoesNotExist() throws Exception {
         AccountEnquiryDto dto = AccountEnquiryDto.builder().build();
 
@@ -124,6 +130,7 @@ class DefendantAccountControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Search defendant accounts - Account does exist [@PO-33, @PO-119]")
     public void testGetDefendantAccount() throws Exception {
         DefendantAccountEntity entity = createDefendantAccountEntity();
 
@@ -145,6 +152,7 @@ class DefendantAccountControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Update defendant account ")
     public void testPutDefendantAccount() throws Exception {
         DefendantAccountEntity entity = createDefendantAccountEntity();
 
@@ -167,6 +175,7 @@ class DefendantAccountControllerIntegrationTest {
 
 
     @Test
+    @DisplayName("Test Add Note Endpoint [@PO-34, @PO-138]")
     public void testAddNote() throws Exception {
         NoteDto noteDto = createNoteDto();
         AddNoteDto addNoteDto = AddNoteDto.builder()
@@ -190,6 +199,7 @@ class DefendantAccountControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get notes for defendant account - Note present [@PO-34, @PO-138]")
     public void testGetNotesForDefendantAccount_notePresent() throws Exception {
         List<NoteDto> notesList = List.of(createNoteDto());
 
