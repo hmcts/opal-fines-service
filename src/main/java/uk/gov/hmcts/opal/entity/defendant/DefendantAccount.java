@@ -1,19 +1,15 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.defendant;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -23,37 +19,29 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.entity.converter.DefendantAccountTypeConverter;
+import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 
-@Entity
 @Data
-@Table(name = "defendant_accounts")
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "defendantAccountId")
+@MappedSuperclass
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class DefendantAccountEntity {
+public abstract class DefendantAccount {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "defendant_account_id_seq")
     @SequenceGenerator(name = "defendant_account_id_seq", sequenceName = "defendant_account_id_seq", allocationSize = 1)
     @Column(name = "defendant_account_id")
     private Long defendantAccountId;
-
-    @ManyToOne
-    @JoinColumn(name = "business_unit_id", referencedColumnName = "business_unit_id", nullable = false)
-    private BusinessUnitEntity businessUnit;
 
     @Column(name = "account_number", length = 20)
     private String accountNumber;
@@ -82,14 +70,6 @@ public class DefendantAccountEntity {
     @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate completedDate;
-
-    @ManyToOne
-    @JoinColumn(name = "enforcing_court_id", referencedColumnName = "court_id", nullable = false)
-    private CourtEntity enforcingCourt;
-
-    @ManyToOne
-    @JoinColumn(name = "last_hearing_court_id", referencedColumnName = "court_id", nullable = false)
-    private CourtEntity lastHearingCourt;
 
     @Column(name = "last_hearing_date")
     @Temporal(TemporalType.DATE)
@@ -188,10 +168,29 @@ public class DefendantAccountEntity {
     @Column(name = "enforcement_case_status", length = 10)
     private String enforcementCaseStatus;
 
-    @OneToMany(mappedBy = "defendantAccount", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<DefendantAccountPartiesEntity> parties;
-
     @Column(name = "account_type", length = 30, nullable = false)
     @Convert(converter = DefendantAccountTypeConverter.class)
     private DefendantAccountType accountType;
+
+    @Column(name = "business_unit_id", nullable = false, insertable = false, updatable = false)
+    private Short businessUnitId;
+
+    @Column(name = "enforcing_court_id", nullable = false)
+    private Long enforcingCourtId;
+
+    @Column(name = "last_hearing_court_id", nullable = false)
+    private Long lastHearingCourtId;
+
+    @Entity
+    @Data
+    @SuperBuilder
+    @EqualsAndHashCode(callSuper = true)
+    @NoArgsConstructor
+    @Table(name = "defendant_accounts")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "defendantAccountId")
+    @XmlRootElement
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class Lite extends DefendantAccount {
+    }
 }

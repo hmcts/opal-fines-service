@@ -1,9 +1,6 @@
 package uk.gov.hmcts.opal.dto.search;
 
 
-import java.util.List;
-import java.util.Optional;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +9,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+
+import java.util.List;
+import java.util.Optional;
 
 
 @Builder

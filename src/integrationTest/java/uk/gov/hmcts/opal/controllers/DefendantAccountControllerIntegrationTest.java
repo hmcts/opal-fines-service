@@ -18,7 +18,7 @@ import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountCore;
 import uk.gov.hmcts.opal.service.opal.NoteService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
@@ -132,7 +132,7 @@ class DefendantAccountControllerIntegrationTest {
     @Test
     @DisplayName("Search defendant accounts - Account does exist [@PO-33, @PO-119]")
     public void testGetDefendantAccount() throws Exception {
-        DefendantAccountEntity entity = createDefendantAccountEntity();
+        DefendantAccountCore entity = createDefendantAccountEntity();
 
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
@@ -154,11 +154,11 @@ class DefendantAccountControllerIntegrationTest {
     @Test
     @DisplayName("Update defendant account ")
     public void testPutDefendantAccount() throws Exception {
-        DefendantAccountEntity entity = createDefendantAccountEntity();
+        DefendantAccountCore entity = createDefendantAccountEntity();
 
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
-        when(defendantAccountService.putDefendantAccount(any())).thenReturn(entity);
+        when(defendantAccountService.putDefendantAccount(any(DefendantAccountCore.class))).thenReturn(entity);
 
         mockMvc.perform(put("/defendant-accounts")
                             .header("authorization", "Bearer some_value")
@@ -251,8 +251,8 @@ class DefendantAccountControllerIntegrationTest {
             .build();
     }
 
-    private DefendantAccountEntity createDefendantAccountEntity() {
-        return DefendantAccountEntity.builder()
+    private DefendantAccountCore createDefendantAccountEntity() {
+        return DefendantAccountCore.builder()
             .defendantAccountId(1L)
             .accountNumber("abc123")
             .accountStatus("in payment")

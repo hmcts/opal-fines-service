@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccount;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
@@ -40,7 +41,7 @@ public class PaymentTermsEntity {
 
     @ManyToOne
     @JoinColumn(name = "defendant_account_id", referencedColumnName = "defendant_account_id", nullable = false)
-    private DefendantAccountEntity defendantAccount;
+    private DefendantAccount.Lite defendantAccount;
 
 
     @Column(name = "posted_date", nullable = false)

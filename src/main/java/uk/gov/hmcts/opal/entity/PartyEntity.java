@@ -23,6 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.defendant.DefendantAccountPartiesEntityFull;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 import java.time.LocalDate;
@@ -102,5 +103,5 @@ public class PartyEntity implements FullNameBuilder {
     private LocalDateTime lastChangedDate;
 
     @OneToMany(mappedBy = "party", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<DefendantAccountPartiesEntity> defendantAccounts;
+    private List<DefendantAccountPartiesEntityFull> defendantAccounts;
 }

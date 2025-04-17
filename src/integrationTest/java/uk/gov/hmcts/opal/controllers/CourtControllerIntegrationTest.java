@@ -11,8 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.CourtEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.projection.CourtReferenceData;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
@@ -47,15 +46,15 @@ class CourtControllerIntegrationTest {
     @Test
     @DisplayName("Get court by ID - When court does exist [@PO-272, @PO-424]")
     void testGetCourtById() throws Exception {
-        CourtEntity courtEntity = CourtEntity.builder()
+        CourtEntity.Lite courtEntity = CourtEntity.Lite.builder()
             .courtId(1L)
             .courtCode((short) 11)
             .nationalCourtCode("Test Court")
-            .parentCourt(CourtEntity.builder().courtId(2L).build())
-            .localJusticeArea(LocalJusticeAreaEntity.builder().localJusticeAreaId((short)22).build())
+            .parentCourtId(2L)
+            .localJusticeAreaId((short)22)
             .build();
 
-        when(courtService.getCourt(1L)).thenReturn(courtEntity);
+        when(courtService.getCourtLite(1L)).thenReturn(courtEntity);
 
         mockMvc.perform(get(URL_BASE + "/1")
                             .header("authorization", "Bearer some_value"))
@@ -63,8 +62,8 @@ class CourtControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.courtId").value(1))
             .andExpect(jsonPath("$.courtCode").value(11))
-            .andExpect(jsonPath("$.parentCourt.courtId").value(2))
-            .andExpect(jsonPath("$.localJusticeArea.localJusticeAreaId").value(22))
+            .andExpect(jsonPath("$.parentCourtId").value(2))
+            .andExpect(jsonPath("$.localJusticeAreaId").value(22))
             .andExpect(jsonPath("$.nationalCourtCode").value("Test Court"));
     }
 
@@ -72,7 +71,7 @@ class CourtControllerIntegrationTest {
     @Test
     @DisplayName("Get court by ID - When court does not exist [@PO-272, @PO-424]")
     void testGetCourtById_WhenCourtDoesNotExist() throws Exception {
-        when(courtService.getCourt(2L)).thenReturn(null);
+        when(courtService.getCourtLite(2L)).thenReturn(null);
 
         mockMvc.perform(get(URL_BASE + "/2").header("authorization", "Bearer some_value"))
             .andExpect(status().isNotFound());
@@ -81,12 +80,12 @@ class CourtControllerIntegrationTest {
     @Test
     @DisplayName("Search courts - Should return matching court when one exists [@PO-272, @PO-424]")
     void testPostCourtsSearch() throws Exception {
-        CourtEntity courtEntity = CourtEntity.builder()
+        CourtEntity.Lite courtEntity = CourtEntity.Lite.builder()
             .courtId(1L)
             .courtCode((short) 11)
             .nationalCourtCode("Test Court")
-            .parentCourt(CourtEntity.builder().courtId(2L).build())
-            .localJusticeArea(LocalJusticeAreaEntity.builder().localJusticeAreaId((short)22).build())
+            .parentCourtId(2L)
+            .localJusticeAreaId((short)22)
             .build();
 
         when(courtService.searchCourts(any(CourtSearchDto.class))).thenReturn(singletonList(courtEntity));
@@ -99,8 +98,8 @@ class CourtControllerIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$[0].courtId").value(1))
             .andExpect(jsonPath("$[0].courtCode").value(11))
-            .andExpect(jsonPath("$[0].parentCourt.courtId").value(2))
-            .andExpect(jsonPath("$[0].localJusticeArea.localJusticeAreaId").value(22))
+            .andExpect(jsonPath("$[0].parentCourtId").value(2))
+            .andExpect(jsonPath("$[0].localJusticeAreaId").value(22))
             .andExpect(jsonPath("$[0].nationalCourtCode").value("Test Court"));
     }
 

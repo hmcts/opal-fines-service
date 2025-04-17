@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.CourtFeeSearchDto;
 import uk.gov.hmcts.opal.entity.CourtFeeEntity;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.CourtFeeServiceInterface;
+import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyCourtFeeService;
 import uk.gov.hmcts.opal.service.opal.CourtFeeService;
 
