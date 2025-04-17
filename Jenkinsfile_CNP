@@ -23,6 +23,14 @@ withPipeline(type, product, component) {
       reportFiles          : "index.html",
       reportName           : "Serenity Functional Test Report"
     ]
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "functional-test-report/htmlReport/",
+      reportFiles          : "test-summary.html",
+      reportName           : "Test Summary Report"
+    ]
   }
 
   afterAlways('smoketest:dev') {
@@ -49,7 +57,14 @@ withPipeline(type, product, component) {
       reportFiles          : "index.html",
       reportName           : "Serenity Functional Test Report"
     ]
-
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "functional-test-report/htmlReport/",
+      reportFiles          : "test-summary.html",
+      reportName           : "Test Summary Report"
+    ]
   }
   afterAlways('smoketest:stg') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'

@@ -1,0 +1,120 @@
+body {
+    margin: 0;
+    padding: 2em;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f9;
+    color: #333;
+}
+
+h1 {
+    font-size: 2em;
+    color: #2c3e50;
+    margin-bottom: 1em;
+}
+
+h2 {
+    font-size: 1.25em;
+    color: #34495e;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+/* Compact summary tables */
+table.summary {
+    width: auto;
+    margin-top: 0.5em;
+    margin-bottom: 1em;
+    font-size: 0.95em;
+    border-collapse: collapse;
+}
+
+table.summary th,
+table.summary td {
+    padding: 6px 10px;
+    text-align: left;
+    border: 1px solid #ccc;
+}
+
+table.summary th {
+    background-color: #dfe6e9;
+    font-weight: 600;
+}
+
+table.summary td.failures,
+table.summary td.errors {
+    color: #c0392b;
+    font-weight: bold;
+}
+
+/* Main report tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #e1e4e8;
+    text-align: left;
+}
+
+th {
+    background-color: #ecf0f1;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.05em;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f0f8ff;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+    body {
+        padding: 1em;
+    }
+
+    th, td {
+        padding: 8px;
+        font-size: 0.95em;
+    }
+
+    h1, h2 {
+        font-size: 1.3em;
+    }
+}
+
+.summaries {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2em;
+}
+
+/* Highlight entire row red if there's a failure or error */
+tr.has-failure {
+    background-color: #ffe6e6 !important;
+}
+button {
+    padding: 8px 14px;
+    margin: 0.5em 0 1em;
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+button:hover {
+    background-color: #1f6391;
+}
