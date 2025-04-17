@@ -143,7 +143,8 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
         assertEquals("Not Acceptable", response.getBody().get("error"));
         assertEquals(
-            "Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; "
+            "Method parameter 'testParam': Failed to convert value of type 'java.lang.String'"
+                + " to required type 'java.lang.Integer'; "
                 + "For input string: \"invalidInt\"",
                      response.getBody().get("message"));
     }
