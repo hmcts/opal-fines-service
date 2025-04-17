@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import jakarta.persistence.QueryTimeoutException;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.OngoingStubbing;
 import org.postgresql.util.PSQLException;
@@ -36,6 +37,7 @@ import static uk.gov.hmcts.opal.entity.DraftAccountStatus.SUBMITTED;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountControllerTransientErrorsIntegrationTest")
+@DisplayName("DraftAccountController Transient Errors Integration Tests")
 class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractIntegrationTest {
     private static final String URL_BASE = "/draft-accounts";
 
@@ -53,6 +55,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
 
     @Test
+    @DisplayName("Update draft account - Should return 406 Not Acceptable [@PO-973, @PO-747]")
     void testUpdateDraftAccount_trap406Response() throws Exception {
         when(draftAccountService.updateDraftAccount(any(), any(), any()))
             .thenReturn(createDraftAccountEntity("Test",BU_ID));
@@ -78,6 +81,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     }
 
     @Test
+    @DisplayName("Post draft account - Should return 406 Not Acceptable [@PO-973, @PO-691]")
     void testPostDraftAccount_trap406Response() throws Exception {
         String validRequestBody = validCreateRequestBody();
         shouldReturn406WhenResponseContentTypeNotSupported(
@@ -117,6 +121,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
 
     @Test
+    @DisplayName("Get draft account summaries - Should return 406 Not Acceptable [@PO-973, @PO-647]")
     void testGetDraftAccountsSummaries_trap406Response() throws Exception {
         shouldReturn406WhenResponseContentTypeNotSupported(get(URL_BASE));
     }

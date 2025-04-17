@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @ContextConfiguration(classes = CourtController.class)
 @ActiveProfiles({"integration"})
+@DisplayName("CourtController Integration Tests")
 class CourtControllerIntegrationTest {
 
     private static final String URL_BASE = "/courts";
@@ -43,6 +45,7 @@ class CourtControllerIntegrationTest {
     UserStateService userStateService;
 
     @Test
+    @DisplayName("Get court by ID - When court does exist [@PO-272, @PO-424]")
     void testGetCourtById() throws Exception {
         CourtEntity courtEntity = CourtEntity.builder()
             .courtId(1L)
@@ -67,6 +70,7 @@ class CourtControllerIntegrationTest {
 
 
     @Test
+    @DisplayName("Get court by ID - When court does not exist [@PO-272, @PO-424]")
     void testGetCourtById_WhenCourtDoesNotExist() throws Exception {
         when(courtService.getCourt(2L)).thenReturn(null);
 
@@ -75,6 +79,7 @@ class CourtControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Search courts - Should return matching court when one exists [@PO-272, @PO-424]")
     void testPostCourtsSearch() throws Exception {
         CourtEntity courtEntity = CourtEntity.builder()
             .courtId(1L)
@@ -100,6 +105,7 @@ class CourtControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Search courts - When court does not exist [@PO-272, @PO-424]")
     void testPostCourtsSearch_WhenCourtDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer some_value")
@@ -109,6 +115,7 @@ class CourtControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Get court reference data - Should return court ref data when available [@PO-272, @PO-424]")
     void testGetCourtRefData() throws Exception {
         CourtReferenceData refData = new CourtReferenceData(1L, (short)007, (short)11,
                                                             "Main Court", null, "MN1234");

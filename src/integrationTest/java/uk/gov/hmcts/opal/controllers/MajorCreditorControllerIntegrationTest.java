@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = MajorCreditorController.class)
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.MajorCreditorControllerIntegrationTest")
+@DisplayName("MajorCreditorController Integration Test")
 class MajorCreditorControllerIntegrationTest {
 
     private static final String URL_BASE = "/major-creditors";
@@ -45,6 +47,7 @@ class MajorCreditorControllerIntegrationTest {
     MajorCreditorService majorCreditorService;
 
     @Test
+    @DisplayName("Get major creditor by ID [@PO-349, PO-304]")
     void testGetMajorCreditorById() throws Exception {
         MajorCreditorEntity majorCreditorEntity = createMajorCreditorEntity();
 
@@ -64,6 +67,7 @@ class MajorCreditorControllerIntegrationTest {
 
 
     @Test
+    @DisplayName("No major creditor returned when major creditor does not exist [@PO-349, PO-304]")
     void testGetMajorCreditorById_WhenMajorCreditorDoesNotExist() throws Exception {
         when(majorCreditorService.getMajorCreditor(2L)).thenReturn(null);
 
@@ -72,6 +76,7 @@ class MajorCreditorControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Verify search result for major creditor created by POST request [@PO-349, PO-304]")
     void testPostMajorCreditorsSearch() throws Exception {
         MajorCreditorEntity majorCreditorEntity = createMajorCreditorEntity();
 
@@ -93,6 +98,7 @@ class MajorCreditorControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Verify no search result when major creditor does not exist [@PO-349, PO-304]")
     void testPostMajorCreditorsSearch_WhenMajorCreditorDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -101,6 +107,7 @@ class MajorCreditorControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Endpoint correctly retrieves major creditor reference data [@PO-349, PO-304]")
     void testGetMajorCreditorRefData() throws Exception {
 
         MajorCreditorReferenceData refData  = MajorCreditorReferenceData.builder()
