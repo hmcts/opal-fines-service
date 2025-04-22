@@ -5,7 +5,7 @@ Feature: PO-614 Introduce the new OFFENCE table columns into the OFFENCES entity
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to the offence ref data api filtering by cjs code "AA06001"
     Then the response contains the below offence data fields and values
-      | offence_id        | 310844                                                                                                      |
+      | offence_id        | 45010                                                                                                      |
       | get_cjs_code      | AA06001                                                                                                     |
       | business_unit_id  | null                                                                                                        |
       | offence_title     | Fail to wear protective clothing/footwear and meets other criteria when entering quarantine centre/facility |
