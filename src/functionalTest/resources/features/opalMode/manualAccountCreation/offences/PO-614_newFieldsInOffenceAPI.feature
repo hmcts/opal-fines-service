@@ -10,7 +10,7 @@ Feature: PO-614 Introduce the new OFFENCE table columns into the OFFENCES entity
       | business_unit_id  | null                                                                                                        |
       | offence_title     | Fail to wear protective clothing/footwear and meets other criteria when entering quarantine centre/facility |
       | offence_title_cy  | null                                                                                                        |
-      | date_used_from    | 2007-06-30T00:00:00                                                                                         |
+      | date_used_from    | 2006-11-01T00:00:00                                                                                         |
       | date_used_to      | 2007-06-30T00:00:00                                                                                         |
       | offence_oas       | null                                                                                                        |
       | offence_oas_cy    | null                                                                                                        |
