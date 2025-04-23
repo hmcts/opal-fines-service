@@ -17,15 +17,15 @@ GradleBuilder builder = new GradleBuilder(this, product)
 withNightlyPipeline(type, product, component) {
   env.TEST_URL = "https://opal-fines-service.staging.platform.hmcts.net"
 
-  before('fullFunctionalTest') {
-    stage('Integration') {
-      try {
-        builder.gradle('integration')
-      } finally {
-        steps.junit '**/test-results/integration/*.xml'
-        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'      }
+  stage('Integration') {
+    try {
+      builder.gradle('integration')
+    } finally {
+      steps.junit '**/test-results/integration/*.xml'
+      steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
     }
   }
+
 
   enableFullFunctionalTest(600)
 
