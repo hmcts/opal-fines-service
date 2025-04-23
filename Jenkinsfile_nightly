@@ -18,7 +18,7 @@ withNightlyPipeline(type, product, component) {
   env.TEST_URL = "https://opal-fines-service.staging.platform.hmcts.net"
   enableFullFunctionalTest(600)
 
-  afterAlways('securitychecks') {
+  afterAlways('dependencyCheck') {
     stage('Integration') {
       try {
         builder.gradle('integration')
