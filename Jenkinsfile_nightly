@@ -18,13 +18,15 @@ withNightlyPipeline(type, product, component) {
   env.TEST_URL = "https://opal-fines-service.staging.platform.hmcts.net"
   enableFullFunctionalTest(600)
 
-  afterAlways('dependencyCheck') {
-    stage('Integration') {
-      try {
-        builder.gradle('integration')
-      } finally {
-        steps.junit '**/test-results/integration/*.xml'
-        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
+  before('fullFunctionalTest') {
+    steps.stage('Integration') {
+      steps.script {
+        try {
+          builder.gradle('integration')
+        } finally {
+          steps.junit '**/test-results/integration/*.xml'
+          steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
+        }
       }
     }
   }
