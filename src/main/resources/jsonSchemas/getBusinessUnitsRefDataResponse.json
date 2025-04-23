@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/getBusinessUnitsRefDataResponse.json",
+  "type": ["object", "null"],
+  "properties": {
+    "count": {
+      "type": ["integer", "null"],
+      "description": "The count of Business Units returned in this response"
+    },
+    "refData": {
+      "type": ["array", "null"],
+      "items": {
+        "$ref": "#/$defs/business_unit"
+      }
+    }
+  },
+  "$defs": {
+    "business_unit": {
+      "properties": {
+        "business_unit_id": {
+          "type": "integer",
+          "format": "int16",
+          "description": "Unique ID for the Offence - System generated (BE)"
+        },
+        "business_unit_code": {
+          "type": "string",
+          "description": "ID of the Business Unit the Draft Account belongs to"
+        },
+        "business_unit_name": {
+          "type": "string",
+          "description": "The CJS code"
+        },
+        "business_unit_type": {
+          "type": "string",
+          "description": "The title of the Offence"
+        },
+        "account_number_prefix": {
+          "type": "string",
+          "description": "Date the Offence is valid up until, inclusive"
+        },
+        "opal_domain": {
+          "type": "string",
+          "description": "The title of the Offence (Welsh)"
+        },
+        "welsh_language": {
+          "type": ["boolean", "null"],
+          "description": "Date the Offence is valid from, inclusive"
+        },
+        "configuration_items": {
+          "type": ["array", "null"],
+          "items": {
+            "$ref": "#/$defs/configuration_item"
+          }
+        },
+        "required": [
+          "business_unit_id",
+          "business_unit_name",
+          "business_unit_type",
+          "opal_domain",
+          "configuration_items"
+        ]
+      }
+    },
+    "configuration_item": {
+      "item_name": {
+        "type": "string",
+        "description": "The name of the configuration item"
+      },
+      "item_value": {
+        "type": ["string", "null"],
+        "description": "The value of the configuration item"
+      },
+      "item_values": {
+        "type": ["array", "null"],
+        "items": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "item_name"
+      ]
+    }
+  }
+}

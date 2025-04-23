@@ -7,21 +7,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
 import uk.gov.hmcts.opal.entity.projection.MajorCreditorReferenceData;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 
 import java.time.LocalDateTime;
 
 import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -39,12 +42,17 @@ class MajorCreditorControllerIntegrationTest {
 
     private static final String URL_BASE = "/major-creditors";
 
+    private static final String GET_MAJOR_CREDS_REF_DATA_RESPONSE = "getMajorCredRefDataResponse.json";
+
     @Autowired
     MockMvc mockMvc;
 
     @MockBean
     @Qualifier("majorCreditorServiceProxy")
     MajorCreditorService majorCreditorService;
+
+    @SpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
     @DisplayName("Get major creditor by ID [@PO-349, PO-304]")
@@ -108,7 +116,7 @@ class MajorCreditorControllerIntegrationTest {
 
     @Test
     @DisplayName("Endpoint correctly retrieves major creditor reference data [@PO-349, PO-304]")
-    void testGetMajorCreditorRefData() throws Exception {
+    void testGetMajorCreditorsRefData() throws Exception {
 
         MajorCreditorReferenceData refData  = MajorCreditorReferenceData.builder()
             .majorCreditorId(1L)
@@ -128,9 +136,12 @@ class MajorCreditorControllerIntegrationTest {
 
         when(majorCreditorService.getReferenceData(any(), any())).thenReturn(singletonList(refData));
 
-        MvcResult result = mockMvc.perform(get(URL_BASE)
-                            .header("authorization", "Bearer some_value"))
-            .andExpect(status().isOk())
+        ResultActions actions = mockMvc.perform(get(URL_BASE).header("authorization", "Bearer some_value"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetMajorCreditorRefData: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.refData[0].major_creditor_id").value(1))
@@ -146,9 +157,7 @@ class MajorCreditorControllerIntegrationTest {
             .andExpect(jsonPath("$.refData[0].hold_payout").value(Boolean.TRUE))
             .andReturn();
 
-        String body = result.getResponse().getContentAsString();
-
-        log.info(":testGetDraftAccountById: Response body:\n" + ToJsonString.toPrettyJson(body));
+        assertTrue(jsonSchemaValidationService.isValid(body, GET_MAJOR_CREDS_REF_DATA_RESPONSE));
     }
 
     private MajorCreditorEntity createMajorCreditorEntity() {

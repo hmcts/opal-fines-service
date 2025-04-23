@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 public record OffenceReferenceData(
     @JsonProperty("offence_id") Long offenceId,
-    @JsonProperty("get_cjs_code") String getCjsCode,
+    @JsonProperty("cjs_code") String cjsCode,
     @JsonProperty("business_unit_id") Short businessUnitId,
     @JsonProperty("offence_title") String offenceTitle,
     @JsonProperty("offence_title_cy") String offenceTitleCy,

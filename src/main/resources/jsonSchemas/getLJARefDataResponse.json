@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/getLJARefDataResponse.json",
+  "type": ["object", "null"],
+  "properties": {
+    "count": {
+      "type": ["integer", "null"],
+      "description": "The count of Local Justice Areas returned in this response"
+    },
+    "refData": {
+      "type": ["array", "null"],
+      "items": {
+        "$ref": "#/$defs/lja"
+      }
+    }
+  },
+  "$defs": {
+    "lja": {
+      "properties": {
+        "local_justice_area_id": {
+          "type": "integer",
+          "format": "int16",
+          "description": "Unique ID for the Local Justice Area"
+        },
+        "lja_code": {
+          "type": "string",
+          "description": "The code for the LJA"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the LJA"
+        },
+        "postcode": {
+          "type": "string",
+          "description": "The Postcode of the LJA"
+        },
+        "address_line_1": {
+          "type": "string",
+          "description": "The first line of the address of the LJA"
+        },
+        "required": [
+          "local_justice_area_id",
+          "name",
+          "address_line_1"
+        ]
+      }
+    }
+  }
+}
