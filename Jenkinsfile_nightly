@@ -4,6 +4,7 @@ properties([
   // H allow predefined but random minute see https://en.wikipedia.org/wiki/Cron#Non-standard_characters
   pipelineTriggers([cron('H 08 * * 1-5')])
 ])
+import uk.gov.hmcts.contino.GradleBuilder
 
 @Library("Infrastructure")
 
@@ -11,4 +12,41 @@ def type = "java"
 def product = "opal"
 def component = "fines-service"
 
-withNightlyPipeline(type, product, component) {}
+GradleBuilder builder = new GradleBuilder(this, product)
+
+withNightlyPipeline(type, product, component) {
+  env.TEST_URL = "https://opal-fines-service.staging.platform.hmcts.net"
+  enableFullFunctionalTest(600)
+
+  afterAlways('securitychecks') {
+    stage('Integration') {
+      try {
+        builder.gradle('integration')
+      } finally {
+        steps.junit '**/test-results/integration/*.xml'
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
+      }
+    }
+  }
+
+  afterAlways('fullFunctionalTest') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
+
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "functional-test-report/",
+      reportFiles          : "index.html",
+      reportName           : "Serenity Functional Test Report"
+    ]
+    publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "functional-test-report/htmlReport/",
+      reportFiles          : "test-summary.html",
+      reportName           : "Test Summary Report"
+    ]
+  }
+}
