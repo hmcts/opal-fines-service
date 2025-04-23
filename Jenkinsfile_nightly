@@ -15,7 +15,6 @@ def component = "fines-service"
 GradleBuilder builder = new GradleBuilder(this, product)
 
 withNightlyPipeline(type, product, component) {
-  enableFullFunctionalTest(600)
   env.TEST_URL = "https://opal-fines-service.staging.platform.hmcts.net"
 
   before('fullFunctionalTest') {
@@ -27,6 +26,8 @@ withNightlyPipeline(type, product, component) {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'      }
     }
   }
+
+  enableFullFunctionalTest(600)
 
   afterAlways('fullFunctionalTest') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
