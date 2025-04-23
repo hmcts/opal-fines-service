@@ -65,10 +65,10 @@ public class OffenceService implements OffenceServiceInterface {
                         .sortBy(codeSort)
                         .page(Pageable.unpaged()));
 
-        return page.getContent().stream().map(this::toRefData).toList();
+        return page.getContent().stream().map(OffenceService::toRefData).toList();
     }
 
-    private OffenceReferenceData toRefData(OffenceEntity entity) {
+    public static OffenceReferenceData toRefData(OffenceEntity entity) {
         return new OffenceReferenceData(
             entity.getOffenceId(),
             entity.getCjsCode(),

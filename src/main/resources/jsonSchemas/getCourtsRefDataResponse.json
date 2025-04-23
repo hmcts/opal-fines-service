@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/getCourtsRefDataResponse.json",
+  "type": ["object", "null"],
+  "properties": {
+    "count": {
+      "type": ["integer", "null"],
+      "description": "The count of Courts returned in this response"
+    },
+    "refData": {
+      "type": ["array", "null"],
+      "items": {
+        "$ref": "#/$defs/court"
+      }
+    }
+  },
+  "$defs": {
+    "court": {
+      "properties": {
+        "court_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Unique ID for the Court - System generated (BE)"
+        },
+        "business_unit_id": {
+          "type": "integer",
+          "format": "int16",
+          "description": "ID of the Business Unit the Draft Account belongs to"
+        },
+        "court_code": {
+          "type": "integer",
+          "format": "int16",
+          "description": "The Court Code"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the Court"
+        },
+        "name_cy": {
+          "type":  ["string", "null"],
+          "description": "The name of the Court (Welsh)"
+        },
+        "court_type": {
+          "type": "string",
+          "description": "The type of the Court"
+        },
+        "lja": {
+          "type": "integer",
+          "format": "int16",
+          "description": "The Local Justice Area that the court belongs to"
+        },
+        "division": {
+          "type": "string",
+          "description": "The division of the court"
+        },
+        "required": [
+          "court_id",
+          "business_unit_id",
+          "court_code",
+          "name",
+          "lja",
+          "court_type"
+        ]
+      }
+    }
+  }
+}
