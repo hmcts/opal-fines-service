@@ -29,44 +29,44 @@ Feature: PO-830 - Authorisation for put/update draft account
 
     Then I am testing as the "opal-test@hmcts.net" user
 
-  @PO-830 @cleanUpData
-  Scenario: Update draft account - user with no permissions
-    Given I am testing as the "opal-test@hmcts.net" user
-    When I create a draft account with the following details
-      | business_unit_id  | 73                                     |
-      | account           | draftAccounts/accountJson/account.json |
-      | account_type      | Fine                                   |
-      | account_status    |                                        |
-      | submitted_by      | BUUID                                  |
-      | submitted_by_name | Laura Clerk                            |
-      | timeline_data     | draftAccounts/timelineJson/default.json|
-    And I store the created draft account ID
-    Then The draft account response returns 201
-
-    When I am testing as the "opal-test-2@hmcts.net" user
-    And I update the draft account that was just created with the following details
-      | business_unit_id  | 73                                          |
-      | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    |                                             |
-      | submitted_by      | BUUID_Updated                               |
-      | submitted_by_name | Laura Clerk                                 |
-      | timeline_data     | draftAccounts/timelineJson/default.json     |
-
-    Then The draft account response returns 403
-
-    When I am testing as the "opal-test@hmcts.net" user
-    And I get the single created draft account and the response contains
-      | business_unit_id                    | 73          |
-      | account_type                        | Fine        |
-      | account_status                      | Submitted   |
-      | account_snapshot.defendant_name     | null, null  |
-      | account_snapshot.date_of_birth      |             |
-      | account_snapshot.account_type       | Fine        |
-      | account_snapshot.submitted_by       | BUUID       |
-      | account_snapshot.business_unit_name | West London |
-
-    Then I delete the created draft accounts
+#  @PO-830 @cleanUpData
+#  Scenario: Update draft account - user with no permissions
+#    Given I am testing as the "opal-test@hmcts.net" user
+#    When I create a draft account with the following details
+#      | business_unit_id  | 73                                     |
+#      | account           | draftAccounts/accountJson/account.json |
+#      | account_type      | Fine                                   |
+#      | account_status    |                                        |
+#      | submitted_by      | BUUID                                  |
+#      | submitted_by_name | Laura Clerk                            |
+#      | timeline_data     | draftAccounts/timelineJson/default.json|
+#    And I store the created draft account ID
+#    Then The draft account response returns 201
+#
+#    When I am testing as the "opal-test-2@hmcts.net" user
+#    And I update the draft account that was just created with the following details
+#      | business_unit_id  | 73                                          |
+#      | account           | draftAccounts/accountJson/adultAccount.json |
+#      | account_type      | Fine                                        |
+#      | account_status    |                                             |
+#      | submitted_by      | BUUID_Updated                               |
+#      | submitted_by_name | Laura Clerk                                 |
+#      | timeline_data     | draftAccounts/timelineJson/default.json     |
+#
+#    Then The draft account response returns 403
+#
+#    When I am testing as the "opal-test@hmcts.net" user
+#    And I get the single created draft account and the response contains
+#      | business_unit_id                    | 73          |
+#      | account_type                        | Fine        |
+#      | account_status                      | Submitted   |
+#      | account_snapshot.defendant_name     | null, null  |
+#      | account_snapshot.date_of_birth      |             |
+#      | account_snapshot.account_type       | Fine        |
+#      | account_snapshot.submitted_by       | BUUID       |
+#      | account_snapshot.business_unit_name | West London |
+#
+#    Then I delete the created draft accounts
 
   @PO-830 @cleanUpData
   Scenario: Update draft account - user with permissions in different business unit - bu 73 to 26

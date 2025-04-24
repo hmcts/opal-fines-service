@@ -1,7 +1,6 @@
 @Opal
 Feature: PO-749 put draft account error handling
 
-
   @PO-749 @cleanUpData
   Scenario: Put draft account - CEP1 - Invalid Request Payload
     Given I am testing as the "opal-test@hmcts.net" user

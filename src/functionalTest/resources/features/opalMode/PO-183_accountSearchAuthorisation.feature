@@ -1,5 +1,6 @@
 @PO-183 @Opal
 Feature: tests for authorisation on the defendant account search endpoint
+
 #  Scenario: authorised user can make the request
 #    Given I am testing as the "opal-test@hmcts.net" user
 #    When I make a call to the defendant search API using the parameters

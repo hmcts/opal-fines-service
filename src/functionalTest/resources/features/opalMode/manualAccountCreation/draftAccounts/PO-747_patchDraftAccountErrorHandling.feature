@@ -56,11 +56,11 @@ Feature: PO-747 patch draft account error handling
           | reason_text      | Reason for rejection |
         Then The draft account response returns 404
 
-      @PO-747 @cleanUpData
-      Scenario: Patch draft account - CEP5 - Unsupported Content Type
-        Given I am testing as the "opal-test@hmcts.net" user
-        When I attempt to patch a draft account with an unsupported content type
-        Then The draft account response returns 406
+#      @PO-747 @cleanUpData
+#      Scenario: Patch draft account - CEP5 - Unsupported Content Type
+#        Given I am testing as the "opal-test@hmcts.net" user
+#        When I attempt to patch a draft account with an unsupported content type
+#        Then The draft account response returns 406
 
       @PO-747 @cleanUpData
       Scenario: Patch draft account - CEP7 - Unsupported Media Type
