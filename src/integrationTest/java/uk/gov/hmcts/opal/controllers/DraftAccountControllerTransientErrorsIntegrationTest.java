@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import jakarta.persistence.QueryTimeoutException;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.OngoingStubbing;
 import org.postgresql.util.PSQLException;
