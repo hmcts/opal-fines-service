@@ -15,4 +15,4 @@
 **/
 
 ALTER TABLE courts 
-DROP CONSTRAINT crt_local_justice_area_id_fk;
+DROP CONSTRAINT IF EXISTS crt_local_justice_area_id_fk;
