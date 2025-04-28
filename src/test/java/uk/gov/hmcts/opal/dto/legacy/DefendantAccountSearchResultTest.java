@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchResult;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

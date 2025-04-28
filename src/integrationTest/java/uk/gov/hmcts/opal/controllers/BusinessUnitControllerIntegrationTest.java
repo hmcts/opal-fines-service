@@ -13,8 +13,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.ConfigurationItemLite;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitCore;
 import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
@@ -51,7 +52,7 @@ class BusinessUnitControllerIntegrationTest {
 
     @Test
     void testGetBusinessUnitById() throws Exception {
-        BusinessUnitEntity businessUnitEntity = createBusinessUnitEntity();
+        BusinessUnitCore businessUnitEntity = createBusinessUnitCore();
 
         when(businessUnitService.getBusinessUnit((short)1)).thenReturn(businessUnitEntity);
 
@@ -64,7 +65,7 @@ class BusinessUnitControllerIntegrationTest {
             .andExpect(jsonPath("$.businessUnitType").value("LARGE UNIT"))
             .andExpect(jsonPath("$.accountNumberPrefix").value("XX"))
             .andExpect(jsonPath("$.opalDomain").value("Fines"))
-            .andExpect(jsonPath("$.parentBusinessUnit.businessUnitId").value(99));
+            .andExpect(jsonPath("$.parentBusinessUnitId").value(99));
     }
 
 
@@ -78,7 +79,7 @@ class BusinessUnitControllerIntegrationTest {
 
     @Test
     void testPostBusinessUnitsSearch() throws Exception {
-        BusinessUnitEntity businessUnitEntity = createBusinessUnitEntity();
+        BusinessUnit.Lite businessUnitEntity = createBusinessUnitLite();
 
         when(businessUnitService.searchBusinessUnits(any(BusinessUnitSearchDto.class)))
             .thenReturn(singletonList(businessUnitEntity));
@@ -94,7 +95,7 @@ class BusinessUnitControllerIntegrationTest {
             .andExpect(jsonPath("$[0].businessUnitType").value("LARGE UNIT"))
             .andExpect(jsonPath("$[0].accountNumberPrefix").value("XX"))
             .andExpect(jsonPath("$[0].opalDomain").value("Fines"))
-            .andExpect(jsonPath("$[0].parentBusinessUnit.businessUnitId").value(99));
+            .andExpect(jsonPath("$[0].parentBusinessUnitId").value(99));
     }
 
     @Test
@@ -163,22 +164,54 @@ class BusinessUnitControllerIntegrationTest {
             .andExpect(jsonPath("$.count").value(0));
     }
 
-    private BusinessUnitEntity createBusinessUnitEntity() {
-        return BusinessUnitEntity.builder()
+    // private BusinessUnitEntity createBusinessUnitEntity() {
+    //     return BusinessUnitEntity.builder()
+    //         .businessUnitId((short)1)
+    //         .businessUnitName("Business Unit 001")
+    //         .businessUnitCode("AAAA")
+    //         .businessUnitType("LARGE UNIT")
+    //         .accountNumberPrefix("XX")
+    //         .parentBusinessUnit(BusinessUnitEntity.builder().businessUnitId((short)99).build())
+    //         .opalDomain("Fines")
+    //         .welshLanguage(null)
+    //         .configurationItems(List.of(
+    //             ConfigurationItemEntity.builder()
+    //                 .itemName("Config Item Name")
+    //                 .itemValue("Config Item Value")
+    //                 .itemValues(List.of("Config Item Values 1", "Config Item Values 2"))
+    //                 .build()))
+    //         .build();
+    // }
+
+    private BusinessUnitCore createBusinessUnitCore() {
+        return BusinessUnitCore.builder()
             .businessUnitId((short)1)
             .businessUnitName("Business Unit 001")
             .businessUnitCode("AAAA")
             .businessUnitType("LARGE UNIT")
             .accountNumberPrefix("XX")
-            .parentBusinessUnit(BusinessUnitEntity.builder().businessUnitId((short)99).build())
+            .parentBusinessUnitId((short)99)
             .opalDomain("Fines")
             .welshLanguage(null)
             .configurationItems(List.of(
-                ConfigurationItemEntity.builder()
+                ConfigurationItemLite.builder()
                     .itemName("Config Item Name")
                     .itemValue("Config Item Value")
                     .itemValues(List.of("Config Item Values 1", "Config Item Values 2"))
                     .build()))
+            .build();
+    }
+
+    private BusinessUnit.Lite createBusinessUnitLite() {
+        return BusinessUnit.Lite.builder()
+            .businessUnitId((short)1)
+            .businessUnitName("Business Unit 001")
+            .businessUnitCode("AAAA")
+            .businessUnitType("LARGE UNIT")
+            .accountNumberPrefix("XX")
+            .parentBusinessUnitId((short)99)
+            .opalDomain("Fines")
+            .welshLanguage(null)
             .build();
     }
 

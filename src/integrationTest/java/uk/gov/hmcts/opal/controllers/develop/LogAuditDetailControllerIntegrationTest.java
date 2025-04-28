@@ -10,9 +10,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.LogAuditDetailSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.LogActionEntity;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnit;
 import uk.gov.hmcts.opal.service.opal.LogAuditDetailService;
 
 import java.time.LocalDateTime;
@@ -101,7 +101,7 @@ class LogAuditDetailControllerIntegrationTest {
             .logTimestamp(LocalDateTime.now())
             .logAction(LogActionEntity.builder().logActionId((short)2).logActionName("ActionX").build())
             .accountNumber("1234ACC")
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)3).businessUnitName("BU3").build())
+            .businessUnit(BusinessUnit.Lite.builder().businessUnitId((short)3).businessUnitName("BU3").build())
             .jsonRequest("{\"request\":\"processAudit\"}")
             .build();
     }

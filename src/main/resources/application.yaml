@@ -74,9 +74,11 @@ spring:
     properties:
       hibernate:
         enable_lazy_load_no_trans: true
-        format_sql: false
+        # If 'spring.jpa.show-sql' above is 'true' or 'logging.level.org.hibernate.SQL' below is 'DEBUG',
+        # then this option formats the sql in the console or logs (respectively) for easier human parsing.
+        format_sql: true
         generate_statistics: false
-        log_slow_query: 4
+        log_slow_query: 9
         dialect: org.hibernate.dialect.PostgreSQLDialect
         connection:
           # Following setting is 'generally' suggested to be false, or a lot of work otherwise
@@ -172,6 +174,7 @@ opal:
 
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}
+  tech-spike: ${BE_DEV_TECH_SPIKE}
 
 printservice:
   maxRetries: 3
@@ -183,7 +186,8 @@ logging:
     org:
       hibernate:
         stat: INFO
-        SQL: INFO
+        SQL: DEBUG
+        SQL_SLOW: INFO
         type:
           descriptor:
             sql:

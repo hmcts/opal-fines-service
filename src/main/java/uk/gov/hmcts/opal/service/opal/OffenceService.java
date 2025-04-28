@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -9,12 +10,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.OffenceEntity;
-import uk.gov.hmcts.opal.entity.OffenceEntity_;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntityFull;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntity_;
 import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
 import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
+import uk.gov.hmcts.opal.repository.OffenceRepositoryFull;
 import uk.gov.hmcts.opal.repository.jpa.OffenceSpecs;
 import uk.gov.hmcts.opal.service.OffenceServiceInterface;
 
@@ -30,10 +32,20 @@ public class OffenceService implements OffenceServiceInterface {
 
     private final OffenceRepository offenceRepository;
 
+    private final OffenceRepositoryFull offenceRepositoryFull;
+
     private final OffenceSpecs specs = new OffenceSpecs();
 
-    public OffenceEntity getOffence(long offenceId) {
-        return offenceRepository.getReferenceById(offenceId);
+    public OffenceEntity getOffenceById(long offenceId) {
+        return offenceRepository.findById(offenceId)
+            .orElseThrow(() -> new EntityNotFoundException("Offence not found with id: "
+                                                               + offenceId));
+    }
+
+    public OffenceEntityFull getOffenceByIdFull(long offenceId) {
+        return offenceRepositoryFull.findById(offenceId)
+            .orElseThrow(() -> new EntityNotFoundException("Offence not found with id: "
+                                                               + offenceId));
     }
 
     @Cacheable(cacheNames = "offenceSearchDataCache", key = "#criteria")
@@ -41,12 +53,14 @@ public class OffenceService implements OffenceServiceInterface {
         Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceEntity_.CJS_CODE);
         int limit = Optional.ofNullable(criteria.getMaxResults()).orElse(NO_REQUESTED_LIMIT);
 
-        Page<OffenceEntity> page = offenceRepository
-            .findBy(specs.findBySearchCriteria(criteria),
-                    ffq -> ffq
-                        .sortBy(codeSort)
-                        .limit(limit)
-                        .page(Pageable.unpaged()));
+        Page<OffenceEntity.Lite> page = offenceRepository
+            .findBy(
+                specs.findBySearchCriteria(criteria),
+                ffq -> ffq
+                    .sortBy(codeSort)
+                    .limit(limit)
+                    .page(Pageable.unpaged())
+            );
 
         return page.getContent().stream().map(this::toSearchData).toList();
     }
@@ -59,11 +73,13 @@ public class OffenceService implements OffenceServiceInterface {
 
         Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceEntity_.CJS_CODE);
 
-        Page<OffenceEntity> page = offenceRepository
-            .findBy(specs.referenceDataFilter(filter, businessUnitId),
-                    ffq -> ffq
-                        .sortBy(codeSort)
-                        .page(Pageable.unpaged()));
+        Page<OffenceEntity.Lite> page = offenceRepository
+            .findBy(
+                specs.referenceDataFilter(filter, businessUnitId),
+                ffq -> ffq
+                    .sortBy(codeSort)
+                    .page(Pageable.unpaged())
+            );
 
         return page.getContent().stream().map(this::toRefData).toList();
     }
@@ -72,7 +88,7 @@ public class OffenceService implements OffenceServiceInterface {
         return new OffenceReferenceData(
             entity.getOffenceId(),
             entity.getCjsCode(),
-            Optional.ofNullable(entity.getBusinessUnit()).map(BusinessUnitEntity::getBusinessUnitId).orElse(null),
+            Optional.ofNullable(entity.getBusinessUnitId()).orElse(null),
             entity.getOffenceTitle(),
             entity.getOffenceTitleCy(),
             entity.getDateUsedFrom(),
