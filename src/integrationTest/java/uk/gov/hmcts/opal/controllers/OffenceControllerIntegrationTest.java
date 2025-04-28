@@ -99,6 +99,35 @@ class OffenceControllerIntegrationTest {
             .andExpect(status().isOk());
     }
 
+    @Test
+    void testGetOffencesWithCjsCode() throws Exception {
+        OffenceReferenceData offenceReferenceData = new OffenceReferenceData(
+            1L,                        // offenceId
+            "CJS123",                  // cjsCode
+            (short) 1,                 // businessUnitId
+            "Test Offence Title",       // offenceTitle
+            null,                      // offenceTitleCy
+            LocalDateTime.now(),        // dateUsedFrom
+            null,                      // dateUsedTo
+            "Test Description",         // offenceOasDescription
+            ""                          // offenceOasDescriptionCy
+        );
+
+        when(offenceService.getReferenceData(
+            any(), any(), any()
+        )).thenReturn(singletonList(offenceReferenceData));
+
+        mockMvc.perform(get(URL_BASE)
+                .param("cjs_code", "CJS123"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.refData[0].get_cjs_code").value("CJS123"))
+            .andExpect(jsonPath("$.refData[0].offence_title").value("Test Offence Title"))
+            .andExpect(jsonPath("$.refData[0].offence_oas").value("Test Description"));
+
+        }
+
+
     private OffenceEntity createOffenceEntity() {
         return OffenceEntity.builder()
             .offenceId(1L)
