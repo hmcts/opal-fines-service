@@ -15,6 +15,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -36,9 +37,8 @@ import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
 import java.net.ConnectException;
+import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -50,330 +50,422 @@ import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
 
-    public static final String ERROR = "error";
-
-    public static final String MESSAGE = "message";
-
     public static final String DB_UNAVAILABLE_MESSAGE = "Opal Fines Database is currently unavailable";
-
 
     private final AccessTokenService tokenService;
 
     @ExceptionHandler(FeatureDisabledException.class)
-    public ResponseEntity<String> handleFeatureDisabledException(FeatureDisabledException ex) {
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-            .contentType(MediaType.APPLICATION_JSON).body(ex.getMessage());
+    public ResponseEntity<ProblemDetail> handleFeatureDisabledException(FeatureDisabledException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.METHOD_NOT_ALLOWED,
+            "Feature Disabled",
+            ex.getMessage(),
+            "feature-disabled"
+        );
+        return responseWithProblemDetail(HttpStatus.METHOD_NOT_ALLOWED, problemDetail);
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<String> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .contentType(MediaType.APPLICATION_JSON).body(ex.getMessage());
+    public ResponseEntity<ProblemDetail> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.BAD_REQUEST,
+            "Missing Required Header",
+            ex.getMessage(),
+            "missing-header"
+        );
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
     @ExceptionHandler({PermissionNotAllowedException.class, AccessDeniedException.class})
-    public ResponseEntity<String> handlePermissionNotAllowedException(Exception ex,
-                                                                      HttpServletRequest request) {
+    public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(Exception ex,
+                                                                             HttpServletRequest request) {
         String authorization = request.getHeader(AUTH_HEADER);
         String preferredName = extractPreferredUsername(authorization, tokenService);
-        String message = String.format("{\"error\": \"Forbidden\", \"message\" : \"For user %s, %s\"}", preferredName,
-                                       ex.getMessage());
-        log.error(":handlePermissionNotAllowedException: {}", message);
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).contentType(MediaType.APPLICATION_JSON).body(message);
+        String detailMessage = String.format("For user %s, %s", preferredName, ex.getMessage());
+
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.FORBIDDEN,
+            "Forbidden",
+            detailMessage,
+            "forbidden"
+        );
+
+        log.error(":handlePermissionNotAllowedException: {}", detailMessage);
+        return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
     }
 
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
-    public ResponseEntity<Map<String, String>> handleHttpMediaTypeNotAcceptableException(
+    public ResponseEntity<ProblemDetail> handleHttpMediaTypeNotAcceptableException(
         HttpMediaTypeNotAcceptableException ex) {
 
         log.error(":handleHttpMediaTypeNotAcceptableException: {}", ex.getMessage());
         log.error(":handleHttpMediaTypeNotAcceptableException:", ex.getBody().getDetail());
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Not Acceptable");
-        body.put(MESSAGE, ex.getMessage() + ", " + ex.getBody().getDetail());
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.NOT_ACCEPTABLE,
+            "Not Acceptable",
+            ex.getMessage() + ", " + ex.getBody().getDetail(),
+            "not-acceptable"
+        );
 
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).contentType(MediaType.APPLICATION_JSON).body(body);
+        return responseWithProblemDetail(HttpStatus.NOT_ACCEPTABLE, problemDetail);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<Map<String, String>> handleMethodArgumentTypeMismatchException(
+    public ResponseEntity<ProblemDetail> handleMethodArgumentTypeMismatchException(
         MethodArgumentTypeMismatchException ex) {
 
         log.error(":handleMethodArgumentTypeMismatchException: {}", ex.getMessage());
         log.error(":handleMethodArgumentTypeMismatchException:", ex);
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Not Acceptable");
-        body.put(MESSAGE, ex.getMessage());
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.NOT_ACCEPTABLE,
+            "Not Acceptable",
+            ex.getMessage(),
+            "type-mismatch"
+        );
 
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).contentType(MediaType.APPLICATION_JSON).body(body);
+        return responseWithProblemDetail(HttpStatus.NOT_ACCEPTABLE, problemDetail);
     }
 
-    @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handlePropertyValueException(PropertyValueException pve) {
+    @ExceptionHandler(PropertyValueException.class)
+    public ResponseEntity<ProblemDetail> handlePropertyValueException(PropertyValueException pve) {
         log.error(":handlePropertyValueException: {}", pve.getMessage());
         log.error(":handlePropertyValueException:", pve);
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, pve.getMessage());
-        body.put("entity", pve.getEntityName());
-        body.put("property", pve.getPropertyName());
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .contentType(MediaType.APPLICATION_JSON).body(body);
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Property Value Error",
+            pve.getMessage(),
+            "property-value-error"
+        );
+
+        // Add additional properties to the problem detail
+        problemDetail.setProperty("entity", pve.getEntityName());
+        problemDetail.setProperty("property", pve.getPropertyName());
+
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
-    public ResponseEntity<Map<String, String>> handleHttpMediaTypeNotSupportedException(
+    public ResponseEntity<ProblemDetail> handleHttpMediaTypeNotSupportedException(
         HttpMediaTypeNotSupportedException ex) {
 
         log.error(":handleHttpMediaTypeNotSupportedException: {}", ex.getMessage());
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Unsupported Media Type");
-        body.put(MESSAGE, "The Content-Type is not supported. Please use application/json");
 
-        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-            .contentType(MediaType.APPLICATION_JSON).body(body);
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+            "Unsupported Media Type",
+            "The Content-Type is not supported. Please use application/json",
+            "unsupported-media-type"
+        );
+
+        return responseWithProblemDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE, problemDetail);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, String>> handleHttpMessageNotReadableException(
+    public ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(
         HttpMessageNotReadableException ex) {
 
         log.error(":handleHttpMessageNotReadableException: {}", ex.getMessage());
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Bad Request");
-        body.put(MESSAGE, "The request body could not be read. It may be missing or invalid JSON.");
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .contentType(MediaType.APPLICATION_JSON).body(body);
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.BAD_REQUEST,
+            "Bad Request",
+            "The request body could not be read. It may be missing or invalid JSON.",
+            "message-not-readable"
+        );
+
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
-    @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleInvalidDataAccessApiUsageException(
+    @ExceptionHandler(InvalidDataAccessApiUsageException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidDataAccessApiUsageException(
         InvalidDataAccessApiUsageException idaaue) {
 
         log.error(":handleInvalidDataAccessApiUsageException: {}", idaaue.getMessage());
         log.error(":handleInvalidDataAccessApiUsageException:", idaaue);
 
-        Map<String, String> body = new LinkedHashMap<>();
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Internal Server Error",
+            idaaue.getMessage(),
+            "invalid-data-access"
+        );
 
-        body.put(ERROR, idaaue.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .contentType(MediaType.APPLICATION_JSON).body(body);
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
-    @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleInvalidDataAccessResourceUsageException(
+    @ExceptionHandler(InvalidDataAccessResourceUsageException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidDataAccessResourceUsageException(
         InvalidDataAccessResourceUsageException idarue) {
 
         log.error(":handleInvalidDataAccessApiUsageException: {}", idarue.getMessage());
         log.error(":handleInvalidDataAccessApiUsageException:", idarue.getRootCause());
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, idarue.getMessage());
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Internal Server Error",
+            idarue.getMessage(),
+            "invalid-resource-usage"
+        );
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .contentType(MediaType.APPLICATION_JSON).body(body);
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleEntityNotFoundException(
+    public ResponseEntity<ProblemDetail> handleEntityNotFoundException(
         EntityNotFoundException entityNotFoundException) {
 
         log.warn(":handleEntityNotFoundException: {}", entityNotFoundException.getMessage());
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Entity Not Found");
-        body.put(MESSAGE, entityNotFoundException.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(body);
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.NOT_FOUND,
+            "Entity Not Found",
+            entityNotFoundException.getMessage(),
+            "entity-not-found"
+        );
+
+        return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
     }
 
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<Map<String, String>> handleNoSuchElementException(
+    public ResponseEntity<ProblemDetail> handleNoSuchElementException(
         NoSuchElementException noSuchElementException) {
 
         log.warn(":handleNoSuchElementException: {}", noSuchElementException.getMessage());
         log.warn(":handleNoSuchElementException:", getNonNullCause(noSuchElementException));
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "No value present");
-        body.put(MESSAGE, noSuchElementException.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(body);
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.NOT_FOUND,
+            "No Value Present",
+            noSuchElementException.getMessage(),
+            "no-such-element"
+        );
+
+        return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
     }
 
     @ExceptionHandler(OpalApiException.class)
-    public ResponseEntity<Map<String, String>> handleOpalApiException(
+    public ResponseEntity<ProblemDetail> handleOpalApiException(
         OpalApiException opalApiException) {
 
         log.error(":handleOpalApiException: {}", opalApiException.getMessage());
         log.error(":handleOpalApiException:", getNonNullCause(opalApiException));
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, opalApiException.getError().getHttpStatus().getReasonPhrase());
-        body.put(MESSAGE, opalApiException.getMessage());
-        return ResponseEntity.status(opalApiException.getError().getHttpStatus())
-            .contentType(MediaType.APPLICATION_JSON).body(body);
+        HttpStatus status = opalApiException.getError().getHttpStatus();
+
+        ProblemDetail problemDetail = createProblemDetail(
+            status,
+            status.getReasonPhrase(),
+            opalApiException.getMessage(),
+            "opal-api-error"
+        );
+
+        return responseWithProblemDetail(status, problemDetail);
     }
 
     @ExceptionHandler({ServletException.class, TransactionSystemException.class, PersistenceException.class})
-    public ResponseEntity<Map<String, String>> handleServletExceptions(Exception ex) {
+    public ResponseEntity<ProblemDetail> handleServletExceptions(Exception ex) {
 
         if (ex instanceof QueryTimeoutException) {
             log.error(":handleQueryTimeoutException: {}", ex.getMessage());
 
-            Map<String, String> body = new LinkedHashMap<>();
-            body.put(ERROR, "Request Timeout");
-            body.put(MESSAGE, "The request did not receive a response from the database within the timeout period");
-            return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).contentType(MediaType.APPLICATION_JSON).body(body);
+            ProblemDetail problemDetail = createProblemDetail(
+                HttpStatus.REQUEST_TIMEOUT,
+                "Request Timeout",
+                "The request did not receive a response from the database within the timeout period",
+                "query-timeout"
+            );
+
+            return responseWithProblemDetail(HttpStatus.REQUEST_TIMEOUT, problemDetail);
         }
 
-        if (ex instanceof NoResourceFoundException) {
-            log.error(":handleNoResourceFoundException: {}", ((NoResourceFoundException) ex).getBody().getDetail());
+        if (ex instanceof NoResourceFoundException nrfe) {
+            log.error(":handleNoResourceFoundException: {}", nrfe.getBody().getDetail());
 
-            Map<String, String> body = new LinkedHashMap<>();
-            body.put(ERROR, "Not Found");
-            body.put(MESSAGE, ((NoResourceFoundException) ex).getBody().getDetail());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(body);
+            ProblemDetail problemDetail = createProblemDetail(
+                HttpStatus.NOT_FOUND,
+                "Not Found",
+                nrfe.getBody().getDetail(),
+                "resource-not-found"
+            );
+
+            return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
         }
 
-        log.error(":handleServletExceptions: {}: {}",  ex.getClass(), ex.getMessage());
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Internal Server Error");
-        body.put(MESSAGE, "An unexpected error occurred. " + ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .contentType(MediaType.APPLICATION_JSON).body(body);
+        log.error(":handleServletExceptions: {}: {}", ex.getClass(), ex.getMessage());
+
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Internal Server Error",
+            "An unexpected error occurred. " + ex.getMessage(),
+            "servlet-error"
+        );
+
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
-    @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handlePsqlException(
-        PSQLException psqlException) {
+    @ExceptionHandler(PSQLException.class)
+    public ResponseEntity<ProblemDetail> handlePsqlException(PSQLException psqlException) {
 
         log.error(":handlePSQLException: {}", psqlException.getMessage());
         log.error(":handlePSQLException: ", getNonNullCause(psqlException));
 
-        if (psqlException.getCause() instanceof ConnectException || psqlException.getCause()
-            instanceof UnknownHostException) {
-            Map<String, String> body = new LinkedHashMap<>();
-            body.put(ERROR, "Service Unavailable");
-            body.put(MESSAGE, DB_UNAVAILABLE_MESSAGE);
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .contentType(MediaType.APPLICATION_JSON).body(body);
+        if (psqlException.getCause() instanceof ConnectException ||
+            psqlException.getCause() instanceof UnknownHostException) {
+
+            ProblemDetail problemDetail = createProblemDetail(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Service Unavailable",
+                DB_UNAVAILABLE_MESSAGE,
+                "database-unavailable"
+            );
+
+            return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
         }
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Internal Server Error");
-        body.put(MESSAGE, psqlException.getMessage());
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Internal Server Error",
+            psqlException.getMessage(),
+            "database-error"
+        );
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .contentType(MediaType.APPLICATION_JSON).body(body);
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
-    @ExceptionHandler
-    public ResponseEntity<Map<String, String>> handleDataAccessResourceFailureException(
+    @ExceptionHandler(DataAccessResourceFailureException.class)
+    public ResponseEntity<ProblemDetail> handleDataAccessResourceFailureException(
         DataAccessResourceFailureException dataAccessResourceFailureException) {
 
         log.error(":handleDataAccessResourceFailureException: {}", dataAccessResourceFailureException.getMessage());
-        log.error(":handleDataAccessResourceFailureException: ", getNonNullCause(dataAccessResourceFailureException));
+        log.error(":handleDataAccessResourceFailureException: ",
+                  getNonNullCause(dataAccessResourceFailureException));
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Service Unavailable");
-        body.put(MESSAGE, DB_UNAVAILABLE_MESSAGE);
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).contentType(MediaType.APPLICATION_JSON).body(body);
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "Service Unavailable",
+            DB_UNAVAILABLE_MESSAGE,
+            "database-unavailable"
+        );
+
+        return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
     }
 
     @ExceptionHandler(LazyInitializationException.class)
-    public ResponseEntity<Map<String, String>> handleLazyInitializationException(
+    public ResponseEntity<ProblemDetail> handleLazyInitializationException(
         LazyInitializationException lazyInitializationException) {
 
         log.error(":handleLazyInitializationException: {}", lazyInitializationException.getMessage());
         log.error(":handleLazyInitializationException: ", getNonNullCause(lazyInitializationException));
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Internal Server Error");
-        body.put(MESSAGE, "Lazy Entity Initialisation Exception. Expired DB Session?");
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(body);
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Internal Server Error",
+            "Lazy Entity Initialisation Exception. Expired DB Session?",
+            "lazy-initialization"
+        );
+
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(JpaSystemException.class)
-    public ResponseEntity<Map<String, String>> handleJpaSystemException(JpaSystemException jpaSystemException) {
+    public ResponseEntity<ProblemDetail> handleJpaSystemException(JpaSystemException jpaSystemException) {
 
         log.error(":handleJpaSystemException: {}", jpaSystemException.getMessage());
         log.error(":handleJpaSystemException: ", getNonNullCause(jpaSystemException));
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Internal Server Error");
-        body.put(MESSAGE, "Unknown Entity Persistence Error. Expired DB Session?");
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(body);
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Internal Server Error",
+            "Unknown Entity Persistence Error. Expired DB Session?",
+            "jpa-system-error"
+        );
+
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(JsonSchemaValidationException.class)
-    public ResponseEntity<Map<String, String>> handleJsonSchemaValidationException(JsonSchemaValidationException e) {
+    public ResponseEntity<ProblemDetail> handleJsonSchemaValidationException(JsonSchemaValidationException e) {
         log.error(":handleJsonSchemaValidationException: {}", e.getMessage());
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Bad Request");
-        body.put(MESSAGE, "JSON Schema Validation Error: " + e.getMessage());
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.BAD_REQUEST,
+            "Bad Request",
+            "JSON Schema Validation Error: " + e.getMessage(),
+            "json-schema-validation"
+        );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(body);
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException e) {
+    public ResponseEntity<ProblemDetail> handleIllegalArgumentException(IllegalArgumentException e) {
         log.error(":handleIllegalArgumentException: {}", e.getMessage());
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Bad Request");
-        body.put(MESSAGE, e.getMessage());
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.BAD_REQUEST,
+            "Bad Request",
+            e.getMessage(),
+            "illegal-argument"
+        );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(body);
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-    public ResponseEntity<Map<String, String>> handleObjectOptimisticLockingFailureException(
+    public ResponseEntity<ProblemDetail> handleObjectOptimisticLockingFailureException(
         ObjectOptimisticLockingFailureException e) {
+
         log.warn(":handleObjectOptimisticLockingFailureException: {}", e.getMessage());
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Conflict");
-        body.put("resourceType", e.getPersistentClassName());
-        body.put("resourceId", Optional.ofNullable(e.getIdentifier()).map(Object::toString).orElse(""));
-        body.put("conflictReason", e.getMessage());
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.CONFLICT,
+            "Conflict",
+            e.getMessage(),
+            "optimistic-locking"
+        );
 
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(body);
+        problemDetail.setProperty("resourceType", e.getPersistentClassName());
+        problemDetail.setProperty("resourceId",
+                                  Optional.ofNullable(e.getIdentifier()).map(Object::toString).orElse(""));
 
+        return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail);
     }
 
     @ExceptionHandler(ResourceConflictException.class)
-    public ResponseEntity<Map<String, String>> handleResourceConflictException(ResourceConflictException e) {
+    public ResponseEntity<ProblemDetail> handleResourceConflictException(ResourceConflictException e) {
         log.error(":handleResourceConflictException: {}", e.getMessage());
         log.error(":handleResourceConflictException: {}", getNonNullCause(e));
 
-        Map<String, String> body = new LinkedHashMap<>();
-        body.put(ERROR, "Conflict");
-        body.put("resourceType", e.getResourceType());
-        body.put("resourceId", e.getResourceId());
-        body.put("conflictReason", e.getConflictReason());
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.CONFLICT,
+            "Conflict",
+            e.getConflictReason(),
+            "resource-conflict"
+        );
 
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(body);
+        problemDetail.setProperty("resourceType", e.getResourceType());
+        problemDetail.setProperty("resourceId", e.getResourceId());
 
+        return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail);
     }
 
     private Throwable getNonNullCause(Throwable t) {
         return t.getCause() == null ? t : t.getCause();
     }
 
+    private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail, String typeUri) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
+        problemDetail.setTitle(title);
+        problemDetail.setType(URI.create("https://hmcts.gov.uk/problems/" + typeUri));
+        return problemDetail;
+    }
 
+    private ResponseEntity<ProblemDetail> responseWithProblemDetail(HttpStatus status, ProblemDetail problemDetail) {
+        return ResponseEntity.status(status)
+            .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+            .body(problemDetail);
+    }
 }
