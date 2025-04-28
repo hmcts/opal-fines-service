@@ -508,11 +508,11 @@
                     "description": "Indicator if payout is on hold"
                 },
                 "pay_by_bacs": {
-                    "type": "boolean",
+                    "type": ["boolean", "null"],
                     "description": "Indicator if payment is by BACS"
                 },
                 "bank_account_type": {
-                    "type": ["string", "null"],
+                    "type": ["integer", "string", "null"],
                     "description": "Type of bank account"
                 },
                 "bank_sort_code": {
