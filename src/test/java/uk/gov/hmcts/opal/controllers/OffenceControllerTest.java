@@ -76,20 +76,21 @@ class OffenceControllerTest {
         OffenceReferenceData entity = createOffenceReferenceData();
         List<OffenceReferenceData> offenceList = List.of(entity);
 
-        when(offenceService.getReferenceData(any(), any())).thenReturn(offenceList);
+        when(offenceService.getReferenceData(any(),any(),any())).thenReturn(offenceList);
 
         // Act
         Optional<String> filter = Optional.empty();
         Optional<Short> businessUnit = Optional.empty();
-        ResponseEntity<OffenceReferenceDataResults> response = offenceController.getOffenceRefData(filter,
-                                                                                                   businessUnit);
+        Optional<List<String>> cjsCode = Optional.empty();
+        ResponseEntity<OffenceReferenceDataResults> response =
+            offenceController.getOffenceRefData(filter, businessUnit,cjsCode);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         OffenceReferenceDataResults refDataResults = response.getBody();
         assertEquals(1, refDataResults.getCount());
         assertEquals(offenceList, refDataResults.getRefData());
-        verify(offenceService, times(1)).getReferenceData(any(), any());
+        verify(offenceService, times(1)).getReferenceData(any(),any(), any());
     }
 
     private OffenceReferenceData createOffenceReferenceData() {

@@ -70,11 +70,13 @@ public class OffenceController {
         + "If the business unit is provided, then that is used to return only 'local' offences "
         + "for that business unit, or ALL local offences if the business unit provided is zero.")
     public ResponseEntity<OffenceReferenceDataResults> getOffenceRefData(
-        @RequestParam("q") Optional<String> filter, @RequestParam("business_unit_id") Optional<Short> businessUnit) {
+        @RequestParam("q") Optional<String> filter,
+        @RequestParam("business_unit_id") Optional<Short> businessUnit,
+        @RequestParam(value = "cjs_code") Optional<List<String>> optionalCjsCode) {
 
         log.debug(":GET:getOffenceRefData: business unit: {}, filter string: {}", businessUnit, filter);
 
-        List<OffenceReferenceData> refData = opalOffenceService.getReferenceData(filter, businessUnit);
+        List<OffenceReferenceData> refData = opalOffenceService.getReferenceData(filter, businessUnit, optionalCjsCode);
 
         log.debug(":GET:getOffenceRefData: offences reference data count: {}", refData.size());
         return ResponseEntity.ok(OffenceReferenceDataResults.builder().refData(refData).build());
