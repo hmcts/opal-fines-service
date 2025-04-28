@@ -98,7 +98,8 @@ class OffenceServiceTest {
         });
 
         // Act
-        List<OffenceReferenceData> result = offenceService.getReferenceData(Optional.empty(), Optional.empty());
+        List<OffenceReferenceData> result = offenceService.getReferenceData(Optional.empty(),
+            Optional.empty(), Optional.empty());
 
         OffenceReferenceData refData =
             new OffenceReferenceData(1L, "NINE", null, "Theft from a Palace",
