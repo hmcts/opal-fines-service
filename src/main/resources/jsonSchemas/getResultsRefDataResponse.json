@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/getResultsRefDataResponse.json",
+  "type": ["object", "null"],
+  "properties": {
+    "count": {
+      "type": ["integer", "null"],
+      "description": "The count of Results returned in this response"
+    },
+    "refData": {
+      "type": ["array", "null"],
+      "items": {
+        "$ref": "#/$defs/result"
+      }
+    }
+  },
+  "$defs": {
+    "result": {
+      "properties": {
+        "result_id": {
+          "type": "string",
+          "description": "Unique ID for the Result - System generated (BE)"
+        },
+        "result_title": {
+          "type": "string",
+          "description": "The title of the Result"
+        },
+        "result_title_cy": {
+          "type": "string",
+          "description": "The title of the Result (Welsh)"
+        },
+        "result_type": {
+          "type": "string",
+          "description": "The type of the Result"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the Result is active or not"
+        },
+        "imposition_allocation_order": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The imposition allocation order number"
+        },
+        "imposition_creditor": {
+          "type": "string",
+          "description": "The creditor of the imposition"
+        },
+        "required": [
+          "result_id",
+          "result_title",
+          "result_title_cy",
+          "result_type",
+          "active"
+        ]
+      }
+    }
+  }
+}
