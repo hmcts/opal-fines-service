@@ -111,7 +111,8 @@ class GlobalExceptionHandlerTest {
         HttpServletRequest request = new MockHttpServletRequest();
 
         // Act
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handlePermissionNotAllowedException(ex, request);
+        ResponseEntity<ProblemDetail> response =
+            globalExceptionHandler.handlePermissionNotAllowedException(ex, request);
 
         // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -124,6 +125,7 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
     }
+
     @Test
     void testHandleHttpMediaTypeNotAcceptableException() {
         HttpMediaTypeNotAcceptableException exception = new HttpMediaTypeNotAcceptableException("Not acceptable");
@@ -227,7 +229,8 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), problemDetail.getStatus());
         assertEquals("Bad Request", problemDetail.getTitle());
-        assertEquals("The request body could not be read. It may be missing or invalid JSON.", problemDetail.getDetail());
+        assertEquals("The request body could not be read. It may be missing or invalid JSON.",
+                     problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/message-not-readable"), problemDetail.getType());
 
         assertTrue(response.getHeaders().getContentType().toString()

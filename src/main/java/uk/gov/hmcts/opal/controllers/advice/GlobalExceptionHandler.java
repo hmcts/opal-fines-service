@@ -312,8 +312,8 @@ public class GlobalExceptionHandler {
         log.error(":handlePSQLException: {}", psqlException.getMessage());
         log.error(":handlePSQLException: ", getNonNullCause(psqlException));
 
-        if (psqlException.getCause() instanceof ConnectException ||
-            psqlException.getCause() instanceof UnknownHostException) {
+        if (psqlException.getCause() instanceof ConnectException
+            || psqlException.getCause() instanceof UnknownHostException) {
 
             ProblemDetail problemDetail = createProblemDetail(
                 HttpStatus.SERVICE_UNAVAILABLE,
