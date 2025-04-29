@@ -41,6 +41,7 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 import static uk.gov.hmcts.opal.authentication.service.AccessTokenService.AUTH_HEADER;
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
@@ -457,9 +458,15 @@ public class GlobalExceptionHandler {
     }
 
     private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail, String typeUri) {
+        String errorId = UUID.randomUUID().toString();
+
+        log.error("Error ID {}: {} - {}", errorId, title, detail);
+
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
         problemDetail.setTitle(title);
         problemDetail.setType(URI.create("https://hmcts.gov.uk/problems/" + typeUri));
+        problemDetail.setInstance(URI.create("https://hmcts.gov.uk/problems/instance/" + errorId));
+
         return problemDetail;
     }
 
