@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -7,21 +8,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
 
 import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -34,10 +40,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest
 @ContextConfiguration(classes = BusinessUnitController.class)
 @ActiveProfiles({"integration"})
+@Slf4j(topic = "opal.BusinessUnitControllerIntegrationTest")
 @DisplayName("Business Unit Controller Integration Tests")
 class BusinessUnitControllerIntegrationTest {
 
     private static final String URL_BASE = "/business-units";
+    private static final String GET_BUNITS_REF_DATA_RESPONSE = "getBusinessUnitsRefDataResponse.json";
 
     @Autowired
     MockMvc mockMvc;
@@ -48,6 +56,9 @@ class BusinessUnitControllerIntegrationTest {
 
     @MockBean
     UserStateService userStateService;
+
+    @SpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
     void testGetBusinessUnitById() throws Exception {
@@ -107,14 +118,18 @@ class BusinessUnitControllerIntegrationTest {
 
     @Test
     @DisplayName("Get Business Unit Ref Data [@PO-304, @PO-313]")
-    void testGetBusinessUnitRefData() throws Exception {
+    void testGetBusinessUnitsRefData() throws Exception {
         BusinessUnitReferenceData refData = createBusinessUnitRefData();
 
         when(businessUnitService.getReferenceData(any())).thenReturn(singletonList(refData));
 
-        mockMvc.perform(get(URL_BASE)
-                            .header("authorization", "Bearer some_value"))
-            .andExpect(status().isOk())
+        ResultActions actions =  mockMvc.perform(get(URL_BASE)
+                                                     .header("authorization", "Bearer some_value"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetBusinessUnitRefData: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.refData[0].business_unit_id").value(1))
@@ -123,6 +138,8 @@ class BusinessUnitControllerIntegrationTest {
             .andExpect(jsonPath("$.refData[0].business_unit_type").value("LARGE UNIT"))
             .andExpect(jsonPath("$.refData[0].account_number_prefix").value("XX"))
             .andExpect(jsonPath("$.refData[0].opal_domain").value("Fines"));
+
+        assertTrue(jsonSchemaValidationService.isValid(body, GET_BUNITS_REF_DATA_RESPONSE));
     }
 
     @Test

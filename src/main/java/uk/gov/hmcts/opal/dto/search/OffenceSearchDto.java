@@ -23,7 +23,7 @@ public class OffenceSearchDto implements ToJsonString {
     @JsonProperty("title")
     private String title;
 
-    @JsonProperty("act_section")
+    @JsonProperty("act_and_section")
     private String actSection;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
