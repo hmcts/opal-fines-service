@@ -3,17 +3,21 @@ package uk.gov.hmcts.opal.controllers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.OffenceEntity;
 import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
 import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import java.time.LocalDateTime;
 
+import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -22,10 +26,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @Slf4j(topic = "opal.OffenceControllerIntegrationTest")
-class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 @DisplayName("OffenceController Integration Test")
-class OffenceControllerIntegrationTest {
 
+class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
+    @SpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
+    private static final String GET_OFFENCES_REF_DATA_RESPONSE = "getOffencesRefDataResponse.json";
+    private static final String POST_OFFENCES_SEARCH_RESPONSE = "postOffencesSearchResponse.json";
     private static final String URL_BASE = "/offences";
 
 
@@ -46,22 +53,16 @@ class OffenceControllerIntegrationTest {
     @DisplayName("Get offence reference data")
     void testGetOffenceReferenceData() throws Exception {
         OffenceEntity offenceEntity = createOffenceEntity();
-
-        OffenceReferenceData refData = OffenceService.toRefData(offenceEntity);
-        when(offenceService.getReferenceData(any(), any())).thenReturn(List.of(refData));
-
-        ResultActions actions = mockMvc.perform(get(URL_BASE));
-
+        ResultActions actions = mockMvc.perform(get(URL_BASE).param("cjs_code","CW96023"));
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetOffenceReferenceData: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.refData[0].offence_id").value(1))
-            .andExpect(jsonPath("$.refData[0].cjs_code").value("cjs-code"))
-            .andExpect(jsonPath("$.refData[0].offence_title").value("Title of Offence"))
-            .andExpect(jsonPath("$.refData[0].offence_title_cy").value("Title of Offence CY"));
+            .andExpect(jsonPath("$.refData[0].offence_id").value(53115))
+            .andExpect(jsonPath("$.refData[0].cjs_code").value("CW96023"))
+            .andExpect(jsonPath("$.refData[0].offence_title").value("Use a chemical weapon"));
 
         assertTrue(jsonSchemaValidationService.isValid(body, GET_OFFENCES_REF_DATA_RESPONSE));
     }
@@ -93,6 +94,8 @@ class OffenceControllerIntegrationTest {
 
         String body = result.getResponse().getContentAsString();
         log.info(":testPostOffencesSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
+        assertTrue(jsonSchemaValidationService.isValid(body, POST_OFFENCES_SEARCH_RESPONSE));
+
     }
 
     @Test

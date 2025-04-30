@@ -23,7 +23,7 @@
           "description": "Unique ID for the Offence - System generated (BE)"
         },
         "business_unit_id": {
-          "type": "integer",
+          "type": ["integer", "null"],
           "format": "int16",
           "description": "ID of the Business Unit the Draft Account belongs to"
         },
@@ -36,7 +36,7 @@
           "description": "The title of the Offence"
         },
         "offence_title_cy": {
-          "type": "string",
+          "type": ["string","null"],
           "description": "The title of the Offence (Welsh)"
         },
         "date_used_from": {
@@ -45,7 +45,7 @@
           "description": "Date the Offence is valid from, inclusive"
         },
         "date_used_to": {
-          "type": "string",
+          "type": ["string","null"],
           "format": "date-time",
           "description": "Date the Offence is valid up until, inclusive"
         },
@@ -54,16 +54,14 @@
           "description": "The Offence Act and Section for the offence"
         },
         "offence_oas_cy": {
-          "type": "string",
+          "type": ["string","null"],
           "description": "The Offence Act and Section for the offence (Welsh)"
         },
         "required": [
           "offence_id",
           "cjs_code",
-          "business_unit_id",
           "offence_title",
           "date_used_from",
-          "date_used_to",
           "offence_oas"
         ]
       }
