@@ -100,7 +100,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                                           .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(5))
+            .andExpect(jsonPath("$.count").value(6))
             .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[2].account_type")
@@ -343,7 +343,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void testReplaceDraftAccount_success() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-        String requestBody = validReplaceRequestBody(1L);
+        String requestBody = validReplaceRequestBody(0L);
         log.info(":testReplaceDraftAccount_success: Request Body:\n{}", ToJsonString.toPrettyJson(requestBody));
 
         String body  = mockMvc.perform(put(URL_BASE + "/" + 5)
@@ -398,13 +398,13 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        MvcResult result = mockMvc.perform(patch(URL_BASE + "/" + 5)
+        MvcResult result = mockMvc.perform(patch(URL_BASE + "/" + 6)
                                                .header("authorization", "Bearer some_value")
                                                .contentType(MediaType.APPLICATION_JSON)
                                                .content(validUpdateRequestBody("A")))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.draft_account_id").value(5))
+            .andExpect(jsonPath("$.draft_account_id").value(6))
             .andExpect(jsonPath("$.business_unit_id").value(78))
             .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"))
             .andReturn();
