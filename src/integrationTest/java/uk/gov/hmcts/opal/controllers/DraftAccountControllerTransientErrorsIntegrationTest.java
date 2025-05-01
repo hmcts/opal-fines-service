@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import static uk.gov.hmcts.opal.entity.DraftAccountStatus.SUBMITTED;
@@ -139,6 +140,13 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
                                                                                                     any())));
     }
 
+    @Test
+    void testGetDraftAccountsSummaries_trap500Response() throws Exception {
+        shouldReturn500WhenRuntimeExceptionReturned(get(URL_BASE),
+                                                          when(draftAccountService.getDraftAccounts(any(), any(), any(),
+                                                                                                    any())));
+    }
+
     void shouldReturn406WhenResponseContentTypeNotSupported(MockHttpServletRequestBuilder reqBuilder) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
         mockMvc.perform(reqBuilder
@@ -189,6 +197,25 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
                 "status": 503,
                 "type": "https://hmcts.gov.uk/problems/database-unavailable"
             }"""));
+    }
+
+    void shouldReturn500WhenRuntimeExceptionReturned(MockHttpServletRequestBuilder reqBuilder,
+                                                     OngoingStubbing<?> stubbing) throws Exception {
+        stubbing.thenAnswer(
+            invocation -> {
+                throw new RuntimeException("An unexpected error has occurred");
+            });
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        mockMvc.perform(reqBuilder
+                            .header("Authorization", "Bearer " + "some_value"))
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Internal Server Error"))
+            .andExpect(jsonPath("$.detail").value("An unexpected error has occurred"))
+            .andExpect(jsonPath("$.status").value(500))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/internal-server-error"));
     }
 
 

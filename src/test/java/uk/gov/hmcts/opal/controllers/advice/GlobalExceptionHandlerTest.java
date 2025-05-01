@@ -550,6 +550,23 @@ class GlobalExceptionHandlerTest {
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
+    @Test
+    void testHandleException() {
+        Exception e = new Exception("Unexpected error");
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleException(e);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        ProblemDetail problemDetail = response.getBody();
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
+        assertEquals("Internal Server Error", problemDetail.getTitle());
+        assertEquals("Unexpected error", problemDetail.getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/internal-server-error"), problemDetail.getType());
+
+        assertTrue(response.getHeaders().getContentType().toString()
+                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
     public static void sampleMethod(Integer testParam) {
         // Sample method to simulate the method parameter
     }

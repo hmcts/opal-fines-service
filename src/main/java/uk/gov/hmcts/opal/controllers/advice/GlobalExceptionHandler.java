@@ -453,6 +453,21 @@ public class GlobalExceptionHandler {
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ProblemDetail> handleException(Exception e) {
+        log.error(":handleException: {}", e.getMessage());
+        log.error(":handleException: {}", getNonNullCause(e));
+
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Internal Server Error",
+            e.getMessage(),
+            "internal-server-error"
+        );
+
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
+    }
+
     private Throwable getNonNullCause(Throwable t) {
         return t.getCause() == null ? t : t.getCause();
     }

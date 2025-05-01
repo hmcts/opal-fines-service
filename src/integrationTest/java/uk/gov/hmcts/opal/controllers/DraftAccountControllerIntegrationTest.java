@@ -407,6 +407,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.draft_account_id").value(5))
             .andExpect(jsonPath("$.business_unit_id").value(78))
             .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"))
+            .andExpect(jsonPath("$.submitted_by_name").value("Joe Bloggs"))
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
