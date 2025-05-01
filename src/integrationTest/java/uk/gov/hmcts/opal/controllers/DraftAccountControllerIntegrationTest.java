@@ -564,7 +564,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         String expectedErrorMessageStart =
             "JSON Schema Validation Error: Validating against JSON schema 'addDraftAccountRequest.json',"
-                + " found 14 validation errors:";
+                + " found 15 validation errors:";
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -963,16 +963,17 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                         "result_id": "1",
                         "amount_imposed": 500.00,
                         "amount_paid": 200.00,
-                        "major_creditor_id": 999
+                        "major_creditor_id": 999,
+                        "minor_creditor": {
+                            "company_flag": true,
+                            "payout_hold": false,
+                            "pay_by_bacs": true,
+                            "bank_account_type": 1
+                        }
                       }
                     ]
                   }
                 ],
-                "minor_creditor": {
-                  "company_flag": true,
-                  "payout_hold": false,
-                  "bank_account_type": 1
-                },
                 "payment_terms": {
                   "payment_terms_type_code": "P",
                   "effective_date": "2023-11-01",
