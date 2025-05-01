@@ -953,6 +953,11 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                     ]
                   }
                 ],
+                "minor_creditor": {
+                  "company_flag": true,
+                  "payout_hold": false,
+                  "bank_account_type": 1
+                },
                 "payment_terms": {
                   "payment_terms_type_code": "P",
                   "effective_date": "2023-11-01",
