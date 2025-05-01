@@ -4,6 +4,7 @@
     "title": "Account",
     "description": "A Defendant Account",
     "type":"object",
+    "additionalProperties": false,
     "required": [
         "account_type",
         "defendant_type",
