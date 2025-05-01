@@ -156,11 +156,13 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
         actions
             .andExpect(status().isRequestTimeout())
-            .andExpect(content().contentType("application/json"))
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(content().json("""
             {
-                "error": "Request Timeout",
-                "message": "The request did not receive a response from the database within the timeout period"
+                "title": "Request Timeout",
+                "detail": "The request did not receive a response from the database within the timeout period",
+                "status": 408,
+                "type": "https://hmcts.gov.uk/problems/query-timeout"
             }"""));
     }
 
@@ -174,12 +176,14 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
         mockMvc.perform(reqBuilder.header("Authorization", "Bearer " + "some_value"))
             .andExpect(status().isServiceUnavailable())
-            .andExpect(content().contentType("application/json"))
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(content().json("""
-                                          {
-                                              "error": "Service Unavailable",
-                                              "message": "Opal Fines Database is currently unavailable"
-                                          }"""));
+            {
+                "title": "Service Unavailable",
+                "detail": "Opal Fines Database is currently unavailable",
+                "status": 503,
+                "type": "https://hmcts.gov.uk/problems/database-unavailable"
+            }"""));
     }
 
 

@@ -426,11 +426,13 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 get(URL_BASE + "/2")
                     .header("authorization", "Bearer some_value"))
             .andExpect(status().isForbidden())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.error").value("Forbidden"))
-            .andExpect(jsonPath("$.message").value(
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.detail").value(
                 "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS, CHECK_VALIDATE_DRAFT_ACCOUNTS] "
-                    + "permission(s) are not enabled for the user."));
+                    + "permission(s) are not enabled for the user."))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
     }
 
     @Test
@@ -444,11 +446,13 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 get(URL_BASE + "/2")
                     .header("authorization", "Bearer some_value"))
             .andExpect(status().isForbidden())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.error").value("Forbidden"))
-            .andExpect(jsonPath("$.message").value(
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.detail").value(
                 "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS, CHECK_VALIDATE_DRAFT_ACCOUNTS] "
-                    + "permission(s) are not enabled in business unit: 77"));
+                    + "permission(s) are not enabled in business unit: 77"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
     }
 
     @Test
@@ -465,7 +469,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                             .param("business_unit", businessId.toString())
                             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isForbidden())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
 
     @Test
@@ -505,10 +509,13 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                             .param("not_submitted_by", "Tony")
                             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.error").value("Bad Request"))
-            .andExpect(jsonPath("$.message")
-                           .value("Cannot include both 'submitted_by' and 'not_submitted_by' parameters."));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.detail")
+                           .value("Cannot include both 'submitted_by' and 'not_submitted_by' parameters."))
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.type")
+                           .value("https://hmcts.gov.uk/problems/illegal-argument"));
     }
 
     @Test
@@ -566,14 +573,15 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(invalidCreateRequestBody()))
             .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.error").value("Bad Request"))
-            .andExpect(jsonPath("$.message").value(containsString(expectedErrorMessageStart)))
-            .andExpect(jsonPath("$.message").value(containsString("required property 'account_type' not found")))
-            .andExpect(jsonPath("$.message").value(containsString("required property 'submitted_by' not found")))
-            .andExpect(jsonPath("$.message").value(containsString("required property 'submitted_by_name' not found")))
-            .andExpect(jsonPath("$.message").value(containsString("required property 'timeline_data' not found")));
-
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.detail").value(containsString(expectedErrorMessageStart)))
+            .andExpect(jsonPath("$.detail").value(containsString("required property 'account_type' not found")))
+            .andExpect(jsonPath("$.detail").value(containsString("required property 'submitted_by' not found")))
+            .andExpect(jsonPath("$.detail").value(containsString("required property 'submitted_by_name' not found")))
+            .andExpect(jsonPath("$.detail").value(containsString("required property 'timeline_data' not found")))
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
     }
 
     @Test
@@ -588,10 +596,12 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                                                .contentType(MediaType.APPLICATION_JSON)
                                                .content(validRequestBody))
             .andExpect(status().isForbidden())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.error").value("Forbidden"))
-            .andExpect(jsonPath("$.message").value(
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.detail").value(
                 "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS] permission(s) are not enabled for the user."))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
@@ -613,10 +623,12 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                                                .contentType(MediaType.APPLICATION_JSON)
                                                .content(validRequestBody))
             .andExpect(status().isForbidden())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.error").value("Forbidden"))
-            .andExpect(jsonPath("$.message").value(
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.detail").value(
                 "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS] permission(s) are not enabled for the user."))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
@@ -660,8 +672,11 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
             .andExpect(status().isForbidden())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.error").value("Forbidden"));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
+
     }
 
     private static Stream<Arguments> testCasesRequiringAuthorizationProvider() {

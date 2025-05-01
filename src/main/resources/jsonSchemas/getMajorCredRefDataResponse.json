@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/getMajorCredRefDataResponse.json",
+  "type": ["object", "null"],
+  "properties": {
+    "count": {
+      "type": ["integer", "null"],
+      "description": "The count of Major Creditors returned in this response"
+    },
+    "refData": {
+      "type": ["array", "null"],
+      "items": {
+        "$ref": "#/$defs/major_creditor"
+      }
+    }
+  },
+  "$defs": {
+    "major_creditor": {
+      "properties": {
+        "creditor_account_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Unique ID for the Major Creditor - System generated (BE)"
+        },
+        "business_unit_id": {
+          "type": "integer",
+          "format": "int16",
+          "description": "ID of the Business Unit the Major Creditor belongs to"
+        },
+        "account_number": {
+          "type": "string",
+          "description": "The account number"
+        },
+         "creditor_account_type": {
+          "type": "string",
+          "description": "The creditor account type"
+        },
+         "from_suspense": {
+          "type": "boolean",
+          "description": "The from suspense flag"
+        },
+         "hold_payout": {
+          "type": "boolean",
+          "description": "The hold payout flag"
+        },
+        "last_changed_date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date the last amendmend to the major creditor"
+        },
+        "major_creditor_code": {
+          "type": "string",
+          "description": "The code for the major creditor"
+        },
+        "major_creditor_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The id of the major creditor"
+        },
+        "minor_creditor_party_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The id of the minor creditor"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the Major Creditor"
+        },
+        "postcode": {
+          "type": "string",
+          "description": "The postcode of the major creditor"
+        },
+        "prosecution_service": {
+          "type": "boolean",
+          "description": "The prosecution service"
+        },
+        "required": [
+          "creditor_account_id",
+          "business_unit_id",
+          "account_number",
+          "creditor_account_type",
+          "from_suspense",
+          "hold_payout",
+          "major_creditor_id",
+          "name",
+          "prosecution_service"
+        ]
+      }
+    }
+  }
+}

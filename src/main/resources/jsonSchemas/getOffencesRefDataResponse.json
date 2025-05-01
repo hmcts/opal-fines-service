@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/getOffencesRefDataResponse.json",
+  "type": ["object", "null"],
+  "properties": {
+    "count": {
+      "type": ["integer", "null"],
+      "description": "The count of Offences returned in this response"
+    },
+    "refData": {
+      "type": ["array", "null"],
+      "items": {
+        "$ref": "#/$defs/offence"
+      }
+    }
+  },
+  "$defs": {
+    "offence": {
+      "properties": {
+        "offence_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Unique ID for the Offence - System generated (BE)"
+        },
+        "business_unit_id": {
+          "type": "integer",
+          "format": "int16",
+          "description": "ID of the Business Unit the Draft Account belongs to"
+        },
+        "cjs_code": {
+          "type": "string",
+          "description": "The CJS code"
+        },
+        "offence_title": {
+          "type": "string",
+          "description": "The title of the Offence"
+        },
+        "offence_title_cy": {
+          "type": "string",
+          "description": "The title of the Offence (Welsh)"
+        },
+        "date_used_from": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date the Offence is valid from, inclusive"
+        },
+        "date_used_to": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date the Offence is valid up until, inclusive"
+        },
+        "offence_oas": {
+          "type": "string",
+          "description": "The Offence Act and Section for the offence"
+        },
+        "offence_oas_cy": {
+          "type": "string",
+          "description": "The Offence Act and Section for the offence (Welsh)"
+        },
+        "required": [
+          "offence_id",
+          "cjs_code",
+          "business_unit_id",
+          "offence_title",
+          "date_used_from",
+          "date_used_to",
+          "offence_oas"
+        ]
+      }
+    }
+  }
+}

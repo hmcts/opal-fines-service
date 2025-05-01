@@ -19,7 +19,8 @@ public class SearchOffencesRequestStepDef extends BaseStepDef {
         JSONObject requestBody = new JSONObject();
         requestBody.put("cjs_code", dataToPost.get("cjs_code") != null ? dataToPost.get("cjs_code") : "");
         requestBody.put("title", dataToPost.get("title") != null ? dataToPost.get("title") : "");
-        requestBody.put("act_section", dataToPost.get("act_section") != null ? dataToPost.get("act_section") : "");
+        requestBody.put("act_and_section", dataToPost.get("act_and_section") != null
+            ? dataToPost.get("act_and_section") : "");
         requestBody.put("active_date", dataToPost.get("active_date") != null ? dataToPost.get("active_date") : "");
         requestBody.put("max_results", dataToPost.get("max_results") != null ? dataToPost.get("max_results") : "100");
 
