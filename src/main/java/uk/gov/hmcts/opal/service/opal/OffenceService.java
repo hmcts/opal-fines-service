@@ -35,7 +35,7 @@ public class OffenceService implements OffenceServiceInterface {
     private final OffenceSpecs specs = new OffenceSpecs();
 
     public OffenceEntity getOffence(long offenceId) {
-        return offenceRepository.getReferenceById(offenceId);
+        return offenceRepository.findById(offenceId).orElse(null);
     }
 
     @Cacheable(cacheNames = "offenceSearchDataCache", key = "#criteria")

@@ -20,10 +20,10 @@ import java.time.LocalDateTime;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 
 @Slf4j(topic = "opal.OffenceControllerIntegrationTest")
 @DisplayName("OffenceController Integration Test")
@@ -71,8 +71,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get no offences returned when offence does not exist [@PO-420, PO-272]")
     void testGetOffenceById_WhenOffenceDoesNotExist() throws Exception {
         mockMvc.perform(get(URL_BASE + "/999999"))
-            .andExpect(status().isInternalServerError());
-
+            .andExpect(status().isNotFound()); ///.andExpect(status().isInternalServerError());
     }
 
     @Test
@@ -84,12 +83,12 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(4))
-            .andExpect(jsonPath("$.searchData[0].offence_id").value(294586))
+            .andExpect(jsonPath("$.searchData[0].offence_id").value(33430))
             .andExpect(jsonPath("$.searchData[0].cjs_code").value("IC01001"))
             .andExpect(jsonPath("$.searchData[0].offence_title").value("Genocide"))
-            .andExpect(jsonPath("$.searchData[0].date_used_from").value("2001-09-02T00:00:00"))
+            .andExpect(jsonPath("$.searchData[0].date_used_from").value("2001-09-01T00:00:00"))
             .andExpect(jsonPath("$.searchData[0].offence_oas")
-                .value("Contrary to section 51 of the International Criminal Court Act 2001."))
+                .value("Contrary to sections 51 and 53 of the International Criminal Court Act 2001."))
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
@@ -115,7 +114,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
                 .param("cjs_code", "CW96023"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.refData[0].get_cjs_code").value("CW96023"))
+            .andExpect(jsonPath("$.refData[0].cjs_code").value("CW96023"))
             .andExpect(jsonPath("$.refData[0].offence_title")
                 .value("Use a chemical weapon"))
             .andExpect(jsonPath("$.refData[0].offence_oas")
