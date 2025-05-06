@@ -4,6 +4,7 @@
     "title": "Account",
     "description": "A Defendant Account",
     "type":"object",
+    "additionalProperties": false,
     "required": [
         "account_type",
         "defendant_type",
@@ -512,7 +513,7 @@
                     "description": "Indicator if payment is by BACS"
                 },
                 "bank_account_type": {
-                    "type": ["string", "null"],
+                    "type": ["integer", "null"],
                     "description": "Type of bank account"
                 },
                 "bank_sort_code": {
