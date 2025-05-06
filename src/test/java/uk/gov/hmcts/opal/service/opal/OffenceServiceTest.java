@@ -42,8 +42,7 @@ class OffenceServiceTest {
         // Arrange
 
         OffenceEntity offenceEntity = OffenceEntity.builder().build();
-        when(offenceRepository.getReferenceById(any())).thenReturn(offenceEntity);
-
+        when(offenceRepository.findById(any())).thenReturn(Optional.of(offenceEntity));
         // Act
         OffenceEntity result = offenceService.getOffence((short)1);
 
@@ -98,7 +97,8 @@ class OffenceServiceTest {
         });
 
         // Act
-        List<OffenceReferenceData> result = offenceService.getReferenceData(Optional.empty(), Optional.empty());
+        List<OffenceReferenceData> result = offenceService.getReferenceData(Optional.empty(),
+            Optional.empty(), Optional.empty());
 
         OffenceReferenceData refData =
             new OffenceReferenceData(1L, "NINE", null, "Theft from a Palace",

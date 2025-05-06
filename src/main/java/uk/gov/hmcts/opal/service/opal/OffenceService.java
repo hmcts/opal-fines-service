@@ -20,6 +20,8 @@ import uk.gov.hmcts.opal.service.OffenceServiceInterface;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Collections;
+
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +35,7 @@ public class OffenceService implements OffenceServiceInterface {
     private final OffenceSpecs specs = new OffenceSpecs();
 
     public OffenceEntity getOffence(long offenceId) {
-        return offenceRepository.getReferenceById(offenceId);
+        return offenceRepository.findById(offenceId).orElse(null);
     }
 
     @Cacheable(cacheNames = "offenceSearchDataCache", key = "#criteria")
@@ -55,12 +57,15 @@ public class OffenceService implements OffenceServiceInterface {
         cacheNames = "offenceReferenceDataCache",
         key = "#filter.orElse('noFilter') + '_' + #businessUnitId.orElse('noBU')"
     )
-    public List<OffenceReferenceData> getReferenceData(Optional<String> filter, Optional<Short> businessUnitId) {
+    public List<OffenceReferenceData> getReferenceData(Optional<String> filter, Optional<Short> businessUnitId,
+                                                       Optional<List<String>> optionalCjsCode) {
+
+        List<String> cjsCode = optionalCjsCode.orElse(Collections.emptyList());
 
         Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceEntity_.CJS_CODE);
 
         Page<OffenceEntity> page = offenceRepository
-            .findBy(specs.referenceDataFilter(filter, businessUnitId),
+            .findBy(specs.referenceDataFilter(filter, businessUnitId, cjsCode),
                     ffq -> ffq
                         .sortBy(codeSort)
                         .page(Pageable.unpaged()));
