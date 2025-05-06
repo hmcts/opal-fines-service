@@ -297,7 +297,7 @@ dependencies {
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.6.0'
 
-  implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.1.8'
+  implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.1.9'
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
@@ -316,7 +316,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
   compileOnly 'org.projectlombok:lombok:1.18.36'
   annotationProcessor 'org.projectlombok:lombok:1.18.36'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.5.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.13.Final'
 
   testCompileOnly 'org.projectlombok:lombok:1.18.36'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
@@ -328,9 +328,9 @@ dependencies {
   implementation group: 'org.apache.xmlgraphics', name: 'fop', version: '2.10'
   implementation group: 'org.apache.xmlgraphics', name: 'fop-core', version: '2.10'
   implementation group: 'org.apache.xmlgraphics', name: 'fop-events', version: '2.10'
-  implementation group: 'org.apache.xmlgraphics', name: 'xmlgraphics-commons', version: '2.10'
+  implementation group: 'org.apache.xmlgraphics', name: 'xmlgraphics-commons', version: '2.11'
   implementation group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.34'
-  implementation group: 'net.sf.saxon', name: 'Saxon-HE', version: '12.5'
+  implementation group: 'net.sf.saxon', name: 'Saxon-HE', version: '12.6'
 
   testImplementation 'com.github.fge:json-schema-validator:2.2.14'
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'

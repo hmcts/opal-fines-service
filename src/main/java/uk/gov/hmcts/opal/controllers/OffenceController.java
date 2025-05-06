@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,7 +51,9 @@ public class OffenceController {
         log.debug(":GET:getOffenceById: offenceId: {}", offenceId);
 
         OffenceEntity response = opalOffenceService.getOffence(offenceId);
-
+        if (response == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
         return buildResponse(response);
     }
 
@@ -70,11 +73,13 @@ public class OffenceController {
         + "If the business unit is provided, then that is used to return only 'local' offences "
         + "for that business unit, or ALL local offences if the business unit provided is zero.")
     public ResponseEntity<OffenceReferenceDataResults> getOffenceRefData(
-        @RequestParam("q") Optional<String> filter, @RequestParam("business_unit_id") Optional<Short> businessUnit) {
+        @RequestParam("q") Optional<String> filter,
+        @RequestParam("business_unit_id") Optional<Short> businessUnit,
+        @RequestParam(value = "cjs_code") Optional<List<String>> optionalCjsCode) {
 
         log.debug(":GET:getOffenceRefData: business unit: {}, filter string: {}", businessUnit, filter);
 
-        List<OffenceReferenceData> refData = opalOffenceService.getReferenceData(filter, businessUnit);
+        List<OffenceReferenceData> refData = opalOffenceService.getReferenceData(filter, businessUnit, optionalCjsCode);
 
         log.debug(":GET:getOffenceRefData: offences reference data count: {}", refData.size());
         return ResponseEntity.ok(OffenceReferenceDataResults.builder().refData(refData).build());
