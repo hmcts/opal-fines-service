@@ -42,8 +42,7 @@ class OffenceServiceTest {
         // Arrange
 
         OffenceEntity offenceEntity = OffenceEntity.builder().build();
-        when(offenceRepository.getReferenceById(any())).thenReturn(offenceEntity);
-
+        when(offenceRepository.findById(any())).thenReturn(Optional.of(offenceEntity));
         // Act
         OffenceEntity result = offenceService.getOffence((short)1);
 

@@ -20,7 +20,6 @@ import java.time.LocalDateTime;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -39,12 +38,13 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Get offence by ID [@PO-420, PO-272]")
     void testGetOffenceById() throws Exception {
-        mockMvc.perform(get(URL_BASE + "/292704"))
+        mockMvc.perform(get(URL_BASE + "/30000"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.offenceId").value(292704))
-            .andExpect(jsonPath("$.cjsCode").value("CW96023"))
-            .andExpect(jsonPath("$.offenceTitle").value("Use a chemical weapon"))
+            .andExpect(jsonPath("$.offenceId").value(30000))
+            .andExpect(jsonPath("$.cjsCode").value("AA60005"))
+            .andExpect(jsonPath("$.offenceTitle")
+                .value("Person having charge abandoning animal"))
             .andExpect(jsonPath("$.offenceTitleCy").doesNotExist());
     }
 
