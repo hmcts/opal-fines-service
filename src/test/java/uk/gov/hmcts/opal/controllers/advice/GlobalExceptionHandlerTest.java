@@ -49,6 +49,7 @@ import java.net.URI;
 import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
@@ -80,8 +81,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.METHOD_NOT_ALLOWED.value(), problemDetail.getStatus());
         assertEquals("Feature Disabled", problemDetail.getTitle());
-        assertEquals("Feature is disabled", problemDetail.getDetail());
+        assertEquals("The requested feature is not currently available", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/feature-disabled"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -97,8 +99,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), problemDetail.getStatus());
         assertEquals("Missing Required Header", problemDetail.getTitle());
-        assertEquals("Missing request header named: TYPE", problemDetail.getDetail());
+        assertEquals("A required request header is missing", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/missing-header"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -120,8 +123,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.FORBIDDEN.value(), problemDetail.getStatus());
         assertEquals("Forbidden", problemDetail.getTitle());
-        assertTrue(problemDetail.getDetail().contains("permission(s) are not enabled for the user"));
+        assertEquals("You do not have permission to access this resource", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/forbidden"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
     }
@@ -137,8 +141,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.NOT_ACCEPTABLE.value(), problemDetail.getStatus());
         assertEquals("Not Acceptable", problemDetail.getTitle());
-        assertEquals("Not acceptable, Could not parse Accept header.", problemDetail.getDetail());
+        assertEquals("The requested media type cannot be produced by the server", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/not-acceptable"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -171,8 +176,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.NOT_ACCEPTABLE.value(), problemDetail.getStatus());
         assertEquals("Not Acceptable", problemDetail.getTitle());
-        assertTrue(problemDetail.getDetail().contains("Failed to convert value of type"));
+        assertEquals("Invalid parameter value format", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/type-mismatch"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -189,10 +195,11 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
         assertEquals("Property Value Error", problemDetail.getTitle());
-        assertTrue(problemDetail.getDetail().contains("Property value exception"));
+        assertEquals("Invalid or missing value for a required property", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/property-value-error"), problemDetail.getType());
         assertEquals("entity", problemDetail.getProperties().get("entity"));
         assertEquals("property", problemDetail.getProperties().get("property"));
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -212,6 +219,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Unsupported Media Type", problemDetail.getTitle());
         assertEquals("The Content-Type is not supported. Please use application/json", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/unsupported-media-type"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -232,6 +240,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("The request body could not be read. It may be missing or invalid JSON.",
                      problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/message-not-readable"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -249,8 +258,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
         assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("Invalid API usage", problemDetail.getDetail());
+        assertEquals("A problem occurred while accessing data", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/invalid-data-access"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -268,8 +278,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
         assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("Invalid resource usage", problemDetail.getDetail());
+        assertEquals("A problem occurred with the requested data resource", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/invalid-resource-usage"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -285,8 +296,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.NOT_FOUND.value(), problemDetail.getStatus());
         assertEquals("Entity Not Found", problemDetail.getTitle());
-        assertEquals("Entity not found", problemDetail.getDetail());
+        assertEquals("The requested entity could not be found", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/entity-not-found"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -302,8 +314,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.NOT_FOUND.value(), problemDetail.getStatus());
         assertEquals("No Value Present", problemDetail.getTitle());
-        assertEquals("No such element", problemDetail.getDetail());
+        assertEquals("The requested element does not exist", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/no-such-element"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -320,8 +333,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
         assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("Failed to find authentication configuration", problemDetail.getDetail());
+        assertEquals("An error occurred while processing your request", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/opal-api-error"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -340,6 +354,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("The request did not receive a response from the database within the timeout period",
                      problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/query-timeout"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -355,8 +370,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
         assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("An unexpected error occurred. Persistence exception", problemDetail.getDetail());
+        assertEquals("An unexpected error occurred while processing your request", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/servlet-error"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -372,8 +388,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.NOT_FOUND.value(), problemDetail.getStatus());
         assertEquals("Not Found", problemDetail.getTitle());
-        assertEquals("No static resource path.", problemDetail.getDetail());
+        assertEquals("The requested resource could not be found", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/resource-not-found"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -393,6 +410,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Service Unavailable", problemDetail.getTitle());
         assertEquals("Opal Fines Database is currently unavailable", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/database-unavailable"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -409,8 +427,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
         assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("PSQL Exception", problemDetail.getDetail());
+        assertEquals("A database error occurred while processing your request", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/database-error"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -430,6 +449,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Service Unavailable", problemDetail.getTitle());
         assertEquals("Opal Fines Database is currently unavailable", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/database-unavailable"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -447,8 +467,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
         assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("Lazy Entity Initialisation Exception. Expired DB Session?", problemDetail.getDetail());
+        assertEquals("A data access error occurred.", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/lazy-initialization"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -465,8 +486,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
         assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("Unknown Entity Persistence Error. Expired DB Session?", problemDetail.getDetail());
+        assertEquals("A persistence error occurred while processing your request", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/jpa-system-error"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -484,8 +506,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), problemDetail.getStatus());
         assertEquals("Bad Request", problemDetail.getTitle());
-        assertEquals("JSON Schema Validation Error: JSON Schema Validation failed", problemDetail.getDetail());
+        assertEquals("The request does not conform to the required JSON schema", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/json-schema-validation"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -503,8 +526,9 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.BAD_REQUEST.value(), problemDetail.getStatus());
         assertEquals("Bad Request", problemDetail.getTitle());
-        assertEquals("Cannot include both A and B parameters", problemDetail.getDetail());
+        assertEquals("Invalid arguments were provided in the request", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/illegal-argument"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -522,10 +546,11 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.CONFLICT.value(), problemDetail.getStatus());
         assertEquals("Conflict", problemDetail.getTitle());
-        assertTrue(problemDetail.getDetail().contains("Object of class ["));
+        assertEquals("Conflict updating record. Please try again.", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/optimistic-locking"), problemDetail.getType());
         assertEquals(DraftAccountEntity.class.getName(), problemDetail.getProperties().get("resourceType"));
         assertEquals("123", problemDetail.getProperties().get("resourceId"));
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
@@ -541,10 +566,12 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.CONFLICT.value(), problemDetail.getStatus());
         assertEquals("Conflict", problemDetail.getTitle());
-        assertEquals("BusinessUnits mismatch", problemDetail.getDetail());
+        assertEquals("A conflict occurred with the requested resource", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/resource-conflict"), problemDetail.getType());
         assertEquals("DraftAccount", problemDetail.getProperties().get("resourceType"));
         assertEquals("123", problemDetail.getProperties().get("resourceId"));
+        assertEquals("BusinessUnits mismatch", problemDetail.getProperties().get("conflictReason"));
+        assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
                        .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
