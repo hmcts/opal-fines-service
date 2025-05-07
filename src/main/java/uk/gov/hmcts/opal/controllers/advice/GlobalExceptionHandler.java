@@ -60,8 +60,9 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.METHOD_NOT_ALLOWED,
             "Feature Disabled",
-            ex.getMessage(),
-            "feature-disabled"
+            "The requested feature is not currently available",
+            "feature-disabled",
+            ex
         );
         return responseWithProblemDetail(HttpStatus.METHOD_NOT_ALLOWED, problemDetail);
     }
@@ -71,8 +72,9 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.BAD_REQUEST,
             "Missing Required Header",
-            ex.getMessage(),
-            "missing-header"
+            "A required request header is missing",
+            "missing-header",
+            ex
         );
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
@@ -82,16 +84,19 @@ public class GlobalExceptionHandler {
                                                                              HttpServletRequest request) {
         String authorization = request.getHeader(AUTH_HEADER);
         String preferredName = extractPreferredUsername(authorization, tokenService);
-        String detailMessage = String.format("For user %s, %s", preferredName, ex.getMessage());
+        String internalMessage = String.format("For user %s, %s", preferredName, ex.getMessage());
+
+        // Log the user-specific message, but return generic message to the user
+        log.error("Permission denied: {}", internalMessage);
 
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.FORBIDDEN,
             "Forbidden",
-            detailMessage,
-            "forbidden"
+            "You do not have permission to access this resource",
+            "forbidden",
+            ex
         );
 
-        log.error(":handlePermissionNotAllowedException: {}", detailMessage);
         return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
     }
 
@@ -99,14 +104,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleHttpMediaTypeNotAcceptableException(
         HttpMediaTypeNotAcceptableException ex) {
 
-        log.error(":handleHttpMediaTypeNotAcceptableException: {}", ex.getMessage());
-        log.error(":handleHttpMediaTypeNotAcceptableException:", ex.getBody().getDetail());
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.NOT_ACCEPTABLE,
             "Not Acceptable",
-            ex.getMessage() + ", " + ex.getBody().getDetail(),
-            "not-acceptable"
+            "The requested media type cannot be produced by the server",
+            "not-acceptable",
+            ex
         );
 
         return responseWithProblemDetail(HttpStatus.NOT_ACCEPTABLE, problemDetail);
@@ -116,14 +119,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleMethodArgumentTypeMismatchException(
         MethodArgumentTypeMismatchException ex) {
 
-        log.error(":handleMethodArgumentTypeMismatchException: {}", ex.getMessage());
-        log.error(":handleMethodArgumentTypeMismatchException:", ex);
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.NOT_ACCEPTABLE,
             "Not Acceptable",
-            ex.getMessage(),
-            "type-mismatch"
+            "Invalid parameter value format",
+            "type-mismatch",
+            ex
         );
 
         return responseWithProblemDetail(HttpStatus.NOT_ACCEPTABLE, problemDetail);
@@ -131,14 +132,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PropertyValueException.class)
     public ResponseEntity<ProblemDetail> handlePropertyValueException(PropertyValueException pve) {
-        log.error(":handlePropertyValueException: {}", pve.getMessage());
-        log.error(":handlePropertyValueException:", pve);
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Property Value Error",
-            pve.getMessage(),
-            "property-value-error"
+            "Invalid or missing value for a required property",
+            "property-value-error",
+            pve
         );
 
         // Add additional properties to the problem detail
@@ -152,13 +151,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleHttpMediaTypeNotSupportedException(
         HttpMediaTypeNotSupportedException ex) {
 
-        log.error(":handleHttpMediaTypeNotSupportedException: {}", ex.getMessage());
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.UNSUPPORTED_MEDIA_TYPE,
             "Unsupported Media Type",
             "The Content-Type is not supported. Please use application/json",
-            "unsupported-media-type"
+            "unsupported-media-type",
+            ex
         );
 
         return responseWithProblemDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE, problemDetail);
@@ -168,13 +166,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(
         HttpMessageNotReadableException ex) {
 
-        log.error(":handleHttpMessageNotReadableException: {}", ex.getMessage());
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.BAD_REQUEST,
             "Bad Request",
             "The request body could not be read. It may be missing or invalid JSON.",
-            "message-not-readable"
+            "message-not-readable",
+            ex
         );
 
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
@@ -184,14 +181,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleInvalidDataAccessApiUsageException(
         InvalidDataAccessApiUsageException idaaue) {
 
-        log.error(":handleInvalidDataAccessApiUsageException: {}", idaaue.getMessage());
-        log.error(":handleInvalidDataAccessApiUsageException:", idaaue);
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Internal Server Error",
-            idaaue.getMessage(),
-            "invalid-data-access"
+            "A problem occurred while accessing data",
+            "invalid-data-access",
+            idaaue
         );
 
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
@@ -201,14 +196,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleInvalidDataAccessResourceUsageException(
         InvalidDataAccessResourceUsageException idarue) {
 
-        log.error(":handleInvalidDataAccessApiUsageException: {}", idarue.getMessage());
-        log.error(":handleInvalidDataAccessApiUsageException:", idarue.getRootCause());
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Internal Server Error",
-            idarue.getMessage(),
-            "invalid-resource-usage"
+            "A problem occurred with the requested data resource",
+            "invalid-resource-usage",
+            idarue
         );
 
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
@@ -218,13 +211,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleEntityNotFoundException(
         EntityNotFoundException entityNotFoundException) {
 
-        log.warn(":handleEntityNotFoundException: {}", entityNotFoundException.getMessage());
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.NOT_FOUND,
             "Entity Not Found",
-            entityNotFoundException.getMessage(),
-            "entity-not-found"
+            "The requested entity could not be found",
+            "entity-not-found",
+            entityNotFoundException
         );
 
         return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
@@ -234,14 +226,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleNoSuchElementException(
         NoSuchElementException noSuchElementException) {
 
-        log.warn(":handleNoSuchElementException: {}", noSuchElementException.getMessage());
-        log.warn(":handleNoSuchElementException:", getNonNullCause(noSuchElementException));
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.NOT_FOUND,
             "No Value Present",
-            noSuchElementException.getMessage(),
-            "no-such-element"
+            "The requested element does not exist",
+            "no-such-element",
+            noSuchElementException
         );
 
         return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
@@ -251,16 +241,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleOpalApiException(
         OpalApiException opalApiException) {
 
-        log.error(":handleOpalApiException: {}", opalApiException.getMessage());
-        log.error(":handleOpalApiException:", getNonNullCause(opalApiException));
-
         HttpStatus status = opalApiException.getError().getHttpStatus();
 
         ProblemDetail problemDetail = createProblemDetail(
             status,
             status.getReasonPhrase(),
-            opalApiException.getMessage(),
-            "opal-api-error"
+            "An error occurred while processing your request",
+            "opal-api-error",
+            opalApiException
         );
 
         return responseWithProblemDetail(status, problemDetail);
@@ -270,38 +258,35 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleServletExceptions(Exception ex) {
 
         if (ex instanceof QueryTimeoutException) {
-            log.error(":handleQueryTimeoutException: {}", ex.getMessage());
-
             ProblemDetail problemDetail = createProblemDetail(
                 HttpStatus.REQUEST_TIMEOUT,
                 "Request Timeout",
                 "The request did not receive a response from the database within the timeout period",
-                "query-timeout"
+                "query-timeout",
+                ex
             );
 
             return responseWithProblemDetail(HttpStatus.REQUEST_TIMEOUT, problemDetail);
         }
 
         if (ex instanceof NoResourceFoundException nrfe) {
-            log.error(":handleNoResourceFoundException: {}", nrfe.getBody().getDetail());
-
             ProblemDetail problemDetail = createProblemDetail(
                 HttpStatus.NOT_FOUND,
                 "Not Found",
-                nrfe.getBody().getDetail(),
-                "resource-not-found"
+                "The requested resource could not be found",
+                "resource-not-found",
+                nrfe
             );
 
             return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
         }
 
-        log.error(":handleServletExceptions: {}: {}", ex.getClass(), ex.getMessage());
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Internal Server Error",
-            "An unexpected error occurred. " + ex.getMessage(),
-            "servlet-error"
+            "An unexpected error occurred while processing your request",
+            "servlet-error",
+            ex
         );
 
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
@@ -309,10 +294,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PSQLException.class)
     public ResponseEntity<ProblemDetail> handlePsqlException(PSQLException psqlException) {
-
-        log.error(":handlePSQLException: {}", psqlException.getMessage());
-        log.error(":handlePSQLException: ", getNonNullCause(psqlException));
-
         if (psqlException.getCause() instanceof ConnectException
             || psqlException.getCause() instanceof UnknownHostException) {
 
@@ -320,7 +301,8 @@ public class GlobalExceptionHandler {
                 HttpStatus.SERVICE_UNAVAILABLE,
                 "Service Unavailable",
                 DB_UNAVAILABLE_MESSAGE,
-                "database-unavailable"
+                "database-unavailable",
+                psqlException
             );
 
             return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
@@ -329,8 +311,9 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Internal Server Error",
-            psqlException.getMessage(),
-            "database-error"
+            "A database error occurred while processing your request",
+            "database-error",
+            psqlException
         );
 
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
@@ -340,15 +323,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleDataAccessResourceFailureException(
         DataAccessResourceFailureException dataAccessResourceFailureException) {
 
-        log.error(":handleDataAccessResourceFailureException: {}", dataAccessResourceFailureException.getMessage());
-        log.error(":handleDataAccessResourceFailureException: ",
-                  getNonNullCause(dataAccessResourceFailureException));
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.SERVICE_UNAVAILABLE,
             "Service Unavailable",
             DB_UNAVAILABLE_MESSAGE,
-            "database-unavailable"
+            "database-unavailable",
+            dataAccessResourceFailureException
         );
 
         return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
@@ -358,14 +338,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleLazyInitializationException(
         LazyInitializationException lazyInitializationException) {
 
-        log.error(":handleLazyInitializationException: {}", lazyInitializationException.getMessage());
-        log.error(":handleLazyInitializationException: ", getNonNullCause(lazyInitializationException));
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Internal Server Error",
-            "Lazy Entity Initialisation Exception. Expired DB Session?",
-            "lazy-initialization"
+            "A data access error occurred.",
+            "lazy-initialization",
+            lazyInitializationException
         );
 
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
@@ -373,15 +351,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(JpaSystemException.class)
     public ResponseEntity<ProblemDetail> handleJpaSystemException(JpaSystemException jpaSystemException) {
-
-        log.error(":handleJpaSystemException: {}", jpaSystemException.getMessage());
-        log.error(":handleJpaSystemException: ", getNonNullCause(jpaSystemException));
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Internal Server Error",
-            "Unknown Entity Persistence Error. Expired DB Session?",
-            "jpa-system-error"
+            "A persistence error occurred while processing your request",
+            "jpa-system-error",
+            jpaSystemException
         );
 
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
@@ -389,13 +364,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(JsonSchemaValidationException.class)
     public ResponseEntity<ProblemDetail> handleJsonSchemaValidationException(JsonSchemaValidationException e) {
-        log.error(":handleJsonSchemaValidationException: {}", e.getMessage());
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.BAD_REQUEST,
             "Bad Request",
-            "JSON Schema Validation Error: " + e.getMessage(),
-            "json-schema-validation"
+            "The request does not conform to the required JSON schema",
+            "json-schema-validation",
+            e
         );
 
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
@@ -403,13 +377,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ProblemDetail> handleIllegalArgumentException(IllegalArgumentException e) {
-        log.error(":handleIllegalArgumentException: {}", e.getMessage());
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.BAD_REQUEST,
             "Bad Request",
-            e.getMessage(),
-            "illegal-argument"
+            "Invalid arguments were provided in the request",
+            "illegal-argument",
+            e
         );
 
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
@@ -419,13 +392,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleObjectOptimisticLockingFailureException(
         ObjectOptimisticLockingFailureException e) {
 
-        log.warn(":handleObjectOptimisticLockingFailureException: {}", e.getMessage());
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.CONFLICT,
             "Conflict",
-            e.getMessage(),
-            "optimistic-locking"
+            "Conflict updating record. Please try again.",
+            "optimistic-locking",
+            e
         );
 
         problemDetail.setProperty("resourceType", e.getPersistentClassName());
@@ -437,18 +409,17 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<ProblemDetail> handleResourceConflictException(ResourceConflictException e) {
-        log.error(":handleResourceConflictException: {}", e.getMessage());
-        log.error(":handleResourceConflictException: {}", getNonNullCause(e));
-
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.CONFLICT,
             "Conflict",
-            e.getConflictReason(),
-            "resource-conflict"
+            "A conflict occurred with the requested resource",
+            "resource-conflict",
+            e
         );
 
         problemDetail.setProperty("resourceType", e.getResourceType());
         problemDetail.setProperty("resourceId", e.getResourceId());
+        problemDetail.setProperty("conflictReason", e.getConflictReason());
 
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail);
     }
@@ -457,10 +428,12 @@ public class GlobalExceptionHandler {
         return t.getCause() == null ? t : t.getCause();
     }
 
-    private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail, String typeUri) {
+    private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,
+                                              String typeUri, Throwable exception) {
         String errorId = UUID.randomUUID().toString();
 
-        log.error("Error ID {}: {} - {}", errorId, title, detail);
+        log.error("Error ID {}: {}", errorId, exception.getMessage());
+        log.error("Error ID {}:", errorId, exception);
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
         problemDetail.setTitle(title);
