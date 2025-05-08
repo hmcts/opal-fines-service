@@ -53,10 +53,15 @@ public class OffenceService implements OffenceServiceInterface {
         return page.getContent().stream().map(this::toSearchData).toList();
     }
 
+
     @Cacheable(
         cacheNames = "offenceReferenceDataCache",
-        key = "#filter.orElse('noFilter') + '_' + #businessUnitId.orElse('noBU')"
+        key = "#filter.orElse('noFilter') + '_' + "
+            + "#businessUnitId.orElse('noBU') + '_' + "
+            + "#optionalCjsCode.orElse(T(java.util.Collections).emptyList())"
+            + ".stream().collect(T(java.util.stream.Collectors).joining(','))"
     )
+
     public List<OffenceReferenceData> getReferenceData(Optional<String> filter, Optional<Short> businessUnitId,
                                                        Optional<List<String>> optionalCjsCode) {
 
