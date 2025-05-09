@@ -47,7 +47,7 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
     private static final String DEFENDANT_JSON_PATH = "$.defendant";
 
     private static final EnumSet<DraftAccountStatus> VALID_UPDATE_STATUSES =
-        EnumSet.of(DraftAccountStatus.PENDING, DraftAccountStatus.REJECTED, DraftAccountStatus.DELETED);
+        EnumSet.of(DraftAccountStatus.PUBLISHING_PENDING, DraftAccountStatus.REJECTED, DraftAccountStatus.DELETED);
 
     private final DraftAccountRepository draftAccountRepository;
 
@@ -155,7 +155,7 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
         existingAccount.setAccountStatus(newStatus);
         existingAccount.setVersion(dto.getVersion());
 
-        if (newStatus == DraftAccountStatus.PENDING) {
+        if (newStatus == DraftAccountStatus.PUBLISHING_PENDING) {
             existingAccount.setValidatedDate(LocalDateTime.now());
             existingAccount.setValidatedBy(dto.getValidatedBy());
             existingAccount.setValidatedByName(dto.getValidatedByName());

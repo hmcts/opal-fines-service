@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
@@ -38,7 +39,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
-import static uk.gov.hmcts.opal.entity.DraftAccountStatus.ERROR_IN_PUBLISHING;
 
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
 @Sql(scripts = "classpath:db/draftAccounts/insert_into_draft_accounts.sql",
@@ -105,7 +105,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.summaries[2].account_type")
                            .value("Fixed Penalty Registration"))
             .andExpect(jsonPath("$.summaries[2].submitted_by").value("user_003"))
-            .andExpect(jsonPath("$.summaries[2].account_status").value("Error in publishing"))
+            .andExpect(jsonPath("$.summaries[2].account_status").value("Publishing Failed"))
             .andReturn().getResponse().getContentAsString();
 
         log.info(":testGetDraftAccountsSummaries_noParams: body:\n" + ToJsonString.toPrettyJson(body));
@@ -131,7 +131,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.summaries[0].account_type")
                            .value("Fixed Penalty Registration"))
             .andExpect(jsonPath("$.summaries[0].submitted_by").value("user_003"))
-            .andExpect(jsonPath("$.summaries[0].account_status").value("Error in publishing"))
+            .andExpect(jsonPath("$.summaries[0].account_status").value("Publishing Failed"))
             .andReturn().getResponse().getContentAsString();
 
         log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
@@ -147,8 +147,9 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         String body = mockMvc.perform(get(URL_BASE)
                                           .header("authorization", "Bearer some_value")
-                                          .param("status", ERROR_IN_PUBLISHING.getLabel())
-                                          .contentType(MediaType.APPLICATION_JSON))
+                                          .param("status", DraftAccountStatus.PUBLISHING_FAILED.name())
+
+                .contentType(MediaType.APPLICATION_JSON))
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(3))
@@ -156,7 +157,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.summaries[0].account_type")
                            .value("Fixed Penalty Registration"))
             .andExpect(jsonPath("$.summaries[0].submitted_by").value("user_003"))
-            .andExpect(jsonPath("$.summaries[0].account_status").value("Error in publishing"))
+            .andExpect(jsonPath("$.summaries[0].account_status").value("Publishing Failed"))
             .andReturn().getResponse().getContentAsString();
 
         log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
@@ -1054,7 +1055,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static String validUpdateRequestBody(String delta) {
         return "{\n"
-            + "    \"account_status\": \"PENDING\",\n"
+            + "    \"account_status\": \"PUBLISHING_PENDING\",\n"
             + "    \"validated_by\": \"BUUID1" + delta + "\",\n"
             + "    \"validated_by_name\": \"" + delta + "\",\n"
             + "    \"business_unit_id\": 78,\n"
