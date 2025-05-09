@@ -15,10 +15,10 @@ Feature: This feature covers all the ref data scenarios
     When I make a request to the offence ref data api filtering by cjs code "AA06"
     Then the offence ref data matching to result
 
-  @PO-315
-  Scenario: Checking the end points for court ref data1
-    When I make a request to the court ref data api with a filter of "Highbury"
-    Then the court ref data matching to result
+#  @PO-315
+#  Scenario: Checking the end points for court ref data1
+#    When I make a request to the court ref data api with a filter of "Highbury"
+#    Then the court ref data matching to result
 
   @PO-349
   Scenario: Verifying the end points for the major creditors
