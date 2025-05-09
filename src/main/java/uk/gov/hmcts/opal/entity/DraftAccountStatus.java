@@ -12,8 +12,10 @@ public enum DraftAccountStatus {
     DELETED("Deleted"),
     APPROVED("Approved"),
     RESUBMITTED("Resubmitted"),
-    PENDING("Pending"),
-    ERROR_IN_PUBLISHING("Error in publishing");
+    PUBLISHING_PENDING("Publishing Pending"),
+    PUBLISHED("Published"),
+    PUBLISHING_FAILED("Publishing Failed");
+
 
     private final String label;
 
