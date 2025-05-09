@@ -194,7 +194,7 @@ VALUES
     '{
        "snapshot": "opal-test"
       }',
-    'ERROR_IN_PUBLISHING',
+    'PUBLISHING_FAILED',
     '[
          {
            "username": "opal-test",
