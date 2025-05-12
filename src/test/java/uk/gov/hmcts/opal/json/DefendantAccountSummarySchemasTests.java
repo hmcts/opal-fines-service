@@ -18,16 +18,24 @@ class DefendantAccountSummarySchemasTests {
 
     private JsonSchemaValidationService validator;
     private ObjectMapper mapper;
-    private final String GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA =
+    private static final String GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA =
         "opal/DefendantAccounts/getDefendantAccountAtAGlanceResponse.json";
-    private final String GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA =
+    private static final String GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA =
         "opal/DefendantAccounts/getDefendantAccountHeaderSummaryResponse.json";
+    private static final String UPDATE_DEFENDANT_ACCOUNT_REQUEST_SCHEMA =
+        "opal/DefendantAccounts/updateDefendantAccountRequest.json";
+    private static final String ADD_NOTE_REQUEST_SCHEMA =
+        "opal/DefendantAccounts/addNoteRequest.json";
 
     @BeforeEach
     public void setUp() {
         validator = new JsonSchemaValidationService();
         mapper = new ObjectMapper();
     }
+
+    /*
+    GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE
+    */
 
     @Test
     public void testAAGValidJsonAgainstSchema() throws Exception {
@@ -168,6 +176,9 @@ class DefendantAccountSummarySchemasTests {
         );
     }
 
+    /*
+    GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE
+    */
     @Test
     public void testHeaderSummaryIndividualValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidHeaderSummaryJson(false);
@@ -189,7 +200,7 @@ class DefendantAccountSummarySchemasTests {
     }
 
     @Test
-    void testHeaderSummaryInvalidDebtorTypeEnum() throws Exception{
+    void testHeaderSummaryInvalidDebtorTypeEnum() throws Exception {
         Map<String, Object> jsonMap = createValidHeaderSummaryJson(false);
         jsonMap.put("debtor_type", "InvalidType"); // invalid enum value
         String jsonString = mapper.writeValueAsString(jsonMap);
@@ -198,7 +209,7 @@ class DefendantAccountSummarySchemasTests {
     }
 
     @Test
-    void testHeaderSummaryInvalidAccountStatusDisplayNameEnum() throws Exception{
+    void testHeaderSummaryInvalidAccountStatusDisplayNameEnum() throws Exception {
         Map<String, Object> jsonMap = createValidHeaderSummaryJson(false);
         jsonMap.put("account_status_display_name", "InvalidStatus"); // invalid enum value
         String jsonString = mapper.writeValueAsString(jsonMap);
@@ -208,7 +219,7 @@ class DefendantAccountSummarySchemasTests {
     }
 
     @Test
-    void testHeaderSummaryInvalidAccountTypeEnum() throws Exception{
+    void testHeaderSummaryInvalidAccountTypeEnum() throws Exception {
         Map<String, Object> jsonMap = createValidHeaderSummaryJson(false);
         jsonMap.put("account_type", "InvalidType"); // invalid enum value
         String jsonString = mapper.writeValueAsString(jsonMap);
@@ -218,7 +229,7 @@ class DefendantAccountSummarySchemasTests {
     }
 
     @Test
-    void testHeaderSummaryOrganisationConditionalFields() throws Exception{
+    void testHeaderSummaryOrganisationConditionalFields() throws Exception {
         Map<String, Object> jsonMap = createValidHeaderSummaryJson(true);
         jsonMap.put("organisation_name", null);
         String jsonString = mapper.writeValueAsString(jsonMap);
@@ -228,6 +239,75 @@ class DefendantAccountSummarySchemasTests {
 
     }
 
+    /*
+    UPDATE_DEFENDANT_ACCOUNT_REQUEST
+    */
+    @Test
+    void testUpdateValidJsonAgainstSchema() throws Exception {
+        Map<String, Object> jsonMap = createValidUpdateJson();
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, UPDATE_DEFENDANT_ACCOUNT_REQUEST_SCHEMA);
+
+        assertTrue(isValid, "Expected JSON to be valid against schema.");
+    }
+
+    @Test
+    void testUpdateInvalidJsonAgainstSchema() throws Exception {
+        Map<String, Object> jsonMap = createValidUpdateJson();
+        jsonMap.put("unexpected_property", "should fail"); // additional property
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, UPDATE_DEFENDANT_ACCOUNT_REQUEST_SCHEMA);
+
+        assertFalse(isValid);
+    }
+
+    /*
+    ADD_NOTE_REQUEST
+    */
+    @Test
+    void testAddNoteValidJsonAgainstSchema() throws Exception {
+        Map<String, Object> jsonMap = createValidAddNoteJson();
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
+
+        assertTrue(isValid, "Expected JSON to be valid against schema.");
+    }
+
+    @Test
+    void testAddNoteInvalidEnumJsonAgainstSchema() throws Exception {
+        Map<String, Object> jsonMap = createValidAddNoteJson();
+        jsonMap.put("account_type", "InvalidType"); // invalid enum value
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
+
+        assertFalse(isValid, "Expected JSON to be valid against schema.");
+    }
+
+    @Test
+    void testAddNoteInvalidConstJsonAgainstSchema() throws Exception {
+        Map<String, Object> jsonMap = createValidAddNoteJson();
+        jsonMap.put("note_type", "InvalidType"); // invalid constant value
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
+
+        assertFalse(isValid, "Expected JSON to be valid against schema.");
+    }
+
+    @Test
+    void testAddNoteInvalidPropertyJsonAgainstSchema() throws Exception {
+        Map<String, Object> jsonMap = createValidAddNoteJson();
+        jsonMap.put("additional_property", "I shouldn't be here"); // invalid property
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
+
+        assertFalse(isValid, "Expected JSON to be valid against schema.");
+    }
 
     private Map<String, Object> createValidAAGJson() {
         Map<String, Object> json = new HashMap<>();
@@ -301,6 +381,30 @@ class DefendantAccountSummarySchemasTests {
 
         // Optional fields
         json.put("fixed_penalty_ticket_number", null);
+
+        return json;
+    }
+
+    private Map<String, Object> createValidUpdateJson() {
+        Map<String, Object> json = new HashMap<>();
+
+        json.put("version", 1);
+        json.put("account_comment", "Updated comment");
+        json.put("account_free_note_1", "note1");
+        json.put("account_free_note_2", "note2");
+        json.put("account_free_note_3", "note3");
+
+        return json;
+    }
+
+    private Map<String, Object> createValidAddNoteJson() {
+        Map<String, Object> json = new HashMap<>();
+
+        json.put("version", 1);
+        json.put("account_type", "Defendant");
+        json.put("account_id", "Acc1");
+        json.put("account_note_text", "A note");
+        json.put("note_type", "AA");
 
         return json;
     }
