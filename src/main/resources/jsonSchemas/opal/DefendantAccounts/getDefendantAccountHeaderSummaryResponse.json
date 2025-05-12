@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Defendant Account Header Summary",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "defendant_account_id": { "type": "string" },
+    "version": { "type": "integer" },
+    "account_number": { "type": "string" },
+    "has_parent_guardian": { "type": "boolean" },
+    "debtor_type": {
+      "type": "string",
+      "enum": ["Defendant", "Parent/Guardian"]
+    },
+    "organisation": { "type": "boolean" },
+    "account_status_display_name": {
+      "type": "string",
+      "enum": [
+        "Live",
+        "Completed",
+        "TFO to be acknowledged",
+        "TFO to NI/Scotland to be acknowledged",
+        "TFO acknowledged",
+        "Account consolidated",
+        "Account written off"
+      ]
+    },
+    "account_type": {
+      "type": "string",
+      "enum": ["Fine", "Conditional Caution", "Confiscation", "Fixed Penalty"]
+    },
+    "prosecutor_case_reference": { "type": "string" },
+    "fixed_penalty_ticket_number": {"type": ["string", "null"]},
+    "business_unit_name": { "type": "string" },
+    "business_unit_id": { "type": "string" },
+    "business_unit_code": { "type": "string" },
+    "imposed": {
+      "type": "number",
+      "multipleOf": 0.01
+    },
+    "arrears": {
+      "type": "number",
+      "multipleOf": 0.01
+    },
+    "paid": {
+      "type": "number",
+      "multipleOf": 0.01
+    },
+    "written_off": {
+      "type": "number",
+      "multipleOf": 0.01
+    },
+    "account_balance": {
+      "type": "number",
+      "multipleOf": 0.01
+    },
+    "organisation_name": {"type": ["string", "null"]},
+    "is_youth": {
+      "type": ["boolean", "null"],
+      "description": "Derived by backend from parties.birth_date (not returned)"
+    },
+    "title": { "type": ["string", "null"] },
+    "firstnames": { "type": ["string", "null"] },
+    "surname": { "type": ["string", "null"] }
+  },
+  "required": [
+    "defendant_account_id",
+    "version",
+    "account_number",
+    "has_parent_guardian",
+    "debtor_type",
+    "organisation",
+    "account_status_display_name",
+    "account_type",
+    "prosecutor_case_reference",
+    "business_unit_name",
+    "business_unit_id",
+    "business_unit_code",
+    "imposed",
+    "arrears",
+    "paid",
+    "written_off",
+    "account_balance"
+  ],
+  "if": {
+    "properties": { "organisation": { "const": true } }
+  },
+  "then": {
+    "properties": {
+      "organisation_name": { "type": "string" }
+    },
+    "required": ["organisation_name"]
+  },
+  "else": {
+    "required": ["is_youth", "title", "firstnames", "surname"]
+  }
+}
