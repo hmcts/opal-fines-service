@@ -23,7 +23,6 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
