@@ -429,8 +429,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value(
-                "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS, CHECK_VALIDATE_DRAFT_ACCOUNTS] "
-                    + "permission(s) are not enabled for the user."))
+                "You do not have permission to access this resource"))
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
     }
@@ -449,8 +448,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value(
-                "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS, CHECK_VALIDATE_DRAFT_ACCOUNTS] "
-                    + "permission(s) are not enabled in business unit: 77"))
+                "You do not have permission to access this resource"))
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
     }
@@ -512,7 +510,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Bad Request"))
             .andExpect(jsonPath("$.detail")
-                           .value("Cannot include both 'submitted_by' and 'not_submitted_by' parameters."))
+                           .value("Invalid arguments were provided in the request"))
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.type")
                            .value("https://hmcts.gov.uk/problems/illegal-argument"));
@@ -575,11 +573,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.detail").value(containsString(expectedErrorMessageStart)))
-            .andExpect(jsonPath("$.detail").value(containsString("required property 'account_type' not found")))
-            .andExpect(jsonPath("$.detail").value(containsString("required property 'submitted_by' not found")))
-            .andExpect(jsonPath("$.detail").value(containsString("required property 'submitted_by_name' not found")))
-            .andExpect(jsonPath("$.detail").value(containsString("required property 'timeline_data' not found")))
+            .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"))
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
     }
@@ -599,7 +593,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value(
-                "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS] permission(s) are not enabled for the user."))
+                "You do not have permission to access this resource"))
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
             .andReturn();
@@ -626,7 +620,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value(
-                "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS] permission(s) are not enabled for the user."))
+                "You do not have permission to access this resource"))
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
             .andReturn();
@@ -963,13 +957,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                         "result_id": "1",
                         "amount_imposed": 500.00,
                         "amount_paid": 200.00,
-                        "major_creditor_id": 999,
-                        "minor_creditor": {
-                            "company_flag": true,
-                            "payout_hold": false,
-                            "pay_by_bacs": true,
-                            "bank_account_type": 1
-                        }
+                        "major_creditor_id": 999
                       }
                     ]
                   }
