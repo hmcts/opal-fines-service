@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.repository.jpa.MajorCreditorSpecs;
 import uk.gov.hmcts.opal.service.MajorCreditorServiceInterface;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,7 +82,9 @@ public class MajorCreditorService implements MajorCreditorServiceInterface {
                 .minorCreditorPartyId(cae.getMinorCreditorPartyId())
                 .fromSuspense(cae.isFromSuspense())
                 .holdPayout(cae.isHoldPayout())
-                .lastChangedDate(cae.getLastChangedDate())
+                .lastChangedDate(Optional.ofNullable(cae.getLastChangedDate())
+                                     .map(date -> date.atZone(ZoneId.of("UTC")))
+                                     .orElse(null))
                 .build())
             .orElse(builder.build());
 

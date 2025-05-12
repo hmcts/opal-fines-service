@@ -131,7 +131,7 @@ class MajorCreditorControllerIntegrationTest {
             .minorCreditorPartyId(505L)
             .fromSuspense(Boolean.FALSE)
             .holdPayout(Boolean.TRUE)
-            .lastChangedDate(LocalDateTime.now())
+            .lastChangedDate(LocalDateTime.now().atZone(java.time.ZoneId.of("UTC")))
             .build();
 
         when(majorCreditorService.getReferenceData(any(), any())).thenReturn(singletonList(refData));

@@ -83,7 +83,7 @@ class MajorCreditorControllerTest {
             .minorCreditorPartyId(505L)
             .fromSuspense(Boolean.FALSE)
             .holdPayout(Boolean.TRUE)
-            .lastChangedDate(LocalDateTime.now())
+            .lastChangedDate(LocalDateTime.now().atZone(java.time.ZoneId.of("UTC")))
             .build();
 
         List<MajorCreditorReferenceData> refDataList = List.of(refData);
