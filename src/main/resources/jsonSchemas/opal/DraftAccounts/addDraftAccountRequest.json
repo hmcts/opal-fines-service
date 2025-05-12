@@ -16,7 +16,7 @@
       "description": "Value of the name claim in the AAD Acces Token"
     },
     "account": {
-      "$ref": "resource:/jsonSchemas/account.json",
+      "$ref": "resource:/jsonSchemas/opal/DraftAccounts/account.json",
       "description": "The structured Account data (JSON)"
     },
     "account_type": {
@@ -32,7 +32,7 @@
       "description": "System message related to the account_status"
     },
     "timeline_data": {
-      "$ref": "resource:/jsonSchemas/timelineData.json",
+      "$ref": "resource:/jsonSchemas/opal/DraftAccounts/timelineData.json",
       "description": "Status changes to the Draft Account in chronological order (JSON Array) - System generated (UI)"
     }
   },

@@ -37,9 +37,10 @@ import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 public class DraftAccountService {
 
 
-    public static final String ADD_DRAFT_ACCOUNT_REQUEST_JSON = "addDraftAccountRequest.json";
-    public static final String REPLACE_DRAFT_ACCOUNT_REQUEST_JSON = "replaceDraftAccountRequest.json";
-    public static final String UPDATE_DRAFT_ACCOUNT_REQUEST_JSON = "updateDraftAccountRequest.json";
+    public static final String ADD_DRAFT_ACCOUNT_REQUEST_JSON = "opal/DraftAccounts/addDraftAccountRequest.json";
+    public static final String REPLACE_DRAFT_ACCOUNT_REQUEST_JSON =
+        "opal/DraftAccounts/replaceDraftAccountRequest.json";
+    public static final String UPDATE_DRAFT_ACCOUNT_REQUEST_JSON = "opal/DraftAccounts/updateDraftAccountRequest.json";
     public static final String ACCOUNT_DELETED_MESSAGE_FORMAT = """
         { "message": "Draft Account '%s' deleted"}""";
 
