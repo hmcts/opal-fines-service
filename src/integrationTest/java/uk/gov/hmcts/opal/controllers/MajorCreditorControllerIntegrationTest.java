@@ -42,7 +42,7 @@ class MajorCreditorControllerIntegrationTest {
 
     private static final String URL_BASE = "/major-creditors";
 
-    private static final String GET_MAJOR_CREDS_REF_DATA_RESPONSE = "getMajorCredRefDataResponse.json";
+    private static final String GET_MAJOR_CREDS_REF_DATA_RESPONSE = "opal/getMajorCredRefDataResponse.json";
 
     @Autowired
     MockMvc mockMvc;

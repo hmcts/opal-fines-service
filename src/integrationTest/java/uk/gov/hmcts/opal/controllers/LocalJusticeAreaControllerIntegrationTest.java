@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class LocalJusticeAreaControllerIntegrationTest {
 
     private static final String URL_BASE = "/local-justice-areas";
-    private static final String GET_LJAS_REF_DATA_RESPONSE = "getLJARefDataResponse.json";
+    private static final String GET_LJAS_REF_DATA_RESPONSE = "opal/getLJARefDataResponse.json";
 
     @Autowired
     MockMvc mockMvc;
