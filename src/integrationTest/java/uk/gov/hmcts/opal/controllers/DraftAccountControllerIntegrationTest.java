@@ -392,6 +392,52 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should return 400 when submitted_by_name is blank")
+    void shouldReturn400WhenSubmittedByNameIsBlank() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"submitted_by_name\": \"John\"", "\"submitted_by_name\": \"\"");
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when submitted_by is blank")
+    void shouldReturn400WhenSubmittedByIsBlank() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"submitted_by\": \"BUUID1\"", "\"submitted_by\": \"\"");
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Should return 400 when account_type is blank")
+    void shouldReturn400WhenAccountTypeIsBlank() throws Exception {
+        String request = validCreateRequestBody()
+            .replace("\"account_type\": \"Fines\"", "\"account_type\": \"\"");
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        mockMvc.perform(post(URL_BASE)
+                .header("Authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest());
+    }
+
+
+    @Test
     @DisplayName("Update draft account - Should return updated account details [@PO-973, @PO-745]")
     void testUpdateDraftAccount_success() throws Exception {
 

@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
@@ -92,7 +93,7 @@ public class DraftAccountController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Creates a Draft Account Entity in the DB based upon data in request body")
     @CheckAcceptHeader
-    public ResponseEntity<DraftAccountResponseDto> postDraftAccount(@RequestBody AddDraftAccountRequestDto dto,
+    public ResponseEntity<DraftAccountResponseDto> postDraftAccount(@Valid @RequestBody AddDraftAccountRequestDto dto,
                 @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":POST:postDraftAccount: creating a new draft account entity: \n{}", dto.toPrettyJson());
