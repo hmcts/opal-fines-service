@@ -92,6 +92,12 @@
     "required": ["organisation_name"]
   },
   "else": {
+    "properties": {
+      "is_youth": { "type": "boolean" },
+      "title": { "type": "string" },
+      "firstnames": { "type": "string" },
+      "surname": { "type": "string" }
+    },
     "required": ["is_youth", "title", "firstnames", "surname"]
   }
 }

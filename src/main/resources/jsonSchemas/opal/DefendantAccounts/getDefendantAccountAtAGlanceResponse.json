@@ -62,8 +62,18 @@
       "allOf": [
         {
           "if": { "properties": { "organisation": { "const": true } } },
-          "then": { "required": ["organisation_name"] },
+          "then": {
+            "properties": {
+              "organisation_name": { "type": "string" }
+            },
+            "required": ["organisation_name"] },
           "else": {
+            "properties": {
+              "title": { "type": "string" },
+              "first_names": { "type": "string" },
+              "surname": { "type": "string" },
+              "date_of_birth": { "type": "string", "format": "date" }
+            },
             "required": ["title", "first_names", "surname", "date_of_birth"]
           }
         }
