@@ -559,6 +559,10 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Create draft account - Should return 400 Bad Request [@PO-973, @PO-691]")
     void testPostDraftAccount_trap400Response() throws Exception {
 
+        String expectedErrorMessageStart =
+            "JSON Schema Validation Error: Validating against JSON schema 'addDraftAccountRequest.json',"
+                + " found 15 validation errors:";
+
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         mockMvc.perform(post(URL_BASE)
@@ -572,7 +576,6 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
     }
-
 
     @Test
     @DisplayName("Create draft account - user with no permission [@PO-973, @PO-827]")
