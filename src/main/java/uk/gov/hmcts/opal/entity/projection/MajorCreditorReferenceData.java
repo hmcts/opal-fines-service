@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Data
 @Builder
@@ -57,6 +57,6 @@ public class MajorCreditorReferenceData implements ToJsonString {
     private Boolean holdPayout;
 
     @JsonProperty("last_changed_date")
-    private LocalDateTime lastChangedDate;
+    private ZonedDateTime lastChangedDate;
 
 }

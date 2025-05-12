@@ -82,7 +82,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.searchData[0].offence_id").value(33430))
             .andExpect(jsonPath("$.searchData[0].cjs_code").value("IC01001"))
             .andExpect(jsonPath("$.searchData[0].offence_title").value("Genocide"))
-            .andExpect(jsonPath("$.searchData[0].date_used_from").value("2001-09-01T00:00:00"))
+            .andExpect(jsonPath("$.searchData[0].date_used_from").value("2001-09-01T00:00:00Z"))
             .andExpect(jsonPath("$.searchData[0].offence_oas")
                 .value("Contrary to sections 51 and 53 of the International Criminal Court Act 2001."))
             .andReturn();
