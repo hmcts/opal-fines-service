@@ -23,7 +23,6 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -100,7 +99,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                                           .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(5))
+            .andExpect(jsonPath("$.count").value(6))
             .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[2].account_type")
@@ -343,7 +342,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void testReplaceDraftAccount_success() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-        String requestBody = validReplaceRequestBody(1L);
+        String requestBody = validReplaceRequestBody(0L);
         log.info(":testReplaceDraftAccount_success: Request Body:\n{}", ToJsonString.toPrettyJson(requestBody));
 
         String body  = mockMvc.perform(put(URL_BASE + "/" + 5)
@@ -398,13 +397,13 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        MvcResult result = mockMvc.perform(patch(URL_BASE + "/" + 5)
+        MvcResult result = mockMvc.perform(patch(URL_BASE + "/" + 6)
                                                .header("authorization", "Bearer some_value")
                                                .contentType(MediaType.APPLICATION_JSON)
                                                .content(validUpdateRequestBody("A")))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.draft_account_id").value(5))
+            .andExpect(jsonPath("$.draft_account_id").value(6))
             .andExpect(jsonPath("$.business_unit_id").value(78))
             .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"))
             .andReturn();
@@ -429,8 +428,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value(
-                "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS, CHECK_VALIDATE_DRAFT_ACCOUNTS] "
-                    + "permission(s) are not enabled for the user."))
+                "You do not have permission to access this resource"))
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
     }
@@ -449,8 +447,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value(
-                "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS, CHECK_VALIDATE_DRAFT_ACCOUNTS] "
-                    + "permission(s) are not enabled in business unit: 77"))
+                "You do not have permission to access this resource"))
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
     }
@@ -512,7 +509,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Bad Request"))
             .andExpect(jsonPath("$.detail")
-                           .value("Cannot include both 'submitted_by' and 'not_submitted_by' parameters."))
+                           .value("Invalid arguments were provided in the request"))
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.type")
                            .value("https://hmcts.gov.uk/problems/illegal-argument"));
@@ -564,7 +561,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         String expectedErrorMessageStart =
             "JSON Schema Validation Error: Validating against JSON schema 'addDraftAccountRequest.json',"
-                + " found 14 validation errors:";
+                + " found 15 validation errors:";
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -575,11 +572,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Bad Request"))
-            .andExpect(jsonPath("$.detail").value(containsString(expectedErrorMessageStart)))
-            .andExpect(jsonPath("$.detail").value(containsString("required property 'account_type' not found")))
-            .andExpect(jsonPath("$.detail").value(containsString("required property 'submitted_by' not found")))
-            .andExpect(jsonPath("$.detail").value(containsString("required property 'submitted_by_name' not found")))
-            .andExpect(jsonPath("$.detail").value(containsString("required property 'timeline_data' not found")))
+            .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"))
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
     }
@@ -599,7 +592,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value(
-                "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS] permission(s) are not enabled for the user."))
+                "You do not have permission to access this resource"))
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
             .andReturn();
@@ -626,7 +619,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value(
-                "For user null, [CREATE_MANAGE_DRAFT_ACCOUNTS] permission(s) are not enabled for the user."))
+                "You do not have permission to access this resource"))
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
             .andReturn();

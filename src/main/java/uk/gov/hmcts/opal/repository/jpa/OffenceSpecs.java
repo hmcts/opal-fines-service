@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.OffenceEntity;
 import uk.gov.hmcts.opal.entity.OffenceEntity_;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,10 +34,12 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
     }
 
     public Specification<OffenceEntity> referenceDataFilter(Optional<String> filter,
-                                                            Optional<Short> businessUnitId) {
+                                                            Optional<Short> businessUnitId, List<String> cjsCode) {
         return Specification.allOf(specificationList(
             List.of(
-                filter.filter(s -> !s.isBlank()).map(OffenceSpecs::likeAnyOffence)),
+                filter.filter(s -> !s.isBlank()).map(OffenceSpecs::likeAnyOffence),
+                equalsAnyCjsCode(cjsCode)
+            ),
             globalOrLocalOffence(businessUnitId)
         ));
     }
@@ -85,6 +88,16 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
         return (root, query, builder) ->
             likeWildcardPredicate(root.get(OffenceEntity_.offenceOasCy), builder, actSection);
     }
+
+    public static Optional<Specification<OffenceEntity>> equalsAnyCjsCode(
+        Collection<String> cjsCode) {
+
+        if (cjsCode.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of((root, query, builder) -> root.get(OffenceEntity_.cjsCode).in(cjsCode));
+    }
+
 
     public static Specification<OffenceEntity> usedFromDateLessThenEqualToDate(LocalDateTime offenceStillValidDate) {
         return (root, query, builder) -> builder.or(

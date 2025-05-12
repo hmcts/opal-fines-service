@@ -1,6 +1,6 @@
 buildscript {
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:11.8.0")
+    classpath("org.flywaydb:flyway-database-postgresql:11.8.1")
   }
 }
 
@@ -11,8 +11,8 @@ plugins {
   id 'org.springframework.boot' version '3.3.10'
   id 'com.github.ben-manes.versions' version '0.52.0'
   id 'org.sonarqube' version '6.1.0.5360'
-  id 'uk.gov.hmcts.java' version '0.12.65'
-  id 'org.flywaydb.flyway' version '11.8.0'
+  id 'uk.gov.hmcts.java' version '0.12.66'
+  id 'org.flywaydb.flyway' version '11.8.1'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.22'
 }
 
@@ -63,6 +63,8 @@ tasks.withType(JavaCompile).configureEach {
   options.compilerArgs << "-Xlint:deprecation"
 //  Enable the following to stop the build on any warning messages (not just error messages)
   options.compilerArgs << "-Werror"
+//  Change the maximum number of reported compiler errors (default 100)
+  options.compilerArgs.addAll("-Xmaxerrs", "200")
 }
 
 // https://github.com/gradle/gradle/issues/16791
@@ -295,7 +297,7 @@ dependencies {
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.6.0'
 
-  implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.1.8'
+  implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.1.9'
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
@@ -308,13 +310,13 @@ dependencies {
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.8.0'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.8.1'
   implementation 'org.postgresql:postgresql'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
   compileOnly 'org.projectlombok:lombok:1.18.36'
   annotationProcessor 'org.projectlombok:lombok:1.18.36'
-  annotationProcessor 'org.hibernate:hibernate-jpamodelgen:6.6.5.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.13.Final'
 
   testCompileOnly 'org.projectlombok:lombok:1.18.36'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
@@ -323,12 +325,12 @@ dependencies {
   integrationTestAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
 
 
-  implementation group: 'org.apache.xmlgraphics', name: 'fop', version: '2.10'
+  implementation group: 'org.apache.xmlgraphics', name: 'fop', version: '2.11'
   implementation group: 'org.apache.xmlgraphics', name: 'fop-core', version: '2.10'
-  implementation group: 'org.apache.xmlgraphics', name: 'fop-events', version: '2.10'
-  implementation group: 'org.apache.xmlgraphics', name: 'xmlgraphics-commons', version: '2.10'
+  implementation group: 'org.apache.xmlgraphics', name: 'fop-events', version: '2.11'
+  implementation group: 'org.apache.xmlgraphics', name: 'xmlgraphics-commons', version: '2.11'
   implementation group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.34'
-  implementation group: 'net.sf.saxon', name: 'Saxon-HE', version: '12.5'
+  implementation group: 'net.sf.saxon', name: 'Saxon-HE', version: '12.6'
 
   testImplementation 'com.github.fge:json-schema-validator:2.2.14'
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
