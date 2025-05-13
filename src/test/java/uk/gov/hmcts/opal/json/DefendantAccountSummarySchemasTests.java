@@ -314,8 +314,6 @@ class DefendantAccountSummarySchemasTests {
         json.put("defendant_account_id", "12345");
         json.put("version", 1);
         json.put("account_number", "ACC123");
-        json.put("defendant_party_id", "DEF456");
-        json.put("parent_guardian_party_id", null);
 
         Map<String, Object> debtorDetail = new HashMap<>();
         debtorDetail.put("debtor_type", "Defendant");
