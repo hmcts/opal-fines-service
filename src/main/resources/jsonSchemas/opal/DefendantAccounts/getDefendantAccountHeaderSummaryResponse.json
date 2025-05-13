@@ -29,7 +29,7 @@
       "type": "string",
       "enum": ["Fine", "Conditional Caution", "Confiscation", "Fixed Penalty"]
     },
-    "prosecutor_case_reference": { "type": "string" },
+    "prosecutor_case_reference": { "type": ["string", "null"]},
     "fixed_penalty_ticket_number": {"type": ["string", "null"]},
     "business_unit_name": { "type": "string" },
     "business_unit_id": { "type": "string" },
@@ -72,7 +72,6 @@
     "organisation",
     "account_status_display_name",
     "account_type",
-    "prosecutor_case_reference",
     "business_unit_name",
     "business_unit_id",
     "business_unit_code",
