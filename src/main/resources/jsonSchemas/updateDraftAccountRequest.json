@@ -18,7 +18,7 @@
     },
     "account_status": {
       "type": "string",
-      "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Pending, Deleted"
+      "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Publishing Pending, Deleted"
     },
     "reason_text": {
       "type": ["string", "null"],
