@@ -18,23 +18,23 @@ Feature: PO-745 patch draft account
 
     When I patch the draft account with the following details
       | business_unit_id   | 73                          |
-      | account_status     | Pending                     |
+      | account_status     | Publishing Pending          |
       | validated_by       | BUUID_REVIEWER              |
       | version            | 0                           |
 
     Then The draft account response returns 200
 
     Then I get the single created draft account and the response contains
-      | business_unit_id                    | 73             |
-      | account_type                        | Fine           |
-      | account_status                      | Pending        |
-      | account_snapshot.defendant_name     | LNAME, FNAME   |
-      | account_snapshot.date_of_birth      | 01/01/2000     |
-      | account_snapshot.account_type       | Fine           |
-      | account_snapshot.submitted_by       | BUUID          |
-      | account_snapshot.business_unit_name | West London    |
-      | timeline_data[0].status             | Pending        |
-      | timeline_data[0].username           | BUUID_REVIEWER |
+      | business_unit_id                    | 73                 |
+      | account_type                        | Fine               |
+      | account_status                      | Publishing Pending |
+      | account_snapshot.defendant_name     | LNAME, FNAME       |
+      | account_snapshot.date_of_birth      | 01/01/2000         |
+      | account_snapshot.account_type       | Fine               |
+      | account_snapshot.submitted_by       | BUUID              |
+      | account_snapshot.business_unit_name | West London        |
+      | timeline_data[0].status             | Publishing Pending |
+      | timeline_data[0].username           | BUUID_REVIEWER     |
 
     Then I delete the created draft accounts
 
