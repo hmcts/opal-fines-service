@@ -17,10 +17,12 @@ Feature: PO-745 patch draft account
     And I store the created draft account ID
 
     When I patch the draft account with the following details
-      | business_unit_id | 73             |
-      | account_status   | Pending        |
-      | validated_by     | BUUID_REVIEWER |
-      | version          | 0              |
+      | business_unit_id   | 73                          |
+      | account_status     | Pending                     |
+      | submitted_by_name  | Laura Clerk                 |
+      | reason_text        | Reason for Pending status   |
+      | validated_by       | BUUID_REVIEWER              |
+      | version            | 0                           |
 
     Then The draft account response returns 200
 
