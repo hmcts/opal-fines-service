@@ -7,8 +7,6 @@
     "defendant_account_id": { "type": "string" },
     "version": { "type": "integer" },
     "account_number": { "type": "string" },
-    "defendant_party_id": { "type": "string" },
-    "parent_guardian_party_id": { "type": ["string", "null"] },
     "debtor_detail": {
       "type": "object",
       "properties": {
@@ -17,7 +15,16 @@
           "enum": ["Defendant", "Parent/Guardian"]
         },
         "organisation": { "type": "boolean" },
-        "aliases": {
+        "address_line_1": { "type": "string" },
+        "address_line_2": { "type": ["string", "null"] },
+        "address_line_3": { "type": ["string", "null"] },
+        "address_line_4": { "type": ["string", "null"] },
+        "address_line_5": { "type": ["string", "null"] },
+        "post_code": { "type": "string" },
+        "document_language": { "type": "string" },
+        "hearing_language": { "type": "string" },
+        "organisation_name": { "type": "string" },
+        "organisation_aliases": {
           "type": ["array", "null"],
           "maxItems": 5,
           "items": {
@@ -29,27 +36,34 @@
                 "minimum": 1,
                 "maximum": 5
               },
-              "organisation_name": { "type": ["string", "null"] },
-              "surname": { "type": ["string", "null"] },
-              "forenames": { "type": ["string", "null"] }
+              "organisation_name": { "type": ["string", "null"] }
             },
             "required": ["alias_id", "sequence_number"]
           }
         },
-        "address_line_1": { "type": "string" },
-        "address_line_2": { "type": ["string", "null"] },
-        "address_line_3": { "type": ["string", "null"] },
-        "address_line_4": { "type": ["string", "null"] },
-        "address_line_5": { "type": ["string", "null"] },
-        "post_code": { "type": "string" },
-        "document_language": { "type": "string" },
-        "hearing_language": { "type": "string" },
-        "organisation_name": { "type": ["string", "null"] },
-        "title": { "type": ["string", "null"] },
-        "first_names": { "type": ["string", "null"] },
-        "surname": { "type": ["string", "null"] },
-        "date_of_birth": { "type": ["string", "null"], "format": "date" },
-        "national_insurance_number": { "type": ["string", "null"] }
+        "title": { "type": "string" },
+        "first_names": { "type": "string" },
+        "surname": { "type": "string" },
+        "date_of_birth": { "type": "string", "format": "date" },
+        "national_insurance_number": { "type": ["string", "null"] },
+        "individual_aliases": {
+          "type": ["array", "null"],
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "properties": {
+              "alias_id": { "type": "integer" },
+              "sequence_number": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "forenames": { "type": ["string", "null"] },
+              "surname": { "type": ["string", "null"] }
+            },
+            "required": ["alias_id", "sequence_number"]
+          }
+        }
       },
       "required": [
         "debtor_type",
@@ -119,29 +133,19 @@
       "required": ["collection_order_made"]
     },
     "account_notes": {
-      "type": ["array", "null"],
-      "items": {
-        "type": "object",
+      "type": ["object", "null"],
         "properties": {
-          "account_comment": { "type": "string" },
-          "free_text_note_1": { "type": "string" },
-          "free_text_note_2": { "type": "string" },
-          "free_text_note_3": { "type": "string" }
-        },
-        "required": [
-          "account_comment",
-          "free_text_note_1",
-          "free_text_note_2",
-          "free_text_note_3"
-        ]
+          "account_comment": { "type": ["string", "null"] },
+          "free_text_note_1": { "type": ["string", "null"] },
+          "free_text_note_2": { "type": ["string", "null"] },
+          "free_text_note_3": { "type": ["string", "null"] }
+        }
       }
-    }
   },
   "required": [
     "defendant_account_id",
     "version",
     "account_number",
-    "defendant_party_id",
     "debtor_detail",
     "payment_terms",
     "enforcement_status"
