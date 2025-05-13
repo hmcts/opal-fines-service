@@ -8,7 +8,7 @@ Feature: PO-829 Authorization for Get Draft Accounts
       | business_unit_id | 78                                          |
       | account          | draftAccounts/accountJson/adultAccount.json |
       | account_type     | Fine                                        |
-      | account_status   |                                             |
+      | account_status   | Submitted                                   |
       | submitted_by     | BUUID                                       |
       | timeline_data    | draftAccounts/timelineJson/default.json     |
 
@@ -31,7 +31,7 @@ Feature: PO-829 Authorization for Get Draft Accounts
       | business_unit_id | 73                                          |
       | account          | draftAccounts/accountJson/adultAccount.json |
       | account_type     | Fine                                        |
-      | account_status   |                                             |
+      | account_status   | Submitted                                   |
       | submitted_by     | BUUID                                       |
       | timeline_data    | draftAccounts/timelineJson/default.json     |
 
@@ -42,7 +42,7 @@ Feature: PO-829 Authorization for Get Draft Accounts
       | business_unit_id | 80                                          |
       | account          | draftAccounts/accountJson/adultAccount.json |
       | account_type     | Fine                                        |
-      | account_status   |                                             |
+      | account_status   | Submitted                                   |
       | submitted_by     | BUUID                                       |
       | timeline_data    | draftAccounts/timelineJson/default.json     |
 
@@ -54,7 +54,7 @@ Feature: PO-829 Authorization for Get Draft Accounts
       | business_unit_id | 26                                          |
       | account          | draftAccounts/accountJson/adultAccount.json |
       | account_type     | Fine                                        |
-      | account_status   |                                             |
+      | account_status   | Submitted                                   |
       | submitted_by     | BUUID                                       |
       | timeline_data    | draftAccounts/timelineJson/default.json     |
 
