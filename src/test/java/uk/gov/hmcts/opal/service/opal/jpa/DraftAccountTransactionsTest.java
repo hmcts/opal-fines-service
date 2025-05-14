@@ -335,7 +335,7 @@ class DraftAccountTransactionsTest {
         // Arrange
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
-            .accountStatus(DraftAccountStatus.PUBLISHING_PENDING.name())
+            .accountStatus(DraftAccountStatus.PUBLISHING_PENDING.getLabel())
             .validatedBy("TestValidator")
             .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
@@ -408,7 +408,7 @@ class DraftAccountTransactionsTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
             draftAccountTransactions.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactions)
         );
-        assertEquals("Invalid account status for update: SUBMITTED", exception.getMessage());
+        assertEquals("'SUBMITTED' is not a valid Draft Account Status.", exception.getMessage());
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(draftAccountRepository, never()).save(any(DraftAccountEntity.class));

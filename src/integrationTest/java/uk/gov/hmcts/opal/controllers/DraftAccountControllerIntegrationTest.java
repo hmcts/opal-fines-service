@@ -452,6 +452,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").value(6))
             .andExpect(jsonPath("$.business_unit_id").value(78))
+            .andExpect(jsonPath("$.account_status").value("Publishing Pending"))
             .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"))
             .andReturn();
 
@@ -1055,7 +1056,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static String validUpdateRequestBody(String delta) {
         return "{\n"
-            + "    \"account_status\": \"PUBLISHING_PENDING\",\n"
+            + "    \"account_status\": \"Publishing Pending\",\n"
             + "    \"validated_by\": \"BUUID1" + delta + "\",\n"
             + "    \"validated_by_name\": \"" + delta + "\",\n"
             + "    \"business_unit_id\": 78,\n"
