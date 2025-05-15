@@ -82,10 +82,8 @@ class DraftAccountTransactionsTest {
 
         // Act
         List<DraftAccountEntity> result = draftAccountTransactions.getDraftAccounts(
-            List.copyOf(Set.of((short) 1)),
-            List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
-            List.of(),
-            List.of()
+            List.copyOf(Set.of((short) 1)), List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
+            List.of(), List.of(), Optional.empty(), Optional.empty()
         );
         // Assert
         assertNotNull(result);

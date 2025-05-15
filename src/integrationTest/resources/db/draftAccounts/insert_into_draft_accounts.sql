@@ -337,7 +337,7 @@ VALUES
        ]',
     NULL,
     'Joe Bloggs',
-    '2024-12-10 16:27:01.023126',
+    '2025-02-02 16:27:01.023126',
     NULL,
     NULL,
     0
@@ -403,7 +403,74 @@ VALUES
        ]',
     NULL,
     'Joe Bloggs',
+    '2025-02-04 16:27:01.023126',
+    NULL,
+    NULL,
+    0
+);
+
+
+INSERT INTO draft_accounts(
+    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by, account, account_type, account_id, account_snapshot, account_status, timeline_data, account_number, submitted_by_name, account_status_date, status_message, validated_by_name, version_number)
+VALUES
+(
+    7,
+    78,
     '2024-12-10 16:27:01.023126',
+    'user_003',
+    NULL,
+    NULL,
+    '{
+        "collection_order_made": true,
+        "account_type": "Fine",
+        "originator_name": "Police Force",
+        "defendant": {
+            "surname": "LNAME",
+            "dob": "01/01/2000",
+            "company_flag": false,
+            "address_line_1": "123 Elm Street",
+            "forenames": "FNAME"
+        },
+        "originator_id": 1234,
+        "offences": [
+            {
+                "offence_id": 1234,
+                "impositions": [
+                    {
+                        "amount_paid": 200,
+                        "amount_imposed": 500,
+                        "result_id": "123AA"
+                    }
+                ],
+                "date_of_sentence": "2023-11-15"
+            }
+        ],
+        "payment_card_request": true,
+        "defendant_type": "Adult",
+        "collection_order_made_today": false,
+        "account_sentence_date": "2023-12-01",
+        "payment_terms": {
+            "payment_terms_type_code": "P"
+        },
+        "enforcement_court_id": 101
+    }',
+    'Fixed Penalty Registration',
+    NULL,
+    '{
+       "snapshot": "opal-test"
+      }',
+    'SUBMITTED',
+    '[
+         {
+           "username": "opal-test",
+           "status": "Submitted",
+           "status_date": "2025-01-09",
+           "reason_text": null
+         }
+       ]',
+    NULL,
+    'Joe Bloggs',
+    '2025-02-03 16:27:01.023126',
     NULL,
     NULL,
     0

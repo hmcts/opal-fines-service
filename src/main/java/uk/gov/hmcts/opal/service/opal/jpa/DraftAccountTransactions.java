@@ -27,6 +27,7 @@ import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -64,10 +65,12 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
     @Transactional(readOnly = true)
     public List<DraftAccountEntity> getDraftAccounts(
         Collection<Short> businessUnitIds, Collection<DraftAccountStatus> statuses,
-        Collection<String> submittedBy, Collection<String> notSubmitted) {
+        Collection<String> submittedBy, Collection<String> notSubmitted,
+        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo) {
 
         Page<DraftAccountEntity> page = draftAccountRepository
-            .findBy(specs.findForSummaries(businessUnitIds, statuses, submittedBy, notSubmitted),
+            .findBy(specs.findForSummaries(businessUnitIds, statuses, submittedBy, notSubmitted,
+                                           accountStatusDateFrom, accountStatusDateTo),
                     ffq -> ffq.page(Pageable.unpaged()));
 
         return page.getContent();

@@ -22,6 +22,7 @@ import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
+import java.time.LocalDate;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -99,7 +100,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                                           .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(6))
+            .andExpect(jsonPath("$.count").value(7))
             .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[2].account_type")
@@ -132,6 +133,36 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                            .value("Fixed Penalty Registration"))
             .andExpect(jsonPath("$.summaries[0].submitted_by").value("user_003"))
             .andExpect(jsonPath("$.summaries[0].account_status").value("Publishing Failed"))
+            .andReturn().getResponse().getContentAsString();
+
+        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
+
+        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+    }
+
+    @Test
+    @DisplayName("Get draft accounts summaries - Params for status dates from and to")
+    void testGetDraftAccountsSummaries_paramStatusDate() throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        LocalDate fromDate = LocalDate.of(2025, 02, 03);
+        LocalDate toDate = LocalDate.of(2025, 02, 03);
+
+        String body = mockMvc.perform(get(URL_BASE)
+                                          .header("authorization", "Bearer some_value")
+                                          .param("account_status_date_from", fromDate.toString())
+                                          .param("account_status_date_to", toDate.toString())
+                                          .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.summaries[0].draft_account_id").value(7))
+            .andExpect(jsonPath("$.summaries[0].business_unit_id").value(78))
+            .andExpect(jsonPath("$.summaries[0].account_type")
+                           .value("Fixed Penalty Registration"))
+            .andExpect(jsonPath("$.summaries[0].submitted_by").value("user_003"))
+            .andExpect(jsonPath("$.summaries[0].account_status").value("Submitted"))
             .andReturn().getResponse().getContentAsString();
 
         log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
