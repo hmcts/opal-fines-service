@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.json;
+package uk.gov.hmcts.opal.service.opal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import java.util.HashMap;
 import java.util.Map;
