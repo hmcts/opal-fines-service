@@ -1,0 +1,107 @@
+/**
+* OPAL Program
+*
+* MODULE      : insert_enforcers_data.sql
+*
+* DESCRIPTION : Insert data into ENFORCERS table
+*
+* VERSION HISTORY:
+*
+* Date          Author       Version     Nature of Change
+* ----------    --------     --------    ---------------------------------------------------------------------------------------------------------
+* 15/05/2025    C Cho        1.0         PO-939 Insert reference data for enforcers
+*
+**/
+
+-- Delete existing data from enforcers table
+DELETE FROM enforcers;
+
+INSERT INTO enforcers (
+    enforcer_id, business_unit_id, enforcer_code, name, name_cy, 
+    address_line_1, address_line_2, address_line_3, 
+    address_line_1_cy, address_line_2_cy, address_line_3_cy, 
+    postcode, warrant_reference_sequence, warrant_register_sequence
+) VALUES
+(50000000001, 5, 101, 'Cam.Enfone', NULL, 'Cam.Enfone Add1', 'Cam.Enfone Add2', 'Cam.Enfone Add3', NULL, NULL, NULL, NULL, '101/09/00000', 0),
+(50000000002, 5, 102, 'Cam.Enftwo', NULL, 'Cam.Enftwo Add1', 'Cam.Enftwo Add2', 'Cam.Enftwo Add3', NULL, NULL, NULL, NULL, '102/09/00000', 0),
+(50000000003, 5, 103, 'Cam.Enfthree', NULL, 'Cam.Enfthree Add1', 'Cam.Enfthree Add2', 'Cam.Enfthree Add3', NULL, NULL, NULL, NULL, '103/09/00000', 0),
+(260000000001, 26, 123, 'The enforcers name', NULL, 'a', 'a', 'a', NULL, NULL, NULL, NULL, '123/08/00000', 0),
+(260000000021, 26, 101, 'NE.Enfone', NULL, 'NE.Enfone Add1', 'NE.Enfone Add2', 'NE.Enfone Add3', NULL, NULL, NULL, NULL, '101/08/00000', 0),
+(260000000022, 26, 102, 'NE.Enftwo', NULL, 'NE.Enftwo Add1', 'NE.Enftwo Add2', 'NE.Enftwo Add3', NULL, NULL, NULL, NULL, '102/08/00000', 0),
+(260000000023, 26, 103, 'NE.Enfthree', NULL, 'NE.Enfthree Add1', 'NE.Enfthree Add2', 'NE.Enfthree Add3', NULL, NULL, NULL, NULL, '103/08/00000', 0),
+(260000000041, 26, 104, 'Job Centre Watford', NULL, 'The Job Centre', 'High Road', 'Watford', NULL, NULL, NULL, NULL, '104/16/00000', 0),
+(260000000042, 26, 105, 'Job Centre Hemel Hempstead', NULL, 'Job Centre Building', 'High Street', 'Hemel Hempstead', NULL, NULL, NULL, NULL, '105/16/00000', 0),
+(260000000043, 26, 106, 'Police Hertfordshire', NULL, 'Police Station A', 'High Road', 'Watford', NULL, NULL, NULL, NULL, '106/16/00000', 0),
+(300000000001, 30, 101, 'GY.Enfone', NULL, 'GY.Enfone Add1', 'GY.Enfone Add2', 'GY.Enfone Add3', NULL, NULL, NULL, NULL, '101/09/00000', 0),
+(300000000002, 30, 102, 'GY.Enftwo', NULL, 'GY.Enftwo Add1', 'GY.Enftwo Add2', 'GY.Enftwo Add3', NULL, NULL, NULL, NULL, '102/09/00000', 0),
+(300000000003, 30, 103, 'GY.Enfthree', NULL, 'GY.Enfthree Add1', 'GY.Enfthree Add2', 'GY.Enfthree Add3', NULL, NULL, NULL, NULL, '103/09/00000', 0),
+(470000000001, 47, 101, 'BR.Enfone', NULL, 'BR Address 1', 'BR Address 2', 'BR Address 3', NULL, NULL, NULL, NULL, '101/10/00001', 0),
+(470000000002, 47, 102, 'BR.Enftwo', NULL, 'BR Address 1', 'BR Address 2', 'BR Address 3', NULL, NULL, NULL, NULL, '102/08/00000', 0),
+(470000000003, 47, 103, 'BR.Enfthree', NULL, 'BR Address 1', 'BR Address 2', 'BR Address 3', NULL, NULL, NULL, NULL, '103/10/00001', 0),
+(570000000001, 57, 101, 'PD.EnfOne', NULL, 'PD.Enfone Add1', 'PD.Enfone Add2', 'PD.Enfone Add3', NULL, NULL, NULL, NULL, '101/08/00000', 0),
+(570000000002, 57, 102, 'PD.EnfTwo', NULL, 'PD.Enftwo Add1', 'PD.Enftwo Add2', 'PD.Enftwo Add3', NULL, NULL, NULL, NULL, '102/08/00000', 0),
+(570000000003, 57, 103, 'PD.EnfThree', NULL, 'PD.Enfthree Add1', 'PD.Enfthree Add2', 'PD.Enfthree Add3', NULL, NULL, NULL, NULL, '103/08/00000', 0),
+(650000000001, 65, 840, 'ATCMTest', NULL, '6 ATCM Lane', 'London', ' ', NULL, NULL, NULL, NULL, '840/17/34465', 0),
+(780000000001, 78, 2, 'Enfone Add3', NULL, '00000', '102', 'EnforcerTwo', NULL, NULL, NULL, NULL, '002/09/00001', 0),
+(780000000002, 78, 3, '00000', NULL, '103', 'EnforcerThree', 'Enfthree Add1', NULL, NULL, NULL, NULL, '003/09/00002', 0),
+(780000000021, 78, 101, 'Warrant enforcer', NULL, 'Walthamstow road', 'Waltham Forest', 'London', NULL, NULL, NULL, NULL, '101/12/00003', 0),
+(800000000001, 80, 101, 'EnforcerOne', NULL, 'Enfone Add1', 'Enfone Add2', 'Enfone Add3', NULL, NULL, NULL, NULL, '101/09/00000', 0),
+(800000000002, 80, 102, 'EnforcerTwo', NULL, 'Enftwo Add1', 'Enftwo Add2', 'Enftwo Add3', NULL, NULL, NULL, NULL, '102/09/00000', 0),
+(800000000003, 80, 103, 'EnforcerThree', NULL, 'Enfthree Add1', 'Enfthree Add2', 'Enfthree Add3', NULL, NULL, NULL, NULL, '103/09/00000', 0),
+(820000000001, 82, 101, 'Gm.Enfone', NULL, 'Gm.Enfone Add1', 'Gm.Enfone Add2', 'Gm.Enfone Add3', NULL, NULL, NULL, NULL, '101/14/00003', 0),
+(820000000002, 82, 102, 'Gm.Enftwo', NULL, 'Gm.Enftwo Add1', 'Gm.Enftwo Add2', 'Gm.Enftwo Add3', NULL, NULL, NULL, NULL, '102/09/00000', 0),
+(820000000003, 82, 103, 'Gm.Enfthree', NULL, 'Gm.Enfthree Add1', 'Gm.Enfthree Add2', 'Gm.Enfthree Add3', NULL, NULL, NULL, NULL, '103/09/00000', 0),
+(820000000004, 82, 1, 'Gm.Enfone Add2', NULL, 'Gm.Enfone Add3', '00000', '102', NULL, NULL, NULL, NULL, '001/09/00001', 0),
+(820000000005, 82, 2, 'Gm.Enftwo Add3', NULL, '00000', '103', 'Gm.Enfthree', NULL, NULL, NULL, NULL, '002/09/00001', 0),
+(1030000000001, 103, 101, 'PE Enfone', NULL, 'PE Address 1', 'PE Address 2', 'PE Address 3', NULL, NULL, NULL, NULL, '101/08/00000', 0),
+(1030000000002, 103, 102, 'PE.Enftwo', NULL, 'PE Address 1', 'PE Address 2', 'PE Address 3', NULL, NULL, NULL, NULL, '102/08/00000', 0),
+(1030000000003, 103, 103, 'PE.Enfthree', NULL, 'PE Address 1', 'PE Address 2', 'PE Address 3', NULL, NULL, NULL, NULL, '103/08/00000', 0),
+(1300000000002, 130, 1, 'CIVILIAN ENFORCEMENT OFFICERS', NULL, ' ', ' ', ' ', NULL, NULL, NULL, NULL, '001/09/00025', 0),
+(770000000001, 77, 1, 'The Bailiffs', NULL, ' ', ' ', ' ', NULL, NULL, NULL, NULL, '001/17/00001', 0),
+(770000000002, 77, 2, 'The police', NULL, ' ', ' ', ' ', NULL, NULL, NULL, NULL, '002/17/00001', 0),
+(770000000003, 77, 3, 'The DWP', NULL, ' ', ' ', ' ', NULL, NULL, NULL, NULL, '003/17/00001', 0),
+(890000000001, 89, 101, 'Gwent.Enfone', NULL, 'Gwent.Enfone Add1', 'Gwent.Enfone Add2', 'Gwent.Enfone Add3', NULL, NULL, NULL, NULL, '101/09/00000', 0),
+(890000000002, 89, 102, 'Gwent.Enftwo', NULL, 'Gwent.Enftwo Add1', 'Gwent.Enftwo Add2', 'Gwent.Enftwo Add3', NULL, NULL, NULL, NULL, '102/09/00000', 0),
+(890000000003, 89, 103, 'Gwent.Enfthree', NULL, 'Gwent.Enfthree Add1', 'Gwent.Enfthree Add2', 'Gwent.Enfthree Add3', NULL, NULL, NULL, NULL, '103/09/00000', 0),
+(890000000021, 89, 1, 'NW.Enfone Add2', NULL, 'NW.Enfone Add3', '00000', '102', NULL, NULL, NULL, NULL, '001/09/00001', 0),
+(890000000022, 89, 2, 'NW.Enftwo Add3', NULL, '00000', '103', 'NW.Enfthree', NULL, NULL, NULL, NULL, '002/09/00001', 0),
+(890000000041, 89, 901, 'Enforcement(Gw) - ABDC', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '901/09/00000', 0),
+(890000000042, 89, 902, 'Enforcement(Gw) - BWTD', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '902/09/00000', 0),
+(890000000043, 89, 903, 'Enforcement(Gw) - BWTU', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '903/09/00000', 0),
+(890000000044, 89, 904, 'Enforcement(Gw) - CLAMPO', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '904/09/00000', 0),
+(890000000045, 89, 905, 'Enforcement(Gw) - DW', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '905/09/00000', 0),
+(890000000046, 89, 906, 'Enforcement(Gw) - NBWT', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '906/09/00000', 0),
+(1060000000001, 106, 101, 'North Wales Enforcer 1', NULL, 'N Wale Enf1 Eng Add1', 'N Wale Enf1 Eng Add2', 'N Wale Enf1 Eng Add3', NULL, NULL, NULL, NULL, '101/11/00006', 0),
+(1060000000002, 106, 102, 'North Wales Job Centre 1', NULL, 'N Wale JC1 Eng Add 1', 'N Wale JC1 Eng Add 2', 'N Wale JC1 Eng Add 3', NULL, NULL, NULL, NULL, '102/09/00000', 0),
+(1060000000021, 106, 901, 'Enforcement(Nw) - ABDC', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '901/09/00000', 0),
+(1060000000022, 106, 902, 'Enforcement(Nw) - BWTD', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '902/11/00001', 0),
+(1060000000023, 106, 903, 'Enforcement(Nw) - BWTU', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '903/09/00000', 0),
+(1060000000024, 106, 904, 'Enforcement(Nw) - CLAMPO', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '904/09/00000', 0),
+(1060000000025, 106, 905, 'Enforcement(Nw) - DW', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '905/14/00202', 0),
+(1060000000026, 106, 906, 'Enforcement(Nw) - NBWT', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '906/09/00000', 0),
+(1060000000041, 106, 801, 'EnfAE01', 'EnfAE01', 'asd1', 'asdf2', 'asdf3', 'asdf1', 'asdf2', 'asdf2', NULL, '801/11/00001', 0),
+(1060000000043, 106, 803, 'EnfAE02', 'EnfAE02', 'asdf1', 'asdf2', 'asdf3', 'asdf1', 'asdf2', 'asdf2', NULL, '803/11/00001', 0),
+(1060000000045, 106, 802, 'EnfAE03', 'EnfAE03', 'asdf1', 'asdf2', 'asdf3', 'asdf1', 'asdf2', 'asdf2', NULL, '802/11/00001', 0),
+(1060000000047, 106, 804, 'EnfAE04', 'EnfAE04', 'asdf1', 'asdf2', 'asdf3', 'asdf1', 'asdf2', 'asdf2', NULL, '804/11/00001', 0),
+(1060000000049, 106, 805, 'EnfAE05', 'EnfAE05', 'asdf1', 'asdf2', 'asdf3', 'asdf1', 'asdf2', 'asdf2', NULL, '805/11/00001', 0),
+(600000000001, 60, 101, 'Dyfed Enforcer 1', NULL, 'Dyfed Enf 1 Eng add1', 'Dyfed Enf 1 Eng Add2', 'Dyfed Enf 1 Eng Add3', NULL, NULL, NULL, NULL, '101/09/00000', 0),
+(600000000021, 60, 901, 'Enforcement(Dy) - ABDC', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '901/09/00000', 0),
+(600000000022, 60, 902, 'Enforcement(Dy) - BWTD', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '902/09/00000', 0),
+(600000000023, 60, 903, 'Enforcement(Dy) - BWTU', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '903/09/00000', 0),
+(600000000024, 60, 904, 'Enforcement(Dy) - CLAMPO', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '904/09/00000', 0),
+(600000000025, 60, 905, 'Enforcement(Dy) - DW', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '905/09/00000', 0),
+(600000000026, 60, 906, 'Enforcement(Dy) - NBWT', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '906/09/00000', 0),
+(360000000001, 36, 101, 'SouthWales.Enfone', NULL, 'SouthWales.Enfone A1', 'SouthWales.Enfone A2', 'SouthWales.Enfone A3', NULL, NULL, NULL, NULL, '101/09/00001', 0),
+(360000000002, 36, 102, 'SouthWales.Enftwo', NULL, 'SouthWales.Enftwo A1', 'SouthWales.Enftwo A2', 'SouthWales.Enftwo A3', NULL, NULL, NULL, NULL, '102/09/00000', 0),
+(360000000003, 36, 103, 'SouthWales.Enfthree', NULL, 'SouthWales.Enfthree1', 'SouthWales.Enfthree2', 'SouthWales.Enfthree3', NULL, NULL, NULL, NULL, '103/09/00000', 0),
+(360000000021, 36, 104, 'South Wales Job Centre', NULL, 'SW JC Eng Add 1', 'SW JC Eng Add 2', 'SW JC Eng Add 3', NULL, NULL, NULL, NULL, '104/09/00000', 0),
+(360000000041, 36, 901, 'Enforcement(SW-SMG) - ABDC', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '901/09/00000', 0),
+(360000000042, 36, 902, 'Enforcement(SW-SMG) - BWTD', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '902/09/00000', 0),
+(360000000043, 36, 903, 'Enforcement(SW-SMG) - BWTU', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '903/09/00000', 0),
+(360000000044, 36, 904, 'Enforcement(SW-SMG) - CLAMPO', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '904/09/00000', 0),
+(360000000045, 36, 905, 'Enforcement(SW-SMG) - DW', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '905/09/00000', 0),
+(360000000046, 36, 906, 'Enforcement(SW-SMG) - NBWT', NULL, 'Add1', 'Add2', 'Add3', NULL, NULL, NULL, NULL, '906/09/00000', 0),
+(730000000001, 73, 101, 'EnforcerOne', NULL, 'Enfone Add1', 'Enfone Add2', 'Enfone Add3', NULL, NULL, NULL, NULL, '101/17/00003', 6),
+(730000000002, 73, 102, 'EnforcerTwo', NULL, 'Enftwo Add1', 'Enftwo Add2', 'Enftwo Add3', NULL, NULL, NULL, NULL, '102/09/00000', 0),
+(730000000003, 73, 103, 'EnforcerThree', NULL, 'Enfthree Add1', 'Enfthree Add2', 'Enfthree Add3', NULL, NULL, NULL, NULL, '103/16/00001', 0),
+(730000000021, 73, 104, 'EnforcerFour', NULL, '4 High lane', 'london', 'WC12', NULL, NULL, NULL, NULL, '104/16/34463', 0);
