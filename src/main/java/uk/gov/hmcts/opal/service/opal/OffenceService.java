@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.jpa.OffenceSpecs;
 import uk.gov.hmcts.opal.service.OffenceServiceInterface;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Collections;
@@ -85,8 +86,12 @@ public class OffenceService implements OffenceServiceInterface {
             Optional.ofNullable(entity.getBusinessUnit()).map(BusinessUnitEntity::getBusinessUnitId).orElse(null),
             entity.getOffenceTitle(),
             entity.getOffenceTitleCy(),
-            entity.getDateUsedFrom(),
-            entity.getDateUsedTo(),
+            Optional.ofNullable(entity.getDateUsedFrom())
+                .map(date -> date.atZone(ZoneId.of("UTC")))
+                .orElse(null),
+            Optional.ofNullable(entity.getDateUsedTo())
+                .map(date -> date.atZone(ZoneId.of("UTC")))
+                .orElse(null),
             entity.getOffenceOas(),
             entity.getOffenceOasCy()
         );
@@ -98,8 +103,12 @@ public class OffenceService implements OffenceServiceInterface {
             entity.getCjsCode(),
             entity.getOffenceTitle(),
             entity.getOffenceTitleCy(),
-            entity.getDateUsedFrom(),
-            entity.getDateUsedTo(),
+            Optional.ofNullable(entity.getDateUsedFrom())
+                .map(date -> date.atZone(ZoneId.of("UTC")))
+                .orElse(null),
+            Optional.ofNullable(entity.getDateUsedTo())
+                .map(date -> date.atZone(ZoneId.of("UTC")))
+                .orElse(null),
             entity.getOffenceOas(),
             entity.getOffenceOasCy()
         );

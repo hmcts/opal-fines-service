@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -102,7 +103,8 @@ class OffenceServiceTest {
 
         OffenceReferenceData refData =
             new OffenceReferenceData(1L, "NINE", null, "Theft from a Palace",
-                                     null, LocalDateTime.of(1909, 3, 3, 3, 30),
+                                     null, LocalDateTime.of(1909, 3, 3, 3, 30)
+                                         .atZone(ZoneId.of("UTC")),
                                      null, "A", "B"
             );
         // Assert

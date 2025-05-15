@@ -64,7 +64,9 @@ public class JsonSchemaValidationService {
     public Set<String> validate(String body, String jsonSchemaFileName) {
         JsonSchema jsonSchema = getJsonSchema(jsonSchemaFileName);
         try {
-            Set<ValidationMessage> msgs =  jsonSchema.validate(getJsonNodeFromStringContent(body));
+            Set<ValidationMessage> msgs =  jsonSchema.validate(getJsonNodeFromStringContent(body),executionContext -> {
+                executionContext.getExecutionConfig().setFormatAssertionsEnabled(true);
+            });
             return msgs.stream().map(ValidationMessage::getMessage).collect(Collectors.toSet());
         } catch (JsonSchemaValidationException jsve) {
             return Set.of(jsve.getMessage());
@@ -93,7 +95,7 @@ public class JsonSchemaValidationService {
             return schemaCache.get(schemaFileName);
         }
         String fileContents = readJsonSchemaFileContents(schemaFileName);
-        JsonSchema jsonSchema = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7).getSchema(fileContents);
+        JsonSchema jsonSchema = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012).getSchema(fileContents);
         schemaCache.put(schemaFileName, jsonSchema);
         return jsonSchema;
     }

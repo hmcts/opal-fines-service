@@ -123,7 +123,7 @@ class MajorCreditorServiceTest {
                 .minorCreditorPartyId(cae.getMinorCreditorPartyId())
                 .fromSuspense(cae.isFromSuspense())
                 .holdPayout(cae.isHoldPayout())
-                .lastChangedDate(cae.getLastChangedDate())
+                .lastChangedDate(cae.getLastChangedDate().atZone(java.time.ZoneId.of("UTC")))
                 .build())
             .orElse(builder.build());
 

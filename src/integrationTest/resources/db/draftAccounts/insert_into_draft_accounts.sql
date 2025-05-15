@@ -29,7 +29,7 @@ VALUES
         "originator_name": "Police Force",
         "defendant": {
             "surname": "LNAME",
-            "dob": "01/01/2000",
+            "dob": "2000-01-01",
             "company_flag": false,
             "address_line_1": "123 Elm Street",
             "forenames": "FNAME"
@@ -95,7 +95,7 @@ VALUES
         "originator_name": "Police Force",
         "defendant": {
             "surname": "LNAME",
-            "dob": "01/01/2000",
+            "dob": "2000-01-01",
             "company_flag": false,
             "address_line_1": "123 Elm Street",
             "forenames": "FNAME"
@@ -161,7 +161,7 @@ VALUES
         "originator_name": "Police Force",
         "defendant": {
             "surname": "LNAME",
-            "dob": "01/01/2000",
+            "dob": "2000-01-01",
             "company_flag": false,
             "address_line_1": "123 Elm Street",
             "forenames": "FNAME"
@@ -227,7 +227,7 @@ VALUES
         "originator_name": "Police Force",
         "defendant": {
             "surname": "LNAME",
-            "dob": "01/01/2000",
+            "dob": "2000-01-01",
             "company_flag": false,
             "address_line_1": "123 Elm Street",
             "forenames": "FNAME"
@@ -293,7 +293,7 @@ VALUES
         "originator_name": "Police Force",
         "defendant": {
             "surname": "LNAME",
-            "dob": "01/01/2000",
+            "dob": "2000-01-01",
             "company_flag": false,
             "address_line_1": "123 Elm Street",
             "forenames": "FNAME"
@@ -359,7 +359,7 @@ VALUES
         "originator_name": "Police Force",
         "defendant": {
             "surname": "LNAME",
-            "dob": "01/01/2000",
+            "dob": "2000-01-01",
             "company_flag": false,
             "address_line_1": "123 Elm Street",
             "forenames": "FNAME"
