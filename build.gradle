@@ -260,7 +260,9 @@ dependencyCheck {
 repositories {
   mavenLocal()
   mavenCentral()
-  maven { url 'https://jitpack.io' }
+  maven {
+    url 'https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1'
+  }
 }
 
 ext {
@@ -316,7 +318,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
   compileOnly 'org.projectlombok:lombok:1.18.36'
   annotationProcessor 'org.projectlombok:lombok:1.18.36'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.13.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.14.Final'
 
   testCompileOnly 'org.projectlombok:lombok:1.18.36'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
@@ -332,7 +334,7 @@ dependencies {
   implementation group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.34'
   implementation group: 'net.sf.saxon', name: 'Saxon-HE', version: '12.6'
 
-  testImplementation 'com.github.fge:json-schema-validator:2.2.14'
+  testImplementation 'com.github.java-json-tools:json-schema-validator:2.2.14'
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
@@ -346,7 +348,7 @@ dependencies {
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
   testImplementation 'org.junit.platform:junit-platform-suite:1.12.2'
-  testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.22.1'
+  testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.22.2'
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-rest-assured:${serenityVersion}"
