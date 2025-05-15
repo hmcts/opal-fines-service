@@ -241,75 +241,75 @@ class DefendantAccountSummarySchemasTests {
 
     }
 
-//    /*
-//    UPDATE_DEFENDANT_ACCOUNT_REQUEST
-//    */
-//    @Test
-//    void testUpdateValidJsonAgainstSchema() throws Exception {
-//        Map<String, Object> jsonMap = createValidUpdateJson();
-//        String jsonString = mapper.writeValueAsString(jsonMap);
-//
-//        boolean isValid = validator.isValid(jsonString, UPDATE_DEFENDANT_ACCOUNT_REQUEST_SCHEMA);
-//
-//        assertTrue(isValid, "Expected JSON to be valid against schema.");
-//    }
-//
-//    @Test
-//    void testUpdateInvalidJsonAgainstSchema() throws Exception {
-//        Map<String, Object> jsonMap = createValidUpdateJson();
-//        jsonMap.put("unexpected_property", "should fail"); // additional property
-//        String jsonString = mapper.writeValueAsString(jsonMap);
-//
-//        boolean isValid = validator.isValid(jsonString, UPDATE_DEFENDANT_ACCOUNT_REQUEST_SCHEMA);
-//
-//        assertFalse(isValid);
-//    }
-//
-//    /*
-//    ADD_NOTE_REQUEST
-//    */
-//    @Test
-//    void testAddNoteValidJsonAgainstSchema() throws Exception {
-//        Map<String, Object> jsonMap = createValidAddNoteJson();
-//        String jsonString = mapper.writeValueAsString(jsonMap);
-//
-//        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
-//
-//        assertTrue(isValid, "Expected JSON to be valid against schema.");
-//    }
-//
-//    @Test
-//    void testAddNoteInvalidEnumJsonAgainstSchema() throws Exception {
-//        Map<String, Object> jsonMap = createValidAddNoteJson();
-//        jsonMap.put("account_type", "InvalidType"); // invalid enum value
-//        String jsonString = mapper.writeValueAsString(jsonMap);
-//
-//        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
-//
-//        assertFalse(isValid, "Expected JSON to be valid against schema.");
-//    }
-//
-//    @Test
-//    void testAddNoteInvalidConstJsonAgainstSchema() throws Exception {
-//        Map<String, Object> jsonMap = createValidAddNoteJson();
-//        jsonMap.put("note_type", "InvalidType"); // invalid constant value
-//        String jsonString = mapper.writeValueAsString(jsonMap);
-//
-//        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
-//
-//        assertFalse(isValid, "Expected JSON to be valid against schema.");
-//    }
-//
-//    @Test
-//    void testAddNoteInvalidPropertyJsonAgainstSchema() throws Exception {
-//        Map<String, Object> jsonMap = createValidAddNoteJson();
-//        jsonMap.put("additional_property", "I shouldn't be here"); // invalid property
-//        String jsonString = mapper.writeValueAsString(jsonMap);
-//
-//        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
-//
-//        assertFalse(isValid, "Expected JSON to be valid against schema.");
-//    }
+    /*
+    UPDATE_DEFENDANT_ACCOUNT_REQUEST
+    */
+    @Test
+    void testUpdateValidJsonAgainstSchema() throws Exception {
+        Map<String, Object> jsonMap = createValidUpdateJson();
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, UPDATE_DEFENDANT_ACCOUNT_REQUEST_SCHEMA);
+
+        assertTrue(isValid, "Expected JSON to be valid against schema.");
+    }
+
+    @Test
+    void testUpdateInvalidJsonAgainstSchema() throws Exception {
+        Map<String, Object> jsonMap = createValidUpdateJson();
+        jsonMap.put("unexpected_property", "should fail"); // additional property
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, UPDATE_DEFENDANT_ACCOUNT_REQUEST_SCHEMA);
+
+        assertFalse(isValid);
+    }
+
+    /*
+    ADD_NOTE_REQUEST
+    */
+    @Test
+    void testAddNoteValidJsonAgainstSchema() throws Exception {
+        Map<String, Object> jsonMap = createValidAddNoteJson();
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
+
+        assertTrue(isValid, "Expected JSON to be valid against schema.");
+    }
+
+    @Test
+    void testAddNoteInvalidEnumJsonAgainstSchema() throws Exception {
+        Map<String, Object> jsonMap = createValidAddNoteJson();
+        jsonMap.put("account_type", "InvalidType"); // invalid enum value
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
+
+        assertFalse(isValid, "Expected JSON to be valid against schema.");
+    }
+
+    @Test
+    void testAddNoteInvalidConstJsonAgainstSchema() throws Exception {
+        Map<String, Object> jsonMap = createValidAddNoteJson();
+        jsonMap.put("note_type", "InvalidType"); // invalid constant value
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
+
+        assertFalse(isValid, "Expected JSON to be valid against schema.");
+    }
+
+    @Test
+    void testAddNoteInvalidPropertyJsonAgainstSchema() throws Exception {
+        Map<String, Object> jsonMap = createValidAddNoteJson();
+        jsonMap.put("additional_property", "I shouldn't be here"); // invalid property
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
+
+        assertFalse(isValid, "Expected JSON to be valid against schema.");
+    }
 
     private Map<String, Object> createValidAAGJson() {
         Map<String, Object> json = new HashMap<>();
