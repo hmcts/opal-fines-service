@@ -42,7 +42,7 @@ class MajorCreditorControllerIntegrationTest {
 
     private static final String URL_BASE = "/major-creditors";
 
-    private static final String GET_MAJOR_CREDS_REF_DATA_RESPONSE = "getMajorCredRefDataResponse.json";
+    private static final String GET_MAJOR_CREDS_REF_DATA_RESPONSE = "opal/getMajorCredRefDataResponse.json";
 
     @Autowired
     MockMvc mockMvc;
@@ -131,7 +131,7 @@ class MajorCreditorControllerIntegrationTest {
             .minorCreditorPartyId(505L)
             .fromSuspense(Boolean.FALSE)
             .holdPayout(Boolean.TRUE)
-            .lastChangedDate(LocalDateTime.now())
+            .lastChangedDate(LocalDateTime.now().atZone(java.time.ZoneId.of("UTC")))
             .build();
 
         when(majorCreditorService.getReferenceData(any(), any())).thenReturn(singletonList(refData));

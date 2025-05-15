@@ -41,8 +41,8 @@ class CourtControllerIntegrationTest {
 
     private static final String URL_BASE = "/courts";
 
-    private static final String POST_COURTS_SEARCH_RESPONSE = "postCourtsSearchResponse.json";
-    private static final String GET_COURTS_REF_DATA_RESPONSE = "getCourtsRefDataResponse.json";
+    private static final String POST_COURTS_SEARCH_RESPONSE = "opal/postCourtsSearchResponse.json";
+    private static final String GET_COURTS_REF_DATA_RESPONSE = "opal/getCourtsRefDataResponse.json";
 
     @Autowired
     MockMvc mockMvc;

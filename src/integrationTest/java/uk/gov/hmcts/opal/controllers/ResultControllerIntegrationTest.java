@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ResultControllerIntegrationTest {
 
     private static final String URL_BASE = "/results";
-    private static final String GET_RESULTS_REF_DATA_RESPONSE = "getResultsRefDataResponse.json";
+    private static final String GET_RESULTS_REF_DATA_RESPONSE = "opal/getResultsRefDataResponse.json";
 
     @Autowired
     MockMvc mockMvc;

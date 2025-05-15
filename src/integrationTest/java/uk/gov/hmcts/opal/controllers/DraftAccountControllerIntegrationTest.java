@@ -46,8 +46,8 @@ import static uk.gov.hmcts.opal.entity.DraftAccountStatus.ERROR_IN_PUBLISHING;
 @DisplayName("DraftAccountController Integration Tests")
 class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String URL_BASE = "/draft-accounts";
-    private static final String GET_DRAFT_ACCOUNT_RESPONSE = "getDraftAccountResponse.json";
-    private static final String GET_DRAFT_ACCOUNTS_RESPONSE = "getDraftAccountsResponse.json";
+    private static final String GET_DRAFT_ACCOUNT_RESPONSE = "opal/DraftAccounts/getDraftAccountResponse.json";
+    private static final String GET_DRAFT_ACCOUNTS_RESPONSE = "opal/DraftAccounts/getDraftAccountsResponse.json";
 
     private static final Short BU_ID = (short)73;
 
