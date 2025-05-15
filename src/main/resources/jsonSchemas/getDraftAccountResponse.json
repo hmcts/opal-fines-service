@@ -44,7 +44,17 @@
     },
     "account_status": {
       "type": "string",
-      "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
+      "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted, Publishing Pending, Published, Publishing Failed",
+      "enum": [
+        "Submitted",
+        "Resubmitted",
+        "Rejected",
+        "Approved",
+        "Deleted",
+        "Publishing Pending",
+        "Published",
+        "Publishing Failed"
+      ]
     },
     "timeline_data": {
       "$ref": "resource:/jsonSchemas/timelineData.json",

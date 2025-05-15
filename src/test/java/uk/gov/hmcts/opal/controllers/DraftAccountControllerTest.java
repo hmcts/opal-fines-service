@@ -86,7 +86,7 @@ class DraftAccountControllerTest {
         // Act
         ResponseEntity<DraftAccountsResponseDto> response = draftAccountController
             .getDraftAccountSummaries(Optional.of(List.of(BU_ID)),
-                                      Optional.of(List.of(DraftAccountStatus.PENDING)),
+                                      Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
                                       Optional.of(List.of()),
                                       Optional.of(List.of()), BEARER_TOKEN);
         DraftAccountsResponseDto dto = response.getBody();

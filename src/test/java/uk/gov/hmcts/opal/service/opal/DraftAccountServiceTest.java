@@ -110,7 +110,7 @@ class DraftAccountServiceTest {
             DraftAccountSearchDto.builder().build(), "authHeaderValue");
 
         // Assert
-        assertEquals(accountText, result.getFirst().getAccount());
+        assertEquals(accountText, result.get(0).getAccount());
 
     }
 
@@ -320,7 +320,7 @@ class DraftAccountServiceTest {
 
         DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
-            .accountStatus(DraftAccountStatus.PENDING)
+            .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("TestValidator")
             .validatedByName("Tester McValidator")
             .validatedDate(LocalDateTime.now())
@@ -339,7 +339,7 @@ class DraftAccountServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(draftAccountId, result.getDraftAccountId());
-        assertEquals(DraftAccountStatus.PENDING, result.getAccountStatus());
+        assertEquals(DraftAccountStatus.PUBLISHING_PENDING, result.getAccountStatus());
         assertEquals("TestValidator", result.getValidatedBy());
         assertEquals("Tester McValidator", result.getValidatedByName());
         assertNotNull(result.getValidatedDate());

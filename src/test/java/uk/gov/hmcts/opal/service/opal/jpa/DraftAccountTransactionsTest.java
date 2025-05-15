@@ -110,7 +110,7 @@ class DraftAccountTransactionsTest {
             DraftAccountSearchDto.builder().build());
 
         // Assert
-        assertEquals(accountText, result.getFirst().getAccount());
+        assertEquals(accountText, result.get(0).getAccount());
 
     }
 
@@ -335,7 +335,7 @@ class DraftAccountTransactionsTest {
         // Arrange
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
-            .accountStatus("PENDING")
+            .accountStatus(DraftAccountStatus.PUBLISHING_PENDING.getLabel())
             .validatedBy("TestValidator")
             .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
@@ -353,7 +353,7 @@ class DraftAccountTransactionsTest {
 
         DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
-            .accountStatus(DraftAccountStatus.PENDING)
+            .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .validatedBy("TestValidator")
             .validatedByName("Tester McValidator")
             .validatedDate(LocalDateTime.now())
@@ -372,7 +372,7 @@ class DraftAccountTransactionsTest {
         // Assert
         assertNotNull(result);
         assertEquals(draftAccountId, result.getDraftAccountId());
-        assertEquals(DraftAccountStatus.PENDING, result.getAccountStatus());
+        assertEquals(DraftAccountStatus.PUBLISHING_PENDING, result.getAccountStatus());
         assertEquals("TestValidator", result.getValidatedBy());
         assertEquals("Tester McValidator", result.getValidatedByName());
         assertNotNull(result.getValidatedDate());
@@ -408,7 +408,7 @@ class DraftAccountTransactionsTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
             draftAccountTransactions.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactions)
         );
-        assertEquals("Invalid account status for update: SUBMITTED", exception.getMessage());
+        assertEquals("'SUBMITTED' is not a valid Draft Account Status.", exception.getMessage());
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(draftAccountRepository, never()).save(any(DraftAccountEntity.class));
