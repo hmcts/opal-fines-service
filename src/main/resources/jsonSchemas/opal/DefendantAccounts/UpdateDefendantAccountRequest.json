@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Update Defendant Account Request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer"
+    },
+    "account_comment": {
+      "type": ["string", "null"]
+    },
+    "account_free_note_1": {
+      "type": ["string", "null"]
+    },
+    "account_free_note_2": {
+      "type": ["string", "null"]
+    },
+    "account_free_note_3": {
+      "type": ["string", "null"]
+    },
+    "required": [
+      "version"
+    ]
+  }
+}
