@@ -22,6 +22,7 @@
       "type": "string",
       "minLength": 1,
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Publishing Pending, Deleted"
+      "minLength": 1
     },
     "reason_text": {
       "type": ["string", "null"],
