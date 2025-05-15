@@ -13,7 +13,7 @@ plugins {
   id 'org.sonarqube' version '6.1.0.5360'
   id 'uk.gov.hmcts.java' version '0.12.66'
   id 'org.flywaydb.flyway' version '11.8.1'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.22'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.23'
 }
 
 group = 'uk.gov.hmcts'
@@ -318,7 +318,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
   compileOnly 'org.projectlombok:lombok:1.18.36'
   annotationProcessor 'org.projectlombok:lombok:1.18.36'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.14.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.15.Final'
 
   testCompileOnly 'org.projectlombok:lombok:1.18.36'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
