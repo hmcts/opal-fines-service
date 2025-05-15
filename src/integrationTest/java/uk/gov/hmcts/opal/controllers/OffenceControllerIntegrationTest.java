@@ -26,8 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @SpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
-    private static final String GET_OFFENCES_REF_DATA_RESPONSE = "getOffencesRefDataResponse.json";
-    private static final String POST_OFFENCES_SEARCH_RESPONSE = "postOffencesSearchResponse.json";
+    private static final String GET_OFFENCES_REF_DATA_RESPONSE = "opal/getOffencesRefDataResponse.json";
+    private static final String POST_OFFENCES_SEARCH_RESPONSE = "opal/postOffencesSearchResponse.json";
     private static final String URL_BASE = "/offences";
 
 

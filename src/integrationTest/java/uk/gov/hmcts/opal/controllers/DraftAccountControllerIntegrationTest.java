@@ -46,8 +46,8 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 @DisplayName("DraftAccountController Integration Tests")
 class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String URL_BASE = "/draft-accounts";
-    private static final String GET_DRAFT_ACCOUNT_RESPONSE = "getDraftAccountResponse.json";
-    private static final String GET_DRAFT_ACCOUNTS_RESPONSE = "getDraftAccountsResponse.json";
+    private static final String GET_DRAFT_ACCOUNT_RESPONSE = "opal/DraftAccounts/getDraftAccountResponse.json";
+    private static final String GET_DRAFT_ACCOUNTS_RESPONSE = "opal/DraftAccounts/getDraftAccountsResponse.json";
 
     private static final Short BU_ID = (short)73;
 
@@ -426,7 +426,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Should return 400 when account_type is blank")
     void shouldReturn400WhenAccountTypeIsBlank() throws Exception {
         String request = validCreateRequestBody()
-            .replace("\"account_type\": \"Fines\"", "\"account_type\": \"\"");
+            .replace("\"account_type\": \"Fine\"", "\"account_type\": \"\"");
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
