@@ -19,6 +19,7 @@
     },
     "submitted_by": {
       "type": "string",
+      "minLength": 1,
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
     "validated_at": {
@@ -28,6 +29,7 @@
     },
     "validated_by": {
       "type": ["string", "null"],
+      "minLength": 1,
       "description": "[Optional] ID of the User that validated the Draft Account"
     },
     "account": {
@@ -40,6 +42,7 @@
     },
     "account_type": {
       "type": "string",
+      "minLength": 1,
       "description": "Type of Account, such as Fixed Penalty Registration"
     },
     "account_status": {
@@ -62,6 +65,7 @@
     },
     "account_number": {
       "type": ["string", "null"],
+      "minLength": 1,
       "description": "[Optional] The Opal Account Number (2char letter code+account number) created on validation - System generated (BE)"
     },
     "account_id": {

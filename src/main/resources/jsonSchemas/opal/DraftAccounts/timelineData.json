@@ -15,10 +15,12 @@
             "properties": {
                 "username": {
                     "type": "string",
+                  "minLength": 1,
                     "description": "Username involved in the timeline event"
                 },
                 "status": {
                     "type": "string",
+                  "minLength": 1,
                     "description": "Status of the timeline event"
                 },
                 "status_date": {
@@ -28,6 +30,7 @@
                 },
                 "reason_text": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Reason text for the timeline event"
                 }
             }

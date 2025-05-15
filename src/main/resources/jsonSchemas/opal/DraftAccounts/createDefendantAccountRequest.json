@@ -9,10 +9,11 @@
     },
     "business_unit_user_id": {
       "type": "string",
+      "minLength": 1,
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
     "defendant_account": {
-      "$ref": "https://opal-fines-service/account.json",
+      "$ref": "resource:/jsonSchemas/opal/DraftAccounts/account.json",
       "description": "The structured Account data (JSON)"
     }
   },

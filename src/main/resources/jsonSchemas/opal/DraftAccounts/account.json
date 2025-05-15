@@ -20,14 +20,17 @@
     "properties": {
         "account_type": {
             "type": "string",
+            "minLength": 1,
             "description": "Type of the account"
         },
         "defendant_type": {
             "type": "string",
+            "minLength": 1,
             "description": "Type of the defendant account - Adult/Youth, PG to Pay, Company"
         },
         "originator_name": {
             "type": "string",
+            "minLength": 1,
             "description": "Name of the originator - LJS, Police Force or CTO"
         },
         "originator_id": {
@@ -36,6 +39,7 @@
         },
         "prosecutor_case_reference": {
             "type": ["string", "null"],
+            "minLength": 1,
             "description": "Reference for the prosecutor case"
         },
         "enforcement_court_id": {
@@ -162,10 +166,12 @@
             "properties": {
                 "parameter_name": {
                     "type": "string",
+                    "minLength": 1,
                     "description": "Parameter name for the prompt"
                 },
                 "response": {
                     "type": "string",
+                    "minLength": 1,
                     "description": "User response to the prompt"
                 }
             }
@@ -180,6 +186,7 @@
                 },
                 "account_note_text": {
                     "type": "string",
+                    "minLength": 1,
                     "description": "Text of the account note"
                 },
                 "note_type": {
@@ -194,14 +201,17 @@
             "properties": {
                 "alias_forenames": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Forenames of the alias"
                 },
                 "alias_surname": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Surname of the alias"
                 },
                 "alias_company_name": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Organisation name of the alias"
                 }
             }
@@ -211,58 +221,72 @@
             "properties": {
                 "vehicle_make": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Make of the vehicle"
                 },
                 "vehicle_registration_mark": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Registration mark of the vehicle"
                 },
                 "document_language": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Language of the document"
                 },
                 "hearing_language": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Language for the hearing"
                 },
                 "employee_reference": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Reference for the employer"
                 },
                 "employer_company_name": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Name of the employer company"
                 },
                 "employer_address_line_1": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Address line 1 of the employer"
                 },
                 "employer_address_line_2": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Address line 2 of the employer"
                 },
                 "employer_address_line_3": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Address line 3 of the employer"
                 },
                 "employer_address_line_4": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Address line 4 of the employer"
                 },
                 "employer_address_line_5": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Address line 5 of the employer"
                 },
                 "employer_post_code": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Postcode of the employer"
                 },
                 "employer_telephone_number": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Telephone number of the employer"
                 },
                 "employer_email_address": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Email address of the employer"
                 },
                 "aliases": {
@@ -285,14 +309,17 @@
                 },
                 "company_name": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Name of the organisation"
                 },
                 "surname": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Surname of the parent/guardian"
                 },
                 "forenames": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "Forename of the parent/guardian"
                 },
                 "dob": {
@@ -302,50 +329,62 @@
                 },
                 "national_insurance_number": {
                     "type": ["string", "null"],
+                    "minLength": 1,
                     "description": "National insurance number"
                 },
                 "address_line_1": {
                     "type": "string",
+                  "minLength": 1,
                     "description": "Address line 1"
                 },
                 "address_line_2": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Address line 2"
                 },
                 "address_line_3": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Address line 3"
                 },
                 "address_line_4": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Address line 4"
                 },
                 "address_line_5": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Address line 5"
                 },
                 "post_code": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Postcode"
                 },
                 "telephone_number_home": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Home telephone number"
                 },
                 "telephone_number_business": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Business telephone number"
                 },
                 "telephone_number_mobile": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Mobile telephone number"
                 },
                 "email_address_1": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Primary email address"
                 },
                 "email_address_2": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Secondary email address"
                 },
                 "debtor_detail": {
@@ -359,6 +398,7 @@
             "properties": {
                 "notice_number": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Notice number"
                 },
                 "date_of_issue": {
@@ -373,18 +413,22 @@
                 },
                 "fp_registration_number": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "FP registration number"
                 },
                 "notice_to_owner_hirer": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Notice to owner/hirer"
                 },
                 "place_of_offence": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Place of offence"
                 },
                 "fp_driving_licence_number": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Driving licence number"
                 }
             }
@@ -421,6 +465,7 @@
             "properties": {
                 "result_id": {
                     "type": "string",
+                  "minLength": 1,
                     "description": "Result identifier"
                 },
                 "amount_imposed": {
@@ -453,18 +498,22 @@
                 },
                 "title": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Title of the minor creditor"
                 },
                 "company_name": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Company name"
                 },
                 "surname": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Surname of the minor creditor"
                 },
                 "forenames": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Forenames of the minor creditor"
                 },
                 "dob": {
@@ -474,34 +523,42 @@
                 },
                 "address_line_1": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Address"
                 },
                 "address_line_2": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Address line 2"
                 },
                 "address_line_3": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Address line 3"
                 },
                 "address_line_4": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Address line 4"
                 },
                 "address_line_5": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Address line 5"
                 },
                 "post_code": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Postcode"
                 },
                 "telephone": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Telephone number"
                 },
                 "email_address": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Email address"
                 },
                 "payout_hold": {
@@ -518,18 +575,22 @@
                 },
                 "bank_sort_code": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Bank sort code"
                 },
                 "bank_account_number": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Bank account number"
                 },
                 "bank_account_name": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Name of the account"
                 },
                 "bank_account_ref": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Bank account reference"
                 }
             }
@@ -544,18 +605,22 @@
                 },
                 "title": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Title of the defendant"
                 },
                 "surname": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Surname of the defendant"
                 },
                 "company_name": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Company name of the defendant"
                 },
                 "forenames": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "First forename of the defendant"
                 },
                 "dob": {
@@ -565,38 +630,47 @@
                 },
                 "address_line_1": {
                     "type": "string",
+                  "minLength": 1,
                     "description": "Address line 1"
                 },
                 "address_line_2": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Address line 2"
                 },
                 "address_line_3": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Address line 3"
                 },
                 "address_line_4": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Address line 4"
                 },
                 "address_line_5": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Address line 5"
                 },
                 "post_code": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Postcode"
                 },
                 "telephone_number_home": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Home telephone number"
                 },
                 "telephone_number_business": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Business telephone number"
                 },
                 "telephone_number_mobile": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Mobile telephone number"
                 },
                 "email_address_1": {
@@ -605,58 +679,72 @@
                 },
                 "email_address_2": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Secondary email address"
                 },
                 "national_insurance_number": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "National insurance number"
                 },
                 "driving_licence_number": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Driving licence number"
                 },
                 "pnc_id": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "PNC ID"
                 },
                 "nationality_1": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Primary nationality"
                 },
                 "nationality_2": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Secondary nationality"
                 },
                 "ethnicity_self_defined": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Self-defined ethnicity"
                 },
                 "ethnicity_observed": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Observed ethnicity"
                 },
                 "cro_number": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "CRO number"
                 },
                 "occupation": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Occupation"
                 },
                 "gender": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Gender"
                 },
                 "custody_status": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Custody status"
                 },
                 "prison_number": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Prison number"
                 },
                 "interpreter_lang": {
                     "type": ["string", "null"],
+                  "minLength": 1,
                     "description": "Interpreter language"
                 },
                 "debtor_detail": {

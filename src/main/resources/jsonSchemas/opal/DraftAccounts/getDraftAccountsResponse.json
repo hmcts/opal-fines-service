@@ -32,10 +32,12 @@
         },
         "submitted_by": {
           "type": "string",
+          "minLength": 1,
           "description": "ID of the User that last submitted the Draft Account for checking"
         },
         "submitted_by_name": {
             "type": "string",
+          "minLength": 1,
             "description": "Identifier for the user that submitted the account"
         },
         "validated_at": {
@@ -45,6 +47,7 @@
         },
         "validated_by": {
           "type": ["string", "null"],
+          "minLength": 1,
           "description": "[Optional] ID of the User that validated the Draft Account"
         },
         "account_snapshot": {
@@ -53,10 +56,12 @@
         },
         "account_type": {
           "type": "string",
+          "minLength": 1,
           "description": "Type of Account, such as Fixed Penalty Registration"
         },
         "account_status": {
 			"type": "string",
+          "minLength": 1,
           "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
         },
         "account_status_date": {
@@ -66,10 +71,12 @@
         },
 		"status_message": {
 			"type": ["string", "null"],
+      "minLength": 1,
 			"description": "System message related to the account_status"
 		},
 		"account_number": {
           "type": ["string", "null"],
+      "minLength": 1,
           "description": "[Optional] The Opal Account Number (2char letter code+account number) created on validation - System generated (BE)"
         },
         "account_id": {

@@ -5,10 +5,12 @@
   "properties": {
     "validated_by": {
       "type": ["string", "null"],
+      "minLength": 1,
       "description": "ID of the User that validated the Draft Account for checking"
     },
     "validated_by_name": {
       "type": ["string", "null"],
+      "minLength": 1,
       "description": "Value of the name claim in the AAD Acces Token"
     },
     "business_unit_id": {
@@ -18,10 +20,12 @@
     },
     "account_status": {
       "type": "string",
+      "minLength": 1,
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Publishing Pending, Deleted"
     },
     "reason_text": {
       "type": ["string", "null"],
+      "minLength": 1,
       "description": "Required when status is Rejected or Deleted; optional otherwise"
     },
 
