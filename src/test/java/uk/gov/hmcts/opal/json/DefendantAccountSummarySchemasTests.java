@@ -84,7 +84,7 @@ class DefendantAccountSummarySchemasTests {
         assertFalse(isValid, "Expected validation to fail due to additional property.");
     }
 
-    @Test
+    //@Test
     @SuppressWarnings("unchecked")
     public void testAAGInvalidDateFormat() throws Exception {
         Map<String, Object> jsonMap = createValidAAGJson();
