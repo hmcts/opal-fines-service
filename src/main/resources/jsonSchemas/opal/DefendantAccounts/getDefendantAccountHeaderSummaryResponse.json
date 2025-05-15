@@ -4,13 +4,14 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "defendant_account_id": { "type": "string" },
+    "defendant_account_id": { "type": "string", "minLength": 1 },
     "version": { "type": "integer" },
-    "account_number": { "type": "string" },
+    "account_number": { "type": "string", "minLength": 1 },
     "has_parent_guardian": { "type": "boolean" },
     "debtor_type": {
       "type": "string",
-      "enum": ["Defendant", "Parent/Guardian"]
+      "enum": ["Defendant", "Parent/Guardian"],
+      "minLength": 1
     },
     "organisation": { "type": "boolean" },
     "account_status_display_name": {
@@ -23,17 +24,19 @@
         "TFO acknowledged",
         "Account consolidated",
         "Account written off"
-      ]
+      ],
+      "minLength": 1
     },
     "account_type": {
       "type": "string",
-      "enum": ["Fine", "Conditional Caution", "Confiscation", "Fixed Penalty"]
+      "enum": ["Fine", "Conditional Caution", "Confiscation", "Fixed Penalty"],
+      "minLength": 1
     },
-    "prosecutor_case_reference": { "type": ["string", "null"]},
-    "fixed_penalty_ticket_number": {"type": ["string", "null"]},
-    "business_unit_name": { "type": "string" },
-    "business_unit_id": { "type": "string" },
-    "business_unit_code": { "type": "string" },
+    "prosecutor_case_reference": { "type": ["string", "null"], "minLength": 1 },
+    "fixed_penalty_ticket_number": { "type": ["string", "null"], "minLength": 1 },
+    "business_unit_name": { "type": "string", "minLength": 1 },
+    "business_unit_id": { "type": "string", "minLength": 1 },
+    "business_unit_code": { "type": "string", "minLength": 1 },
     "imposed": {
       "type": "number",
       "multipleOf": 0.01
@@ -54,14 +57,14 @@
       "type": "number",
       "multipleOf": 0.01
     },
-    "organisation_name": {"type": ["string", "null"]},
+    "organisation_name": { "type": ["string", "null"], "minLength": 1 },
     "is_youth": {
       "type": ["boolean", "null"],
       "description": "Derived by backend from parties.birth_date (not returned)"
     },
-    "title": { "type": ["string", "null"] },
-    "firstnames": { "type": ["string", "null"] },
-    "surname": { "type": ["string", "null"] }
+    "title": { "type": ["string", "null"], "minLength": 1 },
+    "firstnames": { "type": ["string", "null"], "minLength": 1 },
+    "surname": { "type": ["string", "null"], "minLength": 1 }
   },
   "required": [
     "defendant_account_id",
@@ -86,16 +89,16 @@
   },
   "then": {
     "properties": {
-      "organisation_name": { "type": "string" }
+      "organisation_name": { "type": "string", "minLength": 1 }
     },
     "required": ["organisation_name"]
   },
   "else": {
     "properties": {
       "is_youth": { "type": "boolean" },
-      "title": { "type": "string" },
-      "firstnames": { "type": "string" },
-      "surname": { "type": "string" }
+      "title": { "type": "string", "minLength": 1 },
+      "firstnames": { "type": "string", "minLength": 1 },
+      "surname": { "type": "string", "minLength": 1 }
     },
     "required": ["is_youth", "title", "firstnames", "surname"]
   }

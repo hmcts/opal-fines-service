@@ -11,8 +11,14 @@
       "type": "string",
       "enum": ["Defendant", "Creditor"]
     },
-    "account_id": { "type": "string" },
-    "account_note_text": { "type": "string" },
+    "account_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "account_note_text": {
+      "type": "string",
+      "minLength": 1
+    },
     "note_type": {
       "type": "string",
       "const": "AA"
