@@ -9,12 +9,10 @@
     },
     "submitted_by": {
       "type": "string",
-      "minLength": 1,
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
     "submitted_by_name": {
       "type": "string",
-      "minLength": 1,
       "description": "Value of the name claim in the AAD Acces Token"
     },
     "account": {
@@ -23,17 +21,14 @@
     },
     "account_type": {
       "type": "string",
-      "minLength": 1,
       "description": "Type of Account, such as Fixed Penalty Registration"
     },
     "account_status": {
       "type": ["string", "null"],
-      "minLength": 1,
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
     },
     "status_message": {
       "type": ["string", "null"],
-      "minLength": 1,
       "description": "System message related to the account_status"
     },
     "timeline_data": {
