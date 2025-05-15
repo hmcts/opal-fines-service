@@ -9,14 +9,10 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.OffenceEntity;
-import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
-import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
-import java.time.LocalDateTime;
-
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -52,7 +48,6 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Get offence reference data")
     void testGetOffenceReferenceData() throws Exception {
-        OffenceEntity offenceEntity = createOffenceEntity();
         ResultActions actions = mockMvc.perform(get(URL_BASE).param("cjs_code","CW96023"));
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetOffenceReferenceData: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -62,16 +57,17 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.refData[0].offence_id").value(53115))
             .andExpect(jsonPath("$.refData[0].cjs_code").value("CW96023"))
-            .andExpect(jsonPath("$.refData[0].offence_title").value("Use a chemical weapon"));
-
+            .andExpect(jsonPath("$.refData[0].offence_title")
+                .value("Use a chemical weapon"));
         assertTrue(jsonSchemaValidationService.isValid(body, GET_OFFENCES_REF_DATA_RESPONSE));
     }
+
 
     @Test
     @DisplayName("Get no offences returned when offence does not exist [@PO-420, PO-272]")
     void testGetOffenceById_WhenOffenceDoesNotExist() throws Exception {
         mockMvc.perform(get(URL_BASE + "/999999"))
-            .andExpect(status().isNotFound()); ///.andExpect(status().isInternalServerError());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -108,6 +104,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(0));
     }
 
+    @DisplayName("Get offence reference data by single cjs_code value [@PO-304, PO-1445]")
     @Test
     void testGetOffencesWithCjsCode() throws Exception {
         mockMvc.perform(get(URL_BASE)
@@ -121,28 +118,15 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
                 .value("Contrary to section 2(1)(a) and (8) of the Chemical Weapons Act 1996."));
     }
 
-
-    private OffenceEntity createOffenceEntity() {
-        return OffenceEntity.builder()
-            .offenceId(1L)
-            .cjsCode("cjs-code")
-            .businessUnit(BusinessUnitEntity.builder().build())
-            .offenceTitle("Title of Offence")
-            .offenceTitleCy("Title of Offence CY")
-            .build();
-    }
-
-    private OffenceReferenceData createOffenceReferenceData() {
-        return new OffenceReferenceData(1L, "TH123456", (short)007,
-                                        "Thief of Time", null,
-                                        LocalDateTime.of(1909, 3, 3, 3, 30),
-                                        null, "An Important Offence", "");
-    }
-
-    private OffenceSearchData createOffenceSearchData() {
-        return new OffenceSearchData(1L, "TH123456",
-                                     "Thief of Time", null,
-                                     LocalDateTime.of(1909, 3, 3, 3, 30),
-                                     null, "An Important Offence", "");
+    @Test
+    @DisplayName("Get offences using comma-separated cjs_code values [@PO-304, PO-1445]")
+    void testGetOffencesWithMultipleCjsCodes() throws Exception {
+        mockMvc.perform(get(URL_BASE)
+                .param("cjs_code","WT67003","ZP97010"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.refData", hasSize(2)))
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.refData[*].cjs_code", containsInAnyOrder("WT67003","ZP97010")));
     }
 }
