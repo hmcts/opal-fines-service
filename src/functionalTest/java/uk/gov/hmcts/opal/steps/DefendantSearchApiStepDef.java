@@ -19,24 +19,9 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
     public void postToDefendantSearchAPI(DataTable searchCriteria) throws JSONException {
         Map<String, String> dataToPost = searchCriteria.asMap(String.class, String.class);
 
-        JSONObject requestBody = new JSONObject();
-
-        requestBody.put("forename", dataToPost.get("forename") != null ? dataToPost.get("forename") : "");
-        requestBody.put("surname", dataToPost.get("surname") != null ? dataToPost.get("surname") : "");
-        requestBody.put("initials", dataToPost.get("initials") != null ? dataToPost.get("initials") : "");
-
-        JSONObject dateOfBirth = new JSONObject();
-        dateOfBirth.put("day_of_month",
-                        dataToPost.get("day_of_month") != null ? dataToPost.get("day_of_month") : "");
-        dateOfBirth.put("month_of_year",
-                        dataToPost.get("month_of_year") != null ? dataToPost.get("month_of_year") : "");
-        dateOfBirth.put("year", dataToPost.get("year") != null ? dataToPost.get("year") : "");
+        JSONObject requestBody = addToNewJsonObject(dataToPost, "forename", "surname", "initials", "address_line");
+        JSONObject dateOfBirth = addToNewJsonObject(dataToPost, "day_of_month", "month_of_year", "year");
         requestBody.put("date_of_birth", dateOfBirth);
-
-        requestBody.put(
-            "address_line",
-            dataToPost.get("address_line") != null ? dataToPost.get("address_line") : ""
-        );
 
         SerenityRest
             .given()
