@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
@@ -16,7 +17,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountSummarySchemasTests {
 
+    @InjectMocks
     private JsonSchemaValidationService validator;
+
     private ObjectMapper mapper;
     private static final String GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA =
         "opal/DefendantAccounts/getDefendantAccountAtAGlanceResponse.json";
@@ -29,7 +32,6 @@ class DefendantAccountSummarySchemasTests {
 
     @BeforeEach
     public void setUp() {
-        validator = new JsonSchemaValidationService();
         mapper = new ObjectMapper();
     }
 
