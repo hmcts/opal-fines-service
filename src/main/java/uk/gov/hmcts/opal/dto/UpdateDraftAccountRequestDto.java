@@ -31,6 +31,10 @@ public class UpdateDraftAccountRequestDto implements ToJsonString, Versioned {
     @JsonProperty("account_status")
     private String accountStatus;
 
+    @JsonProperty("reason_text")
+    private String reasonText;
+
+
     @JsonProperty("timeline_data")
     @JsonDeserialize(using = KeepAsJsonDeserializer.class)
     @JsonRawValue

@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import jakarta.validation.constraints.NotBlank;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
 
 import java.time.OffsetDateTime;
@@ -47,6 +48,7 @@ public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequ
     private String accountSnapshot;
 
     @JsonProperty(value = "account_type", required = true)
+    @NotBlank(message = "account_type must not be blank")
     private String accountType;
 
     @JsonProperty(value = "timeline_data", required = true)
@@ -55,8 +57,10 @@ public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequ
     private String timelineData;
 
     @JsonProperty(value = "submitted_by", required = true)
+    @NotBlank(message = "submitted_by must not be blank")
     private String submittedBy;
 
     @JsonProperty(value = "submitted_by_name", required = true)
+    @NotBlank(message = "submitted_by_name must not be blank")
     private String submittedByName;
 }
