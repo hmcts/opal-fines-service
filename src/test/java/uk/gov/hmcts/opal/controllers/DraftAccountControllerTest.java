@@ -79,23 +79,23 @@ class DraftAccountControllerTest {
             .summaries(List.of(toSummaryDto(entity)))
             .build();
 
-        when(draftAccountService.getDraftAccounts(any(), any(), any(), any(),any())).thenReturn(responseDto);
-
-        when(draftAccountService.getDraftAccounts(any(), any(), any(), any(),any())).thenReturn(responseDto);
+        when(draftAccountService.getDraftAccounts(any(), any(), any(), any(),any(), any(), any()))
+            .thenReturn(responseDto);
 
         // Act
         ResponseEntity<DraftAccountsResponseDto> response = draftAccountController
             .getDraftAccountSummaries(Optional.of(List.of(BU_ID)),
                                       Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
-                                      Optional.of(List.of()),
-                                      Optional.of(List.of()), BEARER_TOKEN);
+                                      Optional.of(List.of()), Optional.of(List.of()),
+                                      Optional.empty(), Optional.empty(), BEARER_TOKEN);
         DraftAccountsResponseDto dto = response.getBody();
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, dto.getCount());
         assertEquals(toSummaryDto(entity), dto.getSummaries().get(0));
-        verify(draftAccountService, times(1)).getDraftAccounts(any(), any(), any(), any(),any());
+        verify(draftAccountService, times(1))
+            .getDraftAccounts(any(), any(), any(), any(),any(), any(), any());
     }
 
     @Test
