@@ -82,16 +82,14 @@ class DraftAccountServiceTest {
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
             BusinessUnitEntity.builder().businessUnitId((short)77).build())
             .build();
-        when(draftAccountTransactions.getDraftAccounts(any(), any(), any(), any()))
+        when(draftAccountTransactions.getDraftAccounts(any(), any(), any(), any(), any(), any()))
             .thenReturn(List.of(draftAccountEntity));
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
         // Act
         DraftAccountsResponseDto result = draftAccountService.getDraftAccounts(
-            Optional.of(List.copyOf(Set.of((short) 1))),
-            Optional.of(List.copyOf(Set.of(DraftAccountStatus.REJECTED))),
-            Optional.of(List.of()),
-            Optional.of(List.of()),
+            Optional.of(List.copyOf(Set.of((short) 1))), Optional.of(List.copyOf(Set.of(DraftAccountStatus.REJECTED))),
+            Optional.of(List.of()), Optional.of(List.of()), Optional.empty(), Optional.empty(),
             "authHeaderValue"
         );
         // Assert

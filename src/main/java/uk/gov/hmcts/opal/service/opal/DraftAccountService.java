@@ -22,6 +22,8 @@ import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
+
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -75,6 +77,7 @@ public class DraftAccountService {
     public DraftAccountsResponseDto getDraftAccounts(
         Optional<List<Short>> optionalBusinessUnitIds, Optional<List<DraftAccountStatus>> optionalStatus,
         Optional<List<String>> optionalSubmittedBys, Optional<List<String>> optionalNotSubmittedBys,
+        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo,
         String authHeaderValue) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
@@ -94,7 +97,7 @@ public class DraftAccountService {
 
             List<DraftAccountEntity> entities = draftAccountTransactions
                 .getDraftAccounts(optionalBusinessUnitIds.orElse(Collections.emptyList()),
-                                  statuses, submittedBys, notSubmitted);
+                                  statuses, submittedBys, notSubmitted, accountStatusDateFrom, accountStatusDateTo);
 
             log.debug(":GET:getDraftAccountSummaries: pre-auth summaries count: {}", entities.size());
 
