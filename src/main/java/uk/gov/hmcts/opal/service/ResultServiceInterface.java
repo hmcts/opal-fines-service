@@ -1,13 +1,14 @@
 package uk.gov.hmcts.opal.service;
 
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
-import uk.gov.hmcts.opal.entity.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntityFull;
+import uk.gov.hmcts.opal.entity.result.ResultEntityLite;
 
 import java.util.List;
 
 public interface ResultServiceInterface {
 
-    ResultEntity getResult(String resultId);
+    ResultEntityLite getResult(String resultId);
 
-    List<ResultEntity> searchResults(ResultSearchDto criteria);
+    List<ResultEntityFull> searchResults(ResultSearchDto criteria);
 }
