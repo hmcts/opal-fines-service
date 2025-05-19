@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResults;
-import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
 import java.util.List;
@@ -50,18 +50,17 @@ public class ResultController {
 
     @GetMapping
     @Operation(summary = "Returns all results or results for the given resultIds.")
-    @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultIds.orElse('ALL_RESULTS')")
-    public ResponseEntity<ResultReferenceDataResults> getResults(
+    public ResponseEntity<ResultReferenceDataResponse> getResults(
         @RequestParam(name = "result_ids") Optional<List<String>> resultIds) {
 
         log.debug("GET:getResults: resultIds: {}", resultIds);
 
-        List<ResultReferenceData> refData = resultIds
+        ResultReferenceDataResponse refDataResponse = resultIds
             .filter(ids -> !ids.isEmpty())
             .map(resultService::getResultsByIds)
             .orElseGet(resultService::getAllResults);
 
-        return buildResponse(ResultReferenceDataResults.builder().refData(refData).build());
+        return buildResponse(refDataResponse);
     }
 
 }

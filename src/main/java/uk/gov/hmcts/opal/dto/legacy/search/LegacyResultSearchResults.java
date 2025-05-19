@@ -6,7 +6,7 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.Builder;
 import lombok.Data;
-import uk.gov.hmcts.opal.entity.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntityLite;
 
 import java.util.List;
 
@@ -17,6 +17,6 @@ import java.util.List;
 public class LegacyResultSearchResults {
 
     @XmlElement(name = "resultEntity")
-    private List<ResultEntity> resultEntities;
+    private List<ResultEntityLite> resultEntities;
     private int totalCount;
 }

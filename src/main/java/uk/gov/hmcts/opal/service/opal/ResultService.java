@@ -8,11 +8,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
-import uk.gov.hmcts.opal.entity.ResultEntity_;
-import uk.gov.hmcts.opal.entity.ResultEntity;
-import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
-import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.entity.result.ResultEntityFull;
+import uk.gov.hmcts.opal.entity.result.ResultEntityFull_;
+import uk.gov.hmcts.opal.entity.result.ResultEntityLite;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
+import uk.gov.hmcts.opal.mapper.ResultMapper;
+import uk.gov.hmcts.opal.repository.ResultFullRepository;
+import uk.gov.hmcts.opal.repository.ResultLiteRepository;
 import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
 import uk.gov.hmcts.opal.service.ResultServiceInterface;
 
@@ -24,32 +28,44 @@ import java.util.Optional;
 @Qualifier("resultService")
 public class ResultService implements ResultServiceInterface {
 
-    private final ResultRepository resultRepository;
+    private final ResultLiteRepository resultLiteRepository;
+    private final ResultFullRepository resultFullRepository;
+    private final ResultMapper resultMapper;
 
     private final ResultSpecs specs = new ResultSpecs();
 
     @Override
-    public ResultEntity getResult(String resultId) {
-        return resultRepository.getReferenceById(resultId);
+    public ResultEntityLite getResult(String resultId) {
+        return resultLiteRepository.getReferenceById(resultId);
     }
 
     public ResultReferenceData getResultReferenceData(String resultId) {
-        return toRefData(resultRepository.getReferenceById(resultId));
+        return resultMapper.toRefData(resultLiteRepository.getReferenceById(resultId));
     }
 
-    public List<ResultReferenceData> getAllResults() {
-        return resultRepository.findAll().stream().map(this::toRefData).toList();
+    @Cacheable(
+        cacheNames = "resultReferenceDataCache",
+        key = "#root.method.name"
+    )
+    public ResultReferenceDataResponse getAllResults() {
+        return resultMapper.toReferenceDataResponse(
+            resultLiteRepository.findAll());
     }
 
-    public List<ResultReferenceData> getResultsByIds(List<String> resultIds) {
-        return resultRepository.findByResultIdIn(resultIds).stream().map(this::toRefData).toList();
+    @Cacheable(
+        cacheNames = "resultReferenceDataCache",
+        key = "#root.method.name+ '_' + T(String).join(',', #resultIds)"
+    )
+    public ResultReferenceDataResponse getResultsByIds(List<String> resultIds) {
+        return resultMapper.toReferenceDataResponse(
+            resultLiteRepository.findByResultIdIn(resultIds));
     }
 
 
 
     @Override
-    public List<ResultEntity> searchResults(ResultSearchDto criteria) {
-        Page<ResultEntity> page = resultRepository
+    public List<ResultEntityFull> searchResults(ResultSearchDto criteria) {
+        Page<ResultEntityFull> page = resultFullRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq.page(Pageable.unpaged()));
 
@@ -62,26 +78,15 @@ public class ResultService implements ResultServiceInterface {
     )
     public List<ResultReferenceData> getReferenceData(Optional<String> filter) {
 
-        Sort nameSort = Sort.by(Sort.Direction.ASC, ResultEntity_.RESULT_TITLE);
+        Sort nameSort = Sort.by(Sort.Direction.ASC, ResultEntityFull_.RESULT_TITLE);
 
-        Page<ResultEntity> page = resultRepository
+        Page<ResultEntityFull> page = resultFullRepository
             .findBy(specs.referenceDataFilter(filter),
                     ffq -> ffq
                         .sortBy(nameSort)
                         .page(Pageable.unpaged()));
 
-        return page.getContent().stream().map(this::toRefData).toList();
+        return page.getContent().stream().map(resultMapper::toRefDataFromFull).toList();
     }
 
-    private ResultReferenceData toRefData(ResultEntity entity) {
-        return new ResultReferenceData(
-            entity.getResultId(),
-            entity.getResultTitle(),
-            entity.getResultTitleCy(),
-            entity.isActive(),
-            entity.getResultType(),
-            entity.getImpositionCreditor(),
-            entity.getImpositionAllocationPriority()
-        );
-    }
 }
