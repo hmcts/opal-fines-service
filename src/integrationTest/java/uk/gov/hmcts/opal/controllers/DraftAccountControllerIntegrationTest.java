@@ -81,6 +81,10 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.submitted_by").value("user_001"))
             .andExpect(jsonPath("$.account_status").value("Submitted"))
             .andExpect(jsonPath("$.account_status_date").value("2024-12-10T16:27:01.023126Z"))
+            .andExpect(jsonPath("$.submitted_by_name").value("John Smith"))
+            .andExpect(jsonPath("$.version").value(0))
+            .andExpect(jsonPath("$.status_message").doesNotExist())
+            .andExpect(jsonPath("$.validated_by_name").doesNotExist())
             .andReturn();
 
         String body = result.getResponse().getContentAsString();
