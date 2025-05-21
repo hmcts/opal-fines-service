@@ -22,7 +22,7 @@ Feature: This feature covers all the ref data scenarios
 
   @PO-349
   Scenario: Verifying the end points for the major creditors
-    When I make a request to the major creditors ref data api filter by major creditor id 15
+    When I make a request to the major creditors ref data api filter by major creditor id 1300000000075
     Then the major creditors ref data matching to result
 
   @PO-312
