@@ -52,6 +52,9 @@ class DraftAccountServiceTest {
     @Mock
     private DraftAccountTransactions draftAccountTransactions;
 
+    @Mock
+    private DraftAccountMapper draftAccountMapper;
+
     @InjectMocks
     private DraftAccountService draftAccountService;
 

@@ -267,7 +267,7 @@ repositories {
 
 ext {
   log4JVersion = "2.24.3"
-  serenityVersion = "4.2.26"
+  serenityVersion = "4.2.30"
 }
 
 ext['snakeyaml.version'] = '2.0'
@@ -319,6 +319,10 @@ dependencies {
   compileOnly 'org.projectlombok:lombok:1.18.36'
   annotationProcessor 'org.projectlombok:lombok:1.18.36'
   annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.15.Final'
+
+  // MapStruct
+  implementation 'org.mapstruct:mapstruct:1.6.3'
+  annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
   testCompileOnly 'org.projectlombok:lombok:1.18.36'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.36'
