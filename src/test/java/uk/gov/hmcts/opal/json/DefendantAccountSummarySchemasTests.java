@@ -110,10 +110,10 @@ class DefendantAccountSummarySchemasTests {
         debtorDetail.put("organisation_name", "Acme Corporation");
 
         // remove person-related fields which aren't required when organisation=true
-        debtorDetail.remove("title");
-        debtorDetail.remove("first_names");
-        debtorDetail.remove("surname");
-        debtorDetail.remove("date_of_birth");
+        debtorDetail.replace("title", null);
+        debtorDetail.replace("first_names", null);
+        debtorDetail.replace("surname", null);
+        debtorDetail.replace("date_of_birth", null);
 
         String jsonString = mapper.writeValueAsString(jsonMap);
         boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
@@ -308,6 +308,10 @@ class DefendantAccountSummarySchemasTests {
         debtorDetail.put("debtor_type", "Defendant");
         debtorDetail.put("organisation", false);
         debtorDetail.put("address_line_1", "123 Main Street");
+        debtorDetail.put("address_line_2", null);
+        debtorDetail.put("address_line_3", null);
+        debtorDetail.put("address_line_4", null);
+        debtorDetail.put("address_line_5", null);
         debtorDetail.put("post_code", "AB12 3CD");
         debtorDetail.put("document_language", "EN");
         debtorDetail.put("hearing_language", "EN");
@@ -316,18 +320,37 @@ class DefendantAccountSummarySchemasTests {
         debtorDetail.put("surname", "Doe");
         debtorDetail.put("date_of_birth", "1990-12-31");
         debtorDetail.put("national_insurance_number", "AB123456C");
+        debtorDetail.put("individual_aliases", null);
+        debtorDetail.put("organisation_name", null);
+        debtorDetail.put("organisation_aliases", null);
         json.put("debtor_detail", debtorDetail);
 
         Map<String, Object> paymentTerms = new HashMap<>();
         paymentTerms.put("payment_terms_type_code", "B");
+        paymentTerms.put("instalment_amount", null);
+        paymentTerms.put("effective_date", null);
+        paymentTerms.put("payment_terms_summary", null);
+        paymentTerms.put("lump_sum_amount", null);
+        paymentTerms.put("next_payment_date", null);
+        paymentTerms.put("last_payment_date", null);
+        paymentTerms.put("instalment_period", "W");
         json.put("payment_terms", paymentTerms);
 
         Map<String, Object> enforcementStatus = new HashMap<>();
         enforcementStatus.put("collection_order_made", true);
+        enforcementStatus.put("last_enforcement_action", null);
+        enforcementStatus.put("enforcement_override_id", null);
+        enforcementStatus.put("last_movement_date", null);
+        enforcementStatus.put("last_enforcement_action_title", null);
+        enforcementStatus.put("default_days_in_jail", null);
+        enforcementStatus.put("enforcement_override_title", null);
         json.put("enforcement_status", enforcementStatus);
+
+        json.put("account_notes", null);
 
         return json;
     }
+
 
     private Map<String, Object> createValidHeaderSummaryJson(boolean isOrganisation) {
         Map<String, Object> json = new HashMap<>();
