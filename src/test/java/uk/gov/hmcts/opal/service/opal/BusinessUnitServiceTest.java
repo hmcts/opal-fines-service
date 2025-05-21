@@ -40,7 +40,7 @@ class BusinessUnitServiceTest {
         // Arrange
 
         BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder().build();
-        when(businessUnitRepository.getReferenceById(any())).thenReturn(businessUnitEntity);
+        when(businessUnitRepository.findById(any())).thenReturn(Optional.of(businessUnitEntity));
 
         // Act
         BusinessUnitEntity result = businessUnitService.getBusinessUnit((short)1);

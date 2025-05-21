@@ -35,7 +35,7 @@
           "description": "The title of the Offence"
         },
         "account_number_prefix": {
-          "type": "string",
+          "type": ["string", "null"],
           "description": "Date the Offence is valid up until, inclusive"
         },
         "opal_domain": {

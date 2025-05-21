@@ -27,7 +27,6 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 
@@ -51,6 +50,8 @@ public class DraftAccountService {
     private final BusinessUnitRepository businessUnitRepository;
 
     private final JsonSchemaValidationService jsonSchemaValidationService;
+
+    private final DraftAccountMapper draftAccountMapper;
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId, String authHeaderValue) {
 
@@ -221,19 +222,6 @@ public class DraftAccountService {
     }
 
     public DraftAccountSummaryDto toSummaryDto(DraftAccountEntity entity) {
-        return DraftAccountSummaryDto.builder()
-            .draftAccountId(entity.getDraftAccountId())
-            .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
-            .createdDate(toUtcDateTime(entity.getCreatedDate()))
-            .submittedBy(entity.getSubmittedBy())
-            .validatedDate(toUtcDateTime(entity.getValidatedDate()))
-            .validatedBy(entity.getValidatedBy())
-            .validatedByName(entity.getValidatedByName())
-            .accountSnapshot(entity.getAccountSnapshot())
-            .accountType(entity.getAccountType())
-            .accountStatus(entity.getAccountStatus())
-            .accountNumber(entity.getAccountNumber())
-            .accountId(entity.getAccountId())
-            .build();
+        return draftAccountMapper.toDto(entity);
     }
 }

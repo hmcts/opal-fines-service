@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +18,6 @@ import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
-import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
@@ -36,17 +34,12 @@ import static uk.gov.hmcts.opal.util.PermissionUtil.filterBusinessUnitsByPermiss
 @Tag(name = "BusinessUnit Controller")
 public class BusinessUnitController {
 
-    private final BusinessUnitServiceInterface businessUnitService;
-
-    private final BusinessUnitService opalBusinessUnitService;
+    private final BusinessUnitService businessUnitService;
 
     private final UserStateService userStateService;
 
-    public BusinessUnitController(
-        @Qualifier("businessUnitServiceProxy") BusinessUnitServiceInterface businessUnitService,
-        BusinessUnitService opalBusinessUnitService, UserStateService userStateService) {
+    public BusinessUnitController(BusinessUnitService businessUnitService, UserStateService userStateService) {
         this.businessUnitService = businessUnitService;
-        this.opalBusinessUnitService = opalBusinessUnitService;
         this.userStateService = userStateService;
     }
 
@@ -80,8 +73,8 @@ public class BusinessUnitController {
 
         log.debug(":GET:getBusinessUnitRefData: permission: {}, query: \n{}", permission, filter);
 
-        List<BusinessUnitReferenceData> refData =  filterBusinessUnitsByPermission(userStateService,
-            opalBusinessUnitService.getReferenceData(filter), permission, authHeaderValue);
+        List<BusinessUnitReferenceData> refData =  filterBusinessUnitsByPermission(
+            userStateService, businessUnitService.getReferenceData(filter), permission, authHeaderValue);
 
         log.debug(":GET:getBusinessUnitRefData: business unit reference data count: {}", refData.size());
         return ResponseEntity.ok(BusinessUnitReferenceDataResults.builder().refData(refData).build());
