@@ -11,10 +11,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
-import uk.gov.hmcts.opal.entity.ResultEntity;
-import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
-import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.entity.result.ResultEntityFull;
+import uk.gov.hmcts.opal.entity.result.ResultEntityLite;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
+import uk.gov.hmcts.opal.mapper.ResultMapper;
+import uk.gov.hmcts.opal.repository.ResultFullRepository;
+import uk.gov.hmcts.opal.repository.ResultLiteRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +33,13 @@ import static org.mockito.Mockito.when;
 class ResultServiceTest {
 
     @Mock
-    private ResultRepository resultRepository;
+    private ResultLiteRepository resultLiteRepository;
+
+    @Mock
+    private ResultFullRepository resultFullRepository;
+
+    @Mock
+    private ResultMapper resultMapper;
 
     @InjectMocks
     private ResultService resultService;
@@ -38,11 +48,11 @@ class ResultServiceTest {
     void testGetResult() {
         // Arrange
 
-        ResultEntity resultEntity = ResultEntity.builder().build();
-        when(resultRepository.getReferenceById(any())).thenReturn(resultEntity);
+        ResultEntityLite resultEntity = ResultEntityLite.builder().build();
+        when(resultLiteRepository.getReferenceById(any())).thenReturn(resultEntity);
 
         // Act
-        ResultEntity result = resultService.getResult("ABC");
+        ResultEntityLite result = resultService.getResult("ABC");
 
         // Assert
         assertNotNull(result);
@@ -53,8 +63,12 @@ class ResultServiceTest {
     void testGetResultReferenceData() {
         // Arrange
 
-        ResultEntity resultEntity = ResultEntity.builder().build();
-        when(resultRepository.getReferenceById(any())).thenReturn(resultEntity);
+        ResultEntityLite resultEntity = ResultEntityLite.builder().build();
+        ResultReferenceData expectedRefData = new ResultReferenceData(
+            null, null, null, false, null, null, null
+        );
+        when(resultLiteRepository.getReferenceById(any())).thenReturn(resultEntity);
+        when(resultMapper.toRefData(resultEntity)).thenReturn(expectedRefData);
 
         // Act
         ResultReferenceData result = resultService.getResultReferenceData("ABC");
@@ -67,51 +81,45 @@ class ResultServiceTest {
     @Test
     void testGetAllResults() {
         // Arrange
-        ResultEntity resultEntity = ResultEntity.builder().build();
-        when(resultRepository.findAll()).thenReturn(List.of(resultEntity));
+        ResultEntityLite resultEntity = ResultEntityLite.builder().build();
+        List<ResultEntityLite> resultEntities = List.of(resultEntity);
+
+        ResultReferenceDataResponse expectedResponse = ResultReferenceDataResponse.builder()
+            .refData(List.of(new ResultReferenceData(
+                null, null, null, false, null, null, null)))
+            .build();
+
+        when(resultLiteRepository.findAll()).thenReturn(resultEntities);
+        when(resultMapper.toReferenceDataResponse(resultEntities)).thenReturn(expectedResponse);
 
         // Act
-        List<ResultReferenceData> result = resultService.getAllResults();
-
-        ResultReferenceData refData =  new ResultReferenceData(
-            resultEntity.getResultId(),
-            resultEntity.getResultTitle(),
-            resultEntity.getResultTitleCy(),
-            resultEntity.isActive(),
-            resultEntity.getResultType(),
-            resultEntity.getImpositionCreditor(),
-            resultEntity.getImpositionAllocationPriority()
-        );
+        ResultReferenceDataResponse result = resultService.getAllResults();
 
         // Assert
-        assertEquals(List.of(refData), result);
-
+        assertEquals(expectedResponse, result);
     }
 
     @Test
     void testGetResultsByIds() {
         // Arrange
-        ResultEntity resultEntity = ResultEntity.builder().build();
-        when(resultRepository.findByResultIdIn(any())).thenReturn(List.of(resultEntity));
+        ResultEntityLite resultEntity = ResultEntityLite.builder().build();
+        List<ResultEntityLite> resultEntities = List.of(resultEntity);
+        List<String> resultIds = List.of("ABC");
+
+        ResultReferenceDataResponse expectedResponse = ResultReferenceDataResponse.builder()
+            .refData(List.of(new ResultReferenceData(
+                null, null, null, false, null, null, null)))
+            .build();
+
+        when(resultLiteRepository.findByResultIdIn(resultIds)).thenReturn(resultEntities);
+        when(resultMapper.toReferenceDataResponse(resultEntities)).thenReturn(expectedResponse);
 
         // Act
-        List<ResultReferenceData> result = resultService.getResultsByIds(List.of("ABC"));
-
-        ResultReferenceData refData =  new ResultReferenceData(
-            resultEntity.getResultId(),
-            resultEntity.getResultTitle(),
-            resultEntity.getResultTitleCy(),
-            resultEntity.isActive(),
-            resultEntity.getResultType(),
-            resultEntity.getImpositionCreditor(),
-            resultEntity.getImpositionAllocationPriority()
-        );
+        ResultReferenceDataResponse result = resultService.getResultsByIds(resultIds);
 
         // Assert
-        assertEquals(List.of(refData), result);
-
+        assertEquals(expectedResponse, result);
     }
-
 
 
 
@@ -121,19 +129,18 @@ class ResultServiceTest {
         // Arrange
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
 
-        ResultEntity resultEntity = ResultEntity.builder().build();
-        Page<ResultEntity> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
-        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+        ResultEntityFull resultEntity = ResultEntityFull.builder().build();
+        Page<ResultEntityFull> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
+        when(resultFullRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
             return mockPage;
         });
 
         // Act
-        List<ResultEntity> result = resultService.searchResults(ResultSearchDto.builder().build());
+        List<ResultEntityFull> result = resultService.searchResults(ResultSearchDto.builder().build());
 
         // Assert
         assertEquals(List.of(resultEntity), result);
-
     }
 
     @SuppressWarnings("unchecked")
@@ -143,9 +150,14 @@ class ResultServiceTest {
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
         when(ffq.sortBy(any())).thenReturn(ffq);
 
-        ResultEntity entity = ResultEntity.builder().build();
-        Page<ResultEntity> mockPage = new PageImpl<>(List.of(entity), Pageable.unpaged(), 999L);
-        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+        ResultEntityFull entity = ResultEntityFull.builder().build();
+        ResultReferenceData expectedRefData = new ResultReferenceData(
+            null, null, null, false, null, null, null
+        );
+        when(resultMapper.toRefDataFromFull(entity)).thenReturn(expectedRefData);
+
+        Page<ResultEntityFull> mockPage = new PageImpl<>(List.of(entity), Pageable.unpaged(), 999L);
+        when(resultFullRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
             return mockPage;
         });
@@ -153,7 +165,7 @@ class ResultServiceTest {
         // Act
         List<ResultReferenceData> result = resultService.getReferenceData(Optional.empty());
 
-        ResultReferenceData refData =  new ResultReferenceData(
+        ResultReferenceData refData = new ResultReferenceData(
             entity.getResultId(),
             entity.getResultTitle(),
             entity.getResultTitleCy(),
@@ -165,6 +177,5 @@ class ResultServiceTest {
 
         // Assert
         assertEquals(List.of(refData), result);
-
     }
 }

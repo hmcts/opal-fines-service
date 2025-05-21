@@ -14,7 +14,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
@@ -72,27 +73,28 @@ class ResultControllerIntegrationTest {
             .andExpect(status().isNotFound());
     }
 
-
     @Test
     @DisplayName("Get all results from endpoint [@PO-703, PO-304]")
     void testGetResultsRefData() throws Exception {
-        List<ResultReferenceData> resultList = List.of(
-            new ResultReferenceData("ABC",
+        ResultReferenceDataResponse response = ResultReferenceDataResponse.builder()
+            .refData(List.of(
+                new ResultReferenceData("ABC",
                                     "Result AAA-BBB",
                                     "Result AAA-BBB Cy",
                                     false,
                                     "ResType-XX",
                                     "AAA-01234",
                                     (short)9),
-            new ResultReferenceData("DEF",
+                new ResultReferenceData("DEF",
                                     "Result CCC-DDD",
                                     "Result CCC-DDD Cy",
                                     true, "ResType-YY",
                                     "BBB-56789",
                                     (short)5)
-        );
+            ))
+            .build();
 
-        when(resultService.getAllResults()).thenReturn(resultList);
+        when(resultService.getAllResults()).thenReturn(response);
 
         ResultActions actions = mockMvc.perform(get(URL_BASE));
 
@@ -113,23 +115,25 @@ class ResultControllerIntegrationTest {
     @Test
     @DisplayName("Get all results by ID [@PO-703, PO-304]")
     void getResultsByIds() throws Exception {
-        List<ResultReferenceData> resultList = List.of(
-            new ResultReferenceData("ABC",
+        ResultReferenceDataResponse response = ResultReferenceDataResponse.builder()
+            .refData(List.of(
+                new ResultReferenceData("ABC",
                                     "Result AAA-BBB",
                                     "Result AAA-BBB Cy",
                                     false,
                                     "ResType-XX",
                                     "AAA-01234",
                                     (short)9),
-            new ResultReferenceData("DEF",
+                new ResultReferenceData("DEF",
                                     "Result CCC-DDD",
                                     "Result CCC-DDD Cy",
                                     true, "ResType-YY",
                                     "BBB-56789",
                                     (short)5)
-        );
+            ))
+            .build();
 
-        when(resultService.getResultsByIds(List.of("ABC", "DEF"))).thenReturn(resultList);
+        when(resultService.getResultsByIds(List.of("ABC", "DEF"))).thenReturn(response);
 
         mockMvc.perform(get(URL_BASE + "?result_ids=ABC,DEF"))
             .andExpect(status().isOk())

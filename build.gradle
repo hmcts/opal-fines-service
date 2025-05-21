@@ -13,7 +13,7 @@ plugins {
   id 'org.sonarqube' version '6.2.0.5505'
   id 'uk.gov.hmcts.java' version '0.12.66'
   id 'org.flywaydb.flyway' version '11.8.2'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.26'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.30'
 }
 
 group = 'uk.gov.hmcts'
@@ -330,6 +330,8 @@ dependencies {
   integrationTestCompileOnly 'org.projectlombok:lombok:1.18.34'
   integrationTestAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
 
+  implementation 'org.mapstruct:mapstruct:1.6.3'
+  annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
   implementation group: 'org.apache.xmlgraphics', name: 'fop', version: '2.11'
   implementation group: 'org.apache.xmlgraphics', name: 'fop-core', version: '2.10'

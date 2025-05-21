@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,18 +12,19 @@ import java.util.Optional;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResultReferenceDataResults {
+public class ResultReferenceDataResponse {
     private Integer count;
     private List<ResultReferenceData> refData;
 
-    public static class ResultReferenceDataResultsBuilder {
-        public ResultReferenceDataResults.ResultReferenceDataResultsBuilder refData(
+    public static class ResultReferenceDataResponseBuilder {
+
+        public ResultReferenceDataResponse.ResultReferenceDataResponseBuilder refData(
             List<ResultReferenceData> refData) {
             this.refData = refData;
             return this.count(Optional.ofNullable(refData).map(List::size).orElse(0));
         }
 
-        private ResultReferenceDataResults.ResultReferenceDataResultsBuilder count(Integer count) {
+        private ResultReferenceDataResponse.ResultReferenceDataResponseBuilder count(Integer count) {
             this.count = count;
             return this;
         }

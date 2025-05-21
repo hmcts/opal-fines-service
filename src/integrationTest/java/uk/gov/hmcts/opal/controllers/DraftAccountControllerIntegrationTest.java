@@ -13,7 +13,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.authentication.aspect.LogAuditDetailsAspect;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
@@ -56,14 +55,10 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     UserStateService userStateService;
 
     @MockBean
-    LogAuditDetailsAspect logAuditDetailsAspect;
-
-    @MockBean
     AccessTokenService tokenService;
 
     @SpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
-
 
     @Test
     @DisplayName("Get Draft Account by ID [@PO-973, @PO-559]")

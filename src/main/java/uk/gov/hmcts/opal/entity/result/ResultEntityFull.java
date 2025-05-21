@@ -1,43 +1,34 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.result;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "results")
-@Data
+@SuperBuilder
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Setter
+@Getter
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "resultId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class ResultEntity {
-
-    @Id
-    private String resultId;
-
-    @Column(name = "result_title", length = 50, nullable = false)
-    private String resultTitle;
-
-    @Column(name = "result_title_cy", length = 50, nullable = false)
-    private String resultTitleCy;
-
-    @Column(name = "result_type", length = 10, nullable = false)
-    private String resultType;
-
-    @Column(name = "active", nullable = false)
-    private boolean active;
+public class ResultEntityFull extends AbstractResultEntity {
 
     @Column(name = "imposition", nullable = false)
     private boolean imposition;
@@ -45,14 +36,8 @@ public class ResultEntity {
     @Column(name = "imposition_category", length = 30)
     private String impositionCategory;
 
-    @Column(name = "imposition_allocation_priority")
-    private Short impositionAllocationPriority;
-
     @Column(name = "imposition_accruing")
     private Boolean impositionAccruing;
-
-    @Column(name = "imposition_creditor", length = 10)
-    private String impositionCreditor;
 
     @Column(name = "enforcement", nullable = false)
     private boolean enforcement;
