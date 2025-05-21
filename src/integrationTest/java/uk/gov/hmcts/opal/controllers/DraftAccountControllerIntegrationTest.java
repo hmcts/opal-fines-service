@@ -41,7 +41,7 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
-@Sql(scripts = "classpath:db/draftAccounts/insert_into_draft_accounts.sql",
+@Sql(scripts = "classpath:db/insertData/insert_into_draft_accounts.sql",
     executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("DraftAccountController Integration Tests")
 class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {

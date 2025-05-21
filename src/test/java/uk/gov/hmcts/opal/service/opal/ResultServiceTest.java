@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -38,7 +39,7 @@ class ResultServiceTest {
     @Mock
     private ResultFullRepository resultFullRepository;
 
-    @Mock
+    @Spy
     private ResultMapper resultMapper;
 
     @InjectMocks
@@ -49,10 +50,10 @@ class ResultServiceTest {
         // Arrange
 
         ResultEntityLite resultEntity = ResultEntityLite.builder().build();
-        when(resultLiteRepository.getReferenceById(any())).thenReturn(resultEntity);
+        when(resultLiteRepository.findById(any())).thenReturn(Optional.of(resultEntity));
 
         // Act
-        ResultEntityLite result = resultService.getResult("ABC");
+        ResultEntityLite result = resultService.getLiteResultById("ABC");
 
         // Assert
         assertNotNull(result);
@@ -63,65 +64,52 @@ class ResultServiceTest {
     void testGetResultReferenceData() {
         // Arrange
 
-        ResultEntityLite resultEntity = ResultEntityLite.builder().build();
+        ResultEntityLite resultEntity = ResultEntityLite.builder().resultId("ABC").build();
         ResultReferenceData expectedRefData = new ResultReferenceData(
-            null, null, null, false, null, null, null
+            "ABC", null, null, false, null, null, null
         );
-        when(resultLiteRepository.getReferenceById(any())).thenReturn(resultEntity);
+        when(resultLiteRepository.findById(any())).thenReturn(Optional.of(resultEntity));
         when(resultMapper.toRefData(resultEntity)).thenReturn(expectedRefData);
 
         // Act
-        ResultReferenceData result = resultService.getResultReferenceData("ABC");
+        ResultReferenceData result = resultService.getResultRefDataById("ABC");
 
         // Assert
         assertNotNull(result);
 
     }
 
-    @Test
-    void testGetAllResults() {
-        // Arrange
-        ResultEntityLite resultEntity = ResultEntityLite.builder().build();
-        List<ResultEntityLite> resultEntities = List.of(resultEntity);
-
-        ResultReferenceDataResponse expectedResponse = ResultReferenceDataResponse.builder()
-            .refData(List.of(new ResultReferenceData(
-                null, null, null, false, null, null, null)))
-            .build();
-
-        when(resultLiteRepository.findAll()).thenReturn(resultEntities);
-        when(resultMapper.toReferenceDataResponse(resultEntities)).thenReturn(expectedResponse);
-
-        // Act
-        ResultReferenceDataResponse result = resultService.getAllResults();
-
-        // Assert
-        assertEquals(expectedResponse, result);
-    }
-
+    @SuppressWarnings("unchecked")
     @Test
     void testGetResultsByIds() {
         // Arrange
-        ResultEntityLite resultEntity = ResultEntityLite.builder().build();
+        ResultEntityLite resultEntity = ResultEntityLite.builder().resultId("ABC").build();
         List<ResultEntityLite> resultEntities = List.of(resultEntity);
-        List<String> resultIds = List.of("ABC");
+        ResultReferenceData dto = new ResultReferenceData(
+            "ABC", null, null, false, null, null, null);
 
-        ResultReferenceDataResponse expectedResponse = ResultReferenceDataResponse.builder()
-            .refData(List.of(new ResultReferenceData(
-                null, null, null, false, null, null, null)))
-            .build();
+        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        when(ffq.sortBy(any())).thenReturn(ffq);
 
-        when(resultLiteRepository.findByResultIdIn(resultIds)).thenReturn(resultEntities);
-        when(resultMapper.toReferenceDataResponse(resultEntities)).thenReturn(expectedResponse);
+        Page<ResultEntityLite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
+        when(resultLiteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(ffq);
+            return mockPage;
+        });
+
+        when(resultMapper.toRefData(any())).thenReturn(dto);
 
         // Act
-        ResultReferenceDataResponse result = resultService.getResultsByIds(resultIds);
+        ResultReferenceDataResponse result = resultService.getResultsByIds(Optional.of(List.of("ABC")));
+
+        ResultReferenceDataResponse expectedResponse = ResultReferenceDataResponse.builder()
+            .refData(List.of(dto))
+            .build();
 
         // Assert
-        assertEquals(expectedResponse, result);
+        assertEquals(expectedResponse.getCount(), result.getCount());
+        assertEquals(expectedResponse.getRefData(), result.getRefData());
     }
-
-
 
     @SuppressWarnings("unchecked")
     @Test
