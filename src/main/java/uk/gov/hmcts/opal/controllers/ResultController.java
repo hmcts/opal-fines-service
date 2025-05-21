@@ -19,7 +19,6 @@ import java.util.Optional;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-
 @RestController
 @RequestMapping("/results")
 @Slf4j(topic = "opal.ResultController")
@@ -35,16 +34,11 @@ public class ResultController {
     @GetMapping(value = "/{resultId}")
     @Operation(summary = "Returns the Result for the given resultId.")
     @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
-    public ResponseEntity<ResultReferenceData> getResultById(@PathVariable Optional<String> resultId) {
+    public ResponseEntity<ResultReferenceData> getResultById(@PathVariable String resultId) {
 
         log.debug(":GET:getResultById: resultId: {}", resultId);
 
-        ResultReferenceData response = resultId
-            .filter(id -> !id.isBlank())
-            .map(resultService::getResultReferenceData)
-            .orElse(null);
-
-        return buildResponse(response);
+        return buildResponse(resultService.getResultRefDataById(resultId));
     }
 
 
@@ -55,12 +49,7 @@ public class ResultController {
 
         log.debug("GET:getResults: resultIds: {}", resultIds);
 
-        ResultReferenceDataResponse refDataResponse = resultIds
-            .filter(ids -> !ids.isEmpty())
-            .map(resultService::getResultsByIds)
-            .orElseGet(resultService::getAllResults);
-
-        return buildResponse(refDataResponse);
+        return buildResponse(resultService.getResultsByIds(resultIds));
     }
 
 }

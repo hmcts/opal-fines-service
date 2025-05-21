@@ -7,19 +7,19 @@ import uk.gov.hmcts.opal.entity.result.ResultEntityFull_;
 
 import java.util.Optional;
 
-public class ResultSpecs extends EntitySpecs<ResultEntityFull> {
+public class ResultSpecsFull extends EntitySpecs<ResultEntityFull> {
 
     public Specification<ResultEntityFull> findBySearchCriteria(ResultSearchDto criteria) {
         return Specification.allOf(specificationList(
-            notBlank(criteria.getResultId()).map(ResultSpecs::likeResultId),
-            notBlank(criteria.getResultTitle()).map(ResultSpecs::likeResultTitle),
-            notBlank(criteria.getResultTitleCy()).map(ResultSpecs::likeResultTitleCy),
-            notBlank(criteria.getResultType()).map(ResultSpecs::likeResultType),
-            notBlank(criteria.getImpositionCategory()).map(ResultSpecs::likeImpositionCategory),
+            notBlank(criteria.getResultId()).map(ResultSpecsFull::likeResultId),
+            notBlank(criteria.getResultTitle()).map(ResultSpecsFull::likeResultTitle),
+            notBlank(criteria.getResultTitleCy()).map(ResultSpecsFull::likeResultTitleCy),
+            notBlank(criteria.getResultType()).map(ResultSpecsFull::likeResultType),
+            notBlank(criteria.getImpositionCategory()).map(ResultSpecsFull::likeImpositionCategory),
             numericShort(criteria.getImpositionAllocationPriority())
-                .map(ResultSpecs::equalsImpositionAllocationPriority),
-            notBlank(criteria.getImpositionCreditor()).map(ResultSpecs::likeImpositionCreditor),
-            notBlank(criteria.getResultParameters()).map(ResultSpecs::likeResultParameters)
+                .map(ResultSpecsFull::equalsImpositionAllocationPriority),
+            notBlank(criteria.getImpositionCreditor()).map(ResultSpecsFull::likeImpositionCreditor),
+            notBlank(criteria.getResultParameters()).map(ResultSpecsFull::likeResultParameters)
         ));
     }
 
@@ -27,10 +27,6 @@ public class ResultSpecs extends EntitySpecs<ResultEntityFull> {
         return Specification.allOf(specificationList(
             filter.filter(s -> !s.isBlank()).map(this::likeAnyResult)
         ));
-    }
-
-    public static Specification<ResultEntityFull> equalsResultId(String resultId) {
-        return (root, query, builder) -> builder.equal(root.get(ResultEntityFull_.resultId), resultId);
     }
 
     public static Specification<ResultEntityFull> likeResultId(String resultId) {
@@ -47,18 +43,9 @@ public class ResultSpecs extends EntitySpecs<ResultEntityFull> {
                                                                resultTitleCy);
     }
 
-    public static Specification<ResultEntityFull> equalsResultType(String resultType) {
-        return (root, query, builder) -> builder.equal(root.get(ResultEntityFull_.resultType), resultType);
-    }
-
     public static Specification<ResultEntityFull> likeResultType(String resultType) {
         return (root, query, builder) ->
             likeWildcardPredicate(root.get(ResultEntityFull_.resultType), builder, resultType);
-    }
-
-    public static Specification<ResultEntityFull> equalsImpositionCategory(String impositionCategory) {
-        return (root, query, builder) ->
-            builder.equal(root.get(ResultEntityFull_.impositionCategory), impositionCategory);
     }
 
     public static Specification<ResultEntityFull> likeImpositionCategory(String impositionCategory) {
@@ -73,18 +60,9 @@ public class ResultSpecs extends EntitySpecs<ResultEntityFull> {
                                                        impositionAllocationPriority);
     }
 
-    public static Specification<ResultEntityFull> equalsImpositionCreditor(String impositionCreditor) {
-        return (root, query, builder) ->
-            builder.equal(root.get(ResultEntityFull_.impositionCreditor), impositionCreditor);
-    }
-
     public static Specification<ResultEntityFull> likeImpositionCreditor(String impositionCreditor) {
         return (root, query, builder) -> likeWildcardPredicate(root.get(ResultEntityFull_.impositionCreditor), builder,
                                                                impositionCreditor);
-    }
-
-    public static Specification<ResultEntityFull> equalsResultParameters(String resultParameters) {
-        return (root, query, builder) -> builder.equal(root.get(ResultEntityFull_.resultParameters), resultParameters);
     }
 
     public static Specification<ResultEntityFull> likeResultParameters(String resultParameters) {
