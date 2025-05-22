@@ -7,6 +7,9 @@
     "defendant_account_id": {
       "type": "string"
     },
+    "business_unit_id": {
+      "type": "string"
+    },
     "version": {
       "type": "integer"
     },
@@ -23,6 +26,7 @@
   },
   "required": [
     "defendant_account_id",
+    "business_unit_id",
     "version",
     "account_type",
     "account_id",
