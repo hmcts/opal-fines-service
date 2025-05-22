@@ -30,6 +30,8 @@ class DefendantAccountSummarySchemasTests {
         "updateDefendantAccountRequest.json";
     private static final String ADD_NOTE_REQUEST_SCHEMA =
         "addNoteRequest.json";
+    private static final String ADD_NOTE_REQUEST_SCHEMA_LEGACY =
+        "legacy/addNoteLegacyRequest.json";
 
     @BeforeEach
     public void setUp() {
@@ -297,6 +299,28 @@ class DefendantAccountSummarySchemasTests {
         boolean isValid = validator.isValid(jsonNode, ADD_NOTE_REQUEST_SCHEMA);
 
         assertFalse(isValid, "Expected JSON to be valid against schema.");
+    }
+
+    @Test
+    void testAddNoteValidJsonAgainstLegacySchema() throws Exception {
+        Map<String, Object> jsonMap = createValidAddNoteJson();
+        jsonMap.put("business_unit_id", "1");
+        jsonMap.put("defendant_account_id", "1");
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA_LEGACY);
+
+        assertTrue(isValid, "Expected JSON to be valid against schema.");
+    }
+
+    @Test
+    void testAddNoteMissingRequiredFieldJsonAgainstLegacySchema() throws Exception {
+        Map<String, Object> jsonMap = createValidAddNoteJson();
+        String jsonString = mapper.writeValueAsString(jsonMap);
+
+        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA_LEGACY);
+
+        assertFalse(isValid, "Expected JSON to be invalid against schema.");
     }
 
     private Map<String, Object> createValidAAGJson() {

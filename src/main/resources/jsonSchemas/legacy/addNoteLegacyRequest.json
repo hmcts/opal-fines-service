@@ -5,7 +5,12 @@
   "additionalProperties": false,
   "properties": {
     "defendant_account_id": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
+    },
+    "business_unit_id": {
+      "type": "string",
+      "minLength": 1
     },
     "version": {
       "type": "integer"
@@ -23,6 +28,7 @@
   },
   "required": [
     "defendant_account_id",
+    "business_unit_id",
     "version",
     "account_type",
     "account_id",

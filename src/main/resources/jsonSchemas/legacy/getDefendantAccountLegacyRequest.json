@@ -5,14 +5,11 @@
   "additionalProperties": false,
   "properties": {
     "defendant_account_id": {
-      "type": "string"
-    },
-    "version": {
-      "type": "integer"
+      "type": "string",
+      "minLength": 1
     }
   },
   "required": [
-    "defendant_account_id",
-    "version"
+    "defendant_account_id"
   ]
 }
