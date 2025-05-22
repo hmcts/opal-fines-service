@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.json;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,9 +43,9 @@ class DefendantAccountSummarySchemasTests {
     @Test
     public void testAAGValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidAAGJson();
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
 
         assertTrue(isValid, "Expected JSON to be valid against schema.");
     }
@@ -53,9 +54,9 @@ class DefendantAccountSummarySchemasTests {
     public void testAAGMissingRequiredField() throws Exception {
         Map<String, Object> jsonMap = createValidAAGJson();
         jsonMap.remove("version"); // remove required field
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
 
         assertFalse(isValid, "Expected validation to fail when a required field is missing.");
     }
@@ -66,9 +67,9 @@ class DefendantAccountSummarySchemasTests {
         Map<String, Object> jsonMap = createValidAAGJson();
         Map<String, Object> debtorDetail = (Map<String, Object>) jsonMap.get("debtor_detail");
         debtorDetail.put("debtor_type", "InvalidType"); // invalid enum
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
 
         assertFalse(isValid, "Expected validation to fail for invalid enum value.");
     }
@@ -77,9 +78,9 @@ class DefendantAccountSummarySchemasTests {
     public void testAAGAdditionalPropertyNotAllowed() throws Exception {
         Map<String, Object> jsonMap = createValidAAGJson();
         jsonMap.put("unexpected_property", "should fail");
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
 
         assertFalse(isValid, "Expected validation to fail due to additional property.");
     }
@@ -92,8 +93,8 @@ class DefendantAccountSummarySchemasTests {
         debtorDetail.put("organisation", true);
         debtorDetail.remove("organisation_name"); // omit required field when organisation=true
 
-        String jsonString = mapper.writeValueAsString(jsonMap);
-        boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
+        boolean isValid = validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
 
         assertFalse(
             isValid,
@@ -115,8 +116,8 @@ class DefendantAccountSummarySchemasTests {
         debtorDetail.replace("surname", null);
         debtorDetail.replace("date_of_birth", null);
 
-        String jsonString = mapper.writeValueAsString(jsonMap);
-        boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
+        boolean isValid = validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
 
         assertTrue(
             isValid,
@@ -136,8 +137,8 @@ class DefendantAccountSummarySchemasTests {
         debtorDetail.remove("surname");
         debtorDetail.remove("date_of_birth");
 
-        String jsonString = mapper.writeValueAsString(jsonMap);
-        boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
+        boolean isValid = validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
 
         assertFalse(
             isValid,
@@ -156,8 +157,8 @@ class DefendantAccountSummarySchemasTests {
         debtorDetail.put("surname", "Doe");
         debtorDetail.put("date_of_birth", "1985-05-15");
 
-        String jsonString = mapper.writeValueAsString(jsonMap);
-        boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
+        boolean isValid = validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA);
 
         assertTrue(
             isValid,
@@ -171,9 +172,9 @@ class DefendantAccountSummarySchemasTests {
     @Test
     public void testHeaderSummaryIndividualValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidHeaderSummaryJson(false);
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA);
 
         assertTrue(isValid, "Expected JSON to be valid against schema.");
     }
@@ -181,9 +182,9 @@ class DefendantAccountSummarySchemasTests {
     @Test
     public void testHeaderSummaryOrganisationValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidHeaderSummaryJson(true);
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA);
 
         assertTrue(isValid, "Expected JSON to be valid against schema.");
     }
@@ -192,18 +193,18 @@ class DefendantAccountSummarySchemasTests {
     void testHeaderSummaryInvalidDebtorTypeEnum() throws Exception {
         Map<String, Object> jsonMap = createValidHeaderSummaryJson(false);
         jsonMap.put("debtor_type", "InvalidType"); // invalid enum value
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        assertFalse(validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA));
+        assertFalse(validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA));
     }
 
     @Test
     void testHeaderSummaryInvalidAccountStatusDisplayNameEnum() throws Exception {
         Map<String, Object> jsonMap = createValidHeaderSummaryJson(false);
         jsonMap.put("account_status_display_name", "InvalidStatus"); // invalid enum value
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA);
         assertFalse(isValid, "Expected validation to fail for invalid account_status_display_name enum value.");
     }
 
@@ -211,9 +212,9 @@ class DefendantAccountSummarySchemasTests {
     void testHeaderSummaryInvalidAccountTypeEnum() throws Exception {
         Map<String, Object> jsonMap = createValidHeaderSummaryJson(false);
         jsonMap.put("account_type", "InvalidType"); // invalid enum value
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA);
         assertFalse(isValid, "Expected validation to fail for invalid account_type enum value.");
     }
 
@@ -221,9 +222,9 @@ class DefendantAccountSummarySchemasTests {
     void testHeaderSummaryOrganisationConditionalFields() throws Exception {
         Map<String, Object> jsonMap = createValidHeaderSummaryJson(true);
         jsonMap.put("organisation_name", null);
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA);
         assertFalse(isValid, "Expected validation to fail when 'organisation_name' is null for organisation.");
 
     }
@@ -234,9 +235,9 @@ class DefendantAccountSummarySchemasTests {
     @Test
     void testUpdateValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidUpdateJson();
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, UPDATE_DEFENDANT_ACCOUNT_REQUEST_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, UPDATE_DEFENDANT_ACCOUNT_REQUEST_SCHEMA);
 
         assertTrue(isValid, "Expected JSON to be valid against schema.");
     }
@@ -245,9 +246,9 @@ class DefendantAccountSummarySchemasTests {
     void testUpdateInvalidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidUpdateJson();
         jsonMap.put("unexpected_property", "should fail"); // additional property
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, UPDATE_DEFENDANT_ACCOUNT_REQUEST_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, UPDATE_DEFENDANT_ACCOUNT_REQUEST_SCHEMA);
 
         assertFalse(isValid);
     }
@@ -258,9 +259,9 @@ class DefendantAccountSummarySchemasTests {
     @Test
     void testAddNoteValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidAddNoteJson();
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, ADD_NOTE_REQUEST_SCHEMA);
 
         assertTrue(isValid, "Expected JSON to be valid against schema.");
     }
@@ -269,9 +270,9 @@ class DefendantAccountSummarySchemasTests {
     void testAddNoteInvalidEnumJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidAddNoteJson();
         jsonMap.put("account_type", "InvalidType"); // invalid enum value
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, ADD_NOTE_REQUEST_SCHEMA);
 
         assertFalse(isValid, "Expected JSON to be valid against schema.");
     }
@@ -280,9 +281,9 @@ class DefendantAccountSummarySchemasTests {
     void testAddNoteInvalidConstJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidAddNoteJson();
         jsonMap.put("note_type", "InvalidType"); // invalid constant value
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, ADD_NOTE_REQUEST_SCHEMA);
 
         assertFalse(isValid, "Expected JSON to be valid against schema.");
     }
@@ -291,9 +292,9 @@ class DefendantAccountSummarySchemasTests {
     void testAddNoteInvalidPropertyJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidAddNoteJson();
         jsonMap.put("additional_property", "I shouldn't be here"); // invalid property
-        String jsonString = mapper.writeValueAsString(jsonMap);
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
-        boolean isValid = validator.isValid(jsonString, ADD_NOTE_REQUEST_SCHEMA);
+        boolean isValid = validator.isValid(jsonNode, ADD_NOTE_REQUEST_SCHEMA);
 
         assertFalse(isValid, "Expected JSON to be valid against schema.");
     }
