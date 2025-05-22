@@ -6,13 +6,9 @@
   "properties": {
     "defendant_account_id": {
       "type": "string"
-    },
-    "version": {
-      "type": "integer"
     }
   },
   "required": [
-    "defendant_account_id",
-    "version"
+    "defendant_account_id"
   ]
 }
