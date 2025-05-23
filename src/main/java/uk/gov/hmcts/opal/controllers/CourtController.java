@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +17,6 @@ import uk.gov.hmcts.opal.dto.reference.CourtReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.CourtEntity;
 import uk.gov.hmcts.opal.entity.projection.CourtReferenceData;
-import uk.gov.hmcts.opal.service.CourtServiceInterface;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
@@ -34,17 +32,13 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 @Tag(name = "Court Controller")
 public class CourtController {
 
-    private final CourtServiceInterface courtService;
-
-    private final CourtService opalCourtService;
+    private final CourtService courtService;
 
     private final UserStateService userStateService;
 
-    public CourtController(@Qualifier("courtServiceProxy") CourtServiceInterface courtService,
-                           UserStateService userStateService, CourtService opalCourtService) {
-        this.courtService = courtService;
+    public CourtController(UserStateService userStateService, CourtService courtService) {
         this.userStateService = userStateService;
-        this.opalCourtService = opalCourtService;
+        this.courtService = courtService;
     }
 
     @GetMapping(value = "/{courtId}")
@@ -56,7 +50,7 @@ public class CourtController {
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        CourtEntity response = courtService.getCourt(courtId);
+        CourtEntity response = courtService.getCourtById(courtId);
 
         return buildResponse(response);
     }
@@ -80,7 +74,7 @@ public class CourtController {
         @RequestParam("q") Optional<String> filter, @RequestParam("business_unit") Optional<Short> businessUnit) {
         log.debug(":GET:getCourtRefData: business unit: {}, filter string: {}", businessUnit, filter);
 
-        List<CourtReferenceData> refData = opalCourtService.getReferenceData(filter, businessUnit);
+        List<CourtReferenceData> refData = courtService.getReferenceData(filter, businessUnit);
 
         log.debug(":GET:getCourtRefData: court reference data count: {}", refData.size());
         return ResponseEntity.ok(CourtReferenceDataResults.builder().refData(refData).build());
