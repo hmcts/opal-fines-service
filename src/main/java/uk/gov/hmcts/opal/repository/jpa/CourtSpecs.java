@@ -25,6 +25,7 @@ public class CourtSpecs extends AddressCySpecs<CourtEntity> {
             notBlank(criteria.getCourtCode()).map(CourtSpecs::equalsCourtCode),
             numericLong(criteria.getParentCourtId()).map(CourtSpecs::equalsParentCourtId),
             numericShort(criteria.getLocalJusticeAreaId()).map(CourtSpecs::equalsLocalJusticeAreaId),
+            numericShort(criteria.getBusinessUnitId()).map(CourtSpecs::equalsBusinessUnitId),
             notBlank(criteria.getNationalCourtCode()).map(CourtSpecs::likeNationalCourtCode)
         ));
     }
