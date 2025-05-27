@@ -5,13 +5,20 @@
   "additionalProperties": false,
   "properties": {
     "defendant_account_id": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
+    },
+    "business_unit_id": {
+      "type": "string",
+      "minLength": 1
     },
     "business_unit_user_id": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "party_id": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "version": {
       "type": "integer"

@@ -112,6 +112,7 @@ class DefendantAccountPartyLegacySchemaTests {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("defendant_account_id", "456");
         jsonMap.put("business_unit_user_id", "123");
+        jsonMap.put("business_unit_id", "789");
         jsonMap.put("debtor_flag", true);
         jsonMap.put("contact_details", new HashMap<>());
         jsonMap.put("vehicle_details", new HashMap<>());
@@ -127,6 +128,7 @@ class DefendantAccountPartyLegacySchemaTests {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("defendant_account_id", "456");
         jsonMap.put("business_unit_user_id", "123");
+        jsonMap.put("business_unit_id", "789");
         jsonMap.put("debtor_flag", true);
 
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -138,6 +140,7 @@ class DefendantAccountPartyLegacySchemaTests {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("defendant_account_id", "456");
         jsonMap.put("business_unit_user_id", "123");
+        jsonMap.put("business_unit_id", "789");
         jsonMap.put("debtor_flag", false);
         jsonMap.put("contact_details", null);
         jsonMap.put("vehicle_details", null);
@@ -153,6 +156,7 @@ class DefendantAccountPartyLegacySchemaTests {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("defendant_account_id", "456");
         jsonMap.put("business_unit_user_id", "123");
+        jsonMap.put("business_unit_id", "789");
         jsonMap.put("organisation_flag", true);
         Map<String, Object> partyDetails = new HashMap<>();
         partyDetails.put("organisation_name", "Test Org");
@@ -168,6 +172,7 @@ class DefendantAccountPartyLegacySchemaTests {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("defendant_account_id", "456");
         jsonMap.put("business_unit_user_id", "123");
+        jsonMap.put("business_unit_id", "789");
         jsonMap.put("organisation_flag", false);
         Map<String, Object> partyDetails = new HashMap<>();
         partyDetails.put("title", "Mr");
