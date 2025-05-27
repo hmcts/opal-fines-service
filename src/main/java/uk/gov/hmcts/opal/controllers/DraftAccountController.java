@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.annotation.CheckAcceptHeader;
+import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
@@ -94,7 +94,7 @@ public class DraftAccountController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Creates a Draft Account Entity in the DB based upon data in request body")
     @CheckAcceptHeader
-    public ResponseEntity<DraftAccountResponseDto> postDraftAccount(@Valid @RequestBody AddDraftAccountRequestDto dto,
+    public ResponseEntity<DraftAccountResponseDto> postDraftAccount(@JsonSchemaValidated(schemaPath = "addDraftAccountRequest.json") @RequestBody AddDraftAccountRequestDto dto,
                 @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":POST:postDraftAccount: creating a new draft account entity: \n{}", dto.toPrettyJson());
