@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Defendant Account Legacy Request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "defendant_account_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "party_id": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "defendant_account_id",
+    "party_id"
+  ]
+}
