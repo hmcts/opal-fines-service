@@ -1,8 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "title": "Get Defendant Account Party Legacy Response",
+  "title": "Replace Defendant Account Party Legacy Request",
+  "additionalProperties": false,
   "properties": {
+    "defendant_account_id": {
+      "type": "string"
+    },
+    "business_unit_user_id": {
+      "type": "string"
+    },
     "party_id": {
       "type": "string"
     },
@@ -319,6 +326,8 @@
     }
   },
   "required": [
+    "defendant_account_id",
+    "business_unit_user_id",
     "party_id",
     "version",
     "party_type",

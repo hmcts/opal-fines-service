@@ -1,5 +1,5 @@
 
-package uk.gov.hmcts.opal.json;
+package uk.gov.hmcts.opal.json.legacy;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +23,8 @@ class DefendantAccountPartyLegacySchemaTests {
     private JsonSchemaValidationService validator;
 
     private ObjectMapper mapper;
-    private static final String SCHEMA_FILE = "legacy/getDefendantAccountPartyLegacyResponse.json";
+    private static final String GET_SCHEMA_FILE = "legacy/getDefendantAccountPartyLegacyResponse.json";
+    private static final String REPLACE_SCHEMA_FILE = "legacy/replaceDefendantAccountPartyLegacyRequest.json";
 
     @BeforeEach
     public void setUp() {
@@ -40,7 +41,7 @@ class DefendantAccountPartyLegacySchemaTests {
         jsonMap.put("employer_details", new HashMap<>());
 
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
-        assertTrue(validator.isValid(jsonNode, SCHEMA_FILE));
+        assertTrue(validator.isValid(jsonNode, GET_SCHEMA_FILE));
     }
 
     @Test
@@ -49,7 +50,7 @@ class DefendantAccountPartyLegacySchemaTests {
         jsonMap.put("debtor_flag", true);
 
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
-        assertFalse(validator.isValid(jsonNode, SCHEMA_FILE));
+        assertFalse(validator.isValid(jsonNode, GET_SCHEMA_FILE));
     }
 
     @Test
@@ -62,7 +63,7 @@ class DefendantAccountPartyLegacySchemaTests {
         jsonMap.put("employer_details", null);
 
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
-        assertTrue(validator.isValid(jsonNode, SCHEMA_FILE));
+        assertTrue(validator.isValid(jsonNode, GET_SCHEMA_FILE));
     }
 
     @Test
@@ -75,7 +76,7 @@ class DefendantAccountPartyLegacySchemaTests {
         jsonMap.put("party_details", partyDetails);
 
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
-        assertTrue(validator.isValid(jsonNode, SCHEMA_FILE));
+        assertTrue(validator.isValid(jsonNode, GET_SCHEMA_FILE));
     }
 
     @Test
@@ -89,7 +90,93 @@ class DefendantAccountPartyLegacySchemaTests {
         jsonMap.put("party_details", partyDetails);
 
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
-        assertTrue(validator.isValid(jsonNode, SCHEMA_FILE));
+        assertTrue(validator.isValid(jsonNode, GET_SCHEMA_FILE));
+    }
+    //TODO: Uncomment and implement this test when email validation is working
+    /*
+    @Test
+    public void testInvalidEmailFormat() throws Exception {
+        Map<String, Object> jsonMap = createBaseJson();
+        Map<String, Object> contactDetails = new HashMap<>();
+        contactDetails.put("primary_email_address", "not-an-email");
+        jsonMap.put("contact_details", contactDetails);
+
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
+        assertFalse(validator.isValid(jsonNode, SCHEMA_FILE));
+    }*/
+
+    //REPLACE SCHEMA TESTS
+
+    @Test
+    public void testReplaceDebtorTrueRequiresFields() throws Exception {
+        Map<String, Object> jsonMap = createBaseJson();
+        jsonMap.put("defendant_account_id", "456");
+        jsonMap.put("business_unit_user_id", "123");
+        jsonMap.put("debtor_flag", true);
+        jsonMap.put("contact_details", new HashMap<>());
+        jsonMap.put("vehicle_details", new HashMap<>());
+        jsonMap.put("language_preferences", new HashMap<>());
+        jsonMap.put("employer_details", new HashMap<>());
+
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
+        assertTrue(validator.isValid(jsonNode, REPLACE_SCHEMA_FILE));
+    }
+
+    @Test
+    public void testReplaceDebtorTrueMissingRequired() throws Exception {
+        Map<String, Object> jsonMap = createBaseJson();
+        jsonMap.put("defendant_account_id", "456");
+        jsonMap.put("business_unit_user_id", "123");
+        jsonMap.put("debtor_flag", true);
+
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
+        assertFalse(validator.isValid(jsonNode, REPLACE_SCHEMA_FILE));
+    }
+
+    @Test
+    public void testReplaceDebtorFalseOptionalFieldsNull() throws Exception {
+        Map<String, Object> jsonMap = createBaseJson();
+        jsonMap.put("defendant_account_id", "456");
+        jsonMap.put("business_unit_user_id", "123");
+        jsonMap.put("debtor_flag", false);
+        jsonMap.put("contact_details", null);
+        jsonMap.put("vehicle_details", null);
+        jsonMap.put("language_preferences", null);
+        jsonMap.put("employer_details", null);
+
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
+        assertTrue(validator.isValid(jsonNode, REPLACE_SCHEMA_FILE));
+    }
+
+    @Test
+    public void testReplaceOrganisationTrueRequiresOrgFields() throws Exception {
+        Map<String, Object> jsonMap = createBaseJson();
+        jsonMap.put("defendant_account_id", "456");
+        jsonMap.put("business_unit_user_id", "123");
+        jsonMap.put("organisation_flag", true);
+        Map<String, Object> partyDetails = new HashMap<>();
+        partyDetails.put("organisation_name", "Test Org");
+        partyDetails.put("organisation_aliases", new Object[] {});
+        jsonMap.put("party_details", partyDetails);
+
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
+        assertTrue(validator.isValid(jsonNode, REPLACE_SCHEMA_FILE));
+    }
+
+    @Test
+    public void testReplaceOrganisationFalseRequiresPersonalDetails() throws Exception {
+        Map<String, Object> jsonMap = createBaseJson();
+        jsonMap.put("defendant_account_id", "456");
+        jsonMap.put("business_unit_user_id", "123");
+        jsonMap.put("organisation_flag", false);
+        Map<String, Object> partyDetails = new HashMap<>();
+        partyDetails.put("title", "Mr");
+        partyDetails.put("first_names", "John");
+        partyDetails.put("surname", "Doe");
+        jsonMap.put("party_details", partyDetails);
+
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
+        assertTrue(validator.isValid(jsonNode, REPLACE_SCHEMA_FILE));
     }
     //TODO: Uncomment and implement this test when email validation is working
     /*
