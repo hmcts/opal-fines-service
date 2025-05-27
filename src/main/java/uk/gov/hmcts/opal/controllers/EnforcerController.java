@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +16,6 @@ import uk.gov.hmcts.opal.dto.reference.EnforcerReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.projection.EnforcerReferenceData;
-import uk.gov.hmcts.opal.service.EnforcerServiceInterface;
 import uk.gov.hmcts.opal.service.opal.EnforcerService;
 
 import java.util.List;
@@ -32,14 +30,10 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 @Tag(name = "Enforcer Controller")
 public class EnforcerController {
 
-    private final EnforcerServiceInterface enforcerService;
+    private final EnforcerService enforcerService;
 
-    private final EnforcerService opalEnforcerService;
-
-    public EnforcerController(@Qualifier("enforcerServiceProxy") EnforcerServiceInterface enforcerService,
-                              EnforcerService opalEnforcerService) {
+    public EnforcerController(EnforcerService enforcerService) {
         this.enforcerService = enforcerService;
-        this.opalEnforcerService = opalEnforcerService;
     }
 
     @GetMapping(value = "/{enforcerId}")
@@ -48,7 +42,7 @@ public class EnforcerController {
 
         log.debug(":GET:getEnforcerById: enforcerId: {}", enforcerId);
 
-        EnforcerEntity response = enforcerService.getEnforcer(enforcerId);
+        EnforcerEntity response = enforcerService.getEnforcerById(enforcerId);
 
         return buildResponse(response);
     }
@@ -69,7 +63,7 @@ public class EnforcerController {
         @RequestParam("q") Optional<String> filter) {
         log.debug(":GET:getEnforcersRefData: query: \n{}", filter);
 
-        List<EnforcerReferenceData> refData = opalEnforcerService.getReferenceData(filter);
+        List<EnforcerReferenceData> refData = enforcerService.getReferenceData(filter);
 
         log.debug(":GET:getEnforcersRefData: enforcer reference data count: {}", refData.size());
         return ResponseEntity.ok(EnforcerReferenceDataResults.builder().refData(refData).build());

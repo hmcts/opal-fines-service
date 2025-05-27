@@ -16,7 +16,7 @@ public class EnforcerSpecs extends AddressCySpecs<EnforcerEntity> {
 
     public Specification<EnforcerEntity> findBySearchCriteria(EnforcerSearchDto criteria) {
         return Specification.allOf(specificationList(
-            findByBaseCourtCriteria(criteria),
+            findByAddressCyCriteria(criteria),
             notBlank(criteria.getEnforcerId()).map(EnforcerSpecs::equalsEnforcerId),
             notBlank(criteria.getEnforcerCode()).map(EnforcerSpecs::equalsEnforcerCode),
             notBlank(criteria.getWarrantReferenceSequence()).map(EnforcerSpecs::equalsWarrantReferenceSequence),
