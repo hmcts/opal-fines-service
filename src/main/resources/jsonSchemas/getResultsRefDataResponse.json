@@ -26,7 +26,7 @@
           "description": "The title of the Result"
         },
         "result_title_cy": {
-          "type": "string",
+          "type": ["string", "null"],
           "description": "The title of the Result (Welsh)"
         },
         "result_type": {
@@ -38,12 +38,12 @@
           "description": "Whether the Result is active or not"
         },
         "imposition_allocation_order": {
-          "type": "integer",
+          "type": ["integer", "null"],
           "format": "int32",
           "description": "The imposition allocation order number"
         },
         "imposition_creditor": {
-          "type": "string",
+          "type": ["string", "null"],
           "description": "The creditor of the imposition"
         },
         "required": [

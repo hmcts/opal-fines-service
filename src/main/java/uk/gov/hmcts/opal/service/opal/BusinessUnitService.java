@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
@@ -31,11 +32,13 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
 
     @Override
     public BusinessUnitEntity getBusinessUnit(short businessUnitId) {
-        return businessUnitRepository.getReferenceById(businessUnitId);
+        return businessUnitRepository.findById(businessUnitId)
+            .orElseThrow(() -> new EntityNotFoundException("Business Unit not found with id: " + businessUnitId));
     }
 
     @Override
     public List<BusinessUnitEntity> searchBusinessUnits(BusinessUnitSearchDto criteria) {
+
         Page<BusinessUnitEntity> page = businessUnitRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq.page(Pageable.unpaged()));

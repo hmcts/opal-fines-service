@@ -21,6 +21,29 @@
       "type": "string",
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
+
+    "submitted_by_name": {
+      "type": ["string", "null"],
+      "description": "Full name of the user who submitted the Draft Account"
+    },
+    "account_status_date": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Timestamp representing when the current status was set"
+    },
+    "status_message": {
+      "type": ["string", "null"],
+      "description": "System-generated message explaining the account status"
+    },
+    "validated_by_name": {
+      "type": ["string", "null"],
+      "description": "Full name of the user who validated the Draft Account"
+    },
+    "version_number": {
+      "type": ["integer", "null"],
+      "format": "int64",
+      "description": "Version number used for optimistic locking"
+    },
     "validated_at": {
       "type": ["string", "null"],
       "format": "date-time",

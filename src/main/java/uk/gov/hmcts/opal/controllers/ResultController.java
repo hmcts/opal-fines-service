@@ -10,15 +10,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResults;
-import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
 import java.util.List;
 import java.util.Optional;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
-
 
 @RestController
 @RequestMapping("/results")
@@ -35,33 +34,22 @@ public class ResultController {
     @GetMapping(value = "/{resultId}")
     @Operation(summary = "Returns the Result for the given resultId.")
     @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
-    public ResponseEntity<ResultReferenceData> getResultById(@PathVariable Optional<String> resultId) {
+    public ResponseEntity<ResultReferenceData> getResultById(@PathVariable String resultId) {
 
         log.debug(":GET:getResultById: resultId: {}", resultId);
 
-        ResultReferenceData response = resultId
-            .filter(id -> !id.isBlank())
-            .map(resultService::getResultReferenceData)
-            .orElse(null);
-
-        return buildResponse(response);
+        return buildResponse(resultService.getResultRefDataById(resultId));
     }
 
 
     @GetMapping
     @Operation(summary = "Returns all results or results for the given resultIds.")
-    @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultIds.orElse('ALL_RESULTS')")
-    public ResponseEntity<ResultReferenceDataResults> getResults(
+    public ResponseEntity<ResultReferenceDataResponse> getResults(
         @RequestParam(name = "result_ids") Optional<List<String>> resultIds) {
 
         log.debug("GET:getResults: resultIds: {}", resultIds);
 
-        List<ResultReferenceData> refData = resultIds
-            .filter(ids -> !ids.isEmpty())
-            .map(resultService::getResultsByIds)
-            .orElseGet(resultService::getAllResults);
-
-        return buildResponse(ResultReferenceDataResults.builder().refData(refData).build());
+        return buildResponse(resultService.getResultsByIds(resultIds));
     }
 
 }

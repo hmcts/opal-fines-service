@@ -7,10 +7,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.entity.projection.ResultReferenceData;
+import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.service.opal.ResultService;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,23 +28,19 @@ class ResultControllerTest {
     @Test
     void testGetResult_Success() {
         // Arrange
-        ResultReferenceData refData = new ResultReferenceData("ABC",
-                                                              "Result AAA-BBB",
-                                                              "Result AAA-BBB Cy",
-                                                              false,
-                                                              "ResType-XX",
-                                                              "AAA-01234",
-                                                              (short)9);
+        ResultReferenceData refData = new ResultReferenceData(
+            "ABC", "Result AAA-BBB", "Result AAA-BBB Cy", false,
+            "ResType-XX", "AAA-01234", (short)9);
 
-        when(resultService.getResultReferenceData(any(String.class))).thenReturn(refData);
+        when(resultService.getResultRefDataById(any(String.class))).thenReturn(refData);
 
         // Act
-        ResponseEntity<ResultReferenceData> response = resultController.getResultById(Optional.of("ABC"));
+        ResponseEntity<ResultReferenceData> response = resultController.getResultById("ABC");
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(refData, response.getBody());
-        verify(resultService, times(1)).getResultReferenceData(any(String.class));
+        verify(resultService, times(1)).getResultRefDataById(any(String.class));
     }
 
 

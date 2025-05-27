@@ -23,10 +23,10 @@ import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 
@@ -50,6 +50,8 @@ public class DraftAccountService {
     private final BusinessUnitRepository businessUnitRepository;
 
     private final JsonSchemaValidationService jsonSchemaValidationService;
+
+    private final DraftAccountMapper draftAccountMapper;
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId, String authHeaderValue) {
 
@@ -75,6 +77,7 @@ public class DraftAccountService {
     public DraftAccountsResponseDto getDraftAccounts(
         Optional<List<Short>> optionalBusinessUnitIds, Optional<List<DraftAccountStatus>> optionalStatus,
         Optional<List<String>> optionalSubmittedBys, Optional<List<String>> optionalNotSubmittedBys,
+        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo,
         String authHeaderValue) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
@@ -94,7 +97,7 @@ public class DraftAccountService {
 
             List<DraftAccountEntity> entities = draftAccountTransactions
                 .getDraftAccounts(optionalBusinessUnitIds.orElse(Collections.emptyList()),
-                                  statuses, submittedBys, notSubmitted);
+                                  statuses, submittedBys, notSubmitted, accountStatusDateFrom, accountStatusDateTo);
 
             log.debug(":GET:getDraftAccountSummaries: pre-auth summaries count: {}", entities.size());
 
@@ -219,19 +222,6 @@ public class DraftAccountService {
     }
 
     public DraftAccountSummaryDto toSummaryDto(DraftAccountEntity entity) {
-        return DraftAccountSummaryDto.builder()
-            .draftAccountId(entity.getDraftAccountId())
-            .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
-            .createdDate(toUtcDateTime(entity.getCreatedDate()))
-            .submittedBy(entity.getSubmittedBy())
-            .validatedDate(toUtcDateTime(entity.getValidatedDate()))
-            .validatedBy(entity.getValidatedBy())
-            .validatedByName(entity.getValidatedByName())
-            .accountSnapshot(entity.getAccountSnapshot())
-            .accountType(entity.getAccountType())
-            .accountStatus(entity.getAccountStatus())
-            .accountNumber(entity.getAccountNumber())
-            .accountId(entity.getAccountId())
-            .build();
+        return draftAccountMapper.toDto(entity);
     }
 }

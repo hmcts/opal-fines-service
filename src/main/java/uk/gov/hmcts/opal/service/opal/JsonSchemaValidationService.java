@@ -44,6 +44,24 @@ public class JsonSchemaValidationService {
         return true;
     }
 
+    public boolean isValid(JsonNode jsonNode, String jsonSchemaFileName) {
+        JsonSchema jsonSchema = getJsonSchema(jsonSchemaFileName);
+        try {
+            Set<ValidationMessage> msgs = jsonSchema.validate(jsonNode);
+            if (!msgs.isEmpty()) {
+                log.error(":isValid: for JSON schema '{}', found {} validation errors.", jsonSchemaFileName,
+                    msgs.size());
+                for (ValidationMessage msg : msgs) {
+                    log.error(":isValid: error: {}", msg.getMessage());
+                }
+            }
+            return msgs.isEmpty();
+        } catch (Exception ex) {
+            log.error(":isValid: exception during schema validation", ex);
+            return false;
+        }
+    }
+
     public void  validateOrError(String body, String jsonSchemaFileName) {
         Set<String> errors = validate(body, jsonSchemaFileName);
         if (!errors.isEmpty()) {

@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 @Data
@@ -54,4 +55,16 @@ public class DraftAccountSummaryDto implements ToJsonString {
 
     @JsonProperty("account_id")
     private Long accountId;
+
+    @JsonProperty("submitted_by_name")
+    private String submittedByName;
+
+    @JsonProperty("account_status_date")
+    private LocalDate accountStatusDate;
+
+    @JsonProperty("status_message")
+    private String statusMessage;
+
+    @JsonProperty("version_number")
+    private Long versionNumber;
 }

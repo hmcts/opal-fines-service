@@ -60,8 +60,8 @@ public class RefDataStepDef extends BaseStepDef {
         methods.getRequest(OFFENCES_REF_DATA_URI + "?q=" + filter);
     }
 
-    @When("I make a request to the major creditors ref data api filter by major creditor id {int}")
-    public void getRequestToMajorCreditorsBy(int majorCreditorId) {
+    @When("I make a request to the major creditors ref data api filter by major creditor id {long}")
+    public void getRequestToMajorCreditorsBy(long majorCreditorId) {
         methods.getRequest(MAJOR_CREDITORS_URI  + "/" + majorCreditorId);
     }
 
@@ -127,10 +127,10 @@ public class RefDataStepDef extends BaseStepDef {
 
     @Then("the major creditors ref data matching to result")
     public void theMajorCreditorsRefDataMatching() {
-        then().assertThat().statusCode(HttpStatus.SC_OK).body("name", equalTo("CHESTERFIELD BOROUGH COUNCIL")).body(
+        then().assertThat().statusCode(HttpStatus.SC_OK).body("name", equalTo("LORD CHANCELLORS DEPARTMENT")).body(
             "majorCreditorId",
             equalTo(
-                15)
+                1300000000075L)
         );
     }
 

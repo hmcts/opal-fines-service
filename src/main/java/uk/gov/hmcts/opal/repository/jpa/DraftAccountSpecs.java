@@ -9,6 +9,8 @@ import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -26,15 +28,18 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
         ));
     }
 
-    public Specification<DraftAccountEntity> findForSummaries(Collection<Short> businessUnitIds,
-                                                              Collection<DraftAccountStatus> statuses,
-                                                              Collection<String> submittedBys,
-                                                              Collection<String> notSubmitted) {
+    public Specification<DraftAccountEntity> findForSummaries(
+        Collection<Short> businessUnitIds, Collection<DraftAccountStatus> statuses,
+        Collection<String> submittedBys, Collection<String> notSubmitted,
+        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo) {
+
         return Specification.allOf(specificationList(
             equalsAnyBusinessUnitId(businessUnitIds),
             equalsAnyAccountStatus(statuses),
             equalsAnySubmittedBy(submittedBys),
-            equalsNotSubmittedBy(notSubmitted)
+            equalsNotSubmittedBy(notSubmitted),
+            accountStatusDateUpTo(accountStatusDateTo.map(toDate -> toDate.plusDays(1).atStartOfDay())),
+            accountStatusDateFrom(accountStatusDateFrom.map(LocalDate::atStartOfDay))
         ));
     }
 
@@ -97,6 +102,24 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
             return Optional.empty();
         }
         return Optional.of((root, query, builder) -> root.get(DraftAccountEntity_.accountStatus).in(accountStatuses));
+    }
+
+    public static Optional<Specification<DraftAccountEntity>> accountStatusDateUpTo(
+        Optional<LocalDateTime> optDateTime) {
+
+        return optDateTime.map(dateTime -> ((root, query, builder) -> builder.or(
+            builder.isNull(root.get(DraftAccountEntity_.accountStatusDate)),
+            builder.lessThan(root.get(DraftAccountEntity_.accountStatusDate), dateTime)
+        )));
+    }
+
+    public static Optional<Specification<DraftAccountEntity>> accountStatusDateFrom(
+        Optional<LocalDateTime> optDateTime) {
+
+        return optDateTime.map(dateTime -> ((root, query, builder) -> builder.or(
+            builder.isNull(root.get(DraftAccountEntity_.accountStatusDate)),
+            builder.greaterThanOrEqualTo(root.get(DraftAccountEntity_.accountStatusDate), dateTime)
+        )));
     }
 
     public static Join<DraftAccountEntity, BusinessUnitEntity> joinBusinessUnit(From<?, DraftAccountEntity> from) {

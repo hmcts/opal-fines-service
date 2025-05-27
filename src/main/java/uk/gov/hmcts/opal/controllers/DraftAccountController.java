@@ -29,6 +29,7 @@ import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.DraftAccountStatus;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,15 +69,15 @@ public class DraftAccountController {
         @RequestParam(value = "status") Optional<List<DraftAccountStatus>> optionalStatus,
         @RequestParam(value = "submitted_by") Optional<List<String>> optionalSubmittedBys,
         @RequestParam(value = "not_submitted_by") Optional<List<String>> optionalNotSubmittedBys,
+        @RequestParam(value = "account_status_date_from") Optional<LocalDate> accountStatusDateFrom,
+        @RequestParam(value = "account_status_date_to") Optional<LocalDate> accountStatusDateTo,
         @RequestHeader(value = "Authorization", required = false)  String authHeaderValue) {
 
         log.debug(":GET:getDraftAccountSummaries:");
 
-        return buildResponse(draftAccountService.getDraftAccounts(optionalBusinessUnitIds,
-                                                                              optionalStatus,
-                                                                              optionalSubmittedBys,
-                                                                              optionalNotSubmittedBys,
-                                                                              authHeaderValue));
+        return buildResponse(
+            draftAccountService.getDraftAccounts(optionalBusinessUnitIds, optionalStatus, optionalSubmittedBys,
+                         optionalNotSubmittedBys, accountStatusDateFrom, accountStatusDateTo, authHeaderValue));
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
