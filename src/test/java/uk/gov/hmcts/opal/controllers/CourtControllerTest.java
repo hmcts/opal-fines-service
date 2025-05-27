@@ -9,8 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.CourtEntity;
-import uk.gov.hmcts.opal.entity.projection.CourtReferenceData;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 

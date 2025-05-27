@@ -13,8 +13,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.CourtEntity;
-import uk.gov.hmcts.opal.entity.projection.CourtReferenceData;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
+import uk.gov.hmcts.opal.mapper.CourtMapper;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 
 import java.util.List;
@@ -31,6 +32,9 @@ class CourtServiceTest {
 
     @Mock
     private CourtRepository courtRepository;
+
+    @Mock
+    CourtMapper courtMapper;
 
     @InjectMocks
     private CourtService courtService;
@@ -99,8 +103,14 @@ class CourtServiceTest {
             courtEntity.getNationalCourtCode()
         );
 
+
+        when(courtMapper.toRefData(courtEntity)).thenReturn(refData);
+
+        List<CourtReferenceData> res = courtService.getReferenceData(Optional.empty(), Optional.empty());
+
+
         // Assert
-        assertEquals(List.of(refData), result);
+        assertEquals(List.of(refData), res);
 
     }
 }

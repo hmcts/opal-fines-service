@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.court;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -20,6 +20,9 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.opal.entity.AddressCyEntity;
+import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 
 
 @Data
