@@ -39,10 +39,10 @@ class EnforcerServiceTest {
         // Arrange
 
         EnforcerEntity enforcerEntity = EnforcerEntity.builder().build();
-        when(enforcerRepository.getReferenceById(any())).thenReturn(enforcerEntity);
+        when(enforcerRepository.findById(any())).thenReturn(Optional.of(enforcerEntity));
 
         // Act
-        EnforcerEntity result = enforcerService.getEnforcer(1);
+        EnforcerEntity result = enforcerService.getEnforcerById(1);
 
         // Assert
         assertNotNull(result);
@@ -54,9 +54,11 @@ class EnforcerServiceTest {
     void testSearchEnforcers() {
         // Arrange
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        when(ffq.sortBy(any())).thenReturn(ffq);
 
         EnforcerEntity enforcerEntity = EnforcerEntity.builder().build();
         Page<EnforcerEntity> mockPage = new PageImpl<>(List.of(enforcerEntity), Pageable.unpaged(), 999L);
+
         when(enforcerRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
             return mockPage;
@@ -79,6 +81,7 @@ class EnforcerServiceTest {
 
         EnforcerEntity enforcerEntity = EnforcerEntity.builder().build();
         Page<EnforcerEntity> mockPage = new PageImpl<>(List.of(enforcerEntity), Pageable.unpaged(), 999L);
+
         when(enforcerRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
             return mockPage;
