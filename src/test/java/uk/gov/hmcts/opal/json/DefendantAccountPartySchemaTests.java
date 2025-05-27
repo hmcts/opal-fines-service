@@ -169,7 +169,6 @@ class DefendantAccountPartySchemaTests {
 
     private Map<String, Object> createBaseJson() {
         Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put("defendant_account_id", "acc-001");
         jsonMap.put("party_id", "123");
         jsonMap.put("version", 1);
         jsonMap.put("party_type", "Defendant");
@@ -187,12 +186,12 @@ class DefendantAccountPartySchemaTests {
         partyDetails.put("age", "43");
         partyDetails.put("national_insurance_number", "AB123456C");
 
-        List<Map<String, Object>> individualAliases = new ArrayList<>();
         Map<String, Object> alias = new HashMap<>();
         alias.put("alias_id", "alias-1");
         alias.put("sequence_number", 1);
         alias.put("surname", "Smith");
         alias.put("forenames", "Johnny");
+        List<Map<String, Object>> individualAliases = new ArrayList<>();
         individualAliases.add(alias);
         partyDetails.put("individual_aliases", individualAliases);
 

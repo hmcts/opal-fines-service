@@ -4,7 +4,6 @@
   "title": "Replace Defendant Account Party Request",
   "additionalProperties": false,
   "properties": {
-    "defendant_account_id": { "type": "string", "minLength": 1 },
     "party_id": { "type": "string", "minLength": 1 },
     "version": { "type": "integer" },
     "party_type": {
