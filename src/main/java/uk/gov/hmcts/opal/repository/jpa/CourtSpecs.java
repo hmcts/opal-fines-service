@@ -20,11 +20,12 @@ public class CourtSpecs extends AddressCySpecs<CourtEntity> {
 
     public Specification<CourtEntity> findBySearchCriteria(CourtSearchDto criteria) {
         return Specification.allOf(specificationList(
-            findByBaseCourtCriteria(criteria),
+            findByAddressCyCriteria(criteria),
             numericLong(criteria.getCourtId()).map(CourtSpecs::equalsCourtId),
             notBlank(criteria.getCourtCode()).map(CourtSpecs::equalsCourtCode),
             numericLong(criteria.getParentCourtId()).map(CourtSpecs::equalsParentCourtId),
             numericShort(criteria.getLocalJusticeAreaId()).map(CourtSpecs::equalsLocalJusticeAreaId),
+            numericShort(criteria.getBusinessUnitId()).map(CourtSpecs::equalsBusinessUnitId),
             notBlank(criteria.getNationalCourtCode()).map(CourtSpecs::likeNationalCourtCode)
         ));
     }

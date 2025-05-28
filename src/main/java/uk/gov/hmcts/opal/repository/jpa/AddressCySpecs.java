@@ -12,7 +12,7 @@ import java.util.Optional;
 public abstract class AddressCySpecs<E extends AddressCyEntity> extends AddressSpecs<E> {
 
     @SuppressWarnings("unchecked")
-    public List<Optional<Specification<E>>> findByBaseCourtCriteria(AddressCySearch criteria) {
+    public List<Optional<Specification<E>>> findByAddressCyCriteria(AddressCySearch criteria) {
         return combine(findByAddressCriteria(criteria),
                 notBlank(criteria.getNameCy()).map(this::likeNameCy),
                 notBlank(criteria.getAddressLineCy()).map(this::likeAnyAddressLineCy));

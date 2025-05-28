@@ -40,10 +40,10 @@ class CourtServiceTest {
         // Arrange
 
         CourtEntity courtEntity = CourtEntity.builder().build();
-        when(courtRepository.getReferenceById(any())).thenReturn(courtEntity);
+        when(courtRepository.findById(any())).thenReturn(Optional.of(courtEntity));
 
         // Act
-        CourtEntity result = courtService.getCourt(1);
+        CourtEntity result = courtService.getCourtById(1);
 
         // Assert
         assertNotNull(result);
@@ -55,6 +55,7 @@ class CourtServiceTest {
     void testSearchCourts() {
         // Arrange
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        when(ffq.sortBy(any())).thenReturn(ffq);
 
         CourtEntity courtEntity = CourtEntity.builder().build();
         Page<CourtEntity> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 999L);

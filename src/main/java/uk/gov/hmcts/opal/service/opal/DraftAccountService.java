@@ -186,14 +186,14 @@ public class DraftAccountService {
         jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
-                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
+                                                        Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
             DraftAccountEntity updatedEntity = draftAccountTransactions.updateDraftAccount(draftAccountId, dto,
                                                                                            draftAccountTransactions);
             verifyUpdated(updatedEntity, dto, draftAccountId, "updateDraftAccount");
 
             return toGetResponseDto(updatedEntity);
         } else {
-            throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+            throw new PermissionNotAllowedException(Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS);
         }
     }
 

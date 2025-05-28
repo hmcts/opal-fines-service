@@ -42,7 +42,7 @@ class CourtControllerTest {
         // Arrange
         CourtEntity entity = CourtEntity.builder().build();
 
-        when(courtService.getCourt(any(Long.class))).thenReturn(entity);
+        when(courtService.getCourtById(any(Long.class))).thenReturn(entity);
 
         // Act
         ResponseEntity<CourtEntity> response = courtController.getCourtById(1L, BEARER_TOKEN);
@@ -50,7 +50,7 @@ class CourtControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
-        verify(courtService, times(1)).getCourt(any(Long.class));
+        verify(courtService, times(1)).getCourtById(any(Long.class));
     }
 
     @Test
