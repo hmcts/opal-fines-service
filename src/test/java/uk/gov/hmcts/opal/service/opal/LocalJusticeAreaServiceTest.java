@@ -39,10 +39,10 @@ class LocalJusticeAreaServiceTest {
         // Arrange
 
         LocalJusticeAreaEntity localJusticeAreaEntity = LocalJusticeAreaEntity.builder().build();
-        when(localJusticeAreaRepository.getReferenceById(any())).thenReturn(localJusticeAreaEntity);
+        when(localJusticeAreaRepository.findById(any())).thenReturn(Optional.of(localJusticeAreaEntity));
 
         // Act
-        LocalJusticeAreaEntity result = localJusticeAreaService.getLocalJusticeArea((short)1);
+        LocalJusticeAreaEntity result = localJusticeAreaService.getLocalJusticeAreaById((short)1);
 
         // Assert
         assertNotNull(result);
@@ -54,6 +54,7 @@ class LocalJusticeAreaServiceTest {
     void testSearchLocalJusticeAreas() {
         // Arrange
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        when(ffq.sortBy(any())).thenReturn(ffq);
 
         LocalJusticeAreaEntity localJusticeAreaEntity = LocalJusticeAreaEntity.builder().build();
         Page<LocalJusticeAreaEntity> mockPage = new PageImpl<>(List.of(localJusticeAreaEntity),

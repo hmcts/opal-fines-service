@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.CourtControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_courts.sql", executionPhase = BEFORE_TEST_CLASS)
-@DisplayName("CourtControllerIntegrationTests")
+@DisplayName("CourtControllerIntegrationTest")
 class CourtControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/courts";

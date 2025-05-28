@@ -1,9 +1,11 @@
 package uk.gov.hmcts.opal.entity.projection;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDateTime;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record OffenceReferenceData(
     @JsonProperty("offence_id") Long offenceId,
     @JsonProperty("cjs_code") String cjsCode,

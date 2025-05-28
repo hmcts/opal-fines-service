@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +16,6 @@ import uk.gov.hmcts.opal.dto.reference.LjaReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.projection.LjaReferenceData;
-import uk.gov.hmcts.opal.service.LocalJusticeAreaServiceInterface;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 
 import java.util.List;
@@ -32,14 +30,9 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 @Tag(name = "LocalJusticeArea Controller")
 public class LocalJusticeAreaController {
 
-    private final LocalJusticeAreaServiceInterface localJusticeAreaService;
-
     private final LocalJusticeAreaService opalLocalJusticeAreaService;
 
-    public LocalJusticeAreaController(
-        @Qualifier("localJusticeAreaServiceProxy") LocalJusticeAreaServiceInterface localJusticeAreaService,
-        LocalJusticeAreaService opalLocalJusticeAreaService) {
-        this.localJusticeAreaService = localJusticeAreaService;
+    public LocalJusticeAreaController(LocalJusticeAreaService opalLocalJusticeAreaService) {
         this.opalLocalJusticeAreaService = opalLocalJusticeAreaService;
     }
 
@@ -49,7 +42,7 @@ public class LocalJusticeAreaController {
 
         log.debug(":GET:getLocalJusticeAreaById: localJusticeAreaId: {}", localJusticeAreaId);
 
-        LocalJusticeAreaEntity response = localJusticeAreaService.getLocalJusticeArea(localJusticeAreaId);
+        LocalJusticeAreaEntity response = opalLocalJusticeAreaService.getLocalJusticeAreaById(localJusticeAreaId);
 
         return buildResponse(response);
     }
@@ -60,7 +53,7 @@ public class LocalJusticeAreaController {
         @RequestBody LocalJusticeAreaSearchDto criteria) {
         log.debug(":POST:postLocalJusticeAreasSearch: query: \n{}", criteria);
 
-        List<LocalJusticeAreaEntity> response = localJusticeAreaService.searchLocalJusticeAreas(criteria);
+        List<LocalJusticeAreaEntity> response = opalLocalJusticeAreaService.searchLocalJusticeAreas(criteria);
 
         return buildResponse(response);
     }

@@ -4,40 +4,28 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.projection.LjaReferenceData;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 
-import java.util.List;
-
-import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest
-@ContextConfiguration(classes = LocalJusticeAreaController.class)
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.LocalJusticeAreaControllerIntegrationTest")
+@Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("LocalJusticeAreaController Integration Test")
-class LocalJusticeAreaControllerIntegrationTest {
+class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/local-justice-areas";
     private static final String GET_LJAS_REF_DATA_RESPONSE = "getLJARefDataResponse.json";
@@ -45,36 +33,32 @@ class LocalJusticeAreaControllerIntegrationTest {
     @Autowired
     MockMvc mockMvc;
 
-    @MockBean
-    @Qualifier("localJusticeAreaServiceProxy")
-    LocalJusticeAreaService localJusticeAreaService;
-
     @SpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
     @DisplayName("Get local justice area by ID [@PO-312, PO-304]")
     void testGetLocalJusticeAreaById() throws Exception {
-        LocalJusticeAreaEntity localJusticeAreaEntity = createLocalJusticeAreaEntity();
 
-        when(localJusticeAreaService.getLocalJusticeArea((short)1)).thenReturn(localJusticeAreaEntity);
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
 
-        mockMvc.perform(get(URL_BASE + "/1"))
-            .andExpect(status().isOk())
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetLocalJusticeAreaById: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.localJusticeAreaId").value(1))
-            .andExpect(jsonPath("$.name").value("Local Justice Area 001"))
-            .andExpect(jsonPath("$.addressLine1").value("Local Justice Street"))
-            .andExpect(jsonPath("$.addressLine2").value("Local Justice Town"))
-            .andExpect(jsonPath("$.addressLine3").value("Local Justice County"))
-            .andExpect(jsonPath("$.postcode").value("LJ99 9LJ"));
+            .andExpect(jsonPath("$.name").value("AAAA Trial Court"))
+            .andExpect(jsonPath("$.addressLine1").value("Alpha Trial Courts"))
+            .andExpect(jsonPath("$.addressLine2").value("Court Quarter"))
+            .andExpect(jsonPath("$.addressLine3").value("666 Trial Street"))
+            .andExpect(jsonPath("$.postcode").value("TR12 1TR"));
     }
 
 
     @Test
     @DisplayName("No local justice area returned when local justice area does not exist [@PO-312, PO-304]")
     void testGetLocalJusticeAreaById_WhenLocalJusticeAreaDoesNotExist() throws Exception {
-        when(localJusticeAreaService.getLocalJusticeArea((short)2)).thenReturn(null);
 
         mockMvc.perform(get(URL_BASE + "/2"))
             .andExpect(status().isNotFound());
@@ -83,30 +67,26 @@ class LocalJusticeAreaControllerIntegrationTest {
     @Test
     @DisplayName("Verify search result for local justice area created by POST request [@PO-312, PO-304]")
     void testPostLocalJusticeAreasSearch() throws Exception {
-        LocalJusticeAreaEntity localJusticeAreaEntity = createLocalJusticeAreaEntity();
 
-        when(localJusticeAreaService.searchLocalJusticeAreas(any(LocalJusticeAreaSearchDto.class)))
-            .thenReturn(singletonList(localJusticeAreaEntity));
-
-        mockMvc.perform(post(URL_BASE + "/search")
+        ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"criteria\":\"value\"}"))
-            .andExpect(status().isOk())
+                            .content("{\"ljaCode\":\"00\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostLocalJusticeAreasSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$[0].localJusticeAreaId").value(1))
-            .andExpect(jsonPath("$[0].name").value("Local Justice Area 001"))
-            .andExpect(jsonPath("$[0].addressLine1").value("Local Justice Street"))
-            .andExpect(jsonPath("$[0].addressLine2").value("Local Justice Town"))
-            .andExpect(jsonPath("$[0].addressLine3").value("Local Justice County"))
-            .andExpect(jsonPath("$[0].postcode").value("LJ99 9LJ"));
+            .andExpect(jsonPath("$[0].name").value("AAAA Trial Court"))
+            .andExpect(jsonPath("$[0].addressLine1").value("Alpha Trial Courts"))
+            .andExpect(jsonPath("$[0].addressLine2").value("Court Quarter"))
+            .andExpect(jsonPath("$[0].addressLine3").value("666 Trial Street"))
+            .andExpect(jsonPath("$[0].postcode").value("TR12 1TR"));
     }
 
     @Test
     void testGetLocalJusticeAreasRefData() throws Exception {
-        LocalJusticeAreaEntity localJusticeAreaEntity = createLocalJusticeAreaEntity();
-
-        when(localJusticeAreaService.getReferenceData(any()))
-            .thenReturn(List.of(toLjsReferenceData(localJusticeAreaEntity)));
 
         ResultActions actions = mockMvc.perform(get(URL_BASE));
 
@@ -115,13 +95,13 @@ class LocalJusticeAreaControllerIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(648))
             .andExpect(jsonPath("$.refData[0].local_justice_area_id").value(1))
-            .andExpect(jsonPath("$.refData[0].name").value("Local Justice Area 001"))
-            .andExpect(jsonPath("$.refData[0].address_line_1").value("Local Justice Street"))
-            .andExpect(jsonPath("$.refData[0].lja_code").value("RED"));
+            .andExpect(jsonPath("$.refData[0].name").value("AAAA Trial Court"))
+            .andExpect(jsonPath("$.refData[0].address_line_1").value("Alpha Trial Courts"))
+            .andExpect(jsonPath("$.refData[0].lja_code").value("0007"));
 
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_LJAS_REF_DATA_RESPONSE));
+        jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
     }
 
     @Test
@@ -131,47 +111,5 @@ class LocalJusticeAreaControllerIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());
-    }
-
-    private LocalJusticeAreaEntity createLocalJusticeAreaEntity() {
-        return LocalJusticeAreaEntity.builder()
-            .localJusticeAreaId((short)1)
-            .name("Local Justice Area 001")
-            .addressLine1("Local Justice Street")
-            .addressLine2("Local Justice Town")
-            .addressLine3("Local Justice County")
-            .postcode("LJ99 9LJ")
-            .ljaCode("RED")
-            .build();
-    }
-
-    private LjaReferenceData toLjsReferenceData(LocalJusticeAreaEntity entity) {
-        return new LjaReferenceData() {
-
-            @Override
-            public Short getLocalJusticeAreaId() {
-                return entity.getLocalJusticeAreaId();
-            }
-
-            @Override
-            public String getLjaCode() {
-                return entity.getLjaCode();
-            }
-
-            @Override
-            public String getName() {
-                return entity.getName();
-            }
-
-            @Override
-            public String getAddressLine1() {
-                return entity.getAddressLine1();
-            }
-
-            @Override
-            public String getPostcode() {
-                return entity.getPostcode();
-            }
-        };
     }
 }
