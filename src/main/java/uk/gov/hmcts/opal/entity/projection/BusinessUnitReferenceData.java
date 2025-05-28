@@ -1,10 +1,12 @@
 package uk.gov.hmcts.opal.entity.projection;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import uk.gov.hmcts.opal.entity.BusinessUnitRef;
 
 import java.util.List;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record BusinessUnitReferenceData(
 
     @JsonProperty("business_unit_id")
