@@ -37,7 +37,7 @@ class MajorCreditorControllerTest {
         // Arrange
         MajorCreditorEntity entity = MajorCreditorEntity.builder().build();
 
-        when(majorCreditorService.getMajorCreditor(any(Long.class))).thenReturn(entity);
+        when(majorCreditorService.getMajorCreditorById(any(Long.class))).thenReturn(entity);
 
         // Act
         ResponseEntity<MajorCreditorEntity> response = majorCreditorController.getMajorCreditorById(1L);
@@ -45,7 +45,7 @@ class MajorCreditorControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
-        verify(majorCreditorService, times(1)).getMajorCreditor(any(Long.class));
+        verify(majorCreditorService, times(1)).getMajorCreditorById(any(Long.class));
     }
 
     @Test

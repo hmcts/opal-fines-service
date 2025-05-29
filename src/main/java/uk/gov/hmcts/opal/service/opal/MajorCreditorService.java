@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,7 +16,6 @@ import uk.gov.hmcts.opal.entity.MajorCreditorEntity_;
 import uk.gov.hmcts.opal.entity.projection.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.repository.jpa.MajorCreditorSpecs;
-import uk.gov.hmcts.opal.service.MajorCreditorServiceInterface;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,22 +24,26 @@ import java.util.Optional;
 @Slf4j(topic = "opal.MajorCreditorService")
 @RequiredArgsConstructor
 @Qualifier("majorCreditorService")
-public class MajorCreditorService implements MajorCreditorServiceInterface {
+public class MajorCreditorService {
 
     private final MajorCreditorRepository majorCreditorRepository;
 
     private final MajorCreditorSpecs specs = new MajorCreditorSpecs();
 
-    @Override
-    public MajorCreditorEntity getMajorCreditor(long majorCreditorId) {
-        return majorCreditorRepository.getReferenceById(majorCreditorId);
+    public MajorCreditorEntity getMajorCreditorById(long majorCreditorId) {
+        return majorCreditorRepository.findById(majorCreditorId)
+            .orElseThrow(() -> new EntityNotFoundException("Court not found with id: " + majorCreditorId));
     }
 
-    @Override
     public List<MajorCreditorEntity> searchMajorCreditors(MajorCreditorSearchDto criteria) {
+
+        Sort nameSort = Sort.by(Sort.Direction.ASC, MajorCreditorEntity_.NAME);
+
         Page<MajorCreditorEntity> page = majorCreditorRepository
             .findBy(specs.findBySearchCriteria(criteria),
-                    ffq -> ffq.page(Pageable.unpaged()));
+                    ffq -> ffq
+                        .sortBy(nameSort)
+                        .page(Pageable.unpaged()));
 
         return page.getContent();
     }
