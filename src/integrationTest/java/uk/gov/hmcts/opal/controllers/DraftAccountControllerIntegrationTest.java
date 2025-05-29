@@ -39,6 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
+import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
 @Sql(scripts = "classpath:db/draftAccounts/insert_into_draft_accounts.sql",
@@ -396,12 +397,51 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     }
 
+    private String validRawJsonCreateRequestBody() {
+        AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
+            .businessUnitId((short) 78)
+            .submittedBy("BUUID1")
+            .submittedByName("John")
+            .account(validAccountJsonString())
+            .accountType("Fines")
+            .timelineData(validTimelineDataString())
+            .build();
+
+        try {
+            return objectMapper.writeValueAsString(dto);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize AddDraftAccountRequestDto", e);
+        }
+    }
+
+    private static String validAccountJsonString() {
+        return """
+        {
+          "account_type": "Fine",
+          "defendant_type": "Adult"
+        }
+        """;
+    }
+
+    private static String validTimelineDataString() {
+        return """
+        [
+          {
+            "username": "johndoe123",
+            "status": "Active",
+            "status_date": "2023-11-01",
+            "reason_text": "Valid reason"
+          }
+        ]
+        """;
+    }
+
     @Test
     @DisplayName("Create draft account - POST with valid request - Should return newly created account "
         + "[@PO-973, @PO-591]")
     void testPostDraftAccount_permission() throws Exception {
 
-        String validRequestBody = validCreateRequestBody();
+        String validRequestBody = validRawJsonCreateRequestBody();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         MvcResult result = mockMvc.perform(post(URL_BASE)
@@ -1139,5 +1179,4 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 "business_unit_id": 1
             }""";
     }
-
 }
