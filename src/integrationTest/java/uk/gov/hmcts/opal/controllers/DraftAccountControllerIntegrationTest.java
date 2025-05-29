@@ -416,24 +416,43 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static String validAccountJsonString() {
         return """
-        {
-          "account_type": "Fine",
-          "defendant_type": "Adult"
-        }
-        """;
+            {
+              "account_type": "Fine",
+              "defendant_type": "Adult",
+              "originator_name": "Police Force",
+              "originator_id": 12345,
+              "enforcement_court_id": 101,
+              "payment_card_request": true,
+              "account_sentence_date": "2023-12-01",
+              "defendant": {
+                "company_flag": false,
+                "surname": "LNAME",
+                "address_line_1": "123 Main Street"
+              },
+              "offences": [],
+              "payment_terms": {
+                "payment_terms_type_code": "P",
+                "effective_date": "2023-11-01",
+                "instalment_period": "M",
+                "lump_sum_amount": 1000.00,
+                "instalment_amount": 200.00,
+                "default_days_in_jail": 5
+              }
+            }
+            """;
     }
 
     private static String validTimelineDataString() {
         return """
-        [
-          {
-            "username": "johndoe123",
-            "status": "Active",
-            "status_date": "2023-11-01",
-            "reason_text": "Valid reason"
-          }
-        ]
-        """;
+            [
+              {
+                "username": "johndoe123",
+                "status": "Active",
+                "status_date": "2023-11-01",
+                "reason_text": "Valid reason"
+              }
+            ]
+            """;
     }
 
     @Test
