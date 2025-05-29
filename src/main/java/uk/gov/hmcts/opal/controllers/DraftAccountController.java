@@ -94,8 +94,10 @@ public class DraftAccountController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Creates a Draft Account Entity in the DB based upon data in request body")
     @CheckAcceptHeader
-    public ResponseEntity<DraftAccountResponseDto> postDraftAccount(@JsonSchemaValidated(schemaPath = "addDraftAccountRequest.json") @RequestBody AddDraftAccountRequestDto dto,
-                @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+    public ResponseEntity<DraftAccountResponseDto> postDraftAccount(
+        @JsonSchemaValidated(schemaPath = "addDraftAccountRequest.json")
+        @RequestBody AddDraftAccountRequestDto dto,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":POST:postDraftAccount: creating a new draft account entity: \n{}", dto.toPrettyJson());
 
@@ -123,6 +125,7 @@ public class DraftAccountController {
     @CheckAcceptHeader
     public ResponseEntity<DraftAccountResponseDto> putDraftAccount(
         @PathVariable Long draftAccountId,
+        @JsonSchemaValidated(schemaPath = "replaceDraftAccountRequest.json")
         @RequestBody ReplaceDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 

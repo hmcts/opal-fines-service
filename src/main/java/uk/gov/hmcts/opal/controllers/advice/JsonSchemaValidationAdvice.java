@@ -23,7 +23,8 @@ public class JsonSchemaValidationAdvice extends RequestBodyAdviceAdapter {
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Override
-    public boolean supports(MethodParameter methodParameter, Type targetType, Class<? extends HttpMessageConverter<?>> converterType) {
+    public boolean supports(MethodParameter methodParameter, Type targetType,
+                            Class<? extends HttpMessageConverter<?>> converterType) {
         return methodParameter.hasParameterAnnotation(JsonSchemaValidated.class);
     }
 
