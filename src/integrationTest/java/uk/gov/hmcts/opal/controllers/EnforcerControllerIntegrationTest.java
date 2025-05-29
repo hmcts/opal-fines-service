@@ -1,104 +1,99 @@
 package uk.gov.hmcts.opal.controllers;
 
+import lombok.extern.slf4j.Slf4j;
+import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.projection.EnforcerReferenceData;
-import uk.gov.hmcts.opal.service.opal.EnforcerService;
+import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
-import static java.util.Collections.singletonList;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest
-@ContextConfiguration(classes = EnforcerController.class)
 @ActiveProfiles({"integration"})
+@Slf4j(topic = "opal.EnforcerControllerIntegrationTest")
+@Sql(scripts = "classpath:db/insertData/insert_into_enforcers.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("Enforcer Controller Integration Tests")
-class EnforcerControllerIntegrationTest {
+class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/enforcers";
+
+    private static final String GET_ENFORCERS_REF_DATA_RESPONSE = "getEnforcersRefDataResponse.json";
 
     @Autowired
     MockMvc mockMvc;
 
-    @MockBean
-    @Qualifier("enforcerServiceProxy")
-    EnforcerService enforcerService;
+    @SpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
     void testGetEnforcerById() throws Exception {
-        EnforcerEntity enforcerEntity = createEnforcerEntity();
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
 
-        when(enforcerService.getEnforcer(1L)).thenReturn(enforcerEntity);
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetEnforcerById: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
-        mockMvc.perform(get(URL_BASE + "/1"))
-            .andExpect(status().isOk())
+        actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.enforcerId").value(1))
-            .andExpect(jsonPath("$.enforcerCode").value(7))
-            .andExpect(jsonPath("$.warrantReferenceSequence").value("WARR-REF-SEQ-666"))
+            .andExpect(jsonPath("$.enforcerId").value(1L))
+            .andExpect(jsonPath("$.enforcerCode").value(1))
+            .andExpect(jsonPath("$.warrantReferenceSequence").value("101/09/00000"))
             .andExpect(jsonPath("$.warrantRegisterSequence").value(666))
-            .andExpect(jsonPath("$.businessUnit.businessUnitId").value(3))
-            .andExpect(jsonPath("$.name").value("Herbert the Enforcer"))
-            .andExpect(jsonPath("$.addressLine1").value("Enforcer Road"))
-            .andExpect(jsonPath("$.addressLine2").value("Enforcer Town"))
-            .andExpect(jsonPath("$.addressLine3").value("Enforcer County"))
-            .andExpect(jsonPath("$.postcode").value("EN99 9EN"))
-            .andExpect(jsonPath("$.nameCy").value("Herbert the Enforcer CY"))
-            .andExpect(jsonPath("$.addressLine1Cy").value("Enforcer Road CY"))
-            .andExpect(jsonPath("$.addressLine2Cy").value("Enforcer Town CY"))
-            .andExpect(jsonPath("$.addressLine3Cy").value("Enforcer County CY"));
+            .andExpect(jsonPath("$.businessUnit.businessUnitId").value(5))
+            .andExpect(jsonPath("$.name").value("AAA Enforcers"))
+            .andExpect(jsonPath("$.addressLine1").value("9 Enforcement Street"))
+            .andExpect(jsonPath("$.addressLine2").value("Enformentville"))
+            .andExpect(jsonPath("$.addressLine3").value("Enforcementon"))
+            .andExpect(jsonPath("$.postcode").value("EF1 1EF"))
+            .andExpect(jsonPath("$.nameCy").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$.addressLine1Cy").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$.addressLine2Cy").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$.addressLine3Cy").value(IsNull.nullValue()));
     }
-
 
     @Test
     void testGetEnforcerById_WhenEnforcerDoesNotExist() throws Exception {
-        when(enforcerService.getEnforcer(2L)).thenReturn(null);
-
         mockMvc.perform(get(URL_BASE + "/2"))
             .andExpect(status().isNotFound());
     }
 
     @Test
     void testPostEnforcersSearch() throws Exception {
-        EnforcerEntity enforcerEntity = createEnforcerEntity();
-
-        when(enforcerService.searchEnforcers(any(EnforcerSearchDto.class))).thenReturn(singletonList(enforcerEntity));
-
-        mockMvc.perform(post(URL_BASE + "/search")
+        ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"criteria\":\"value\"}"))
-            .andExpect(status().isOk())
+                            .content("{\"name\":\"aa\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostEnforcersSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[0].enforcerId").value(1))
-            .andExpect(jsonPath("$[0].enforcerCode").value(7))
-            .andExpect(jsonPath("$[0].warrantReferenceSequence").value("WARR-REF-SEQ-666"))
+            .andExpect(jsonPath("$[0].enforcerId").value(1L))
+            .andExpect(jsonPath("$[0].enforcerCode").value(1))
+            .andExpect(jsonPath("$[0].warrantReferenceSequence").value("101/09/00000"))
             .andExpect(jsonPath("$[0].warrantRegisterSequence").value(666))
-            .andExpect(jsonPath("$[0].businessUnit.businessUnitId").value(3))
-            .andExpect(jsonPath("$[0].name").value("Herbert the Enforcer"))
-            .andExpect(jsonPath("$[0].addressLine1").value("Enforcer Road"))
-            .andExpect(jsonPath("$[0].addressLine2").value("Enforcer Town"))
-            .andExpect(jsonPath("$[0].addressLine3").value("Enforcer County"))
-            .andExpect(jsonPath("$[0].postcode").value("EN99 9EN"))
-            .andExpect(jsonPath("$[0].nameCy").value("Herbert the Enforcer CY"))
-            .andExpect(jsonPath("$[0].addressLine1Cy").value("Enforcer Road CY"))
-            .andExpect(jsonPath("$[0].addressLine2Cy").value("Enforcer Town CY"))
-            .andExpect(jsonPath("$[0].addressLine3Cy").value("Enforcer County CY"));
+            .andExpect(jsonPath("$[0].businessUnit.businessUnitId").value(5))
+            .andExpect(jsonPath("$[0].name").value("AAA Enforcers"))
+            .andExpect(jsonPath("$[0].addressLine1").value("9 Enforcement Street"))
+            .andExpect(jsonPath("$[0].addressLine2").value("Enformentville"))
+            .andExpect(jsonPath("$[0].addressLine3").value("Enforcementon"))
+            .andExpect(jsonPath("$[0].postcode").value("EF1 1EF"))
+            .andExpect(jsonPath("$[0].nameCy").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$[0].addressLine1Cy").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$[0].addressLine2Cy").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$[0].addressLine3Cy").value(IsNull.nullValue()));
     }
 
     @Test
@@ -112,39 +107,21 @@ class EnforcerControllerIntegrationTest {
     @Test
     @DisplayName("Get Enforcer Ref Data [@PO-304, @PO-316]")
     void testGetEnforcerRefData() throws Exception {
-        EnforcerReferenceData refData = new EnforcerReferenceData(1L, (short)2,
-                                                                  "Enforcers UK Ltd", "Enforcers Wales Ltd");
+        ResultActions actions = mockMvc.perform(get(URL_BASE)
+                                                    .header("authorization", "Bearer some_value"));
 
-        when(enforcerService.getReferenceData(any())).thenReturn(singletonList(refData));
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetEnforcerRefData: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
-        mockMvc.perform(get(URL_BASE)
-                            .header("authorization", "Bearer some_value"))
-            .andExpect(status().isOk())
+        actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.refData[0].enforcer_id").value(1))
-            .andExpect(jsonPath("$.refData[0].enforcer_code").value(2))
-            .andExpect(jsonPath("$.refData[0].name").value("Enforcers UK Ltd"))
-            .andExpect(jsonPath("$.refData[0].name_cy").value("Enforcers Wales Ltd"));
-    }
+            .andExpect(jsonPath("$.count").value(84))
+            .andExpect(jsonPath("$.refData[1].enforcer_id").value(1L))
+            .andExpect(jsonPath("$.refData[1].enforcer_code").value(1))
+            .andExpect(jsonPath("$.refData[1].name").value("AAA Enforcers"))
+            .andExpect(jsonPath("$.refData[1].name_cy").value(IsNull.nullValue()));
 
-
-    private EnforcerEntity createEnforcerEntity() {
-        return EnforcerEntity.builder()
-            .enforcerId(1L)
-            .enforcerCode((short)7)
-            .warrantReferenceSequence("WARR-REF-SEQ-666")
-            .warrantRegisterSequence(666)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)3).build())
-            .name("Herbert the Enforcer")
-            .addressLine1("Enforcer Road")
-            .addressLine2("Enforcer Town")
-            .addressLine3("Enforcer County")
-            .postcode("EN99 9EN")
-            .nameCy("Herbert the Enforcer CY")
-            .addressLine1Cy("Enforcer Road CY")
-            .addressLine2Cy("Enforcer Town CY")
-            .addressLine3Cy("Enforcer County CY")
-            .build();
+        // Currently no Schema to validate against
+        // jsonSchemaValidationService.validateOrError(body, GET_ENFORCERS_REF_DATA_RESPONSE);
     }
 }

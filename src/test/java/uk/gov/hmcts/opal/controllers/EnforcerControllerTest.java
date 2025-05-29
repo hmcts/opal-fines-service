@@ -36,7 +36,7 @@ class EnforcerControllerTest {
         // Arrange
         EnforcerEntity entity = EnforcerEntity.builder().build();
 
-        when(enforcerService.getEnforcer(any(Long.class))).thenReturn(entity);
+        when(enforcerService.getEnforcerById(any(Long.class))).thenReturn(entity);
 
         // Act
         ResponseEntity<EnforcerEntity> response = enforcerController.getEnforcerById(1L);
@@ -44,7 +44,7 @@ class EnforcerControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
-        verify(enforcerService, times(1)).getEnforcer(any(Long.class));
+        verify(enforcerService, times(1)).getEnforcerById(any(Long.class));
     }
 
     @Test

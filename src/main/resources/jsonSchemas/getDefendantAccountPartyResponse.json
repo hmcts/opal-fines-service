@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "title": "Get Defendant Account Party Response",
+  "additionalProperties": false,
+  "properties": {
+    "party_id": { "type": "string", "minLength": 1 },
+    "version": { "type": "integer" },
+    "party_type": {
+      "type": "string",
+      "enum": ["Defendant", "Parent/Guardian"],
+      "minLength": 1
+    },
+    "debtor_flag": { "type": "boolean" },
+    "organisation_flag": { "type": "boolean" },
+    "party_details": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "first_names": { "type": "string", "minLength": 1 },
+        "surname": { "type": "string", "minLength": 1 },
+        "date_of_birth": { "type": ["string", "null"], "format": "date" },
+        "age": { "type": ["string", "null"] },
+        "national_insurance_number": { "type": ["string", "null"] },
+        "individual_aliases": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "properties": {
+              "alias_id": { "type": "string", "minLength": 1 },
+              "sequence_number": { "type": "number", "minimum": 1, "maximum": 5 },
+              "surname": { "type": ["string", "null"] },
+              "forenames": { "type": ["string", "null"] }
+            },
+            "required": ["alias_id", "sequence_number"]
+          },
+          "maxItems": 5
+        }
+      }
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "address_line_1": { "type": "string", "minLength": 1 },
+        "address_line_2": { "type": ["string", "null"] },
+        "address_line_3": { "type": ["string", "null"] },
+        "address_line_4": { "type": ["string", "null"] },
+        "address_line_5": { "type": ["string", "null"] },
+        "postcode": { "type": ["string", "null"] }
+      },
+      "required": ["address_line_1"]
+    },
+    "contact_details": {
+      "type": ["object", "null"],
+      "properties": {
+        "primary_email_address": { "type": ["string", "null"], "format": "email" },
+        "secondary_email_address": { "type": ["string", "null"], "format": "email" },
+        "mobile_telephone_number": { "type": ["string", "null"] },
+        "home_telephone_number": { "type": ["string", "null"] },
+        "work_telephone_number": { "type": ["string", "null"] }
+      },
+      "required": [
+        "primary_email_address",
+        "secondary_email_address",
+        "mobile_telephone_number",
+        "home_telephone_number",
+        "work_telephone_number"
+      ]
+    },
+    "vehicle_details": {
+      "type": ["object", "null"],
+      "properties": {
+        "vehicle_make_and_model": { "type": ["string", "null"] },
+        "vehicle_registration": { "type": ["string", "null"] }
+      },
+      "required": ["vehicle_make_and_model", "vehicle_registration"]
+    },
+    "language_preferences": {
+      "type": ["object", "null"],
+      "properties": {
+        "document_language": { "type": ["string", "null"] },
+        "court_hearing_language": { "type": ["string", "null"] }
+      },
+      "required": ["document_language", "court_hearing_language"]
+    },
+    "employer_details": {
+      "type": ["object", "null"],
+      "properties": {
+        "employer_name": { "type": ["string", "null"] },
+        "employer_reference": { "type": ["string", "null"] },
+        "employer_email_address": { "type": ["string", "null"], "format": "email" },
+        "employer_telephone_number": { "type": ["string", "null"] },
+        "employer_address_line_1": { "type": ["string", "null"] },
+        "employer_address_line_2": { "type": ["string", "null"] },
+        "employer_address_line_3": { "type": ["string", "null"] },
+        "employer_address_line_4": { "type": ["string", "null"] },
+        "employer_address_line_5": { "type": ["string", "null"] },
+        "employer_postcode": { "type": ["string", "null"] }
+      },
+      "required": [
+        "employer_name",
+        "employer_reference",
+        "employer_email_address",
+        "employer_telephone_number",
+        "employer_address_line_1",
+        "employer_address_line_2",
+        "employer_address_line_3",
+        "employer_address_line_4",
+        "employer_address_line_5",
+        "employer_postcode"
+      ]
+    }
+  },
+  "required": [
+    "party_id",
+    "version",
+    "party_type",
+    "debtor_flag",
+    "organisation_flag",
+    "party_details",
+    "address"
+  ],
+  "allOf": [
+    {
+      "if": { "properties": { "debtor_flag": { "const": true } }, "required": ["debtor_flag"] },
+      "then": {
+        "properties": {
+          "contact_details": { "type": "object" },
+          "vehicle_details": { "type": "object" },
+          "language_preferences": { "type": "object" },
+          "employer_details": { "type": "object" }
+        },
+        "required": ["contact_details", "vehicle_details", "language_preferences", "employer_details"]
+      },
+      "else": {
+        "required": ["contact_details", "vehicle_details", "language_preferences", "employer_details"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "organisation_flag": { "const": true } },
+        "required": ["organisation_flag"]
+      },
+      "then": {
+        "properties": {
+          "party_details": {
+            "properties": {
+              "organisation_name": { "type": "string", "minLength": 1 },
+              "organisation_aliases": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "alias_id": { "type": "string", "minLength": 1 },
+                    "sequence_number": { "type": "number", "minimum": 1, "maximum": 5 },
+                    "organisation_name": { "type": ["string", "null"] }
+                  },
+                  "required": ["alias_id", "sequence_number"]
+                },
+                "maxItems": 5
+              }
+            },
+            "required": ["organisation_name", "organisation_aliases"]
+          }
+        },
+        "required": ["party_details"]
+      },
+      "else": {
+        "properties": {
+          "party_details": {
+            "properties": {
+              "organisation_name": { "type": ["string", "null"] },
+              "organisation_aliases": { "type": ["array", "null"] }
+            },
+            "required": [
+              "title",
+              "first_names",
+              "surname",
+              "date_of_birth",
+              "age",
+              "national_insurance_number",
+              "individual_aliases"
+            ]
+          }
+        },
+        "required": ["party_details"]
+      }
+    }
+  ]
+}

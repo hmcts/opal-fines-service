@@ -37,7 +37,7 @@ class LocalJusticeAreaControllerTest {
         // Arrange
         LocalJusticeAreaEntity entity = LocalJusticeAreaEntity.builder().build();
 
-        when(localJusticeAreaService.getLocalJusticeArea(anyShort())).thenReturn(entity);
+        when(localJusticeAreaService.getLocalJusticeAreaById(anyShort())).thenReturn(entity);
 
         // Act
         ResponseEntity<LocalJusticeAreaEntity> response = localJusticeAreaController.getLocalJusticeAreaById((short)1);
@@ -45,7 +45,7 @@ class LocalJusticeAreaControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
-        verify(localJusticeAreaService, times(1)).getLocalJusticeArea(anyShort());
+        verify(localJusticeAreaService, times(1)).getLocalJusticeAreaById(anyShort());
     }
 
     @Test
