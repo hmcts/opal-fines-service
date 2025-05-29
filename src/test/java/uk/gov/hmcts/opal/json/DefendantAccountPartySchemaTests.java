@@ -36,6 +36,7 @@ class DefendantAccountPartySchemaTests {
     @Test
     public void testDebtorTrueRequiresFields() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
+        jsonMap.put("party_id", "123");
         jsonMap.put("debtor_flag", true);
 
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -45,6 +46,7 @@ class DefendantAccountPartySchemaTests {
     @Test
     public void testDebtorTrueMissingRequired() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
+        jsonMap.put("party_id", "123");
         jsonMap.put("debtor_flag", true);
         jsonMap.put("employer_details", null);
 
@@ -55,6 +57,7 @@ class DefendantAccountPartySchemaTests {
     @Test
     public void testDebtorFalseOptionalFieldsNull() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
+        jsonMap.put("party_id", "123");
         jsonMap.put("debtor_flag", false);
         jsonMap.put("contact_details", null);
         jsonMap.put("vehicle_details", null);
@@ -68,6 +71,7 @@ class DefendantAccountPartySchemaTests {
     @Test
     public void testOrganisationTrueRequiresOrgFields() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
+        jsonMap.put("party_id", "123");
         jsonMap.put("organisation_flag", true);
         Map<String, Object> partyDetails = new HashMap<>();
         partyDetails.put("organisation_name", "Test Org");
@@ -81,6 +85,7 @@ class DefendantAccountPartySchemaTests {
     @Test
     public void testOrganisationFalseRequiresPersonalDetails() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
+        jsonMap.put("party_id", "123");
         jsonMap.put("organisation_flag", false);
 
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -169,7 +174,6 @@ class DefendantAccountPartySchemaTests {
 
     private Map<String, Object> createBaseJson() {
         Map<String, Object> jsonMap = new HashMap<>();
-        jsonMap.put("party_id", "123");
         jsonMap.put("version", 1);
         jsonMap.put("party_type", "Defendant");
         jsonMap.put("debtor_flag", true); // triggers nested required fields
