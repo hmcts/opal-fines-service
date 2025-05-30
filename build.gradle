@@ -315,7 +315,7 @@ dependencies {
   runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.8.2'
   implementation 'org.postgresql:postgresql'
 
-  implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.0'
   compileOnly 'org.projectlombok:lombok:1.18.36'
   annotationProcessor 'org.projectlombok:lombok:1.18.36'
   annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.17.Final'
