@@ -15,8 +15,8 @@ public class CourtSearchDto extends AddressCySearch implements ToJsonString {
     private String courtId;
     private String businessUnitId;
     private String courtCode;
-    private String parentCourtId;
     private String localJusticeAreaId;
-    private String nationalCourtCode;
+    private String courtType;
+    private String division;
 
 }

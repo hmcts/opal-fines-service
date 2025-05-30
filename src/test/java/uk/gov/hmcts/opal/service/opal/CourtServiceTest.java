@@ -12,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
 import uk.gov.hmcts.opal.mapper.CourtMapper;
@@ -42,7 +41,6 @@ class CourtServiceTest {
     @Test
     void testGetCourt() {
         // Arrange
-
         CourtEntity courtEntity = CourtEntity.builder().build();
         when(courtRepository.findById(any())).thenReturn(Optional.of(courtEntity));
 
@@ -51,7 +49,6 @@ class CourtServiceTest {
 
         // Assert
         assertNotNull(result);
-
     }
 
     @SuppressWarnings("unchecked")
@@ -73,7 +70,6 @@ class CourtServiceTest {
 
         // Assert
         assertEquals(List.of(courtEntity), result);
-
     }
 
     @SuppressWarnings("unchecked")
@@ -83,34 +79,44 @@ class CourtServiceTest {
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
         when(ffq.sortBy(any())).thenReturn(ffq);
 
+        // Create court entity with direct field values (no relationships)
         CourtEntity courtEntity = CourtEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)007).build()).build();
-        Page<CourtEntity> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 999L);
+            .courtId(1L)
+            .businessUnitId((short) 73)
+            .courtCode((short) 101)
+            .name("Test Court")
+            .nameCy("Test Court Cy")
+            .localJusticeAreaId((short) 2577)
+            .courtType("MC")
+            .division("01")
+            .build();
+
+        Page<CourtEntity> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 1L);
+
+        // Create expected reference data
+        CourtReferenceData refData = new CourtReferenceData(
+            1L,                    // courtId
+            (short) 73,            // businessUnitId
+            (short) 101,           // courtCode
+            "Test Court",          // name
+            "MC",                  // courtType
+            (short) 2577,          // localJusticeAreaId (lja)
+            "01"                   // division
+        );
+
+        // Set up mocks
         when(courtRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
-            return mockPage;
-        });
+            Function<FluentQuery.FetchableFluentQuery, Page<CourtEntity>> function = iom.getArgument(1);
+            return function.apply(ffq);
+        }).thenReturn(mockPage);
+
+        when(ffq.page(any())).thenReturn(mockPage);
+        when(courtMapper.toRefData(courtEntity)).thenReturn(refData);
 
         // Act
         List<CourtReferenceData> result = courtService.getReferenceData(Optional.empty(), Optional.empty());
 
-        CourtReferenceData refData =  new CourtReferenceData(
-            courtEntity.getCourtId(),
-            courtEntity.getBusinessUnit().getBusinessUnitId(),
-            courtEntity.getCourtCode(),
-            courtEntity.getName(),
-            courtEntity.getNameCy(),
-            courtEntity.getNationalCourtCode()
-        );
-
-
-        when(courtMapper.toRefData(courtEntity)).thenReturn(refData);
-
-        List<CourtReferenceData> res = courtService.getReferenceData(Optional.empty(), Optional.empty());
-
-
         // Assert
-        assertEquals(List.of(refData), res);
-
+        assertEquals(List.of(refData), result);
     }
 }
