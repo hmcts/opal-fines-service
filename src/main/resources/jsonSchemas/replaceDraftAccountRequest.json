@@ -10,6 +10,7 @@
     },
     "submitted_by": {
       "type": "string",
+      "minLength": 1,
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
     "submitted_by_name": {

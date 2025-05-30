@@ -52,8 +52,8 @@ public class DraftAccountPostSteps extends BaseStepDef {
         String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));
         JSONArray timelineArray = new JSONArray(timeline);
 
-        postBody.put("account", accountObject);
-        postBody.put("timeline_data", timelineArray);
+        postBody.put("account", accountObject.toString());
+        postBody.put("timeline_data", timelineArray.toString());
 
         SerenityRest
             .given()

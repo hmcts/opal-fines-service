@@ -7,8 +7,8 @@ Feature: PO-591 create draft account
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
-      | account_status    |                                             |
+      | account_type      | Fines                                       |
+      | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
@@ -18,7 +18,7 @@ Feature: PO-591 create draft account
 
     And The draft account response contains the following data
       | business_unit_id                    | 73                  |
-      | account_type                        | Fine                |
+      | account_type                        | Fines               |
       | account_status                      | Submitted           |
       | account_snapshot.defendant_name     | LNAME, FNAME        |
       | account_snapshot.date_of_birth      | 01/01/2000          |

@@ -29,6 +29,11 @@
     }
   ],
   "payment_terms": {
-    "payment_terms_type_code": "P"
+    "payment_terms_type_code": "P",
+    "effective_date": "2023-11-01",
+    "instalment_period": "M",
+    "lump_sum_amount": 1000.00,
+    "instalment_amount": 200.00,
+    "default_days_in_jail": 5
   }
 }
