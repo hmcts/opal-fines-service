@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.CourtEntity;
-import uk.gov.hmcts.opal.entity.projection.CourtReferenceData;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 

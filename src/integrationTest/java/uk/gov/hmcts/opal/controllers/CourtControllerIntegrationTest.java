@@ -49,7 +49,7 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetCourtById() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/7")
-                            .header("authorization", "Bearer some_value"));
+                                                    .header("authorization", "Bearer some_value"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetCourtById: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -57,10 +57,11 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.courtId").value(7))
+            .andExpect(jsonPath("$.businessUnitId").value(99))
             .andExpect(jsonPath("$.courtCode").value(7))
-            .andExpect(jsonPath("$.parentCourt.courtId").value(730000000103L))
-            .andExpect(jsonPath("$.localJusticeArea.localJusticeAreaId").value(1013))
-            .andExpect(jsonPath("$.nationalCourtCode").value(IsNull.nullValue()));
+            .andExpect(jsonPath("$.name").value("AAA Test Court"))
+            .andExpect(jsonPath("$.localJusticeAreaId").value(1013))
+            .andExpect(jsonPath("$.nameCy").value(IsNull.nullValue()));
 
         // Currently no Schema to validate against
         // jsonSchemaValidationService.validateOrError(body, GET_COURTS_REF_DATA_RESPONSE);
@@ -80,9 +81,9 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     void testPostCourtsSearch() throws Exception {
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
-                            .header("authorization", "Bearer some_value")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"businessUnitId\":\"80\"}"));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("{\"businessUnitId\":\"99\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostCourtsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -90,10 +91,11 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$[0].courtId").value(7))
+            .andExpect(jsonPath("$[0].businessUnitId").value(99))
             .andExpect(jsonPath("$[0].courtCode").value(7))
-            .andExpect(jsonPath("$[0].parentCourt.courtId").value(730000000103L))
-            .andExpect(jsonPath("$[0].localJusticeArea.localJusticeAreaId").value(1013))
-            .andExpect(jsonPath("$[0].nationalCourtCode").value(IsNull.nullValue()));
+            .andExpect(jsonPath("$[0].name").value("AAA Test Court"))
+            .andExpect(jsonPath("$[0].localJusticeAreaId").value(1013))
+            .andExpect(jsonPath("$[0].nameCy").value(IsNull.nullValue()));
 
         // Currently no Schema to validate against
         // jsonSchemaValidationService.validateOrError(body, POST_COURTS_SEARCH_RESPONSE);
@@ -114,26 +116,19 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetCourtRefData() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE)
-                            .header("authorization", "Bearer some_value")
-                            .param("business_unit", "80"));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .param("business_unit", "99"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetCourtRefData: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(3))
+            .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.refData[0].court_id").value(7))
             .andExpect(jsonPath("$.refData[0].court_code").value(7))
             .andExpect(jsonPath("$.refData[0].name").value("AAA Test Court"))
-            .andExpect(jsonPath("$.refData[0].business_unit_id").value(80))
-            .andExpect(jsonPath("$.refData[1].court_id").value(800000000002L))
-            .andExpect(jsonPath("$.refData[1].court_code").value(311))
-            .andExpect(jsonPath("$.refData[1].name").value("CAO Met80"))
-            .andExpect(jsonPath("$.refData[1].name_cy").value(IsNull.nullValue()))
-            .andExpect(jsonPath("$.refData[1].business_unit_id").value(80))
-            .andExpect(jsonPath("$.refData[1].national_court_code").value(IsNull.nullValue()))
-        ;
+            .andExpect(jsonPath("$.refData[0].business_unit_id").value(99));
 
         jsonSchemaValidationService.validateOrError(body, GET_COURTS_REF_DATA_RESPONSE);
     }
