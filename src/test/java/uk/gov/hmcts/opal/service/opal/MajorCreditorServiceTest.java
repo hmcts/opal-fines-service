@@ -42,10 +42,10 @@ class MajorCreditorServiceTest {
         // Arrange
 
         MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder().build();
-        when(majorCreditorRepository.getReferenceById(any())).thenReturn(majorCreditorEntity);
+        when(majorCreditorRepository.findById(any())).thenReturn(Optional.of(majorCreditorEntity));
 
         // Act
-        MajorCreditorEntity result = majorCreditorService.getMajorCreditor(1);
+        MajorCreditorEntity result = majorCreditorService.getMajorCreditorById(1);
 
         // Assert
         assertNotNull(result);
@@ -57,6 +57,7 @@ class MajorCreditorServiceTest {
     void testSearchMajorCreditors() {
         // Arrange
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        when(ffq.sortBy(any())).thenReturn(ffq);
 
         MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder().build();
         Page<MajorCreditorEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity),

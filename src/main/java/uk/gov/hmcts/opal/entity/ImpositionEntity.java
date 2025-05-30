@@ -22,6 +22,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.math.BigDecimal;
