@@ -1,8 +1,5 @@
 package uk.gov.hmcts.opal.entity.court;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,8 +23,6 @@ import uk.gov.hmcts.opal.entity.AddressCyEntity;
 @MappedSuperclass
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "courtId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public abstract class AbstractCourtEntity extends AddressCyEntity {
