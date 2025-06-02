@@ -12,8 +12,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.AddressEntity_;
-import uk.gov.hmcts.opal.entity.CourtEntity;
-import uk.gov.hmcts.opal.entity.projection.CourtReferenceData;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
+import uk.gov.hmcts.opal.mapper.CourtMapper;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.jpa.CourtSpecs;
 
@@ -27,6 +28,8 @@ import java.util.Optional;
 public class CourtService {
 
     private final CourtRepository courtRepository;
+
+    private final CourtMapper courtMapper;
 
     private final CourtSpecs specs = new CourtSpecs();
 
@@ -64,17 +67,7 @@ public class CourtService {
                         .sortBy(nameSort)
                         .page(Pageable.unpaged()));
 
-        return page.getContent().stream().map(this::toRefData).toList();
+        return page.getContent().stream().map(courtMapper::toRefData).toList();
     }
 
-    private CourtReferenceData toRefData(CourtEntity entity) {
-        return new CourtReferenceData(
-            entity.getCourtId(),
-            entity.getBusinessUnit().getBusinessUnitId(),
-            entity.getCourtCode(),
-            entity.getName(),
-            entity.getNameCy(),
-            entity.getNationalCourtCode()
-        );
-    }
 }

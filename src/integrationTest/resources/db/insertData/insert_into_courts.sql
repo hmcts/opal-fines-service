@@ -10,6 +10,7 @@
  * Date          Author       Version     Nature of Change
  * ----------    --------     --------    ----------------------------------------------------------------
  * 23/05/2025    R DODD        1.0         Insert rows of data into COURTS table for the Integration Tests
+ * 29/05/2025    Updated       1.1         Added court_type and division values, changed business_unit_id
  *
  **/
 
@@ -24,10 +25,10 @@ court_id, business_unit_id, court_code, parent_court_id, name, name_cy
 )
 VALUES
 (
-000000000007, 80, 007, 730000000103, 'AAA Test Court', NULL
+000000000007, 99, 007, 730000000103, 'AAA Test Court', NULL
 , 'TestVille', 'TestShire', NULL
 , NULL, NULL, NULL, NULL
 , 1013, NULL, NULL
-, NULL, NULL, NULL, NULL
+, 1013, 'MC', '01', NULL
 , NULL, NULL, NULL, NULL, NULL
 );
