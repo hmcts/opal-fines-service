@@ -31,8 +31,9 @@ public class DraftAccountPostSteps extends BaseStepDef {
             dataToPost.get("business_unit_id") != null ? Long.parseLong(dataToPost.get("business_unit_id")) : null
         );
 
-        if (dataToPost.containsKey("submitted_by") && !dataToPost.get("submitted_by").isBlank()) {
-            postBody.put("submitted_by", dataToPost.get("submitted_by"));
+        if (dataToPost.containsKey("submitted_by")) {
+            String submittedBy = dataToPost.get("submitted_by");
+            postBody.put("submitted_by", submittedBy != null && !submittedBy.isBlank() ? submittedBy : JSONObject.NULL);
         }
 
         postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null

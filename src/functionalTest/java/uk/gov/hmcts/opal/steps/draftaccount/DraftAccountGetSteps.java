@@ -61,7 +61,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             "There should be only one draft account but found multiple: "
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
@@ -79,7 +79,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
             "There should be only one draft account but found multiple: "
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
@@ -179,8 +179,11 @@ public class DraftAccountGetSteps extends BaseStepDef {
             for (int i = 0; i < Integer.parseInt(count); i++) {
                 String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
                                                                                            + key);
-                assertTrue(expectedData.get(key).contains(apiResponseValue), "Value "
-                    + apiResponseValue + " is not in the expected range: " + expectedData.get(key));
+                assertTrue(
+                    String.valueOf(expectedData.get(key)).equalsIgnoreCase(String.valueOf(apiResponseValue)),
+                    "Value '" + apiResponseValue + "' is not equal to expected (case-insensitive): '" + expectedData.get(key) + "'"
+                );
+
             }
         }
     }

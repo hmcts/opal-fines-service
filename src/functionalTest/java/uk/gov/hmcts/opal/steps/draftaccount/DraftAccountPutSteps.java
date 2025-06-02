@@ -68,7 +68,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
         postBody.put("account", accountObject);
         postBody.put("timeline_data", timelineArray);
 
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
@@ -191,7 +191,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
         postBody.put("account", accountObject);
         postBody.put("timeline_data", timelineArray);
 
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
@@ -252,7 +252,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             .contentType("application/json")
             .body(postBody.toString())
             .when()
-            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + "10999999999");
+            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + "999999");
     }
 
     @When("I attempt to put a draft account with unsupported content type for response")
@@ -296,7 +296,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
 
         postBody.put("account", accountObject);
         postBody.put("timeline_data", timelineArray);
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
@@ -349,7 +349,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
         postBody.put("account", accountObject);
         postBody.put("timeline_data", timelineArray);
 
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
