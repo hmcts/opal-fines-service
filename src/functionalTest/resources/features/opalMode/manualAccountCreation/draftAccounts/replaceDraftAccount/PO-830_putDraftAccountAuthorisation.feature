@@ -163,7 +163,7 @@ Feature: PO-830 - Authorisation for put/update draft account
     When I update the draft account that was just created with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
-      | account_type      | Fine                                        |
+      | account_type      | Fines                                        |
       | account_status    | Submitted                                   |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
@@ -207,7 +207,7 @@ Feature: PO-830 - Authorisation for put/update draft account
         | submitted_by_name | Laura Clerk                                 |
         | timeline_data     | draftAccounts/timelineJson/default.json|
 
-      Then The draft account response returns 409
+      Then The draft account response returns 400
 
       And I get the single created draft account and the response contains
         | business_unit_id                    | 73           |

@@ -21,15 +21,30 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         Map<String, String> dataToPatch = data.asMap(String.class, String.class);
         JSONObject patchBody = new JSONObject();
 
-        patchBody.put("business_unit_id", dataToPatch.get("business_unit_id"));
-        patchBody.put("account_status", dataToPatch.get("account_status"));
-        patchBody.put("validated_by", dataToPatch.get("validated_by"));
-        patchBody.put("version", dataToPatch.get("version"));
+        if (dataToPatch.get("business_unit_id") != null && !dataToPatch.get("business_unit_id").isBlank()) {
+            patchBody.put("business_unit_id", Long.parseLong(dataToPatch.get("business_unit_id")));
+        }
 
+        if (dataToPatch.get("account_status") != null && !dataToPatch.get("account_status").isBlank()) {
+            patchBody.put("account_status", dataToPatch.get("account_status"));
+        }
+
+        if (dataToPatch.containsKey("validated_by") && !dataToPatch.get("validated_by").isBlank()) {
+            patchBody.put("validated_by", dataToPatch.get("validated_by"));
+        }
+
+        if (dataToPatch.get("version") != null && !dataToPatch.get("version").isBlank()) {
+            patchBody.put("version", Integer.parseInt(dataToPatch.get("version")));
+        }
         // Create timeline data array with one entry
         JSONObject timelineEntry = new JSONObject();
-        timelineEntry.put("username", dataToPatch.get("validated_by"));
-        timelineEntry.put("status", dataToPatch.get("account_status"));
+        if (dataToPatch.containsKey("validated_by")) {
+            timelineEntry.put("username", dataToPatch.get("validated_by"));
+        }
+
+        if (dataToPatch.get("account_status") != null && !dataToPatch.get("account_status").isBlank()) {
+            timelineEntry.put("status", dataToPatch.get("account_status"));
+        }
 
         ZonedDateTime currentDateTime = ZonedDateTime.now();
         timelineEntry.put("status_date", currentDateTime.format(DateTimeFormatter.ISO_INSTANT));
@@ -42,7 +57,7 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         timelineDataArray.put(timelineEntry);
         patchBody.put("timeline_data", timelineDataArray);
 
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
@@ -58,14 +73,31 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         Map<String, String> dataToPatch = data.asMap(String.class, String.class);
         JSONObject patchBody = new JSONObject();
 
-        patchBody.put("business_unit_id", dataToPatch.get("business_unit_id"));
-        patchBody.put("account_status", dataToPatch.get("account_status"));
-        patchBody.put("validated_by", dataToPatch.get("validated_by"));
+        if (dataToPatch.get("business_unit_id") != null && !dataToPatch.get("business_unit_id").isBlank()) {
+            patchBody.put("business_unit_id", Long.parseLong(dataToPatch.get("business_unit_id")));
+        }
+
+        if (dataToPatch.get("account_status") != null && !dataToPatch.get("account_status").isBlank()) {
+            patchBody.put("account_status", dataToPatch.get("account_status"));
+        }
+
+        if (dataToPatch.containsKey("validated_by") && !dataToPatch.get("validated_by").isBlank()) {
+            patchBody.put("validated_by", dataToPatch.get("validated_by"));
+        }
+
+        if (dataToPatch.get("version") != null && !dataToPatch.get("version").isBlank()) {
+            patchBody.put("version", Integer.parseInt(dataToPatch.get("version")));
+        }
 
         // Create timeline data array with one entry
         JSONObject timelineEntry = new JSONObject();
-        timelineEntry.put("username", dataToPatch.get("validated_by"));
-        timelineEntry.put("status", dataToPatch.get("account_status"));
+        if (dataToPatch.containsKey("validated_by")) {
+            timelineEntry.put("username", dataToPatch.get("validated_by"));
+        }
+
+        if (dataToPatch.get("account_status") != null && !dataToPatch.get("account_status").isBlank()) {
+            timelineEntry.put("status", dataToPatch.get("account_status"));
+        }
 
         ZonedDateTime currentDateTime = ZonedDateTime.now();
         timelineEntry.put("status_date", currentDateTime.format(DateTimeFormatter.ISO_INSTANT));
