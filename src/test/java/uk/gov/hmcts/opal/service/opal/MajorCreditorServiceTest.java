@@ -13,7 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
-import uk.gov.hmcts.opal.entity.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntityLite;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
@@ -89,7 +89,7 @@ class MajorCreditorServiceTest {
         MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder()
             .businessUnitId((short) 7)
             .creditorAccountEntity(
-                CreditorAccountEntity.builder()
+                CreditorAccountEntityLite.builder()
                     .creditorAccountId(8L)
                     .accountNumber("AC55K")
                     .creditorAccountType("TYPE1")

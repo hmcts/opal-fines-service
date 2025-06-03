@@ -10,7 +10,7 @@ import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyCreditorAccountSearchResults;
 import uk.gov.hmcts.opal.dto.search.CreditorAccountSearchDto;
-import uk.gov.hmcts.opal.entity.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 
 import java.util.Collections;
 import java.util.List;

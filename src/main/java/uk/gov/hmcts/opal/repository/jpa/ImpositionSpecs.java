@@ -5,7 +5,7 @@ import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.ImpositionSearchDto;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.entity.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.ImpositionEntity;
 import uk.gov.hmcts.opal.entity.ImpositionEntity_;

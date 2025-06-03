@@ -7,8 +7,8 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.CreditorAccountSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.CreditorAccountEntity;
-import uk.gov.hmcts.opal.entity.CreditorAccountEntity_;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity_;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;

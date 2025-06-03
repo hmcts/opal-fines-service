@@ -12,7 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import uk.gov.hmcts.opal.dto.search.CreditorAccountSearchDto;
-import uk.gov.hmcts.opal.entity.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 
 import java.util.List;
