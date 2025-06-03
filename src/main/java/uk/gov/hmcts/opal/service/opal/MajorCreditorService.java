@@ -11,9 +11,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
-import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
-import uk.gov.hmcts.opal.entity.MajorCreditorEntity_;
-import uk.gov.hmcts.opal.entity.projection.MajorCreditorReferenceData;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity_;
+import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
+import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.repository.jpa.MajorCreditorSpecs;
 
@@ -27,6 +28,8 @@ import java.util.Optional;
 public class MajorCreditorService {
 
     private final MajorCreditorRepository majorCreditorRepository;
+
+    private final MajorCreditorMapper majorCreditorMapper;
 
     private final MajorCreditorSpecs specs = new MajorCreditorSpecs();
 
@@ -63,33 +66,11 @@ public class MajorCreditorService {
                         .sortBy(nameSort)
                         .page(Pageable.unpaged()));
 
-        return page.getContent().stream().map(this::toRefData).toList();
+        return page.getContent().stream()
+            .map(majorCreditorMapper::toRefData)
+            .toList();
+
     }
 
-    private MajorCreditorReferenceData toRefData(MajorCreditorEntity entity) {
-        log.debug(":toRefData: entity: {}", entity);
 
-        MajorCreditorReferenceData.MajorCreditorReferenceDataBuilder builder = MajorCreditorReferenceData.builder()
-            .majorCreditorId(entity.getMajorCreditorId())
-            .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
-            .majorCreditorCode(entity.getMajorCreditorCode())
-            .name(entity.getName())
-            .postcode(entity.getPostcode());
-
-        MajorCreditorReferenceData mcrd = Optional.ofNullable(entity.getCreditorAccountEntity())
-            .map(cae -> builder
-                .creditorAccountId(cae.getCreditorAccountId())
-                .accountNumber(cae.getAccountsNumber())
-                .creditorAccountType(cae.getCreditorAccountType())
-                .prosecutionService(cae.isProsecutionService())
-                .minorCreditorPartyId(cae.getMinorCreditorPartyId())
-                .fromSuspense(cae.isFromSuspense())
-                .holdPayout(cae.isHoldPayout())
-                .lastChangedDate(cae.getLastChangedDate())
-                .build())
-            .orElse(builder.build());
-
-        log.debug(":toRefData: refData: \n{}", mcrd.toPrettyJson());
-        return mcrd;
-    }
 }

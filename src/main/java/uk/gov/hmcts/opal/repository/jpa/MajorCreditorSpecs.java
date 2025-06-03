@@ -2,18 +2,13 @@ package uk.gov.hmcts.opal.repository.jpa;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
-import uk.gov.hmcts.opal.entity.MajorCreditorEntity_;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity_;
 
 import java.util.Optional;
-
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
 
 public class MajorCreditorSpecs extends AddressSpecs<MajorCreditorEntity> {
 
@@ -22,7 +17,6 @@ public class MajorCreditorSpecs extends AddressSpecs<MajorCreditorEntity> {
             findByAddressCriteria(criteria),
             numericLong(criteria.getMajorCreditorId()).map(MajorCreditorSpecs::equalsMajorCreditorId),
             numericShort(criteria.getBusinessUnitId()).map(MajorCreditorSpecs::equalsBusinessUnitId),
-            notBlank(criteria.getBusinessUnitName()).map(MajorCreditorSpecs::likeBusinessUnitName),
             notBlank(criteria.getMajorCreditorCode()).map(MajorCreditorSpecs::likeMajorCreditorCode)
         ));
     }
@@ -44,15 +38,13 @@ public class MajorCreditorSpecs extends AddressSpecs<MajorCreditorEntity> {
         return builder.equal(from.get(MajorCreditorEntity_.majorCreditorId), majorCreditorId);
     }
 
+
     public static Specification<MajorCreditorEntity> equalsBusinessUnitId(Short businessUnitId) {
         return (root, query, builder) ->
-            equalsBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
+            builder.equal(root.get(MajorCreditorEntity_.businessUnitId), businessUnitId);
     }
 
-    public static Specification<MajorCreditorEntity> likeBusinessUnitName(String businessUnitName) {
-        return (root, query, builder) ->
-            likeBusinessUnitNamePredicate(joinBusinessUnit(root), builder, businessUnitName);
-    }
+
 
     public static Specification<MajorCreditorEntity> likeMajorCreditorCode(String majorCreditorCode) {
         return (root, query, builder) -> likeMajorCreditorCodePredicate(root, builder, majorCreditorCode);
@@ -70,8 +62,5 @@ public class MajorCreditorSpecs extends AddressSpecs<MajorCreditorEntity> {
         );
     }
 
-    public static Join<MajorCreditorEntity, BusinessUnitEntity> joinBusinessUnit(From<?, MajorCreditorEntity> from) {
-        return from.join(MajorCreditorEntity_.businessUnit);
-    }
 
 }

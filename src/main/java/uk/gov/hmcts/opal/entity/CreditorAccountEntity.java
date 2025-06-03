@@ -23,6 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;
@@ -51,7 +52,7 @@ public class CreditorAccountEntity {
     private BusinessUnitEntity businessUnit;
 
     @Column(name = "account_number", length = 20, nullable = false)
-    private String accountsNumber;
+    private String accountNumber;
 
     @Column(name = "creditor_account_type", length = 2, nullable = false)
     private String creditorAccountType;

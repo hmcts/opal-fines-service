@@ -11,11 +11,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
+import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.CreditorAccountEntity;
-import uk.gov.hmcts.opal.entity.MajorCreditorEntity;
-import uk.gov.hmcts.opal.entity.projection.MajorCreditorReferenceData;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 
 import java.time.LocalDateTime;
@@ -33,6 +33,9 @@ class MajorCreditorServiceTest {
 
     @Mock
     private MajorCreditorRepository majorCreditorRepository;
+
+    @Mock
+    private MajorCreditorMapper majorCreditorMapper;
 
     @InjectMocks
     private MajorCreditorService majorCreditorService;
@@ -84,11 +87,11 @@ class MajorCreditorServiceTest {
         when(ffq.sortBy(any())).thenReturn(ffq);
 
         MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)007).build())
+            .businessUnitId((short) 7)
             .creditorAccountEntity(
                 CreditorAccountEntity.builder()
                     .creditorAccountId(8L)
-                    .accountsNumber("AC55K")
+                    .accountNumber("AC55K")
                     .creditorAccountType("TYPE1")
                     .prosecutionService(true)
                     .minorCreditorPartyId(555L)
@@ -97,39 +100,37 @@ class MajorCreditorServiceTest {
                     .lastChangedDate(LocalDateTime.now())
                     .build())
             .build();
+
+        MajorCreditorReferenceData referenceData = MajorCreditorReferenceData.builder()
+            .majorCreditorId(majorCreditorEntity.getMajorCreditorId())
+            .businessUnitId(majorCreditorEntity.getBusinessUnitId())
+            .majorCreditorCode(majorCreditorEntity.getMajorCreditorCode())
+            .name(majorCreditorEntity.getName())
+            .postcode(majorCreditorEntity.getPostcode())
+            .creditorAccountId(majorCreditorEntity.getCreditorAccountEntity().getCreditorAccountId())
+            .accountNumber(majorCreditorEntity.getCreditorAccountEntity().getAccountNumber())
+            .creditorAccountType(majorCreditorEntity.getCreditorAccountEntity().getCreditorAccountType())
+            .prosecutionService(majorCreditorEntity.getCreditorAccountEntity().isProsecutionService())
+            .minorCreditorPartyId(majorCreditorEntity.getCreditorAccountEntity().getMinorCreditorPartyId())
+            .fromSuspense(majorCreditorEntity.getCreditorAccountEntity().isFromSuspense())
+            .holdPayout(majorCreditorEntity.getCreditorAccountEntity().isHoldPayout())
+            .lastChangedDate(majorCreditorEntity.getCreditorAccountEntity().getLastChangedDate())
+            .build();
+
         Page<MajorCreditorEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity), Pageable.unpaged(), 999L);
         when(majorCreditorRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
             return mockPage;
         });
 
+        when(majorCreditorMapper.toRefData(majorCreditorEntity)).thenReturn(referenceData);
+
         // Act
         List<MajorCreditorReferenceData> result = majorCreditorService.getReferenceData(
             Optional.empty(), Optional.empty());
 
-
-        MajorCreditorReferenceData.MajorCreditorReferenceDataBuilder builder = MajorCreditorReferenceData.builder()
-            .majorCreditorId(majorCreditorEntity.getMajorCreditorId())
-            .businessUnitId(majorCreditorEntity.getBusinessUnit().getBusinessUnitId())
-            .majorCreditorCode(majorCreditorEntity.getMajorCreditorCode())
-            .name(majorCreditorEntity.getName())
-            .postcode(majorCreditorEntity.getPostcode());
-
-        MajorCreditorReferenceData refData = Optional.ofNullable(majorCreditorEntity.getCreditorAccountEntity())
-            .map(cae -> builder
-                .creditorAccountId(cae.getCreditorAccountId())
-                .accountNumber(cae.getAccountsNumber())
-                .creditorAccountType(cae.getCreditorAccountType())
-                .prosecutionService(cae.isProsecutionService())
-                .minorCreditorPartyId(cae.getMinorCreditorPartyId())
-                .fromSuspense(cae.isFromSuspense())
-                .holdPayout(cae.isHoldPayout())
-                .lastChangedDate(cae.getLastChangedDate())
-                .build())
-            .orElse(builder.build());
-
         // Assert
-        assertEquals(List.of(refData), result);
-
+        assertEquals(List.of(referenceData), result);
+        Mockito.verify(majorCreditorMapper).toRefData(majorCreditorEntity);
     }
 }

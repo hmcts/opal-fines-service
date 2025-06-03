@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
 import uk.gov.hmcts.opal.entity.AddressEntity_;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.MajorCreditorEntity_;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity_;
 import uk.gov.hmcts.opal.entity.projection.EnforcerReferenceData;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.jpa.EnforcerSpecs;
