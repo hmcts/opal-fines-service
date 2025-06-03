@@ -40,7 +40,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
 
         postBody.put(
             "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
+            dataToPost.get("business_unit_id") != null ? Long.parseLong(dataToPost.get("business_unit_id")) : ""
         );
         postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
         if (dataToPost.get("submitted_by_name") != null) {
@@ -164,7 +164,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
 
         postBody.put(
             "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
+            dataToPost.get("business_unit_id") != null ? Long.parseLong(dataToPost.get("business_unit_id")) : ""
         );
         postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
         postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
@@ -205,7 +205,6 @@ public class DraftAccountPutSteps extends BaseStepDef {
     @When("I attempt to put a draft account with resource not found")
     public void putADraftAccountWithResourceNotFound(DataTable data) throws IOException, JSONException {
         Map<String, String> dataToPost = data.asMap(String.class, String.class);
-
         assertEquals(
             1,
             DraftAccountUtils.getAllDraftAccountIds().size(),
@@ -218,7 +217,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
 
         postBody.put(
             "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
+            dataToPost.get("business_unit_id") != null ? Long.parseLong(dataToPost.get("business_unit_id")) : ""
         );
         postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
         postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
@@ -271,7 +270,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
 
         postBody.put(
             "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
+            dataToPost.get("business_unit_id") != null ? Long.parseLong(dataToPost.get("business_unit_id")) : ""
         );
         postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
         postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
@@ -323,7 +322,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
 
         postBody.put(
             "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
+            dataToPost.get("business_unit_id") != null ? Long.parseLong(dataToPost.get("business_unit_id")) : ""
         );
         postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
         postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
