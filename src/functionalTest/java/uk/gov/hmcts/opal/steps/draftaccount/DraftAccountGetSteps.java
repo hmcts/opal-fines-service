@@ -180,8 +180,11 @@ public class DraftAccountGetSteps extends BaseStepDef {
                 String apiResponseValue = then().extract().body().jsonPath().getString("summaries[" + i + "]."
                                                                                            + key);
                 assertTrue(
-                    String.valueOf(expectedData.get(key)).equalsIgnoreCase(String.valueOf(apiResponseValue)),
-                    "Value '" + apiResponseValue + "' is not equal to expected (case-insensitive): '" + expectedData.get(key) + "'"
+                    String.valueOf(expectedData.get(key))
+                        .equalsIgnoreCase(String.valueOf(apiResponseValue)),
+                    "Value " + apiResponseValue
+                        + " is not equal to expected (case-insensitive): '"
+                        + expectedData.get(key) + "'"
                 );
 
             }
