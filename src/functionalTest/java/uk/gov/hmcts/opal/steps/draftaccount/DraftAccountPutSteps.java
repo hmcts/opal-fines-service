@@ -35,24 +35,14 @@ public class DraftAccountPutSteps extends BaseStepDef {
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
 
-
         JSONObject postBody = new JSONObject();
 
-        postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? Long.parseLong(dataToPost.get("business_unit_id")) : ""
-        );
-        postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
-        if (dataToPost.get("submitted_by_name") != null) {
-            postBody.put("submitted_by_name", dataToPost.get("submitted_by_name"));
-        }
-        postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
-        postBody.put("version", dataToPost.get("version") != null ? dataToPost.get("version") : "0");
-        postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
-        );
-
+        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
+        addToJsonObject(postBody, dataToPost, "submitted_by_name");
+        addToJsonObject(postBody, dataToPost, "account_type");
+        addToJsonObjectOrNull(postBody, dataToPost, "version");
+        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
             + dataToPost.get(
@@ -159,21 +149,13 @@ public class DraftAccountPutSteps extends BaseStepDef {
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
 
-
         JSONObject postBody = new JSONObject();
 
-        postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? Long.parseLong(dataToPost.get("business_unit_id")) : ""
-        );
-        postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
-        postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
-            ? dataToPost.get("submitted_by_name") : "");
-        postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
-        postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
-        );
+        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
+        addToJsonObject(postBody, dataToPost, "submitted_by_name");
+        addToJsonObject(postBody, dataToPost, "account_type");
+        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
 
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
@@ -212,22 +194,13 @@ public class DraftAccountPutSteps extends BaseStepDef {
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
 
-
         JSONObject postBody = new JSONObject();
 
-        postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? Long.parseLong(dataToPost.get("business_unit_id")) : ""
-        );
-        postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
-        postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
-            ? dataToPost.get("submitted_by_name") : "");
-        postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
-        postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
-        );
-
+        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
+        addToJsonObject(postBody, dataToPost, "submitted_by_name");
+        addToJsonObject(postBody, dataToPost, "account_type");
+        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
             + dataToPost.get(
@@ -265,22 +238,13 @@ public class DraftAccountPutSteps extends BaseStepDef {
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
 
-
         JSONObject postBody = new JSONObject();
 
-        postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? Long.parseLong(dataToPost.get("business_unit_id")) : ""
-        );
-        postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
-        postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
-            ? dataToPost.get("submitted_by_name") : "");
-        postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
-        postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
-        );
-
+        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
+        addToJsonObject(postBody, dataToPost, "submitted_by_name");
+        addToJsonObject(postBody, dataToPost, "account_type");
+        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
             + dataToPost.get(
@@ -317,22 +281,13 @@ public class DraftAccountPutSteps extends BaseStepDef {
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
 
-
         JSONObject postBody = new JSONObject();
 
-        postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? Long.parseLong(dataToPost.get("business_unit_id")) : ""
-        );
-        postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
-        postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
-            ? dataToPost.get("submitted_by_name") : "");
-        postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
-        postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
-        );
-
+        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
+        addToJsonObject(postBody, dataToPost, "submitted_by_name");
+        addToJsonObject(postBody, dataToPost, "account_type");
+        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
             + dataToPost.get(

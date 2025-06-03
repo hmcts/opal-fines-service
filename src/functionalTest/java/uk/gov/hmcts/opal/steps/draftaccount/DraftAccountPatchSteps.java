@@ -21,37 +21,18 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         Map<String, String> dataToPatch = data.asMap(String.class, String.class);
         JSONObject patchBody = new JSONObject();
 
-        if (dataExists(dataToPatch.get("business_unit_id"))) {
-            patchBody.put("business_unit_id", Long.parseLong(dataToPatch.get("business_unit_id")));
-        }
-
-        if (dataExists(dataToPatch.get("account_status"))) {
-            patchBody.put("account_status", dataToPatch.get("account_status"));
-        }
-
-        if (dataExists(dataToPatch.get("validated_by"))) {
-            patchBody.put("validated_by", dataToPatch.get("validated_by"));
-        }
-
+        addLongToJsonObject(patchBody, dataToPatch, "business_unit_id");
+        addToJsonObjectOrNull(patchBody, dataToPatch, "account_status");
+        addToJsonObjectOrNull(patchBody, dataToPatch, "validated_by");
         addIntToJsonObject(patchBody, dataToPatch, "version");
 
         // Create timeline data array with one entry
         JSONObject timelineEntry = new JSONObject();
 
-        if (dataExists(dataToPatch.get("validated_by"))) {
-            timelineEntry.put("username", dataToPatch.get("validated_by"));
-        }
-
-        if (dataExists(dataToPatch.get("account_status"))) {
-            timelineEntry.put("status", dataToPatch.get("account_status"));
-        }
-
-        ZonedDateTime currentDateTime = ZonedDateTime.now();
-        timelineEntry.put("status_date", currentDateTime.format(DateTimeFormatter.ISO_INSTANT));
-
-        if (dataExists(dataToPatch.get("reason_text"))) {
-            timelineEntry.put("reason_text", dataToPatch.get("reason_text"));
-        }
+        addToJsonObjectOrNull(timelineEntry, dataToPatch, "validated_by");
+        addToJsonObjectOrNull(timelineEntry, dataToPatch, "account_status");
+        timelineEntry.put("status_date", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
+        addToJsonObjectOrNull(timelineEntry, dataToPatch, "reason_text");
 
         JSONArray timelineDataArray = new JSONArray();
         timelineDataArray.put(timelineEntry);
@@ -73,37 +54,18 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         Map<String, String> dataToPatch = data.asMap(String.class, String.class);
         JSONObject patchBody = new JSONObject();
 
-        if (dataExists(dataToPatch.get("business_unit_id"))) {
-            patchBody.put("business_unit_id", Long.parseLong(dataToPatch.get("business_unit_id")));
-        }
-
-        if (dataExists(dataToPatch.get("account_status"))) {
-            patchBody.put("account_status", dataToPatch.get("account_status"));
-        }
-
-        if (dataExists(dataToPatch.get("validated_by"))) {
-            patchBody.put("validated_by", dataToPatch.get("validated_by"));
-        }
-
+        addLongToJsonObject(patchBody, dataToPatch, "business_unit_id");
+        addToJsonObjectOrNull(patchBody, dataToPatch, "account_status");
+        addToJsonObjectOrNull(patchBody, dataToPatch, "validated_by");
         addIntToJsonObject(patchBody, dataToPatch, "version");
 
         // Create timeline data array with one entry
         JSONObject timelineEntry = new JSONObject();
 
-        if (dataExists(dataToPatch.get("validated_by"))) {
-            timelineEntry.put("username", dataToPatch.get("validated_by"));
-        }
-
-        if (dataExists(dataToPatch.get("account_status"))) {
-            timelineEntry.put("status", dataToPatch.get("account_status"));
-        }
-
-        ZonedDateTime currentDateTime = ZonedDateTime.now();
-        timelineEntry.put("status_date", currentDateTime.format(DateTimeFormatter.ISO_INSTANT));
-
-        if (dataExists(dataToPatch.get("reason_text"))) {
-            timelineEntry.put("reason_text", dataToPatch.get("reason_text"));
-        }
+        addToJsonObjectOrNull(timelineEntry, dataToPatch, "validated_by"); // maps to "username"
+        addToJsonObjectOrNull(timelineEntry, dataToPatch, "account_status"); // maps to "status"
+        timelineEntry.put("status_date", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
+        addToJsonObjectOrNull(timelineEntry, dataToPatch, "reason_text");
 
         JSONArray timelineDataArray = new JSONArray();
         timelineDataArray.put(timelineEntry);

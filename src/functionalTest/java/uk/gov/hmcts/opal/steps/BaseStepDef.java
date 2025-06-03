@@ -41,4 +41,26 @@ public class BaseStepDef {
             json.put(key, Integer.parseInt(data));
         }
     }
+
+    public static void addLongToJsonObject(JSONObject json, Map<String, String> dataToPatch, String key)
+        throws JSONException {
+        String data = dataToPatch.get(key);
+        if (dataExists(data)) {
+            json.put(key, Long.parseLong(data));
+        }
+    }
+
+    public static void addIfPresentToJsonObject(JSONObject json, Map<String, String> dataToPatch, String key)
+        throws JSONException {
+        String data = dataToPatch.get(key);
+        if (dataExists(data)) {
+            json.put(key, data);
+        }
+    }
+
+    public static void addToJsonObjectOrNull(JSONObject json, Map<String, String> data,
+                                             String key) throws JSONException {
+        String value = data.get(key);
+        json.put(key, dataExists(value) ? value : JSONObject.NULL); // added here
+    }
 }

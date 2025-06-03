@@ -26,25 +26,12 @@ public class DraftAccountPostSteps extends BaseStepDef {
         Map<String, String> dataToPost = accountData.asMap(String.class, String.class);
         JSONObject postBody = new JSONObject();
 
-        postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? Long.parseLong(dataToPost.get("business_unit_id")) : null
-        );
+        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addToJsonObject(postBody, dataToPost, "submitted_by");
+        addToJsonObject(postBody, dataToPost, "submitted_by_name");
+        addToJsonObject(postBody, dataToPost, "account_type");
+        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
 
-        if (dataToPost.containsKey("submitted_by")) {
-            String submittedBy = dataToPost.get("submitted_by");
-            postBody.put("submitted_by", submittedBy != null && !submittedBy.isBlank() ? submittedBy : JSONObject.NULL);
-        }
-
-        postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
-            ? dataToPost.get("submitted_by_name") : "");
-        postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
-        postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null && !dataToPost.get("account_status").isBlank()
-                ? dataToPost.get("account_status")
-                : JSONObject.NULL
-        );
 
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
