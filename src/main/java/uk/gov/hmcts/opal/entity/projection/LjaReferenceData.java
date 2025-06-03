@@ -1,7 +1,9 @@
 package uk.gov.hmcts.opal.entity.projection;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public interface LjaReferenceData {
 
     @JsonProperty("local_justice_area_id")

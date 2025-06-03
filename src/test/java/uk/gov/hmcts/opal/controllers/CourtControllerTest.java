@@ -9,8 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.CourtEntity;
-import uk.gov.hmcts.opal.entity.projection.CourtReferenceData;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
@@ -42,7 +42,7 @@ class CourtControllerTest {
         // Arrange
         CourtEntity entity = CourtEntity.builder().build();
 
-        when(courtService.getCourt(any(Long.class))).thenReturn(entity);
+        when(courtService.getCourtById(any(Long.class))).thenReturn(entity);
 
         // Act
         ResponseEntity<CourtEntity> response = courtController.getCourtById(1L, BEARER_TOKEN);
@@ -50,7 +50,7 @@ class CourtControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(entity, response.getBody());
-        verify(courtService, times(1)).getCourt(any(Long.class));
+        verify(courtService, times(1)).getCourtById(any(Long.class));
     }
 
     @Test
@@ -93,6 +93,14 @@ class CourtControllerTest {
     }
 
     private CourtReferenceData createCourtReferenceData() {
-        return new CourtReferenceData(1L, (short)007, (short)2,"Main Court", null,"MM1234");
+        return new CourtReferenceData(
+            1L,                    // courtId
+            (short) 7,             // businessUnitId
+            (short) 2,             // courtCode
+            "Main Court",          // name
+            "MC",                  // courtType
+            (short) 2577,          // localJusticeAreaId (lja)
+            "01"                   // division
+        );
     }
 }

@@ -12,6 +12,10 @@
       "type": "string",
       "minLength": 1
     },
+    "business_unit_user_id": {
+      "type": "string",
+      "minLength": 1
+    },
     "version": {
       "type": "integer"
     },

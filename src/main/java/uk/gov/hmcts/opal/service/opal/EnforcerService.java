@@ -1,7 +1,9 @@
 package uk.gov.hmcts.opal.service.opal;
 
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -9,35 +11,41 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
+import uk.gov.hmcts.opal.entity.AddressEntity_;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.MajorCreditorEntity_;
 import uk.gov.hmcts.opal.entity.projection.EnforcerReferenceData;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.jpa.EnforcerSpecs;
-import uk.gov.hmcts.opal.service.EnforcerServiceInterface;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j(topic = "opal.EnforcerService")
 @Qualifier("enforcerService")
-public class EnforcerService implements EnforcerServiceInterface {
+public class EnforcerService {
 
     private final EnforcerRepository enforcerRepository;
 
     private final EnforcerSpecs specs = new EnforcerSpecs();
 
-    @Override
-    public EnforcerEntity getEnforcer(long enforcerId) {
-        return enforcerRepository.getReferenceById(enforcerId);
+    public EnforcerEntity getEnforcerById(long enforcerId) {
+        return enforcerRepository.findById(enforcerId)
+            .orElseThrow(() -> new EntityNotFoundException("Enforcer not found with id: " + enforcerId));
     }
 
-    @Override
     public List<EnforcerEntity> searchEnforcers(EnforcerSearchDto criteria) {
+        log.info(":searchEnforcers: criteria: {}", criteria);
+
+        Sort nameSort = Sort.by(Sort.Direction.ASC, AddressEntity_.NAME);
+
         Page<EnforcerEntity> page = enforcerRepository
             .findBy(specs.findBySearchCriteria(criteria),
-                    ffq -> ffq.page(Pageable.unpaged()));
+                    ffq -> ffq
+                        .sortBy(nameSort)
+                        .page(Pageable.unpaged()));
 
         return page.getContent();
     }

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.entity.projection;
+package uk.gov.hmcts.opal.dto.reference;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -7,6 +7,7 @@ public record CourtReferenceData(
     @JsonProperty("business_unit_id") Short businessUnitId,
     @JsonProperty("court_code") Short courtCode,
     @JsonProperty("name") String name,
-    @JsonProperty("name_cy") String nameCy,
-    @JsonProperty("national_court_code") String nationalCourtCode) {
+    @JsonProperty("court_type") String courtType,
+    @JsonProperty("lja") Short localJusticeAreaId,
+    @JsonProperty("division") String division) {
 }

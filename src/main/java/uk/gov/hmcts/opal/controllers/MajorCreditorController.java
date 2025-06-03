@@ -29,10 +29,10 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 @Tag(name = "Major Creditor Controller")
 public class MajorCreditorController {
 
-    private final MajorCreditorService opalMajorCreditorService;
+    private final MajorCreditorService majorCreditorService;
 
-    public MajorCreditorController(MajorCreditorService opalMajorCreditorService) {
-        this.opalMajorCreditorService = opalMajorCreditorService;
+    public MajorCreditorController(MajorCreditorService majorCreditorService) {
+        this.majorCreditorService = majorCreditorService;
     }
 
     @GetMapping(value = "/{majorCreditorId}")
@@ -41,7 +41,7 @@ public class MajorCreditorController {
 
         log.debug(":GET:getMajorCreditorById: majorCreditorId: {}", majorCreditorId);
 
-        MajorCreditorEntity response = opalMajorCreditorService.getMajorCreditor(majorCreditorId);
+        MajorCreditorEntity response = majorCreditorService.getMajorCreditorById(majorCreditorId);
 
         return buildResponse(response);
     }
@@ -52,7 +52,7 @@ public class MajorCreditorController {
         @RequestBody MajorCreditorSearchDto criteria) {
         log.debug(":POST:postMajorCreditorsSearch: query: \n{}", criteria);
 
-        List<MajorCreditorEntity> response = opalMajorCreditorService.searchMajorCreditors(criteria);
+        List<MajorCreditorEntity> response = majorCreditorService.searchMajorCreditors(criteria);
 
         return buildResponse(response);
     }
@@ -63,7 +63,7 @@ public class MajorCreditorController {
         @RequestParam("q") Optional<String> filter, @RequestParam Optional<Short> businessUnit) {
         log.debug(":GET:getMajorCreditorRefData: business unit: {}, filter string: {}", businessUnit, filter);
 
-        List<MajorCreditorReferenceData> refData = opalMajorCreditorService.getReferenceData(filter, businessUnit);
+        List<MajorCreditorReferenceData> refData = majorCreditorService.getReferenceData(filter, businessUnit);
 
         log.debug(":GET:getMajorCreditorRefData: major creditor reference data count: {}", refData.size());
         return ResponseEntity.ok(MajorCreditorReferenceDataResults.builder().refData(refData).build());
