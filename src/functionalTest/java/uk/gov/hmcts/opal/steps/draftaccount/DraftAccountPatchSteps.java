@@ -25,11 +25,11 @@ public class DraftAccountPatchSteps extends BaseStepDef {
             patchBody.put("business_unit_id", Long.parseLong(dataToPatch.get("business_unit_id")));
         }
 
-        if (dataExists(dataToPatch.get("account_status"))){
+        if (dataExists(dataToPatch.get("account_status"))) {
             patchBody.put("account_status", dataToPatch.get("account_status"));
         }
 
-        if (dataExists(dataToPatch.get("validated_by"))){
+        if (dataExists(dataToPatch.get("validated_by"))) {
             patchBody.put("validated_by", dataToPatch.get("validated_by"));
         }
 
