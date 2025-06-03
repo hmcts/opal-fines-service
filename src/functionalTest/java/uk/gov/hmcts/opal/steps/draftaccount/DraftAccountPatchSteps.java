@@ -21,35 +21,35 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         Map<String, String> dataToPatch = data.asMap(String.class, String.class);
         JSONObject patchBody = new JSONObject();
 
-        if (dataToPatch.get("business_unit_id") != null && !dataToPatch.get("business_unit_id").isBlank()) {
+        if (dataExists(dataToPatch.get("business_unit_id"))) {
             patchBody.put("business_unit_id", Long.parseLong(dataToPatch.get("business_unit_id")));
         }
 
-        if (dataToPatch.get("account_status") != null && !dataToPatch.get("account_status").isBlank()) {
+        if (dataExists(dataToPatch.get("account_status"))){
             patchBody.put("account_status", dataToPatch.get("account_status"));
         }
 
-        if (dataToPatch.containsKey("validated_by") && !dataToPatch.get("validated_by").isBlank()) {
+        if (dataExists(dataToPatch.get("validated_by"))){
             patchBody.put("validated_by", dataToPatch.get("validated_by"));
         }
 
-        if (dataToPatch.get("version") != null && !dataToPatch.get("version").isBlank()) {
-            patchBody.put("version", Integer.parseInt(dataToPatch.get("version")));
-        }
+        addIntToJsonObject(patchBody, dataToPatch, "version");
+
         // Create timeline data array with one entry
         JSONObject timelineEntry = new JSONObject();
-        if (dataToPatch.containsKey("validated_by")) {
+
+        if (dataExists(dataToPatch.get("validated_by"))) {
             timelineEntry.put("username", dataToPatch.get("validated_by"));
         }
 
-        if (dataToPatch.get("account_status") != null && !dataToPatch.get("account_status").isBlank()) {
+        if (dataExists(dataToPatch.get("account_status"))) {
             timelineEntry.put("status", dataToPatch.get("account_status"));
         }
 
         ZonedDateTime currentDateTime = ZonedDateTime.now();
         timelineEntry.put("status_date", currentDateTime.format(DateTimeFormatter.ISO_INSTANT));
 
-        if (dataToPatch.containsKey("reason_text")) {
+        if (dataExists(dataToPatch.get("reason_text"))) {
             timelineEntry.put("reason_text", dataToPatch.get("reason_text"));
         }
 
@@ -73,36 +73,35 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         Map<String, String> dataToPatch = data.asMap(String.class, String.class);
         JSONObject patchBody = new JSONObject();
 
-        if (dataToPatch.get("business_unit_id") != null && !dataToPatch.get("business_unit_id").isBlank()) {
+        if (dataExists(dataToPatch.get("business_unit_id"))) {
             patchBody.put("business_unit_id", Long.parseLong(dataToPatch.get("business_unit_id")));
         }
 
-        if (dataToPatch.get("account_status") != null && !dataToPatch.get("account_status").isBlank()) {
+        if (dataExists(dataToPatch.get("account_status"))) {
             patchBody.put("account_status", dataToPatch.get("account_status"));
         }
 
-        if (dataToPatch.containsKey("validated_by") && !dataToPatch.get("validated_by").isBlank()) {
+        if (dataExists(dataToPatch.get("validated_by"))) {
             patchBody.put("validated_by", dataToPatch.get("validated_by"));
         }
 
-        if (dataToPatch.get("version") != null && !dataToPatch.get("version").isBlank()) {
-            patchBody.put("version", Integer.parseInt(dataToPatch.get("version")));
-        }
+        addIntToJsonObject(patchBody, dataToPatch, "version");
 
         // Create timeline data array with one entry
         JSONObject timelineEntry = new JSONObject();
-        if (dataToPatch.containsKey("validated_by")) {
+
+        if (dataExists(dataToPatch.get("validated_by"))) {
             timelineEntry.put("username", dataToPatch.get("validated_by"));
         }
 
-        if (dataToPatch.get("account_status") != null && !dataToPatch.get("account_status").isBlank()) {
+        if (dataExists(dataToPatch.get("account_status"))) {
             timelineEntry.put("status", dataToPatch.get("account_status"));
         }
 
         ZonedDateTime currentDateTime = ZonedDateTime.now();
         timelineEntry.put("status_date", currentDateTime.format(DateTimeFormatter.ISO_INSTANT));
 
-        if (dataToPatch.containsKey("reason_text")) {
+        if (dataExists(dataToPatch.get("reason_text"))) {
             timelineEntry.put("reason_text", dataToPatch.get("reason_text"));
         }
 

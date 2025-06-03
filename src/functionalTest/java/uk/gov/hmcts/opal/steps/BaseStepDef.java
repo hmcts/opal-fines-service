@@ -29,4 +29,16 @@ public class BaseStepDef {
                                                                                             throws JSONException {
         json.put(name, dataToPost.get(name) != null ? dataToPost.get(name) : "");
     }
+
+    public static boolean dataExists(String data) {
+        return data != null && !data.isBlank();
+    }
+
+    public static void addIntToJsonObject(JSONObject json, Map<String, String> dataToPatch, String key)
+        throws JSONException {
+        String data = dataToPatch.get(key);
+        if (dataExists(data)) {
+            json.put(key, Integer.parseInt(data));
+        }
+    }
 }
