@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "title": "Get Defendant Account Payment Terms Response",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer"
+    },
+    "payment_terms_type_code": {
+      "type": "string",
+      "enum": ["B", "I"]
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "instalment_period": {
+      "type": "string",
+      "enum": ["W", "M", "F"]
+    },
+    "lump_sum": {
+      "type": "number",
+      "minimum": 0.01,
+      "multipleOf": 0.01
+    },
+    "instalment_amount": {
+      "type": "number",
+      "minimum": 0.01,
+      "multipleOf": 0.01
+    },
+    "days_in_default": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "date_days_in_default_imposed": {
+      "type": "string",
+      "format": "date"
+    },
+    "payment_card_last_requested": {
+      "type": "string",
+      "format": "date"
+    },
+    "date_last_amended": {
+      "type": "string",
+      "format": "date"
+    },
+    "last_amended_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "last_amended_by_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "amendment_reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "number_of_extensions": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "last_enforcement": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": ["version", "payment_terms_type_code"]
+}
+

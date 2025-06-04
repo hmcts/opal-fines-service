@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "title": "Add Defendant Account Payment Terms Legacy Request",
+  "additionalProperties": false,
+  "properties": {
+    "defendant_account_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "business_unit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "business_unit_user_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer"
+    },
+    "payment_terms_type_code": {
+      "type": "string",
+      "enum": ["B", "I"]
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "instalment_period": {
+      "type": "string",
+      "enum": ["W", "M", "F"]
+    },
+    "lump_sum": {
+      "type": "number",
+      "minimum": 0.01,
+      "multipleOf": 0.01
+    },
+    "instalment_amount": {
+      "type": "number",
+      "minimum": 0.01,
+      "multipleOf": 0.01
+    },
+    "days_in_default": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "date_days_in_default_imposed": {
+      "type": "string",
+      "format": "date"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 250
+    },
+    "last_enforcement": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generate_payment_terms_change_letter": {
+      "type": "boolean"
+    }
+  },
+  "required": ["defendant_account_id", "business_unit_id", "business_unit_user_id","version", "payment_terms_type_code"]
+}

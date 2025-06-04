@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "title": "Add Defendant Account Payment Card Request Request",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer"
+    },
+    "payment_card_requested": {
+      "type": "boolean"
+    },
+    "payment_card_last_requested": {
+      "type": "string",
+      "format": "date"
+    },
+    "payment_card_requested_by": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 20
+    }
+  },
+  "required": ["version"]
+}
