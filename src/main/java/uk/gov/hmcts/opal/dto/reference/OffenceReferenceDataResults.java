@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
 
 import java.util.List;
 import java.util.Optional;

@@ -2,22 +2,17 @@ package uk.gov.hmcts.opal.repository.jpa;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.OffenceEntity;
-import uk.gov.hmcts.opal.entity.OffenceEntity_;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntity_;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUnitNamePredicate;
 
 @Slf4j(topic = "opal.OffenceSpecs")
 public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
@@ -50,12 +45,7 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
 
     public static Specification<OffenceEntity> equalsBusinessUnitId(Short businessUnitId) {
         return (root, query, builder) ->
-            equalsBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
-    }
-
-    public static Specification<OffenceEntity> likeBusinessUnitName(String businessUnitName) {
-        return (root, query, builder) ->
-            likeBusinessUnitNamePredicate(joinBusinessUnit(root), builder, businessUnitName);
+            builder.equal(root.get(OffenceEntity_.businessUnitId), businessUnitId);
     }
 
     public static Specification<OffenceEntity> likeCjsCode(String cjsCode) {
@@ -98,7 +88,6 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
         return Optional.of((root, query, builder) -> root.get(OffenceEntity_.cjsCode).in(cjsCode));
     }
 
-
     public static Specification<OffenceEntity> usedFromDateLessThenEqualToDate(LocalDateTime offenceStillValidDate) {
         return (root, query, builder) -> builder.or(
             builder.isNull(root.get(OffenceEntity_.dateUsedFrom)),
@@ -117,9 +106,9 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
         From<?, OffenceEntity> from, CriteriaBuilder builder, Short businessUnitId) {
         return businessUnitId == 0
             // when business unit equal to zero, return all 'local' offences (business unit not null)
-            ? builder.isNotNull(from.get(OffenceEntity_.businessUnit)) :
+            ? builder.isNotNull(from.get(OffenceEntity_.businessUnitId)) :
             // with business unit not equal to zero, return just 'local' offences for that business unit
-            equalsBusinessUnitIdPredicate(joinBusinessUnit(from), builder, businessUnitId);
+            builder.equal(from.get(OffenceEntity_.businessUnitId), businessUnitId);
     }
 
     public static Specification<OffenceEntity> likeAnyOffence(String filter) {
@@ -150,11 +139,6 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
                 // return 'local' offences, dependant upon business unit
                 .map(bu -> matchLocalOffencesPredicate(root, builder, bu))
                 // return all 'global' offences, defined as not having a business unit specified
-                .orElse(builder.isNull(root.get(OffenceEntity_.businessUnit)));
+                .orElse(builder.isNull(root.get(OffenceEntity_.businessUnitId)));
     }
-
-    public static Join<OffenceEntity, BusinessUnitEntity> joinBusinessUnit(From<?, OffenceEntity> from) {
-        return from.join(OffenceEntity_.businessUnit);
-    }
-
 }
