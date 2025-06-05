@@ -5,12 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
@@ -41,9 +39,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts/";
-
-    @Autowired
-    private MockMvc mockMvc;
 
     @MockBean
     private UserStateService userStateService;

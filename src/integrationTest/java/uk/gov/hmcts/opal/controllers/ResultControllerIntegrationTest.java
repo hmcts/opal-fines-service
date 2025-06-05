@@ -3,12 +3,10 @@ package uk.gov.hmcts.opal.controllers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -28,9 +26,6 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/results";
     private static final String GET_RESULTS_REF_DATA_RESPONSE = "getResultsRefDataResponse.json";
-
-    @Autowired
-    MockMvc mockMvc;
 
     @SpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;

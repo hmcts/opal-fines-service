@@ -9,11 +9,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -40,11 +41,12 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUse
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
+@ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
-@Sql(scripts = "classpath:db/insertData/insert_into_draft_accounts.sql",
-    executionPhase = BEFORE_TEST_CLASS)
+@Sql(scripts = "classpath:db/insertData/insert_into_draft_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("DraftAccountController Integration Tests")
 class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
+
     private static final String URL_BASE = "/draft-accounts";
     private static final String GET_DRAFT_ACCOUNT_RESPONSE = "getDraftAccountResponse.json";
     private static final String GET_DRAFT_ACCOUNTS_RESPONSE = "getDraftAccountsResponse.json";
@@ -53,9 +55,6 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     @MockBean
     UserStateService userStateService;
-
-    @MockBean
-    AccessTokenService tokenService;
 
     @SpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
@@ -499,10 +498,14 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         UserState userState = permissionUser(BU_ID, Permissions.COLLECTION_ORDER);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
-        mockMvc.perform(
-                get(URL_BASE + "/2")
-                    .header("authorization", "Bearer some_value"))
-            .andExpect(status().isForbidden())
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/2")
+                    .header("authorization", "Bearer some_value"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountById_trap403Response_wrongPermission: Response body:\n{}",
+                 ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value(
