@@ -4,13 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -34,9 +32,6 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String POST_COURTS_SEARCH_RESPONSE = "postCourtsSearchResponse.json";
     private static final String GET_COURTS_REF_DATA_RESPONSE = "getCourtsRefDataResponse.json";
-
-    @Autowired
-    MockMvc mockMvc;
 
     @MockBean
     UserStateService userStateService;
@@ -72,8 +67,13 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get court by ID - When court does not exist [@PO-272, @PO-424]")
     void testGetCourtById_WhenCourtDoesNotExist() throws Exception {
 
-        mockMvc.perform(get(URL_BASE + "/2").header("authorization", "Bearer some_value"))
-            .andExpect(status().isNotFound());
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/2")
+                                                    .header("authorization", "Bearer some_value"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetCourtById_WhenCourtDoesNotExist: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isNotFound());
     }
 
     @Test
@@ -104,11 +104,15 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Post search courts - When court does not exist [@PO-272, @PO-424]")
     void testPostCourtsSearch_WhenCourtDoesNotExist() throws Exception {
-        mockMvc.perform(post(URL_BASE + "/search")
+        ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"courtId\":\"2\"}"))
-            .andExpect(status().isOk());
+                            .content("{\"courtId\":\"2\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostCourtsSearch_WhenCourtDoesNotExist: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk());
     }
 
     @Test

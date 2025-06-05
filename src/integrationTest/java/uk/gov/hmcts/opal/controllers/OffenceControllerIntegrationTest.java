@@ -5,7 +5,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -13,29 +14,35 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertTrue;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.OffenceControllerIntegrationTest")
+@Sql(scripts = "classpath:db/insertData/insert_into_offences.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("OffenceController Integration Test")
-
 class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
-    @SpyBean
-    private JsonSchemaValidationService jsonSchemaValidationService;
+
     private static final String GET_OFFENCES_REF_DATA_RESPONSE = "getOffencesRefDataResponse.json";
     private static final String POST_OFFENCES_SEARCH_RESPONSE = "postOffencesSearchResponse.json";
     private static final String URL_BASE = "/offences";
 
+    @SpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
     @DisplayName("Get offence by ID [@PO-420, PO-272]")
     void testGetOffenceById() throws Exception {
-        mockMvc.perform(get(URL_BASE + "/30000"))
-            .andExpect(status().isOk())
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/30000"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetOffenceById: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.offenceId").value(30000))
             .andExpect(jsonPath("$.cjsCode").value("AA60005"))
@@ -49,6 +56,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get offence reference data")
     void testGetOffenceReferenceData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE).param("cjs_code","CW96023"));
+
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetOffenceReferenceData: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
@@ -59,7 +67,8 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[0].cjs_code").value("CW96023"))
             .andExpect(jsonPath("$.refData[0].offence_title")
                 .value("Use a chemical weapon"));
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_OFFENCES_REF_DATA_RESPONSE));
+
+        jsonSchemaValidationService.validateOrError(body, GET_OFFENCES_REF_DATA_RESPONSE);
     }
 
 
@@ -73,10 +82,14 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Post search result for offence created by POST request [@PO-926, PO-304]")
     void testPostOffencesSearch() throws Exception {
-        MvcResult result = mockMvc.perform(post(URL_BASE + "/search")
+        ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
                                               .contentType(MediaType.APPLICATION_JSON)
-                                              .content("{\"cjs_code\":\"IC01001\"}"))
-            .andExpect(status().isOk())
+                                              .content("{\"cjs_code\":\"IC01001\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostOffencesSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(4))
             .andExpect(jsonPath("$.searchData[0].offence_id").value(33430))
@@ -87,19 +100,21 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
                 .value("Contrary to sections 51 and 53 of the International Criminal Court Act 2001."))
             .andReturn();
 
-        String body = result.getResponse().getContentAsString();
-        log.info(":testPostOffencesSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
-        assertTrue(jsonSchemaValidationService.isValid(body, POST_OFFENCES_SEARCH_RESPONSE));
+        jsonSchemaValidationService.validateOrError(body, POST_OFFENCES_SEARCH_RESPONSE);
 
     }
 
     @Test
     @DisplayName("Post no search result when offence does not exist [@PO-926, PO-304]")
     void testPostOffencesSearch_WhenOffenceDoesNotExist() throws Exception {
-        mockMvc.perform(post(URL_BASE + "/search")
+        ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"cjs_code\":\"NOTREALCODE\"}"))
-            .andExpect(status().isOk())
+                            .content("{\"cjs_code\":\"NOTREALCODE\"}"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostOffencesSearch_WhenOffenceDoesNotExist: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(0));
     }
@@ -107,9 +122,14 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get offence reference data by single cjs_code value [@PO-304, PO-1445]")
     @Test
     void testGetOffencesWithCjsCode() throws Exception {
-        mockMvc.perform(get(URL_BASE)
-                .param("cjs_code", "CW96023"))
-            .andExpect(status().isOk())
+
+        ResultActions actions = mockMvc.perform(get(URL_BASE)
+                                                    .param("cjs_code", "CW96023"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetOffencesWithCjsCode: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.refData[0].cjs_code").value("CW96023"))
             .andExpect(jsonPath("$.refData[0].offence_title")
@@ -121,9 +141,14 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Get offences using comma-separated cjs_code values [@PO-304, PO-1445]")
     void testGetOffencesWithMultipleCjsCodes() throws Exception {
-        mockMvc.perform(get(URL_BASE)
-                .param("cjs_code","WT67003","ZP97010"))
-            .andExpect(status().isOk())
+
+        ResultActions actions = mockMvc.perform(get(URL_BASE)
+                .param("cjs_code","WT67003","ZP97010"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetOffencesWithMultipleCjsCodes: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.refData", hasSize(2)))
             .andExpect(jsonPath("$.count").value(2))
