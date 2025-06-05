@@ -29,8 +29,18 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         // Create timeline data array with one entry
         JSONObject timelineEntry = new JSONObject();
 
-        addToJsonObjectOrNull(timelineEntry, dataToPatch, "validated_by");
-        addToJsonObjectOrNull(timelineEntry, dataToPatch, "account_status");
+        if (dataToPatch.containsKey("validated_by")) {
+            timelineEntry.put("username", dataToPatch.get("validated_by"));
+        } else {
+            timelineEntry.put("username", JSONObject.NULL);
+        }
+
+        if (dataToPatch.containsKey("account_status")) {
+            timelineEntry.put("status", dataToPatch.get("account_status"));
+        } else {
+            timelineEntry.put("status", JSONObject.NULL);
+        }
+
         timelineEntry.put("status_date", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
         addToJsonObjectOrNull(timelineEntry, dataToPatch, "reason_text");
 
@@ -62,15 +72,24 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         // Create timeline data array with one entry
         JSONObject timelineEntry = new JSONObject();
 
-        addToJsonObjectOrNull(timelineEntry, dataToPatch, "validated_by"); // maps to "username"
-        addToJsonObjectOrNull(timelineEntry, dataToPatch, "account_status"); // maps to "status"
+        if (dataToPatch.containsKey("validated_by")) {
+            timelineEntry.put("username", dataToPatch.get("validated_by"));
+        } else {
+            timelineEntry.put("username", JSONObject.NULL);
+        }
+
+        if (dataToPatch.containsKey("account_status")) {
+            timelineEntry.put("status", dataToPatch.get("account_status"));
+        } else {
+            timelineEntry.put("status", JSONObject.NULL);
+        }
+
         timelineEntry.put("status_date", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
         addToJsonObjectOrNull(timelineEntry, dataToPatch, "reason_text");
 
         JSONArray timelineDataArray = new JSONArray();
         timelineDataArray.put(timelineEntry);
         patchBody.put("timeline_data", timelineDataArray);
-
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())

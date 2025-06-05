@@ -54,6 +54,8 @@ Feature: PO-747 patch draft account error handling
           | account_status   | Rejected             |
           | validated_by     | BUUID_REVIEWER       |
           | reason_text      | Reason for rejection |
+          | version          | 0                    |
+
         Then The draft account response returns 404
 
       @PO-747 @cleanUpData

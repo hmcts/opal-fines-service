@@ -15,6 +15,7 @@
     },
     "submitted_by_name": {
       "type": "string",
+      "minLength": 1,
       "description": "Value of the name claim in the AAD Acces Token"
     },
     "validated_by": {
