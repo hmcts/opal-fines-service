@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.projection.LjaReferenceData;
+import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 
 import java.util.List;
