@@ -64,6 +64,20 @@
       "minLength": 1
     }
   },
-  "required": ["version", "payment_terms_type_code"]
+  "required": ["version",
+    "payment_terms_type_code",
+    "effective_date",
+    "instalment_period",
+    "lump_sum",
+    "instalment_amount",
+    "days_in_default",
+    "date_days_in_default_imposed",
+    "payment_card_last_requested",
+    "date_last_amended",
+    "last_amended_by",
+    "last_amended_by_id",
+    "amendment_reason",
+    "extension",
+    "last_enforcement"]
 }
 

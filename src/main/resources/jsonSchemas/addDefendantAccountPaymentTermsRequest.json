@@ -50,5 +50,15 @@
       "type": ["boolean", "null"]
     }
   },
-  "required": ["version", "payment_terms_type_code"]
+  "required": ["version",
+    "payment_terms_type_code",
+    "effective_date",
+    "instalment_period",
+    "lump_sum",
+    "instalment_amount",
+    "days_in_default",
+    "date_days_in_default_imposed",
+    "reason",
+    "last_enforcement",
+    "generate_payment_terms_change_letter"]
 }
