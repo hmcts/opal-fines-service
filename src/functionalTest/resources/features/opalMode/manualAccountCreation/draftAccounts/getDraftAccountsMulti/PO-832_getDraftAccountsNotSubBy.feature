@@ -8,11 +8,11 @@ Feature: PO-832 get draft accounts not submitted by
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
-      | account_status    |                                             |
+      | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
-
+      | version           | 0                                           |
     Then The draft account response returns 201
     And I store the created draft account ID
 
@@ -20,16 +20,16 @@ Feature: PO-832 get draft accounts not submitted by
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
-      | account_status    |                                             |
+      | account_status    | Submitted                                   |
       | submitted_by      | BUUID_TWO                                   |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
-
+      | version           | 0                                           |
     Then The draft account response returns 201
     And I store the created draft account ID
 
     When I get the draft accounts filtering on Not Submitted by "BUUID" then the response contains
-      | account_snapshot.submitted_by | BUUID_TWO, BUUID_Updated |
+      | account_snapshot.submitted_by | BUUID_TWO |
     And The draft account filtered response does not contain accounts submitted by "BUUID"
 
     @PO-832 @cleanUpData
@@ -39,11 +39,11 @@ Feature: PO-832 get draft accounts not submitted by
         | business_unit_id  | 73                                          |
         | account           | draftAccounts/accountJson/adultAccount.json |
         | account_type      | Fine                                        |
-        | account_status    |                                             |
+        | account_status    | Submitted                                   |
         | submitted_by      | BUUID                                       |
         | submitted_by_name | Laura Clerk                                 |
         | timeline_data     | draftAccounts/timelineJson/default.json     |
-
+        | version           | 0                                           |
       Then The draft account response returns 201
       And I store the created draft account ID
 
@@ -51,11 +51,11 @@ Feature: PO-832 get draft accounts not submitted by
         | business_unit_id  | 73                                          |
         | account           | draftAccounts/accountJson/adultAccount.json |
         | account_type      | Fine                                        |
-        | account_status    |                                             |
+        | account_status    | Submitted                                   |
         | submitted_by      | BUUID_TWO                                   |
         | submitted_by_name | Laura Clerk                                 |
         | timeline_data     | draftAccounts/timelineJson/default.json     |
-
+        | version           | 0                                           |
       Then The draft account response returns 201
       And I store the created draft account ID
 

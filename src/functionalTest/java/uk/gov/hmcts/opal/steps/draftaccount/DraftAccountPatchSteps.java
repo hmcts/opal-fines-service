@@ -21,28 +21,34 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         Map<String, String> dataToPatch = data.asMap(String.class, String.class);
         JSONObject patchBody = new JSONObject();
 
-        patchBody.put("business_unit_id", dataToPatch.get("business_unit_id"));
-        patchBody.put("account_status", dataToPatch.get("account_status"));
-        patchBody.put("validated_by", dataToPatch.get("validated_by"));
-        patchBody.put("version", dataToPatch.get("version"));
+        addLongToJsonObject(patchBody, dataToPatch, "business_unit_id");
+        addToJsonObjectOrNull(patchBody, dataToPatch, "account_status");
+        addToJsonObjectOrNull(patchBody, dataToPatch, "validated_by");
+        addIntToJsonObject(patchBody, dataToPatch, "version");
 
         // Create timeline data array with one entry
         JSONObject timelineEntry = new JSONObject();
-        timelineEntry.put("username", dataToPatch.get("validated_by"));
-        timelineEntry.put("status", dataToPatch.get("account_status"));
 
-        ZonedDateTime currentDateTime = ZonedDateTime.now();
-        timelineEntry.put("status_date", currentDateTime.format(DateTimeFormatter.ISO_INSTANT));
-
-        if (dataToPatch.containsKey("reason_text")) {
-            timelineEntry.put("reason_text", dataToPatch.get("reason_text"));
+        if (dataToPatch.containsKey("validated_by")) {
+            timelineEntry.put("username", dataToPatch.get("validated_by"));
+        } else {
+            timelineEntry.put("username", JSONObject.NULL);
         }
+
+        if (dataToPatch.containsKey("account_status")) {
+            timelineEntry.put("status", dataToPatch.get("account_status"));
+        } else {
+            timelineEntry.put("status", JSONObject.NULL);
+        }
+
+        timelineEntry.put("status_date", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
+        addToJsonObjectOrNull(timelineEntry, dataToPatch, "reason_text");
 
         JSONArray timelineDataArray = new JSONArray();
         timelineDataArray.put(timelineEntry);
         patchBody.put("timeline_data", timelineDataArray);
 
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
@@ -58,26 +64,32 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         Map<String, String> dataToPatch = data.asMap(String.class, String.class);
         JSONObject patchBody = new JSONObject();
 
-        patchBody.put("business_unit_id", dataToPatch.get("business_unit_id"));
-        patchBody.put("account_status", dataToPatch.get("account_status"));
-        patchBody.put("validated_by", dataToPatch.get("validated_by"));
+        addLongToJsonObject(patchBody, dataToPatch, "business_unit_id");
+        addToJsonObjectOrNull(patchBody, dataToPatch, "account_status");
+        addToJsonObjectOrNull(patchBody, dataToPatch, "validated_by");
+        addIntToJsonObject(patchBody, dataToPatch, "version");
 
         // Create timeline data array with one entry
         JSONObject timelineEntry = new JSONObject();
-        timelineEntry.put("username", dataToPatch.get("validated_by"));
-        timelineEntry.put("status", dataToPatch.get("account_status"));
 
-        ZonedDateTime currentDateTime = ZonedDateTime.now();
-        timelineEntry.put("status_date", currentDateTime.format(DateTimeFormatter.ISO_INSTANT));
-
-        if (dataToPatch.containsKey("reason_text")) {
-            timelineEntry.put("reason_text", dataToPatch.get("reason_text"));
+        if (dataToPatch.containsKey("validated_by")) {
+            timelineEntry.put("username", dataToPatch.get("validated_by"));
+        } else {
+            timelineEntry.put("username", JSONObject.NULL);
         }
+
+        if (dataToPatch.containsKey("account_status")) {
+            timelineEntry.put("status", dataToPatch.get("account_status"));
+        } else {
+            timelineEntry.put("status", JSONObject.NULL);
+        }
+
+        timelineEntry.put("status_date", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
+        addToJsonObjectOrNull(timelineEntry, dataToPatch, "reason_text");
 
         JSONArray timelineDataArray = new JSONArray();
         timelineDataArray.put(timelineEntry);
         patchBody.put("timeline_data", timelineDataArray);
-
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())

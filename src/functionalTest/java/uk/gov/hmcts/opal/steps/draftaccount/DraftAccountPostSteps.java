@@ -26,18 +26,12 @@ public class DraftAccountPostSteps extends BaseStepDef {
         Map<String, String> dataToPost = accountData.asMap(String.class, String.class);
         JSONObject postBody = new JSONObject();
 
-        postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
-        );
-        postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
-        postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
-            ? dataToPost.get("submitted_by_name") : "");
-        postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
-        postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
-        );
+        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addToJsonObject(postBody, dataToPost, "submitted_by");
+        addToJsonObject(postBody, dataToPost, "submitted_by_name");
+        addToJsonObject(postBody, dataToPost, "account_type");
+        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
+
 
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
@@ -46,6 +40,21 @@ public class DraftAccountPostSteps extends BaseStepDef {
         String account = new String(Files.readAllBytes(Paths.get(accountFilePath)));
         JSONObject accountObject = new JSONObject(account);
 
+        accountObject.put("originator_id", accountObject.getLong("originator_id"));
+        accountObject.put("enforcement_court_id", accountObject.getLong("enforcement_court_id"));
+
+        JSONArray offences = accountObject.getJSONArray("offences");
+        for (int i = 0; i < offences.length(); i++) {
+            JSONObject offence = offences.getJSONObject(i);
+            offence.put("offence_id", offence.getLong("offence_id"));
+        }
+
+        if (accountObject.has("payment_terms")) {
+            JSONObject paymentTerms = accountObject.getJSONObject("payment_terms");
+            if (paymentTerms.has("default_days_in_jail")) {
+                paymentTerms.put("default_days_in_jail", paymentTerms.getInt("default_days_in_jail"));
+            }
+        }
 
         String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
             + "/draftAccounts/timelineJson/default.json";

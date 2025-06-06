@@ -10,10 +10,12 @@
     },
     "submitted_by": {
       "type": "string",
+      "minLength": 1,
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
     "submitted_by_name": {
       "type": "string",
+      "minLength": 1,
       "description": "Value of the name claim in the AAD Acces Token"
     },
     "validated_by": {

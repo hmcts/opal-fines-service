@@ -8,7 +8,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
@@ -20,7 +20,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
-      | account_status    |                                             |
+      | account_status    | Submitted                                   |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json|
@@ -36,7 +36,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
@@ -48,7 +48,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
-      | account_status    |                                             |
+      | account_status    | Submitted                                   |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
@@ -75,7 +75,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
@@ -87,7 +87,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
-      | account_status    |                                             |
+      | account_status    | Submitted                                   |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
@@ -114,7 +114,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | business_unit_id  | 26                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
@@ -126,7 +126,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | business_unit_id  | 26                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
-      | account_status    |                                             |
+      | account_status    | Submitted                                   |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
@@ -153,7 +153,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
@@ -164,7 +164,7 @@ Feature: PO-830 - Authorisation for put/update draft account
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
-      | account_status    |                                             |
+      | account_status    | Submitted                                   |
       | submitted_by      | BUUID_Updated                               |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
@@ -191,7 +191,7 @@ Feature: PO-830 - Authorisation for put/update draft account
         | business_unit_id  | 73                                     |
         | account           | draftAccounts/accountJson/account.json |
         | account_type      | Fine                                   |
-        | account_status    |                                        |
+        | account_status    | Submitted                              |
         | submitted_by      | BUUID                                  |
         | submitted_by_name | Laura Clerk                            |
         | timeline_data     | draftAccounts/timelineJson/default.json|
@@ -202,17 +202,17 @@ Feature: PO-830 - Authorisation for put/update draft account
         | business_unit_id  | 77                                          |
         | account           | draftAccounts/accountJson/adultAccount.json |
         | account_type      | Fine                                        |
-        | account_status    |                                             |
-        | submitted_by      | BUUID_Updated                               |
+        | account_status    | Submitted                                   |
+        | submitted_by      |                                             |
         | submitted_by_name | Laura Clerk                                 |
-        | timeline_data     | draftAccounts/timelineJson/default.json|
+        | timeline_data     | draftAccounts/timelineJson/default.json     |
 
-      Then The draft account response returns 409
+      Then The draft account response returns 400
 
       And I get the single created draft account and the response contains
-        | business_unit_id                    | 73           |
-        | account_type                        | Fine         |
-        | account_status                      | Submitted    |
+        | business_unit_id                    | 73          |
+        | account_type                        | Fine        |
+        | account_status                      | Submitted   |
         | account_snapshot.defendant_name     | null, null  |
         | account_snapshot.date_of_birth      |             |
         | account_snapshot.account_type       | Fine        |

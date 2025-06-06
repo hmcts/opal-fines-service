@@ -19,15 +19,17 @@ public class NotesApiStepDef extends BaseStepDef {
         Map<String, String> dataToPost = notesFields.asMap(String.class, String.class);
 
         JSONObject body = new JSONObject();
-        body.put("associatedRecordId", dataToPost.get("recordId"));
-        body.put("associatedRecordType", dataToPost.get("recordType"));
-        body.put("noteText", dataToPost.get("noteText"));
-        body.put("noteType", dataToPost.get("noteType"));
-        body.put("postedBy", dataToPost.get("postedBy"));
-        body.put("postedDate", dataToPost.get("postedDate"));
+        addToJsonObject(body, dataToPost, "recordId");
+        addToJsonObject(body, dataToPost, "recordType");
+        addToJsonObject(body, dataToPost, "noteText");
+        addToJsonObject(body, dataToPost, "noteType");
+        addToJsonObject(body, dataToPost, "postedBy");
+        addToJsonObject(body, dataToPost, "postedDate");
+
         if (dataToPost.get("noteId") != null) {
             body.put("noteId", dataToPost.get("noteId"));
         }
+
         SerenityRest.given()
             .accept("*/*")
             .header("Authorization", "Bearer " + getToken())

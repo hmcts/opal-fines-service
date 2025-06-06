@@ -44,7 +44,7 @@
   "required": [
     "business_unit_id",
     "submitted_by",
-	  "submitted_by_name",
+    "submitted_by_name",
     "account",
     "account_type",
     "timeline_data"

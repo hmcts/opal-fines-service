@@ -8,10 +8,12 @@ Feature: PO-831 - Authorisation for patch draft account
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
+      | version           | 0                                      |
+
 
     Then The draft account response returns 201
     And I store the created draft account ID
@@ -34,10 +36,12 @@ Feature: PO-831 - Authorisation for patch draft account
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
+      | version           | 0                                      |
+
 
     And I store the created draft account ID
     Then The draft account response returns 201
@@ -70,10 +74,11 @@ Feature: PO-831 - Authorisation for patch draft account
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
+      | version           | 0                                      |
     And I store the created draft account ID
     Then The draft account response returns 201
 
@@ -105,10 +110,11 @@ Feature: PO-831 - Authorisation for patch draft account
       | business_unit_id  | 26                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
+      | version           | 0                                      |
     And I store the created draft account ID
     Then The draft account response returns 201
 
@@ -118,6 +124,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | account_status   | Rejected             |
       | validated_by     | BUUID_REVIEWER       |
       | reason_text      | Reason for rejection |
+      | version          | 0                    |
     Then The draft account response returns 403
 
     When I am testing as the "opal-test-3@hmcts.net" user
@@ -140,7 +147,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
-      | account_status    |                                             |
+      | account_status    | Submitted                                   |
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
@@ -176,7 +183,7 @@ Feature: PO-831 - Authorisation for patch draft account
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
