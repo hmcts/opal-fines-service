@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.service;
 
 import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 
 import java.util.List;
 

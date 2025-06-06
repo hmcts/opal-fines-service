@@ -20,6 +20,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 
 @Data
 @Entity

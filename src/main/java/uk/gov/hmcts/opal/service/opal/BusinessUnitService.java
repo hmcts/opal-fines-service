@@ -9,12 +9,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity_;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
+import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntityLite;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntityLite_;
+import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntityLite;
+import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs;
 import uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs;
 import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;
 
@@ -28,7 +31,11 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
 
     private final BusinessUnitRepository businessUnitRepository;
 
+    private final BusinessUnitLiteRepository businessUnitLiteRepository;
+
     private final BusinessUnitSpecs specs = new BusinessUnitSpecs();
+
+    private final BusinessUnitLiteSpecs liteSpecs = new BusinessUnitLiteSpecs();
 
     @Override
     public BusinessUnitEntity getBusinessUnit(short businessUnitId) {
@@ -49,10 +56,10 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
     @Cacheable(cacheNames = "businessUnitReferenceDataCache", key = "#filter.orElse('noFilter')")
     public List<BusinessUnitReferenceData> getReferenceData(Optional<String> filter) {
 
-        Sort nameSort = Sort.by(Sort.Direction.ASC, BusinessUnitEntity_.BUSINESS_UNIT_NAME);
+        Sort nameSort = Sort.by(Sort.Direction.ASC, BusinessUnitEntityLite_.BUSINESS_UNIT_NAME);
 
-        Page<BusinessUnitEntity> page = businessUnitRepository
-            .findBy(specs.referenceDataFilter(filter),
+        Page<BusinessUnitEntityLite> page = businessUnitLiteRepository
+            .findBy(liteSpecs.referenceDataFilter(filter),
                     ffq -> ffq
                         .sortBy(nameSort)
                         .page(Pageable.unpaged()));
@@ -60,7 +67,7 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
         return page.getContent().stream().map(this::toRefData).toList();
     }
 
-    private BusinessUnitReferenceData toRefData(BusinessUnitEntity entity) {
+    private BusinessUnitReferenceData toRefData(BusinessUnitEntityLite entity) {
         return new BusinessUnitReferenceData(
             entity.getBusinessUnitId(),
             entity.getBusinessUnitName(),
@@ -73,11 +80,11 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
         );
     }
 
-    private List<BusinessUnitReferenceData.ConfigItemRefData> toRefData(List<ConfigurationItemEntity> list) {
+    private List<BusinessUnitReferenceData.ConfigItemRefData> toRefData(List<ConfigurationItemEntityLite> list) {
         return Optional.ofNullable(list).map(items -> items.stream().map(this::toRefData).toList()).orElse(null);
     }
 
-    private BusinessUnitReferenceData.ConfigItemRefData toRefData(ConfigurationItemEntity entity) {
+    private BusinessUnitReferenceData.ConfigItemRefData toRefData(ConfigurationItemEntityLite entity) {
         return new BusinessUnitReferenceData.ConfigItemRefData(
             entity.getItemName(),
             entity.getItemValue(),
