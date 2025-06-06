@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "title": "Add Defendant Account Payment Card Request Legacy Request",
+  "additionalProperties": false,
+  "properties": {
+    "defendant_account_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "business_unit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "business_unit_user_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer"
+    }
+  },
+  "required": ["defendant_account_id", "business_unit_user_id", "business_unit_id", "version"]
+}
