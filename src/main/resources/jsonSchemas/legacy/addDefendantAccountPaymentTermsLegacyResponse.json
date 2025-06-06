@@ -8,12 +8,20 @@
       "type": "string",
       "minLength": 1
     },
+    "business_unit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "business_unit_user_id": {
+      "type": "string",
+      "minLength": 1
+    },
     "version": {
       "type": "integer"
     },
     "payment_terms_type_code": {
       "type": "string",
-      "enum": ["B", "I"]
+      "enum": ["B", "I", "P"]
     },
     "effective_date": {
       "type": "string",
@@ -54,5 +62,5 @@
       "type": "boolean"
     }
   },
-  "required": ["defendant_account_id", "version", "payment_terms_type_code"]
+  "required": ["defendant_account_id", "business_unit_id", "business_unit_user_id", "version", "payment_terms_type_code"]
 }
