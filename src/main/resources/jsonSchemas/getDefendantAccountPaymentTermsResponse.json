@@ -9,7 +9,7 @@
     },
     "payment_terms_type_code": {
       "type": "string",
-      "enum": ["B", "I"]
+      "enum": ["B", "I", "P"]
     },
     "effective_date": {
       "type": "string",
@@ -49,17 +49,15 @@
       "type": "string",
       "minLength": 1
     },
-    "last_amended_by_name": {
-      "type": "string",
-      "minLength": 1
+    "last_amended_by_id": {
+      "type": "integer"
     },
     "amendment_reason": {
       "type": "string",
       "minLength": 1
     },
-    "number_of_extensions": {
-      "type": "integer",
-      "minimum": 0
+    "extension": {
+      "type": "boolean"
     },
     "last_enforcement": {
       "type": "string",
