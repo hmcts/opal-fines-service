@@ -5,9 +5,9 @@ import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.DraftAccountEntity;
-import uk.gov.hmcts.opal.entity.DraftAccountEntity_;
-import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

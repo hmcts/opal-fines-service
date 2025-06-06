@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
-import uk.gov.hmcts.opal.entity.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

@@ -28,6 +28,7 @@ public abstract class LegacyService {
 
     protected abstract Logger getLog();
 
+    @Deprecated
     @SuppressWarnings("unchecked")
     public <T> T extractResponse(ResponseEntity<String> responseEntity, Class<T> clzz) {
         if (responseEntity.getStatusCode().is2xxSuccessful()) {
@@ -37,17 +38,16 @@ public abstract class LegacyService {
                 getLog().info("extractResponse: Raw XML response: {}", rawXml);
 
                 try {
-                    XmlUtil xmlUtil = new XmlUtil();
-                    return (T) xmlUtil.unmarshalXmlString(rawXml, clzz);
+                    return (T) XmlUtil.unmarshalXmlString(rawXml, clzz);
 
                 } catch (Exception e) {
                     getLog().error("extractResponse: Error deserializing response: {}", e.getMessage(), e);
-                    throw new LegacyGatewayResponseException(e);
+                    throw new LegacyGatewayResponseException(e, responseEntity.getStatusCode());
                 }
             } else {
                 String msg = "Received an empty body in the response from the Legacy Gateway.";
                 getLog().warn("extractResponse: {}", msg);
-                throw new LegacyGatewayResponseException(msg);
+                throw new LegacyGatewayResponseException(msg, responseEntity.getStatusCode());
             }
         } else {
             String msg = MessageFormatter.format(
@@ -55,7 +55,7 @@ public abstract class LegacyService {
                 responseEntity.getStatusCode()
             ).getMessage();
             getLog().warn("extractResponse: {}", msg);
-            throw new LegacyGatewayResponseException(msg);
+            throw new LegacyGatewayResponseException(msg, responseEntity.getStatusCode());
         }
     }
 
@@ -104,8 +104,6 @@ public abstract class LegacyService {
 
         return extractResponse(responseEntity, responseType);
     }
-
-
 
     public ResponseEntity<String> postToGatewayRawResponse(String actionType, Object request) {
         String legacyGatewayUrl = legacyGateway.getUrl();

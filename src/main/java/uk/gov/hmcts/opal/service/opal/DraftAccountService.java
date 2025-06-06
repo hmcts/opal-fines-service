@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
@@ -18,11 +19,12 @@ import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.DraftAccountEntity;
-import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
+import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -53,6 +55,8 @@ public class DraftAccountService {
     private final JsonSchemaValidationService jsonSchemaValidationService;
 
     private final DraftAccountMapper draftAccountMapper;
+
+    private final DraftAccountPublishProxy accountPublishProxy;
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId, String authHeaderValue) {
 
@@ -86,7 +90,7 @@ public class DraftAccountService {
 
             List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
             List<String> notSubmitted = optionalNotSubmittedBys.orElse(Collections.emptyList());
-            log.debug(":GET:getDraftAccountSummaries: submitted by: {}; not submitted: {}", submittedBys, notSubmitted);
+            log.debug(":getDraftAccounts: submitted by: {}; not submitted: {}", submittedBys, notSubmitted);
             if (!submittedBys.isEmpty() && !notSubmitted.isEmpty()) {
                 // Request cannot include both submitted_by and not_submitted_by parameters
                 throw new IllegalArgumentException(
@@ -94,20 +98,21 @@ public class DraftAccountService {
             }
 
             List<DraftAccountStatus> statuses = optionalStatus.orElse(Collections.emptyList());
-            log.debug(":GET:getDraftAccountSummaries: status: {}; business ids: {}", statuses, optionalBusinessUnitIds);
+            log.debug(":getDraftAccounts: status: {}; business ids: {}", statuses, optionalBusinessUnitIds);
 
             List<DraftAccountEntity> entities = draftAccountTransactions
                 .getDraftAccounts(optionalBusinessUnitIds.orElse(Collections.emptyList()),
                                   statuses, submittedBys, notSubmitted, accountStatusDateFrom, accountStatusDateTo);
 
-            log.debug(":GET:getDraftAccountSummaries: pre-auth summaries count: {}", entities.size());
+            log.debug(":getDraftAccounts: pre-auth summaries count: {}", entities.size());
 
             List<DraftAccountEntity> filtered = entities.stream()
                 .filter(e -> userState.hasBusinessUnitUserWithAnyPermission(
                     e.getBusinessUnit().getBusinessUnitId(), Permissions.DRAFT_ACCOUNT_PERMISSIONS))
                 .toList();
 
-            log.debug(":GET:getDraftAccountSummaries: filtered summaries count: {}", filtered.size());
+            log.debug(":getDraftAccounts: filtered summaries count: {}", filtered.size());
+            filtered.forEach(draft -> log.debug(":getDraftAccounts: {}", draft.toString()));
 
             return
                 DraftAccountsResponseDto.builder()
@@ -126,7 +131,7 @@ public class DraftAccountService {
             boolean deleted =  draftAccountTransactions.deleteDraftAccount(draftAccountId, checkExists,
                                                                            draftAccountTransactions);
             if (deleted) {
-                log.debug(":DELETE:deleteDraftAccountById: Deleted Draft Account: {}", draftAccountId);
+                log.debug(":deleteDraftAccount: Deleted Draft Account: {}", draftAccountId);
             }
         } catch (UnexpectedRollbackException | EntityNotFoundException ure) {
             if (checkExists) {
@@ -153,7 +158,10 @@ public class DraftAccountService {
                                                         Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
-            return toGetResponseDto(draftAccountTransactions.submitDraftAccount(dto));
+            DraftAccountEntity entity = draftAccountTransactions.submitDraftAccount(dto);
+            log.debug(":submitDraftAccount: created in DB: {}", entity);
+
+            return toGetResponseDto(entity);
 
         } else {
             throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -172,7 +180,7 @@ public class DraftAccountService {
             DraftAccountEntity replacedEntity = draftAccountTransactions.replaceDraftAccount(draftAccountId, dto,
                                                                                              draftAccountTransactions);
             verifyUpdated(replacedEntity, dto, draftAccountId, "replaceDraftAccount");
-            log.debug(":PUT:putDraftAccount: replaced with version: {}", replacedEntity.getVersion());
+            log.debug(":replaceDraftAccount: replaced with version: {}", replacedEntity.getVersion());
 
             return toGetResponseDto(replacedEntity);
         } else {
@@ -186,11 +194,18 @@ public class DraftAccountService {
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
 
-        if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
-                                                        Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
+        Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
+
+        if (UserState.userHasPermission(unitUser, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
+
             DraftAccountEntity updatedEntity = draftAccountTransactions.updateDraftAccount(draftAccountId, dto,
                                                                                            draftAccountTransactions);
             verifyUpdated(updatedEntity, dto, draftAccountId, "updateDraftAccount");
+
+            if (updatedEntity.getAccountStatus().isPublishingPending()) {
+                return toGetResponseDto(accountPublishProxy.publishDefendantAccount(
+                    updatedEntity, unitUser.orElseThrow()));
+            }
 
             return toGetResponseDto(updatedEntity);
         } else {

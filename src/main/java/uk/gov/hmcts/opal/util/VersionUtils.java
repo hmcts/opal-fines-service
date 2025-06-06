@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import uk.gov.hmcts.opal.entity.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 
 @Slf4j(topic = "opal.VersionUtils")

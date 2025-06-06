@@ -12,7 +12,7 @@
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
     "defendant_account": {
-      "$ref": "https://opal-fines-service/account.json",
+      "$ref": "resource:/jsonSchemas/account.json",
       "description": "The structured Account data (JSON)"
     }
   },

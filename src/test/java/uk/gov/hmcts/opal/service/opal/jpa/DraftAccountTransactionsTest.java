@@ -17,8 +17,8 @@ import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.DraftAccountEntity;
-import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
@@ -410,6 +410,21 @@ class DraftAccountTransactionsTest {
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(draftAccountRepository, never()).save(any(DraftAccountEntity.class));
+    }
+
+    @Test
+    void testUpdateState() {
+        // Arrange
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .draftAccountId(007L)
+            .version(0L)
+            .build();
+
+        when(draftAccountRepository.findById(any())).thenReturn(Optional.of(entity));
+
+        // Act
+        DraftAccountEntity result = draftAccountTransactions.updateStatus(entity, DraftAccountStatus.PUBLISHING_FAILED,
+                                                                          draftAccountTransactions);
     }
 
     private String createTimelineDataString() {
