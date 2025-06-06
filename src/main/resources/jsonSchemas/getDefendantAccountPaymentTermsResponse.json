@@ -12,55 +12,55 @@
       "enum": ["B", "I", "P"]
     },
     "effective_date": {
-      "type": "string",
+      "type": ["string", "null"],
       "format": "date"
     },
     "instalment_period": {
-      "type": "string",
+      "type": ["string", "null"],
       "enum": ["W", "M", "F"]
     },
     "lump_sum": {
-      "type": "number",
+      "type": ["number", "null"],
       "minimum": 0.01,
       "multipleOf": 0.01
     },
     "instalment_amount": {
-      "type": "number",
+      "type": ["number", "null"],
       "minimum": 0.01,
       "multipleOf": 0.01
     },
     "days_in_default": {
-      "type": "integer",
+      "type": ["integer", "null"],
       "minimum": 0
     },
     "date_days_in_default_imposed": {
-      "type": "string",
+      "type": ["string", "null"],
       "format": "date"
     },
     "payment_card_last_requested": {
-      "type": "string",
+      "type": ["string", "null"],
       "format": "date"
     },
     "date_last_amended": {
-      "type": "string",
+      "type": ["string", "null"],
       "format": "date"
     },
     "last_amended_by": {
-      "type": "string",
+      "type": ["string", "null"],
       "minLength": 1
     },
     "last_amended_by_id": {
-      "type": "integer"
+      "type": ["integer", "null"]
     },
     "amendment_reason": {
-      "type": "string",
+      "type": ["string", "null"],
       "minLength": 1
     },
     "extension": {
-      "type": "boolean"
+      "type": ["boolean", "null"]
     },
     "last_enforcement": {
-      "type": "string",
+      "type": ["string", "null"],
       "minLength": 1
     }
   },

@@ -12,42 +12,42 @@
       "enum": ["B", "I", "P"]
     },
     "effective_date": {
-      "type": "string",
+      "type": ["string", "null"],
       "format": "date"
     },
     "instalment_period": {
-      "type": "string",
+      "type": ["string", "null"],
       "enum": ["W", "M", "F"]
     },
     "lump_sum": {
-      "type": "number",
+      "type": ["number", "null"],
       "minimum": 0.01,
       "multipleOf": 0.01
     },
     "instalment_amount": {
-      "type": "number",
+      "type": ["number", "null"],
       "minimum": 0.01,
       "multipleOf": 0.01
     },
     "days_in_default": {
-      "type": "integer",
+      "type": ["integer", "null"],
       "minimum": 0
     },
     "date_days_in_default_imposed": {
-      "type": "string",
+      "type": ["string", "null"],
       "format": "date"
     },
     "reason": {
-      "type": "string",
+      "type": ["string", "null"],
       "minLength": 1,
       "maxLength": 250
     },
     "last_enforcement": {
-      "type": "string",
+      "type": ["string", "null"],
       "minLength": 1
     },
     "generate_payment_terms_change_letter": {
-      "type": "boolean"
+      "type": ["boolean", "null"]
     }
   },
   "required": ["version", "payment_terms_type_code"]
