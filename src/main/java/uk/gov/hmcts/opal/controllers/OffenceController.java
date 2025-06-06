@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.dto.reference.OffenceReferenceData;
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceDataResults;
+import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchDataResults;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.OffenceEntity;
-import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
-import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntityFull;
 import uk.gov.hmcts.opal.service.OffenceServiceInterface;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
 
@@ -46,11 +46,11 @@ public class OffenceController {
 
     @GetMapping(value = "/{offenceId}")
     @Operation(summary = "Returns the Offence for the given offenceId.")
-    public ResponseEntity<OffenceEntity> getOffenceById(@PathVariable Long offenceId) {
+    public ResponseEntity<OffenceEntityFull> getOffenceById(@PathVariable Long offenceId) {
 
         log.debug(":GET:getOffenceById: offenceId: {}", offenceId);
 
-        OffenceEntity response = opalOffenceService.getOffence(offenceId);
+        OffenceEntityFull response = opalOffenceService.getOffence(offenceId);
         if (response == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }

@@ -52,6 +52,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 public class GlobalExceptionHandler {
 
     public static final String DB_UNAVAILABLE_MESSAGE = "Opal Fines Database is currently unavailable";
+    public static final String UNKNOWN = "'Unknown'";
 
     private final AccessTokenService tokenService;
 
@@ -83,7 +84,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(Exception ex,
                                                                              HttpServletRequest request) {
         String authorization = request.getHeader(AUTH_HEADER);
-        String preferredName = extractPreferredUsername(authorization, tokenService);
+        String preferredName = extractUsername(authorization);
         String internalMessage = String.format("For user %s, %s", preferredName, ex.getMessage());
 
         // Log the user-specific message, but return generic message to the user
@@ -447,5 +448,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status)
             .contentType(MediaType.APPLICATION_PROBLEM_JSON)
             .body(problemDetail);
+    }
+
+    private String extractUsername(String authorization) {
+        try {
+            return extractPreferredUsername(authorization, tokenService);
+        } catch (Exception e) {
+            return UNKNOWN;
+        }
     }
 }

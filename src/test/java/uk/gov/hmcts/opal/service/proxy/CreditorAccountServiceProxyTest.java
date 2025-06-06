@@ -8,7 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.search.CreditorAccountSearchDto;
-import uk.gov.hmcts.opal.entity.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.service.CreditorAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyCreditorAccountService;
 import uk.gov.hmcts.opal.service.opal.CreditorAccountService;

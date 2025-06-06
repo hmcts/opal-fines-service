@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitEntity_;
 import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
-import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
+import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs;
 import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;

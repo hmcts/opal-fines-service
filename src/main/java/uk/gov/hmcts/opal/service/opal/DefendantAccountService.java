@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,8 @@ import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
@@ -61,10 +64,15 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
     private final NoteRepository noteRepository;
 
+    private final BusinessUnitRepository businessRepository;
+
+    private final CourtRepository courtRepository;
+
     private final DefendantAccountSpecs specs = new DefendantAccountSpecs();
 
     @Override
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
+        log.debug(":getDefendantAccount: request: {}", request);
 
         return defendantAccountRepository.findByBusinessUnit_BusinessUnitIdAndAccountNumber(
             request.getBusinessUnitId(), request.getAccountNumber());
@@ -72,8 +80,23 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
     @Override
     public DefendantAccountEntity putDefendantAccount(DefendantAccountEntity defendantAccountEntity) {
+        log.debug(":putDefendantAccount: account: {}", defendantAccountEntity);
 
+        replaceBusinessUnit(defendantAccountEntity);
+        replaceCourts(defendantAccountEntity);
         return defendantAccountRepository.save(defendantAccountEntity);
+    }
+
+    private void replaceBusinessUnit(DefendantAccountEntity entity) {
+        Optional.ofNullable(entity.getBusinessUnit())
+            .ifPresent(bu -> entity.setBusinessUnit(businessRepository.getReferenceById(bu.getBusinessUnitId())));
+    }
+
+    private void replaceCourts(DefendantAccountEntity entity) {
+        Optional.ofNullable(entity.getEnforcingCourt())
+            .ifPresent(court -> entity.setEnforcingCourt(courtRepository.getReferenceById(court.getCourtId())));
+        Optional.ofNullable(entity.getLastHearingCourt())
+            .ifPresent(court -> entity.setLastHearingCourt(courtRepository.getReferenceById(court.getCourtId())));
     }
 
     @Override
@@ -144,6 +167,10 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
         //query db for defendantAccountPartiesEntity
         DefendantAccountPartiesEntity defendantAccountPartiesEntity = defendantAccountPartiesRepository
             .findByDefendantAccount_DefendantAccountId(defendantAccountId);
+
+        if (defendantAccountPartiesEntity == null) {
+            throw new EntityNotFoundException("Defendant Account & Party not found with id: " + defendantAccountId);
+        }
 
         //Extract unique defendantAccount and party entities
         final DefendantAccountEntity defendantAccountEntity = defendantAccountPartiesEntity.getDefendantAccount();

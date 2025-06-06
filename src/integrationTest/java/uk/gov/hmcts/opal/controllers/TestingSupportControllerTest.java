@@ -1,15 +1,13 @@
 package uk.gov.hmcts.opal.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
@@ -34,10 +32,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest
-@ContextConfiguration(classes = TestingSupportController.class)
 @ActiveProfiles({"integration"})
-class TestingSupportControllerTest {
+@Slf4j(topic = "opal.TestingSupportControllerTest")
+class TestingSupportControllerTest extends AbstractIntegrationTest {
 
     private static final String TEST_TOKEN = "testToken";
     private static final UserState USER_STATE = UserState.builder()
@@ -53,9 +50,6 @@ class TestingSupportControllerTest {
                                   .build()))
                           .build()))
         .build();
-
-    @Autowired
-    private MockMvc mockMvc;
 
     @MockBean
     private DynamicConfigService dynamicConfigService;

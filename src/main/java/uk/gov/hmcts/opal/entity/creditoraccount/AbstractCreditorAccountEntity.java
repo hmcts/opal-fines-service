@@ -1,18 +1,16 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.creditoraccount;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -20,24 +18,24 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "creditor_accounts")
-@Getter
+@Data
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@MappedSuperclass
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "creditorAccountId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class CreditorAccountEntity {
+public abstract class AbstractCreditorAccountEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "creditor_account_id_seq_generator")
@@ -46,12 +44,8 @@ public class CreditorAccountEntity {
     @Column(name = "creditor_account_id", nullable = false)
     private Long creditorAccountId;
 
-    @ManyToOne
-    @JoinColumn(name = "business_unit_id", updatable = false)
-    private BusinessUnitEntity businessUnit;
-
     @Column(name = "account_number", length = 20, nullable = false)
-    private String accountsNumber;
+    private String accountNumber;
 
     @Column(name = "creditor_account_type", length = 2, nullable = false)
     private String creditorAccountType;

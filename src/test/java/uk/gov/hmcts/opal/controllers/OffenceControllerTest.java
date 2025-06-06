@@ -7,12 +7,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.dto.reference.OffenceReferenceData;
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceDataResults;
+import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchDataResults;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.OffenceEntity;
-import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
-import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntityFull;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
 
 import java.time.LocalDateTime;
@@ -37,12 +37,12 @@ class OffenceControllerTest {
     @Test
     void testGetOffence_Success() {
         // Arrange
-        OffenceEntity entity = OffenceEntity.builder().build();
+        OffenceEntityFull entity = OffenceEntityFull.builder().build();
 
         when(offenceService.getOffence(any(Long.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<OffenceEntity> response = offenceController.getOffenceById(1L);
+        ResponseEntity<OffenceEntityFull> response = offenceController.getOffenceById(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
