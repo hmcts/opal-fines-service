@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.entity.projection;
+package uk.gov.hmcts.opal.dto.reference;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -30,6 +30,7 @@ public record BusinessUnitReferenceData(
     @JsonProperty("welsh_language")
     Boolean welshLanguage,
 
+    @JsonProperty("configuration_items")
     List<ConfigItemRefData> configurationItems
 ) implements BusinessUnitRef {
 
@@ -41,6 +42,7 @@ public record BusinessUnitReferenceData(
     public record ConfigItemRefData(
         @JsonProperty("item_name") String itemName,
         @JsonProperty("item_value") String itemValue,
-        @JsonProperty("item_values") List<String> itemValues) {}
+        @JsonProperty("item_values") List<String> itemValues) {
+    }
 
 }

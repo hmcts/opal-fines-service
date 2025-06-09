@@ -119,7 +119,6 @@
     "payment_terms": {
       "type": "object",
       "properties": {
-        "payment_terms_summary": { "type": ["string", "null"], "minLength": 1 },
         "payment_terms_type_code": {
           "type": "string",
           "enum": ["B", "P", "I"],

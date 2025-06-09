@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.entity.projection;
+package uk.gov.hmcts.opal.dto.reference;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonInclude;

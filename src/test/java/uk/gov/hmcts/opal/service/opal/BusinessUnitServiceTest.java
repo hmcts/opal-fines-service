@@ -11,10 +11,12 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
+import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
-import uk.gov.hmcts.opal.entity.projection.BusinessUnitReferenceData;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntityLite;
+import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntityLite;
+import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 
 import java.util.List;
@@ -32,13 +34,15 @@ class BusinessUnitServiceTest {
     @Mock
     private BusinessUnitRepository businessUnitRepository;
 
+    @Mock
+    private BusinessUnitLiteRepository businessUnitLiteRepository;
+
     @InjectMocks
     private BusinessUnitService businessUnitService;
 
     @Test
     void testGetBusinessUnit() {
         // Arrange
-
         BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder().build();
         when(businessUnitRepository.findById(any())).thenReturn(Optional.of(businessUnitEntity));
 
@@ -47,7 +51,6 @@ class BusinessUnitServiceTest {
 
         // Assert
         assertNotNull(result);
-
     }
 
     @SuppressWarnings("unchecked")
@@ -69,7 +72,6 @@ class BusinessUnitServiceTest {
 
         // Assert
         assertEquals(List.of(businessUnitEntity), result);
-
     }
 
     @SuppressWarnings("unchecked")
@@ -79,19 +81,24 @@ class BusinessUnitServiceTest {
         FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
         when(ffq.sortBy(any())).thenReturn(ffq);
 
-        BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder()
+        // Use BusinessUnitEntityLite instead of BusinessUnitEntity
+        BusinessUnitEntityLite businessUnitEntityLite = BusinessUnitEntityLite.builder()
             .businessUnitId((short)3)
             .businessUnitName("Big Business Unit")
             .welshLanguage(true)
             .configurationItems(List.of(
-                ConfigurationItemEntity.builder()
+                ConfigurationItemEntityLite.builder()
                     .itemName("A Config Item")
                     .itemValue("A value")
                     .itemValues(List.of("Item Values One", "Item Values Two"))
                     .build()))
             .build();
-        Page<BusinessUnitEntity> mockPage = new PageImpl<>(List.of(businessUnitEntity), Pageable.unpaged(), 999L);
-        when(businessUnitRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+
+        Page<BusinessUnitEntityLite> mockPage = new PageImpl<>(List.of(businessUnitEntityLite),
+                                                               Pageable.unpaged(), 999L);
+
+        // Mock the lite repository instead of the full repository
+        when(businessUnitLiteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(ffq);
             return mockPage;
         });
@@ -101,10 +108,9 @@ class BusinessUnitServiceTest {
 
         // Assert
         assertEquals(List.of(new BusinessUnitReferenceData(
-            (short)3, "Big Business Unit", null, null, null,
+            (short)3, "Big Business Unit", null,
+            null, null,
             null, Boolean.TRUE, List.of(new BusinessUnitReferenceData.ConfigItemRefData(
-                "A Config Item", "A value", List.of("Item Values One", "Item Values Two"))))), result);
-
+            "A Config Item", "A value", List.of("Item Values One", "Item Values Two"))))), result);
     }
-
 }

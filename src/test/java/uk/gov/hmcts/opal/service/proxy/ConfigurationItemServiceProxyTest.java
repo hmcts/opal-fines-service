@@ -8,7 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.service.ConfigurationItemServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyConfigurationItemService;
 import uk.gov.hmcts.opal.service.opal.ConfigurationItemService;

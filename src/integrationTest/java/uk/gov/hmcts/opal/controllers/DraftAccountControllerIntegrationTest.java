@@ -9,11 +9,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -41,11 +42,12 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 
+@ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
-@Sql(scripts = "classpath:db/insertData/insert_into_draft_accounts.sql",
-    executionPhase = BEFORE_TEST_CLASS)
+@Sql(scripts = "classpath:db/insertData/insert_into_draft_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("DraftAccountController Integration Tests")
 class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
+
     private static final String URL_BASE = "/draft-accounts";
     private static final String GET_DRAFT_ACCOUNT_RESPONSE = "getDraftAccountResponse.json";
     private static final String GET_DRAFT_ACCOUNTS_RESPONSE = "getDraftAccountsResponse.json";
@@ -54,9 +56,6 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     @MockBean
     UserStateService userStateService;
-
-    @MockBean
-    AccessTokenService tokenService;
 
     @SpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
@@ -552,16 +551,58 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Patch draft account - user with CHECK_VALIDATE permission should succeed [@PO-1820]")
+    void testPatchDraftAccount_withCheckValidatePermission_shouldSucceed() throws Exception {
+        Long draftAccountId = 7L; // not touched by any other PATCH/PUT test
+        UserState user = permissionUser((short)78, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+
+        mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+                .header("authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validUpdateRequestBody("A")))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
+            .andExpect(jsonPath("$.account_status").value("Publishing Pending"))
+            .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
+    }
+
+
+    @Test
+    @DisplayName("Patch draft account - user with CREATE_MANAGE permission should be forbidden [@PO-1820]")
+    void testPatchDraftAccount_withCreateManagePermission_shouldFail403() throws Exception {
+        Long draftAccountId = 6L;
+        UserState user = permissionUser((short)78, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+
+        mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+                .header("authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validUpdateRequestBody("PO1820")))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.status").value(403));
+    }
+
+
+
+    @Test
     @DisplayName("Get draft account by ID - User with wrong permission [@PO-973, @PO-828]")
     void testGetDraftAccountById_trap403Response_wrongPermission() throws Exception {
 
         UserState userState = permissionUser(BU_ID, Permissions.COLLECTION_ORDER);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
-        mockMvc.perform(
-                get(URL_BASE + "/2")
-                    .header("authorization", "Bearer some_value"))
-            .andExpect(status().isForbidden())
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/2")
+                    .header("authorization", "Bearer some_value"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountById_trap403Response_wrongPermission: Response body:\n{}",
+                 ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value(
