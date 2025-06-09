@@ -4,7 +4,7 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.CourtFeeSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.CourtFeeEntity;
 import uk.gov.hmcts.opal.entity.CourtFeeEntity_;
 

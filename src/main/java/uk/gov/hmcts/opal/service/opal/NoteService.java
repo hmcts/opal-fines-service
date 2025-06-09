@@ -53,6 +53,8 @@ public class NoteService implements NoteServiceInterface {
     @AuthorizedAnyBusinessUnitUserHasPermission(Permissions.ACCOUNT_ENQUIRY)
     public List<NoteDto> searchNotes(NoteSearchDto criteria) {
 
+        log.debug(":searchNotes: criteria: {}", criteria);
+
         Sort dateSort = Sort.by(Sort.Direction.DESC, NoteEntity_.POSTED_DATE);
 
         Page<NoteEntity> notesPage = noteRepository

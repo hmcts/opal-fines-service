@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity_;
-import uk.gov.hmcts.opal.entity.projection.LjaReferenceData;
+import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.jpa.LocalJusticeAreaSpecs;
 

@@ -10,7 +10,7 @@ import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyBusinessUnitSearchResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 
 import java.util.Collections;
 import java.util.List;

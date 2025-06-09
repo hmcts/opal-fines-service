@@ -11,13 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DraftAccountEntity;
 import uk.gov.hmcts.opal.service.opal.DraftAccountService;
 
@@ -39,12 +38,10 @@ import static uk.gov.hmcts.opal.entity.DraftAccountStatus.SUBMITTED;
 @Slf4j(topic = "opal.DraftAccountControllerTransientErrorsIntegrationTest")
 @DisplayName("DraftAccountController Transient Errors Integration Tests")
 class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractIntegrationTest {
+
     private static final String URL_BASE = "/draft-accounts";
 
     private static final Short BU_ID = (short)007;
-
-    @Autowired
-    MockMvc mockMvc;
 
     @MockBean
     @Autowired

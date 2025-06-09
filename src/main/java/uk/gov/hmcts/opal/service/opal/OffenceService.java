@@ -8,19 +8,21 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.reference.OffenceReferenceData;
+import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.OffenceEntity;
-import uk.gov.hmcts.opal.entity.OffenceEntity_;
-import uk.gov.hmcts.opal.entity.projection.OffenceReferenceData;
-import uk.gov.hmcts.opal.entity.projection.OffenceSearchData;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntityFull;
+import uk.gov.hmcts.opal.entity.offence.OffenceEntity_;
+import uk.gov.hmcts.opal.mapper.OffenceMapper;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
+import uk.gov.hmcts.opal.repository.OffenceRepositoryFull;
 import uk.gov.hmcts.opal.repository.jpa.OffenceSpecs;
 import uk.gov.hmcts.opal.service.OffenceServiceInterface;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Collections;
 
 
 @Service
@@ -32,10 +34,14 @@ public class OffenceService implements OffenceServiceInterface {
 
     private final OffenceRepository offenceRepository;
 
+    private final OffenceRepositoryFull offenceRepositoryFull;
+
+    private final OffenceMapper offenceMapper;
+
     private final OffenceSpecs specs = new OffenceSpecs();
 
-    public OffenceEntity getOffence(long offenceId) {
-        return offenceRepository.findById(offenceId).orElse(null);
+    public OffenceEntityFull getOffence(long offenceId) {
+        return offenceRepositoryFull.findById(offenceId).orElse(null);
     }
 
     @Cacheable(cacheNames = "offenceSearchDataCache", key = "#criteria")
@@ -50,7 +56,7 @@ public class OffenceService implements OffenceServiceInterface {
                         .limit(limit)
                         .page(Pageable.unpaged()));
 
-        return page.getContent().stream().map(this::toSearchData).toList();
+        return page.getContent().stream().map(offenceMapper::toSearchData).toList();
     }
 
 
@@ -75,33 +81,7 @@ public class OffenceService implements OffenceServiceInterface {
                         .sortBy(codeSort)
                         .page(Pageable.unpaged()));
 
-        return page.getContent().stream().map(OffenceService::toRefData).toList();
+        return page.getContent().stream().map(offenceMapper::toRefData).toList();
     }
 
-    public static OffenceReferenceData toRefData(OffenceEntity entity) {
-        return new OffenceReferenceData(
-            entity.getOffenceId(),
-            entity.getCjsCode(),
-            Optional.ofNullable(entity.getBusinessUnit()).map(BusinessUnitEntity::getBusinessUnitId).orElse(null),
-            entity.getOffenceTitle(),
-            entity.getOffenceTitleCy(),
-            entity.getDateUsedFrom(),
-            entity.getDateUsedTo(),
-            entity.getOffenceOas(),
-            entity.getOffenceOasCy()
-        );
-    }
-
-    private OffenceSearchData toSearchData(OffenceEntity entity) {
-        return new OffenceSearchData(
-            entity.getOffenceId(),
-            entity.getCjsCode(),
-            entity.getOffenceTitle(),
-            entity.getOffenceTitleCy(),
-            entity.getDateUsedFrom(),
-            entity.getDateUsedTo(),
-            entity.getOffenceOas(),
-            entity.getOffenceOasCy()
-        );
-    }
 }
