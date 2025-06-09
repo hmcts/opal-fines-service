@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.entity;
 
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 
 import java.math.BigDecimal;

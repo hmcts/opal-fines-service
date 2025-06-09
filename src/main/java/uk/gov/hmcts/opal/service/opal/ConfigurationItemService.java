@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.ConfigurationItemSearchDto;
-import uk.gov.hmcts.opal.entity.ConfigurationItemEntity;
+import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.repository.ConfigurationItemRepository;
 import uk.gov.hmcts.opal.repository.jpa.ConfigurationItemSpecs;
 import uk.gov.hmcts.opal.service.ConfigurationItemServiceInterface;

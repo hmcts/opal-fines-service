@@ -492,6 +492,44 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("Patch draft account - user with CHECK_VALIDATE permission should succeed [@PO-1820]")
+    void testPatchDraftAccount_withCheckValidatePermission_shouldSucceed() throws Exception {
+        Long draftAccountId = 7L; // not touched by any other PATCH/PUT test
+        UserState user = permissionUser((short)78, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+
+        mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+                .header("authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validUpdateRequestBody("A")))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
+            .andExpect(jsonPath("$.account_status").value("Publishing Pending"))
+            .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
+    }
+
+
+    @Test
+    @DisplayName("Patch draft account - user with CREATE_MANAGE permission should be forbidden [@PO-1820]")
+    void testPatchDraftAccount_withCreateManagePermission_shouldFail403() throws Exception {
+        Long draftAccountId = 6L;
+        UserState user = permissionUser((short)78, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+
+        mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+                .header("authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validUpdateRequestBody("PO1820")))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.status").value(403));
+    }
+
+
+
+    @Test
     @DisplayName("Get draft account by ID - User with wrong permission [@PO-973, @PO-828]")
     void testGetDraftAccountById_trap403Response_wrongPermission() throws Exception {
 

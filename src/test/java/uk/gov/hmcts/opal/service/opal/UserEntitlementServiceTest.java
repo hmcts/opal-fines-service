@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.search.UserEntitlementSearchDto;
 import uk.gov.hmcts.opal.entity.ApplicationFunctionEntity;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity;
 import uk.gov.hmcts.opal.entity.UserEntitlementEntity;
 import uk.gov.hmcts.opal.entity.UserEntity;

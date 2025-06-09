@@ -8,7 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
-import uk.gov.hmcts.opal.entity.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyBusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;

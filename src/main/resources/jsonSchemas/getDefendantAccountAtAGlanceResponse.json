@@ -106,7 +106,6 @@
     "payment_terms": {
       "type": "object",
       "properties": {
-        "payment_terms_summary": { "type": ["string", "null"], "minLength": 1 },
         "payment_terms_type_code": {
           "type": "string",
           "enum": ["B", "P", "I"],
@@ -124,7 +123,6 @@
         "next_payment_date": { "type": ["string", "null"], "format": "date", "minLength": 1 }
       },
       "required": [
-        "payment_terms_summary",
         "payment_terms_type_code",
         "effective_date",
         "instalment_period",
