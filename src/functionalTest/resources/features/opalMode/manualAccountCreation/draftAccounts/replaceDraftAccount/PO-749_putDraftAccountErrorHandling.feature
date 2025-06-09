@@ -9,7 +9,7 @@ Feature: PO-749 put draft account error handling
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
@@ -32,7 +32,7 @@ Feature: PO-749 put draft account error handling
       | business_unit_id  |                                        |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
@@ -53,10 +53,11 @@ Feature: PO-749 put draft account error handling
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
+      | version           | 0                                      |
 
     Then The draft account response returns 201
     And I store the created draft account ID
@@ -75,7 +76,7 @@ Feature: PO-749 put draft account error handling
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
@@ -90,7 +91,7 @@ Feature: PO-749 put draft account error handling
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
@@ -112,7 +113,7 @@ Feature: PO-749 put draft account error handling
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
@@ -127,7 +128,7 @@ Feature: PO-749 put draft account error handling
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
@@ -149,7 +150,7 @@ Feature: PO-749 put draft account error handling
       | business_unit_id  | 73                                     |
       | account           | draftAccounts/accountJson/account.json |
       | account_type      | Fine                                   |
-      | account_status    |                                        |
+      | account_status    | Submitted                              |
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
