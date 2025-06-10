@@ -101,4 +101,40 @@ class JsonSchemaValidationServiceTest {
         // Assert
         assertTrue(sce.getMessage().startsWith("Validating against JSON schema 'testSchema.json', found 4 validation"));
     }
+
+    @Test
+    void testIsValid_validDateTimeAndEmail_shouldPass() {
+        String validJson = """
+        {
+          "submitted_at": "2025-06-09T14:00:00Z",
+          "submitted_by_email": "john.doe@example.com"
+        }
+            """;
+
+        Set<String> messages = jsonSchemaValidationService
+            .validate(validJson, "formatValidationSchema.json");
+
+        assertTrue(messages.isEmpty(), "Expected no validation errors, but got: " + messages);
+    }
+
+    @Test
+    void testIsValid_invalidDateTimeAndEmail_shouldFail() {
+        String invalidJson = """
+        {
+          "submitted_at": "09/06/2025 2PM",
+          "submitted_by_email": "not-an-email"
+        }
+            """;
+
+        Set<String> messages = jsonSchemaValidationService
+            .validate(invalidJson, "formatValidationSchema.json");
+
+        assertFalse(messages.isEmpty(), "Expected validation errors but got none.");
+        assertTrue(messages.stream().anyMatch(msg -> msg.contains("submitted_at")),
+            "Expected error about 'submitted_at'");
+        assertTrue(messages.stream().anyMatch(msg -> msg.contains("submitted_by_email")),
+            "Expected error about 'submitted_by_email'");
+    }
+
+
 }
