@@ -7,14 +7,14 @@
   "collection_order_made": true,
   "collection_order_made_today": false,
   "payment_card_request": true,
-  "account_sentence_date": "2023-12-01",
+  "account_sentence_date": "2023-12-01T00:00:00Z",
   "defendant": {
     "company_flag": false,
     "address_line_1": "1 High Street"
   },
   "offences": [
     {
-      "date_of_sentence": "2023-01-01",
+      "date_of_sentence": "2023-01-01T00:00:00Z",
       "offence_id": 1234,
       "impositions": [
         {

@@ -91,10 +91,27 @@ public class DraftAccountGetSteps extends BaseStepDef {
         Map<String, String> expectedData = data.asMap(String.class, String.class);
 
         for (String key : expectedData.keySet()) {
-            String apiResponseValue = then().extract().body().jsonPath().getString(key);
-            assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
+            String expected = expectedData.get(key);
+            String actual = then().extract().body().jsonPath().getString(key);
+            normalizeAndAssertEqual(expected, actual, key);
         }
     }
+
+    private void normalizeAndAssertEqual(String expected, String actual, String fieldName) {
+        if (expected != null && expected.matches("\\d{2}/\\d{2}/\\d{4}")) {
+            // Convert from 01/01/2000 → 2000-01-01
+            expected = expected.replaceAll("(\\d{2})/(\\d{2})/(\\d{4})", "$3-$2-$1");
+        }
+
+        if (expected != null && expected.matches("\\d{4}-\\d{2}-\\d{2}")
+            && actual != null && actual.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z")) {
+            // Trim time portion from ISO 8601 format
+            actual = actual.substring(0, 10);
+        }
+
+        assertEquals(expected, actual, "Values are not equal for field '" + fieldName + "'");
+    }
+
 
     @When("I get the draft accounts filtering on the Business unit {string} then the response contains")
     public void getDraftAccountsFilteringOnBU(String filter, DataTable data) {
