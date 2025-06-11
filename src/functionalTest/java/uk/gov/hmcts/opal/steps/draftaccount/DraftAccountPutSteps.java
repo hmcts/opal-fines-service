@@ -35,24 +35,14 @@ public class DraftAccountPutSteps extends BaseStepDef {
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
 
-
         JSONObject postBody = new JSONObject();
 
-        postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
-        );
-        postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
-        if (dataToPost.get("submitted_by_name") != null) {
-            postBody.put("submitted_by_name", dataToPost.get("submitted_by_name"));
-        }
-        postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
-        postBody.put("version", dataToPost.get("version") != null ? dataToPost.get("version") : "0");
-        postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
-        );
-
+        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
+        addToJsonObject(postBody, dataToPost, "submitted_by_name");
+        addToJsonObject(postBody, dataToPost, "account_type");
+        addToJsonObjectOrNull(postBody, dataToPost, "version");
+        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
             + dataToPost.get(
@@ -68,7 +58,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
         postBody.put("account", accountObject);
         postBody.put("timeline_data", timelineArray);
 
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
@@ -159,21 +149,13 @@ public class DraftAccountPutSteps extends BaseStepDef {
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
 
-
         JSONObject postBody = new JSONObject();
 
-        postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
-        );
-        postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
-        postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
-            ? dataToPost.get("submitted_by_name") : "");
-        postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
-        postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
-        );
+        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
+        addToJsonObject(postBody, dataToPost, "submitted_by_name");
+        addToJsonObject(postBody, dataToPost, "account_type");
+        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
 
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
@@ -191,7 +173,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
         postBody.put("account", accountObject);
         postBody.put("timeline_data", timelineArray);
 
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
@@ -205,7 +187,6 @@ public class DraftAccountPutSteps extends BaseStepDef {
     @When("I attempt to put a draft account with resource not found")
     public void putADraftAccountWithResourceNotFound(DataTable data) throws IOException, JSONException {
         Map<String, String> dataToPost = data.asMap(String.class, String.class);
-
         assertEquals(
             1,
             DraftAccountUtils.getAllDraftAccountIds().size(),
@@ -213,22 +194,13 @@ public class DraftAccountPutSteps extends BaseStepDef {
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
 
-
         JSONObject postBody = new JSONObject();
 
-        postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
-        );
-        postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
-        postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
-            ? dataToPost.get("submitted_by_name") : "");
-        postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
-        postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
-        );
-
+        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
+        addToJsonObject(postBody, dataToPost, "submitted_by_name");
+        addToJsonObject(postBody, dataToPost, "account_type");
+        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
             + dataToPost.get(
@@ -252,7 +224,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             .contentType("application/json")
             .body(postBody.toString())
             .when()
-            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + "10999999999");
+            .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + "999999");
     }
 
     @When("I attempt to put a draft account with unsupported content type for response")
@@ -266,22 +238,13 @@ public class DraftAccountPutSteps extends BaseStepDef {
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
 
-
         JSONObject postBody = new JSONObject();
 
-        postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
-        );
-        postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
-        postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
-            ? dataToPost.get("submitted_by_name") : "");
-        postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
-        postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
-        );
-
+        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
+        addToJsonObject(postBody, dataToPost, "submitted_by_name");
+        addToJsonObject(postBody, dataToPost, "account_type");
+        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
             + dataToPost.get(
@@ -296,7 +259,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
 
         postBody.put("account", accountObject);
         postBody.put("timeline_data", timelineArray);
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
@@ -318,22 +281,13 @@ public class DraftAccountPutSteps extends BaseStepDef {
                 + DraftAccountUtils.getAllDraftAccountIds()
         );
 
-
         JSONObject postBody = new JSONObject();
 
-        postBody.put(
-            "business_unit_id",
-            dataToPost.get("business_unit_id") != null ? dataToPost.get("business_unit_id") : ""
-        );
-        postBody.put("submitted_by", dataToPost.get("submitted_by") != null ? dataToPost.get("submitted_by") : "");
-        postBody.put("submitted_by_name", dataToPost.get("submitted_by_name") != null
-            ? dataToPost.get("submitted_by_name") : "");
-        postBody.put("account_type", dataToPost.get("account_type") != null ? dataToPost.get("account_type") : "");
-        postBody.put(
-            "account_status",
-            dataToPost.get("account_status") != null ? dataToPost.get("account_status") : ""
-        );
-
+        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
+        addToJsonObject(postBody, dataToPost, "submitted_by_name");
+        addToJsonObject(postBody, dataToPost, "account_type");
+        addToJsonObjectOrNull(postBody, dataToPost, "account_status");
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
             + dataToPost.get(
@@ -349,7 +303,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
         postBody.put("account", accountObject);
         postBody.put("timeline_data", timelineArray);
 
-        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().getFirst();
+        String draftAccountId = DraftAccountUtils.getAllDraftAccountIds().get(0);
         SerenityRest
             .given()
             .header("Authorization", "Bearer " + getToken())
