@@ -41,7 +41,7 @@ public class DraftAccountPatchSteps extends BaseStepDef {
             timelineEntry.put("status", JSONObject.NULL);
         }
 
-        timelineEntry.put("status_date", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
+        timelineEntry.put("status_date", ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         addToJsonObjectOrNull(timelineEntry, dataToPatch, "reason_text");
 
         JSONArray timelineDataArray = new JSONArray();
@@ -84,7 +84,7 @@ public class DraftAccountPatchSteps extends BaseStepDef {
             timelineEntry.put("status", JSONObject.NULL);
         }
 
-        timelineEntry.put("status_date", ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT));
+        timelineEntry.put("status_date", ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         addToJsonObjectOrNull(timelineEntry, dataToPatch, "reason_text");
 
         JSONArray timelineDataArray = new JSONArray();
