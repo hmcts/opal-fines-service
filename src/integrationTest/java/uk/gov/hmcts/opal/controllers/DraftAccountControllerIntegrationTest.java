@@ -40,6 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
+import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
@@ -395,12 +396,70 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     }
 
+    private String validRawJsonCreateRequestBody() {
+        AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
+            .businessUnitId((short) 78)
+            .submittedBy("BUUID1")
+            .submittedByName("John")
+            .account(validAccountJsonString())
+            .accountType("Fines")
+            .timelineData(validTimelineDataString())
+            .build();
+
+        try {
+            return objectMapper.writeValueAsString(dto);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize AddDraftAccountRequestDto", e);
+        }
+    }
+
+    private static String validAccountJsonString() {
+        return """
+            {
+              "account_type": "Fine",
+              "defendant_type": "Adult",
+              "originator_name": "Police Force",
+              "originator_id": 12345,
+              "enforcement_court_id": 101,
+              "payment_card_request": true,
+              "account_sentence_date": "2023-12-01",
+              "defendant": {
+                "company_flag": false,
+                "surname": "LNAME",
+                "address_line_1": "123 Main Street"
+              },
+              "offences": [],
+              "payment_terms": {
+                "payment_terms_type_code": "P",
+                "effective_date": "2023-11-01",
+                "instalment_period": "M",
+                "lump_sum_amount": 1000.00,
+                "instalment_amount": 200.00,
+                "default_days_in_jail": 5
+              }
+            }
+            """;
+    }
+
+    private static String validTimelineDataString() {
+        return """
+            [
+              {
+                "username": "johndoe123",
+                "status": "Active",
+                "status_date": "2023-11-01",
+                "reason_text": "Valid reason"
+              }
+            ]
+            """;
+    }
+
     @Test
     @DisplayName("Create draft account - POST with valid request - Should return newly created account "
         + "[@PO-973, @PO-591]")
     void testPostDraftAccount_permission() throws Exception {
 
-        String validRequestBody = validCreateRequestBody();
+        String validRequestBody = validRawJsonCreateRequestBody();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         MvcResult result = mockMvc.perform(post(URL_BASE)
@@ -1180,5 +1239,4 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 "business_unit_id": 1
             }""";
     }
-
 }
