@@ -5,7 +5,7 @@ Feature: PO-703 results happy path
   Scenario: get results - happy path
     Given I am testing as the "opal-test@hmcts.net" user
     When I make a request to get the results ""
-    Then The results response contains 59 results
+    Then The results response contains 60 results
 
     And The results response contains the following result
       | result_id                   | REM                                           |
@@ -48,7 +48,7 @@ Feature: PO-703 results happy path
       | active                      | true   |
       | result_type                 | Result |
       | imposition_creditor         | CF     |
-      | imposition_allocation_order | 5      |
+      | imposition_allocation_order | 6      |
 
     And The results response contains the following result
       | result_id                   | ABDC                                    |
