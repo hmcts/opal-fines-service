@@ -39,7 +39,7 @@
       ]
     },
     "vehicle_fixed_penalty_details": {
-      "type": "object",
+      "type": ["object","null"],
       "additionalProperties": false,
       "properties": {
         "vehicle_registration_number": {
@@ -58,12 +58,19 @@
           "type": ["string", "null"],
           "format": "date"
         }
-      }
+      },
+      "required": [
+        "vehicle_registration_number",
+        "vehicle_drivers_license",
+        "notice_number",
+        "date_notice_issued"
+      ]
     }
   },
   "required": [
     "version",
     "vehicle_fixed_penalty_flag",
-    "fixed_penalty_ticket_details"
+    "fixed_penalty_ticket_details",
+    "vehicle_fixed_penalty_details"
   ]
 }
