@@ -102,7 +102,7 @@ class DefendantAccountFixedPenaltyTests {
 
     private Map<String, Object> createValidVFPDetailsJson() {
         Map<String, Object> json = new HashMap<>();
-        json.put("vehicle_registration", "AB12CDE");
+        json.put("vehicle_registration_number", "AB12CDE");
         json.put("vehicle_drivers_license", "D1234567890");
         json.put("notice_number", "VN123456");
         json.put("date_notice_issued", "2023-10-01");
