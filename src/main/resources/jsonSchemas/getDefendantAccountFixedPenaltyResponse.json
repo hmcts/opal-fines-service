@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Get Defendant Account Response",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer"
+    },
+    "vehicle_fixed_penalty_flag": {
+      "type": "boolean"
+    },
+    "fixed_penalty_ticket_details": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "issuing_authority": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ticket_number": {
+          "type": "string",
+          "minLength": 1
+        },
+        "time_of_offence": {
+          "type": "string",
+          "minLength": 1
+        },
+        "place_of_offence": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "issuing_authority",
+        "ticket_number",
+        "time_of_offence",
+        "place_of_offence"
+      ]
+    },
+    "vehicle_fixed_penalty_details": {
+      "type": ["object","null"],
+      "additionalProperties": false,
+      "properties": {
+        "vehicle_registration_number": {
+          "type": ["string","null"],
+          "minLength": 1
+        },
+        "vehicle_drivers_license": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "notice_number": {
+          "type": ["string", "null"],
+          "minLength": 1
+        },
+        "date_notice_issued": {
+          "type": ["string", "null"],
+          "format": "date"
+        }
+      },
+      "required": [
+        "vehicle_registration_number",
+        "vehicle_drivers_license",
+        "notice_number",
+        "date_notice_issued"
+      ]
+    }
+  },
+  "required": [
+    "version",
+    "vehicle_fixed_penalty_flag",
+    "fixed_penalty_ticket_details",
+    "vehicle_fixed_penalty_details"
+  ]
+}
