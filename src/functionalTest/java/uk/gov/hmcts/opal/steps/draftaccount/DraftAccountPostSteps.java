@@ -99,7 +99,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
         for (String key : expectedData.keySet()) {
             String expected = expectedData.get(key);
             String actual = then().extract().body().jsonPath().getString(key);
-            normalizeAndAssertEqual(expected, actual, key);
+            assertEquals(expected, actual, "Values are not equal for field '" + key + "'");
         }
     }
 
@@ -180,18 +180,5 @@ public class DraftAccountPostSteps extends BaseStepDef {
             .when()
             .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
 
-    }
-
-    private void normalizeAndAssertEqual(String expected, String actual, String fieldName) {
-        if (expected != null && expected.matches("\\d{2}/\\d{2}/\\d{4}")) {
-            expected = expected.replaceAll("(\\d{2})/(\\d{2})/(\\d{4})", "$3-$2-$1");
-        }
-
-        if (expected != null && expected.matches("\\d{4}-\\d{2}-\\d{2}")
-            && actual != null && actual.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z")) {
-            actual = actual.substring(0, 10);
-        }
-
-        assertEquals(expected, actual, "Values are not equal for field '" + fieldName + "'");
     }
 }

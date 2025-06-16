@@ -10,7 +10,8 @@
   "account_sentence_date": "2023-12-01T00:00:00Z",
   "defendant": {
     "company_flag": false,
-    "address_line_1": "1 High Street"
+    "address_line_1": "1 High Street",
+    "date_of_birth": "2000-01-01"
   },
   "offences": [
     {
