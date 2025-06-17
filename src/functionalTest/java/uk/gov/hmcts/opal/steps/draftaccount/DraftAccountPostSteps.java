@@ -97,8 +97,9 @@ public class DraftAccountPostSteps extends BaseStepDef {
         Map<String, String> expectedData = data.asMap(String.class, String.class);
 
         for (String key : expectedData.keySet()) {
-            String apiResponseValue = then().extract().body().jsonPath().getString(key);
-            assertEquals(expectedData.get(key), apiResponseValue, "Values are not equal : ");
+            String expected = expectedData.get(key);
+            String actual = then().extract().body().jsonPath().getString(key);
+            assertEquals(expected, actual, "Values are not equal for field '" + key + "'");
         }
     }
 
@@ -117,7 +118,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
         postBody.put("account_type", "Fine");
         postBody.put("account_status", "");
         postBody.put("submitted_by", "BUUID");
-        postBody.put("timeline_data", "");
+        postBody.put("timeline_data", JSONObject.NULL);
 
         SerenityRest
             .given()
