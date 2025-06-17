@@ -8,4 +8,7 @@ import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 @Repository
 public interface FixedPenaltyOffenceRepository extends JpaRepository<FixedPenaltyOffenceEntity, Long>,
     JpaSpecificationExecutor<FixedPenaltyOffenceEntity> {
+
+
+    void deleteByDefendantAccountId(long defendantAccountId);
 }

@@ -8,4 +8,5 @@ import uk.gov.hmcts.opal.entity.AccountTransferEntity;
 @Repository
 public interface AccountTransferRepository extends JpaRepository<AccountTransferEntity, Long>,
     JpaSpecificationExecutor<AccountTransferEntity> {
+    void deleteByDefendantAccount_DefendantAccountId(long defendantAccountId);
 }

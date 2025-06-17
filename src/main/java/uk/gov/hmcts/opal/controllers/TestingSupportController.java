@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,7 @@ import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyTestingSupportService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 
 @RestController
 @RequestMapping("/testing-support")
@@ -38,6 +40,7 @@ public class TestingSupportController {
     private final AccessTokenService accessTokenService;
     private final AuthorisationService authorisationService;
     private final LegacyTestingSupportService legacyTestingSupportService;
+    private final DefendantAccountDeletionService defendantAccountDeletionService;
 
     @GetMapping("/app-mode")
     @Operation(summary = "Retrieves the value for app mode.")
@@ -87,5 +90,15 @@ public class TestingSupportController {
     public ResponseEntity<String> legacyTestFunction(@PathVariable String functionName, @RequestBody String body) {
         String response = legacyTestingSupportService.postLegacyFunction(functionName, body).getBody();
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/defendant-accounts/{defendantAccountId}")
+    @Operation(summary = "Deletes a defendant account and ALL associated data. FOR TESTING ONLY!")
+    public ResponseEntity<Void> deleteDefendantAccountWithAllData(@PathVariable Long defendantAccountId) {
+        log.warn("TEST ENDPOINT: Request to delete defendant account {} and all associated data", defendantAccountId);
+
+        defendantAccountDeletionService.deleteDefendantAccountAndAssociatedData(defendantAccountId);
+
+        return ResponseEntity.noContent().build();
     }
 }
