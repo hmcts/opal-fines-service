@@ -10,4 +10,6 @@ public interface PaymentTermsRepository extends JpaRepository<PaymentTermsEntity
     JpaSpecificationExecutor<PaymentTermsEntity> {
 
     PaymentTermsEntity findByDefendantAccount_DefendantAccountId(Long defendantAccountId);
+
+    void deleteByDefendantAccount_DefendantAccountId(long defendantAccountId);
 }

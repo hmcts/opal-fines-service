@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyTestingSupportService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -31,7 +32,8 @@ import static org.mockito.Mockito.when;
             FeatureToggleService.class,
             LegacyTestingSupportService.class,
             LegacyGatewayProperties.class,
-            RestClient.class
+            RestClient.class,
+            DefendantAccountDeletionService.class
         },
     properties = {
         "opal.testing-support-endpoints.enabled=true"
@@ -59,6 +61,8 @@ class TestingSupportControllerTest {
 
     @MockBean
     private LegacyTestingSupportService legacyTestingSupportService;
+
+    @MockBean DefendantAccountDeletionService defendantAccountDeletionService;
 
     @Test
     void getAppMode() {

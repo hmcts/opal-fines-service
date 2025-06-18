@@ -3,10 +3,13 @@ package uk.gov.hmcts.opal.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
@@ -22,9 +25,11 @@ import uk.gov.hmcts.opal.service.legacy.LegacyTestingSupportService;
 
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -34,7 +39,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.TestingSupportControllerTest")
-class TestingSupportControllerTest extends AbstractIntegrationTest {
+class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private static final String TEST_TOKEN = "testToken";
     private static final UserState USER_STATE = UserState.builder()
@@ -233,4 +241,68 @@ class TestingSupportControllerTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().string(responseBody));
     }
+
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_defendants_for_deletion_test.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    @Test
+    void shouldDeleteDefendantAccountAndAssociatedData() throws Exception {
+        // Pre-check that data exists
+        assertThat(count(
+            "defendant_accounts",
+            "defendant_account_id = 1001"
+        )).isEqualTo(1);
+        assertThat(count(
+            "defendant_account_parties",
+            "defendant_account_id = 1001"
+        )).isGreaterThan(0);
+        assertThat(count(
+            "payment_terms",
+            "defendant_account_id = 1001"
+        )).isGreaterThan(0);
+        assertThat(count(
+            "defendant_transactions",
+            "defendant_account_id = 1001")
+        ).isGreaterThan(0);
+        assertThat(count(
+            "impositions",
+            "defendant_account_id = 1001")
+        ).isGreaterThan(0);
+        assertThat(count(
+            "allocations",
+            "imposition_id IN (SELECT imposition_id FROM impositions WHERE defendant_account_id = 1001)")
+        ).isGreaterThan(0);
+        assertThat(count(
+            "cheques",
+            "defendant_transaction_id "
+                + "IN (SELECT defendant_transaction_id FROM defendant_transactions WHERE defendant_account_id = 1001)")
+        ).isGreaterThan(0);
+
+        // When: call the deletion endpoint
+        mockMvc.perform(delete("/testing-support/defendant-accounts/1001"))
+            .andExpect(status().isNoContent());
+
+        // Post-check that all related data is gone
+        assertThat(count("defendant_accounts", "defendant_account_id = 1001")).isZero();
+        assertThat(count("defendant_account_parties", "defendant_account_id = 1001")).isZero();
+        assertThat(count("payment_terms", "defendant_account_id = 1001")).isZero();
+        assertThat(count("defendant_transactions", "defendant_account_id = 1001")).isZero();
+        assertThat(count("impositions", "defendant_account_id = 1001")).isZero();
+        assertThat(count(
+            "allocations",
+            "imposition_id IN (SELECT imposition_id FROM impositions WHERE defendant_account_id = 1001)"))
+            .isZero();
+        assertThat(count(
+            "cheques",
+            "defendant_transaction_id "
+                + "IN (SELECT defendant_transaction_id FROM defendant_transactions WHERE defendant_account_id = 1001)"))
+            .isZero();
+    }
+
+    private int count(String table, String whereClause) {
+        return jdbcTemplate.queryForObject("SELECT COUNT(*) "
+                                               + "FROM " + table + " WHERE " + whereClause, Integer.class);
+    }
+
 }

@@ -9,4 +9,6 @@ public interface DefendantAccountPartiesRepository extends JpaRepository<Defenda
 
 
     DefendantAccountPartiesEntity findByDefendantAccount_DefendantAccountId(Long defendantAccountId);
+
+    void deleteByDefendantAccount_DefendantAccountId(long defendantAccountId);
 }
