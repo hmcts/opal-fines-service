@@ -1,5 +1,47 @@
 -- File: insert_into_defendants_for_deletion_test.sql
+-- Enhanced test data for comprehensive deletion testing
 
+-- Add a user for foreign key constraints
+INSERT INTO users (
+  user_id, username, password, description
+) VALUES (
+  9100, 'test_user', 'password123', 'Test user for deletion test');
+
+-- Add a creditor account for the test (this is what impositions references, not major_creditors)
+INSERT INTO creditor_accounts (
+  creditor_account_id, business_unit_id, account_number, creditor_account_type,
+  prosecution_service, from_suspense, hold_payout, pay_by_bacs
+) VALUES (
+  9200, 78, 'CRED001', 'TC',
+  false, false, false, false);
+
+-- Add required court reference
+INSERT INTO courts (
+  court_id, business_unit_id, court_code, name
+) VALUES (
+  9201, 78, 123, 'Test Court');
+
+-- Add required offence reference
+INSERT INTO offences (
+  offence_id, cjs_code, business_unit_id, offence_title
+) VALUES (
+  9202, 'TEST001', 78, 'Test Offence');
+
+-- Add required result reference
+INSERT INTO results (
+  result_id, result_title, result_type, active, imposition,
+  imposition_accruing, enforcement, enforcement_override,
+  further_enforcement_warn, further_enforcement_disallow, enforcement_hold,
+  requires_enforcer, generates_hearing, generates_warrant, collection_order,
+  extend_ttp_disallow, extend_ttp_preserve_last_enf, prevent_payment_card, lists_monies
+) VALUES (
+  'TSTRES', 'Test Result', 'Result', true, true,
+  false, false, false,
+  false, false, false,
+  false, false, false, false,
+  false, false, false, false);
+
+-- Insert the main defendant account
 INSERT INTO defendant_accounts (
   defendant_account_id, business_unit_id, account_number,
   imposed_hearing_date, imposing_court_id, amount_imposed,
@@ -16,9 +58,9 @@ INSERT INTO defendant_accounts (
 )
 VALUES (
   1001, 78, '100A',
-  '2023-11-03 16:05:10', 780000000185, 700.58,
+  '2023-11-03 16:05:10', 9201, 700.58,
   200.00, 500.58, 'L', NULL,
-  780000000185, 780000000185, '2024-01-04 18:06:11',
+  9201, 9201, '2024-01-04 18:06:11',
   '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'REM',
   'Kingston-upon-Thames Mags Court', NULL, NULL,
   'N', 'N', 14, 21,
@@ -29,6 +71,7 @@ VALUES (
   '090A', NULL, 'Fines'
 );
 
+-- Insert party
 INSERT INTO parties (
   party_id, organisation, organisation_name,
   surname, forenames, initials, title,
@@ -44,6 +87,7 @@ VALUES (
   'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL
 );
 
+-- Insert defendant account parties (Level 2)
 INSERT INTO defendant_account_parties (
   defendant_account_party_id, defendant_account_id, party_id,
   association_type, debtor
@@ -53,6 +97,7 @@ VALUES (
   'Defendant', 'Y'
 );
 
+-- Insert payment terms (Level 2)
 INSERT INTO payment_terms (
   payment_terms_id, defendant_account_id, posted_date, posted_by,
   terms_type_code, effective_date, instalment_period, instalment_amount, instalment_lump_sum,
@@ -64,3 +109,53 @@ VALUES (
   120, 'N', 700.58
 );
 
+-- Insert defendant transaction (Level 2)
+INSERT INTO defendant_transactions (
+  defendant_transaction_id, defendant_account_id, posted_date, posted_by,
+  transaction_type, transaction_amount, payment_method, payment_reference,
+  text, status, status_date, status_amount, posted_by_user_id
+)
+VALUES (
+  9104, 1001, '2023-11-04', '01000000A',
+  'PAY', 100.00, 'CH', 'CHQ123',
+  'Cheque payment', 'A', '2023-11-04', 100.00, 9100
+);
+
+-- Insert imposition (Level 2) - Now with correct foreign key references
+INSERT INTO impositions (
+  imposition_id, defendant_account_id, posted_date, posted_by, posted_by_user_id,
+  result_id, imposing_court_id, imposed_date, imposed_amount, paid_amount,
+  offence_id, creditor_account_id, unit_fine_adjusted, completed
+)
+VALUES (
+  9105, 1001, '2023-11-03 16:05:10', '01000000A', 9100,
+  'TSTRES', 9201, '2023-11-03 16:05:10', 700.00, 200.00,
+  9202, 9200, false, false
+);
+
+-- Insert allocations (Level 3 - references both imposition and defendant_transaction)
+INSERT INTO allocations (
+  allocation_id, imposition_id, defendant_transaction_id,
+  allocated_date, allocated_amount, transaction_type, allocation_function
+)
+VALUES (
+  9106, 9105, 9104, '2023-11-04 10:00:00', 100.00, 'Payment', 'Auto'
+);
+
+-- Insert another allocation (Level 3 - only references imposition)
+INSERT INTO allocations (
+  allocation_id, imposition_id, allocated_date, allocated_amount,
+  transaction_type, allocation_function
+)
+VALUES (
+  9108, 9105, '2023-11-05 10:00:00', 50.00, 'Adjustment', 'Manual'
+);
+
+-- Insert cheque (Level 3 - references defendant_transaction)
+INSERT INTO cheques (
+  cheque_id, business_unit_id, cheque_number, issue_date,
+  defendant_transaction_id, amount, status
+)
+VALUES (
+  9107, 78, 123456, '2023-11-04 10:00:00',
+  9104, 100.00, 'C');

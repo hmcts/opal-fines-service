@@ -249,10 +249,35 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     void shouldDeleteDefendantAccountAndAssociatedData() throws Exception {
         // Pre-check that data exists
-        assertThat(count("defendant_accounts", "defendant_account_id = 1001")).isEqualTo(1);
-        assertThat(count("defendant_account_parties", "defendant_account_id = 1001")).isGreaterThan(0);
-        assertThat(count("payment_terms", "defendant_account_id = 1001")).isGreaterThan(0);
-
+        assertThat(count(
+            "defendant_accounts",
+            "defendant_account_id = 1001"
+        )).isEqualTo(1);
+        assertThat(count(
+            "defendant_account_parties",
+            "defendant_account_id = 1001"
+        )).isGreaterThan(0);
+        assertThat(count(
+            "payment_terms",
+            "defendant_account_id = 1001"
+        )).isGreaterThan(0);
+        assertThat(count(
+            "defendant_transactions",
+            "defendant_account_id = 1001")
+        ).isGreaterThan(0);
+        assertThat(count(
+            "impositions",
+            "defendant_account_id = 1001")
+        ).isGreaterThan(0);
+        assertThat(count(
+            "allocations",
+            "imposition_id IN (SELECT imposition_id FROM impositions WHERE defendant_account_id = 1001)")
+        ).isGreaterThan(0);
+        assertThat(count(
+            "cheques",
+            "defendant_transaction_id "
+                + "IN (SELECT defendant_transaction_id FROM defendant_transactions WHERE defendant_account_id = 1001)")
+        ).isGreaterThan(0);
 
         // When: call the deletion endpoint
         mockMvc.perform(delete("/testing-support/defendant-accounts/1001"))
@@ -262,11 +287,22 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(count("defendant_accounts", "defendant_account_id = 1001")).isZero();
         assertThat(count("defendant_account_parties", "defendant_account_id = 1001")).isZero();
         assertThat(count("payment_terms", "defendant_account_id = 1001")).isZero();
-
+        assertThat(count("defendant_transactions", "defendant_account_id = 1001")).isZero();
+        assertThat(count("impositions", "defendant_account_id = 1001")).isZero();
+        assertThat(count(
+            "allocations",
+            "imposition_id IN (SELECT imposition_id FROM impositions WHERE defendant_account_id = 1001)"))
+            .isZero();
+        assertThat(count(
+            "cheques",
+            "defendant_transaction_id "
+                + "IN (SELECT defendant_transaction_id FROM defendant_transactions WHERE defendant_account_id = 1001)"))
+            .isZero();
     }
 
     private int count(String table, String whereClause) {
-        return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM " + table + " WHERE " + whereClause, Integer.class);
+        return jdbcTemplate.queryForObject("SELECT COUNT(*) "
+                                               + "FROM " + table + " WHERE " + whereClause, Integer.class);
     }
 
 }
