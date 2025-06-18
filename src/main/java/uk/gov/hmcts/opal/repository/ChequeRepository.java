@@ -8,4 +8,7 @@ import uk.gov.hmcts.opal.entity.ChequeEntity;
 @Repository
 public interface ChequeRepository extends JpaRepository<ChequeEntity, Long>,
     JpaSpecificationExecutor<ChequeEntity> {
+
+    void deleteByDefendantTransactionId(long defendantTransactionId);
+
 }

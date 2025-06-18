@@ -8,4 +8,5 @@ import uk.gov.hmcts.opal.entity.BacsPaymentEntity;
 @Repository
 public interface BacsPaymentRepository extends JpaRepository<BacsPaymentEntity, Long>,
     JpaSpecificationExecutor<BacsPaymentEntity> {
+    void deleteByDefendantTransactionId(long defendantTransactionId);
 }
