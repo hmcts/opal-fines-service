@@ -85,7 +85,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[0].result_id").value("AAAAAA"))
             .andExpect(jsonPath("$.refData[0].result_title").value("First Ever Result Entry for Testing"))
             .andExpect(jsonPath("$.refData[1].result_id").value("BWTD"))
-            .andExpect(jsonPath("$.refData[1].result_title").value("Bail Warrant - Dated"));
+            .andExpect(jsonPath("$.refData[1].result_title").value("Bail Warrant - dated"));
 
         jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
