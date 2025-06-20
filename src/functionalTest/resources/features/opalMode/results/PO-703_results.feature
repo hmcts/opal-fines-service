@@ -9,7 +9,7 @@ Feature: PO-703 results happy path
 
     And The results response contains the following result
       | result_id                   | REM                                           |
-      | result_title                | Final reminder of unpaid fine                 |
+      | result_title                | Reminder of Unpaid Fine                       |
       | result_title_cy             | Nodyn atgoffa terfynol am ddirwy heb ei thalu |
       | active                      | true                                          |
       | result_type                 | Result                                        |
@@ -52,7 +52,7 @@ Feature: PO-703 results happy path
 
     And The results response contains the following result
       | result_id                   | ABDC                                    |
-      | result_title                | Application made for benefit deductions |
+      | result_title                | Application made for Benefit Deductions |
       | result_title_cy             | Cais am dynnu arian o fudd-daliadau     |
       | active                      | true                                    |
       | result_type                 | Result                                  |
