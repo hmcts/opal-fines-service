@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.service.opal.jpa;
 
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.entity.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 
 /**
  * This interface is used to avoid DraftAccountService directly referencing its own JPA proxied methods.

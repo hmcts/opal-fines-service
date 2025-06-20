@@ -185,7 +185,7 @@ logging:
     org:
       hibernate:
         stat: INFO
-        SQL: DEBUG
+        SQL: INFO
         SQL_SLOW: INFO
         type:
           descriptor:

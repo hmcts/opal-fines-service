@@ -16,12 +16,13 @@ import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.DraftAccountEntity;
-import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
+import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -55,6 +56,8 @@ class DraftAccountServiceTest {
 
     @Mock
     private DraftAccountMapper draftAccountMapper;
+    @Mock
+    private DraftAccountPublishProxy draftAccountPublishProxy;
 
     @InjectMocks
     private DraftAccountService draftAccountService;
@@ -333,6 +336,7 @@ class DraftAccountServiceTest {
 
         when(draftAccountTransactions.updateDraftAccount(any(), any(), any())).thenReturn(updatedAccount);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
+        when(draftAccountPublishProxy.publishDefendantAccount(any(), any())).thenReturn(updatedAccount);
 
         // Act
         DraftAccountResponseDto result = draftAccountService.updateDraftAccount(draftAccountId,

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.draft;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -13,6 +13,7 @@ public enum DraftAccountStatus {
     APPROVED("Approved"),
     RESUBMITTED("Resubmitted"),
     PUBLISHING_PENDING("Publishing Pending"),
+    LEGACY_PENDING("Legacy Response Pending"),
     PUBLISHED("Published"),
     PUBLISHING_FAILED("Publishing Failed");
 
@@ -32,5 +33,9 @@ public enum DraftAccountStatus {
     public static DraftAccountStatus fromLabel(String label) {
         return Arrays.stream(values()).filter(s -> s.getLabel().equals(label)).findFirst()
             .orElseThrow(() -> new IllegalArgumentException("'" + label + "' is not a valid Draft Account Status."));
+    }
+
+    public boolean isPublishingPending() {
+        return this == PUBLISHING_PENDING;
     }
 }
