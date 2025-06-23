@@ -8,4 +8,5 @@ import uk.gov.hmcts.opal.entity.EnforcementEntity;
 @Repository
 public interface EnforcementRepository extends JpaRepository<EnforcementEntity, Long>,
     JpaSpecificationExecutor<EnforcementEntity> {
+    void deleteByDefendantAccount_DefendantAccountId(long defendantAccountId);
 }

@@ -8,4 +8,5 @@ import uk.gov.hmcts.opal.entity.ImpositionEntity;
 @Repository
 public interface ImpositionRepository extends JpaRepository<ImpositionEntity, Long>,
     JpaSpecificationExecutor<ImpositionEntity> {
+    void deleteByDefendantAccount_DefendantAccountId(long defendantAccountId);
 }

@@ -8,4 +8,5 @@ import uk.gov.hmcts.opal.entity.CommittalWarrantProgressEntity;
 @Repository
 public interface CommittalWarrantProgressRepository extends JpaRepository<CommittalWarrantProgressEntity, Long>,
     JpaSpecificationExecutor<CommittalWarrantProgressEntity> {
+    void deleteByDefendantAccountId(long defendantAccountId);
 }
