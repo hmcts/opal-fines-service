@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/postDefendantAccountsSearchLegacyRequest.json",
+  "type": "object",
+  "description": "Schema for search defendant accounts request",
+  "required": ["active_accounts_only"],
+  "properties": {
+    "business_unit_ids": {
+      "type": "array",
+      "description": "An array of business unit IDs to filter the search",
+      "minItems": 1,
+      "items": {
+        "type": "integer",
+        "description": "A unique identifier for a business unit"
+      }
+    },
+    "active_accounts_only": {
+      "type": "boolean",
+      "description": "Flag indicating whether only active accounts should be included in the search results"
+    }
+  },
+  "oneOf": [
+    {
+      "description": "Search by reference number",
+      "type": "object",
+      "properties": {
+        "reference_number": {
+          "type": "object",
+          "properties": {
+            "organisation": {
+              "type": "boolean",
+              "description": "Flag indicating whether the defendant is an organisation (true) or an individual (false)"
+            }
+          },
+          "required": ["organisation"],
+          "oneOf": [
+            {
+              "description": "Search by account number",
+              "type": "object",
+              "properties": {
+                "account_number": {
+                  "type": "string",
+                  "description": "The financial account number to search for"
+                }
+              },
+              "required": ["account_number"],
+              "additionalProperties": false
+            },
+            {
+              "description": "Search by prosecutor case reference",
+              "type": "object",
+              "properties": {
+                "prosecutor_case_reference": {
+                  "type": "string",
+                  "description": "The reference number for the prosecutor's case"
+                }
+              },
+              "required": ["prosecutor_case_reference"],
+              "additionalProperties": false
+            }
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": ["reference_number"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Search using defendant details",
+      "type": "object",
+      "properties": {
+        "defendant": {
+          "$ref": "#/$defs/defendant",
+          "description": "The search criteria for the defendant"
+        }
+      },
+      "required": ["defendant"],
+      "additionalProperties": false
+    }
+  ],
+  "$defs": {
+    "defendant": {
+      "type": "object",
+      "description": "Details for searching by defendant",
+      "properties": {
+        "include_aliases": {
+          "type": "boolean",
+          "description": "Flag indicating whether aliases should be included in the search"
+        },
+        "address_line_1": {
+          "type": "string",
+          "description": "The first line of the defendant's address to filter the search"
+        },
+        "postcode": {
+          "type": "string",
+          "description": "The postcode associated with the defendant"
+        },
+        "organisation": {
+          "type": "boolean",
+          "description": "Flag indicating whether the defendant is an organisation (true) or an individual (false)"
+        }
+      },
+      "required": ["organisation", "include_aliases"],
+      "oneOf": [
+        {
+          "description": "Search using organisation details",
+          "type": "object",
+          "properties": {
+            "organisation": { "const": true },
+            "organisation_name": {
+              "type": "string",
+              "description": "The name of the organisation"
+            },
+            "exact_match_organisation_name": {
+              "type": "boolean",
+              "description": "Flag indicating whether the organisation name should be matched exactly"
+            }
+          },
+          "required": ["organisation_name"],
+          "additionalProperties": false
+        },
+        {
+          "description": "Search using individual details",
+          "type": "object",
+          "properties": {
+            "organisation": { "const": false },
+            "surname": {
+              "type": "string",
+              "description": "The surname of the individual"
+            },
+            "exact_match_surname": {
+              "type": "boolean",
+              "description": "Flag indicating whether the surname should be matched exactly"
+            },
+            "forenames": {
+              "type": "string",
+              "description": "The forenames of the individual"
+            },
+            "exact_match_forenames": {
+              "type": "boolean",
+              "description": "Flag indicating whether the forenames should be matched exactly"
+            },
+            "birth_date": {
+              "type": "string",
+              "format": "date",
+              "description": "The birth date of the individual in YYYY-MM-DD format"
+            },
+            "national_insurance_number": {
+              "type": "string",
+              "description": "The National Insurance Number of the individual"
+            }
+          },
+          "required": ["surname"],
+          "additionalProperties": false
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}
