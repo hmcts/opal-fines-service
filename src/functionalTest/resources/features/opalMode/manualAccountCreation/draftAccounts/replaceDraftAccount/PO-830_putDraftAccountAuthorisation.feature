@@ -83,7 +83,8 @@ Feature: PO-830 - Authorisation for put/update draft account
     Then The draft account response returns 201
 
     When I am testing as the "opal-test-3@hmcts.net" user
-    And I update the draft account that was just created with the following details      | business_unit_id  | 73                                          |
+    And I update the draft account that was just created with the following details
+      | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
       | account_status    | Submitted                                   |
