@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal;
+package uk.gov.hmcts.opal.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

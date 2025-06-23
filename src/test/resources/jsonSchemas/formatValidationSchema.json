@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "submitted_by_email": {
+      "type": "string",
+      "format": "email"
+    }
+  },
+  "required": [
+    "submitted_at",
+    "submitted_by_email"
+  ]
+}

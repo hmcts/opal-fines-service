@@ -173,14 +173,14 @@ Feature: PO-830 - Authorisation for put/update draft account
     Then The draft account response returns 200
 
     And I get the single created draft account and the response contains
-      | business_unit_id                    | 73            |
-      | account_type                        | Fine          |
-      | account_status                      | Resubmitted   |
-      | account_snapshot.defendant_name     | LNAME, FNAME  |
-      | account_snapshot.date_of_birth      | 01/01/2000    |
-      | account_snapshot.account_type       | Fine          |
-      | account_snapshot.submitted_by       | BUUID_Updated |
-      | account_snapshot.business_unit_name | West London   |
+      | business_unit_id                    | 73                   |
+      | account_type                        | Fine                 |
+      | account_status                      | Resubmitted          |
+      | account_snapshot.defendant_name     | LNAME, FNAME         |
+      | account_snapshot.date_of_birth      | 2000-01-01T00:00:00Z |
+      | account_snapshot.account_type       | Fine                 |
+      | account_snapshot.submitted_by       | BUUID_Updated        |
+      | account_snapshot.business_unit_name | West London          |
 
     Then I delete the created draft accounts
 

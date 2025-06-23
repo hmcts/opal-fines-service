@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/postDefendantAccountsSearchResponse.json",
+  "type": "object",
+  "required": [
+    "count",
+    "defendant_accounts"
+  ],
+  "properties": {
+    "count": {
+      "type": "integer",
+      "description": "The total number of records identified."
+    },
+    "defendant_accounts": {
+      "type": ["array", "null"],
+      "description": "A list of defendant accounts. Null if none are found.",
+      "items": {
+        "$ref": "#/$defs/defendant_account"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "defendant_account": {
+      "type": "object",
+      "description": "Details of a defendant account, with all possible fields always present.",
+      "required": [
+        "defendant_account_id",
+        "account_number",
+        "organisation",
+        "aliases",
+        "address_line_1",
+        "postcode",
+        "business_unit_name",
+        "business_unit_id",
+        "prosecutor_case_reference",
+        "last_enforcement_action",
+        "account_balance",
+        "organisation_name",
+        "defendant_title",
+        "defendant_firstnames",
+        "defendant_surname",
+        "birth_date",
+        "national_insurance_number",
+        "parent_guardian_surname",
+        "parent_guardian_firstnames"
+      ],
+      "properties": {
+        "defendant_account_id": { "type": "string" },
+        "account_number": { "type": "string" },
+        "organisation": { "type": "boolean" },
+        "aliases": {
+          "type": ["array", "null"],
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/alias" }
+        },
+        "address_line_1": { "type": "string" },
+        "postcode": { "type": ["string", "null"] },
+        "business_unit_name": { "type": "string" },
+        "business_unit_id": { "type": "string" },
+        "prosecutor_case_reference": { "type": ["string", "null"] },
+        "last_enforcement_action": { "type": ["string", "null"] },
+        "account_balance": { "type": "number" },
+        "organisation_name": { "type": ["string", "null"] },
+        "defendant_title": { "type": ["string", "null"] },
+        "defendant_firstnames": { "type": ["string", "null"] },
+        "defendant_surname": { "type": ["string", "null"] },
+        "birth_date": { "type": ["string", "null"], "format": "date" },
+        "national_insurance_number": { "type": ["string", "null"] },
+        "parent_guardian_surname": { "type": ["string", "null"] },
+        "parent_guardian_firstnames": { "type": ["string", "null"] }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "organisation": { "const": true },
+            "organisation_name": { "type": "string" },
+            "defendant_title": { "const": null },
+            "defendant_firstnames": { "const": null },
+            "defendant_surname": { "const": null },
+            "birth_date": { "const": null },
+            "national_insurance_number": { "const": null },
+            "parent_guardian_surname": { "const": null },
+            "parent_guardian_firstnames": { "const": null }
+          }
+        },
+        {
+          "properties": {
+            "organisation": { "const": false },
+            "organisation_name": { "const": null },
+            "defendant_title": { "type": "string" },
+            "defendant_surname": { "type": "string" }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "alias": {
+      "type": "object",
+      "description": "Details of a single alias.",
+      "required": [
+        "alias_number",
+        "organisation_name",
+        "surname",
+        "forenames"
+      ],
+      "properties": {
+        "alias_number": { "type": "integer" },
+        "organisation_name": { "type": ["string", "null"] },
+        "surname": { "type": ["string", "null"] },
+        "forenames": { "type": ["string", "null"] }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "organisation_name": { "type": "string" },
+            "surname": { "const": null },
+            "forenames": { "const": null }
+          }
+        },
+        {
+          "properties": {
+            "organisation_name": { "const": null },
+            "surname": { "type": "string" }
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

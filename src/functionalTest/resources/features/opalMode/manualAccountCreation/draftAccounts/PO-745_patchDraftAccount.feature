@@ -25,16 +25,16 @@ Feature: PO-745 patch draft account
     Then The draft account response returns 200
 
     Then I get the single created draft account and the response contains
-      | business_unit_id                    | 73                 |
-      | account_type                        | Fine               |
-      | account_status                      | Publishing Pending |
-      | account_snapshot.defendant_name     | LNAME, FNAME       |
-      | account_snapshot.date_of_birth      | 01/01/2000         |
-      | account_snapshot.account_type       | Fine               |
-      | account_snapshot.submitted_by       | BUUID              |
-      | account_snapshot.business_unit_name | West London        |
-      | timeline_data[0].status             | Publishing Pending |
-      | timeline_data[0].username           | BUUID_REVIEWER     |
+      | business_unit_id                    | 73                   |
+      | account_type                        | Fine                 |
+      | account_status                      | Publishing Pending   |
+      | account_snapshot.defendant_name     | LNAME, FNAME         |
+      | account_snapshot.date_of_birth      | 2000-01-01T00:00:00Z |
+      | account_snapshot.account_type       | Fine                 |
+      | account_snapshot.submitted_by       | BUUID                |
+      | account_snapshot.business_unit_name | West London          |
+      | timeline_data[0].status             | Publishing Pending   |
+      | timeline_data[0].username           | BUUID_REVIEWER       |
 
     Then I delete the created draft accounts
 
@@ -63,17 +63,17 @@ Feature: PO-745 patch draft account
     Then The draft account response returns 200
 
     Then I get the single created draft account and the response contains
-      | business_unit_id                    | 73                   |
-      | account_type                        | Fine                 |
-      | account_status                      | Rejected             |
-      | account_snapshot.defendant_name     | LNAME, FNAME         |
-      | account_snapshot.date_of_birth      | 01/01/2000           |
-      | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | BUUID                |
-      | account_snapshot.business_unit_name | West London          |
-      | timeline_data[0].status             | Rejected             |
-      | timeline_data[0].username           | BUUID_REVIEWER       |
-      | timeline_data[0].reason_text        | Reason for rejection |
+      | business_unit_id                    | 73                    |
+      | account_type                        | Fine                  |
+      | account_status                      | Rejected              |
+      | account_snapshot.defendant_name     | LNAME, FNAME          |
+      | account_snapshot.date_of_birth      | 2000-01-01T00:00:00Z  |
+      | account_snapshot.account_type       | Fine                  |
+      | account_snapshot.submitted_by       | BUUID                 |
+      | account_snapshot.business_unit_name | West London           |
+      | timeline_data[0].status             | Rejected              |
+      | timeline_data[0].username           | BUUID_REVIEWER        |
+      | timeline_data[0].reason_text        | Reason for rejection  |
 
     Then I delete the created draft accounts
 
@@ -101,16 +101,16 @@ Feature: PO-745 patch draft account
     Then The draft account response returns 200
 
     Then I get the single created draft account and the response contains
-      | business_unit_id                    | 73                  |
-      | account_type                        | Fine                |
-      | account_status                      | Deleted             |
-      | account_snapshot.defendant_name     | LNAME, FNAME        |
-      | account_snapshot.date_of_birth      | 01/01/2000          |
-      | account_snapshot.account_type       | Fine                |
-      | account_snapshot.submitted_by       | BUUID               |
-      | account_snapshot.business_unit_name | West London         |
-      | timeline_data[0].status             | Deleted             |
-      | timeline_data[0].username           | BUUID_REVIEWER      |
-      | timeline_data[0].reason_text        | Reason for deletion |
+      | business_unit_id                    | 73                   |
+      | account_type                        | Fine                 |
+      | account_status                      | Deleted              |
+      | account_snapshot.defendant_name     | LNAME, FNAME         |
+      | account_snapshot.date_of_birth      | 2000-01-01T00:00:00Z |
+      | account_snapshot.account_type       | Fine                 |
+      | account_snapshot.submitted_by       | BUUID                |
+      | account_snapshot.business_unit_name | West London          |
+      | timeline_data[0].status             | Deleted              |
+      | timeline_data[0].username           | BUUID_REVIEWER       |
+      | timeline_data[0].reason_text        | Reason for deletion  |
 
     Then I delete the created draft accounts

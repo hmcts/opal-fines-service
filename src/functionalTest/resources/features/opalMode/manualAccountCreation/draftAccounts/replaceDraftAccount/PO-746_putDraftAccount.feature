@@ -41,14 +41,14 @@ Feature: PO-746 put/update draft account
 
 
     And I get the single created draft account and the response contains
-      | business_unit_id                    | 73           |
-      | account_type                        | Fine         |
-      | account_status                      | Resubmitted  |
-      | account_snapshot.defendant_name     | LNAME, FNAME |
-      | account_snapshot.date_of_birth      | 01/01/2000   |
-      | account_snapshot.account_type       | Fine         |
-      | account_snapshot.submitted_by       | BUUID        |
-      | account_snapshot.business_unit_name | West London  |
+      | business_unit_id                    | 73                   |
+      | account_type                        | Fine                 |
+      | account_status                      | Resubmitted          |
+      | account_snapshot.defendant_name     | LNAME, FNAME         |
+      | account_snapshot.date_of_birth      | 2000-01-01T00:00:00Z |
+      | account_snapshot.account_type       | Fine                 |
+      | account_snapshot.submitted_by       | BUUID                |
+      | account_snapshot.business_unit_name | West London          |
 
     Then I see the created at time hasn't changed
     And I see the account status date is now after the initial account status date

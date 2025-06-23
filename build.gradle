@@ -1,6 +1,6 @@
 buildscript {
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:11.9.1")
+    classpath("org.flywaydb:flyway-database-postgresql:11.9.2")
   }
 }
 
@@ -266,7 +266,7 @@ repositories {
 }
 
 ext {
-  log4JVersion = "2.24.3"
+  log4JVersion = "2.25.0"
   serenityVersion = "4.2.34"
 }
 
@@ -291,7 +291,7 @@ dependencies {
   implementation group: 'org.springframework.integration', name: 'spring-integration-file'
 
 
-  implementation group: 'org.springframework.security', name: 'spring-security-oauth2-authorization-server', version: '1.5.0'
+  implementation group: 'org.springframework.security', name: 'spring-security-oauth2-authorization-server', version: '1.5.1'
 
   implementation group: 'org.springframework', name: 'spring-aspects'
 
@@ -312,7 +312,7 @@ dependencies {
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.9.1'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.9.2'
   implementation 'org.postgresql:postgresql'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
@@ -345,7 +345,7 @@ dependencies {
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-  testImplementation 'org.testcontainers:junit-jupiter:1.21.1'
+  testImplementation 'org.testcontainers:junit-jupiter:1.21.2'
   testImplementation 'org.testcontainers:postgresql'
   testImplementation(platform('org.junit:junit-bom:5.13.1'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
