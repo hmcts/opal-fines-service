@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
@@ -40,9 +41,9 @@ import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 public class DraftAccountService {
 
 
-    public static final String ADD_DRAFT_ACCOUNT_REQUEST_JSON = "addDraftAccountRequest.json";
-    public static final String REPLACE_DRAFT_ACCOUNT_REQUEST_JSON = "replaceDraftAccountRequest.json";
-    public static final String UPDATE_DRAFT_ACCOUNT_REQUEST_JSON = "updateDraftAccountRequest.json";
+    public static final String ADD_DRAFT_ACCOUNT_REQUEST_JSON =  SchemaPaths.ADD_DRAFT_ACCOUNT_REQUEST;
+    public static final String REPLACE_DRAFT_ACCOUNT_REQUEST_JSON =  SchemaPaths.REPLACE_DRAFT_ACCOUNT_REQUEST;
+    public static final String UPDATE_DRAFT_ACCOUNT_REQUEST_JSON =  SchemaPaths.UPDATE_DRAFT_ACCOUNT_REQUEST;
     public static final String ACCOUNT_DELETED_MESSAGE_FORMAT = """
         { "message": "Draft Account '%s' deleted"}""";
 
