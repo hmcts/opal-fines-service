@@ -19,9 +19,8 @@ import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
-
+import uk.gov.hmcts.opal.dto.response.SearchDataResponse;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
@@ -58,18 +57,20 @@ public class CourtController {
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches courts based upon criteria in request body")
-    public ResponseEntity<Object> postCourtsSearch(@RequestBody CourtSearchDto criteria,
-                  @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+    public ResponseEntity<SearchDataResponse<CourtEntity>> postCourtsSearch(
+        @RequestBody CourtSearchDto criteria,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
         log.debug(":POST:postCourtsSearch: query: \n{}", criteria);
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
         List<CourtEntity> results = courtService.searchCourts(criteria);
 
-        Map<String, Object> responseBody = Map.of(
-            "count", results.size(),
-            "searchData", results
-        );
+        SearchDataResponse<CourtEntity> responseBody = SearchDataResponse.<CourtEntity>builder()
+            .count(results.size())
+            .searchData(results)
+            .build();
 
         return ResponseEntity.ok(responseBody);
     }

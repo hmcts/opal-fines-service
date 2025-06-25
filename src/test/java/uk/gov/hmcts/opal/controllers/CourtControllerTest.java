@@ -8,14 +8,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceDataResults;
+import uk.gov.hmcts.opal.dto.response.SearchDataResponse;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,19 +65,19 @@ class CourtControllerTest {
 
         // Act
         CourtSearchDto searchDto = CourtSearchDto.builder().build();
-        ResponseEntity<Object> response = courtController.postCourtsSearch(searchDto, BEARER_TOKEN);
+        ResponseEntity<SearchDataResponse<CourtEntity>> response = courtController.postCourtsSearch(searchDto, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        @SuppressWarnings("unchecked")
-        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
 
-        assertEquals(1, responseBody.get("count"));
+        SearchDataResponse<CourtEntity> responseBody = response.getBody();
+        assertNotNull(responseBody);
+        assertEquals(1, responseBody.getCount());
+        assertEquals(courtList, responseBody.getSearchData());
 
-        List<?> searchData = (List<?>) responseBody.get("searchData");
-        assertEquals(courtList, searchData);
         verify(courtService, times(1)).searchCourts(any());
     }
+
 
     @Test
     void testGetCourtsRefData_Success() {
