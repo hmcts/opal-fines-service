@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class DefendantAccountSpecsTest {
 
     @Test
-    public void codeCoverageTest() {
+    void codeCoverageTest() {
 
         assertNotNull(DefendantAccountSpecs.equalsImposingCourtId(1L));
         assertNotNull(DefendantAccountSpecs.equalsAccountNumber("test"));

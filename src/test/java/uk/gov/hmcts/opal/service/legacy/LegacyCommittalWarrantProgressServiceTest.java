@@ -42,7 +42,7 @@ class LegacyCommittalWarrantProgressServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetCommittalWarrantProgress() {
+    void testGetCommittalWarrantProgress() {
         long id = 1L;
         CommittalWarrantProgressEntity expectedEntity = new CommittalWarrantProgressEntity();
         doReturn(expectedEntity).when(legacyCommittalWarrantProgressService).postToGateway(anyString(),
@@ -54,7 +54,7 @@ class LegacyCommittalWarrantProgressServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchCommittalWarrantProgresss() {
+    void testSearchCommittalWarrantProgresss() {
         CommittalWarrantProgressSearchDto criteria = CommittalWarrantProgressSearchDto.builder().build();
         List<CommittalWarrantProgressEntity> expectedEntities = Collections.singletonList(
             new CommittalWarrantProgressEntity());

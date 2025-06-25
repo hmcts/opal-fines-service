@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class DefendantAccountsSearchResultsTest {
 
     @Test
-    public void testBuilder() {
+    void testBuilder() {
         DefendantAccountsSearchResults searchResults = constructTestDefendantAccountsSearchResults();
 
         assertEquals(1L, searchResults.getTotalCount());
@@ -27,7 +27,7 @@ public class DefendantAccountsSearchResultsTest {
     }
 
     @Test
-    public void testJsonString() throws Exception {
+    void testJsonString() throws Exception {
         DefendantAccountsSearchResults model = constructTestDefendantAccountsSearchResults();
         assertNotNull(model.toJsonString());
 

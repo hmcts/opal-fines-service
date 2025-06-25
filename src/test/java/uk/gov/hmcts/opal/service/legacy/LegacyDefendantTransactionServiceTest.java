@@ -41,7 +41,7 @@ class LegacyDefendantTransactionServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetDefendantTransaction() {
+    void testGetDefendantTransaction() {
         long id = 1L;
         DefendantTransactionEntity expectedEntity = new DefendantTransactionEntity();
         doReturn(expectedEntity).when(legacyDefendantTransactionService).postToGateway(anyString(), any(), anyLong());
@@ -52,7 +52,7 @@ class LegacyDefendantTransactionServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchDefendantTransactions() {
+    void testSearchDefendantTransactions() {
         DefendantTransactionSearchDto criteria = DefendantTransactionSearchDto.builder().build();
         List<DefendantTransactionEntity> expectedEntities = Collections.singletonList(new DefendantTransactionEntity());
         LegacyDefendantTransactionSearchResults searchResults = LegacyDefendantTransactionSearchResults.builder()

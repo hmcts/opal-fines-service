@@ -41,7 +41,7 @@ class LegacyFixedPenaltyOffenceServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetFixedPenaltyOffence() {
+    void testGetFixedPenaltyOffence() {
         long id = 1L;
         FixedPenaltyOffenceEntity expectedEntity = new FixedPenaltyOffenceEntity();
         doReturn(expectedEntity).when(legacyFixedPenaltyOffenceService).postToGateway(anyString(), any(), anyLong());
@@ -52,7 +52,7 @@ class LegacyFixedPenaltyOffenceServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchFixedPenaltyOffences() {
+    void testSearchFixedPenaltyOffences() {
         FixedPenaltyOffenceSearchDto criteria = FixedPenaltyOffenceSearchDto.builder().build();
         List<FixedPenaltyOffenceEntity> expectedEntities = Collections.singletonList(new FixedPenaltyOffenceEntity());
         LegacyFixedPenaltyOffenceSearchResults searchResults = LegacyFixedPenaltyOffenceSearchResults.builder().build();

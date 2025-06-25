@@ -62,7 +62,7 @@ class NoteControllerTest {
     }
 
     @Test
-    public void testFindNoteByAssociated_Success() {
+    void testFindNoteByAssociated_Success() {
         // Arrange
         NoteDto mockNote = new NoteDto();
         List<NoteDto> mockResponse = List.of(mockNote);
@@ -81,7 +81,7 @@ class NoteControllerTest {
     }
 
     @Test
-    public void testFindNoteByAssociated_NoContent() {
+    void testFindNoteByAssociated_NoContent() {
         when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(null);
 
         // Act
@@ -96,7 +96,7 @@ class NoteControllerTest {
 
 
     @Test
-    public void testNotesSearch_Success() {
+    void testNotesSearch_Success() {
         // Arrange
         NoteDto mockNote = new NoteDto();
         List<NoteDto> mockResponse = List.of(mockNote);
@@ -116,7 +116,7 @@ class NoteControllerTest {
     }
 
     @Test
-    public void testNotesSearch_NoContent() {
+    void testNotesSearch_NoContent() {
         when(noteService.searchNotes(any(NoteSearchDto.class))).thenReturn(null);
 
         // Act

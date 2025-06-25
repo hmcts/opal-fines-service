@@ -40,7 +40,7 @@ class LegacyCreditorAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetCreditorAccount() {
+    void testGetCreditorAccount() {
         long id = 1L;
         CreditorAccountEntity expectedEntity = new CreditorAccountEntity();
         doReturn(expectedEntity).when(legacyCreditorAccountService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyCreditorAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchCreditorAccounts() {
+    void testSearchCreditorAccounts() {
         CreditorAccountSearchDto criteria = CreditorAccountSearchDto.builder().build();
         List<CreditorAccountEntity> expectedEntities = Collections.singletonList(new CreditorAccountEntity());
         LegacyCreditorAccountSearchResults searchResults = LegacyCreditorAccountSearchResults.builder().build();

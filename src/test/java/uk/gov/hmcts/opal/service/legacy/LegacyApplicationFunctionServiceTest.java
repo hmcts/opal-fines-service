@@ -41,7 +41,7 @@ class LegacyApplicationFunctionServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetApplicationFunction() {
+    void testGetApplicationFunction() {
         long id = 1L;
         ApplicationFunctionEntity expectedEntity = new ApplicationFunctionEntity();
         doReturn(expectedEntity).when(legacyApplicationFunctionService).postToGateway(anyString(), any(), anyLong());
@@ -52,7 +52,7 @@ class LegacyApplicationFunctionServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchApplicationFunctions() {
+    void testSearchApplicationFunctions() {
         ApplicationFunctionSearchDto criteria = ApplicationFunctionSearchDto.builder().build();
         List<ApplicationFunctionEntity> expectedEntities = Collections.singletonList(new ApplicationFunctionEntity());
         LegacyApplicationFunctionSearchResults searchResults = LegacyApplicationFunctionSearchResults.builder().build();

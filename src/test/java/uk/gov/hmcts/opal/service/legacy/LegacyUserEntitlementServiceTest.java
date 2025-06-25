@@ -40,7 +40,7 @@ class LegacyUserEntitlementServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetUserEntitlement() {
+    void testGetUserEntitlement() {
         long id = 1L;
         UserEntitlementEntity expectedEntity = new UserEntitlementEntity();
         doReturn(expectedEntity).when(legacyUserEntitlementService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyUserEntitlementServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchUserEntitlements() {
+    void testSearchUserEntitlements() {
         UserEntitlementSearchDto criteria = UserEntitlementSearchDto.builder().build();
         List<UserEntitlementEntity> expectedEntities = Collections.singletonList(new UserEntitlementEntity());
         LegacyUserEntitlementSearchResults searchResults = LegacyUserEntitlementSearchResults.builder().build();

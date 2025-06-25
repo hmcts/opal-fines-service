@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class PartyEntityTest {
 
     @Test
-    public void testGettersAndSetters() {
+    void testGettersAndSetters() {
         PartyEntity party = new PartyEntity();
 
         // Set values using setters
@@ -58,7 +58,7 @@ public class PartyEntityTest {
     }
 
     @Test
-    public void testLombokMethods() {
+    void testLombokMethods() {
         PartyEntity party1 = new PartyEntity();
         party1.setPartyId(1L);
 

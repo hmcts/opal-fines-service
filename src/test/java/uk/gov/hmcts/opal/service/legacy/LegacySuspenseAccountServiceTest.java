@@ -40,7 +40,7 @@ class LegacySuspenseAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetSuspenseAccount() {
+    void testGetSuspenseAccount() {
         long id = 1L;
         SuspenseAccountEntity expectedEntity = new SuspenseAccountEntity();
         doReturn(expectedEntity).when(legacySuspenseAccountService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacySuspenseAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchSuspenseAccounts() {
+    void testSearchSuspenseAccounts() {
         SuspenseAccountSearchDto criteria = SuspenseAccountSearchDto.builder().build();
         List<SuspenseAccountEntity> expectedEntities = Collections.singletonList(new SuspenseAccountEntity());
         LegacySuspenseAccountSearchResults searchResults = LegacySuspenseAccountSearchResults.builder().build();

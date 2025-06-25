@@ -40,7 +40,7 @@ class LegacyLogActionServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetLogAction() {
+    void testGetLogAction() {
         short id = 1;
         LogActionEntity expectedEntity = new LogActionEntity();
         doReturn(expectedEntity).when(legacyLogActionService).postToGateway(anyString(), any(), anyShort());
@@ -51,7 +51,7 @@ class LegacyLogActionServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchLogActions() {
+    void testSearchLogActions() {
         LogActionSearchDto criteria = LogActionSearchDto.builder().build();
         List<LogActionEntity> expectedEntities = Collections.singletonList(new LogActionEntity());
         LegacyLogActionSearchResults searchResults = LegacyLogActionSearchResults.builder().build();

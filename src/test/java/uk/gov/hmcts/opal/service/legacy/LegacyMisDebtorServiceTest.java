@@ -40,7 +40,7 @@ class LegacyMisDebtorServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetMisDebtor() {
+    void testGetMisDebtor() {
         long id = 1L;
         MisDebtorEntity expectedEntity = new MisDebtorEntity();
         doReturn(expectedEntity).when(legacyMisDebtorService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyMisDebtorServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchMisDebtors() {
+    void testSearchMisDebtors() {
         MisDebtorSearchDto criteria = MisDebtorSearchDto.builder().build();
         List<MisDebtorEntity> expectedEntities = Collections.singletonList(new MisDebtorEntity());
         LegacyMisDebtorSearchResults searchResults = LegacyMisDebtorSearchResults.builder().build();
