@@ -5,8 +5,6 @@ import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchResult;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class DefendantAccountSearchResultTest {
 
     @Test
-    public void testBuilder() {
+    void testBuilder() {
         DefendantAccountSearchResult accountEnquiryDto = constructTestDefendantAccountSearchResult();
 
         assertEquals("accountNo", accountEnquiryDto.getAccountNumber());
@@ -32,7 +30,7 @@ public class DefendantAccountSearchResultTest {
     }
 
     @Test
-    public void testJsonString() throws Exception {
+    void testJsonString() throws Exception {
         DefendantAccountSearchResult model = constructTestDefendantAccountSearchResult();
         assertNotNull(model.toJsonString());
 
@@ -43,7 +41,7 @@ public class DefendantAccountSearchResultTest {
 
 
     @Test
-    public void testControllerModelEqualsAndHashCode() {
+    void testControllerModelEqualsAndHashCode() {
         // Arrange
         DefendantAccountSearchResult model1 = DefendantAccountSearchResult.builder().build();
         DefendantAccountSearchResult model2 = DefendantAccountSearchResult.builder().build();
@@ -54,7 +52,7 @@ public class DefendantAccountSearchResultTest {
     }
 
     @Test
-    public void testControllerModelToAccountSummaryDto() {
+    void testControllerModelToAccountSummaryDto() {
         // Arrange
         DefendantAccountSearchResult model1 = DefendantAccountSearchResult.builder().build();
         DefendantAccountSearchResult model2 = constructTestDefendantAccountSearchResult();
@@ -77,7 +75,7 @@ public class DefendantAccountSearchResultTest {
 
     }
 
-    public static DefendantAccountSearchResult constructTestDefendantAccountSearchResult() {
+    static DefendantAccountSearchResult constructTestDefendantAccountSearchResult() {
         return DefendantAccountSearchResult.builder()
             .accountNumber("accountNo")
             .defendantAccountId(12345L)

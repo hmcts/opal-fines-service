@@ -40,7 +40,7 @@ class LegacyImpositionServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetImposition() {
+    void testGetImposition() {
         long id = 1L;
         ImpositionEntity expectedEntity = new ImpositionEntity();
         doReturn(expectedEntity).when(legacyImpositionService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyImpositionServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchImpositions() {
+    void testSearchImpositions() {
         ImpositionSearchDto criteria = ImpositionSearchDto.builder().build();
         List<ImpositionEntity> expectedEntities = Collections.singletonList(new ImpositionEntity());
         LegacyImpositionSearchResults searchResults = LegacyImpositionSearchResults.builder().build();

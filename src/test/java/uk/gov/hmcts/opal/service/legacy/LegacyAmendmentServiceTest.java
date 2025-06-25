@@ -40,7 +40,7 @@ class LegacyAmendmentServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetAmendment() {
+    void testGetAmendment() {
         long id = 1L;
         AmendmentEntity expectedEntity = new AmendmentEntity();
         doReturn(expectedEntity).when(legacyAmendmentService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyAmendmentServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchAmendments() {
+    void testSearchAmendments() {
         AmendmentSearchDto criteria = AmendmentSearchDto.builder().build();
         List<AmendmentEntity> expectedEntities = Collections.singletonList(new AmendmentEntity());
         LegacyAmendmentSearchResults searchResults = LegacyAmendmentSearchResults.builder().build();

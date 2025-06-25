@@ -34,7 +34,7 @@ class DefendantAccountPartySchemaTests {
     }
 
     @Test
-    public void testDebtorTrueRequiresFields() throws Exception {
+    void testDebtorTrueRequiresFields() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("party_id", "123");
         jsonMap.put("debtor_flag", true);
@@ -44,7 +44,7 @@ class DefendantAccountPartySchemaTests {
     }
 
     @Test
-    public void testDebtorTrueMissingRequired() throws Exception {
+    void testDebtorTrueMissingRequired() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("party_id", "123");
         jsonMap.put("debtor_flag", true);
@@ -55,7 +55,7 @@ class DefendantAccountPartySchemaTests {
     }
 
     @Test
-    public void testDebtorFalseOptionalFieldsNull() throws Exception {
+    void testDebtorFalseOptionalFieldsNull() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("party_id", "123");
         jsonMap.put("debtor_flag", false);
@@ -69,7 +69,7 @@ class DefendantAccountPartySchemaTests {
     }
 
     @Test
-    public void testOrganisationTrueRequiresOrgFields() throws Exception {
+    void testOrganisationTrueRequiresOrgFields() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("party_id", "123");
         jsonMap.put("organisation_flag", true);
@@ -83,7 +83,7 @@ class DefendantAccountPartySchemaTests {
     }
 
     @Test
-    public void testOrganisationFalseRequiresPersonalDetails() throws Exception {
+    void testOrganisationFalseRequiresPersonalDetails() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("party_id", "123");
         jsonMap.put("organisation_flag", false);
@@ -107,7 +107,7 @@ class DefendantAccountPartySchemaTests {
     //REPLACE SCHEMA TESTS
 
     @Test
-    public void testReplaceDebtorTrueRequiresFields() throws Exception {
+    void testReplaceDebtorTrueRequiresFields() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("debtor_flag", true);
 
@@ -116,7 +116,7 @@ class DefendantAccountPartySchemaTests {
     }
 
     @Test
-    public void testReplaceDebtorTrueMissingRequired() throws Exception {
+    void testReplaceDebtorTrueMissingRequired() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("debtor_flag", true);
         jsonMap.put("employer_details", null);
@@ -126,7 +126,7 @@ class DefendantAccountPartySchemaTests {
     }
 
     @Test
-    public void testReplaceDebtorFalseOptionalFieldsNull() throws Exception {
+    void testReplaceDebtorFalseOptionalFieldsNull() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("debtor_flag", false);
         jsonMap.put("contact_details", null);
@@ -139,7 +139,7 @@ class DefendantAccountPartySchemaTests {
     }
 
     @Test
-    public void testReplaceOrganisationTrueRequiresOrgFields() throws Exception {
+    void testReplaceOrganisationTrueRequiresOrgFields() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("organisation_flag", true);
         Map<String, Object> partyDetails = new HashMap<>();
@@ -152,7 +152,7 @@ class DefendantAccountPartySchemaTests {
     }
 
     @Test
-    public void testReplaceOrganisationFalseRequiresPersonalDetails() throws Exception {
+    void testReplaceOrganisationFalseRequiresPersonalDetails() throws Exception {
         Map<String, Object> jsonMap = createBaseJson();
         jsonMap.put("organisation_flag", false);
 

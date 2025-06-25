@@ -41,7 +41,7 @@ class LegacyCreditorTransactionServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetCreditorTransaction() {
+    void testGetCreditorTransaction() {
         long id = 1L;
         CreditorTransactionEntity expectedEntity = new CreditorTransactionEntity();
         doReturn(expectedEntity).when(legacyCreditorTransactionService).postToGateway(anyString(), any(), anyLong());
@@ -52,7 +52,7 @@ class LegacyCreditorTransactionServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchCreditorTransactions() {
+    void testSearchCreditorTransactions() {
         CreditorTransactionSearchDto criteria = CreditorTransactionSearchDto.builder().build();
         List<CreditorTransactionEntity> expectedEntities = Collections.singletonList(new CreditorTransactionEntity());
         LegacyCreditorTransactionSearchResults searchResults = LegacyCreditorTransactionSearchResults.builder().build();

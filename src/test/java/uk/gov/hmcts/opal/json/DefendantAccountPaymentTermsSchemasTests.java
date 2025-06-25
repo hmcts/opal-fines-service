@@ -38,7 +38,7 @@ class DefendantAccountPaymentTermsSchemasTests {
      * GET_DEFENDANT_ACCOUNT_PAYMENT_TERMS_RESPONSE
      */
     @Test
-    public void testGetPaymentTermsValidJsonAgainstSchema() throws Exception {
+    void testGetPaymentTermsValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidGetPTRJson();
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
@@ -48,7 +48,7 @@ class DefendantAccountPaymentTermsSchemasTests {
     }
 
     @Test
-    public void testGetPaymentTermsInvalidInstalmentPeriodJsonAgainstSchema() throws Exception {
+    void testGetPaymentTermsInvalidInstalmentPeriodJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidGetPTRJson();
         jsonMap.put("instalment_period", "X"); // Invalid instalment period
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -59,7 +59,7 @@ class DefendantAccountPaymentTermsSchemasTests {
     }
 
     @Test
-    public void testGetPaymentTermsInvalidPaymentTermsJsonAgainstSchema() throws Exception {
+    void testGetPaymentTermsInvalidPaymentTermsJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidGetPTRJson();
         jsonMap.put("payment_terms_type_code", "X"); // Invalid payment terms type code
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -70,7 +70,7 @@ class DefendantAccountPaymentTermsSchemasTests {
     }
 
     @Test
-    public void testGetPaymentTermsMissingRequiredField() throws Exception {
+    void testGetPaymentTermsMissingRequiredField() throws Exception {
         Map<String, Object> jsonMap = createValidGetPTRJson();
         jsonMap.remove("version");
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -81,7 +81,7 @@ class DefendantAccountPaymentTermsSchemasTests {
     }
 
     @Test
-    public void testGetPaymentTermsInvalidTypeForInstalmentAmount() throws Exception {
+    void testGetPaymentTermsInvalidTypeForInstalmentAmount() throws Exception {
         Map<String, Object> jsonMap = createValidGetPTRJson();
         jsonMap.put("instalment_amount", "invalid"); // Should be a number
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -95,7 +95,7 @@ class DefendantAccountPaymentTermsSchemasTests {
      * ADD_DEFENDANT_ACCOUNT_PAYMENT_TERMS_REQUEST
      */
     @Test
-    public void testAddPaymentTermsValidJsonAgainstSchema() throws Exception {
+    void testAddPaymentTermsValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidAddPTRJson();
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
@@ -105,7 +105,7 @@ class DefendantAccountPaymentTermsSchemasTests {
     }
 
     @Test
-    public void testAddPaymentTermsNullEnumValue() throws Exception {
+    void testAddPaymentTermsNullEnumValue() throws Exception {
         Map<String, Object> jsonMap = createValidAddPTRJson();
         jsonMap.put("payment_terms_type_code", null);
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -116,7 +116,7 @@ class DefendantAccountPaymentTermsSchemasTests {
     }
 
     @Test
-    public void testAddPaymentTermsMissingEffectiveDate() throws Exception {
+    void testAddPaymentTermsMissingEffectiveDate() throws Exception {
         Map<String, Object> jsonMap = createValidAddPTRJson();
         jsonMap.remove("effective_date");
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -127,7 +127,7 @@ class DefendantAccountPaymentTermsSchemasTests {
     }
 
     @Test
-    public void testAddPaymentTermsInvalidEnumInstalmentPeriod() throws Exception {
+    void testAddPaymentTermsInvalidEnumInstalmentPeriod() throws Exception {
         Map<String, Object> jsonMap = createValidAddPTRJson();
         jsonMap.put("instalment_period", "Z");
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -141,7 +141,7 @@ class DefendantAccountPaymentTermsSchemasTests {
      * ADD_DEFENDANT_ACCOUNT_PAYMENT_CARD_REQUEST
      */
     @Test
-    public void testAddPaymentCardRequestValidJsonAgainstSchema() throws Exception {
+    void testAddPaymentCardRequestValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidAddPCRJson();
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
@@ -151,7 +151,7 @@ class DefendantAccountPaymentTermsSchemasTests {
     }
 
     @Test
-    public void testAddPaymentCardRequestMissingVersion() throws Exception {
+    void testAddPaymentCardRequestMissingVersion() throws Exception {
         Map<String, Object> jsonMap = createValidAddPCRJson();
         jsonMap.remove("version");
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -162,7 +162,7 @@ class DefendantAccountPaymentTermsSchemasTests {
     }
 
     @Test
-    public void testAddPaymentCardRequestInvalidVersionType() throws Exception {
+    void testAddPaymentCardRequestInvalidVersionType() throws Exception {
         Map<String, Object> jsonMap = createValidAddPCRJson();
         jsonMap.put("version", "1"); // Should be integer
         JsonNode jsonNode = mapper.valueToTree(jsonMap);

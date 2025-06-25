@@ -11,7 +11,7 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 public class AccountSearchResultsDtoTest {
 
     @Test
-    public void testBuilder() {
+    void testBuilder() {
         AccountSearchResultsDto accountEnquiryDto = constructAccountSearchResultsDto();
         assertEquals(999, accountEnquiryDto.getTotalCount());
         assertEquals(7, accountEnquiryDto.getCursor());
@@ -21,14 +21,14 @@ public class AccountSearchResultsDtoTest {
     }
 
     @Test
-    public void testToJsonString() throws Exception {
+    void testToJsonString() throws Exception {
         AccountSearchResultsDto accountEnquiryDto = constructAccountSearchResultsDto();
 
         assertNotNull(accountEnquiryDto.toJsonString());
     }
 
     @Test
-    public void testControllerModelEqualsAndHashCode() {
+    void testControllerModelEqualsAndHashCode() {
         // Arrange
         AccountSearchResultsDto model1 = AccountSearchResultsDto.builder().build();
         AccountSearchResultsDto model2 = AccountSearchResultsDto.builder().build();
@@ -39,7 +39,7 @@ public class AccountSearchResultsDtoTest {
     }
 
     @Test
-    public void testControllerModelToString() {
+    void testControllerModelToString() {
         // Arrange
         AccountSearchResultsDto model = AccountSearchResultsDto.builder().build();
 

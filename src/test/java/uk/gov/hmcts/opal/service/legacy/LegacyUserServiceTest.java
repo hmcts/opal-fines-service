@@ -39,7 +39,7 @@ class LegacyUserServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetUser() {
+    void testGetUser() {
         String id = "1";
         UserEntity expectedEntity = new UserEntity();
         doReturn(expectedEntity).when(legacyUserService).postToGateway(anyString(), any(), anyString());
@@ -50,7 +50,7 @@ class LegacyUserServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchUsers() {
+    void testSearchUsers() {
         UserSearchDto criteria = UserSearchDto.builder().build();
         List<UserEntity> expectedEntities = Collections.singletonList(new UserEntity());
         LegacyUserSearchResults searchResults = LegacyUserSearchResults.builder().build();

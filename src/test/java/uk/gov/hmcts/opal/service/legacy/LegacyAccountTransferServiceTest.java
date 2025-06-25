@@ -37,7 +37,7 @@ public class LegacyAccountTransferServiceTest {
     }
 
     @Test
-    public void testGetAccountTransfer() {
+    void testGetAccountTransfer() {
         long id = 1L;
         AccountTransferEntity expectedEntity = new AccountTransferEntity();
         doReturn(expectedEntity).when(legacyAccountTransferService).postToGateway(anyString(), any(), anyLong());
@@ -48,7 +48,7 @@ public class LegacyAccountTransferServiceTest {
     }
 
     @Test
-    public void testSearchAccountTransfers() {
+    void testSearchAccountTransfers() {
         AccountTransferSearchDto criteria = AccountTransferSearchDto.builder().build();
         List<AccountTransferEntity> expectedEntities = Collections.singletonList(new AccountTransferEntity());
         LegacyAccountTransferSearchResults searchResults = LegacyAccountTransferSearchResults.builder().build();

@@ -39,7 +39,7 @@ class LegacyDocumentServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetDocumentService() {
+    void testGetDocumentService() {
         String id = "1";
         DocumentEntity expectedEntity = new DocumentEntity();
         doReturn(expectedEntity).when(legacyDocumentService).postToGateway(anyString(), any(), anyString());
@@ -50,7 +50,7 @@ class LegacyDocumentServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchDocumentServices() {
+    void testSearchDocumentServices() {
         DocumentSearchDto criteria = DocumentSearchDto.builder().build();
         List<DocumentEntity> expectedEntities = Collections.singletonList(new DocumentEntity());
         LegacyDocumentSearchResults searchResults = LegacyDocumentSearchResults.builder().build();

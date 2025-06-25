@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class FeatureDisabledExceptionTest {
 
     @Test
-    public void testConstructor() {
+    void testConstructor() {
         // Arrange
         String errorMessage = "Feature is disabled";
 

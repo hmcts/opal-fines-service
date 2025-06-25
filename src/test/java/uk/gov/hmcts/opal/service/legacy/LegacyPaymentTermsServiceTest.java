@@ -40,7 +40,7 @@ class LegacyPaymentTermsServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetPaymentTerms() {
+    void testGetPaymentTerms() {
         long id = 1L;
         PaymentTermsEntity expectedEntity = new PaymentTermsEntity();
         doReturn(expectedEntity).when(legacyPaymentTermsService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyPaymentTermsServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchPaymentTermss() {
+    void testSearchPaymentTermss() {
         PaymentTermsSearchDto criteria = PaymentTermsSearchDto.builder().build();
         List<PaymentTermsEntity> expectedEntities = Collections.singletonList(new PaymentTermsEntity());
         LegacyPaymentTermsSearchResults searchResults = LegacyPaymentTermsSearchResults.builder().build();

@@ -41,7 +41,7 @@ class LegacyMiscellaneousAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetMiscellaneousAccount() {
+    void testGetMiscellaneousAccount() {
         long id = 1L;
         MiscellaneousAccountEntity expectedEntity = new MiscellaneousAccountEntity();
         doReturn(expectedEntity).when(legacyMiscellaneousAccountService).postToGateway(anyString(), any(), anyLong());
@@ -52,7 +52,7 @@ class LegacyMiscellaneousAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchMiscellaneousAccounts() {
+    void testSearchMiscellaneousAccounts() {
         MiscellaneousAccountSearchDto criteria = MiscellaneousAccountSearchDto.builder().build();
         List<MiscellaneousAccountEntity> expectedEntities = Collections.singletonList(new MiscellaneousAccountEntity());
         LegacyMiscellaneousAccountSearchResults searchResults = LegacyMiscellaneousAccountSearchResults.builder()

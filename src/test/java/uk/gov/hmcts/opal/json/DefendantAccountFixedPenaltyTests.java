@@ -35,7 +35,7 @@ class DefendantAccountFixedPenaltyTests {
      * GET_DEFENDANT_ACCOUNT_FIXED_PENALTY_RESPONSE
      */
     @Test
-    public void testGetNonVehicleFPValidJsonAgainstSchema() throws Exception {
+    void testGetNonVehicleFPValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidGetFPJson();
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
@@ -45,7 +45,7 @@ class DefendantAccountFixedPenaltyTests {
     }
 
     @Test
-    public void testGetVehicleFPValidJsonAgainstSchema() throws Exception {
+    void testGetVehicleFPValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidGetFPJson();
         jsonMap.put("vehicle_fixed_penalty_flag", true);
         jsonMap.put("vehicle_fixed_penalty_details", createValidVFPDetailsJson());
@@ -57,7 +57,7 @@ class DefendantAccountFixedPenaltyTests {
     }
 
     @Test
-    public void testGetNonVehicleFPInvalidJsonAgainstSchema() throws Exception {
+    void testGetNonVehicleFPInvalidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidGetFPJson();
         jsonMap.remove("fixed_penalty_ticket_details"); // Invalid: missing required field
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -68,7 +68,7 @@ class DefendantAccountFixedPenaltyTests {
     }
 
     @Test
-    public void testGetVehicleFPInvalidJsonAgainstSchema() throws Exception {
+    void testGetVehicleFPInvalidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidGetFPJson();
         jsonMap.put("vehicle_fixed_penalty_flag", true);
         jsonMap.remove("vehicle_fixed_penalty_details"); // Invalid: missing required field

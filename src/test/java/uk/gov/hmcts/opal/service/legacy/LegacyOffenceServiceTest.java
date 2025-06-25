@@ -38,9 +38,9 @@ class LegacyOffenceServiceTest extends LegacyTestsBase {
         MockitoAnnotations.openMocks(this);
         legacyAccountTransferService = spy(new LegacyAccountTransferService(legacyGatewayProperties, restClient));
     }
-    
+
     @Test
-    public void testGetAccountTransfer() {
+    void testGetAccountTransfer() {
         long id = 1L;
         AccountTransferEntity expectedEntity = new AccountTransferEntity();
         doReturn(expectedEntity).when(legacyAccountTransferService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyOffenceServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchAccountTransfers() {
+    void testSearchAccountTransfers() {
         AccountTransferSearchDto criteria = AccountTransferSearchDto.builder().build();
         List<AccountTransferEntity> expectedEntities = Collections.singletonList(new AccountTransferEntity());
         LegacyAccountTransferSearchResults searchResults = LegacyAccountTransferSearchResults.builder().build();
