@@ -65,7 +65,8 @@ class CourtControllerTest {
 
         // Act
         CourtSearchDto searchDto = CourtSearchDto.builder().build();
-        ResponseEntity<SearchDataResponse<CourtEntity>> response = courtController.postCourtsSearch(searchDto, BEARER_TOKEN);
+        ResponseEntity<SearchDataResponse<CourtEntity>> response =
+            courtController.postCourtsSearch(searchDto, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
