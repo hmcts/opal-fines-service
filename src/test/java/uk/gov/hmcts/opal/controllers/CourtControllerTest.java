@@ -15,6 +15,7 @@ import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -63,11 +64,17 @@ class CourtControllerTest {
 
         // Act
         CourtSearchDto searchDto = CourtSearchDto.builder().build();
-        ResponseEntity<List<CourtEntity>> response = courtController.postCourtsSearch(searchDto, BEARER_TOKEN);
+        ResponseEntity<Object> response = courtController.postCourtsSearch(searchDto, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(courtList, response.getBody());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> responseBody = (Map<String, Object>) response.getBody();
+
+        assertEquals(1, responseBody.get("count"));
+
+        List<?> searchData = (List<?>) responseBody.get("searchData");
+        assertEquals(courtList, searchData);
         verify(courtService, times(1)).searchCourts(any());
     }
 

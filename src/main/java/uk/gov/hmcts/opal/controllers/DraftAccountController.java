@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.CheckAcceptHeader;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
@@ -95,7 +96,7 @@ public class DraftAccountController {
     @Operation(summary = "Creates a Draft Account Entity in the DB based upon data in request body")
     @CheckAcceptHeader
     public ResponseEntity<DraftAccountResponseDto> postDraftAccount(
-        @JsonSchemaValidated(schemaPath = "addDraftAccountRequest.json")
+        @JsonSchemaValidated(schemaPath = SchemaPaths.DRAFT_ACCOUNT + "/addDraftAccountRequest.json")
         @RequestBody AddDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
@@ -125,7 +126,7 @@ public class DraftAccountController {
     @CheckAcceptHeader
     public ResponseEntity<DraftAccountResponseDto> putDraftAccount(
         @PathVariable Long draftAccountId,
-        @JsonSchemaValidated(schemaPath = "replaceDraftAccountRequest.json")
+        @JsonSchemaValidated(schemaPath = SchemaPaths.DRAFT_ACCOUNT + "/replaceDraftAccountRequest.json")
         @RequestBody ReplaceDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
@@ -139,6 +140,7 @@ public class DraftAccountController {
     @CheckAcceptHeader
     public ResponseEntity<DraftAccountResponseDto> patchDraftAccount(
         @PathVariable Long draftAccountId,
+        @JsonSchemaValidated(schemaPath = SchemaPaths.DRAFT_ACCOUNT + "/updateDraftAccountRequest.json")
         @RequestBody UpdateDraftAccountRequestDto dto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import java.util.HashMap;
@@ -23,13 +24,13 @@ class DefendantAccountSummarySchemasTests {
 
     private ObjectMapper mapper;
     private static final String GET_DEFENDANT_ACCOUNT_AT_A_GLANCE_RESPONSE_SCHEMA =
-        "getDefendantAccountAtAGlanceResponse.json";
+        SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountAtAGlanceResponse.json";
     private static final String GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE_SCHEMA =
-        "getDefendantAccountHeaderSummaryResponse.json";
+        SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountHeaderSummaryResponse.json";
     private static final String UPDATE_DEFENDANT_ACCOUNT_REQUEST_SCHEMA =
-        "updateDefendantAccountRequest.json";
+        SchemaPaths.DEFENDANT_ACCOUNT + "/updateDefendantAccountRequest.json";
     private static final String ADD_NOTE_REQUEST_SCHEMA =
-        "addNoteRequest.json";
+        SchemaPaths.DEFENDANT_ACCOUNT + "/addNoteRequest.json";
     private static final String ADD_NOTE_REQUEST_SCHEMA_LEGACY =
         "legacy/addNoteLegacyRequest.json";
 
