@@ -54,7 +54,7 @@
       "description": "[Optional] ID of the User that validated the Draft Account"
     },
     "account": {
-      "$ref": "resource:/jsonSchemas/account.json",
+      "$ref": "resource:/jsonSchemas/opal/defendant-account/account.json",
       "description": "The structured Account data (JSON)"
     },
     "account_snapshot": {
@@ -80,7 +80,7 @@
       ]
     },
     "timeline_data": {
-      "$ref": "resource:/jsonSchemas/timelineData.json",
+      "$ref": "resource:/jsonSchemas/opal/timeline/timelineData.json",
       "description": "Status changes to the Draft Account in chronological order (JSON Array) - System generated (UI)"
     },
     "account_number": {
