@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/postMinorCreditorAccountsSearchRequest.json",
+  "type": "object",
+  "required": [
+    "business_unit_ids",
+    "active_accounts_only",
+    "account_number",
+    "creditor"],
+  "properties": {
+    "business_unit_ids": {
+      "type": ["array",null],
+      "description": "One or more business unit IDs",
+      "minItems": 1,
+      "items": {
+        "type": "integer",
+        "description": "Unique identifier for a business unit"
+      }
+    },
+    "active_accounts_only": {
+      "type": "boolean",
+      "description": "Indicator if active accounts only are to be included in the search"
+    },
+    "account_number": {
+      "type": ["string",null],
+      "description": "The account number for financial records."
+    },
+    "creditor": {
+      "$ref": "#/$defs/creditor",
+      "description": "Minor Creditor search parameters"
+    }
+  },
+  "$defs": {
+    "creditor": {
+      "type": ["object",null],
+      "required": [
+        "address_line_1",
+        "postcode",
+        "organisation",
+        "organisation_name",
+        "exact_match_organisation_name",
+        "forenames",
+        "surname",
+        "exact_match_surname",
+        "exact_match_forenames"
+      ],
+      "properties": {
+        "address_line_1": {
+          "type": ["string",null],
+          "description": "Address Line 1"
+        },
+        "postcode": {
+          "type": ["string",null],
+          "description": "The postcode associated with the creditor"
+        },
+        "organisation_name": {
+          "type": ["string", "null"],
+          "description": "Name of the organisation"
+        },
+        "exact_match_organisation_name": {
+          "type": ["boolean", null],
+          "description": "Apply exact match for organisation name"
+        },
+        "forenames": {
+          "type": ["string", "null"],
+          "description": "Forenames of the individual"
+        },
+        "surname": {
+          "type": ["string", "null"],
+          "description": "Surname of the individual"
+        },
+        "exact_match_surname": {
+          "type": ["boolean", "null"],
+          "description": "Apply exact match for surname"
+        },
+        "exact_match_forenames": {
+          "type": ["boolean", "null"],
+          "description": "Apply exact match for forenames"
+        },
+        "organisation": {
+          "type": "boolean",
+          "description": "Indicates if the creditor is an organisation (true) or an individual (false)"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "organisation": { "const": true },
+            "forenames": {"const": null},
+            "surname": {"const": null},
+            "exact_match_surname": {"const": null},
+            "exact_match_forenames": {"const": null}
+          }
+        },
+        {
+          "properties": {
+            "organisation": { "const": false },
+            "organisation_name": {"const": null},
+            "exact_match_organisation_name": {"const": null}
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/postMinorCreditorAccountsSearchResponse.json",
+  "type": "object",
+  "required": [
+    "count",
+    "creditor_accounts"
+  ],
+  "properties": {
+    "count": {
+      "type": "integer",
+      "description": "The total number of records identified in the database."
+    },
+    "creditor_accounts": {
+      "type": ["array", "null"],
+      "description": "A list of creditor accounts. Null if none are found.",
+      "items": {
+        "$ref": "#/$defs/creditor_account"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "creditor_account": {
+      "type": "object",
+      "description": "Data for a returned creditor account.",
+      "required": [
+        "creditor_account_id",
+        "account_number",
+        "organisation",
+        "address_line_1",
+        "postcode",
+        "business_unit_name",
+        "business_unit_id",
+        "account_balance",
+        "organisation_name",
+        "surname",
+        "firstnames",
+        "defendant"
+      ],
+      "properties": {
+        "creditor_account_id": { "type": "string" },
+        "account_number": { "type": "string" },
+        "organisation": { "type": "boolean" },
+        "address_line_1": { "type": "string" },
+        "postcode": { "type": ["string", "null"] },
+        "business_unit_name": { "type": "string" },
+        "business_unit_id": { "type": "string" },
+        "account_balance": { "type": "number", "multipleOf": 0.01 },
+        "organisation_name": { "type": ["string", "null"] },
+        "surname": { "type": ["string", "null"] },
+        "firstnames": { "type": ["string", "null"] },
+        "defendant": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/defendant" }
+          ]
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "organisation": { "const": true },
+            "organisation_name": { "type": "string" },
+            "surname": { "const": null },
+            "firstnames": { "const": null }
+          }
+        },
+        {
+          "properties": {
+            "organisation": { "const": false },
+            "organisation_name": { "const": null },
+            "surname": { "type": "string" }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "defendant": {
+      "type": "object",
+      "description": "Details of the defendant, which can be either an organisation or an individual.",
+      "required": [
+        "defendant_account_id",
+        "organisation",
+        "organisation_name",
+        "surname",
+        "firstnames"
+      ],
+      "properties": {
+        "defendant_account_id": { "type": "string" },
+        "organisation": { "type": "boolean" },
+        "organisation_name": { "type": ["string", "null"] },
+        "surname": { "type": ["string", "null"] },
+        "firstnames": { "type": ["string", "null"] }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "organisation": { "const": true },
+            "organisation_name": { "type": "string" },
+            "surname": { "const": null },
+            "firstnames": { "const": null }
+          }
+        },
+        {
+          "properties": {
+            "organisation": { "const": false },
+            "organisation_name": { "const": null },
+            "surname": { "type": "string" }
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

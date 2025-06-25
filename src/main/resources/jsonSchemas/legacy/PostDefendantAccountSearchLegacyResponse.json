@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/postDefendantAccountsSearchLegacyResponse.json",
+  "type": "object",
+  "description": "Schema for search defendant accounts response",
+  "required": ["count", "defendant_accounts"],
+  "properties": {
+    "count": {
+      "type": "integer",
+      "description": "The total number of records identified in the database before truncating the response."
+    },
+    "defendant_accounts": {
+      "type": "array",
+      "description": "An array containing information about defendant accounts",
+      "items": { "$ref": "#/$defs/defendant_account" }
+    }
+  },
+  "$defs": {
+    "defendant_account": {
+      "type": "object",
+      "description": "Details of a defendant account",
+      "properties": {
+        "defendant_account_id": {
+          "type": "string",
+          "description": "Unique identifier for the defendant account"
+        },
+        "account_number": {
+          "type": "string",
+          "description": "The account number assigned to the defendant"
+        },
+        "organisation": {
+          "type": "boolean",
+          "description": "Indicates whether the defendant is an organisation (true) or an individual (false)"
+        },
+        "aliases": {
+          "$ref": "#/$defs/aliases",
+          "description": "A list of aliases associated with the defendant"
+        },
+        "address_line_1": {
+          "type": "string",
+          "description": "The first line of the defendant's address"
+        },
+        "postcode": {
+          "type": ["string", "null"],
+          "description": "The postal code of the defendant's address"
+        },
+        "business_unit_name": {
+          "type": "string",
+          "description": "Name of the business unit managing the account"
+        },
+        "business_unit_id": {
+          "type": "string",
+          "description": "Identifier for the business unit managing the account"
+        },
+        "prosecutor_case_reference": {
+          "type": ["string", "null"],
+          "description": "The reference number for the prosecutor's case"
+        },
+        "last_enforcement_action": {
+          "type": ["string", "null"],
+          "description": "Details of the last enforcement action on the account"
+        },
+        "account_balance": {
+          "type": "number",
+          "multipleOf": 0.01,
+          "description": "The current balance of the account, with two decimal precision"
+        }
+      },
+      "required": [
+        "organisation",
+        "defendant_account_id",
+        "account_number",
+        "aliases",
+        "address_line_1",
+        "postcode",
+        "business_unit_name",
+        "business_unit_id",
+        "prosecutor_case_reference",
+        "last_enforcement_action",
+        "account_balance"
+      ],
+      "oneOf": [
+        {
+          "description": "Details specific to defendants that are organisations",
+          "properties": {
+            "organisation": { "const": true },
+            "organisation_name": { "type": "string", "description": "Name of the defendant organisation" }
+          },
+          "required": ["organisation_name"]
+        },
+        {
+          "description": "Details specific to defendants that are individuals",
+          "properties": {
+            "organisation": { "const": false },
+            "defendant_title": { "type": "string", "description": "Title of the individual defendant" },
+            "defendant_firstnames": {
+              "type": ["string", "null"],
+              "description": "First names of the individual defendant"
+            },
+            "defendant_surname": {
+              "type": "string",
+              "description": "Surname of the individual defendant"
+            },
+            "birth_date": {
+              "type": ["string", "null"],
+              "format": "date",
+              "description": "Date of birth of the individual defendant in YYYY-MM-DD format"
+            },
+            "national_insurance_number": {
+              "type": "string",
+              "description": "National Insurance Number of the individual defendant"
+            },
+            "parent_guardian_surname": {
+              "type": ["string", "null"],
+              "description": "Surname of the parent or guardian, if applicable"
+            },
+            "parent_guardian_firstnames": {
+              "type": ["string", "null"],
+              "description": "First names of the parent or guardian, if applicable"
+            }
+          },
+          "required": [
+            "defendant_title",
+            "defendant_firstnames",
+            "defendant_surname",
+            "birth_date",
+            "national_insurance_number",
+            "parent_guardian_surname",
+            "parent_guardian_firstnames"
+          ]
+        }
+      ],
+      "additionalProperties": false
+    },
+    "aliases": {
+      "type": "array",
+      "description": "An array of aliases associated with the defendant",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "description": "Details of a single alias",
+        "properties": {
+          "alias_number": {
+            "type": "integer",
+            "description": "The unique identifier for the alias in the database"
+          }
+        },
+        "required": ["alias_number"],
+        "oneOf": [
+          {
+            "description": "Alias details for an organisation",
+            "properties": {
+              "alias_number": { "type": "integer", "description": "Identifier for the alias" },
+              "organisation_name": { "type": "string", "description": "Name of the alias organisation" }
+            },
+            "required": ["organisation_name"]
+          },
+          {
+            "description": "Alias details for an individual",
+            "properties": {
+              "alias_number": { "type": "integer", "description": "Identifier for the alias" },
+              "surname": { "type": "string", "description": "Surname of the alias" },
+              "forenames": { "type": "string", "description": "Forenames of the alias" }
+            },
+            "required": ["surname", "forenames"]
+          }
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

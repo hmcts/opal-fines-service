@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/postDefendantAccountsSearchRequest.json",
+  "type": "object",
+  "required": [
+    "active_accounts_only",
+    "business_unit_ids",
+    "reference_number",
+    "defendant"
+  ],
+  "properties": {
+    "active_accounts_only": {
+      "type": "boolean"
+    },
+    "business_unit_ids": {
+      "type": ["array", "null"],
+      "items": { "type": "integer" }
+    },
+    "reference_number": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/reference_number" }
+      ]
+    },
+    "defendant": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/defendant" }
+      ]
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "reference_number": { "type": "object" },
+        "defendant": { "const": null }
+      }
+    },
+    {
+      "properties": {
+        "reference_number": { "const": null },
+        "defendant": { "type": "object" }
+      }
+    }
+  ],
+  "$defs": {
+    "reference_number": {
+      "type": "object",
+      "required": [
+        "organisation",
+        "account_number",
+        "prosecutor_case_reference"
+      ],
+      "properties": {
+        "organisation": { "type": "boolean" },
+        "account_number": { "type": ["string", "null"] },
+        "prosecutor_case_reference": { "type": ["string", "null"] }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "account_number": { "type": "string" },
+            "prosecutor_case_reference": { "const": null }
+          }
+        },
+        {
+          "properties": {
+            "account_number": { "const": null },
+            "prosecutor_case_reference": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "defendant": {
+      "type": "object",
+      "required": [
+        "include_aliases",
+        "organisation",
+        "address_line_1",
+        "postcode",
+        "organisation_name",
+        "exact_match_organisation_name",
+        "surname",
+        "exact_match_surname",
+        "forenames",
+        "exact_match_forenames",
+        "birth_date",
+        "national_insurance_number"
+      ],
+      "properties": {
+        "include_aliases": { "type": "boolean" },
+        "organisation": { "type": "boolean" },
+        "address_line_1": { "type": ["string", "null"] },
+        "postcode": { "type": ["string", "null"] },
+        "organisation_name": { "type": ["string", "null"] },
+        "exact_match_organisation_name": { "type": ["boolean", "null"] },
+        "surname": { "type": ["string", "null"] },
+        "exact_match_surname": { "type": ["boolean", "null"] },
+        "forenames": { "type": ["string", "null"] },
+        "exact_match_forenames": { "type": ["boolean", "null"] },
+        "birth_date": { "type": ["string", "null"], "format": "date" },
+        "national_insurance_number": { "type": ["string", "null"] }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "organisation": { "const": true },
+            "organisation_name": { "type": "string" },
+            "surname": { "const": null },
+            "exact_match_surname": { "const": null },
+            "forenames": { "const": null },
+            "exact_match_forenames": { "const": null },
+            "birth_date": { "const": null },
+            "national_insurance_number": { "const": null }
+          }
+        },
+        {
+          "properties": {
+            "organisation": { "const": false },
+            "organisation_name": { "const": null },
+            "exact_match_organisation_name": { "const": null },
+            "surname": { "type": "string" }
+          }
+        }
+      ]
+    }
+  }
+}
