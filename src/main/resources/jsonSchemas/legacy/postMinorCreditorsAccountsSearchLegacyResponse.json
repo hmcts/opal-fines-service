@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://opal-fines-service/searchMinorCreditorAccountsResponse.json",
+  "$id": "https://opal-fines-service/postMinorCreditorAccountsSearchLegacyResponse.json",
   "type": "object",
   "required": ["count"],
   "properties": {
@@ -31,10 +31,6 @@
           "type": "string",
           "description": "The creditor account number."
         },
-        "organisation": {
-          "type": "boolean",
-          "description": "Flag indicating whether the creditor is an organisation."
-        },
         "address_line_1": {
           "type": "string",
           "description": "Creditor Address Line 1"
@@ -52,41 +48,7 @@
           "description": "The ID of the BU owning the account"
         },
         "defendant": {
-          "type": "object",
-          "description": "Details of the defendant, which can be either an organisation or an individual.",
-          "required": ["defendant_account_id"],
-          "properties": {
-            "defendant_account_id": {
-              "type": "string",
-              "description": "The primary key for the defendant account record."
-            }
-          },
-          "oneOf": [
-            {
-              "properties": {
-                "organisation_name": {
-                  "type": "string",
-                  "description": "The name of the organisation."
-                }
-              },
-              "required": ["organisation_name"],
-              "additionalProperties": false
-            },
-            {
-              "properties": {
-                "firstnames": {
-                  "type": "string",
-                  "description": "The first names of the linked defendant."
-                },
-                "surname": {
-                  "type": "string",
-                  "description": "The surname of the linked defendant."
-                }
-              },
-              "required": ["surname"],
-              "additionalProperties": false
-            }
-          ]
+          "$ref": "#/$defs/defendant"
         },
         "account_balance": {
           "type": "number",
@@ -97,7 +59,6 @@
       "required": [
         "creditor_account_id",
         "account_number",
-        "organisation",
         "address_line_1",
         "business_unit_name",
         "business_unit_id",
@@ -112,7 +73,7 @@
               "description": "The name of the creditor organisation."
             }
           },
-          "required": ["organisation_name"]
+          "required": ["organisation","organisation_name"]
         },
         {
           "properties": {
@@ -126,10 +87,55 @@
               "description": "The surname of the creditor."
             }
           },
-          "required": ["surname"]
+          "required": ["organisation","surname"]
         }
       ],
       "additionalProperties": false
+    },
+    "defendant": {
+      "type": "object",
+      "description": "Details of the defendant, which can be either an organisation or an individual.",
+      "required": ["defendant_account_id"],
+      "properties": {
+        "defendant_account_id": {
+          "type": "string",
+          "description": "The primary key for the defendant account record."
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "organisation": {
+              "const": true,
+              "description": "Indicates that the linked defendant is an organisation."
+            },
+            "organisation_name": {
+              "type": "string",
+              "description": "The name of the organisation."
+            }
+          },
+          "required": ["organisation","organisation_name"],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "organisation": {
+              "const": false,
+              "description": "Indicates that the linked defendant is an individual."
+            },
+            "firstnames": {
+              "type": "string",
+              "description": "The first names of the linked defendant."
+            },
+            "surname": {
+              "type": "string",
+              "description": "The surname of the linked defendant."
+            }
+          },
+          "required": ["organisation","surname"],
+          "additionalProperties": false
+        }
+      ]
     }
   }
 }

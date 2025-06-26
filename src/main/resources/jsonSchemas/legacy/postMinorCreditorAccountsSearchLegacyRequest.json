@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://opal-fines-service/postMinorCreditorAccountsSearchRequest.json",
+  "$id": "https://opal-fines-service/postMinorCreditorAccountsSearchLegacyRequest.json",
   "type": "object",
   "required": ["active_accounts_only"],
   "properties": {
@@ -26,14 +26,6 @@
       "description": "Minor Creditor search parameters"
     }
   },
-  "oneOf": [
-    {
-      "required": ["account_number"]
-    },
-    {
-      "required": ["creditor"]
-    }
-  ],
   "$defs": {
     "creditor": {
       "type": "object",
@@ -46,29 +38,40 @@
         "postcode": {
           "type": "string",
           "description": "The postcode associated with the creditor"
-        },
-        "organisation": {
-          "type": "boolean",
-          "description": "Flag indicating whether the Creditor is an Organisation"
         }
       },
       "oneOf": [
         {
-          "required": ["organisation_name"],
           "properties": {
             "organisation": { "const": true },
-            "organisation_name": { "type": "string" }
+            "organisation_name": {
+              "type": ["string, null"],
+              "description": "Name of the organisation"
+            },
+            "exact_match_organisation_name": {
+              "type": ["boolean", null],
+              "description": "Apply exact match for organisation name"
+            }
           }
         },
         {
-          "required": ["surname"],
           "properties": {
             "organisation": { "const": false },
             "surname": {
-              "type": "string"
+              "type": "string",
+              "description": "Surname of the individual"
             },
             "forenames": {
-              "type": "string"
+              "type": "string",
+              "description": "Forenames of the individual"
+            },
+            "exact_match_surname": {
+              "type": "boolean",
+              "description": "Apply exact match for surname"
+            },
+            "exact_match_forenames": {
+              "type": "boolean",
+              "description": "Apply exact match for forenames"
             }
           }
         }
