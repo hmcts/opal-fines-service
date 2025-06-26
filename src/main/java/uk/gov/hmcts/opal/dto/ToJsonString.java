@@ -41,9 +41,9 @@ public interface ToJsonString {
         }
     }
 
-    static String toPrettyJson(String json) {
+    static String toPrettyJson(Object json) {
         try {
-            return toPrettyJsonString(toJsonNode(json));
+            return toPrettyJsonString(json);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

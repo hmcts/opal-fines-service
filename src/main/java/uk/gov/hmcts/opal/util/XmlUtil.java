@@ -9,29 +9,25 @@ import java.io.StringWriter;
 
 public class XmlUtil {
 
-    public <T> String marshalXmlString(T object, Class<T> clzz) {
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(clzz);
-            Marshaller marshaller = jaxbContext.createMarshaller();
+    private XmlUtil() {
+        // Do not need to create an instance.
+    }
 
-            // To format the XML output
-            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+    public static <T> String marshalXmlString(T object, Class<T> clzz) throws JAXBException {
+        JAXBContext jaxbContext = JAXBContext.newInstance(clzz);
+        Marshaller marshaller = jaxbContext.createMarshaller();
 
-            StringWriter sw = new StringWriter();
-            marshaller.marshal(object, sw);
-            return sw.toString();
-        } catch (JAXBException e) {
-            throw new RuntimeException("Error serializing object to XML", e);
-        }
+        // To format the XML output
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+
+        StringWriter sw = new StringWriter();
+        marshaller.marshal(object, sw);
+        return sw.toString();
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T unmarshalXmlString(String xmlString, Class<T> clzz) {
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(clzz);
-            return (T) jaxbContext.createUnmarshaller().unmarshal(new StringReader(xmlString));
-        } catch (JAXBException e) {
-            throw new RuntimeException("Error deserializing XML to object", e);
-        }
+    public static <T> T unmarshalXmlString(String xmlString, Class<T> clzz) throws JAXBException {
+        JAXBContext jaxbContext = JAXBContext.newInstance(clzz);
+        return (T) jaxbContext.createUnmarshaller().unmarshal(new StringReader(xmlString));
     }
 }

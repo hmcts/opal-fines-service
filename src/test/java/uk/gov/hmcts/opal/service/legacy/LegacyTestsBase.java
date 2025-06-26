@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import jakarta.xml.bind.JAXBException;
 import org.mockito.Mock;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
@@ -41,8 +42,6 @@ public abstract class LegacyTestsBase {
     @Mock
     ResponseSpec responseSpec;
 
-    XmlUtil xmlUtil = new XmlUtil();
-
 
     @SuppressWarnings("unchecked")
     void mockRestClientGet() {
@@ -59,7 +58,7 @@ public abstract class LegacyTestsBase {
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
     }
 
-    <T> String marshalXmlString(T object, Class<T> clzz) {
-        return xmlUtil.marshalXmlString(object, clzz);
+    <T> String marshalXmlString(T object, Class<T> clzz) throws JAXBException {
+        return XmlUtil.marshalXmlString(object, clzz);
     }
 }

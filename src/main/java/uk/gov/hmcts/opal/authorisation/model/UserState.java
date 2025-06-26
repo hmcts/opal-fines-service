@@ -56,19 +56,19 @@ public class UserState {
     }
 
     public boolean hasBusinessUnitUserWithPermission(short businessUnitId, Permissions permission) {
-        return businessUnitUser.stream()
-            .filter(r -> r.matchesBusinessUnitId(businessUnitId))
-            .findAny()  // Should be either zero or one businessUnitUser that match the business unit id
-            .stream()
-            .anyMatch(r -> r.hasPermission(permission));
+        return userHasPermission(getBusinessUnitUserForBusinessUnit(businessUnitId), permission);
+    }
+
+    public static boolean userHasPermission(Optional<BusinessUnitUser> user, Permissions permission) {
+        return user.stream().anyMatch(r -> r.hasPermission(permission));
     }
 
     public boolean hasBusinessUnitUserWithAnyPermission(short businessUnitId, Permissions... permissions) {
-        return businessUnitUser.stream()
-            .filter(r -> r.matchesBusinessUnitId(businessUnitId))
-            .findAny()  // Should be either zero or one businessUnitUser that match the business unit id
-            .stream()
-            .anyMatch(r -> r.hasAnyPermission(permissions));
+        return userHasAnyPermission(getBusinessUnitUserForBusinessUnit(businessUnitId), permissions);
+    }
+
+    public static boolean userHasAnyPermission(Optional<BusinessUnitUser> user, Permissions... permissions) {
+        return user.stream().anyMatch(r -> r.hasAnyPermission(permissions));
     }
 
     public Set<Short> filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
@@ -86,7 +86,7 @@ public class UserState {
             .collect(Collectors.toSet());
     }
 
-    public Optional<BusinessUnitUser> getBusinessUnitUserForBusinessUnit(Short businessUnitId) {
+    public Optional<BusinessUnitUser> getBusinessUnitUserForBusinessUnit(short businessUnitId) {
         return businessUnitUser.stream()
             .filter(r -> r.matchesBusinessUnitId(businessUnitId))
             .findFirst();
@@ -134,7 +134,7 @@ public class UserState {
         }
 
         @Override
-        public Optional<BusinessUnitUser> getBusinessUnitUserForBusinessUnit(Short businessUnitId) {
+        public Optional<BusinessUnitUser> getBusinessUnitUserForBusinessUnit(short businessUnitId) {
             return DEV_BUSINESS_UNIT_USER;
         }
 
