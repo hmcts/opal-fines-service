@@ -18,9 +18,9 @@ import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.DraftAccountEntity;
-import uk.gov.hmcts.opal.entity.DraftAccountSnapshots;
-import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountSnapshots;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
@@ -157,7 +157,7 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
         existingAccount.setAccountStatus(newStatus);
         existingAccount.setVersion(dto.getVersion());
 
-        if (newStatus == DraftAccountStatus.PUBLISHING_PENDING) {
+        if (newStatus.isPublishingPending()) {
             existingAccount.setValidatedDate(LocalDateTime.now());
             existingAccount.setValidatedBy(dto.getValidatedBy());
             existingAccount.setValidatedByName(dto.getValidatedByName());
@@ -171,6 +171,30 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
                   draftAccountId, existingAccount.getAccountStatus());
 
         return draftAccountRepository.save(existingAccount);
+    }
+
+    @Transactional
+    public DraftAccountEntity updateStatus(
+        DraftAccountEntity entity, DraftAccountStatus status, DraftAccountTransactionsProxy proxy) {
+
+        Long draftAccountId = entity.getDraftAccountId();
+        log.debug(":updateStatus: Updating draft account with ID: {} to status: {}",
+                  draftAccountId, status);
+        DraftAccountEntity dbDraftAccount = proxy.getDraftAccount(draftAccountId);
+        verifyVersions(dbDraftAccount, entity, draftAccountId, "updateStatus");
+
+        dbDraftAccount.setAccountStatus(status);
+        dbDraftAccount.setVersion(entity.getVersion());
+        dbDraftAccount.setAccountStatusDate(LocalDateTime.now());
+
+        // These are specific to the results from the 'publish' activity, success
+        dbDraftAccount.setAccountNumber(entity.getAccountNumber());
+        dbDraftAccount.setAccountId(entity.getAccountId());
+        // These are specific to the results from the 'publish' activity, failure
+        dbDraftAccount.setStatusMessage(entity.getStatusMessage());
+        dbDraftAccount.setTimelineData(entity.getTimelineData());
+
+        return draftAccountRepository.save(dbDraftAccount);
     }
 
     private String addSnapshotApprovedDate(DraftAccountEntity existingAccount) {
@@ -247,4 +271,5 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
             .draftAccountId(null)
             .build();
     }
+
 }

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/createDefendantAccountRequest.json",
+  "type": ["object", "null"],
+  "properties": {
+    "business_unit_id": {
+      "type": "integer",
+      "description": "ID of the Business Unit the Draft Account belongs to"
+    },
+    "business_unit_user_id": {
+      "type": "string",
+      "description": "ID of the User that last submitted the Draft Account for checking"
+    },
+    "defendant_account": {
+      "$ref": "resource:/jsonSchemas/account.json",
+      "description": "The structured Account data (JSON)"
+    }
+  },
+  "required": [
+      "business_unit_id",
+      "business_unit_user_id",
+      "defendant_account"
+  ]
+}

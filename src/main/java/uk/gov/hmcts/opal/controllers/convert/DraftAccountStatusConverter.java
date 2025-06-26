@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.controllers.convert;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.opal.entity.DraftAccountStatus;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 
 @Component
 public class DraftAccountStatusConverter implements Converter<String, DraftAccountStatus> {

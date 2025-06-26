@@ -25,9 +25,9 @@ public class VersionUtilsTest {
             VersionUtils.verifyVersions(entity, dto, "test id", "testVerifyVersions_fail")
         );
 
-        assertEquals("uk.gov.hmcts.opal.entity.DraftAccountEntity", rte.getPersistentClassName());
+        assertEquals("uk.gov.hmcts.opal.entity.draft.DraftAccountEntity", rte.getPersistentClassName());
         assertEquals("test id", rte.getIdentifier());
-        assertEquals("Object of class [uk.gov.hmcts.opal.entity.DraftAccountEntity] with identifier "
+        assertEquals("Object of class [uk.gov.hmcts.opal.entity.draft.DraftAccountEntity] with identifier "
                          + "[test id]: optimistic locking failed",
                      rte.getMessage());
     }
