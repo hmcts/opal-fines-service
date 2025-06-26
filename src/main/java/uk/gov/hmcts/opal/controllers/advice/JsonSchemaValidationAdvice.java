@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.controllers.advice;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
@@ -17,10 +17,10 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 
 @ControllerAdvice
+@AllArgsConstructor
 public class JsonSchemaValidationAdvice extends RequestBodyAdviceAdapter {
 
-    @Autowired
-    private JsonSchemaValidationService jsonSchemaValidationService;
+    private final JsonSchemaValidationService jsonSchemaValidationService;
 
     @Override
     public boolean supports(MethodParameter methodParameter, Type targetType,
