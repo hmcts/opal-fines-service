@@ -271,7 +271,7 @@ ext {
 }
 
 ext['snakeyaml.version'] = '2.0'
-ext['jackson.version'] = '2.16.1'
+ext['jackson.version'] = '2.19.1'
 ext['tomcat.version'] = '10.1.42'
 
 dependencies {
@@ -315,7 +315,7 @@ dependencies {
   runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.10.0'
   implementation 'org.postgresql:postgresql'
 
-  implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.2'
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.1'
   compileOnly 'org.projectlombok:lombok:1.18.38'
   annotationProcessor 'org.projectlombok:lombok:1.18.38'
   annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.18.Final'
