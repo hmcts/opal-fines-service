@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.search.WarrantRegisterSearchDto;
 import uk.gov.hmcts.opal.entity.WarrantRegisterEntity;
 import uk.gov.hmcts.opal.repository.WarrantRegisterRepository;
@@ -51,12 +51,12 @@ class WarrantRegisterServiceTest {
     @Test
     void testSearchWarrantRegisters() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
 
         WarrantRegisterEntity warrantRegisterEntity = WarrantRegisterEntity.builder().build();
         Page<WarrantRegisterEntity> mockPage = new PageImpl<>(List.of(warrantRegisterEntity), Pageable.unpaged(), 999L);
         when(warrantRegisterRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 

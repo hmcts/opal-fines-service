@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.search.DebtorDetailSearchDto;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
@@ -51,12 +51,12 @@ class DebtorDetailServiceTest {
     @Test
     void testSearchDebtorDetails() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
 
         DebtorDetailEntity debtorDetailEntity = DebtorDetailEntity.builder().build();
         Page<DebtorDetailEntity> mockPage = new PageImpl<>(List.of(debtorDetailEntity), Pageable.unpaged(), 999L);
         when(debtorDetailRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 

@@ -12,7 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
@@ -70,14 +70,14 @@ class DraftAccountTransactionsTest {
     @Test
     void testGetDraftAccounts() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
             BusinessUnitEntity.builder().businessUnitId((short)77).build())
             .build();
         Page<DraftAccountEntity> mockPage = new PageImpl<>(List.of(draftAccountEntity), Pageable.unpaged(), 999L);
         when(draftAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
@@ -94,13 +94,13 @@ class DraftAccountTransactionsTest {
     @Test
     void testSearchDraftAccounts() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
         final String accountText = "myaccount";
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().account(accountText).build();
         Page<DraftAccountEntity> mockPage = new PageImpl<>(List.of(draftAccountEntity), Pageable.unpaged(), 999L);
         when(draftAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 

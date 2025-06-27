@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
@@ -55,13 +55,13 @@ class CourtServiceTest {
     @Test
     void testSearchCourts() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
-        when(ffq.sortBy(any())).thenReturn(ffq);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
 
         CourtEntity courtEntity = CourtEntity.builder().build();
         Page<CourtEntity> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 999L);
         when(courtRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
@@ -76,8 +76,8 @@ class CourtServiceTest {
     @Test
     void testCourtsReferenceData() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
-        when(ffq.sortBy(any())).thenReturn(ffq);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
 
         // Create court entity with direct field values (no relationships)
         CourtEntity courtEntity = CourtEntity.builder()
@@ -106,11 +106,11 @@ class CourtServiceTest {
 
         // Set up mocks
         when(courtRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            Function<FluentQuery.FetchableFluentQuery, Page<CourtEntity>> function = iom.getArgument(1);
-            return function.apply(ffq);
+            Function<SpecificationFluentQuery, Page<CourtEntity>> function = iom.getArgument(1);
+            return function.apply(sfq);
         }).thenReturn(mockPage);
 
-        when(ffq.page(any())).thenReturn(mockPage);
+        when(sfq.page(any())).thenReturn(mockPage);
         when(courtMapper.toRefData(courtEntity)).thenReturn(refData);
 
         // Act

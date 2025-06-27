@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
@@ -53,14 +53,14 @@ class LocalJusticeAreaServiceTest {
     @Test
     void testSearchLocalJusticeAreas() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
-        when(ffq.sortBy(any())).thenReturn(ffq);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
 
         LocalJusticeAreaEntity localJusticeAreaEntity = LocalJusticeAreaEntity.builder().build();
         Page<LocalJusticeAreaEntity> mockPage = new PageImpl<>(List.of(localJusticeAreaEntity),
                                                                Pageable.unpaged(), 999L);
         when(localJusticeAreaRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
@@ -77,14 +77,14 @@ class LocalJusticeAreaServiceTest {
     @Test
     void testLocalJusticeAreasReferenceData() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
-        when(ffq.as(any())).thenReturn(ffq);
-        when(ffq.sortBy(any())).thenReturn(ffq);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.as(any())).thenReturn(sfq);
+        when(sfq.sortBy(any())).thenReturn(sfq);
 
         LocalJusticeAreaEntity localJAEntity = LocalJusticeAreaEntity.builder().build();
         Page<LocalJusticeAreaEntity> mockPage = new PageImpl<>(List.of(localJAEntity), Pageable.unpaged(), 999L);
         when(localJusticeAreaRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 

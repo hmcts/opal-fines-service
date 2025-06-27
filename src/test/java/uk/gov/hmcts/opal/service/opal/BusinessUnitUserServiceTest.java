@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitUserSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -58,13 +58,13 @@ class BusinessUnitUserServiceTest {
     @Test
     void testSearchBusinessUnitUsers() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
 
         BusinessUnitUserEntity businessUnitUserEntity = BusinessUnitUserEntity.builder().build();
         Page<BusinessUnitUserEntity> mockPage = new PageImpl<>(List.of(businessUnitUserEntity),
                                                                Pageable.unpaged(), 999L);
         when(businessUnitUserRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
