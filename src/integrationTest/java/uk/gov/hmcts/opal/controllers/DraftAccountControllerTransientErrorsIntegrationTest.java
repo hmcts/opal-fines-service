@@ -8,9 +8,9 @@ import org.mockito.stubbing.OngoingStubbing;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -43,7 +43,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
 
     private static final Short BU_ID = (short)007;
 
-    @MockBean
+    @MockitoBean
     @Autowired
     DraftAccountService draftAccountService;
 

@@ -4,9 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -30,7 +30,7 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String GET_ENFORCERS_REF_DATA_RESPONSE = "getEnforcersRefDataResponse.json";
 
-    @SpyBean
+    @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test

@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.search.SuspenseAccountSearchDto;
 import uk.gov.hmcts.opal.entity.SuspenseAccountEntity;
 import uk.gov.hmcts.opal.repository.SuspenseAccountRepository;
@@ -51,12 +51,12 @@ class SuspenseAccountServiceTest {
     @Test
     void testSearchSuspenseAccounts() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
 
         SuspenseAccountEntity suspenseAccountEntity = SuspenseAccountEntity.builder().build();
         Page<SuspenseAccountEntity> mockPage = new PageImpl<>(List.of(suspenseAccountEntity), Pageable.unpaged(), 999L);
         when(suspenseAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 

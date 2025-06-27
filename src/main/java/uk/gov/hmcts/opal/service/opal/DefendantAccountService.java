@@ -2,13 +2,13 @@ package uk.gov.hmcts.opal.service.opal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSummaryDto;
@@ -46,7 +46,6 @@ import java.util.stream.Collectors;
 import static uk.gov.hmcts.opal.dto.ToJsonString.getObjectMapper;
 
 @Service
-@Transactional
 @Slf4j(topic = "opal.DefendantAccountService")
 @RequiredArgsConstructor
 @Qualifier("defendantAccountService")
@@ -70,7 +69,14 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
     private final DefendantAccountSpecs specs = new DefendantAccountSpecs();
 
+    @Transactional(readOnly = true)
+    public DefendantAccountEntity getDraftAccountById(long defAccountId) {
+        return defendantAccountRepository.findById(defAccountId)
+            .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: " + defAccountId));
+    }
+
     @Override
+    @Transactional
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
         log.debug(":getDefendantAccount: request: {}", request);
 
@@ -79,27 +85,30 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
     }
 
     @Override
+    @Transactional
     public DefendantAccountEntity putDefendantAccount(DefendantAccountEntity defendantAccountEntity) {
         log.debug(":putDefendantAccount: account: {}", defendantAccountEntity);
 
-        replaceBusinessUnit(defendantAccountEntity);
-        replaceCourts(defendantAccountEntity);
-        return defendantAccountRepository.save(defendantAccountEntity);
+        DefendantAccountEntity existing = getDraftAccountById(defendantAccountEntity.getDefendantAccountId());
+        replaceBusinessUnit(defendantAccountEntity, existing);
+        replaceCourts(defendantAccountEntity, existing);
+        return defendantAccountRepository.save(existing);
     }
 
-    private void replaceBusinessUnit(DefendantAccountEntity entity) {
+    private void replaceBusinessUnit(DefendantAccountEntity entity, DefendantAccountEntity existing) {
         Optional.ofNullable(entity.getBusinessUnit())
-            .ifPresent(bu -> entity.setBusinessUnit(businessRepository.getReferenceById(bu.getBusinessUnitId())));
+            .ifPresent(bu -> existing.setBusinessUnit(businessRepository.getReferenceById(bu.getBusinessUnitId())));
     }
 
-    private void replaceCourts(DefendantAccountEntity entity) {
+    private void replaceCourts(DefendantAccountEntity entity, DefendantAccountEntity existing) {
         Optional.ofNullable(entity.getEnforcingCourt())
-            .ifPresent(court -> entity.setEnforcingCourt(courtRepository.getReferenceById(court.getCourtId())));
+            .ifPresent(court -> existing.setEnforcingCourt(courtRepository.getReferenceById(court.getCourtId())));
         Optional.ofNullable(entity.getLastHearingCourt())
-            .ifPresent(court -> entity.setLastHearingCourt(courtRepository.getReferenceById(court.getCourtId())));
+            .ifPresent(court -> existing.setLastHearingCourt(courtRepository.getReferenceById(court.getCourtId())));
     }
 
     @Override
+    @Transactional
     public List<DefendantAccountEntity> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
 
         log.debug(":getDefendantAccountsByBusinessUnit: busUnit: {}", businessUnitId);
@@ -107,6 +116,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
     }
 
     @Override
+    @Transactional
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts: criteria: {}", accountSearchDto.toJson());
 
@@ -140,6 +150,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .build();
     }
 
+    @Transactional
     public AccountDetailsDto getAccountDetailsByDefendantAccountId(Long defendantAccountId) {
 
         // TODO - 25/06/2024 - remove this Disco+ 'test' code soon?

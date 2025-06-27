@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.StreamingHttpOutputMessage;
 import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriBuilder;
@@ -90,6 +91,16 @@ public class MockRestClient implements RestClient {
         }
 
         @Override
+        public RequestHeadersSpec cookie(String name, String value) {
+            return requestHeadersUriSpec;
+        }
+
+        @Override
+        public RequestHeadersSpec cookies(Consumer cookiesConsumer) {
+            return requestHeadersUriSpec;
+        }
+
+        @Override
         public RequestHeadersSpec ifModifiedSince(ZonedDateTime ifModifiedSince) {
             return requestHeadersUriSpec;
         }
@@ -105,8 +116,23 @@ public class MockRestClient implements RestClient {
         }
 
         @Override
+        public RequestHeadersSpec attribute(String name, Object value) {
+            return requestHeadersUriSpec;
+        }
+
+        @Override
+        public RequestHeadersSpec attributes(Consumer attributesConsumer) {
+            return requestHeadersUriSpec;
+        }
+
+        @Override
         public ResponseSpec retrieve() {
             return responseSpec;
+        }
+
+        @Override
+        public Object exchangeForRequiredValue(RequiredValueExchangeFunction exchangeFunction, boolean close) {
+            return null;
         }
 
         @Override
@@ -190,6 +216,16 @@ public class MockRestClient implements RestClient {
         }
 
         @Override
+        public RequestBodySpec cookie(String name, String value) {
+            return requestBodyUriSpec;
+        }
+
+        @Override
+        public RequestBodySpec cookies(Consumer<MultiValueMap<String, String>> cookiesConsumer) {
+            return requestBodyUriSpec;
+        }
+
+        @Override
         public RequestBodySpec ifModifiedSince(ZonedDateTime ifModifiedSince) {
             return requestBodyUriSpec;
         }
@@ -210,6 +246,16 @@ public class MockRestClient implements RestClient {
         }
 
         @Override
+        public RequestBodySpec attribute(String name, Object value) {
+            return requestBodyUriSpec;
+        }
+
+        @Override
+        public RequestBodySpec attributes(Consumer<Map<String, Object>> attributesConsumer) {
+            return requestBodyUriSpec;
+        }
+
+        @Override
         public RequestBodySpec httpRequest(Consumer<ClientHttpRequest> requestConsumer) {
             return requestBodyUriSpec;
         }
@@ -221,6 +267,11 @@ public class MockRestClient implements RestClient {
 
         @Override
         public <T> T exchange(ExchangeFunction<T> exchangeFunction, boolean close) {
+            return null;
+        }
+
+        @Override
+        public <T> T exchangeForRequiredValue(RequiredValueExchangeFunction<T> exchangeFunction, boolean close) {
             return null;
         }
     }

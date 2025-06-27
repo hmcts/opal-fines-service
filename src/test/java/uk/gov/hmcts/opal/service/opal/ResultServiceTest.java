@@ -11,7 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntityFull;
@@ -88,12 +88,12 @@ class ResultServiceTest {
         ResultReferenceData dto = new ResultReferenceData(
             "ABC", null, null, false, null, null, null);
 
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
-        when(ffq.sortBy(any())).thenReturn(ffq);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
 
         Page<ResultEntityLite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
         when(resultLiteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
@@ -115,12 +115,12 @@ class ResultServiceTest {
     @Test
     void testSearchResults() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
 
         ResultEntityFull resultEntity = ResultEntityFull.builder().build();
         Page<ResultEntityFull> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
         when(resultFullRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
@@ -135,8 +135,8 @@ class ResultServiceTest {
     @Test
     void testResultsReferenceData() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
-        when(ffq.sortBy(any())).thenReturn(ffq);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
 
         ResultEntityFull entity = ResultEntityFull.builder().build();
         ResultReferenceData expectedRefData = new ResultReferenceData(
@@ -146,7 +146,7 @@ class ResultServiceTest {
 
         Page<ResultEntityFull> mockPage = new PageImpl<>(List.of(entity), Pageable.unpaged(), 999L);
         when(resultFullRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 

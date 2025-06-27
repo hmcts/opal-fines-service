@@ -5,9 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -40,7 +40,7 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
 
     private static final String URL_BASE = "/defendant-accounts/";
 
-    @MockBean
+    @MockitoBean
     private UserStateService userStateService;
 
     @Test
@@ -158,11 +158,11 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendantAccountId").value(60000000000000L))
-            .andExpect(jsonPath("$.accountNumber").value("abc123"))
-            .andExpect(jsonPath("$.accountStatus").value("IP"))
-            .andExpect(jsonPath("$.accountBalance").value(10))
-            .andExpect(jsonPath("$.amountPaid").value(1));
+            .andExpect(jsonPath("$.defendantAccountId").value(1L))
+            .andExpect(jsonPath("$.accountNumber").value("100A"))
+            .andExpect(jsonPath("$.accountStatus").value("L"))
+            .andExpect(jsonPath("$.accountBalance").value(500.58))
+            .andExpect(jsonPath("$.amountPaid").value(200));
     }
 
 
@@ -226,7 +226,7 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
 
     private DefendantAccountEntity createDefendantAccountEntity() {
         return DefendantAccountEntity.builder()
-            .defendantAccountId(2L)
+            .defendantAccountId(1L)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short)78).build())
             .accountNumber("abc123")
             .accountStatus("IP")

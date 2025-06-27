@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceData;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
@@ -61,14 +61,14 @@ class OffenceServiceTest {
     @Test
     void testSearchOffences() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
-        when(ffq.sortBy(any())).thenReturn(ffq);
-        when(ffq.limit(anyInt())).thenReturn(ffq);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
+        when(sfq.limit(anyInt())).thenReturn(sfq);
 
         OffenceEntity offenceEntity = OffenceEntity.builder().build();
         Page<OffenceEntity> mockPage = new PageImpl<>(List.of(offenceEntity), Pageable.unpaged(), 999L);
         when(offenceRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
@@ -85,8 +85,8 @@ class OffenceServiceTest {
     @Test
     void testOffencesReferenceData() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
-        when(ffq.sortBy(any())).thenReturn(ffq);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
 
         OffenceEntity offenceEntity = OffenceEntity.builder()
             .offenceId(1L)
@@ -98,7 +98,7 @@ class OffenceServiceTest {
             .build();
         Page<OffenceEntity> mockPage = new PageImpl<>(List.of(offenceEntity), Pageable.unpaged(), 999L);
         when(offenceRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 

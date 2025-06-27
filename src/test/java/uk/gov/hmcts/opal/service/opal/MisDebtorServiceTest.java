@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.search.MisDebtorSearchDto;
 import uk.gov.hmcts.opal.entity.MisDebtorEntity;
 import uk.gov.hmcts.opal.repository.MisDebtorRepository;
@@ -51,12 +51,12 @@ class MisDebtorServiceTest {
     @Test
     void testSearchMisDebtors() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
 
         MisDebtorEntity misDebtorEntity = MisDebtorEntity.builder().build();
         Page<MisDebtorEntity> mockPage = new PageImpl<>(List.of(misDebtorEntity), Pageable.unpaged(), 999L);
         when(misDebtorRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 

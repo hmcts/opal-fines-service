@@ -4,10 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -33,10 +33,10 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String POST_COURTS_SEARCH_RESPONSE = "postCourtsSearchResponse.json";
     private static final String GET_COURTS_REF_DATA_RESPONSE = "getCourtsRefDataResponse.json";
 
-    @MockBean
+    @MockitoBean
     UserStateService userStateService;
 
-    @SpyBean
+    @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test

@@ -42,6 +42,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class DefendantAccountServiceTest {
@@ -93,16 +94,20 @@ public class DefendantAccountServiceTest {
     @Test
     void testPutDefendantAccount() {
         // Arrange
-        DefendantAccountEntity mockEntity = new DefendantAccountEntity();
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .defendantAccountId(1L)
+            .build();
+        when(defendantAccountRepository.findById(any()))
+            .thenReturn(Optional.of(entity));
         when(defendantAccountRepository.save(any(DefendantAccountEntity.class)))
-            .thenReturn(mockEntity);
+            .thenReturn(entity);
 
         // Act
-        DefendantAccountEntity result = defendantAccountService.putDefendantAccount(mockEntity);
+        DefendantAccountEntity result = defendantAccountService.putDefendantAccount(entity);
 
         // Assert
-        assertEquals(mockEntity, result);
-        verify(defendantAccountRepository, times(1)).save(mockEntity);
+        assertEquals(entity, result);
+        verify(defendantAccountRepository, times(1)).save(entity);
     }
 
     @Test
