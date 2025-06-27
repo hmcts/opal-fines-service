@@ -67,12 +67,9 @@ public class CourtController {
 
         List<CourtEntity> results = courtService.searchCourts(criteria);
 
-        SearchDataResponse<CourtEntity> responseBody = SearchDataResponse.<CourtEntity>builder()
-            .count(results.size())
+        return ResponseEntity.ok(SearchDataResponse.<CourtEntity>builder()
             .searchData(results)
-            .build();
-
-        return ResponseEntity.ok(responseBody);
+            .build());
     }
 
     @GetMapping
