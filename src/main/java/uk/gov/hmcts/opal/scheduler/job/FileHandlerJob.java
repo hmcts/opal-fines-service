@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.scheduler.model.CronJob;
@@ -27,9 +26,11 @@ public class FileHandlerJob implements CronJob {
     @Value("${opal.schedule.file-handler-job.cron}")
     private String cronExpression;
 
-    @Autowired
-    private SftpOutboundService sftpOutboundService;
+    private final SftpOutboundService sftpOutboundService;
 
+    public FileHandlerJob(SftpOutboundService sftpOutboundService) {
+        this.sftpOutboundService = sftpOutboundService;
+    }
 
     @SneakyThrows
     @Override

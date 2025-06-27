@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class DefendantAccountTypeConverterTest {
 
     @Test
-    public void testConversions() {
+    void testConversions() {
 
         DefendantAccountTypeConverter datc = new DefendantAccountTypeConverter();
 

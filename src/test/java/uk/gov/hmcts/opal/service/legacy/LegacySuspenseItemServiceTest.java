@@ -40,7 +40,7 @@ class LegacySuspenseItemServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetSuspenseItem() {
+    void testGetSuspenseItem() {
         long id = 1L;
         SuspenseItemEntity expectedEntity = new SuspenseItemEntity();
         doReturn(expectedEntity).when(legacySuspenseItemService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacySuspenseItemServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchSuspenseItems() {
+    void testSearchSuspenseItems() {
         SuspenseItemSearchDto criteria = SuspenseItemSearchDto.builder().build();
         List<SuspenseItemEntity> expectedEntities = Collections.singletonList(new SuspenseItemEntity());
         LegacySuspenseItemSearchResults searchResults = LegacySuspenseItemSearchResults.builder().build();

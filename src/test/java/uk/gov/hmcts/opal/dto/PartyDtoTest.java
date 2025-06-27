@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class PartyDtoTest {
 
     @Test
-    public void testBuilder() {
+    void testBuilder() {
         PartyDto partyDto = constructTestPartyDto();
 
         assertEquals(Long.valueOf(1L), partyDto.getPartyId());
@@ -38,14 +38,14 @@ public class PartyDtoTest {
     }
 
     @Test
-    public void testToJsonString() throws Exception {
+    void testToJsonString() throws Exception {
         PartyDto partyDto = constructTestPartyDto();
 
         assertNotNull(partyDto.toJsonString());
     }
 
     @Test
-    public void testControllerModelEqualsAndHashCode() {
+    void testControllerModelEqualsAndHashCode() {
         // Arrange
         PartyDto model1 = PartyDto.builder().build();
         PartyDto model2 = PartyDto.builder().build();
@@ -56,7 +56,7 @@ public class PartyDtoTest {
     }
 
     @Test
-    public void testControllerModelToString() {
+    void testControllerModelToString() {
         // Arrange
         PartyDto model = PartyDto.builder().build();
 

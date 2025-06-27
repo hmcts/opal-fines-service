@@ -40,7 +40,7 @@ class LegacyPrisonServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetPrison() {
+    void testGetPrison() {
         long id = 1L;
         PrisonEntity expectedEntity = new PrisonEntity();
         doReturn(expectedEntity).when(legacyPrisonService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyPrisonServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchPrisons() {
+    void testSearchPrisons() {
         PrisonSearchDto criteria = PrisonSearchDto.builder().build();
         List<PrisonEntity> expectedEntities = Collections.singletonList(new PrisonEntity());
         LegacyPrisonSearchResults searchResults = LegacyPrisonSearchResults.builder().build();

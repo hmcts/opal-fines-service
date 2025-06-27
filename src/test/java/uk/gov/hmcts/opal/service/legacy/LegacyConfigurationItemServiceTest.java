@@ -40,7 +40,7 @@ class LegacyConfigurationItemServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetConfigurationItem() {
+    void testGetConfigurationItem() {
         long id = 1L;
         ConfigurationItemEntity expectedEntity = new ConfigurationItemEntity();
         doReturn(expectedEntity).when(legacyConfigurationItemService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyConfigurationItemServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchConfigurationItems() {
+    void testSearchConfigurationItems() {
         ConfigurationItemSearchDto criteria = ConfigurationItemSearchDto.builder().build();
         List<ConfigurationItemEntity> expectedEntities = Collections.singletonList(new ConfigurationItemEntity());
         LegacyConfigurationItemSearchResults searchResults = LegacyConfigurationItemSearchResults.builder().build();

@@ -108,7 +108,7 @@ class TestingSupportControllerTest {
     }
 
     @Test
-    public void getToken_shouldReturnResponse() {
+    void getToken_shouldReturnResponse() {
         // Arrange
         AccessTokenResponse expectedResponse = AccessTokenResponse.builder().accessToken(TEST_TOKEN).build();
         when(accessTokenService.getTestUserToken())
@@ -125,7 +125,7 @@ class TestingSupportControllerTest {
     }
 
     @Test
-    public void getToken_shouldHandleExceptions() {
+    void getToken_shouldHandleExceptions() {
         // Arrange
         when(accessTokenService.getTestUserToken())
             .thenThrow(new RuntimeException("Error!"));
@@ -138,7 +138,7 @@ class TestingSupportControllerTest {
     }
 
     @Test
-    public void getTokenForUser_shouldReturnResponse() {
+    void getTokenForUser_shouldReturnResponse() {
         // Arrange
         AccessTokenResponse expectedResponse = AccessTokenResponse.builder().accessToken(TEST_TOKEN).build();
         when(accessTokenService.getTestUserToken(TEST_USER_EMAIL))
@@ -156,7 +156,7 @@ class TestingSupportControllerTest {
     }
 
     @Test
-    public void getTokenForUser_shouldHandleExceptions() {
+    void getTokenForUser_shouldHandleExceptions() {
         // Arrange
         when(accessTokenService.getTestUserToken(TEST_USER_EMAIL))
             .thenThrow(new RuntimeException("Error!"));

@@ -39,7 +39,7 @@ class LegacyBusinessUnitServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetBusinessUnit() {
+    void testGetBusinessUnit() {
         short id = 1;
         BusinessUnitEntity expectedEntity = new BusinessUnitEntity();
         doReturn(expectedEntity).when(legacyBusinessUnitService).postToGateway(anyString(), any(), anyShort());
@@ -50,7 +50,7 @@ class LegacyBusinessUnitServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchBusinessUnits() {
+    void testSearchBusinessUnits() {
         BusinessUnitSearchDto criteria = BusinessUnitSearchDto.builder().build();
         List<BusinessUnitEntity> expectedEntities = Collections.singletonList(new BusinessUnitEntity());
         LegacyBusinessUnitSearchResults searchResults = LegacyBusinessUnitSearchResults.builder().build();

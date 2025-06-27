@@ -40,7 +40,7 @@ class LegacyEnforcementServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetEnforcement() {
+    void testGetEnforcement() {
         long id = 1L;
         EnforcementEntity expectedEntity = new EnforcementEntity();
         doReturn(expectedEntity).when(legacyEnforcementService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyEnforcementServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchEnforcements() {
+    void testSearchEnforcements() {
         EnforcementSearchDto criteria = EnforcementSearchDto.builder().build();
         List<EnforcementEntity> expectedEntities = Collections.singletonList(new EnforcementEntity());
         LegacyEnforcementSearchResults searchResults = LegacyEnforcementSearchResults.builder().build();

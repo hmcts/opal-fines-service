@@ -40,7 +40,7 @@ class LegacyLogAuditDetailServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetLogAuditDetail() {
+    void testGetLogAuditDetail() {
         long id = 1L;
         LogAuditDetailEntity expectedEntity = new LogAuditDetailEntity();
         doReturn(expectedEntity).when(legacyLogAuditDetailService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyLogAuditDetailServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchLogAuditDetails() {
+    void testSearchLogAuditDetails() {
         LogAuditDetailSearchDto criteria = LogAuditDetailSearchDto.builder().build();
         List<LogAuditDetailEntity> expectedEntities = Collections.singletonList(new LogAuditDetailEntity());
         LegacyLogAuditDetailSearchResults searchResults = LegacyLogAuditDetailSearchResults.builder().build();

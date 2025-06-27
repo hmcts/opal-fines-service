@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class DefendantAccountEntityTest {
 
     @Test
-    public void testGettersAndSetters() {
+    void testGettersAndSetters() {
         DefendantAccountEntity defendantAccount = new DefendantAccountEntity();
         final LocalDate now = LocalDate.now();
 
@@ -107,7 +107,7 @@ public class DefendantAccountEntityTest {
     }
 
     @Test
-    public void testLombokMethods() {
+    void testLombokMethods() {
         DefendantAccountEntity defendantAccount1 = new DefendantAccountEntity();
         defendantAccount1.setDefendantAccountId(1L);
 

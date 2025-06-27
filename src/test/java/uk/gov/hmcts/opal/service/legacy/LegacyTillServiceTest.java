@@ -40,7 +40,7 @@ class LegacyTillServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetTill() {
+    void testGetTill() {
         long id = 1L;
         TillEntity expectedEntity = new TillEntity();
         doReturn(expectedEntity).when(legacyTillService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyTillServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchTills() {
+    void testSearchTills() {
         TillSearchDto criteria = TillSearchDto.builder().build();
         List<TillEntity> expectedEntities = Collections.singletonList(new TillEntity());
         LegacyTillSearchResults searchResults = LegacyTillSearchResults.builder().build();

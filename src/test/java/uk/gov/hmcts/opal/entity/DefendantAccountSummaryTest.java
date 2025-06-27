@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 public class DefendantAccountSummaryTest {
 
     @Test
-    public void testDefaultMethod() {
+    void testDefaultMethod() {
 
         DefendantAccountSummary.PartyDefendantAccountSummary mockSummary =
             Mockito.mock(DefendantAccountSummary.PartyDefendantAccountSummary.class);

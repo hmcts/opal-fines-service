@@ -40,7 +40,7 @@ class LegacyCourtFeeServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetCourtFee() {
+    void testGetCourtFee() {
         long id = 1L;
         CourtFeeEntity expectedEntity = new CourtFeeEntity();
         doReturn(expectedEntity).when(legacyCourtFeeService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyCourtFeeServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchCourtFees() {
+    void testSearchCourtFees() {
         CourtFeeSearchDto criteria = CourtFeeSearchDto.builder().build();
         List<CourtFeeEntity> expectedEntities = Collections.singletonList(new CourtFeeEntity());
         LegacyCourtFeeSearchResults searchResults = LegacyCourtFeeSearchResults.builder().build();

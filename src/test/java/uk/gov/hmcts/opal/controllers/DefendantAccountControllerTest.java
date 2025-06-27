@@ -51,7 +51,7 @@ class DefendantAccountControllerTest {
     private DefendantAccountController defendantAccountController;
 
     @Test
-    public void testGetDefendantAccount_Success() {
+    void testGetDefendantAccount_Success() {
         // Arrange
         DefendantAccountEntity mockResponse = new DefendantAccountEntity();
 
@@ -69,7 +69,7 @@ class DefendantAccountControllerTest {
     }
 
     @Test
-    public void testGetDefendantAccount_NoContent() {
+    void testGetDefendantAccount_NoContent() {
         // Arrange
         when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(null);
 
@@ -85,7 +85,7 @@ class DefendantAccountControllerTest {
 
 
     @Test
-    public void testPutDefendantAccount_Success() {
+    void testPutDefendantAccount_Success() {
         // Arrange
         DefendantAccountEntity requestEntity = new DefendantAccountEntity();
         DefendantAccountEntity mockResponse = new DefendantAccountEntity();
@@ -104,7 +104,7 @@ class DefendantAccountControllerTest {
     }
 
     @Test
-    public void testGetDefendantAccountDetails_Success() {
+    void testGetDefendantAccountDetails_Success() {
         // Arrange
         AccountDetailsDto mockResponse = new AccountDetailsDto();
 
@@ -123,7 +123,7 @@ class DefendantAccountControllerTest {
     }
 
     @Test
-    public void testPostDefendantAccountSearch_Success() {
+    void testPostDefendantAccountSearch_Success() {
         // Arrange
         AccountSearchDto requestEntity = AccountSearchDto.builder().build();
         AccountSearchResultsDto mockResponse = AccountSearchResultsDto.builder().build();
@@ -142,7 +142,7 @@ class DefendantAccountControllerTest {
     }
 
     @Test
-    public void testAddNote_Success() {
+    void testAddNote_Success() {
         // Arrange
         NoteDto mockResponse = new NoteDto();
         UserState userState = UserStateUtil.permissionUser(
@@ -164,7 +164,7 @@ class DefendantAccountControllerTest {
     }
 
     @Test
-    public void testAddNote_NoContent() {
+    void testAddNote_NoContent() {
         // Arrange
         UserState userState = UserStateUtil.permissionUser(
             (short)50, Permissions.ACCOUNT_ENQUIRY, Permissions.ACCOUNT_ENQUIRY_NOTES);
@@ -184,7 +184,7 @@ class DefendantAccountControllerTest {
     }
 
     @Test
-    public void testNotes_Success() {
+    void testNotes_Success() {
         // Arrange
         NoteDto mockNote = new NoteDto();
         List<NoteDto> mockResponse = List.of(mockNote);
@@ -205,7 +205,7 @@ class DefendantAccountControllerTest {
     }
 
     @Test
-    public void testNotes_NoContent() {
+    void testNotes_NoContent() {
         // Arrange
         NoteDto mockNote = new NoteDto();
 

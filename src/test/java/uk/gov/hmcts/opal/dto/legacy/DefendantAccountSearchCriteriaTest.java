@@ -13,7 +13,7 @@ import static uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria.Defend
 public class DefendantAccountSearchCriteriaTest {
 
     @Test
-    public void testBuilder() {
+    void testBuilder() {
         DefendantAccountSearchCriteria criteria = constructDefendantAccountSearchCriteria();
 
         assertEquals("accountNo", criteria.getAccountNumber());
@@ -29,7 +29,7 @@ public class DefendantAccountSearchCriteriaTest {
     }
 
     @Test
-    public void testNullBusinessUnit() {
+    void testNullBusinessUnit() {
         DefendantAccountSearchCriteriaBuilder criteriaBuilder = constructDefendantAccountSearchCriteriaBuilder();
         DefendantAccountSearchCriteria criteria = criteriaBuilder.businessUnitId(null).build();
         assertNull(criteria.getBusinessUnitId());
@@ -37,7 +37,7 @@ public class DefendantAccountSearchCriteriaTest {
     }
 
     @Test
-    public void testJsonString() throws Exception {
+    void testJsonString() throws Exception {
         DefendantAccountSearchCriteria model = constructDefendantAccountSearchCriteria();
         assertNotNull(model.toJsonString());
 

@@ -96,7 +96,7 @@ class AccessTokenServiceTest {
     @Nested
     class ExtractToken {
         @Test
-        public void testExtractToken_ValidAuthorizationHeader_ReturnsToken() {
+        void testExtractToken_ValidAuthorizationHeader_ReturnsToken() {
             // Given
             String authorizationHeader = "Bearer sampleToken123";
 

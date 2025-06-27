@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 public class AccountSearchDtoTest {
 
     @Test
-    public void testBuilder() {
+    void testBuilder() {
         final LocalDate today = LocalDate.now();
         AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto(today);
         assertEquals("Bath", accountEnquiryDto.getCourt());
@@ -62,13 +62,13 @@ public class AccountSearchDtoTest {
     }
 
     @Test
-    public void testToJsonString() throws Exception {
+    void testToJsonString() throws Exception {
         AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto(LocalDate.now());
         assertNotNull(accountEnquiryDto.toJsonString());
     }
 
     @Test
-    public void testControllerModelEqualsAndHashCode() {
+    void testControllerModelEqualsAndHashCode() {
         // Arrange
         AccountSearchDto model1 = AccountSearchDto.builder().build();
         AccountSearchDto model2 = AccountSearchDto.builder().build();
@@ -79,7 +79,7 @@ public class AccountSearchDtoTest {
     }
 
     @Test
-    public void testControllerModelToString() {
+    void testControllerModelToString() {
         // Arrange
         AccountSearchDto model = AccountSearchDto.builder().build();
 

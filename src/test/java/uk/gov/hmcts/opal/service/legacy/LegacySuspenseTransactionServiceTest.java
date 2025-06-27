@@ -41,7 +41,7 @@ class LegacySuspenseTransactionServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetSuspenseTransaction() {
+    void testGetSuspenseTransaction() {
         long id = 1L;
         SuspenseTransactionEntity expectedEntity = new SuspenseTransactionEntity();
         doReturn(expectedEntity).when(legacySuspenseTransactionService).postToGateway(anyString(), any(), anyLong());
@@ -52,7 +52,7 @@ class LegacySuspenseTransactionServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchSuspenseTransactions() {
+    void testSearchSuspenseTransactions() {
         SuspenseTransactionSearchDto criteria = SuspenseTransactionSearchDto.builder().build();
         List<SuspenseTransactionEntity> expectedEntities = Collections.singletonList(new SuspenseTransactionEntity());
         LegacySuspenseTransactionSearchResults searchResults = LegacySuspenseTransactionSearchResults.builder().build();

@@ -40,7 +40,7 @@ class LegacyDocumentInstanceServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetDocumentInstance() {
+    void testGetDocumentInstance() {
         long id = 1L;
         DocumentInstanceEntity expectedEntity = new DocumentInstanceEntity();
         doReturn(expectedEntity).when(legacyDocumentInstanceService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyDocumentInstanceServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchDocumentInstances() {
+    void testSearchDocumentInstances() {
         DocumentInstanceSearchDto criteria = DocumentInstanceSearchDto.builder().build();
         List<DocumentInstanceEntity> expectedEntities = Collections.singletonList(new DocumentInstanceEntity());
         LegacyDocumentInstanceSearchResults searchResults = LegacyDocumentInstanceSearchResults.builder().build();

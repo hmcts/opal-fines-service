@@ -40,7 +40,7 @@ class LegacyDebtorDetailServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetDebtorDetail() {
+    void testGetDebtorDetail() {
         long id = 1L;
         DebtorDetailEntity expectedEntity = new DebtorDetailEntity();
         doReturn(expectedEntity).when(legacyDebtorDetailService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyDebtorDetailServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchDebtorDetails() {
+    void testSearchDebtorDetails() {
         DebtorDetailSearchDto criteria = DebtorDetailSearchDto.builder().build();
         List<DebtorDetailEntity> expectedEntities = Collections.singletonList(new DebtorDetailEntity());
         LegacyDebtorDetailSearchResults searchResults = LegacyDebtorDetailSearchResults.builder().build();

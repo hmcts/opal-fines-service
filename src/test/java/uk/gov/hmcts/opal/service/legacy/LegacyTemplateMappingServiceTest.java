@@ -40,7 +40,7 @@ class LegacyTemplateMappingServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetTemplateMapping() {
+    void testGetTemplateMapping() {
         long templateId = 1L;
         long applicationFunctionId = 2L;
         TemplateMappingEntity expectedEntity = new TemplateMappingEntity();
@@ -53,7 +53,7 @@ class LegacyTemplateMappingServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchTemplateMappings() {
+    void testSearchTemplateMappings() {
         TemplateMappingSearchDto criteria = TemplateMappingSearchDto.builder().build();
         List<TemplateMappingEntity> expectedEntities = Collections.singletonList(new TemplateMappingEntity());
         LegacyTemplateMappingSearchResults searchResults = LegacyTemplateMappingSearchResults.builder().build();

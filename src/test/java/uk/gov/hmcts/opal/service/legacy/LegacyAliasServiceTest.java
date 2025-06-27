@@ -40,7 +40,7 @@ class LegacyAliasServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetAlias() {
+    void testGetAlias() {
         long id = 1L;
         AliasEntity expectedEntity = new AliasEntity();
         doReturn(expectedEntity).when(legacyAliasService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyAliasServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchAliass() {
+    void testSearchAliass() {
         AliasSearchDto criteria = AliasSearchDto.builder().build();
         List<AliasEntity> expectedEntities = Collections.singletonList(new AliasEntity());
         LegacyAliasSearchResults searchResults = LegacyAliasSearchResults.builder().build();

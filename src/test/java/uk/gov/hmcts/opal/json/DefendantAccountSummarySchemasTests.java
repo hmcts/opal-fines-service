@@ -44,7 +44,7 @@ class DefendantAccountSummarySchemasTests {
     */
 
     @Test
-    public void testAAGValidJsonAgainstSchema() throws Exception {
+    void testAAGValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidAAGJson();
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
@@ -54,7 +54,7 @@ class DefendantAccountSummarySchemasTests {
     }
 
     @Test
-    public void testAAGMissingRequiredField() throws Exception {
+    void testAAGMissingRequiredField() throws Exception {
         Map<String, Object> jsonMap = createValidAAGJson();
         jsonMap.remove("version"); // remove required field
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -66,7 +66,7 @@ class DefendantAccountSummarySchemasTests {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testAAGInvalidEnumValue() throws Exception {
+    void testAAGInvalidEnumValue() throws Exception {
         Map<String, Object> jsonMap = createValidAAGJson();
         Map<String, Object> debtorDetail = (Map<String, Object>) jsonMap.get("debtor_detail");
         debtorDetail.put("debtor_type", "InvalidType"); // invalid enum
@@ -78,7 +78,7 @@ class DefendantAccountSummarySchemasTests {
     }
 
     @Test
-    public void testAAGAdditionalPropertyNotAllowed() throws Exception {
+    void testAAGAdditionalPropertyNotAllowed() throws Exception {
         Map<String, Object> jsonMap = createValidAAGJson();
         jsonMap.put("unexpected_property", "should fail");
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
@@ -90,7 +90,7 @@ class DefendantAccountSummarySchemasTests {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testAAGOrganisationTrueWithMissingOrganisationName() throws Exception {
+    void testAAGOrganisationTrueWithMissingOrganisationName() throws Exception {
         Map<String, Object> jsonMap = createValidAAGJson();
         Map<String, Object> debtorDetail = (Map<String, Object>) jsonMap.get("debtor_detail");
         debtorDetail.put("organisation", true);
@@ -107,7 +107,7 @@ class DefendantAccountSummarySchemasTests {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testAAGOrganisationTrueWithOrganisationNamePresent() throws Exception {
+    void testAAGOrganisationTrueWithOrganisationNamePresent() throws Exception {
         Map<String, Object> jsonMap = createValidAAGJson();
         Map<String, Object> debtorDetail = (Map<String, Object>) jsonMap.get("debtor_detail");
         debtorDetail.put("organisation", true);
@@ -130,7 +130,7 @@ class DefendantAccountSummarySchemasTests {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testAAGOrganisationFalseWithMissingPersonalDetails() throws Exception {
+    void testAAGOrganisationFalseWithMissingPersonalDetails() throws Exception {
         Map<String, Object> jsonMap = createValidAAGJson();
         Map<String, Object> debtorDetail = (Map<String, Object>) jsonMap.get("debtor_detail");
         debtorDetail.put("organisation", false);
@@ -151,7 +151,7 @@ class DefendantAccountSummarySchemasTests {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testAAGOrganisationFalseWithPersonalDetailsPresent() throws Exception {
+    void testAAGOrganisationFalseWithPersonalDetailsPresent() throws Exception {
         Map<String, Object> jsonMap = createValidAAGJson();
         Map<String, Object> debtorDetail = (Map<String, Object>) jsonMap.get("debtor_detail");
         debtorDetail.put("organisation", false);
@@ -173,7 +173,7 @@ class DefendantAccountSummarySchemasTests {
     GET_DEFENDANT_ACCOUNT_HEADER_SUMMARY_RESPONSE
     */
     @Test
-    public void testHeaderSummaryIndividualValidJsonAgainstSchema() throws Exception {
+    void testHeaderSummaryIndividualValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidHeaderSummaryJson(false);
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
 
@@ -183,7 +183,7 @@ class DefendantAccountSummarySchemasTests {
     }
 
     @Test
-    public void testHeaderSummaryOrganisationValidJsonAgainstSchema() throws Exception {
+    void testHeaderSummaryOrganisationValidJsonAgainstSchema() throws Exception {
         Map<String, Object> jsonMap = createValidHeaderSummaryJson(true);
         JsonNode jsonNode = mapper.valueToTree(jsonMap);
 

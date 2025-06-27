@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 public class AccountSummaryDtoTest {
 
     @Test
-    public void testBuilder() {
+    void testBuilder() {
         final LocalDate today = LocalDate.now();
         AccountSummaryDto accountEnquiryDto = constructTestAccountSummaryDto(today);
 
@@ -26,14 +26,14 @@ public class AccountSummaryDtoTest {
     }
 
     @Test
-    public void testToJsonString() throws Exception {
+    void testToJsonString() throws Exception {
         AccountSummaryDto accountEnquiryDto = constructTestAccountSummaryDto(LocalDate.now());
 
         assertNotNull(accountEnquiryDto.toJsonString());
     }
 
     @Test
-    public void testControllerModelEqualsAndHashCode() {
+    void testControllerModelEqualsAndHashCode() {
         // Arrange
         AccountSummaryDto model1 = AccountSummaryDto.builder().build();
         AccountSummaryDto model2 = AccountSummaryDto.builder().build();
@@ -44,7 +44,7 @@ public class AccountSummaryDtoTest {
     }
 
     @Test
-    public void testControllerModelToString() {
+    void testControllerModelToString() {
         // Arrange
         AccountSummaryDto model = AccountSummaryDto.builder().build();
 

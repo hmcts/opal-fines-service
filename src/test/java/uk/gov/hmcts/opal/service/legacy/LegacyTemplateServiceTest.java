@@ -40,7 +40,7 @@ class LegacyTemplateServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testGetTemplate() {
+    void testGetTemplate() {
         long id = 1L;
         TemplateEntity expectedEntity = new TemplateEntity();
         doReturn(expectedEntity).when(legacyTemplateService).postToGateway(anyString(), any(), anyLong());
@@ -51,7 +51,7 @@ class LegacyTemplateServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    public void testSearchTemplates() {
+    void testSearchTemplates() {
         TemplateSearchDto criteria = TemplateSearchDto.builder().build();
         List<TemplateEntity> expectedEntities = Collections.singletonList(new TemplateEntity());
         LegacyTemplateSearchResults searchResults = LegacyTemplateSearchResults.builder().build();
