@@ -10,7 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.gov.hmcts.opal.authentication.aspect.AccessTokenParam;
@@ -48,7 +48,7 @@ class AuthorizationAspectServiceTest {
         .businessUnitUser(Set.of(BUSINESS_UNIT_USER))
         .build();
 
-    @MockBean
+    @MockitoBean
     private HttpServletRequest servletRequest;
 
     @Autowired
