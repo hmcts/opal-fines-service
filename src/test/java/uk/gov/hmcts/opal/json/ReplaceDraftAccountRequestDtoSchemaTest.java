@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
@@ -67,7 +68,8 @@ class ReplaceDraftAccountRequestDtoSchemaTest {
 
         JsonNode jsonNode = mapper.readTree(dto.toJson());
 
-        boolean isValid = validator.isValid(jsonNode, "replaceDraftAccountRequest.json");
+        boolean isValid = validator.isValid(
+            jsonNode, SchemaPaths.DRAFT_ACCOUNT + "/replaceDraftAccountRequest.json");
 
         assertTrue(isValid, "DTO should conform to replaceDraftAccountRequest.json");
     }

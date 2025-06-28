@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -49,8 +50,10 @@ import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/draft-accounts";
-    private static final String GET_DRAFT_ACCOUNT_RESPONSE = "getDraftAccountResponse.json";
-    private static final String GET_DRAFT_ACCOUNTS_RESPONSE = "getDraftAccountsResponse.json";
+    private static final String GET_DRAFT_ACCOUNT_RESPONSE =
+        SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountResponse.json";
+    private static final String GET_DRAFT_ACCOUNTS_RESPONSE =
+        SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountsResponse.json";
 
     private static final Short BU_ID = (short)73;
 

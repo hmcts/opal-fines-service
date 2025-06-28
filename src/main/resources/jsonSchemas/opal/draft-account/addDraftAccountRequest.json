@@ -1,6 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://opal-fines-service/replaceDraftAccountRequest.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "type": ["object", "null"],
   "properties": {
     "business_unit_id": {
@@ -18,33 +17,36 @@
       "minLength": 1,
       "description": "Value of the name claim in the AAD Acces Token"
     },
-    "validated_by": {
-      "type": ["string", "null"],
-      "description": "ID of the User that validated the Draft Account for checking"
-    },
     "account": {
-      "$ref": "resource:/jsonSchemas/account.json",
+      "$ref": "resource:/jsonSchemas/opal/defendant-account/account.json",
       "description": "The structured Account data (JSON)"
     },
     "account_type": {
       "type": "string",
+      "minLength": 1,
       "description": "Type of Account, such as Fixed Penalty Registration"
     },
     "account_status": {
       "type": ["string", "null"],
+      "minLength": 1,
       "description": "Status of the Draft Account - one of Submitted, Resubmitted, Rejected, Approved, Deleted"
     },
+    "status_message": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "description": "System message related to the account_status"
+    },
     "timeline_data": {
-      "$ref": "resource:/jsonSchemas/timelineData.json",
+      "$ref": "resource:/jsonSchemas/opal/timeline/timelineData.json",
       "description": "Status changes to the Draft Account in chronological order (JSON Array) - System generated (UI)"
     }
   },
   "required": [
-      "business_unit_id",
-      "submitted_by",
-	  "submitted_by_name",
-      "account",
-      "account_type",
-      "timeline_data"
+    "business_unit_id",
+    "submitted_by",
+    "submitted_by_name",
+    "account",
+    "account_type",
+    "timeline_data"
   ]
 }
