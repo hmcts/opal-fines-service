@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import java.util.HashMap;
@@ -23,11 +24,11 @@ class DefendantAccountPaymentTermsSchemasTests {
 
     private ObjectMapper mapper;
     private static final String GET_PAYMENT_TERMS_RESPONSE_SCHEMA =
-        "getDefendantAccountPaymentTermsResponse.json";
+        SchemaPaths.PAYMENT_TERMS + "/getDefendantAccountPaymentTermsResponse.json";
     private static final String ADD_PAYMENT_TERMS_REQUEST_SCHEMA =
-        "addDefendantAccountPaymentTermsRequest.json";
+        SchemaPaths.PAYMENT_TERMS + "/addDefendantAccountPaymentTermsRequest.json";
     private static final String ADD_PAYMENT_CARD_REQUEST_SCHEMA =
-        "addDefendantAccountPaymentCardRequestRequest.json";
+        SchemaPaths.DEFENDANT_ACCOUNT + "/addDefendantAccountPaymentCardRequestRequest.json";
 
     @BeforeEach
     public void setUp() {

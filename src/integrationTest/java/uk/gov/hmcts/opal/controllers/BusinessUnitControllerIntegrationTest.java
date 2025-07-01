@@ -11,6 +11,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -33,7 +34,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/business-units";
-    private static final String GET_BUNITS_REF_DATA_RESPONSE = "getBusinessUnitsRefDataResponse.json";
+    private static final String GET_BUNITS_REF_DATA_RESPONSE =
+        SchemaPaths.REFERENCE_DATA + "/getBusinessUnitsRefDataResponse.json";
 
     @MockitoBean
     UserStateService userStateService;
