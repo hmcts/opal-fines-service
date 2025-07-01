@@ -5,7 +5,6 @@ import io.cucumber.java.en.Then;
 import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -65,15 +64,18 @@ public class SearchOffencesResponseStepDef extends BaseStepDef {
             // Parse the date from the response to a LocalDateTime object
             OffsetDateTime parsedDateFromResponse = OffsetDateTime.parse(dateFromResponse);
             // Assert that the date from the response is before the active date
-            assertTrue(parsedDateFromResponse.isBefore(parsedActiveDate),
+            assertTrue
+                (parsedDateFromResponse.isBefore(parsedActiveDate),
                     "Response date is not before Active date: "
                             + "\n Date from response: " + parsedDateFromResponse
                             + "\n Active Date: " + parsedActiveDate);
         }
         for (String dateFromResponse : usedToDates) {
             // Parse the date from the response to a LocalDateTime object
-            OffsetDateTime parsedDateFromResponse = OffsetDateTime.parse(dateFromResponse);            // Assert that the active date is before the used to date from the response
-            assertTrue(parsedActiveDate.isBefore(parsedDateFromResponse),
+            OffsetDateTime parsedDateFromResponse = OffsetDateTime.parse(dateFromResponse);
+            // Assert that the active date is before the used to date from the response
+            assertTrue
+                (parsedActiveDate.isBefore(parsedDateFromResponse),
                     "Active date is not before Response date: "
                             + "\n Date from response: " + parsedDateFromResponse
                             + "\n Active Date: " + parsedActiveDate);
