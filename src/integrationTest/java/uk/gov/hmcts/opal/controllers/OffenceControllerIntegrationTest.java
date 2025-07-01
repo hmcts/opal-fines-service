@@ -9,6 +9,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
@@ -27,8 +28,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("OffenceController Integration Test")
 class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String GET_OFFENCES_REF_DATA_RESPONSE = "getOffencesRefDataResponse.json";
-    private static final String POST_OFFENCES_SEARCH_RESPONSE = "postOffencesSearchResponse.json";
+    private static final String GET_OFFENCES_REF_DATA_RESPONSE =
+        SchemaPaths.REFERENCE_DATA + "/getOffencesRefDataResponse.json";
+    private static final String POST_OFFENCES_SEARCH_RESPONSE =
+        SchemaPaths.REFERENCE_DATA + "/postOffencesSearchResponse.json";
     private static final String URL_BASE = "/offences";
 
     @MockitoSpyBean

@@ -9,6 +9,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
@@ -27,7 +28,8 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/major-creditors";
 
-    private static final String GET_MAJOR_CREDS_REF_DATA_RESPONSE = "getMajorCredRefDataResponse.json";
+    private static final String GET_MAJOR_CREDS_REF_DATA_RESPONSE =
+        SchemaPaths.REFERENCE_DATA + "/getMajorCredRefDataResponse.json";
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
