@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.entity.offence.OffenceEntityFull;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 
@@ -96,14 +97,14 @@ class OffenceControllerTest {
     private OffenceReferenceData createOffenceReferenceData() {
         return new OffenceReferenceData(1L, "TH123456", (short)007,
                                         "Thief of Time", null,
-                                        LocalDateTime.of(1909, 3, 3, 3, 30),
+                                        LocalDateTime.of(1909, 3, 3, 3, 30).atOffset(ZoneOffset.UTC),
                                         null, "", "");
     }
 
     private OffenceSearchData createOffenceSearchData() {
         return new OffenceSearchData(1L, "TH123456",
                                         "Thief of Time", null,
-                                        LocalDateTime.of(1909, 3, 3, 3, 30),
+                                        LocalDateTime.of(1909, 3, 3, 3, 30).atOffset(ZoneOffset.UTC),
                                         null, "", "");
     }
 

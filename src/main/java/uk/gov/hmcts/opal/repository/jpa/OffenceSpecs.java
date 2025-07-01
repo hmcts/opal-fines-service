@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity_;
 
+import java.time.OffsetDateTime;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -21,8 +22,12 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
         return Specification.allOf(specificationList(
             notBlank(criteria.getOffenceId()).map(OffenceSpecs::equalsOffenceId),
             notBlank(criteria.getCjsCode()).map(OffenceSpecs::likeCjsCodeStartsWith),
-            notNullLocalDateTime(criteria.getActiveDate()).map(OffenceSpecs::usedFromDateLessThenEqualToDate),
-            notNullLocalDateTime(criteria.getActiveDate()).map(OffenceSpecs::usedToDateGreaterThenEqualToDate),
+            Optional.ofNullable(criteria.getActiveDate())
+                .map(OffsetDateTime::toLocalDateTime)
+                .map(OffenceSpecs::usedFromDateLessThenEqualToDate),
+            Optional.ofNullable(criteria.getActiveDate())
+                .map(OffsetDateTime::toLocalDateTime)
+                .map(OffenceSpecs::usedToDateGreaterThenEqualToDate),
             notBlank(criteria.getTitle()).map(OffenceSpecs::likeEitherTitle),
             notBlank(criteria.getActSection()).map(OffenceSpecs::likeEitherOas)
         ));

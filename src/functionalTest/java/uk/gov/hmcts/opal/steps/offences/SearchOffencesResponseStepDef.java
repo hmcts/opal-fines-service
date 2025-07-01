@@ -6,6 +6,7 @@ import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -53,8 +54,7 @@ public class SearchOffencesResponseStepDef extends BaseStepDef {
     @Then("the offences in the response are before {string} only")
     public void offenceResponseBeforeDate(String activeDate) {
         // Format the active date string to a LocalDateTime object
-        DateTimeFormatter activeDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime parsedActiveDate = LocalDateTime.parse(activeDate, activeDateFormatter);
+        OffsetDateTime parsedActiveDate = OffsetDateTime.parse(activeDate, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 
         // Extract the list of dates from the response
         List<String> usedFromDates = SerenityRest.then().extract().jsonPath().getList("searchData.date_used_from");
@@ -63,7 +63,7 @@ public class SearchOffencesResponseStepDef extends BaseStepDef {
         // Iterate through each date in the response
         for (String dateFromResponse : usedFromDates) {
             // Parse the date from the response to a LocalDateTime object
-            LocalDateTime parsedDateFromResponse = LocalDateTime.parse(dateFromResponse);
+            OffsetDateTime parsedDateFromResponse = OffsetDateTime.parse(dateFromResponse);
             // Assert that the date from the response is before the active date
             assertTrue(parsedDateFromResponse.isBefore(parsedActiveDate),
                     "Response date is not before Active date: "
@@ -72,8 +72,7 @@ public class SearchOffencesResponseStepDef extends BaseStepDef {
         }
         for (String dateFromResponse : usedToDates) {
             // Parse the date from the response to a LocalDateTime object
-            LocalDateTime parsedDateFromResponse = LocalDateTime.parse(dateFromResponse);
-            // Assert that the active date is before the used to date from the response
+            OffsetDateTime parsedDateFromResponse = OffsetDateTime.parse(dateFromResponse);            // Assert that the active date is before the used to date from the response
             assertTrue(parsedActiveDate.isBefore(parsedDateFromResponse),
                     "Active date is not before Response date: "
                             + "\n Date from response: " + parsedDateFromResponse
