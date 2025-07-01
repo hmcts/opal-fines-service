@@ -11,8 +11,6 @@ withPipeline(type, product, component) {
         steps.junit '**/test-results/integration/*.xml'
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
 
-        builder.gradle('jacocoTestReport')
-
         publishHTML target: [
                 allowMissing         : true,
                 alwaysLinkToLastBuild: true,
