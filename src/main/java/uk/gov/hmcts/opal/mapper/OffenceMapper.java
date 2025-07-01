@@ -2,28 +2,29 @@ package uk.gov.hmcts.opal.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceData;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
 
 @Mapper(componentModel = "spring")
 public interface OffenceMapper {
-    @Mapping(target = "dateUsedFrom", source = "dateUsedFrom", qualifiedByName = "toOffset")
-    @Mapping(target = "dateUsedTo", source = "dateUsedTo", qualifiedByName = "toOffset")
+    @Mapping(
+        target = "dateUsedFrom",
+        expression = "java(uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime(entity.getDateUsedFrom()))"
+    )
+    @Mapping(
+        target = "dateUsedTo",
+        expression = "java(uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime(entity.getDateUsedTo()))"
+    )
     OffenceReferenceData toRefData(OffenceEntity entity);
 
-    @Mapping(target = "dateUsedFrom", source = "dateUsedFrom", qualifiedByName = "toOffset")
-    @Mapping(target = "dateUsedTo", source = "dateUsedTo", qualifiedByName = "toOffset")
+    @Mapping(
+        target = "dateUsedFrom",
+        expression = "java(uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime(entity.getDateUsedFrom()))"
+    )
+    @Mapping(
+        target = "dateUsedTo",
+        expression = "java(uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime(entity.getDateUsedTo()))"
+    )
     OffenceSearchData toSearchData(OffenceEntity entity);
-
-    @Named("toOffset")
-    static OffsetDateTime toOffset(LocalDateTime localDateTime) {
-        return localDateTime == null ? null : localDateTime.atOffset(ZoneOffset.UTC);
-    }
 }
