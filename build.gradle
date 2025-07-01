@@ -404,3 +404,10 @@ task migratePostgresDatabase(type: org.flywaydb.gradle.task.FlywayMigrateTask) {
   }
   println "Flyway jbdc property 'url' (derived from System property 'FLYWAY_URL'?) is: ${url}"
 }
+
+task runAllStyleChecks {
+    dependsOn 'checkstyleMain'
+    dependsOn 'checkstyleTest'
+    dependsOn 'checkstyleIntegrationTest'
+    dependsOn 'checkstyleFunctionalTest'
+}
