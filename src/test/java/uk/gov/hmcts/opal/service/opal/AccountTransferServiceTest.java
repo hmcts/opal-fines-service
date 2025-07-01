@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.search.AccountTransferSearchDto;
 import uk.gov.hmcts.opal.entity.AccountTransferEntity;
 import uk.gov.hmcts.opal.repository.AccountTransferRepository;
@@ -51,13 +51,13 @@ class AccountTransferServiceTest {
     @Test
     void testSearchAccountTransfers() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
 
         AccountTransferEntity accountTransferEntity = AccountTransferEntity.builder().build();
         Page<AccountTransferEntity> mockPage = new PageImpl<>(List.of(accountTransferEntity),
                                                               Pageable.unpaged(), 999L);
         when(accountTransferRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 

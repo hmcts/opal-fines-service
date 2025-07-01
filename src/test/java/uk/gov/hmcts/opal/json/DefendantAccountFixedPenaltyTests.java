@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import java.util.HashMap;
@@ -23,7 +24,7 @@ class DefendantAccountFixedPenaltyTests {
 
     private ObjectMapper mapper;
     private static final String GET_FIXED_PENAlTY_RESPONSE_SCHEMA =
-        "getDefendantAccountFixedPenaltyResponse.json";
+        SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountFixedPenaltyResponse.json";
 
 
     @BeforeEach

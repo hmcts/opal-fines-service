@@ -4,13 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
@@ -30,13 +31,15 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/courts";
 
-    private static final String POST_COURTS_SEARCH_RESPONSE = "postCourtsSearchResponse.json";
-    private static final String GET_COURTS_REF_DATA_RESPONSE = "getCourtsRefDataResponse.json";
+    private static final String POST_COURTS_SEARCH_RESPONSE =
+        SchemaPaths.REFERENCE_DATA + "/postCourtsSearchResponse.json";
+    private static final String GET_COURTS_REF_DATA_RESPONSE =
+        SchemaPaths.REFERENCE_DATA + "/getCourtsRefDataResponse.json";
 
-    @MockBean
+    @MockitoBean
     UserStateService userStateService;
 
-    @SpyBean
+    @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
@@ -59,7 +62,7 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.nameCy").value(IsNull.nullValue()));
 
         // Currently no Schema to validate against
-        // jsonSchemaValidationService.validateOrError(body, GET_COURTS_REF_DATA_RESPONSE);
+        jsonSchemaValidationService.validateOrError(body, GET_COURTS_REF_DATA_RESPONSE);
     }
 
 
@@ -90,15 +93,16 @@ class CourtControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[0].courtId").value(7))
-            .andExpect(jsonPath("$[0].businessUnitId").value(99))
-            .andExpect(jsonPath("$[0].courtCode").value(7))
-            .andExpect(jsonPath("$[0].name").value("AAA Test Court"))
-            .andExpect(jsonPath("$[0].localJusticeAreaId").value(1013))
-            .andExpect(jsonPath("$[0].nameCy").value(IsNull.nullValue()));
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.searchData[0].courtId").value(7))
+            .andExpect(jsonPath("$.searchData[0].businessUnitId").value(99))
+            .andExpect(jsonPath("$.searchData[0].courtCode").value(7))
+            .andExpect(jsonPath("$.searchData[0].name").value("AAA Test Court"))
+            .andExpect(jsonPath("$.searchData[0].localJusticeAreaId").value(1013))
+            .andExpect(jsonPath("$.searchData[0].nameCy").value(IsNull.nullValue()));
 
         // Currently no Schema to validate against
-        // jsonSchemaValidationService.validateOrError(body, POST_COURTS_SEARCH_RESPONSE);
+        jsonSchemaValidationService.validateOrError(body, POST_COURTS_SEARCH_RESPONSE);
     }
 
     @Test

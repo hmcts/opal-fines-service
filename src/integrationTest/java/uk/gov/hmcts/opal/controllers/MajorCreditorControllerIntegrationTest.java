@@ -3,12 +3,13 @@ package uk.gov.hmcts.opal.controllers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
@@ -27,9 +28,10 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/major-creditors";
 
-    private static final String GET_MAJOR_CREDS_REF_DATA_RESPONSE = "getMajorCredRefDataResponse.json";
+    private static final String GET_MAJOR_CREDS_REF_DATA_RESPONSE =
+        SchemaPaths.REFERENCE_DATA + "/getMajorCredRefDataResponse.json";
 
-    @SpyBean
+    @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test

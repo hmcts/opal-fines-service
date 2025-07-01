@@ -6,15 +6,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -49,15 +50,17 @@ import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/draft-accounts";
-    private static final String GET_DRAFT_ACCOUNT_RESPONSE = "getDraftAccountResponse.json";
-    private static final String GET_DRAFT_ACCOUNTS_RESPONSE = "getDraftAccountsResponse.json";
+    private static final String GET_DRAFT_ACCOUNT_RESPONSE =
+        SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountResponse.json";
+    private static final String GET_DRAFT_ACCOUNTS_RESPONSE =
+        SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountsResponse.json";
 
     private static final Short BU_ID = (short)73;
 
-    @MockBean
+    @MockitoBean
     UserStateService userStateService;
 
-    @SpyBean
+    @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test

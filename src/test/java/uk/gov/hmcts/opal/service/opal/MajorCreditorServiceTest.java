@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntityLite;
@@ -59,14 +59,14 @@ class MajorCreditorServiceTest {
     @Test
     void testSearchMajorCreditors() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
-        when(ffq.sortBy(any())).thenReturn(ffq);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
 
         MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder().build();
         Page<MajorCreditorEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity),
                                                             Pageable.unpaged(), 999L);
         when(majorCreditorRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
@@ -83,8 +83,8 @@ class MajorCreditorServiceTest {
     @Test
     void testMajorCreditorsReferenceData() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
-        when(ffq.sortBy(any())).thenReturn(ffq);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
 
         MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder()
             .businessUnitId((short) 7)
@@ -119,7 +119,7 @@ class MajorCreditorServiceTest {
 
         Page<MajorCreditorEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity), Pageable.unpaged(), 999L);
         when(majorCreditorRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 

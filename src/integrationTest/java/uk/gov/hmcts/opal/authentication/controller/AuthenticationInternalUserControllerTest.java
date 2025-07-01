@@ -2,10 +2,10 @@ package uk.gov.hmcts.opal.authentication.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
@@ -33,10 +33,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Slf4j(topic = "opal.AuthenticationInternalUserControllerTest")
 class AuthenticationInternalUserControllerTest extends AbstractIntegrationTest {
 
-    @MockBean
+    @MockitoBean
     private AuthenticationService authenticationService;
 
-    @MockBean
+    @MockitoBean
     private AccessTokenService accessTokenService;
 
     @Test

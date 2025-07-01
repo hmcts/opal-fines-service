@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.PartyDto;
 import uk.gov.hmcts.opal.dto.search.PartySearchDto;
@@ -90,12 +90,12 @@ public class PartyServiceTest {
     @Test
     void testSearchParties() {
         // Arrange
-        FluentQuery.FetchableFluentQuery ffq = Mockito.mock(FluentQuery.FetchableFluentQuery.class);
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
 
         PartyEntity partyEntity = PartyEntity.builder().build();
         Page<PartyEntity> mockPage = new PageImpl<>(List.of(partyEntity), Pageable.unpaged(), 999L);
         when(partyRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            iom.getArgument(1, Function.class).apply(ffq);
+            iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 

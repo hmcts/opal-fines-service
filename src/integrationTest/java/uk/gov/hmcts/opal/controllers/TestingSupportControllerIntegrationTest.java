@@ -4,11 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
@@ -59,19 +59,19 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
                           .build()))
         .build();
 
-    @MockBean
+    @MockitoBean
     private DynamicConfigService dynamicConfigService;
 
-    @MockBean
+    @MockitoBean
     private FeatureToggleService featureToggleService;
 
-    @MockBean
+    @MockitoBean
     private AccessTokenService accessTokenService;
 
-    @MockBean
+    @MockitoBean
     private AuthorisationService authorisationService;
 
-    @MockBean
+    @MockitoBean
     private LegacyTestingSupportService legacyTestingSupportService;
 
     @Test

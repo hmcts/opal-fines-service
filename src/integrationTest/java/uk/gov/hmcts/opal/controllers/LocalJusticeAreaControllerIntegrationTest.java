@@ -3,12 +3,13 @@ package uk.gov.hmcts.opal.controllers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
@@ -26,9 +27,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/local-justice-areas";
-    private static final String GET_LJAS_REF_DATA_RESPONSE = "getLJARefDataResponse.json";
+    private static final String GET_LJAS_REF_DATA_RESPONSE =
+        SchemaPaths.REFERENCE_DATA + "/getLJARefDataResponse.json";
 
-    @SpyBean
+    @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test

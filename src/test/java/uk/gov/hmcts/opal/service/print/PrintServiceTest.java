@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.print;
 
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +21,6 @@ import uk.gov.hmcts.opal.repository.print.PrintDefinitionRepository;
 import uk.gov.hmcts.opal.repository.print.PrintJobRepository;
 import uk.gov.hmcts.opal.sftp.SftpOutboundService;
 
-import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -53,22 +53,13 @@ class PrintServiceTest {
     @Mock
     private SftpOutboundService sftpOutboundService;
 
-
     @InjectMocks
     private PrintService printService;
-
-
-
-
-
-
 
     private PrintJob printJob1;
     private PrintJob printJob2;
     private PrintJob printJob;
     private PrintDefinition printDefinition;
-
-
 
     @BeforeEach
     void setUp() {
@@ -145,7 +136,7 @@ class PrintServiceTest {
         assertTrue(pdfBytes.length > 0);
 
         // Validate the content of the PDF using PDFBox
-        try (PDDocument document = PDDocument.load(new ByteArrayInputStream(pdfBytes))) {
+        try (PDDocument document = Loader.loadPDF(pdfBytes)) {
             PDFTextStripper pdfStripper = new PDFTextStripper();
             String pdfText = pdfStripper.getText(document);
             assertTrue(pdfText.contains("Test"));
@@ -214,7 +205,3 @@ class PrintServiceTest {
     }
 
 }
-
-
-
-
