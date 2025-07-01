@@ -26,7 +26,7 @@
     },
 
     "timeline_data": {
-      "$ref": "resource:/jsonSchemas/timelineData.json",
+      "$ref": "resource:/jsonSchemas/opal/timeline/timelineData.json",
       "description": "Status changes to the Draft Account in chronological order (JSON Array) - System generated (UI)"
     }
   },

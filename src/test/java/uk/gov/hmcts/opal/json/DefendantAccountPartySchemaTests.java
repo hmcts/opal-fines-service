@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import java.util.ArrayList;
@@ -25,8 +26,10 @@ class DefendantAccountPartySchemaTests {
     private JsonSchemaValidationService validator;
 
     private ObjectMapper mapper;
-    private static final String GET_SCHEMA_FILE = "getDefendantAccountPartyResponse.json";
-    private static final String REPLACE_SCHEMA_FILE = "replaceDefendantAccountPartyRequest.json";
+    private static final String GET_SCHEMA_FILE =
+        SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountPartyResponse.json";
+    private static final String REPLACE_SCHEMA_FILE =
+        SchemaPaths.DEFENDANT_ACCOUNT + "/replaceDefendantAccountPartyRequest.json";
 
     @BeforeEach
     public void setUp() {
