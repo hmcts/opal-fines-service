@@ -10,26 +10,80 @@ withPipeline(type, product, component) {
   afterAlways('test') {
     steps.junit '**/test-results/integration/*.xml'
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
+
+    publishHTML target: [
+        allowMissing         : true,
+        alwaysLinkToLastBuild: true,
+        keepAll              : true,
+        reportDir            : "build/reports/checkstyle",
+        reportFiles          : "main.html",
+        reportName           : "Checkstyle Main Report"
+    ]
+
+    publishHTML target: [
+        allowMissing         : true,
+        alwaysLinkToLastBuild: true,
+        keepAll              : true,
+        reportDir            : "build/reports/checkstyle",
+        reportFiles          : "test.html",
+        reportName           : "Checkstyle Test Report"
+    ]
+
+    publishHTML target: [
+        allowMissing         : true,
+        alwaysLinkToLastBuild: true,
+        keepAll              : true,
+        reportDir            : "build/reports/checkstyle",
+        reportFiles          : "functionalTest.html",
+        reportName           : "Checkstyle Functional Test Report"
+    ]
+
+    publishHTML target: [
+        allowMissing         : true,
+        alwaysLinkToLastBuild: true,
+        keepAll              : true,
+        reportDir            : "build/reports/checkstyle",
+        reportFiles          : "integrationTest.html",
+        reportName           : "Checkstyle Integration Test Report"
+    ]
+
+    publishHTML target: [
+        allowMissing         : true,
+        alwaysLinkToLastBuild: true,
+        keepAll              : true,
+        reportDir            : "build/reports/tests/test",
+        reportFiles          : "index.html",
+        reportName           : "Unit Tests Report"
+    ]
+
+    publishHTML target: [
+        allowMissing         : true,
+        alwaysLinkToLastBuild: true,
+        keepAll              : true,
+        reportDir            : "build/reports/tests/integration",
+        reportFiles          : "index.html",
+        reportName           : "Integration Tests Report"
+    ]
   }
 
   afterAlways('functionalTest:dev') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
 
     publishHTML target: [
-      allowMissing         : true,
-      alwaysLinkToLastBuild: true,
-      keepAll              : true,
-      reportDir            : "functional-test-report/",
-      reportFiles          : "index.html",
-      reportName           : "Serenity Functional Test Report"
+        allowMissing         : true,
+        alwaysLinkToLastBuild: true,
+        keepAll              : true,
+        reportDir            : "functional-test-report/",
+        reportFiles          : "index.html",
+        reportName           : "Serenity Functional Test Report"
     ]
     publishHTML target: [
-      allowMissing         : true,
-      alwaysLinkToLastBuild: true,
-      keepAll              : true,
-      reportDir            : "functional-test-report/htmlReport/",
-      reportFiles          : "test-summary.html",
-      reportName           : "Test Summary Report"
+        allowMissing         : true,
+        alwaysLinkToLastBuild: true,
+        keepAll              : true,
+        reportDir            : "functional-test-report/htmlReport/",
+        reportFiles          : "test-summary.html",
+        reportName           : "Test Summary Report"
     ]
   }
 
@@ -37,12 +91,12 @@ withPipeline(type, product, component) {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'
 
     publishHTML target: [
-      allowMissing         : true,
-      alwaysLinkToLastBuild: true,
-      keepAll              : true,
-      reportDir            : "smoke-test-report/",
-      reportFiles          : "index.html",
-      reportName           : "Serenity Smoke Test Report"
+        allowMissing         : true,
+        alwaysLinkToLastBuild: true,
+        keepAll              : true,
+        reportDir            : "smoke-test-report/",
+        reportFiles          : "index.html",
+        reportName           : "Serenity Smoke Test Report"
     ]
   }
 
@@ -50,32 +104,32 @@ withPipeline(type, product, component) {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
 
     publishHTML target: [
-      allowMissing         : true,
-      alwaysLinkToLastBuild: true,
-      keepAll              : true,
-      reportDir            : "functional-test-report/",
-      reportFiles          : "index.html",
-      reportName           : "Serenity Functional Test Report"
+        allowMissing         : true,
+        alwaysLinkToLastBuild: true,
+        keepAll              : true,
+        reportDir            : "functional-test-report/",
+        reportFiles          : "index.html",
+        reportName           : "Serenity Functional Test Report"
     ]
     publishHTML target: [
-      allowMissing         : true,
-      alwaysLinkToLastBuild: true,
-      keepAll              : true,
-      reportDir            : "functional-test-report/htmlReport/",
-      reportFiles          : "test-summary.html",
-      reportName           : "Test Summary Report"
+        allowMissing         : true,
+        alwaysLinkToLastBuild: true,
+        keepAll              : true,
+        reportDir            : "functional-test-report/htmlReport/",
+        reportFiles          : "test-summary.html",
+        reportName           : "Test Summary Report"
     ]
   }
   afterAlways('smoketest:stg') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'smoke-test-report/**/*'
 
     publishHTML target: [
-      allowMissing         : true,
-      alwaysLinkToLastBuild: true,
-      keepAll              : true,
-      reportDir            : "smoke-test-report/",
-      reportFiles          : "index.html",
-      reportName           : "Serenity Smoke Test Report"
+        allowMissing         : true,
+        alwaysLinkToLastBuild: true,
+        keepAll              : true,
+        reportDir            : "smoke-test-report/",
+        reportFiles          : "index.html",
+        reportName           : "Serenity Smoke Test Report"
     ]
   }
 }
