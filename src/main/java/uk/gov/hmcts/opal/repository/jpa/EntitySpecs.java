@@ -8,6 +8,7 @@ import uk.gov.hmcts.opal.dto.DateDto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -98,5 +99,9 @@ public abstract class EntitySpecs<E> {
 
     public static Predicate likeLowerCasePredicate(Path<String> path, CriteriaBuilder builder, String candidate) {
         return builder.like(builder.lower(path),candidate.toLowerCase());
+    }
+
+    public static Optional<LocalDateTime> notNullOffsetDateTime(OffsetDateTime value) {
+        return Optional.ofNullable(value).map(OffsetDateTime::toLocalDateTime);
     }
 }
