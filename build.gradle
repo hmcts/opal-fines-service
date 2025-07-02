@@ -1,3 +1,5 @@
+import org.flywaydb.gradle.task.FlywayMigrateTask
+
 buildscript {
   dependencies {
     classpath("org.flywaydb:flyway-database-postgresql:11.10.0")
@@ -84,7 +86,7 @@ test {
   failFast = true
 }
 
-task integration(type: Test) {
+tasks.register('integration', Test) {
   description = "Runs integration tests"
   group = "Verification"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
@@ -92,7 +94,7 @@ task integration(type: Test) {
   failFast = true
 }
 
-task functionalOpal(type: Test) {
+tasks.register('functionalOpal', Test) {
 
   description = "Runs functional tests against Opal mode"
   group = "Verification"
@@ -107,7 +109,7 @@ task functionalOpal(type: Test) {
   include '**/OpalTestRunner.class'
 
 }
-task functionalLegacy(type: Test) {
+tasks.register('functionalLegacy', Test) {
   description = "Runs functional tests against Legacy mode"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
@@ -120,29 +122,29 @@ task functionalLegacy(type: Test) {
 
   include '**/LegacyTestRunner.class'
 }
-task copyFunctionalReport(type: Copy) {
+tasks.register('copyFunctionalReport', Copy) {
   from("${rootDir}/target/site/serenity")
   into("${rootDir}/functional-test-report")
   logger.quiet("Functional Test Report available at - file://${rootDir}/functional-test-report/index.html")
 }
-task mergeFunctionalResults(type: Copy) {
+tasks.register('mergeFunctionalResults', Copy) {
   from layout.buildDirectory.dir("test-results/functional/opal")
   from layout.buildDirectory.dir("test-results/functional/legacy")
   into layout.buildDirectory.dir("test-results/functional")
   include '*.xml'
 }
-task generateTestSummary(type: JavaExec) {
+tasks.register('generateTestSummary', JavaExec) {
   group = "Reporting"
   description = "Generate an HTML summary from test result XMLs"
   classpath = sourceSets.functionalTest.runtimeClasspath
   mainClass = 'uk.gov.hmcts.opal.scripts.TestReportSummaryGenerator'
 }
 
-task functional() {
+tasks.register('functional') {
   description = "Runs functional tests"
   group = "Verification"
   gradle.startParameter.continueOnFailure = true
-  dependsOn('clearReports', 'functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport','mergeFunctionalResults', 'generateTestSummary')
+  dependsOn('clearReports', 'functionalOpal', 'functionalLegacy', 'aggregate', 'copyFunctionalReport', 'mergeFunctionalResults', 'generateTestSummary')
   tasks.functionalOpal.mustRunAfter clearReports
   tasks.functionalLegacy.mustRunAfter functionalOpal
   tasks.mergeFunctionalResults.mustRunAfter functionalLegacy
@@ -151,7 +153,7 @@ task functional() {
   tasks.generateTestSummary.mustRunAfter copyFunctionalReport
 
 }
-task smokeOpal(type: Test) {
+tasks.register('smokeOpal', Test) {
   description = "Runs Smoke Tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
@@ -163,13 +165,13 @@ task smokeOpal(type: Test) {
   include '**/SmokeTestRunner.class'
 
 }
-task copySmokeReport(type: Copy) {
+tasks.register('copySmokeReport', Copy) {
   from("${rootDir}/target/site/serenity")
   into("${rootDir}/smoke-test-report")
   logger.quiet("Smoke Test Report available at - file://${rootDir}/smoke-test-report/index.html")
 }
 
-task smoke() {
+tasks.register('smoke') {
   description = "Runs Smoke Tests"
   group = "Verification"
   gradle.startParameter.continueOnFailure = true
@@ -261,7 +263,7 @@ repositories {
   mavenLocal()
   mavenCentral()
   maven {
-    url 'https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1'
+    url = 'https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1'
   }
 }
 
@@ -397,7 +399,7 @@ flyway {
   baselineVersion = '000'
 }
 
-task migratePostgresDatabase(type: org.flywaydb.gradle.task.FlywayMigrateTask) {
+tasks.register('migratePostgresDatabase', FlywayMigrateTask) {
   baselineOnMigrate = true
   if (project.hasProperty("dburl")) {
     url = "jdbc:postgresql://${dburl}"
@@ -405,9 +407,9 @@ task migratePostgresDatabase(type: org.flywaydb.gradle.task.FlywayMigrateTask) {
   println "Flyway jbdc property 'url' (derived from System property 'FLYWAY_URL'?) is: ${url}"
 }
 
-task runAllStyleChecks {
-    dependsOn 'checkstyleMain'
-    dependsOn 'checkstyleTest'
-    dependsOn 'checkstyleIntegrationTest'
-    dependsOn 'checkstyleFunctionalTest'
+tasks.register('runAllStyleChecks') {
+  dependsOn 'checkstyleMain'
+  dependsOn 'checkstyleTest'
+  dependsOn 'checkstyleIntegrationTest'
+  dependsOn 'checkstyleFunctionalTest'
 }
