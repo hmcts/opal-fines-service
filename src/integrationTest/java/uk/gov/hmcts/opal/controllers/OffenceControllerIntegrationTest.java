@@ -98,7 +98,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.searchData[0].offence_id").value(33430))
             .andExpect(jsonPath("$.searchData[0].cjs_code").value("IC01001"))
             .andExpect(jsonPath("$.searchData[0].offence_title").value("Genocide"))
-            .andExpect(jsonPath("$.searchData[0].date_used_from").value("2001-09-01T00:00:00"))
+            .andExpect(jsonPath("$.searchData[0].date_used_from").value("2001-09-01T00:00:00Z"))
             .andExpect(jsonPath("$.searchData[0].offence_oas")
                 .value("Contrary to sections 51 and 53 of the International Criminal Court Act 2001."))
             .andReturn();
@@ -156,5 +156,27 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData", hasSize(2)))
             .andExpect(jsonPath("$.count").value(2))
             .andExpect(jsonPath("$.refData[*].cjs_code", containsInAnyOrder("WT67003","ZP97010")));
+    }
+
+    @Test
+    @DisplayName("Post offence search with valid active_date in Zulu format [PO-1904]")
+    void testPostOffencesSearchWithActiveDate() throws Exception {
+        ResultActions actions = mockMvc.perform(post("/offences/search")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+            {
+                "cjs_code": "IC01001",
+                "active_date": "2001-09-01T00:00:00Z"
+            }
+            """));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostOffencesSearchWithActiveDate: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.searchData[0].offence_id").value(33430))
+            .andExpect(jsonPath("$.searchData[0].cjs_code").value("IC01001"))
+            .andExpect(jsonPath("$.searchData[0].offence_title").value("Genocide"));
     }
 }

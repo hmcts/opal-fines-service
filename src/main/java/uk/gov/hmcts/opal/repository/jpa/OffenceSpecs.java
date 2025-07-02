@@ -21,8 +21,8 @@ public class OffenceSpecs extends EntitySpecs<OffenceEntity> {
         return Specification.allOf(specificationList(
             notBlank(criteria.getOffenceId()).map(OffenceSpecs::equalsOffenceId),
             notBlank(criteria.getCjsCode()).map(OffenceSpecs::likeCjsCodeStartsWith),
-            notNullLocalDateTime(criteria.getActiveDate()).map(OffenceSpecs::usedFromDateLessThenEqualToDate),
-            notNullLocalDateTime(criteria.getActiveDate()).map(OffenceSpecs::usedToDateGreaterThenEqualToDate),
+            notNullOffsetDateTime(criteria.getActiveDate()).map(OffenceSpecs::usedFromDateLessThenEqualToDate),
+            notNullOffsetDateTime(criteria.getActiveDate()).map(OffenceSpecs::usedToDateGreaterThenEqualToDate),
             notBlank(criteria.getTitle()).map(OffenceSpecs::likeEitherTitle),
             notBlank(criteria.getActSection()).map(OffenceSpecs::likeEitherOas)
         ));

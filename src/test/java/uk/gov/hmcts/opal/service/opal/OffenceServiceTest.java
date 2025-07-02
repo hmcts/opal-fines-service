@@ -21,6 +21,7 @@ import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepositoryFull;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -108,7 +109,7 @@ class OffenceServiceTest {
                                        null,
                                        "Theft from a Palace",
                                        null,
-                                       LocalDateTime.of(1909, 3, 3, 3, 30),
+                                       LocalDateTime.of(1909, 3, 3, 3, 30).atOffset(ZoneOffset.UTC),
                                        null, "A", "B");
         when(offenceMapper.toRefData(offenceEntity)).thenReturn(mappedRefData);
 
