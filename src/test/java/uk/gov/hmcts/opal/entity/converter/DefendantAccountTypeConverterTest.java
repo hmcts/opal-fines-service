@@ -12,7 +12,7 @@ public class DefendantAccountTypeConverterTest {
 
         DefendantAccountTypeConverter datc = new DefendantAccountTypeConverter();
 
-        assertEquals("Fines",
+        assertEquals("Fine",
                      datc.convertToDatabaseColumn(DefendantAccountType.FINES));
         assertEquals("Fixed Penalty",
                      datc.convertToDatabaseColumn(DefendantAccountType.FIXED_PENALTY));
@@ -28,7 +28,7 @@ public class DefendantAccountTypeConverterTest {
         assertEquals(DefendantAccountType.FIXED_PENALTY,
                      datc.convertToEntityAttribute("Fixed Penalty"));
         assertEquals(DefendantAccountType.FINES,
-                     datc.convertToEntityAttribute("Fines"));
+                     datc.convertToEntityAttribute("Fine"));
 
     }
 
