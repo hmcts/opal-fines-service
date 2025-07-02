@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 public enum DefendantAccountType {
 
     FIXED_PENALTY("Fixed Penalty"),
-    FINES("Fines"),
+    FINES("Fine"),
     CONDITIONAL_CAUTION("Conditional Caution"),
     CONFISCATION("Confiscation");
 
