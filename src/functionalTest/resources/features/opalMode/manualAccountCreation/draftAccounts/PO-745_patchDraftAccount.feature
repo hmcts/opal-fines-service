@@ -27,7 +27,7 @@ Feature: PO-745 patch draft account
     Then I get the single created draft account and the response contains
       | business_unit_id                    | 73                   |
       | account_type                        | Fine                 |
-      | account_status                      | Publishing Pending   |
+      | account_status                      | Published            |
       | account_snapshot.defendant_name     | LNAME, FNAME         |
       | account_snapshot.date_of_birth      | 2000-01-01T00:00:00Z |
       | account_snapshot.account_type       | Fine                 |
