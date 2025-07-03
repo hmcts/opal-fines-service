@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Address Details Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "address_line_1": {
+      "type": "string"
+    },
+    "address_line_2": {
+      "type": "string"
+    },
+    "address_line_3": {
+      "type": "string"
+    },
+    "address_line_4": {
+      "type": "string"
+    },
+    "address_line_5": {
+      "type": "string"
+    },
+    "postcode": {
+      "type": "string"
+    }
+  },
+  "required": ["address_line_1"]
+}

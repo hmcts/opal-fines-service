@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Account Activity Note Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "account_version": { "type": "integer" },
+    "account_type": {
+      "type": "string",
+      "enum": ["Defendant", "Creditor"]
+    },
+    "account_id": { "type": "string" },
+    "account_note_text": { "type": "string" },
+    "note_type": {
+      "type": "string",
+      "const": "AA"
+    }
+  },
+  "required": ["account_version", "account_type", "account_id", "account_note_text", "note_type"]
+}

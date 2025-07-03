@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vehicle Details",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "vehicle_make_and_model": { "type": "string" },
+    "vehicle_registration": { "type": "string" }
+  }
+}

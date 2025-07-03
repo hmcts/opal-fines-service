@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Organisation Alias Legacy",
+  "type": "object",
+  "properties": {
+    "alias_id": { "type": "string" },
+    "sequence_number": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "organisation_name": { "type": "string" }
+  },
+  "required": ["alias_id", "sequence_number"]
+}

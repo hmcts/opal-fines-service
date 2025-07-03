@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vehicle Fixed Penalty Ticket Details Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "fp_registration_number": { "type": "string" },
+    "fp_driving_license": { "type": "string" },
+    "notice_to_owner_or_hirer_number": { "type": "string" },
+    "date_notice_to_owner_was_issued": {
+      "type": "string",
+      "format": "date"
+    }
+  }
+}
