@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -21,6 +22,7 @@ import static uk.gov.hmcts.opal.SchemaPaths.GET_PROSECUTORS_REF_DATA_RESPONSE;
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.ProsecutorControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_prosecutors.sql", executionPhase = BEFORE_TEST_CLASS)
+@DisplayName("Prosecutor Controller Integration Test")
 class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/prosecutors";
@@ -29,7 +31,8 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
-    void testGetEnforcerById() throws Exception {
+    @DisplayName("Get Prosecutor By ID [@PO-1787]")
+    void testGetProsecutorById() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -47,13 +50,15 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testGetEnforcerById_WhenEnforcerDoesNotExist() throws Exception {
+    @DisplayName("Get Prosecutor By ID - Prosecutor Does Not Exist [@PO-1787]")
+    void testGetProsecutorById_WhenProsecutorDoesNotExist() throws Exception {
         mockMvc.perform(get(URL_BASE + "/4"))
             .andExpect(status().isNotFound());
     }
 
     @Test
-    void testGetEnforcerRefData() throws Exception {
+    @DisplayName("Get Prosecutors as Reference Data [@PO-1787]")
+    void testGetProsecutorsRefData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE)
                                                     .header("authorization", "Bearer some_value"));
 
