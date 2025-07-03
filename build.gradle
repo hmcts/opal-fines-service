@@ -17,6 +17,9 @@ plugins {
   id 'org.flywaydb.flyway' version '11.10.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.33'
 }
+//Should we fail fast on test failures?
+//Defaults to true if env is not present
+var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
 
 group = 'uk.gov.hmcts'
 version = '0.0.1'
@@ -80,18 +83,17 @@ tasks.withType(Test).configureEach {
   testLogging {
     exceptionFormat = 'full'
   }
+  if (failFast) {
+    failFast = true
+  }
 }
 
-test {
-  failFast = true
-}
 
 tasks.register('integration', Test) {
   description = "Runs integration tests"
   group = "Verification"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
-  failFast = true
 }
 
 tasks.register('functionalOpal', Test) {
@@ -183,10 +185,10 @@ tasks.register('smoke') {
 }
 
 def coverageExclusions = [
-  '**/uk/gov/hmcts/opal/**/model/**',
-  '**/uk/gov/hmcts/opal/**/config/**',
-  '**/uk/gov/hmcts/opal/authentication/client/**',
-  '**/uk/gov/hmcts/opal/**/exception/**'
+    '**/uk/gov/hmcts/opal/**/model/**',
+    '**/uk/gov/hmcts/opal/**/config/**',
+    '**/uk/gov/hmcts/opal/authentication/client/**',
+    '**/uk/gov/hmcts/opal/**/exception/**'
 ]
 
 jacocoTestReport {

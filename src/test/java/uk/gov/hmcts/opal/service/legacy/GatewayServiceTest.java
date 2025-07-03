@@ -84,10 +84,10 @@ class GatewayServiceTest {
         assertEquals(1L, dto.getNoteId());
         assertEquals("AC", dto.getNoteType());
         assertEquals("This is a sample note text.", dto.getNoteText());
-        assertEquals("user123", dto.getPostedBy());
-        assertEquals(1001L, dto.getPostedByUserId());
+        assertEquals("user123", dto.getBusinessUnitUserId());
+        assertEquals("SomeUser", dto.getPostedByUsername());
         assertEquals(LocalDateTime.of(2022, 12, 01, 12, 00), dto.getPostedDate());
-        assertEquals((short)10, dto.getBusinessUnitId());
+        assertEquals((short) 10, dto.getBusinessUnitId());
         assertEquals("defendants_accounts", dto.getAssociatedRecordType());
         assertEquals("123456", dto.getAssociatedRecordId());
     }
@@ -116,10 +116,10 @@ class GatewayServiceTest {
         assertEquals(1L, dto.getNoteId());
         assertEquals("AC", dto.getNoteType());
         assertEquals("This is a sample note text.", dto.getNoteText());
-        assertEquals("user123", dto.getPostedBy());
-        assertEquals(1001L, dto.getPostedByUserId());
-        assertEquals(LocalDateTime.of(2022, 12, 01, 12, 00), dto.getPostedDate());
-        assertEquals((short)10, dto.getBusinessUnitId());
+        assertEquals("user123", dto.getBusinessUnitUserId());
+        assertEquals("SomeUser", dto.getPostedByUsername());
+        assertEquals(LocalDateTime.of(2022, 12, 1, 12, 0), dto.getPostedDate());
+        assertEquals((short) 10, dto.getBusinessUnitId());
         assertEquals("defendants_accounts", dto.getAssociatedRecordType());
         assertEquals("123456", dto.getAssociatedRecordId());
     }
@@ -144,7 +144,7 @@ class GatewayServiceTest {
     void postToGateway_stringResponse_success() {
         mockRestClientPost();
         String actionType = "testAction";
-        String  request = "{}";
+        String request = "{}";
         String responseBody = "{\"status\":\"success\"}";
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
@@ -163,7 +163,7 @@ class GatewayServiceTest {
     void postToGateway_stringResponse_emptyResponse() {
         mockRestClientPost();
         String actionType = "testAction";
-        String  request = "{}";
+        String request = "{}";
 
         ResponseEntity<String> emptyResponseEntity = new ResponseEntity<>(null, HttpStatus.OK);
         when(requestBodySpec.header(any(), any())).thenReturn(requestBodySpec);
@@ -181,7 +181,7 @@ class GatewayServiceTest {
     void postToGateway_stringResponse_non2xxResponse() {
         mockRestClientPost();
         String actionType = "testAction";
-        String  request = "{}";
+        String request = "{}";
 
         ResponseEntity<String> errorResponseEntity = new ResponseEntity<>("Error", HttpStatus.BAD_REQUEST);
         when(requestBodySpec.header(any(), any())).thenReturn(requestBodySpec);
@@ -206,7 +206,7 @@ class GatewayServiceTest {
                  <noteText>This is a sample note text.</noteText>
                  <postedDate>2022-12-01T12:00:00</postedDate>
                  <postedBy>user123</postedBy>
-                 <postedByUserId>1001</postedByUserId>
+                 <postedByUserId>SomeUser</postedByUserId>
              </note>
             """;
     }

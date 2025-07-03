@@ -56,7 +56,7 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
             .associatedRecordId("123456")
             .noteText("This is a sample note text.")
             .postedDate(null)
-            .postedBy("user123")
+            .businessUnitUserId("user123")
             .build();
 
         final NoteDto expectedNoteDto = inputNoteDto.toBuilder().noteId(12345L).build();
@@ -149,7 +149,7 @@ class LegacyNoteServiceTest extends LegacyTestsBase {
             .associatedRecordId("12345678")
             .associatedRecordType("defendant_accounts")
             .noteText("")
-            .postedBy("")
+            .businessUnitUserId("")
             .build();
         LegacySaveNoteRequestDto requestDto = LegacySaveNoteRequestDto.fromNoteDto(noteDto);
 

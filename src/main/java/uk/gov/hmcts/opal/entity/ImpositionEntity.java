@@ -59,9 +59,8 @@ public class ImpositionEntity {
     @Column(name = "posted_by", length = 20)
     private String postedBy;
 
-    @ManyToOne
-    @JoinColumn(name = "posted_by_user_id", nullable = false)
-    private UserEntity postedByUser;
+    @Column(name = "posted_by_name", nullable = false)
+    private String postedByUsername;
 
     @Column(name = "original_posted_date")
     @Temporal(TemporalType.TIMESTAMP)

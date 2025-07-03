@@ -84,6 +84,6 @@ public class CreditorTransactionSpecs extends EntitySpecs<CreditorTransactionEnt
     }
 
     public static Join<CreditorTransactionEntity, UserEntity> joinPostedByUser(Root<CreditorTransactionEntity> root) {
-        return root.join(CreditorTransactionEntity_.postedByUser);
+        return root.join(CreditorTransactionEntity_.postedByUsername);
     }
 }
