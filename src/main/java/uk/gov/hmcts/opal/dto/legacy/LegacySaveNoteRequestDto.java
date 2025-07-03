@@ -30,14 +30,14 @@ public class LegacySaveNoteRequestDto {
 
     @JsonProperty("posted_by")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private String postedBy;
+    private String getBusinessUnitUserId;
 
     public static LegacySaveNoteRequestDto fromNoteDto(NoteDto dto) {
         return LegacySaveNoteRequestDto.builder()
             .associatedRecordId(dto.getAssociatedRecordId())
             .associatedRecordType(dto.getAssociatedRecordType())
             .noteText(dto.getNoteText())
-            .postedBy(dto.getPostedBy())
+            .getBusinessUnitUserId(dto.getBusinessUnitUserId())
             .build();
 
     }

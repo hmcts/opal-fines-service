@@ -7,6 +7,7 @@ def product = "opal"
 def component = "fines-service"
 
 withPipeline(type, product, component) {
+  env.FAIL_FAST = true
   afterAlways('test') {
     steps.junit '**/test-results/integration/*.xml'
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
