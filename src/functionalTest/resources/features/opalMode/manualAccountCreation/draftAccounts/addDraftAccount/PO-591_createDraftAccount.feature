@@ -21,7 +21,7 @@ Feature: PO-591 create draft account
       | account_type                        | Fines                |
       | account_status                      | Submitted            |
       | account_snapshot.defendant_name     | LNAME, FNAME         |
-      | account_snapshot.date_of_birth      | 2000-01-01T00:00:00Z |
+      | account_snapshot.date_of_birth      | 2000-01-01           |
       | account_snapshot.account_type       | Fine                 |
       | account_snapshot.submitted_by       | BUUID                |
       | account_snapshot.submitted_by_name  | Laura Clerk          |

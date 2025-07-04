@@ -2,7 +2,7 @@
   {
     "username": "johndoe123",
     "status": "Active",
-    "status_date": "2023-11-01T00:00:00Z",
+    "status_date": "2023-11-01",
     "reason_text": "Account successfully activated after review."
   }
 ]

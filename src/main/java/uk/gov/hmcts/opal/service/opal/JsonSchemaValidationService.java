@@ -4,7 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
+import com.networknt.schema.SchemaValidatorsConfig;
+import com.networknt.schema.SpecVersion.VersionFlag;
 import com.networknt.schema.ValidationMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
@@ -111,7 +112,12 @@ public class JsonSchemaValidationService {
             return schemaCache.get(schemaFileName);
         }
         String fileContents = readJsonSchemaFileContents(schemaFileName);
-        JsonSchema jsonSchema = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7).getSchema(fileContents);
+        JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
+
+        JsonSchema jsonSchema = factory.getSchema(fileContents,
+                                                  SchemaValidatorsConfig.builder()
+                                                      .formatAssertionsEnabled(true).build());
+
         schemaCache.put(schemaFileName, jsonSchema);
         return jsonSchema;
     }
