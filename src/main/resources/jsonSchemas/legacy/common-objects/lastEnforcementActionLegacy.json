@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Last Enforcement Action Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "last_enforcement_action_id": { "type": "string" },
+    "last_enforcement_action_title": { "type": "string" }
+  }
+}

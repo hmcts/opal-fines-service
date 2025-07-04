@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Enforcement Override Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enforcement_override_id": { "type": "string" },
+    "enforcement_override_title": { "type": "string" }
+  }
+}

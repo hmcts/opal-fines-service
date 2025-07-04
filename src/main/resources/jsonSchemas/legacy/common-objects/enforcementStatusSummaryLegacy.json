@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Enforcement Status Summary Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "last_enforcement_action": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/lastEnforcementActionLegacy.json"
+    },
+    "collection_order_made": {
+      "type": "boolean"
+    },
+    "default_days_in_jail": {
+      "type": "integer"
+    },
+    "enforcement_override": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/enforcementOverrideLegacy.schema.json"
+    },
+    "last_movement_date": {
+      "type": "string",
+      "format": "date"
+    }
+  }
+}

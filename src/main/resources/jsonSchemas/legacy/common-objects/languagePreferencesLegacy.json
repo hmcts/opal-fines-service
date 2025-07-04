@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Language Preferences Legacy",
+  "type": "object",
+  "properties": {
+    "document_language_preference": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/documentLanguagePreferenceLegacy.json"
+    },
+    "hearing_language_preference": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/hearingLanguagePreferenceLegacy.json"
+    }
+  }
+}

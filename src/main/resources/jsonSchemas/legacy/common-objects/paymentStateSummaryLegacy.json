@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Payment State Summary Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "imposed_amount": { "type": "number", "multipleOf": 0.01 },
+    "arrears_amount": { "type": "number", "multipleOf": 0.01 },
+    "paid_amount": { "type": "number", "multipleOf": 0.01 },
+    "account_balance": { "type": "number", "multipleOf": 0.01 }
+  },
+  "required": ["imposed_amount", "arrears_amount", "paid_amount", "account_balance"]
+}
