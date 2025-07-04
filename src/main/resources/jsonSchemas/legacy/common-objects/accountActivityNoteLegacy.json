@@ -4,7 +4,6 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "account_version": { "type": "integer" },
     "account_type": {
       "type": "string",
       "enum": ["Defendant", "Creditor"]
@@ -16,5 +15,5 @@
       "const": "AA"
     }
   },
-  "required": ["account_version", "account_type", "account_id", "account_note_text", "note_type"]
+  "required": ["account_type", "account_id", "account_note_text", "note_type"]
 }
