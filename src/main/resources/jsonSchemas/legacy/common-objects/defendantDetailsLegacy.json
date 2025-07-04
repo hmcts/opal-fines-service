@@ -42,7 +42,7 @@
         "national_insurance_number": { "type": "string" },
         "individual_aliases": {
           "type": "array",
-          "items": { "$ref": "IndividualAlias.schema.json" }
+          "items": { "$ref": "resource:/jsonSchemas/legacy/common-objects/individualAliasLegacy.json" }
         }
       },
       "required": ["title", "first_names", "surname", "date_of_birth"]

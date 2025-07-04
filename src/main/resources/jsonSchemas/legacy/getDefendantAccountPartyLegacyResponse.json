@@ -21,7 +21,7 @@
   },
   "required": [
     "party_id",
-    "account_version",
+    "version",
     "defendant_details"
   ]
 }
