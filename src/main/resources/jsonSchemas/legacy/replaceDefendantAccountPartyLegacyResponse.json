@@ -19,8 +19,6 @@
     }
   },
   "required": [
-    "defendant_account_id",
-    "business_unit_user_id",
     "party_id",
     "version",
     "defendant_details"
