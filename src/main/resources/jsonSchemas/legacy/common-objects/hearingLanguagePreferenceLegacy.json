@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hearing Language Preference Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "hearing_language_code": {
+      "type": "string",
+      "enum": ["CY", "EN"]
+    },
+    "hearing_language_display_name": {
+      "type": "string",
+      "enum": ["Welsh and English", "English only"]
+    }
+  }
+}

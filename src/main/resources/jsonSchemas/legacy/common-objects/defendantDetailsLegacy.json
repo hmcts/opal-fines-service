@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Debtor Details Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "debtor_type": {
+      "type": "string",
+      "enum": ["Defendant", "Parent/Guardian"]
+    },
+    "is_debtor": {
+      "type": "boolean"
+    },
+    "organisation_flag": {
+      "type": "boolean"
+    },
+    "address": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/addressDetailsLegacy.json"
+    },
+    "language_preferences": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/languagePreferencesLegacy.json"
+    },
+    "organisation_details": {
+      "type": "object",
+      "properties": {
+        "organisation_name": { "type": "string" },
+        "organisation_aliases": {
+          "type": "array",
+          "items": { "$ref": "resource:/jsonSchemas/legacy/common-objects/organisationAliasLegacy.json" }
+        }
+      },
+      "required": ["organisation_name"]
+    },
+    "individual_details": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "first_names": { "type": "string" },
+        "surname": { "type": "string" },
+        "date_of_birth": { "type": "string" },
+        "age": { "type": "string" },
+        "national_insurance_number": { "type": "string" },
+        "individual_aliases": {
+          "type": "array",
+          "items": { "$ref": "resource:/jsonSchemas/legacy/common-objects/individualAliasLegacy.json" }
+        }
+      },
+      "required": ["title", "first_names", "surname", "date_of_birth"]
+    },
+    "is_youth_flag": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "debtor_type",
+    "is_debtor",
+    "organisation_flag",
+    "address",
+    "is_youth_flag"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "organisation_flag": { "const": true } }
+      },
+      "then": {
+        "required": ["organisation_details"]
+      }
+    },
+    {
+      "if": {
+        "properties": { "organisation_flag": { "const": false } }
+      },
+      "then": {
+        "required": ["individual_details"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Employer Details Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "employer_name": { "type": "string" },
+    "employer_reference": { "type": "string" },
+    "employer_email_address": {
+      "type": "string",
+      "format": "email"
+    },
+    "employer_telephone_number": { "type": "string" },
+    "employer_address": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/addressDetailsLegacy.json"
+    }
+  },
+  "required": ["employer_name", "employer_reference", "employer_address"]
+}

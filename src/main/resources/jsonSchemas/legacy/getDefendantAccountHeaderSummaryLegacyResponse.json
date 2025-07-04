@@ -1,105 +1,42 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Defendant Account Header Summary Response",
+  "title": "Get Defendant Account Header Summary Legacy Response",
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "defendant_account_id": { "type": "string", "minLength": 1 },
     "version": { "type": "integer" },
-    "account_number": { "type": "string", "minLength": 1 },
-    "has_parent_guardian": { "type": "boolean" },
-    "debtor_type": {
-      "type": "string",
-      "enum": ["Defendant", "Parent/Guardian"],
-      "minLength": 1
-    },
-    "organisation": { "type": "boolean" },
-    "account_status_display_name": {
-      "type": "string",
-      "enum": [
-        "Live",
-        "Completed",
-        "TFO to be acknowledged",
-        "TFO to NI/Scotland to be acknowledged",
-        "TFO acknowledged",
-        "Account consolidated",
-        "Account written off"
-      ],
-      "minLength": 1
+    "defendant_account_id": { "type": "string" },
+    "account_number": { "type": "string" },
+    "defendant_party_id": { "type": "string" },
+    "parent_guardian_party_id": { "type": "string" },
+    "account_status_reference": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/accountStatusReferenceLegacy.json"
     },
     "account_type": {
       "type": "string",
-      "enum": ["Fine", "Conditional Caution", "Confiscation", "Fixed Penalty"],
-      "minLength": 1
+      "enum": ["Fine", "Conditional Caution", "Confiscation", "Fixed Penalty"]
     },
-    "prosecutor_case_reference": { "type": ["string", "null"], "minLength": 1 },
-    "fixed_penalty_ticket_number": { "type": ["string", "null"], "minLength": 1 },
-    "business_unit_name": { "type": "string", "minLength": 1 },
-    "business_unit_id": { "type": "string", "minLength": 1 },
-    "business_unit_code": { "type": "string", "minLength": 1 },
-    "imposed": {
-      "type": "number",
-      "multipleOf": 0.01
+    "prosecutor_case_reference": { "type": "string" },
+    "fixed_penalty_ticket_number": { "type": "string" },
+    "business_unit_summary": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/businessUnitSummaryLegacy.json"
     },
-    "arrears": {
-      "type": "number",
-      "multipleOf": 0.01
+    "payment_state_summary": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/paymentStateSummaryLegacy.json"
     },
-    "paid": {
-      "type": "number",
-      "multipleOf": 0.01
-    },
-    "written_off": {
-      "type": "number",
-      "multipleOf": 0.01
-    },
-    "account_balance": {
-      "type": "number",
-      "multipleOf": 0.01
-    },
-    "organisation_name": { "type": ["string", "null"], "minLength": 1 },
-    "is_youth": {
-      "type": ["boolean", "null"],
-      "description": "Derived by backend from parties.birth_date (not returned)"
-    },
-    "title": { "type": ["string", "null"], "minLength": 1 },
-    "firstnames": { "type": ["string", "null"], "minLength": 1 },
-    "surname": { "type": ["string", "null"], "minLength": 1 }
+    "defendant_details": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/defendantDetailsLegacy.json"
+    }
   },
   "required": [
+    "account_version",
     "defendant_account_id",
-    "version",
     "account_number",
-    "has_parent_guardian",
-    "debtor_type",
-    "organisation",
-    "account_status_display_name",
+    "defendant_party_id",
+    "account_status_reference",
     "account_type",
-    "business_unit_name",
-    "business_unit_id",
-    "business_unit_code",
-    "imposed",
-    "arrears",
-    "paid",
-    "written_off",
-    "account_balance"
-  ],
-  "if": {
-    "properties": { "organisation": { "const": true } }
-  },
-  "then": {
-    "properties": {
-      "organisation_name": { "type": "string", "minLength": 1 }
-    },
-    "required": ["organisation_name"]
-  },
-  "else": {
-    "properties": {
-      "is_youth": { "type": "boolean" },
-      "title": { "type": "string", "minLength": 1 },
-      "firstnames": { "type": "string", "minLength": 1 },
-      "surname": { "type": "string", "minLength": 1 }
-    },
-    "required": ["is_youth", "title", "firstnames", "surname"]
-  }
+    "business_unit_summary",
+    "payment_state_summary",
+    "defendant_details"
+  ]
 }
