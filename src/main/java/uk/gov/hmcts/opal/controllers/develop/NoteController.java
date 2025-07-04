@@ -54,8 +54,8 @@ public class NoteController {
         BusinessUnitUser businessUnitUser = getRequiredBusinessUnitUser(userState,
                                                                                   noteDto.getBusinessUnitId());
 
-        noteDto.setPostedBy(businessUnitUser.getBusinessUnitUserId());
-        noteDto.setPostedByUserId(userState.getUserId());
+        noteDto.setBusinessUnitUserId(businessUnitUser.getBusinessUnitUserId());
+        noteDto.setPostedByUsername(userState.getUserName());
         NoteDto savedNoteDto = noteService.saveNote(noteDto);
         return new ResponseEntity<>(savedNoteDto, HttpStatus.CREATED);
     }

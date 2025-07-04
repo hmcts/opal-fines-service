@@ -43,7 +43,7 @@ public class LegacyGatewayService implements GatewayService {
             log.info("extractResponse: Raw XML response: \n{}", rawXml);
 
             try {
-                T entity = (T) XmlUtil.unmarshalXmlString(rawXml, clzz);
+                T entity = XmlUtil.unmarshalXmlString(rawXml, clzz);
                 return new Response<>(code, entity);
 
             } catch (Exception e) {

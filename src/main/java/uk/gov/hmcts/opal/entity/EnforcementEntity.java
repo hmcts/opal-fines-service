@@ -88,7 +88,7 @@ public class EnforcementEntity {
     @Column(name = "account_type", length = 20)
     private String accountType;
 
-    @Column(name = "posted_by_user_id")
-    private Long postedByUserId;
+    @Column(name = "posted_by_name", length = 100)
+    private String postedByUsername;
 
 }

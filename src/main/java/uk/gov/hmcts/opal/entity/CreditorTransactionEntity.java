@@ -58,8 +58,8 @@ public class CreditorTransactionEntity {
     private String postedBy;
 
     @ManyToOne
-    @JoinColumn(name = "posted_by_user_id", nullable = false)
-    private UserEntity postedByUser;
+    @JoinColumn(name = "posted_by_name", nullable = false)
+    private UserEntity postedByUsername;
 
     @Column(name = "transaction_type", length = 6, nullable = false)
     private String transactionType;

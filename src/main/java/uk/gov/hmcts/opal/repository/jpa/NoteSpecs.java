@@ -34,7 +34,7 @@ public class NoteSpecs extends EntitySpecs<NoteEntity> {
     }
 
     public static Specification<NoteEntity> equalsPostedBy(String postedBy) {
-        return (root, query, builder) -> builder.equal(builder.lower(root.get(NoteEntity_.postedBy)),
+        return (root, query, builder) -> builder.equal(builder.lower(root.get(NoteEntity_.businessUnitUserId)),
                              postedBy.toLowerCase());
     }
 

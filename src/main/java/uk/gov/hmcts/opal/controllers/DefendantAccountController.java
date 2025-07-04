@@ -126,8 +126,8 @@ public class DefendantAccountController {
             .associatedRecordType(NOTE_ASSOC_REC_TYPE)
             .noteType("AA") // TODO - This will probably need to part of the AddNoteDto in future
             .businessUnitId(addNote.getBusinessUnitId())
-            .postedBy(businessUnitUser.getBusinessUnitUserId())
-            .postedByUserId(userState.getUserId())
+            .businessUnitUserId(businessUnitUser.getBusinessUnitUserId())
+            .postedByUsername(userState.getUserName())
             .postedDate(LocalDateTime.now())
             .build();
 

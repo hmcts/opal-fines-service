@@ -11,11 +11,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.dto.search.ImpositionSearchDto;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.ImpositionEntity;
-import uk.gov.hmcts.opal.entity.UserEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.service.opal.ImpositionService;
 
 import java.math.BigDecimal;
@@ -109,7 +108,7 @@ class ImpositionControllerIntegrationTest {
             .defendantAccount(DefendantAccountEntity.builder().build())
             .postedDate(LocalDateTime.now())
             .postedBy("ADMIN")
-            .postedByUser(UserEntity.builder().build())
+            .postedByUsername("SomeUser")
             .originalPostedDate(LocalDateTime.now())
             .resultId("AAABBB")
             .imposingCourt(CourtEntity.builder().build())
