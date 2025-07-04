@@ -7,17 +7,17 @@
   "collection_order_made": true,
   "collection_order_made_today": false,
   "payment_card_request": true,
-  "account_sentence_date": "2023-12-01T00:00:00Z",
+  "account_sentence_date": "2023-12-01",
   "defendant": {
     "company_flag": false,
     "surname": "LNAME",
     "forenames": "FNAME",
-    "dob": "2000-01-01T00:00:00Z",
+    "dob": "2000-01-01",
     "address_line_1": "123 Elm Street"
   },
   "offences": [
     {
-      "date_of_sentence": "2023-11-15T00:00:00Z",
+      "date_of_sentence": "2023-11-15",
       "offence_id": 1234,
       "impositions": [
         {
@@ -30,7 +30,7 @@
   ],
   "payment_terms": {
     "payment_terms_type_code": "P",
-    "effective_date": "2023-11-01T00:00:00Z",
+    "effective_date": "2023-11-01",
     "instalment_period": "M",
     "lump_sum_amount": 1000.00,
     "instalment_amount": 200.00,
