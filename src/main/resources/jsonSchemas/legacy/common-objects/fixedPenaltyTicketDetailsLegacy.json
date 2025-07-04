@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fixed Penalty Ticket Details Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "issuing_authority": { "type": "string" },
+    "ticket_number": { "type": "string" },
+    "time_of_offence": { "type": "string" },
+    "place_of_offence": { "type": "string" }
+  },
+  "required": ["issuing_authority", "ticket_number", "time_of_offence", "place_of_offence"]
+}

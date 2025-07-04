@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Document Language Preference Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "document_language_code": {
+      "type": "string",
+      "enum": ["CY", "EN"]
+    },
+    "document_language_display_name": {
+      "type": "string",
+      "enum": ["Welsh and English", "English only"]
+    }
+  }
+}

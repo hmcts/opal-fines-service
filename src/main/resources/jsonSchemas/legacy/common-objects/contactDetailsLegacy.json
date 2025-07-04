@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Contact Details Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "primary_email_address": {
+      "type": "string",
+      "format": "email"
+    },
+    "secondary_email_address": {
+      "type": "string",
+      "format": "email"
+    },
+    "mobile_telephone_number": { "type": "string" },
+    "home_telephone_number": { "type": "string" },
+    "work_telephone_number": { "type": "string" }
+  }
+}

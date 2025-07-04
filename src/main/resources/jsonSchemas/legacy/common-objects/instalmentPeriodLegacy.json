@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Instalment Period Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "instalment_period_code": {
+      "type": "string",
+      "enum": ["W", "M", "F"]
+    },
+    "instalment_period_display_name": {
+      "type": "string",
+      "enum": ["Weekly", "Monthly", "Fortnightly"]
+    }
+  }
+}
