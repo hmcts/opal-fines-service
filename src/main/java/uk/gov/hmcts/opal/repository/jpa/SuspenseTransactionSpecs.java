@@ -78,6 +78,6 @@ public class SuspenseTransactionSpecs extends EntitySpecs<SuspenseTransactionEnt
     }
 
     public static Join<SuspenseTransactionEntity, UserEntity> joinPostedByUser(Root<SuspenseTransactionEntity> root) {
-        return root.join(SuspenseTransactionEntity_.postedByUser);
+        return root.join(SuspenseTransactionEntity_.postedByUsername);
     }
 }

@@ -67,7 +67,6 @@ public class OffenceService implements OffenceServiceInterface {
             + "#optionalCjsCode.orElse(T(java.util.Collections).emptyList())"
             + ".stream().collect(T(java.util.stream.Collectors).joining(','))"
     )
-
     public List<OffenceReferenceData> getReferenceData(Optional<String> filter, Optional<Short> businessUnitId,
                                                        Optional<List<String>> optionalCjsCode) {
 

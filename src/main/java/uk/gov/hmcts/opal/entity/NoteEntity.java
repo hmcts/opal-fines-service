@@ -57,9 +57,9 @@ public class NoteEntity {
     private LocalDateTime postedDate;
 
     @Column(name = "posted_by", length = 20)
-    private String postedBy;
+    private String businessUnitUserId;
 
-    @Column(name = "posted_by_user_id")
-    private Long postedByUserId;
+    @Column(name = "posted_by_name", length = 100)
+    private String postedByUsername;
 
 }

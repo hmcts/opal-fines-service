@@ -48,7 +48,7 @@ class NoteServiceTest {
             .associatedRecordId("123")
             .noteText("Sample note")
             .postedDate(postedDate)
-            .postedBy("user123")
+            .businessUnitUserId("user123")
             .build();
 
         NoteEntity noteEntity = NoteEntity.builder()
@@ -58,7 +58,7 @@ class NoteServiceTest {
             .associatedRecordId("123")
             .noteText("Sample note")
             .postedDate(postedDate)
-            .postedBy("user123")
+            .businessUnitUserId("user123")
             .build();
 
         when(noteRepository.save(any(NoteEntity.class))).thenReturn(noteEntity);
@@ -80,10 +80,8 @@ class NoteServiceTest {
             .associatedRecordId("123")
             .noteText("Sample note")
             .postedDate(null)
-            .postedBy("user123")
+            .businessUnitUserId("user123")
             .build();
-
-        NoteEntity noteEntity =  NoteEntity.builder().noteId(1L).build();
 
         when(noteRepository.save(any(NoteEntity.class))).thenAnswer(invocation -> {
             NoteEntity entity = invocation.getArgument(0);
