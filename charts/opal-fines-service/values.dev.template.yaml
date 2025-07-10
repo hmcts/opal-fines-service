@@ -46,5 +46,33 @@ java:
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
     LAUNCH_DARKLY_ENABLED: false
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs, classpath:db/migration/devOnly
+    APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-${CHANGE_ID}"
   postgresql:
     enabled: true
+
+postgresql:
+  enabled: false #TODO update once setup
+  flexibleserver: "opal-fines-service-dev"
+  setup:
+    databases:
+      - name: "pr-${CHANGE_ID}-opal"
+opal-frontend:
+  enabled: ${DEV_ENABLE_OPAL_FRONT_END}
+  nodejs:
+    releaseNameOverride: ${SERVICE_NAME}-frontend
+    image: 'sdshmctspublic.azurecr.io/opal/frontend:${DEV_OPAL_FRONT_END_IMAGE_SUFFIX}'
+    ingressHost: "opal-fines-service-api-pr-${CHANGE_ID}-frontend.dev.platform.hmcts.net"
+    keyVaults:
+      opal:
+        secrets:
+          - app-insights-connection-string
+          - launch-darkly-client-id
+    environment:
+      REDIS_CONNECTION_STRING: redis://${SERVICE_NAME}-redis-master:6379
+      OPAL_API_URL: "https://opal-fines-service-pr-${CHANGE_ID}.dev.platform.hmcts.net"
+      OPAL_FINES_SERVICE_API_URL: "https://opal-fines-service-pr-${CHANGE_ID}.dev.platform.hmcts.net"
+      FRONTEND_HOSTNAME: " https://opal-fines-service-api-pr-${CHANGE_ID}.dev.platform.hmcts.net"
+      FEATURES_LAUNCH_DARKLY_ENABLED: false
+      FEATURES_SSO_ENABLED: false
+      FEATURES_APP_INSIGHTS_ENABLED: false
+      APPLICATIONINSIGHTS_ROLE_NAME: "opal-frontend-${CHANGE_ID}"

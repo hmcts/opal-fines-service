@@ -1,4 +1,5 @@
 #!groovy
+import uk.gov.hmcts.contino.GithubAPI
 
 @Library("Infrastructure")
 
@@ -6,8 +7,71 @@ def type = "java"
 def product = "opal"
 def component = "fines-service"
 
+def determineDevEnvironmentDeployment() {
+  env.DEV_ENABLE_OPAL_FRONT_END = false
+  env.DEV_OPAL_FRONT_END_URL = "https://opal-frontend.staging.platform.hmcts.net"
+  env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX = "latest"
+
+
+  def githubApi = new GithubAPI(this)
+  if (githubApi.checkForLabel(env.BRANCH_NAME, "enable_keep_helm")) {
+    for (label in githubApi.getLabelsbyPattern(env.BRANCH_NAME, "enable_opal_")) {
+
+      //Portal
+      if (label ==~ /enable_opal_front_end.*/) {
+        env.DEV_ENABLE_OPAL_FRONT_END = true
+        env.DEV_OPAL_FRONT_END_URL = "https://opal-fines-service-api-pr-${env.CHANGE_ID}-frontend.dev.platform.hmcts.net"
+
+        if (label ==~ /enable_opal_front_end:pr-.*/) {
+          env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX = label.replace("enable_opal_front_end:", "")
+        }
+        echo "Deploying Opal Front end (${env.DEV_OPAL_FRONT_END_URL} - ${env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX}) instance in PR environment"
+      }
+    }
+  }
+}
+
+def secrets = [
+    'opal-${env}': [
+        // secrets for staging DB
+        secret('fines-service-POSTGRES-HOST', 'STAGING_DB_HOST'),
+        secret('fines-service-POSTGRES-USER', 'STAGING_DB_USER'),
+        secret('fines-service-POSTGRES-PASS', 'STAGING_DB_PASS'),
+        secret('fines-service-POSTGRES-PORT', 'STAGING_DB_PORT'),
+        secret('fines-service-POSTGRES-DATABASE', 'STAGING_DB_DATABASE'),
+    ],
+]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+  [$class     : 'AzureKeyVaultSecret',
+   secretType : 'Secret',
+   name       : secretName,
+   version    : '',
+   envVariable: envVar
+  ]
+}
+
 withPipeline(type, product, component) {
   env.FAIL_FAST = true
+  env.STAGING_DB_SCHEMA = 'public'
+  loadVaultSecrets(secrets)
+//  enableSlackNotifications('#opal-fines-builds')
+
+  before('akschartsinstall') {
+    onPR {
+      determineDevEnvironmentDeployment()
+    }
+  }
+//TODO enable once dev db is setup
+//  afterSuccess('akschartsinstall') {
+//    onPR {
+//      // restore the PR DB from staging
+//      sh("./bin/ci/db-stg-to-pr.sh")
+//      // run flyway migrate on PR DB
+//      sh("./bin/ci/run-flyway-pr-db.sh")
+//    }
+//  }
+
   afterAlways('test') {
     steps.junit '**/test-results/integration/*.xml'
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
