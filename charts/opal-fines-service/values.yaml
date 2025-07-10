@@ -50,3 +50,5 @@ opal-frontend:
   enabled: false
 postgresql:
   enabled: false
+redis:
+  enabled: false
