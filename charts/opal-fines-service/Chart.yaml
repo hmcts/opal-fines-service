@@ -18,3 +18,7 @@ dependencies:
     version: 0.0.213
     repository: 'oci://sdshmctspublic.azurecr.io/helm'
     condition: opal-frontend.enabled
+  - name: redis
+    version: 21.2.7
+    repository: 'oci://registry-1.docker.io/bitnamicharts'
+    condition: redis.enabled

@@ -76,3 +76,12 @@ opal-frontend:
       FEATURES_SSO_ENABLED: false
       FEATURES_APP_INSIGHTS_ENABLED: false
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-frontend-${CHANGE_ID}"
+
+redis:
+  enabled: true
+  architecture: standalone
+  master:
+    persistence:
+      enabled: false
+  auth:
+    enabled: false
