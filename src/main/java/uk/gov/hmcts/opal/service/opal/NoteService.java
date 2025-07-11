@@ -41,9 +41,9 @@ public class NoteService implements NoteServiceInterface {
     @AuthorizedBusinessUnitUserHasPermission(ACCOUNT_ENQUIRY_NOTES)
     public NoteDto saveNote(NoteDto noteDto) {
         // Restrict the 'postedBy' to 20 characters length
-        String postedBy = Optional.ofNullable(noteDto.getPostedBy())
+        String businessUnitUserId = Optional.ofNullable(noteDto.getBusinessUnitUserId())
             .map(s -> StringUtils.substring(s, 0, 20)).orElse(null);
-        noteDto.setPostedBy(postedBy);
+        noteDto.setBusinessUnitUserId(businessUnitUserId);
         Short businessUnitId = noteDto.getBusinessUnitId();
 
         return toNoteDto(noteRepository.save(toNoteEntity(noteDto)), businessUnitId);
@@ -77,8 +77,8 @@ public class NoteService implements NoteServiceInterface {
             .associatedRecordId(noteDto.getAssociatedRecordId())
             .noteText(noteDto.getNoteText())
             .postedDate(noteDto.getPostedDate() == null ? LocalDateTime.now() : noteDto.getPostedDate())
-            .postedBy(noteDto.getPostedBy())
-            .postedByUserId(noteDto.getPostedByUserId())
+            .businessUnitUserId(noteDto.getBusinessUnitUserId())
+            .postedByUsername(noteDto.getPostedByUsername())
             .build();
     }
 
@@ -91,8 +91,8 @@ public class NoteService implements NoteServiceInterface {
             .businessUnitId(businessUnitId)
             .noteText(entity.getNoteText())
             .postedDate(entity.getPostedDate())
-            .postedBy(entity.getPostedBy())
-            .postedByUserId(entity.getPostedByUserId())
+            .businessUnitUserId(entity.getBusinessUnitUserId())
+            .postedByUsername(entity.getPostedByUsername())
             .build();
     }
 }

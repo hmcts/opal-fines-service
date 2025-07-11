@@ -36,7 +36,7 @@ public final class TimelineData {
     }
 
     public String toJson() {
-        return ToJsonString.toPrettyJson(entries.toArray(new Entry[0]));
+        return ToJsonString.objectToPrettyJson(entries.toArray(new Entry[0]));
     }
 
     @Data

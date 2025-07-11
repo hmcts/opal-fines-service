@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
@@ -49,9 +50,10 @@ public class NoteDto implements ToJsonString {
     private LocalDateTime postedDate;
 
     @JsonProperty("posted_by")
-    private String postedBy;
+    @XmlElement(name = "postedBy")
+    private String businessUnitUserId;
 
-    @JsonProperty("posted_by_user_id")
-    private Long postedByUserId;
-
+    @JsonProperty("posted_by_name")
+    @XmlElement(name = "postedByUserId")
+    private String postedByUsername;
 }

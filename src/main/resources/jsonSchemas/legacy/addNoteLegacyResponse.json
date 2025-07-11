@@ -8,36 +8,16 @@
       "type": "string",
       "minLength": 1
     },
-    "business_unit_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "business_unit_user_id": {
-      "type": "string",
-      "minLength": 1
-    },
     "version": {
       "type": "integer"
     },
-    "account_type": {
-      "type": "string",
-      "enum": ["Defendant", "Creditor"]
-    },
-    "account_id": { "type": "string" },
-    "account_note_text": { "type": "string" },
-    "note_type": {
-      "type": "string",
-      "const": "AA"
+    "account_activity_note": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/accountActivityNoteLegacy.json"
     }
   },
   "required": [
     "defendant_account_id",
-    "business_unit_id",
-    "business_unit_user_id",
     "version",
-    "account_type",
-    "account_id",
-    "account_note_text",
-    "note_type"
+    "account_activity_note"
   ]
 }
