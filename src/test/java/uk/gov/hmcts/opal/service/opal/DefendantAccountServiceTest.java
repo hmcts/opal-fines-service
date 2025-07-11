@@ -1,7 +1,10 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -9,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
@@ -32,6 +37,7 @@ import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -40,6 +46,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.any;
@@ -350,6 +357,81 @@ public class DefendantAccountServiceTest {
         assertEquals("123 Main Street, Reading, Berkshire", result.getAddress());
         assertEquals("RG12 0AA", result.getPostCode());
     }
+
+    @DisplayName("Throws RuntimeException when fallback JSON file is missing")
+    @Tag("fallback")
+    @Test
+    void shouldThrowIfFallbackJsonFails() {
+        AccountSearchDto dto = AccountSearchDto.builder().court("test").build();
+
+        var original = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(new ClassLoader() {
+            @Override public InputStream getResourceAsStream(String name) { return null; }
+        });
+
+        try {
+            assertThrows(RuntimeException.class, () ->
+                defendantAccountService.searchDefendantAccounts(dto));
+        } finally {
+            Thread.currentThread().setContextClassLoader(original);
+        }
+    }
+
+    @DisplayName("Throws 403 if user lacks 'Search and view accounts' permission")
+    @Tag("permission")
+    @Test
+    void shouldThrowIfUserLacksPermission() {
+        AccountSearchDto dto = AccountSearchDto.builder()
+            .court("780000000185")
+            .authHeader("Bearer test_token")
+            .build();
+
+        mockPermission(false);
+
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () ->
+            defendantAccountService.searchDefendantAccounts(dto)
+        );
+
+        assertEquals(HttpStatus.FORBIDDEN, ex.getStatusCode());
+    }
+
+
+    @DisplayName("Strips check letter when account number has 9 digits")
+    @Tag("coverage")
+    @Test
+    void shouldStripCheckLetter() {
+        AccountSearchDto dto = AccountSearchDto.builder()
+            .court("780000000185")
+            .accountNumber("12345678X")
+            .authHeader("Bearer test_token")
+            .build();
+
+        mockPermission(true);
+        when(defendantAccountRepository.findBy(
+            ArgumentMatchers.<Specification<DefendantAccountEntity>>any(), any())
+        ).thenReturn(Page.empty());
+
+
+        defendantAccountService.searchDefendantAccounts(dto);
+
+        assertEquals("12345678", dto.getAccountNumber());
+    }
+
+    /**
+     * Helper method to mock user state with or without required permission.
+     */
+    private void mockPermission(boolean allowed) {
+        UserState userState = mock(UserState.class);
+        BusinessUnitUser buUser = mock(BusinessUnitUser.class);
+
+        when(buUser.getBusinessUnitId()).thenReturn((short) 30905);
+        when(buUser.hasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(allowed);
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 30905))
+            .thenReturn(Optional.of(buUser));
+        when(userStateService.getUserStateUsingAuthToken(any()))
+            .thenReturn(userState);
+    }
+
 
     public static AccountDetailsDto buildAccountDetailsDto() {
 
