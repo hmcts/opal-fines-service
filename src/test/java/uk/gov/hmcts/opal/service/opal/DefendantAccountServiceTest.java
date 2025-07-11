@@ -342,8 +342,14 @@ public class DefendantAccountServiceTest {
 
     @Test
     void testGetAccountDetailsByAccountSummaryTemporary() {
-        defendantAccountService.getAccountDetailsByDefendantAccountId(0L);
-        Assertions.assertDoesNotThrow(() -> { }); // Stops SonarQube complaining about no assertions in method.
+        // Act
+        AccountDetailsDto result = defendantAccountService.getAccountDetailsByDefendantAccountId(0L);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Mr John K Doe", result.getFullName());
+        assertEquals("123 Main Street, Reading, Berkshire", result.getAddress());
+        assertEquals("RG12 0AA", result.getPostCode());
     }
 
     public static AccountDetailsDto buildAccountDetailsDto() {
