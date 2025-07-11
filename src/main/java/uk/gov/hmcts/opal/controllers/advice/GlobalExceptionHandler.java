@@ -35,13 +35,13 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
+import uk.gov.hmcts.opal.util.LogUtil;
 
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.UUID;
 
 import static uk.gov.hmcts.opal.authentication.service.AccessTokenService.AUTH_HEADER;
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
@@ -403,7 +403,7 @@ public class GlobalExceptionHandler {
 
         problemDetail.setProperty("resourceType", e.getPersistentClassName());
         problemDetail.setProperty("resourceId",
-                                  Optional.ofNullable(e.getIdentifier()).map(Object::toString).orElse(""));
+            Optional.ofNullable(e.getIdentifier()).map(Object::toString).orElse(""));
 
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail);
     }
@@ -425,21 +425,17 @@ public class GlobalExceptionHandler {
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail);
     }
 
-    private Throwable getNonNullCause(Throwable t) {
-        return t.getCause() == null ? t : t.getCause();
-    }
-
     private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,
                                               String typeUri, Throwable exception) {
-        String errorId = UUID.randomUUID().toString();
+        String opalOperationId = LogUtil.getOrCreateOpalOperationId();
 
-        log.error("Error ID {}: {}", errorId, exception.getMessage());
-        log.error("Error ID {}:", errorId, exception);
+        log.error("Error ID {}: {}", opalOperationId, exception.getMessage());
+        log.error("Error ID {}:", opalOperationId, exception);
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
         problemDetail.setTitle(title);
         problemDetail.setType(URI.create("https://hmcts.gov.uk/problems/" + typeUri));
-        problemDetail.setInstance(URI.create("https://hmcts.gov.uk/problems/instance/" + errorId));
+        problemDetail.setInstance(URI.create("https://hmcts.gov.uk/problems/instance/" + opalOperationId));
 
         return problemDetail;
     }
