@@ -2,7 +2,7 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 
 buildscript {
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:11.10.1")
+    classpath("org.flywaydb:flyway-database-postgresql:11.10.2")
   }
 }
 
@@ -14,9 +14,13 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.52.0'
   id 'org.sonarqube' version '6.2.0.5505'
   id 'uk.gov.hmcts.java' version '0.12.67'
-  id 'org.flywaydb.flyway' version '11.10.1'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.33'
+  id 'org.flywaydb.flyway' version '11.10.2'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.34'
 }
+//Should we fail fast on test failures?
+
+//Defaults to true if env is not present
+var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
 
 group = 'uk.gov.hmcts'
 version = '0.0.1'
@@ -80,18 +84,17 @@ tasks.withType(Test).configureEach {
   testLogging {
     exceptionFormat = 'full'
   }
+  if (failFast) {
+    failFast = true
+  }
 }
 
-test {
-  failFast = true
-}
 
 tasks.register('integration', Test) {
   description = "Runs integration tests"
   group = "Verification"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
-  failFast = true
 }
 
 tasks.register('functionalOpal', Test) {
@@ -183,10 +186,10 @@ tasks.register('smoke') {
 }
 
 def coverageExclusions = [
-  '**/uk/gov/hmcts/opal/**/model/**',
-  '**/uk/gov/hmcts/opal/**/config/**',
-  '**/uk/gov/hmcts/opal/authentication/client/**',
-  '**/uk/gov/hmcts/opal/**/exception/**'
+    '**/uk/gov/hmcts/opal/**/model/**',
+    '**/uk/gov/hmcts/opal/**/config/**',
+    '**/uk/gov/hmcts/opal/authentication/client/**',
+    '**/uk/gov/hmcts/opal/**/exception/**'
 ]
 
 jacocoTestReport {
@@ -226,6 +229,7 @@ sonarqube {
     property "sonar.gradle.skipCompile", "true"
     property "sonar.exclusions", coverageExclusions.join(', ')
     property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
+    property 'sonar.cpd.exclusions', "**/entity/*"
   }
 }
 
@@ -314,13 +318,13 @@ dependencies {
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.10.1'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.10.2'
   implementation 'org.postgresql:postgresql'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.1'
   compileOnly 'org.projectlombok:lombok:1.18.38'
   annotationProcessor 'org.projectlombok:lombok:1.18.38'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.19.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.20.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -349,13 +353,13 @@ dependencies {
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:junit-jupiter:1.21.3'
   testImplementation 'org.testcontainers:postgresql'
-  testImplementation(platform('org.junit:junit-bom:5.13.2'))
+  testImplementation(platform('org.junit:junit-bom:5.13.3'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  testImplementation 'org.junit.platform:junit-platform-suite:1.13.2'
+  testImplementation 'org.junit.platform:junit-platform-suite:1.13.3'
   testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.23.0'
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"

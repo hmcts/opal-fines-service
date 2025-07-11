@@ -25,7 +25,9 @@ import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -428,6 +430,26 @@ class DraftAccountTransactionsTest {
                                                                           draftAccountTransactions);
 
         Assertions.assertDoesNotThrow(() -> { }); // Stops SonarQube complaining about no assertions in method.
+    }
+
+    @Test
+    void testPublishAccountStoredProc() {
+        // Arrange
+        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder()
+            .draftAccountId(007L)
+            .businessUnit(BusinessUnitEntity.builder()
+                              .businessUnitId((short)78)
+                              .build())
+            .submittedBy("BU001")
+            .submittedByName("Malcolm Mclaren")
+            .build();
+        Map<String, Object> mockOutputs = Collections.emptyMap();
+        when(draftAccountRepository.createDefendantAccount(any(), any(), any(), any(), any(), any()))
+            .thenReturn(mockOutputs);
+
+        // Act
+        Map<String, Object> outputs = draftAccountTransactions.publishAccountStoredProc(draftAccountEntity);
+        assertNotNull(outputs);
     }
 
     private String createTimelineDataString() {

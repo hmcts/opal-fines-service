@@ -33,6 +33,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
@@ -195,6 +196,15 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
         dbDraftAccount.setTimelineData(entity.getTimelineData());
 
         return draftAccountRepository.save(dbDraftAccount);
+    }
+
+    @Transactional
+    public Map<String, Object> publishAccountStoredProc(DraftAccountEntity publishEntity) {
+
+        return draftAccountRepository.createDefendantAccount(publishEntity.getDraftAccountId(),
+                                                             publishEntity.getBusinessUnit().getBusinessUnitId(),
+                                                             publishEntity.getSubmittedBy(),
+                                                             publishEntity.getSubmittedByName(), "", 0L);
     }
 
     private String addSnapshotApprovedDate(DraftAccountEntity existingAccount) {
