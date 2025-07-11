@@ -551,7 +551,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"))
             .andReturn();
 
-        assertTrue(jsonSchemaValidationService.isValid(patchResponse, GET_DRAFT_ACCOUNT_RESPONSE));
+        jsonSchemaValidationService.validateOrError(patchResponse, GET_DRAFT_ACCOUNT_RESPONSE);
     }
 
     @Test

@@ -468,16 +468,16 @@ VALUES
         }
     ]'
 ), (
-    8, 78, '2024-12-10 16:27:01.023126', 'user_003', 'Joe Bloggs',
+    8, 78, '2024-12-10', 'user_003', 'Joe Bloggs',
     NULL, NULL, 'Fixed Penalty Registration', NULL, 'SUBMITTED',
-    NULL, '2025-02-03 16:27:01.023126', NULL, NULL, 0,
+    NULL, '2025-02-03', NULL, NULL, 0,
     '{
         "collection_order_made": true,
         "account_type": "Fine",
         "originator_name": "Police Force",
         "defendant": {
             "surname": "LNAME",
-            "dob": "01/01/2000",
+            "dob": "2000-01-01",
             "company_flag": false,
             "address_line_1": "123 Elm Street",
             "forenames": "FNAME"
