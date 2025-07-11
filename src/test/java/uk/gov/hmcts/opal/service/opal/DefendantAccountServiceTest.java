@@ -10,32 +10,28 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
+import uk.gov.hmcts.opal.dto.AccountSummaryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.dto.AccountSummaryDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -44,6 +40,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DefendantAccountServiceTest {
 
@@ -64,6 +68,10 @@ public class DefendantAccountServiceTest {
 
     @InjectMocks
     private DefendantAccountService defendantAccountService;
+
+    @Mock
+    private UserStateService userStateService;
+
 
     @BeforeEach
     void setUp() {
@@ -131,22 +139,35 @@ public class DefendantAccountServiceTest {
     @Test
     void testSearchDefendantAccounts() {
         // Arrange
+        Page<AccountSummaryDto> mockPage = new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 999L);
+        when(defendantAccountRepository.findBy(any(Specification.class), any()))
+            .thenReturn(mockPage);
+
+        UserState mockUserState = mock(UserState.class);
+        BusinessUnitUser mockBuUser = mock(BusinessUnitUser.class);
+
+        when(mockBuUser.getBusinessUnitId()).thenReturn((short) 30905);
+        when(mockBuUser.hasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(mockUserState.getBusinessUnitUserForBusinessUnit((short) 30905))
+            .thenReturn(Optional.of(mockBuUser));
+        when(userStateService.getUserStateUsingAuthToken("Bearer test_token")).thenReturn(mockUserState);
+
+        AccountSearchDto dto = AccountSearchDto.builder()
+            .court("780000000185")
+            .accountNumber("100A")
+            .build();
+        dto.setAuthHeader("Bearer test_token");
+
+        AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(dto);
+
+        // Assert
         AccountSearchResultsDto expectedResponse =  AccountSearchResultsDto.builder()
             .searchResults(List.of(AccountSummaryDto.builder().build()))
             .totalCount(999L)
             .cursor(1)
             .build();
-        Page<AccountSummaryDto> mockPage = new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 999L);
-        when(defendantAccountRepository.findBy(any(Specification.class), any()))
-            .thenReturn(mockPage);
 
-        // Act
-        AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(
-            AccountSearchDto.builder().build());
-
-        // Assert
         assertEquals(expectedResponse.getTotalCount(), result.getTotalCount());
-
         assertNotNull(defendantAccountService.toDto(new TestDefendantAccountSummary()));
     }
 
@@ -332,6 +353,7 @@ public class DefendantAccountServiceTest {
             .accountNumber("100")
             .fullName("Mr John Smith")
             .accountCT("CT")
+            .businessUnitId((short) 200)
             .address("1 High Street, Westminster, London")
             .postCode("W1 1AA")
             .dob(LocalDate.of(1979,12,12))
@@ -360,6 +382,7 @@ public class DefendantAccountServiceTest {
     public static DefendantAccountEntity buildDefendantAccountEntity() {
 
         BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder()
+            .businessUnitId((short) 200)
             .businessUnitName("CT")
             .build();
 

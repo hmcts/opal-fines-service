@@ -5,24 +5,31 @@ import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountType;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.math.BigDecimal;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -39,6 +46,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts/";
+
+    @Autowired
+    private MockMvc mockMvc;
 
     @MockitoBean
     private UserStateService userStateService;
@@ -79,10 +89,18 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
+        String requestBody = """
+    {
+        "accountNumber": "100A",
+        "court": "780000000185"
+    }
+            """;
+
         ResultActions actions = mockMvc.perform(post(URL_BASE + "search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"criteria\":\"value\"}"));
+                            .content(requestBody));
+
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -103,10 +121,17 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
+        String requestBody = """
+    {
+        "surname": "Wilson",
+        "court": "780000000185"
+    }
+            """;
+
         ResultActions actions = mockMvc.perform(post(URL_BASE + "search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"surname\":\"Wilson\"}"));
+                            .content(requestBody));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound: Response body:\n{}",
@@ -238,4 +263,53 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
             .amountPaid(BigDecimal.ONE)
             .build();
     }
+
+    @Test
+    @DisplayName("Search defendant accounts in Opal mode - Happy Path [@PO-710]")
+    void testSearchDefendantAccountsInOpalMode_HappyPath() throws Exception {
+        // Arrange: mock UserState and BusinessUnitUser
+        UserState mockUserState = mock(UserState.class);
+        BusinessUnitUser mockBuUser = mock(BusinessUnitUser.class);
+
+        when(mockBuUser.getBusinessUnitId()).thenReturn((short) 30905);
+        when(mockBuUser.hasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+
+        UserState.UserBusinessUnitsImpl userBusinessUnits = new UserState.UserBusinessUnitsImpl(Set.of(mockBuUser));
+
+        when(mockUserState.getBusinessUnitUserForBusinessUnit((short) 30905))
+            .thenReturn(Optional.of(mockBuUser));
+
+        when(mockUserState.allBusinessUnitUsersWithPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(userBusinessUnits);
+
+        // Link mockUserState to userStateService mock
+        when(userStateService.getUserStateUsingAuthToken(anyString()))
+            .thenReturn(mockUserState);
+
+        // Prepare valid request JSON
+        String requestBody = """
+    {
+        "accountNumber": "100A",
+        "court": "780000000185"
+    }
+            """;
+
+        // Act: call the API via MockMvc
+        ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
+            .header("Authorization", "Bearer some_token")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody));
+
+        // Assert
+        String responseBody = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testSearchDefendantAccountsInOpalMode_HappyPath: Response body:\n{}", responseBody);
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.total_count").value(1))
+            .andExpect(jsonPath("$.search_results[0].account_no").value("100A"))
+            .andExpect(jsonPath("$.search_results[0].court").value("780000000185"))
+            .andExpect(jsonPath("$.search_results[0].name").value("Ms Anna K Graham"));
+    }
+
 }

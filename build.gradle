@@ -316,6 +316,7 @@ dependencies {
   implementation 'org.postgresql:postgresql'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.1'
+  implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.19.1'
   compileOnly 'org.projectlombok:lombok:1.18.38'
   annotationProcessor 'org.projectlombok:lombok:1.18.38'
   annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.19.Final'
@@ -355,6 +356,7 @@ dependencies {
   }
   testImplementation 'org.junit.platform:junit-platform-suite:1.13.2'
   testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.23.0'
+  testImplementation 'org.mockito:mockito-inline:5.2.0'
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-rest-assured:${serenityVersion}"

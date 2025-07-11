@@ -7,8 +7,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AccountSummaryDto;
@@ -16,13 +21,13 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyDefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyLink;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyDefendantAccountSummary;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyLink;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
@@ -66,6 +71,8 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
     private final BusinessUnitRepository businessRepository;
 
     private final CourtRepository courtRepository;
+
+    private final UserStateService userStateService;
 
     private final DefendantAccountSpecs specs = new DefendantAccountSpecs();
 
@@ -128,11 +135,37 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                 ObjectMapper mapper = getObjectMapper();
                 AccountSearchResultsDto dto = mapper.readValue(in, AccountSearchResultsDto.class);
                 log.debug(":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
-                         dto.toPrettyJsonString());
+                    dto.toPrettyJsonString());
                 return dto;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        // --- ADDED: Check and strip check letter if present (AC3a) ---
+        if (accountSearchDto.getAccountNumber() != null && accountSearchDto.getAccountNumber().length() == 9) {
+            accountSearchDto.setAccountNumber(accountSearchDto.getAccountNumber().substring(0, 8));
+            log.debug(":searchDefendantAccounts: Stripped check letter. New account number: {}",
+                accountSearchDto.getAccountNumber());
+        }
+
+        // --- ADDED: Authorization check (AC2) ---
+        // Only do this if you’ve injected UserStateService (make sure to add it with @RequiredArgsConstructor)
+        UserState userState = userStateService.getUserStateUsingAuthToken(accountSearchDto.getAuthHeader());
+
+        short businessUnitId = accountSearchDto.getNumericCourt()
+            .map(Long::shortValue)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Court ID is required or invalid"));
+
+        BusinessUnitUser buUser = userState.getBusinessUnitUserForBusinessUnit(businessUnitId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "User not associated with business unit " + businessUnitId));
+
+        boolean hasPermission = buUser.hasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
+
+        if (!hasPermission) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                "User does not have 'Search and view accounts' permission in any business unit");
         }
 
         Page<DefendantAccountSummary> summariesPage = defendantAccountRepository

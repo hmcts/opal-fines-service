@@ -104,6 +104,8 @@ public class DefendantAccountController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
+        accountSearchDto.setAuthHeader(authHeaderValue);
+
         AccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
 
         return buildResponse(response);

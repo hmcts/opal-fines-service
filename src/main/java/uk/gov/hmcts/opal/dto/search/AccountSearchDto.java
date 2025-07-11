@@ -44,6 +44,12 @@ public class AccountSearchDto implements ToJsonString {
     @JsonProperty("till_number")
     private String tillNumber;
 
+    @JsonProperty("account_number")
+    private String accountNumber;
+
+    @JsonIgnore
+    private String authHeader;
+
     @JsonIgnore
     public Optional<Long> getNumericCourt() {
         return Optional.ofNullable(getCourt())
