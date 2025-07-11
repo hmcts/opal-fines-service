@@ -366,7 +366,9 @@ public class DefendantAccountServiceTest {
 
         var original = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(new ClassLoader() {
-            @Override public InputStream getResourceAsStream(String name) { return null; }
+            @Override public InputStream getResourceAsStream(String name) {
+                return null;
+            }
         });
 
         try {
