@@ -44,7 +44,7 @@ public class DefendantAccountDto {
 
     @JsonProperty("business_unit_id")
     @XmlElement(name = "business_unit_id")
-    private int businessUnitId;
+    private Integer businessUnitId;
 
     @JsonProperty("business_unit_name")
     @XmlElement(name = "business_unit_name")
