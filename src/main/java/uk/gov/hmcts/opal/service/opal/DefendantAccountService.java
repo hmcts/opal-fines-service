@@ -142,15 +142,12 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             }
         }
 
-        // --- ADDED: Check and strip check letter if present (AC3a) ---
         if (accountSearchDto.getAccountNumber() != null && accountSearchDto.getAccountNumber().length() == 9) {
             accountSearchDto.setAccountNumber(accountSearchDto.getAccountNumber().substring(0, 8));
             log.debug(":searchDefendantAccounts: Stripped check letter. New account number: {}",
                 accountSearchDto.getAccountNumber());
         }
 
-        // --- ADDED: Authorization check (AC2) ---
-        // Only do this if you’ve injected UserStateService (make sure to add it with @RequiredArgsConstructor)
         UserState userState = userStateService.getUserStateUsingAuthToken(accountSearchDto.getAuthHeader());
 
         short businessUnitId = accountSearchDto.getNumericCourt()

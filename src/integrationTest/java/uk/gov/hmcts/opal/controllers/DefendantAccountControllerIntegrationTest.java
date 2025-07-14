@@ -89,12 +89,8 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
-        String requestBody = """
-    {
-        "accountNumber": "100A",
-        "court": "780000000185"
-    }
-            """;
+        String requestBody = buildValidSearchRequest();
+
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "search")
                             .header("authorization", "Bearer some_value")
@@ -121,12 +117,7 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
-        String requestBody = """
-    {
-        "surname": "Wilson",
-        "court": "780000000185"
-    }
-            """;
+        String requestBody = buildSearchRequestForNoResults();
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "search")
                             .header("authorization", "Bearer some_value")
@@ -287,12 +278,7 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
             .thenReturn(mockUserState);
 
         // Prepare valid request JSON
-        String requestBody = """
-    {
-        "accountNumber": "100A",
-        "court": "780000000185"
-    }
-            """;
+        String requestBody = buildValidSearchRequest();
 
         // Act: call the API via MockMvc
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
@@ -312,4 +298,21 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.search_results[0].name").value("Ms Anna K Graham"));
     }
 
+    private String buildValidSearchRequest() {
+        return """
+        {
+          "accountNumber": "100A",
+          "court": "780000000185"
+        }
+            """;
+    }
+
+    private String buildSearchRequestForNoResults() {
+        return """
+        {
+          "surname": "Wilson",
+          "court": "780000000185"
+        }
+            """;
+    }
 }
