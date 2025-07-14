@@ -17,8 +17,7 @@ public interface DraftAccountRepository extends JpaRepository<DraftAccountEntity
     @Procedure(name = JPA_PROC_NAME)
     Map<String, Object> createDefendantAccount(
         @Param(DRAFT_ACC_ID) Long draftAccountId, @Param(BUSINESS_UNIT_ID) Short businessUnitId,
-        @Param(POSTED_BY) String postedBy, @Param(POSTED_BY_NAME) String postedByName,
-        @Param(DEF_ACC_NO) String accNo, @Param(DEF_ACC_ID) Long accId);
+        @Param(POSTED_BY) String postedBy, @Param(POSTED_BY_NAME) String postedByName);
 
     @Procedure(procedureName = DB_PROC_NAME, outputParameterName = DEF_ACC_ID)
     Long exampleSimplerStoredProcedureCall_SingleOutParam(

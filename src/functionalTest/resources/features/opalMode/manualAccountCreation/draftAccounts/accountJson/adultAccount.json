@@ -3,7 +3,7 @@
   "defendant_type": "Adult",
   "originator_name": "Police Force",
   "originator_id": 12345,
-  "enforcement_court_id": 101,
+  "enforcement_court_id": 50000000001,
   "collection_order_made": true,
   "collection_order_made_today": false,
   "payment_card_request": true,

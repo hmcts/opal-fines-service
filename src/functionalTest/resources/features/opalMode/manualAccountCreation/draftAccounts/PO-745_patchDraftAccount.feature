@@ -1,7 +1,7 @@
 @Opal
 Feature: PO-745 patch draft account
 
-  @PO-745 @cleanUpData
+  @PO-745 @PO-991 @cleanUpData
   Scenario: Patch draft account - Pending - happy path
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details

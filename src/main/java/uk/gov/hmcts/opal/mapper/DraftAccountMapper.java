@@ -24,6 +24,8 @@ public interface DraftAccountMapper {
     @Mapping(source = "submittedByName", target = "submittedByName")
     DraftAccountSummaryDto toDto(DraftAccountEntity entity);
 
+    DraftAccountEntity clone(DraftAccountEntity entity);
+
     @Named("toOffsetDateTime")
     static OffsetDateTime toOffsetDateTime(LocalDateTime localDateTime) {
         return localDateTime == null ? null : localDateTime.atOffset(ZoneOffset.UTC);

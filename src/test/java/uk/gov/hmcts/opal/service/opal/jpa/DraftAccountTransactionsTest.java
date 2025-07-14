@@ -444,7 +444,7 @@ class DraftAccountTransactionsTest {
             .submittedByName("Malcolm Mclaren")
             .build();
         Map<String, Object> mockOutputs = Collections.emptyMap();
-        when(draftAccountRepository.createDefendantAccount(any(), any(), any(), any(), any(), any()))
+        when(draftAccountRepository.createDefendantAccount(any(), any(), any(), any()))
             .thenReturn(mockOutputs);
 
         // Act
