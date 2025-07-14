@@ -272,7 +272,7 @@ repositories {
 }
 
 ext {
-  log4JVersion = "2.25.0"
+  log4JVersion = "2.25.1"
   serenityVersion = "4.2.34"
 }
 
@@ -325,7 +325,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.19.1'
   compileOnly 'org.projectlombok:lombok:1.18.38'
   annotationProcessor 'org.projectlombok:lombok:1.18.38'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.20.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.21.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
