@@ -2,7 +2,16 @@
 
 properties([
   // H allow predefined but random minute see https://en.wikipedia.org/wiki/Cron#Non-standard_characters
-  pipelineTriggers([cron('H 08 * * 1-5')])
+  pipelineTriggers([cron('H 08 * * 1-5')]),
+  parameters([
+    booleanParam(name: 'Integration', defaultValue: true, description: 'Run integration tests'),
+    booleanParam(name: 'Functional', defaultValue: true, description: 'Run functional tests'),
+    choice(
+      name: 'LEGACY_URL',
+      choices: ['PRE-PROD', 'DEV'],
+      description: 'Determines the URL to use for legacy tests.'
+    ),
+  ])
 ])
 import uk.gov.hmcts.contino.GradleBuilder
 
@@ -19,15 +28,19 @@ withNightlyPipeline(type, product, component) {
   //enableFullFunctionalTest(600)
 
   afterAlways('DependencyCheckNightly') {
-    stage('Integration Tests') {
-      try {
-        builder.gradle('Integration')
-      } catch (Error) {
-        steps.echo "Integration tests failed, but continuing with the pipeline. Error" + Error.message
-      } finally {
-        steps.junit '**/test-results/integration/*.xml'
-        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
-      }
+   if (params.Integration) {
+     stage('Integration Tests') {
+       try {
+         builder.gradle('Integration')
+       } catch (Error) {
+         steps.echo "Integration tests failed, but continuing with the pipeline. Error" + Error.message
+       } finally {
+         steps.junit '**/test-results/integration/*.xml'
+         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
+       }
+     }
+   }
+    if (params.Functional) {
       stage('Functional Tests') {
         try {
           builder.gradle('Functional')
@@ -52,20 +65,6 @@ withNightlyPipeline(type, product, component) {
             reportFiles          : "test-summary.html",
             reportName           : "Test Summary Report"
           ]
-        }
-      }
-    }
-
-
-    before('fullFunctionalTest') {
-      steps.stage('Integration') {
-        steps.script {
-          try {
-            builder.gradle('integration')
-          } finally {
-            steps.junit '**/test-results/integration/*.xml'
-            steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
-          }
         }
       }
     }
