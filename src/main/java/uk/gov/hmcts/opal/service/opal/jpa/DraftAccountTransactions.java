@@ -204,7 +204,7 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
         return draftAccountRepository.createDefendantAccount(publishEntity.getDraftAccountId(),
                                                              publishEntity.getBusinessUnit().getBusinessUnitId(),
                                                              publishEntity.getSubmittedBy(),
-                                                             publishEntity.getSubmittedByName(), "", 0L);
+                                                             publishEntity.getSubmittedByName());
     }
 
     private String addSnapshotApprovedDate(DraftAccountEntity existingAccount) {
