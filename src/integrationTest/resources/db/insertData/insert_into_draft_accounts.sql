@@ -516,6 +516,48 @@ VALUES
            "reason_text": null
         }
     ]'
+), (
+    9, 78, '2024-12-10', 'user_003', 'Joe Bloggs',
+    NULL, NULL, 'Fixed Penalty Registration', NULL, 'SUBMITTED',
+    NULL, '2025-02-03', NULL, NULL, 0,
+    '{
+        "collection_order_made": true,
+        "account_type": "Fine",
+        "originator_name": "Police Force",
+        "defendant": {
+            "surname": "LNAME",
+            "dob": "2000-01-01",
+            "company_flag": false,
+            "address_line_1": "123 Elm Street",
+            "forenames": "FNAME"
+        },
+        "originator_id": 1234,
+        "offences": [
+            {
+                "offence_id": 1234,
+                "impositions": [
+                    {
+                        "amount_paid": 200,
+                        "amount_imposed": 500,
+                        "result_id": "123AA"
+                    }
+                ],
+                "date_of_sentence": "2023-11-15"
+            }
+        ],
+        "payment_card_request": true,
+        "defendant_type": "Adult",
+        "collection_order_made_today": false,
+        "account_sentence_date": "2023-12-01",
+        "payment_terms": {
+            "payment_terms_type_code": "P"
+        },
+        "enforcement_court_id": 650000000045
+    }',
+    '{
+       "snapshot": "opal-test"
+    }',
+    '[ ]'
 );
 
 SELECT setval('draft_account_id_seq', 99);
