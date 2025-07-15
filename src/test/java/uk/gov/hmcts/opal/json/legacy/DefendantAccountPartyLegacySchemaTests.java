@@ -72,7 +72,6 @@ class DefendantAccountPartyLegacySchemaTests {
     @Test
     @SuppressWarnings("unchecked")
     void testAliasWithInvalidSequenceNumber() throws Exception {
-
         Map<String, Object> alias = new HashMap<>();
         alias.put("alias_id", "BADSEQ");
         alias.put("sequence_number", 10); // invalid, should be 1–5
@@ -88,7 +87,6 @@ class DefendantAccountPartyLegacySchemaTests {
         assertFalse(validator.isValid(jsonNode, GET_SCHEMA_FILE));
     }
 
-    // REPLACE SCHEMA TESTS (Optional)
     @Test
     void testReplaceValidInput() throws Exception {
         Map<String, Object> jsonMap = createGetDefendantAccountPartyLegacyResponseJson();
@@ -110,19 +108,60 @@ class DefendantAccountPartyLegacySchemaTests {
         assertFalse(validator.isValid(jsonNode, REPLACE_SCHEMA_FILE));
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void testOnlyOrganisationDetailsAllowedWhenOrganisationFlagIsTrue() throws Exception {
+        Map<String, Object> jsonMap = createGetDefendantAccountPartyLegacyResponseJson();
+        Map<String, Object> defendantDetails = (Map<String, Object>) jsonMap.get("defendant_details");
+        defendantDetails.put("organisation_flag", true);
+        Map<String, Object> organisationDetails = new HashMap<>();
+        organisationDetails.put("organisation_name", "Test Org");
+        defendantDetails.put("organisation_details", organisationDetails);
+        defendantDetails.remove("individual_details"); // Remove individual details
+
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
+        assertTrue(validator.isValid(jsonNode, GET_SCHEMA_FILE));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testBothIndividualAndOrganisationDetailsPresentFailsValidation() throws Exception {
+        Map<String, Object> jsonMap = createGetDefendantAccountPartyLegacyResponseJson();
+        Map<String, Object> defendantDetails = (Map<String, Object>) jsonMap.get("defendant_details");
+        defendantDetails.put("organisation_flag", true);
+
+        Map<String, Object> organisationDetails = new HashMap<>();
+        organisationDetails.put("organisation_name", "Test Org");
+        organisationDetails.put("company_registration_number", "12345678");
+        defendantDetails.put("organisation_details", organisationDetails);
+
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
+        assertFalse(validator.isValid(jsonNode, GET_SCHEMA_FILE));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testNeitherIndividualNorOrganisationDetailsFailsValidation() throws Exception {
+        Map<String, Object> jsonMap = createGetDefendantAccountPartyLegacyResponseJson();
+        Map<String, Object> defendantDetails = (Map<String, Object>) jsonMap.get("defendant_details");
+        defendantDetails.remove("individual_details");
+        defendantDetails.remove("organisation_details");
+
+        JsonNode jsonNode = mapper.valueToTree(jsonMap);
+        assertFalse(validator.isValid(jsonNode, GET_SCHEMA_FILE));
+    }
+
     private Map<String, Object> createGetDefendantAccountPartyLegacyResponseJson() {
         Map<String, Object> jsonMap = new HashMap<>();
         jsonMap.put("party_id", "PARTY123456");
         jsonMap.put("version", 1);
 
-        // Defendant details
         Map<String, Object> defendantDetails = new HashMap<>();
         defendantDetails.put("debtor_type", "Defendant");
         defendantDetails.put("is_debtor", true);
         defendantDetails.put("organisation_flag", false);
         defendantDetails.put("is_youth_flag", false);
 
-        // Address
         Map<String, Object> address = new HashMap<>();
         address.put("address_line_1", "123 Justice Road");
         address.put("address_line_2", "Apt 4B");
@@ -132,7 +171,6 @@ class DefendantAccountPartyLegacySchemaTests {
         address.put("postcode", "WA1 2AB");
         defendantDetails.put("address", address);
 
-        // Individual details
         Map<String, Object> individualDetails = new HashMap<>();
         individualDetails.put("title", "Mr");
         individualDetails.put("first_names", "John Michael");
@@ -150,7 +188,6 @@ class DefendantAccountPartyLegacySchemaTests {
 
         defendantDetails.put("individual_details", individualDetails);
 
-        // Language preferences
         Map<String, Object> docLangPref = new HashMap<>();
         docLangPref.put("document_language_code", "EN");
         docLangPref.put("document_language_display_name", "English only");
@@ -166,7 +203,6 @@ class DefendantAccountPartyLegacySchemaTests {
 
         jsonMap.put("defendant_details", defendantDetails);
 
-        // Contact details
         Map<String, Object> contactDetails = new HashMap<>();
         contactDetails.put("primary_email_address", "john.doe@example.com");
         contactDetails.put("secondary_email_address", "jm.doe@altmail.com");
@@ -175,13 +211,11 @@ class DefendantAccountPartyLegacySchemaTests {
         contactDetails.put("work_telephone_number", "02079460001");
         jsonMap.put("contact_details", contactDetails);
 
-        // Vehicle details
         Map<String, Object> vehicleDetails = new HashMap<>();
         vehicleDetails.put("vehicle_make_and_model", "Toyota Corolla");
         vehicleDetails.put("vehicle_registration", "AB12CDE");
         jsonMap.put("vehicle_details", vehicleDetails);
 
-        // Employer details
         Map<String, Object> employerDetails = new HashMap<>();
         employerDetails.put("employer_name", "TechCorp Ltd");
         employerDetails.put("employer_reference", "EMP-123456");

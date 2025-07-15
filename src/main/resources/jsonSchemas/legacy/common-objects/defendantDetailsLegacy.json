@@ -21,31 +21,10 @@
       "$ref": "resource:/jsonSchemas/legacy/common-objects/languagePreferencesLegacy.json"
     },
     "organisation_details": {
-      "type": "object",
-      "properties": {
-        "organisation_name": { "type": "string" },
-        "organisation_aliases": {
-          "type": "array",
-          "items": { "$ref": "resource:/jsonSchemas/legacy/common-objects/organisationAliasLegacy.json" }
-        }
-      },
-      "required": ["organisation_name"]
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/organisationDetailsLegacy.json"
     },
     "individual_details": {
-      "type": "object",
-      "properties": {
-        "title": { "type": "string" },
-        "first_names": { "type": "string" },
-        "surname": { "type": "string" },
-        "date_of_birth": { "type": "string" },
-        "age": { "type": "string" },
-        "national_insurance_number": { "type": "string" },
-        "individual_aliases": {
-          "type": "array",
-          "items": { "$ref": "resource:/jsonSchemas/legacy/common-objects/individualAliasLegacy.json" }
-        }
-      },
-      "required": ["title", "first_names", "surname", "date_of_birth"]
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/individualDetailsLegacy.json"
     },
     "is_youth_flag": {
       "type": "boolean"
@@ -60,20 +39,16 @@
   ],
   "allOf": [
     {
-      "if": {
-        "properties": { "organisation_flag": { "const": true } }
-      },
-      "then": {
-        "required": ["organisation_details"]
-      }
+      "if": { "properties": { "organisation_flag": { "const": true } } },
+      "then": { "required": ["organisation_details"] }
     },
     {
-      "if": {
-        "properties": { "organisation_flag": { "const": false } }
-      },
-      "then": {
-        "required": ["individual_details"]
-      }
+      "if": { "properties": { "organisation_flag": { "const": false } } },
+      "then": { "required": ["individual_details"] }
     }
+  ],
+  "oneOf": [
+    { "required": ["individual_details"], "not": { "required": ["organisation_details"] } },
+    { "required": ["organisation_details"], "not": { "required": ["individual_details"] } }
   ]
 }
