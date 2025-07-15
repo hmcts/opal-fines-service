@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Organisation Details Legacy",
+  "type": "object",
+  "properties": {
+    "organisation_name": { "type": "string" },
+    "organisation_aliases": {
+      "type": "array",
+      "items": { "$ref": "resource:/jsonSchemas/legacy/common-objects/organisationAliasLegacy.json" }
+    }
+  },
+  "required": ["organisation_name"]
+}

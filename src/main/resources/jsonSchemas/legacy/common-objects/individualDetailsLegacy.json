@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Individual Details Legacy",
+  "type": "object",
+  "properties": {
+    "title": { "type": "string" },
+    "first_names": { "type": "string" },
+    "surname": { "type": "string" },
+    "date_of_birth": { "type": "string" },
+    "age": { "type": "string" },
+    "national_insurance_number": { "type": "string" },
+    "individual_aliases": {
+      "type": "array",
+      "items": { "$ref": "resource:/jsonSchemas/legacy/common-objects/individualAliasLegacy.json" }
+    }
+  },
+  "required": ["title", "first_names", "surname", "date_of_birth"]
+}
