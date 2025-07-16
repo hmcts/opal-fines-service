@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "properties": {
     "payment_terms_type": {
-      "$ref": ""
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/paymentTermsTypeLegacy.json"
     },
     "effective_date": {
       "type": "string",
