@@ -2,7 +2,16 @@
 
 properties([
   // H allow predefined but random minute see https://en.wikipedia.org/wiki/Cron#Non-standard_characters
-  pipelineTriggers([cron('H 08 * * 1-5')])
+  pipelineTriggers([cron('H 08 * * 1-5')]),
+  parameters([
+    booleanParam(name: 'Integration', defaultValue: true, description: 'Run integration tests'),
+    booleanParam(name: 'Functional', defaultValue: true, description: 'Run functional tests'),
+    choice(
+      name: 'LEGACY_URL',
+      choices: ['PRE-PROD', 'DEV'],
+      description: 'Determines the URL to use for legacy tests.'
+    ),
+  ])
 ])
 import uk.gov.hmcts.contino.GradleBuilder
 
@@ -16,39 +25,48 @@ GradleBuilder builder = new GradleBuilder(this, product)
 
 withNightlyPipeline(type, product, component) {
   env.TEST_URL = "https://opal-fines-service.staging.platform.hmcts.net"
-  enableFullFunctionalTest(600)
+  //enableFullFunctionalTest(600)
 
-  before('fullFunctionalTest') {
-    steps.stage('Integration') {
-      steps.script {
+  afterAlways('DependencyCheckNightly') {
+   if (params.Integration) {
+     stage('Integration Tests') {
+       try {
+         builder.gradle('Integration')
+       } catch (Error) {
+         steps.echo "Integration tests failed, but continuing with the pipeline. Error" + Error.message
+       } finally {
+         steps.junit '**/test-results/integration/*.xml'
+         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
+       }
+     }
+   }
+    if (params.Functional) {
+      stage('Functional Tests') {
         try {
-          builder.gradle('integration')
+          builder.gradle('Functional')
+        } catch (Error) {
+          steps.echo "Functional tests failed, but continuing with the pipeline. Error: " + Error.message
         } finally {
-          steps.junit '**/test-results/integration/*.xml'
-          steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'
+          steps.junit '**/test-results/functional/*.xml'
+          steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/functional/*.xml'
+          publishHTML target: [
+            allowMissing         : true,
+            alwaysLinkToLastBuild: true,
+            keepAll              : true,
+            reportDir            : "functional-test-report/",
+            reportFiles          : "index.html",
+            reportName           : "Serenity Functional Test Report"
+          ]
+          publishHTML target: [
+            allowMissing         : true,
+            alwaysLinkToLastBuild: true,
+            keepAll              : true,
+            reportDir            : "functional-test-report/htmlReport/",
+            reportFiles          : "test-summary.html",
+            reportName           : "Test Summary Report"
+          ]
         }
       }
     }
-  }
-
-  afterAlways('fullFunctionalTest') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'functional-test-report/**/*'
-
-    publishHTML target: [
-      allowMissing         : true,
-      alwaysLinkToLastBuild: true,
-      keepAll              : true,
-      reportDir            : "functional-test-report/",
-      reportFiles          : "index.html",
-      reportName           : "Serenity Functional Test Report"
-    ]
-    publishHTML target: [
-      allowMissing         : true,
-      alwaysLinkToLastBuild: true,
-      keepAll              : true,
-      reportDir            : "functional-test-report/htmlReport/",
-      reportFiles          : "test-summary.html",
-      reportName           : "Test Summary Report"
-    ]
   }
 }

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Update Defendant Account Legacy Request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "defendant_account_id": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer"
+    },
+    "comment_and_notes": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/commentsAndNotesLegacy.json"
+    },
+    "enforcement_court": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/courtReferenceLegacy.json"
+    },
+    "collection_order": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/collectionOrderLegacy.json"
+    },
+    "enforcement_overrides": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/enforcementOverrideLegacy.json"
+    }
+  },
+  "oneOf": [
+    {
+      "required": ["comment_and_notes"],
+      "not": {
+        "anyOf": [
+          { "required": ["enforcement_court"] },
+          { "required": ["collection_order"] },
+          { "required": ["enforcement_overrides"] }
+        ]
+      }
+    },
+    {
+      "required": ["enforcement_court"],
+      "not": {
+        "anyOf": [
+          { "required": ["comment_and_notes"] },
+          { "required": ["collection_order"] },
+          { "required": ["enforcement_overrides"] }
+        ]
+      }
+    },
+    {
+      "required": ["collection_order"],
+      "not": {
+        "anyOf": [
+          { "required": ["comment_and_notes"] },
+          { "required": ["enforcement_court"] },
+          { "required": ["enforcement_overrides"] }
+        ]
+      }
+    },
+    {
+      "required": ["enforcement_overrides"],
+      "not": {
+        "anyOf": [
+          { "required": ["comment_and_notes"] },
+          { "required": ["enforcement_court"] },
+          { "required": ["collection_order"] }
+        ]
+      }
+    }
+  ]
+}
+

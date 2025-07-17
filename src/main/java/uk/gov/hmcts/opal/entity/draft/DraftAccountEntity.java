@@ -13,7 +13,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedStoredProcedureQuery;
+import jakarta.persistence.ParameterMode;
 import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.StoredProcedureParameter;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
@@ -26,6 +29,15 @@ import uk.gov.hmcts.opal.util.Versioned;
 
 import java.time.LocalDateTime;
 
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.BUSINESS_UNIT_ID;
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DB_PROC_NAME;
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DRAFT_ACC_ID;
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.JPA_PROC_NAME;
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.POSTED_BY;
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.POSTED_BY_NAME;
+
 @Entity
 @Table(name = "draft_accounts")
 @Data
@@ -34,6 +46,14 @@ import java.time.LocalDateTime;
 @Builder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "draftAccountId")
+@NamedStoredProcedureQuery(name = JPA_PROC_NAME, procedureName = DB_PROC_NAME, parameters = {
+    @StoredProcedureParameter(mode = ParameterMode.IN, name = DRAFT_ACC_ID, type = Long.class),
+    @StoredProcedureParameter(mode = ParameterMode.IN, name = BUSINESS_UNIT_ID, type = Short.class),
+    @StoredProcedureParameter(mode = ParameterMode.IN, name = POSTED_BY, type = String.class),
+    @StoredProcedureParameter(mode = ParameterMode.IN, name = POSTED_BY_NAME, type = String.class),
+    @StoredProcedureParameter(mode = ParameterMode.INOUT, name = DEF_ACC_NO, type = String.class),
+    @StoredProcedureParameter(mode = ParameterMode.INOUT, name = DEF_ACC_ID, type = Long.class)
+})
 public class DraftAccountEntity implements Versioned {
 
     @Id
