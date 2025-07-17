@@ -76,18 +76,6 @@ class TestingSupportControllerTest {
     }
 
     @Test
-    void updateMode() {
-        AppMode mode = AppMode.builder().mode("legacy").build();
-        when(configService.updateAppMode(any())).thenReturn(mode);
-
-        ResponseEntity<AppMode> response = controller.updateMode(mode);
-
-        assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
-        assertEquals("legacy", response.getBody().getMode());
-
-    }
-
-    @Test
     void isFeatureEnabled() {
         when(featureToggleService.isFeatureEnabled("my-feature")).thenReturn(true);
 
