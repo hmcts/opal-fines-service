@@ -107,8 +107,7 @@ tasks.register('functionalOpal', Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal"))
   testLogging.showStandardStreams = true
   gradle.startParameter.continueOnFailure = true
-  System.getenv().put('DEFAULT_APP_MODE', 'opal')
-
+  environment("DEFAULT_APP_MODE", "opal")
   include '**/OpalTestRunner.class'
 
 }
@@ -121,7 +120,7 @@ tasks.register('functionalLegacy', Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/legacy"))
   gradle.startParameter.continueOnFailure = true
   testLogging.showStandardStreams = true
-  System.getenv().put('DEFAULT_APP_MODE', 'legacy')
+  environment("DEFAULT_APP_MODE", "legacy")
 
   include '**/LegacyTestRunner.class'
 }
