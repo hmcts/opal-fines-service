@@ -7,6 +7,14 @@
     "defendant_account_id": {
       "type": "string"
     },
+    "business_unit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "business_unit_user_id": {
+      "type": "string",
+      "minLength": 1
+    },
     "version": {
       "type": "integer"
     },
@@ -23,6 +31,12 @@
       "$ref": "resource:/jsonSchemas/legacy/common-objects/enforcementOverrideLegacy.json"
     }
   },
+  "required": [
+    "defendant_account_id",
+    "business_unit_id",
+    "business_unit_user_id",
+    "version"
+  ],
   "oneOf": [
     {
       "required": ["comment_and_notes"],
