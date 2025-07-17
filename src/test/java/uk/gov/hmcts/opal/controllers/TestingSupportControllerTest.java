@@ -21,7 +21,6 @@ import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(
@@ -73,18 +72,6 @@ class TestingSupportControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("opal", response.getBody().getMode());
-    }
-
-    @Test
-    void updateMode() {
-        AppMode mode = AppMode.builder().mode("legacy").build();
-        when(configService.updateAppMode(any())).thenReturn(mode);
-
-        ResponseEntity<AppMode> response = controller.updateMode(mode);
-
-        assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
-        assertEquals("legacy", response.getBody().getMode());
-
     }
 
     @Test

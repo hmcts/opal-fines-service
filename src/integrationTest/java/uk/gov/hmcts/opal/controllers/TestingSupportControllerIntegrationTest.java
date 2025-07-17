@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +25,11 @@ import uk.gov.hmcts.opal.service.legacy.LegacyTestingSupportService;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -82,20 +79,6 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
         mockMvc.perform(get("/testing-support/app-mode"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.mode").value("test"));
-    }
-
-    @Test
-    void testUpdateMode() throws Exception {
-        AppMode appMode = AppMode.builder().mode("test").build();
-
-        when(dynamicConfigService.updateAppMode(any(AppMode.class))).thenReturn(appMode);
-
-        mockMvc.perform(put("/testing-support/app-mode")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(appMode)))
-            .andExpect(status().isAccepted())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.mode").value("test"));
     }
