@@ -107,8 +107,7 @@ tasks.register('functionalOpal', Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal"))
   testLogging.showStandardStreams = true
   gradle.startParameter.continueOnFailure = true
-  systemProperty "test.mode", "opal"
-
+  environment("DEFAULT_APP_MODE", "opal")
   include '**/OpalTestRunner.class'
 
 }
@@ -121,7 +120,7 @@ tasks.register('functionalLegacy', Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/legacy"))
   gradle.startParameter.continueOnFailure = true
   testLogging.showStandardStreams = true
-  systemProperty "test.mode", "legacy"
+  environment("DEFAULT_APP_MODE", "legacy")
 
   include '**/LegacyTestRunner.class'
 }
@@ -300,8 +299,6 @@ dependencies {
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-authorization-server', version: '1.5.1'
 
   implementation group: 'org.springframework', name: 'spring-aspects'
-
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-archaius', version: '2.2.10.RELEASE'
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.9'
 

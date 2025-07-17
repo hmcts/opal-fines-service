@@ -18,4 +18,8 @@ public class FeatureToggleService {
     public String getFeatureValue(String feature) {
         return this.featureToggleApi.getFeatureValue(feature, "");
     }
+
+    public String getFeatureValue(String feature, String defaultValue) {
+        return this.featureToggleApi.getFeatureValue(feature, defaultValue);
+    }
 }
