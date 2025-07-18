@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Get Defendant Account Enforcement Status Legacy Response",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enforcement_overview": {
+      "$ref": "#/$defs/enforcementOverview"
+    },
+    "enforcement_override": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/enforcementOverrideLegacy.json"
+    },
+    "last_enforcement_action": {
+      "$ref": "#/$defs/enforcementAction"
+    },
+    "next_enforcement_action_data": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9]{1,6}(,[A-Za-z0-9]{1,6})*$"
+        },
+        {
+          "type": "string",
+          "const": "all"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "A comma-separated list of result IDs, 'all' , or null ."
+    },
+    "defendant_account_type": {
+      "type": "string",
+      "enum": [
+        "adult",
+        "company",
+        "youth"
+      ]
+    },
+    "account_status": {
+      "$ref": "resource:/jsonSchemas/legacy/common-objects/accountStatusReferenceLegacy.json"
+    },
+    "employer_flag": {
+      "type": "boolean"
+    },
+    "version": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "enforcement_overview",
+    "defendant_account_type",
+    "account_status",
+    "employer_flag",
+    "version"
+  ],
+  "$defs": {
+    "enforcementOverview": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "collection_order": {
+          "$ref": "resource:/jsonSchemas/legacy/common-objects/collectionOrderLegacy.json"
+        },
+        "days_in_default": {
+          "type": "integer"
+        },
+        "enforcement_court": {
+          "$ref": "resource:/jsonSchemas/legacy/common-objects/courtReferenceLegacy.json"
+        }
+      },
+      "required": [
+        "collection_order",
+        "enforcement_court"
+      ]
+    },
+    "enforcementAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enforcement_action": {
+          "$ref": "resource:/jsonSchemas/legacy/common-objects/resultReferenceLegacy.json"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "enforcer": {
+          "$ref": "resource:/jsonSchemas/legacy/common-objects/enforcerReferenceLegacy.json"
+        },
+        "warrant_number": {
+          "type": "string"
+        },
+        "date_added": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "result_responses": {
+          "type": "array",
+          "items": {
+            "$ref": "resource:/jsonSchemas/legacy/common-objects/resultResponsesLegacy.json"
+          }
+        }
+      },
+      "required": [
+        "enforcement_action",
+        "date_added"
+      ]
+    }
+  }
+}
+
+
