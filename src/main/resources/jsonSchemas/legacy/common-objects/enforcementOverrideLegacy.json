@@ -5,6 +5,8 @@
   "additionalProperties": false,
   "properties": {
     "enforcement_override_id": { "type": "string" },
-    "enforcement_override_title": { "type": "string" }
+    "enforcement_override_title": { "type": "string" },
+    "enforcer": {"type": "string"},
+    "lja": {"type": "string"}
   }
 }

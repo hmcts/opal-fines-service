@@ -2,7 +2,7 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 
 buildscript {
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:11.10.2")
+    classpath("org.flywaydb:flyway-database-postgresql:11.10.3")
   }
 }
 
@@ -14,7 +14,7 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.52.0'
   id 'org.sonarqube' version '6.2.0.5505'
   id 'uk.gov.hmcts.java' version '0.12.67'
-  id 'org.flywaydb.flyway' version '11.10.2'
+  id 'org.flywaydb.flyway' version '11.10.3'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.34'
 }
 //Should we fail fast on test failures?
@@ -107,8 +107,7 @@ tasks.register('functionalOpal', Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/opal"))
   testLogging.showStandardStreams = true
   gradle.startParameter.continueOnFailure = true
-  systemProperty "test.mode", "opal"
-
+  environment("DEFAULT_APP_MODE", "opal")
   include '**/OpalTestRunner.class'
 
 }
@@ -121,7 +120,7 @@ tasks.register('functionalLegacy', Test) {
   reports.junitXml.getOutputLocation().set(layout.buildDirectory.dir("test-results/functional/legacy"))
   gradle.startParameter.continueOnFailure = true
   testLogging.showStandardStreams = true
-  systemProperty "test.mode", "legacy"
+  environment("DEFAULT_APP_MODE", "legacy")
 
   include '**/LegacyTestRunner.class'
 }
@@ -301,8 +300,6 @@ dependencies {
 
   implementation group: 'org.springframework', name: 'spring-aspects'
 
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-archaius', version: '2.2.10.RELEASE'
-
   implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.9'
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.1.9'
@@ -318,7 +315,7 @@ dependencies {
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.10.2'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.10.3'
   implementation 'org.postgresql:postgresql'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.1'
