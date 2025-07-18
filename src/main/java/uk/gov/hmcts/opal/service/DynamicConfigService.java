@@ -1,30 +1,25 @@
 package uk.gov.hmcts.opal.service;
 
-import com.netflix.config.ConfigurationManager;
-import com.netflix.config.DynamicPropertyFactory;
-import com.netflix.config.DynamicStringProperty;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.AppMode;
+import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 
 @Service
 public class DynamicConfigService {
 
-    private final DynamicStringProperty appMode;
+    private static final String APP_MODE_LAUNCH_DARKLY_KEY = "app-mode";
+    private final FeatureToggleService featureToggleService;
+    private final String defaultAppMode;
 
-    public DynamicConfigService(@Value("${app-mode}") String defaultMode) {
-        this.appMode = DynamicPropertyFactory.getInstance()
-            .getStringProperty("app-mode", defaultMode);
+    public DynamicConfigService(FeatureToggleService featureToggleService, @Value("${app-mode}") String defaultMode) {
+        this.defaultAppMode = defaultMode;
+        this.featureToggleService = featureToggleService;
     }
 
     public AppMode getAppMode() {
         return AppMode.builder()
-            .mode(this.appMode.get())
+            .mode(featureToggleService.getFeatureValue(APP_MODE_LAUNCH_DARKLY_KEY, defaultAppMode))
             .build();
-    }
-
-    public AppMode updateAppMode(AppMode newValue) {
-        ConfigurationManager.getConfigInstance().setProperty("app-mode", newValue.getMode());
-        return this.getAppMode();
     }
 }
