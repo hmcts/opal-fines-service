@@ -39,7 +39,7 @@ class AuthorizationAspectTest {
         .businessUnitUserId("BU123")
         .permissions(Set.of(
             Permission.builder()
-                .permissionId(54L)
+                .permissionId(3L)
                 .permissionName("Account Enquiry")
                 .build()))
         .build();

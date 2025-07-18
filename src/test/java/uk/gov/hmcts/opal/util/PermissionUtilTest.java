@@ -18,7 +18,7 @@ public class PermissionUtilTest {
 
     @Test
     void testCheckBusinessUnitUserHasPermission_success() {
-        BusinessUnitUser businessUnitUser = createBusinessUnitUser(createSinglePermissions(41L));
+        BusinessUnitUser businessUnitUser = createBusinessUnitUser(createSinglePermissions(2L));
         Permissions permission = Permissions.ACCOUNT_ENQUIRY_NOTES;
         assertTrue(PermissionUtil.checkBusinessUnitUserHasPermission(businessUnitUser, permission));
     }
@@ -35,7 +35,7 @@ public class PermissionUtilTest {
 
     @Test
     void testCheckBusinessUnitUserHasPermission_fail2() {
-        BusinessUnitUser businessUnitUser = createBusinessUnitUser(createSinglePermissions(41L));
+        BusinessUnitUser businessUnitUser = createBusinessUnitUser(createSinglePermissions(2L));
         Permissions permission = Permissions.ACCOUNT_ENQUIRY;
         AccessDeniedException ade = assertThrows(
             AccessDeniedException.class,
@@ -45,7 +45,7 @@ public class PermissionUtilTest {
 
     @Test
     void testCheckAnyBusinessUnitUserHasPermission_success() {
-        UserState userState = createUserState(Set.of(createBusinessUnitUser(createSinglePermissions(41L))));
+        UserState userState = createUserState(Set.of(createBusinessUnitUser(createSinglePermissions(2L))));
         Permissions permission = Permissions.ACCOUNT_ENQUIRY_NOTES;
         assertTrue(PermissionUtil.checkAnyBusinessUnitUserHasPermission(userState, permission));
     }
