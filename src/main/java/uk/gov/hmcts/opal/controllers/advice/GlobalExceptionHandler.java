@@ -429,7 +429,6 @@ public class GlobalExceptionHandler {
                                               String typeUri, Throwable exception) {
         String opalOperationId = LogUtil.getOrCreateOpalOperationId();
 
-        log.error("Error ID {}: {}", opalOperationId, exception.getMessage());
         log.error("Error ID {}:", opalOperationId, exception);
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
