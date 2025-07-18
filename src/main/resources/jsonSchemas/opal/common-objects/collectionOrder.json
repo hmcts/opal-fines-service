@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Collection Order Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "collection_order_flag": {
+      "type": "boolean",
+      "description": "Flag indicating if a collection order is applied to the account"
+    },
+    "collection_order_date": {
+      "type": "string",
+      "format": "date",
+      "description": "The date when the collection order was applied"
+    }
+  },
+  "required": ["collection_order_flag", "collection_order_date"]
+}

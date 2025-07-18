@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Court Reference",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "court_id": { "type": "integer" },
+    "court_name": { "type": "string" }
+  },
+  "required": ["court_id", "court_name"]
+}

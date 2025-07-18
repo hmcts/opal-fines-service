@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Result Responses",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "parameter_name": { "type": "string" },
+    "response": { "type": "string" }
+  },
+  "required": ["parameter_name", "response"]
+}

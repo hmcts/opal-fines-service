@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Get Defendant Account Enforcement Status Response",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enforcement_overview": {
+      "$ref": "#/$defs/enforcementOverview"
+    },
+    "enforcement_override": {
+      "oneOf": [
+        {
+          "$ref": "resource:/jsonSchemas/opal/common-objects/enforcementOverride.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "last_enforcement_action": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/enforcementAction"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "next_enforcement_action_data": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9]{1,6}(,[A-Za-z0-9]{1,6})*$"
+        },
+        {
+          "type": "string",
+          "const": "all"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "A comma-separated list of result IDs, 'all' , or null ."
+    },
+    "defendant_account_type": {
+      "type": "string",
+      "enum": [
+        "adult",
+        "company",
+        "youth"
+      ]
+    },
+    "account_status": {
+      "$ref": "resource:/jsonSchemas/opal/common-objects/accountStatusReference.json"
+    },
+    "employer_flag": {
+      "type": "boolean"
+    },
+    "version": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "enforcement_overview",
+    "enforcement_override",
+    "last_enforcement_action",
+    "next_enforcement_action_data",
+    "defendant_account_type",
+    "account_status",
+    "employer_flag",
+    "version"
+  ],
+  "$defs": {
+    "enforcementOverview": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "collection_order": {
+          "$ref": "resource:/jsonSchemas/opal/common-objects/collectionOrder.json"
+        },
+        "days_in_default": {
+          "type": ["integer", "null"]
+        },
+        "enforcement_court": {
+          "$ref": "resource:/jsonSchemas/opal/common-objects/courtReference.json"
+        }
+      },
+      "required": [
+        "collection_order",
+        "days_in_default",
+        "enforcement_court"
+      ]
+    },
+    "enforcementAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enforcement_action": {
+          "$ref": "resource:/jsonSchemas/opal/common-objects/resultReference.json"
+        },
+        "reason": {
+          "type": ["string", "null"]
+        },
+        "enforcer": {
+          "oneOf": [
+            {
+              "$ref": "resource:/jsonSchemas/opal/common-objects/enforcerReference.json"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "warrant_number": {
+          "type": ["string", "null"]
+        },
+        "date_added": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "result_responses": {
+          "type": ["array","null"],
+          "items": {
+            "$ref": "resource:/jsonSchemas/opal/common-objects/resultResponses.json"
+          }
+        }
+      },
+      "required": [
+        "enforcement_action",
+        "reason",
+        "enforcer",
+        "warrant_number",
+        "date_added",
+        "result_responses"
+      ]
+    }
+  }
+}
+
+
