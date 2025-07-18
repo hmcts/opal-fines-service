@@ -102,7 +102,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                                           .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(7))
+            .andExpect(jsonPath("$.count").value(8))
             .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[2].account_type")
@@ -532,25 +532,26 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Update draft account - Should return updated account details [@PO-973, @PO-745]")
     void testUpdateDraftAccount_success() throws Exception {
-
+        Long draftAccountId = 8L; // not touched by any other PATCH/PUT test
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        MvcResult result = mockMvc.perform(patch(URL_BASE + "/" + 6)
+        ResultActions patchResultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                                                .header("authorization", "Bearer some_value")
                                                .contentType(MediaType.APPLICATION_JSON)
-                                               .content(validUpdateRequestBody("A")))
-            .andExpect(status().isOk())
+                                               .content(validUpdateRequestBody("Publishing Pending","A")));
+
+        String patchResponse = patchResultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testUpdateDraftAccount_success: PATCH Response body:\n{}", ToJsonString.toPrettyJson(patchResponse));
+
+        patchResultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.draft_account_id").value(6))
+            .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.business_unit_id").value(78))
-            .andExpect(jsonPath("$.account_status").value("Publishing Pending"))
+            .andExpect(jsonPath("$.account_status").value("Published"))
             .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"))
             .andReturn();
 
-        String body = result.getResponse().getContentAsString();
-        log.info(":testUpdateDraftAccount_success: Response body:\n" + ToJsonString.toPrettyJson(body));
-
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNT_RESPONSE));
+        jsonSchemaValidationService.validateOrError(patchResponse, GET_DRAFT_ACCOUNT_RESPONSE);
     }
 
     @Test
@@ -563,11 +564,11 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                 .header("authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(validUpdateRequestBody("A")))
+                .content(validUpdateRequestBody("Rejected","A")))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
-            .andExpect(jsonPath("$.account_status").value("Publishing Pending"))
+            .andExpect(jsonPath("$.account_status").value("Rejected"))
             .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
     }
 
@@ -582,7 +583,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                 .header("authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(validUpdateRequestBody("PO1820")))
+                .content(validUpdateRequestBody("Publishing Pending","PO1820")))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
@@ -857,7 +858,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         return Stream.of(
             Arguments.of(post(URL_BASE), validCreateRequestBody()),
             Arguments.of(put(URL_BASE + "/1"), validCreateRequestBody()),
-            Arguments.of(patch(URL_BASE + "/1"), validUpdateRequestBody("B")),
+            Arguments.of(patch(URL_BASE + "/1"), validUpdateRequestBody("Publishing Pending","B")),
             Arguments.of(get(URL_BASE), "")  // GET endpoints with empty body
         );
     }
@@ -884,7 +885,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         return Stream.of(
             Arguments.of(get(URL_BASE + "/999"), ""),
             Arguments.of(put(URL_BASE + "/999"), validCreateRequestBody()),
-            Arguments.of(patch(URL_BASE + "/999"), validUpdateRequestBody("C"))
+            Arguments.of(patch(URL_BASE + "/999"), validUpdateRequestBody("Publishing Pending","C"))
         );
     }
 
@@ -1187,9 +1188,9 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             }""";
     }
 
-    private static String validUpdateRequestBody(String delta) {
+    private static String validUpdateRequestBody(String status, String delta) {
         return "{\n"
-            + "    \"account_status\": \"Publishing Pending\",\n"
+            + "    \"account_status\": \"" + status + "\",\n"
             + "    \"validated_by\": \"BUUID1" + delta + "\",\n"
             + "    \"validated_by_name\": \"" + delta + "\",\n"
             + "    \"business_unit_id\": 78,\n"
@@ -1242,4 +1243,5 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 "business_unit_id": 1
             }""";
     }
+
 }

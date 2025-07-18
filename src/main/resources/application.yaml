@@ -108,7 +108,7 @@ azure:
   application-insights:
     instrumentation-key: ${opal.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
 
-app-mode: opal
+app-mode: ${DEFAULT_APP_MODE:opal}
 
 legacy-gateway:
   url: ${OPAL_LEGACY_GATEWAY_URL:http://localhost:4553/opal}
