@@ -37,6 +37,8 @@ class UpdateDefendantAccountLegacySchemaTests {
         return Stream.of(
             Map.of(
                 "defendant_account_id", "abc123",
+                "business_unit_id", "456",
+                "business_unit_user_id", "123",
                 "version", 1,
                 "comment_and_notes", Map.of(
                     "account_comment", "Test comment",
@@ -45,6 +47,8 @@ class UpdateDefendantAccountLegacySchemaTests {
             ),
             Map.of(
                 "defendant_account_id", "abc123",
+                "business_unit_id", "456",
+                "business_unit_user_id", "123",
                 "version", 1,
                 "enforcement_court", Map.of(
                     "court_id", 1,
@@ -53,6 +57,8 @@ class UpdateDefendantAccountLegacySchemaTests {
             ),
             Map.of(
                 "defendant_account_id", "abc123",
+                "business_unit_id", "456",
+                "business_unit_user_id", "123",
                 "version", 1,
                 "collection_order", Map.of(
                     "collection_order_flag", true,
@@ -61,6 +67,8 @@ class UpdateDefendantAccountLegacySchemaTests {
             ),
             Map.of(
                 "defendant_account_id", "abc123",
+                "business_unit_id", "456",
+                "business_unit_user_id", "123",
                 "version", 1,
                 "enforcement_overrides", Map.of(
                     "enforcement_override_id", "EO-1",
@@ -75,6 +83,8 @@ class UpdateDefendantAccountLegacySchemaTests {
             // Multiple optional fields
             Map.of(
                 "defendant_account_id", "abc123",
+                "business_unit_id", "456",
+                "business_unit_user_id", "123",
                 "version", 1,
                 "comment_and_notes", Map.of(
                     "account_comment", "Test comment"
@@ -87,11 +97,15 @@ class UpdateDefendantAccountLegacySchemaTests {
             // No optional fields
             Map.of(
                 "defendant_account_id", "abc123",
+                "business_unit_id", "456",
+                "business_unit_user_id", "123",
                 "version", 1
             ),
             // Two optional fields present
             Map.of(
                 "defendant_account_id", "abc123",
+                "business_unit_id", "456",
+                "business_unit_user_id", "123",
                 "version", 1,
                 "collection_order", Map.of(
                     "collection_order_flag", true,
