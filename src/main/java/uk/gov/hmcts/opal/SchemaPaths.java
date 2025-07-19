@@ -20,6 +20,7 @@ public class SchemaPaths {
     public static final String GET_PROSECUTORS_REF_DATA_RESPONSE = REFERENCE_DATA
         + "/getProsecutorsRefDataResponse.json";
 
+    public static final String SEARCH_DEFENDANT_ACCOUNT = "searchDefendantAccount";
 
     private SchemaPaths() {
         // Utility class — prevent instantiation

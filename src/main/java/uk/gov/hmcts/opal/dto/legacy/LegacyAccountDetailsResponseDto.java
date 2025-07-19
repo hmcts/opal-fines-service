@@ -46,6 +46,7 @@ public class LegacyAccountDetailsResponseDto implements ToJsonString {
                           ? partyDto.getOrganisationName()
                           : partyDto.getFullName())
             .accountCT(defendantAccountDto.getBusinessUnitName())
+            .businessUnitId((short) (int) defendantAccountDto.getBusinessUnitId())
             .address(DefendantAccountService.buildFullAddress(
                 partyDto.getAddressLine1(),
                 partyDto.getAddressLine2(),
