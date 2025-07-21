@@ -1,11 +1,15 @@
 package uk.gov.hmcts.opal.authorisation.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum Permissions {
     CREATE_MANAGE_DRAFT_ACCOUNTS(35, "Create and Manage Draft Accounts"),
     ACCOUNT_ENQUIRY(54, "Account Enquiry"),
     ACCOUNT_ENQUIRY_NOTES(41, "Account Enquiry - Account Notes"),
     COLLECTION_ORDER(500, "Collection Order"),
-    CHECK_VALIDATE_DRAFT_ACCOUNTS(501, "Check and Validate Draft Accounts");
+    CHECK_VALIDATE_DRAFT_ACCOUNTS(501, "Check and Validate Draft Accounts"),
+    SEARCH_AND_VIEW_ACCOUNTS(6, "Search and view accounts"),
+    SEARCH_DEFENDANT_ACCOUNTS(600, "Search Defendant Accounts");
 
     public static final Permissions[] DRAFT_ACCOUNT_PERMISSIONS = {
         CREATE_MANAGE_DRAFT_ACCOUNTS, CHECK_VALIDATE_DRAFT_ACCOUNTS
@@ -18,5 +22,10 @@ public enum Permissions {
     Permissions(long id, String description) {
         this.id = id;
         this.description = description;
+    }
+
+    @JsonCreator
+    public static Permissions fromString(String value) {
+        return Permissions.valueOf(value.toUpperCase());
     }
 }

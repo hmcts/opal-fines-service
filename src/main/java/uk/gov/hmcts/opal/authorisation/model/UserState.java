@@ -59,6 +59,10 @@ public class UserState {
         return userHasPermission(getBusinessUnitUserForBusinessUnit(businessUnitId), permission);
     }
 
+    public boolean hasPermissionToSearchDefendantAccounts() {
+        return anyBusinessUnitUserHasPermission(Permissions.SEARCH_DEFENDANT_ACCOUNTS);
+    }
+
     public static boolean userHasPermission(Optional<BusinessUnitUser> user, Permissions permission) {
         return user.stream().anyMatch(r -> r.hasPermission(permission));
     }
@@ -143,7 +147,6 @@ public class UserState {
             return true;
         }
 
-
         @Override
         public UserBusinessUnits allBusinessUnitUsersWithPermission(Permissions permission) {
             return new UserBusinessUnits() {
@@ -153,6 +156,13 @@ public class UserState {
                 }
 
             };
+        }
+    }
+
+    public static class RestrictedDeveloperUserState extends DeveloperUserState {
+        @Override
+        public boolean hasPermissionToSearchDefendantAccounts() {
+            return false;
         }
     }
 }

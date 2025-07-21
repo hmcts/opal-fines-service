@@ -65,13 +65,15 @@ public class DefendantAccountSearchResultTest {
         assertNotNull(model2.toAccountSummaryDto());
 
         AccountSummaryDto dto = model2.toAccountSummaryDto();
-        assertEquals("Mr John Smith", dto.getName());
-        assertEquals("accountNo", dto.getAccountNo());
-        assertEquals("Cardiff", dto.getCourt());
+        assertEquals("Mr", dto.getDefendantTitle());
+        assertEquals("John", dto.getDefendantFirstnames());
+        assertEquals("Smith", dto.getDefendantSurname());
+        assertEquals("accountNumber", dto.getAccountNumber());
+        assertEquals("Cardiff", dto.getBusinessUnitName());
         assertEquals(12345L, dto.getDefendantAccountId());
-        assertEquals(BigDecimal.valueOf(1000), dto.getBalance());
+        assertEquals(BigDecimal.valueOf(1000), dto.getAccountBalance());
         assertEquals("Scotland", dto.getAddressLine1());
-        assertEquals(LocalDate.of(1977, 6, 26), dto.getDateOfBirth());
+        assertEquals(LocalDate.of(1977, 6, 26), dto.getBirthDate());
 
     }
 
@@ -79,9 +81,9 @@ public class DefendantAccountSearchResultTest {
         return DefendantAccountSearchResult.builder()
             .accountNumber("accountNo")
             .defendantAccountId(12345L)
-            .surname("Smith")
-            .forenames("John")
-            .title("Mr")
+            .defendantSurname("Smith")
+            .defendantFirstnames("John")
+            .defendantTitle("Mr")
             .birthDate("1977-06-26")
             .addressLine1("Scotland")
             .accountBalance(BigDecimal.valueOf(1000))

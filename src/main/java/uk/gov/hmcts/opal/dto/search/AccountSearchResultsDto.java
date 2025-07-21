@@ -32,7 +32,7 @@ public class AccountSearchResultsDto implements ToJsonString {
     @JsonProperty("page_size")
     private final Integer pageSize = 100;
     /** A list of AccountSummary objects, limited to a maximum of pageSize. */
-    @JsonProperty("search_results")
+    @JsonProperty("defendant_accounts")
     private List<AccountSummaryDto> searchResults;
 
     public static class AccountSearchResultsDtoBuilder {
@@ -42,7 +42,7 @@ public class AccountSearchResultsDto implements ToJsonString {
             return this;
         }
 
-        private AccountSearchResultsDtoBuilder count(Integer count) {
+        public AccountSearchResultsDtoBuilder count(Integer count) {
             this.count = count;
             return this;
         }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,13 +17,13 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyDefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyLink;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyDefendantAccountSummary;
+import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyLink;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
@@ -33,6 +34,7 @@ import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -66,6 +68,10 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
     private final BusinessUnitRepository businessRepository;
 
     private final CourtRepository courtRepository;
+
+    private final UserStateService userStateService;
+    @Autowired
+    private LegacyDefendantAccountService legacyService;
 
     private final DefendantAccountSpecs specs = new DefendantAccountSpecs();
 
@@ -313,13 +319,15 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
     public AccountSummaryDto toDto(DefendantAccountSummary summary) {
         Optional<PartyDefendantAccountSummary> party = summary.getParties().stream().findAny().map(PartyLink::getParty);
         return AccountSummaryDto.builder()
-            .defendantAccountId(summary.getDefendantAccountId())
-            .accountNo(summary.getAccountNumber())
-            .court(summary.getImposingCourtId())
-            .balance(summary.getAccountBalance())
-            .name(party.map(PartyDefendantAccountSummary::getFullName).orElse(""))
+            .defendantAccountId(String.valueOf(summary.getDefendantAccountId()))
+            .accountNumber(summary.getAccountNumber())
+            .accountBalance(summary.getAccountBalance())
+            .organisationName(party.map(PartyDefendantAccountSummary::getOrganisationName).orElse(null))
+            .defendantTitle(party.map(PartyDefendantAccountSummary::getDefendantTitle).orElse(null))
+            .defendantFirstnames(party.map(PartyDefendantAccountSummary::getDefendantFirstnames).orElse(null))
+            .defendantSurname(party.map(PartyDefendantAccountSummary::getDefendantSurname).orElse(null))
             .addressLine1(party.map(PartyDefendantAccountSummary::getAddressLine1).orElse(""))
-            .dateOfBirth(party.map(PartyDefendantAccountSummary::getDateOfBirth).orElse(null))
+            .birthDate(party.map(PartyDefendantAccountSummary::getDateOfBirth).orElse(null))
             .build();
     }
 }

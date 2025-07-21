@@ -15,12 +15,14 @@ public class AccountSummaryDtoTest {
         final LocalDate today = LocalDate.now();
         AccountSummaryDto accountEnquiryDto = constructTestAccountSummaryDto(today);
 
-        assertEquals("accountNameNo", accountEnquiryDto.getAccountNo());
-        assertEquals("Mr John Smith", accountEnquiryDto.getName());
+        assertEquals("accountNameNo", accountEnquiryDto.getAccountNumber());
+        assertEquals("Mr", accountEnquiryDto.getDefendantTitle());
+        assertEquals("John", accountEnquiryDto.getDefendantFirstnames());
+        assertEquals("Smith", accountEnquiryDto.getDefendantSurname());
         assertEquals("Scotland", accountEnquiryDto.getAddressLine1());
-        assertEquals(today, accountEnquiryDto.getDateOfBirth());
-        assertEquals(BigDecimal.valueOf(1000), accountEnquiryDto.getBalance());
-        assertEquals("London", accountEnquiryDto.getCourt());
+        assertEquals(today, accountEnquiryDto.getBirthDate());
+        assertEquals(BigDecimal.valueOf(1000), accountEnquiryDto.getAccountBalance());
+        assertEquals("London", accountEnquiryDto.getBusinessUnitName());
 
         assertNotNull(AccountEnquiryDto.builder().toString());
     }
@@ -57,12 +59,14 @@ public class AccountSummaryDtoTest {
 
     private AccountSummaryDto constructTestAccountSummaryDto(final LocalDate today) {
         return AccountSummaryDto.builder()
-            .accountNo("accountNameNo")
-            .name("Mr John Smith")
-            .dateOfBirth(today)
+            .accountNumber("accountNameNo")
+            .defendantTitle("Mr")
+            .defendantFirstnames("John")
+            .defendantSurname("Smith")
+            .birthDate(today)
             .addressLine1("Scotland")
-            .balance(BigDecimal.valueOf(1000))
-            .court("London")
+            .accountBalance(BigDecimal.valueOf(1000))
+            .businessUnitName("London")
             .build();
     }
 }

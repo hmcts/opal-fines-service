@@ -14,15 +14,16 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountType;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.math.BigDecimal;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -68,7 +69,7 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
-        mockMvc.perform(get(URL_BASE + "2")
+        mockMvc.perform(get(URL_BASE + "999")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isNotFound());
     }
@@ -82,7 +83,12 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"criteria\":\"value\"}"));
+                            .content("""
+                                    {
+                                        "account_number": "100A",
+                                         "court": "780000000185"
+                                    }
+                                    """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -90,11 +96,13 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.page_size").value(100))
-            .andExpect(jsonPath("$.search_results[0].defendant_account_id").value(1))
-            .andExpect(jsonPath("$.search_results[0].account_no").value("100A"))
-            .andExpect(jsonPath("$.search_results[0].name").value("Ms Anna K Graham"))
-            .andExpect(jsonPath("$.search_results[0].court").value("780000000185"))
-            .andExpect(jsonPath("$.search_results[0].address_line_1").value("Lumber House"));
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("100A"))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_firstnames").value("Anna K"))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"))
+            .andExpect(jsonPath("$.defendant_accounts[0].court").value("780000000185"))
+            .andExpect(jsonPath("$.defendant_accounts[0].address_line_1").value("Lumber House"));
+
     }
 
     @Test
@@ -106,7 +114,7 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "search")
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"surname\":\"Wilson\"}"));
+                            .content("{\"surname\":\"Wilson\", \"court\": \"780000000185\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound: Response body:\n{}",
@@ -115,6 +123,63 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(0));
+    }
+
+    @Test
+    @DisplayName("Legacy mode: search defendant accounts – happy path [@PO-1901]")
+    void testSearchDefendantAccountsLegacy_HappyPath() throws Exception {
+        when(userStateService.getUserStateUsingAuthToken(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        ResultActions result = mockMvc.perform(post(URL_BASE + "search")
+            .header("Authorization", "Bearer some_token")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(buildValidSearchRequest()));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":testSearchDefendantAccountsLegacy_HappyPath: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("100A"))
+            .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value("Acme Ltd"));
+    }
+
+    @Test
+    @DisplayName("Legacy mode: 403 Forbidden when user lacks permission [@PO-1901]")
+    void testSearchDefendantAccountsLegacy_Forbidden() throws Exception {
+        when(userStateService.getUserStateUsingAuthToken(anyString()))
+            .thenReturn(new UserState.RestrictedDeveloperUserState());
+
+        ResultActions result = mockMvc.perform(post(URL_BASE + "search")
+            .header("Authorization", "Bearer no_access")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(buildValidSearchRequest()));
+
+        result.andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Legacy mode: 400 Bad Request when court is invalid [@PO-1901]")
+    void testSearchDefendantAccountsLegacy_BadRequest_InvalidCourt() throws Exception {
+        // Simulate user WITH permission
+        UserState mockUserState = mock(UserState.class);
+        when(mockUserState.hasPermissionToSearchDefendantAccounts()).thenReturn(true);
+        when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(mockUserState);
+
+        String badRequestBody = """
+        {
+          "court": "INVALID_COURT"
+        }
+            """;
+
+        ResultActions result = mockMvc.perform(post(URL_BASE + "search")
+            .header("Authorization", "Bearer some_token")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(badRequestBody));
+
+        result.andExpect(status().isBadRequest());
     }
 
     @Test
@@ -237,5 +302,14 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
             .accountBalance(BigDecimal.TEN)
             .amountPaid(BigDecimal.ONE)
             .build();
+    }
+
+    private String buildValidSearchRequest() {
+        return """
+        {
+          "accountNumber": "100A",
+          "court": "780000000185"
+        }
+            """;
     }
 }

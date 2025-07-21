@@ -44,10 +44,38 @@ public class AccountSearchDto implements ToJsonString {
     @JsonProperty("till_number")
     private String tillNumber;
 
+    /** Defendant account number. */
+    @JsonProperty("account_number")
+    private String accountNumber;
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
     @JsonIgnore
     public Optional<Long> getNumericCourt() {
-        return Optional.ofNullable(getCourt())
-            .filter(s -> s.matches("[0-9]+"))
-            .map(Long::parseLong);
+        try {
+            return Optional.ofNullable(court)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty() && s.matches("[0-9]+"))
+                .map(Long::parseLong);
+        } catch (NumberFormatException e) {
+            return Optional.empty();
+        }
     }
+
+
+    @JsonIgnore
+    private String authHeader;
+
+    @JsonIgnore
+    public String getAuthHeader() {
+        return authHeader;
+    }
+
+    @JsonIgnore
+    public void setAuthHeader(String authHeader) {
+        this.authHeader = authHeader;
+    }
+
 }

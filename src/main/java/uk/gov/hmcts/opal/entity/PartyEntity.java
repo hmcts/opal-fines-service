@@ -17,6 +17,7 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
@@ -64,7 +65,7 @@ public class PartyEntity implements FullNameBuilder {
 
     @Column(name = "title", length = 20)
     private String title;
-
+    @XmlElement(name = "address_line_1")
     @Column(name = "address_line_1", length = 35)
     private String addressLine1;
 

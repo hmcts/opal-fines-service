@@ -5,20 +5,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElementWrapper;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@XmlRootElement(name = "defendantAccountEntity")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class DefendantAccountDto {
 
@@ -71,6 +77,10 @@ public class DefendantAccountDto {
     @JsonProperty("last_hearing_date")
     @XmlElement(name = "last_hearing_date")
     private String lastHearingDate;
+
+    @XmlElement(name = "court")
+    @JsonProperty("court")
+    private String court;
 
     @JsonProperty("last_hearing_court_code")
     @XmlElement(name = "last_hearing_court_code")
@@ -132,7 +142,79 @@ public class DefendantAccountDto {
     @XmlElement(name = "impositions")
     private ImpositionsDto impositions;
 
+    @XmlElement(name = "organisation_name")
+    @JsonProperty("organisation_name")
+    private String organisationName;
+
     @JsonProperty("account_activities")
     @XmlElement(name = "account_activities")
     private AccountActivitiesDto accountActivities;
+
+    @XmlElement(name = "organisation")
+    private boolean organisation;
+
+    @XmlElement(name = "address_line_1")
+    private String addressLine1;
+
+    @XmlElement(name = "postcode")
+    private String postcode;
+
+    @XmlElement(name = "last_enforcement_action")
+    private String lastEnforcementAction;
+
+    @XmlElement(name = "defendant_title")
+    private String defendantTitle;
+
+    @XmlElement(name = "defendant_firstnames")
+    private String defendantFirstNames;
+
+    @XmlElement(name = "defendant_surname")
+    private String defendantSurname;
+
+    @XmlElement(name = "birth_date")
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
+    private LocalDate birthDate;
+
+    @XmlElement(name = "national_insurance_number")
+    private String nationalInsuranceNumber;
+
+    @XmlElement(name = "parent_guardian_surname")
+    private String parentGuardianSurname;
+
+    @XmlElement(name = "parent_guardian_firstnames")
+    private String parentGuardianFirstNames;
+
+    @XmlElementWrapper(name = "aliases")
+    @XmlElement(name = "alias")
+    private List<AliasDto> aliases;
+
+    public DefendantAccountEntity toEntity() {
+        return DefendantAccountEntity.builder()
+            .defendantAccountId(this.defendantAccountId)
+            .accountNumber(this.accountNumber)
+            .accountStatus(this.accountStatus)
+            .accountBalance(this.accountBalance)
+            .amountPaid(this.amountPaid)
+            .amountImposed(this.amountImposed)
+            .businessUnit(
+                BusinessUnitEntity.builder()
+                    .businessUnitId((short) this.businessUnitId)
+                    .businessUnitName(this.businessUnitName)
+                    .build()
+            )
+            .build();
+    }
+
+    public static DefendantAccountDto fromEntity(DefendantAccountEntity entity) {
+        return DefendantAccountDto.builder()
+            .defendantAccountId(entity.getDefendantAccountId())
+            .accountNumber(entity.getAccountNumber())
+            .accountStatus(entity.getAccountStatus())
+            .accountBalance(entity.getAccountBalance())
+            .amountPaid(entity.getAmountPaid())
+            .amountImposed(entity.getAmountImposed())
+            .businessUnitId(entity.getBusinessUnit() != null ? entity.getBusinessUnit().getBusinessUnitId() : 0)
+            .businessUnitName(entity.getBusinessUnit() != null ? entity.getBusinessUnit().getBusinessUnitName() : null)
+            .build();
+    }
 }

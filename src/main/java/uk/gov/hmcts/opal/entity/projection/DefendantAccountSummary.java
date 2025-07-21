@@ -43,5 +43,17 @@ public interface DefendantAccountSummary {
         @JsonProperty("address_line_1")
         String getAddressLine1();
 
+        @JsonProperty("organisation_name")
+        String getOrganisationName();
+
+        @JsonProperty("defendant_title")
+        String getDefendantTitle();
+
+        @JsonProperty("defendant_firstnames")
+        String getDefendantFirstnames();
+
+        @JsonProperty("defendant_surname")
+        String getDefendantSurname();
+
     }
 }
