@@ -47,8 +47,6 @@ java:
     LAUNCH_DARKLY_ENABLED: false
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs, classpath:db/migration/devOnly
     APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}"
-  postgresql:
-    enabled: true
 
 opal-frontend:
   enabled: ${DEV_ENABLE_OPAL_FRONT_END}
