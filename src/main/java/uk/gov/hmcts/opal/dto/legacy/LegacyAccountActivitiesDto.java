@@ -16,9 +16,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
-public class PartiesDto {
+public class LegacyAccountActivitiesDto {
 
-    @JsonProperty(value = "party")
-    @XmlElement(name = "party")
-    private List<PartyDto> party;
+    @JsonProperty(value = "account_activity")
+    @XmlElement(name = "account_activity")
+    private List<LegacyAccountActivityDto> accountActivity;
+
 }

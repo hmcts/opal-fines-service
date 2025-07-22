@@ -7,6 +7,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.DefendantDto;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity_;
@@ -31,13 +32,18 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
 
     public Specification<DefendantAccountEntity> findByAccountSearch(AccountSearchDto accountSearchDto) {
         return Specification.allOf(specificationList(
-            notBlank(accountSearchDto.getSurname()).map(DefendantAccountSpecs::likeSurname),
-            notBlank(accountSearchDto.getForename()).map(DefendantAccountSpecs::likeForename),
-            notNullLocalDate(accountSearchDto.getDateOfBirth()).map(DefendantAccountSpecs::equalsDateOfBirth),
-            notBlank(accountSearchDto.getNiNumber()).map(DefendantAccountSpecs::likeNiNumber),
-            notBlank(accountSearchDto.getAddressLine()).map(DefendantAccountSpecs::likeAnyAddressLine),
-            notBlank(accountSearchDto.getPostcode()).map(DefendantAccountSpecs::likePostcode),
-            accountSearchDto.getNumericCourt().map(DefendantAccountSpecs::equalsAnyCourtId)
+            notNullObject(accountSearchDto.getDefendant()).map(DefendantDto::getSurname)
+                .map(DefendantAccountSpecs::likeSurname),
+            notNullObject(accountSearchDto.getDefendant()).map(DefendantDto::getForenames)
+                .map(DefendantAccountSpecs::likeForename),
+            notNullObject(accountSearchDto.getDefendant()).map(DefendantDto::getBirthDate)
+                .map(DefendantAccountSpecs::equalsDateOfBirth),
+            notNullObject(accountSearchDto.getDefendant()).map(DefendantDto::getNationalInsuranceNumber)
+                .map(DefendantAccountSpecs::likeNiNumber),
+            notNullObject(accountSearchDto.getDefendant()).map(DefendantDto::getAddressLine1)
+                .map(DefendantAccountSpecs::likeAnyAddressLine),
+            notNullObject(accountSearchDto.getDefendant()).map(DefendantDto::getPostcode)
+                .map(DefendantAccountSpecs::likePostcode)
         ));
     }
 
