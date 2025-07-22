@@ -46,5 +46,3 @@ java:
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
     LAUNCH_DARKLY_ENABLED: false
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs, classpath:db/migration/devOnly
-  postgresql:
-    enabled: true
