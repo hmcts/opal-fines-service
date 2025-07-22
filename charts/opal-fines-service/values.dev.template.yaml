@@ -50,12 +50,6 @@ java:
   postgresql:
     enabled: true
 
-postgresql:
-  enabled: false #TODO update once setup
-  flexibleserver: "opal-fines-service-dev"
-  setup:
-    databases:
-      - name: "pr-${CHANGE_ID}-opal"
 opal-frontend:
   enabled: ${DEV_ENABLE_OPAL_FRONT_END}
   nodejs:

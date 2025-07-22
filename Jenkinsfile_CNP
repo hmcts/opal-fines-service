@@ -31,30 +31,9 @@ def determineDevEnvironmentDeployment() {
   }
 }
 
-def secrets = [
-    'opal-${env}': [
-        // secrets for staging DB
-        secret('fines-service-POSTGRES-HOST', 'STAGING_DB_HOST'),
-        secret('fines-service-POSTGRES-USER', 'STAGING_DB_USER'),
-        secret('fines-service-POSTGRES-PASS', 'STAGING_DB_PASS'),
-        secret('fines-service-POSTGRES-PORT', 'STAGING_DB_PORT'),
-        secret('fines-service-POSTGRES-DATABASE', 'STAGING_DB_DATABASE'),
-    ],
-]
-
-static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
-  [$class     : 'AzureKeyVaultSecret',
-   secretType : 'Secret',
-   name       : secretName,
-   version    : '',
-   envVariable: envVar
-  ]
-}
-
 withPipeline(type, product, component) {
   env.FAIL_FAST = true
   env.STAGING_DB_SCHEMA = 'public'
-  loadVaultSecrets(secrets)
 //  enableSlackNotifications('#opal-fines-builds')
 
   before('akschartsinstall') {
@@ -62,15 +41,6 @@ withPipeline(type, product, component) {
       determineDevEnvironmentDeployment()
     }
   }
-//TODO enable once dev db is setup
-//  afterSuccess('akschartsinstall') {
-//    onPR {
-//      // restore the PR DB from staging
-//      sh("./bin/ci/db-stg-to-pr.sh")
-//      // run flyway migrate on PR DB
-//      sh("./bin/ci/run-flyway-pr-db.sh")
-//    }
-//  }
 
   afterAlways('test') {
     steps.junit '**/test-results/integration/*.xml'
