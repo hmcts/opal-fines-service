@@ -47,6 +47,6 @@ java:
     OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.{{ .Values.global.environment }}.platform.hmcts.net
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs
   postgresql:
-    enabled: true
+    enabled: false
     image:
-      tag: '17.0.0'
+      tag: '17.5.0'
