@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers;
+package uk.gov.hmcts.opal.disco.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DiscoDefendantAccountControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_defendants.sql", executionPhase = BEFORE_TEST_CLASS)
-@DisplayName("Defendant Account Controller Integration Tests")
+@DisplayName("Disco Defendant Account Controller Integration Tests")
 class DiscoDefendantAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts/";
@@ -71,49 +71,6 @@ class DiscoDefendantAccountControllerIntegrationTest extends AbstractIntegration
         mockMvc.perform(get(URL_BASE + "2")
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isNotFound());
-    }
-
-    @Test
-    @DisplayName("Search defendant accounts - POST with valid criteria [@PO-33, @PO-119]")
-    void testPostDefendantAccountsSearch() throws Exception {
-        when(userStateService.getUserStateUsingAuthToken(anyString()))
-            .thenReturn(new UserState.DeveloperUserState());
-
-        ResultActions actions = mockMvc.perform(post(URL_BASE + "search")
-                            .header("authorization", "Bearer some_value")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"criteria\":\"value\"}"));
-
-        String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
-
-        actions.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.page_size").value(100))
-            .andExpect(jsonPath("$.search_results[0].account_no").value("100A"))
-            .andExpect(jsonPath("$.search_results[0].name").value("Ms Anna Graham"))
-            .andExpect(jsonPath("$.search_results[0].court").value("780000000185"))
-            .andExpect(jsonPath("$.search_results[0].address_line_1").value("Lumber House"));
-    }
-
-    @Test
-    @DisplayName("Search defendant accounts - No Accounts found [@PO-33, @PO-119]")
-    void testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound() throws Exception {
-        when(userStateService.getUserStateUsingAuthToken(anyString()))
-            .thenReturn(new UserState.DeveloperUserState());
-
-        ResultActions actions = mockMvc.perform(post(URL_BASE + "search")
-                            .header("authorization", "Bearer some_value")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"surname\":\"Wilson\"}"));
-
-        String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound: Response body:\n{}",
-                 ToJsonString.toPrettyJson(body));
-
-        actions.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(0));
     }
 
     @Test

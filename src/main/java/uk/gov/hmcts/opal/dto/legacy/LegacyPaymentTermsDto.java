@@ -20,7 +20,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
-public class PaymentTermsDto {
+public class LegacyPaymentTermsDto {
 
     @JsonProperty("terms_date")
     @JsonFormat(pattern = "yyyy-MM-dd")
