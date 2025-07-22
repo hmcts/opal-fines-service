@@ -49,4 +49,4 @@ java:
   postgresql:
     enabled: true
     image:
-      tag: '17.5'
+      tag: '17.5.0'
