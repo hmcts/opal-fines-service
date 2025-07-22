@@ -48,3 +48,5 @@ java:
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs, classpath:db/migration/devOnly
   postgresql:
     enabled: true
+    image:
+      tag: '17.0.0'
