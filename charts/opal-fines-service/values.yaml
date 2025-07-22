@@ -50,3 +50,7 @@ java:
     enabled: false
     image:
       tag: '17.5.0'
+opal-frontend:
+  enabled: false
+redis:
+  enabled: false
