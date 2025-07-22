@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
@@ -126,12 +126,13 @@ class DefendantAccountControllerTest {
     void testPostDefendantAccountSearch_Success() {
         // Arrange
         AccountSearchDto requestEntity = AccountSearchDto.builder().build();
-        AccountSearchResultsDto mockResponse = AccountSearchResultsDto.builder().build();
+        DefendantAccountSearchResultsDto mockResponse = DefendantAccountSearchResultsDto.builder().build();
 
         when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class))).thenReturn(mockResponse);
 
         // Act
-        ResponseEntity<AccountSearchResultsDto> responseEntity = defendantAccountController.postDefendantAccountSearch(
+        ResponseEntity<DefendantAccountSearchResultsDto> responseEntity =
+            defendantAccountController.postDefendantAccountSearch(
             requestEntity, BEARER_TOKEN);
 
         // Assert

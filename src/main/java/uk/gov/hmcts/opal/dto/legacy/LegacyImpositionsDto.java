@@ -16,10 +16,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
-public class AccountActivitiesDto {
+public class LegacyImpositionsDto {
 
-    @JsonProperty(value = "account_activity")
-    @XmlElement(name = "account_activity")
-    private List<AccountActivityDto> accountActivity;
+    @JsonProperty(value = "imposition")
+    @XmlElement(name = "imposition")
+    private List<LegacyImpositionDto> imposition;
 
 }

@@ -8,9 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -18,10 +20,14 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
+import java.util.Collections;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 
 import java.math.BigDecimal;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
@@ -37,20 +43,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Sql(scripts = "classpath:db/insertData/insert_into_defendants.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("Defendant Account Controller Integration Tests")
 class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest {
-
+    @MockitoSpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
     private static final String URL_BASE = "/defendant-accounts/";
 
     @MockitoBean
     private UserStateService userStateService;
 
     @Test
-    @DisplayName("Get Defendant Account by ID [@PO-33, @PO-130]")
+    @DisplayName("Get Defendant Account by ID [@PO-1901,@PO-33, @PO-130]")
     void testGetDefendantAccountById() throws Exception {
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "1")
-                            .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer some_value"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetDefendantAccountById: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -63,54 +70,98 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
     }
 
     @Test
-    @DisplayName("Get Defendant Account by ID - Account does not exist [@PO-33, @PO-130]")
+    @DisplayName("Get Defendant Account by ID - Account does not exist [@PO-1901, @PO-33, @PO-130]")
     void testGetDefendantAccountById_WhenDefendantAccountDoesNotExist() throws Exception {
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         mockMvc.perform(get(URL_BASE + "2")
-                            .header("authorization", "Bearer some_value"))
+                .header("authorization", "Bearer some_value"))
             .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("Search defendant accounts - POST with valid criteria [@PO-33, @PO-119]")
+    @DisplayName("Search defendant accounts - POST with valid criteria [@PO-1901, @PO-33, @PO-119]")
     void testPostDefendantAccountsSearch() throws Exception {
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "search")
-                            .header("authorization", "Bearer some_value")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"criteria\":\"value\"}"));
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                "active_accounts_only": true,
+                  "business_unit_ids": [78],
+                   "reference_number": null,
+                   "defendant": {
+                   "include_aliases": true,
+                   "organisation": false,
+                   "address_line_1": null,
+                   "postcode": null,
+                   "organisation_name": null,
+                   "exact_match_organisation_name": null,
+                   "surname": "Graham",
+                   "exact_match_surname": true,
+                   "forenames": null,
+                   "exact_match_forenames": false,
+                   "birth_date": null,
+                   "national_insurance_number": null
+                 }
+                    }
+                       """));
+
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.page_size").value(100))
-            .andExpect(jsonPath("$.search_results[0].defendant_account_id").value(1))
-            .andExpect(jsonPath("$.search_results[0].account_no").value("100A"))
-            .andExpect(jsonPath("$.search_results[0].name").value("Ms Anna K Graham"))
-            .andExpect(jsonPath("$.search_results[0].court").value("780000000185"))
-            .andExpect(jsonPath("$.search_results[0].address_line_1").value("Lumber House"));
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("100A"))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_title").value("Ms"))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_firstnames").value("Anna"))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"))
+            .andExpect(jsonPath("$.defendant_accounts[0].address_line_1").value("Lumber House"));
+
+        assertTrue(jsonSchemaValidationService.isValid(body, SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_RESPONSE));
+
     }
 
     @Test
-    @DisplayName("Search defendant accounts - No Accounts found [@PO-33, @PO-119]")
+    @DisplayName("Search defendant accounts - No Accounts found [@PO-1901, @PO-33, @PO-119]")
     void testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound() throws Exception {
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "search")
-                            .header("authorization", "Bearer some_value")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"surname\":\"Wilson\"}"));
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                {
+                  "active_accounts_only": true,
+                  "business_unit_ids": [999999],
+                  "reference_number": null,
+                  "defendant": {
+                    "organisation": false,
+                    "include_aliases": false,
+                    "surname": "ShouldNotMatchAnythingXYZ",
+                    "exact_match_surname": true,
+                    "forenames": null,
+                    "exact_match_forenames": null,
+                    "address_line_1": null,
+                    "postcode": null,
+                    "organisation_name": null,
+                    "exact_match_organisation_name": null,
+                    "birth_date": null,
+                    "national_insurance_number": null
+                  }
+                }
+                    """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound: Response body:\n{}",
-                 ToJsonString.toPrettyJson(body));
+            ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -118,15 +169,49 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
     }
 
     @Test
-    @DisplayName("Search defendant accounts - Account does exist [@PO-33, @PO-119]")
+    @DisplayName("Search defendant accounts - user lacks permissions [@PO-1901]")
+    void testPostDefendantAccountsSearch_WhenUserLacksPermissions() throws Exception {
+        when(userStateService.getUserStateUsingAuthToken(anyString()))
+            .thenReturn(new UserState(999L, "unauth_user", Collections.emptySet()));
+
+        ResultActions actions = mockMvc.perform(post(URL_BASE + "search")
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+            {
+              "active_accounts_only": true,
+              "business_unit_ids": [78],
+              "reference_number": null,
+              "defendant": {
+                "organisation": false,
+                "include_aliases": false,
+                "surname": "Smith",
+                "exact_match_surname": true,
+                "forenames": null,
+                "exact_match_forenames": null,
+                "address_line_1": null,
+                "postcode": null,
+                "organisation_name": null,
+                "exact_match_organisation_name": null,
+                "birth_date": null,
+                "national_insurance_number": null
+              }
+            }
+            """));
+
+        actions.andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Search defendant accounts - Account does exist [@PO-1901, @PO-33, @PO-119]")
     public void testGetDefendantAccount() throws Exception {
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(get("/defendant-accounts")
-                            .header("authorization", "Bearer some_value")
-                            .param("businessUnitId", "78")
-                            .param("accountNumber", "100A"));
+            .header("authorization", "Bearer some_value")
+            .param("businessUnitId", "78")
+            .param("accountNumber", "100A"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetDefendantAccount: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -141,7 +226,7 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
     }
 
     @Test
-    @DisplayName("Update defendant account ")
+    @DisplayName("Update defendant account - [@PO-1901]")
     public void testPutDefendantAccount() throws Exception {
         DefendantAccountEntity entity = createDefendantAccountEntity();
 
@@ -149,9 +234,9 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(put("/defendant-accounts")
-                            .header("authorization", "Bearer some_value")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(entity)));
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(new ObjectMapper().writeValueAsString(entity)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPutDefendantAccount: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -179,9 +264,9 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "addNote")
-                            .header("authorization", "Bearer some_value")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(new ObjectMapper().writeValueAsString(addNoteDto)));
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(new ObjectMapper().writeValueAsString(addNoteDto)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testAddNote: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -199,7 +284,7 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "notes/{defendantId}", "1")
-                            .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer some_value"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetNotesForDefendantAccount_notePresent: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -220,7 +305,7 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
             .thenReturn(new UserState.DeveloperUserState());
 
         mockMvc.perform(get(URL_BASE + "notes/{defendantId}", "dummyDefendantId")
-                            .header("authorization", "Bearer some_value"))
+                .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk());
     }
 

@@ -7,14 +7,13 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria.DefendantAccountSearchCriteriaBuilder;
 
-@Slf4j(topic = "opal.DefendantAccountSearchCriteriaTest")
-public class DefendantAccountSearchCriteriaTest {
+@Slf4j(topic = "opal.LegacyDefendantAccountSearchCriteriaTest")
+public class LegacyDefendantAccountSearchCriteriaTest {
 
     @Test
     void testBuilder() {
-        DefendantAccountSearchCriteria criteria = constructDefendantAccountSearchCriteria();
+        LegacyDefendantAccountSearchCriteria criteria = constructDefendantAccountSearchCriteria();
 
         assertEquals("accountNo", criteria.getAccountNumber());
         assertEquals("John", criteria.getForenames());
@@ -30,28 +29,24 @@ public class DefendantAccountSearchCriteriaTest {
 
     @Test
     void testNullBusinessUnit() {
-        DefendantAccountSearchCriteriaBuilder criteriaBuilder = constructDefendantAccountSearchCriteriaBuilder();
-        DefendantAccountSearchCriteria criteria = criteriaBuilder.businessUnitId(null).build();
+        LegacyDefendantAccountSearchCriteria criteria = constructDefendantAccountSearchCriteria();
+        criteria.setBusinessUnitId(null);
         assertNull(criteria.getBusinessUnitId());
         assertEquals(getJsonRepresentation(), criteria.toPrettyJson());
     }
 
     @Test
     void testJsonString() throws Exception {
-        DefendantAccountSearchCriteria model = constructDefendantAccountSearchCriteria();
+        LegacyDefendantAccountSearchCriteria model = constructDefendantAccountSearchCriteria();
         assertNotNull(model.toJsonString());
 
-        DefendantAccountSearchCriteria parsed = ToJsonString.getObjectMapper()
-            .readValue(getJsonRepresentation(), DefendantAccountSearchCriteria.class);
+        LegacyDefendantAccountSearchCriteria parsed = ToJsonString.getObjectMapper()
+            .readValue(getJsonRepresentation(), LegacyDefendantAccountSearchCriteria.class);
         assertNotNull(parsed);
     }
 
-    private DefendantAccountSearchCriteria constructDefendantAccountSearchCriteria() {
-        return constructDefendantAccountSearchCriteriaBuilder().build();
-    }
-
-    private DefendantAccountSearchCriteriaBuilder constructDefendantAccountSearchCriteriaBuilder() {
-        return DefendantAccountSearchCriteria.builder()
+    private LegacyDefendantAccountSearchCriteria constructDefendantAccountSearchCriteria() {
+        return LegacyDefendantAccountSearchCriteria.builder()
             .accountNumber("accountNo")
             .addressLine1("Glasgow")
             .businessUnitId(1L)
@@ -61,7 +56,8 @@ public class DefendantAccountSearchCriteriaTest {
             .forenames("John")
             .initials("D")
             .birthDate("1977-06-26")
-            .nationalInsuranceNumber("XX123456C");
+            .nationalInsuranceNumber("XX123456C")
+            .build();
     }
 
     private String getJsonRepresentation() {

@@ -10,7 +10,7 @@ import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
@@ -73,12 +73,12 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
     void testSearchDefendantAccounts(DefendantAccountServiceInterface targetService,
                                      DefendantAccountServiceInterface otherService) {
         // Given: a defendantAccounts results dto result is returned from the target service
-        AccountSearchResultsDto resultsDto = AccountSearchResultsDto.builder().build();
+        DefendantAccountSearchResultsDto resultsDto = DefendantAccountSearchResultsDto.builder().build();
         when(targetService.searchDefendantAccounts(any())).thenReturn(resultsDto);
 
         // When: searchDefendantAccounts is called on the proxy
         AccountSearchDto criteria = AccountSearchDto.builder().build();
-        AccountSearchResultsDto listResult = defendantAccountServiceProxy.searchDefendantAccounts(criteria);
+        DefendantAccountSearchResultsDto listResult = defendantAccountServiceProxy.searchDefendantAccounts(criteria);
 
         // Then: target service should be used, and the returned list should be as expected
         verify(targetService).searchDefendantAccounts(criteria);

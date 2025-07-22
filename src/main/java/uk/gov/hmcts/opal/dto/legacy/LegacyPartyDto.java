@@ -21,7 +21,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @JsonRootName(value = "party")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class PartyDto {
+public class LegacyPartyDto {
 
     @JsonProperty("party_id")
     @XmlElement(name = "party_id")

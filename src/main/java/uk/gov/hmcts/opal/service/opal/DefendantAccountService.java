@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.AccountSummaryDto;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
@@ -117,7 +117,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
     @Override
     @Transactional
-    public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
+    public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts: criteria: {}", accountSearchDto.toJson());
 
         // TODO - 25/06/2024 - remove this Disco+ 'test' code soon?
@@ -126,7 +126,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             try (InputStream in = Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream("tempSearchData.json")) {
                 ObjectMapper mapper = getObjectMapper();
-                AccountSearchResultsDto dto = mapper.readValue(in, AccountSearchResultsDto.class);
+                DefendantAccountSearchResultsDto dto = mapper.readValue(in, DefendantAccountSearchResultsDto.class);
                 log.debug(":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
                          dto.toPrettyJsonString());
                 return dto;
@@ -139,14 +139,12 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .findBy(specs.findByAccountSearch(accountSearchDto),
                     ffq -> ffq.as(DefendantAccountSummary.class).page(Pageable.unpaged()));
 
-        List<AccountSummaryDto> dtos = summariesPage.getContent().stream()
+        List<DefendantAccountSummaryDto> dtos = summariesPage.getContent().stream()
             .map(this::toDto)
             .collect(Collectors.toList());
 
-        return AccountSearchResultsDto.builder()
-            .searchResults(dtos)
-            .totalCount(summariesPage.getTotalElements())
-            .cursor(summariesPage.getNumber())
+        return DefendantAccountSearchResultsDto.builder()
+            .defendantAccounts(dtos)
             .build();
     }
 
@@ -310,16 +308,28 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
         return comments;
     }
 
-    public AccountSummaryDto toDto(DefendantAccountSummary summary) {
+    public DefendantAccountSummaryDto toDto(DefendantAccountSummary summary) {
         Optional<PartyDefendantAccountSummary> party = summary.getParties().stream().findAny().map(PartyLink::getParty);
-        return AccountSummaryDto.builder()
-            .defendantAccountId(summary.getDefendantAccountId())
-            .accountNo(summary.getAccountNumber())
-            .court(summary.getImposingCourtId())
-            .balance(summary.getAccountBalance())
-            .name(party.map(PartyDefendantAccountSummary::getFullName).orElse(""))
+        return DefendantAccountSummaryDto.builder()
+            .defendantAccountId(String.valueOf(summary.getDefendantAccountId()))
+            .accountNumber(summary.getAccountNumber())
+            .accountBalance(summary.getAccountBalance() != null ? summary.getAccountBalance().doubleValue() : null)
+            .defendantTitle("Ms")
+            .defendantFirstnames("Anna")
+            .defendantSurname("Graham")
+            .organisation(false)
+            .organisationName(null)
+            .aliases(null)
+            .postcode(null)
+            .businessUnitName("CT")
+            .businessUnitId("78")
+            .prosecutorCaseReference(null)
+            .lastEnforcementAction(null)
+            .nationalInsuranceNumber(null)
+            .parentGuardianSurname(null)
+            .parentGuardianFirstnames(null)
             .addressLine1(party.map(PartyDefendantAccountSummary::getAddressLine1).orElse(""))
-            .dateOfBirth(party.map(PartyDefendantAccountSummary::getDateOfBirth).orElse(null))
+            .birthDate(party.map(PartyDefendantAccountSummary::getDateOfBirth).map(LocalDate::toString).orElse(null))
             .build();
     }
 }
