@@ -8,12 +8,12 @@ import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
 
-public class AccountSummaryDtoTest {
+public class DefendantAccountSummaryDtoTest {
 
     @Test
     void testBuilder() {
         final LocalDate today = LocalDate.now();
-        AccountSummaryDto accountEnquiryDto = constructTestAccountSummaryDto(today);
+        DefendantAccountSummaryDto accountEnquiryDto = constructTestAccountSummaryDto(today);
 
         assertEquals("accountNameNo", accountEnquiryDto.getAccountNo());
         assertEquals("Mr John Smith", accountEnquiryDto.getName());
@@ -27,7 +27,7 @@ public class AccountSummaryDtoTest {
 
     @Test
     void testToJsonString() throws Exception {
-        AccountSummaryDto accountEnquiryDto = constructTestAccountSummaryDto(LocalDate.now());
+        DefendantAccountSummaryDto accountEnquiryDto = constructTestAccountSummaryDto(LocalDate.now());
 
         assertNotNull(accountEnquiryDto.toJsonString());
     }
@@ -35,8 +35,8 @@ public class AccountSummaryDtoTest {
     @Test
     void testControllerModelEqualsAndHashCode() {
         // Arrange
-        AccountSummaryDto model1 = AccountSummaryDto.builder().build();
-        AccountSummaryDto model2 = AccountSummaryDto.builder().build();
+        DefendantAccountSummaryDto model1 = DefendantAccountSummaryDto.builder().build();
+        DefendantAccountSummaryDto model2 = DefendantAccountSummaryDto.builder().build();
 
         // Assert
         assertEquals(model1, model2);
@@ -46,7 +46,7 @@ public class AccountSummaryDtoTest {
     @Test
     void testControllerModelToString() {
         // Arrange
-        AccountSummaryDto model = AccountSummaryDto.builder().build();
+        DefendantAccountSummaryDto model = DefendantAccountSummaryDto.builder().build();
 
         // Act
         String result = model.toString();
@@ -55,8 +55,8 @@ public class AccountSummaryDtoTest {
         assertNotNull(result);
     }
 
-    private AccountSummaryDto constructTestAccountSummaryDto(final LocalDate today) {
-        return AccountSummaryDto.builder()
+    private DefendantAccountSummaryDto constructTestAccountSummaryDto(final LocalDate today) {
+        return DefendantAccountSummaryDto.builder()
             .accountNo("accountNameNo")
             .name("Mr John Smith")
             .dateOfBirth(today)

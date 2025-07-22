@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.dto.legacy;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.AccountSummaryDto;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
 import java.math.BigDecimal;
@@ -12,12 +12,12 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@Slf4j(topic = "opal.DefendantAccountSearchResultTest")
-public class DefendantAccountSearchResultTest {
+@Slf4j(topic = "opal.LegacyDefendantAccountSearchResultTest")
+public class LegacyDefendantAccountSearchResultTest {
 
     @Test
     void testBuilder() {
-        DefendantAccountSearchResult accountEnquiryDto = constructTestDefendantAccountSearchResult();
+        LegacyDefendantAccountSearchResult accountEnquiryDto = constructTestDefendantAccountSearchResult();
 
         assertEquals("accountNo", accountEnquiryDto.getAccountNumber());
         assertEquals("Mr John Smith", accountEnquiryDto.getFullName());
@@ -31,11 +31,11 @@ public class DefendantAccountSearchResultTest {
 
     @Test
     void testJsonString() throws Exception {
-        DefendantAccountSearchResult model = constructTestDefendantAccountSearchResult();
+        LegacyDefendantAccountSearchResult model = constructTestDefendantAccountSearchResult();
         assertNotNull(model.toJsonString());
 
-        DefendantAccountsSearchResults parsed = ToJsonString.getObjectMapper()
-            .readValue(getJsonRepresentation(), DefendantAccountsSearchResults.class);
+        LegacyDefendantAccountsSearchResults parsed = ToJsonString.getObjectMapper()
+            .readValue(getJsonRepresentation(), LegacyDefendantAccountsSearchResults.class);
         assertNotNull(parsed);
     }
 
@@ -43,8 +43,8 @@ public class DefendantAccountSearchResultTest {
     @Test
     void testControllerModelEqualsAndHashCode() {
         // Arrange
-        DefendantAccountSearchResult model1 = DefendantAccountSearchResult.builder().build();
-        DefendantAccountSearchResult model2 = DefendantAccountSearchResult.builder().build();
+        LegacyDefendantAccountSearchResult model1 = LegacyDefendantAccountSearchResult.builder().build();
+        LegacyDefendantAccountSearchResult model2 = LegacyDefendantAccountSearchResult.builder().build();
 
         // Assert
         assertEquals(model1, model2);
@@ -52,19 +52,19 @@ public class DefendantAccountSearchResultTest {
     }
 
     @Test
-    void testControllerModelToAccountSummaryDto() {
+    void testControllerModelToDefendantAccountSummaryDto() {
         // Arrange
-        DefendantAccountSearchResult model1 = DefendantAccountSearchResult.builder().build();
-        DefendantAccountSearchResult model2 = constructTestDefendantAccountSearchResult();
+        LegacyDefendantAccountSearchResult model1 = LegacyDefendantAccountSearchResult.builder().build();
+        LegacyDefendantAccountSearchResult model2 = constructTestDefendantAccountSearchResult();
 
         // Assert
         assertNotNull(model1.toString());
         assertNotNull(model2.toString());
 
-        assertNotNull(model1.toAccountSummaryDto());
-        assertNotNull(model2.toAccountSummaryDto());
+        assertNotNull(model1.toDefendantAccountSummaryDto());
+        assertNotNull(model2.toDefendantAccountSummaryDto());
 
-        AccountSummaryDto dto = model2.toAccountSummaryDto();
+        DefendantAccountSummaryDto dto = model2.toDefendantAccountSummaryDto();
         assertEquals("Mr John Smith", dto.getName());
         assertEquals("accountNo", dto.getAccountNo());
         assertEquals("Cardiff", dto.getCourt());
@@ -75,17 +75,17 @@ public class DefendantAccountSearchResultTest {
 
     }
 
-    static DefendantAccountSearchResult constructTestDefendantAccountSearchResult() {
-        return DefendantAccountSearchResult.builder()
+    static LegacyDefendantAccountSearchResult constructTestDefendantAccountSearchResult() {
+        return LegacyDefendantAccountSearchResult.builder()
             .accountNumber("accountNo")
             .defendantAccountId(12345L)
             .surname("Smith")
             .forenames("John")
             .title("Mr")
-            .birthDate("1977-06-26")
+            .birthDate(LocalDate.parse("1977-06-26"))
             .addressLine1("Scotland")
             .accountBalance(BigDecimal.valueOf(1000))
-            .businessUnitId(9)
+            .businessUnitId("9")
             .businessUnitName("Cardiff")
             .build();
     }

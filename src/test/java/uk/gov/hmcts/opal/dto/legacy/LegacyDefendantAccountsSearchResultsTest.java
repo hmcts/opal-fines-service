@@ -9,18 +9,18 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@Slf4j(topic = "opal.DefendantAccountsSearchResultsTest")
-public class DefendantAccountsSearchResultsTest {
+@Slf4j(topic = "opal.LegacyDefendantAccountsSearchResultsTest")
+public class LegacyDefendantAccountsSearchResultsTest {
 
     @Test
     void testBuilder() {
-        DefendantAccountsSearchResults searchResults = constructTestDefendantAccountsSearchResults();
+        LegacyDefendantAccountsSearchResults searchResults = constructTestDefendantAccountsSearchResults();
 
         assertEquals(1L, searchResults.getTotalCount());
         assertNotNull(searchResults.getDefendantAccountsSearchResult());
         assertEquals(1, searchResults.getDefendantAccountsSearchResult().size());
         assertEquals(
-            DefendantAccountSearchResultTest.constructTestDefendantAccountSearchResult(),
+            LegacyDefendantAccountSearchResultTest.constructTestDefendantAccountSearchResult(),
             searchResults.getDefendantAccountsSearchResult().get(0)
         );
 
@@ -28,19 +28,19 @@ public class DefendantAccountsSearchResultsTest {
 
     @Test
     void testJsonString() throws Exception {
-        DefendantAccountsSearchResults model = constructTestDefendantAccountsSearchResults();
+        LegacyDefendantAccountsSearchResults model = constructTestDefendantAccountsSearchResults();
         assertNotNull(model.toJsonString());
 
-        DefendantAccountsSearchResults parsed = ToJsonString.getObjectMapper()
-            .readValue(getJsonRepresentation(), DefendantAccountsSearchResults.class);
+        LegacyDefendantAccountsSearchResults parsed = ToJsonString.getObjectMapper()
+            .readValue(getJsonRepresentation(), LegacyDefendantAccountsSearchResults.class);
         assertNotNull(parsed);
     }
 
 
-    private DefendantAccountsSearchResults constructTestDefendantAccountsSearchResults() {
-        return DefendantAccountsSearchResults.builder()
+    private LegacyDefendantAccountsSearchResults constructTestDefendantAccountsSearchResults() {
+        return LegacyDefendantAccountsSearchResults.builder()
             .totalCount(1L)
-            .defendantAccountsSearchResult(List.of(DefendantAccountSearchResultTest
+            .defendantAccountsSearchResult(List.of(LegacyDefendantAccountSearchResultTest
                                                        .constructTestDefendantAccountSearchResult()))
             .build();
     }

@@ -18,7 +18,7 @@ import java.util.Optional;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DefendantAccountSearchCriteria implements ToJsonString {
+public class LegacyDefendantAccountSearchCriteria implements ToJsonString {
 
     @JsonProperty("account_number")
     private String accountNumber;
@@ -57,8 +57,8 @@ public class DefendantAccountSearchCriteria implements ToJsonString {
 
     private Integer lastRowNumber;
 
-    public static DefendantAccountSearchCriteria fromAccountSearchDto(AccountSearchDto dto) {
-        return DefendantAccountSearchCriteria.builder()
+    public static LegacyDefendantAccountSearchCriteria fromAccountSearchDto(AccountSearchDto dto) {
+        return LegacyDefendantAccountSearchCriteria.builder()
             //.account_number( no account number )
             .surname(dto.getSurname())
             .forenames(dto.getForename())

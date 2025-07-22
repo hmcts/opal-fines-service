@@ -6,13 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 
-public class AccountSearchResultsDtoTest {
+public class LegacyDefendantAccountSearchResultsDtoTest {
 
     @Test
     void testBuilder() {
-        AccountSearchResultsDto accountEnquiryDto = constructAccountSearchResultsDto();
+        DefendantAccountSearchResultsDto accountEnquiryDto = constructAccountSearchResultsDto();
         assertEquals(999, accountEnquiryDto.getTotalCount());
         assertEquals(7, accountEnquiryDto.getCursor());
         assertEquals(100, accountEnquiryDto.getPageSize());
@@ -22,7 +22,7 @@ public class AccountSearchResultsDtoTest {
 
     @Test
     void testToJsonString() throws Exception {
-        AccountSearchResultsDto accountEnquiryDto = constructAccountSearchResultsDto();
+        DefendantAccountSearchResultsDto accountEnquiryDto = constructAccountSearchResultsDto();
 
         assertNotNull(accountEnquiryDto.toJsonString());
     }
@@ -30,8 +30,8 @@ public class AccountSearchResultsDtoTest {
     @Test
     void testControllerModelEqualsAndHashCode() {
         // Arrange
-        AccountSearchResultsDto model1 = AccountSearchResultsDto.builder().build();
-        AccountSearchResultsDto model2 = AccountSearchResultsDto.builder().build();
+        DefendantAccountSearchResultsDto model1 = DefendantAccountSearchResultsDto.builder().build();
+        DefendantAccountSearchResultsDto model2 = DefendantAccountSearchResultsDto.builder().build();
 
         // Assert
         assertEquals(model1, model2);
@@ -41,7 +41,7 @@ public class AccountSearchResultsDtoTest {
     @Test
     void testControllerModelToString() {
         // Arrange
-        AccountSearchResultsDto model = AccountSearchResultsDto.builder().build();
+        DefendantAccountSearchResultsDto model = DefendantAccountSearchResultsDto.builder().build();
 
         // Act
         String result = model.toString();
@@ -50,9 +50,9 @@ public class AccountSearchResultsDtoTest {
         assertNotNull(result);
     }
 
-    private AccountSearchResultsDto constructAccountSearchResultsDto() {
-        return AccountSearchResultsDto.builder()
-            .searchResults(List.of(AccountSummaryDto.builder().build()))
+    private DefendantAccountSearchResultsDto constructAccountSearchResultsDto() {
+        return DefendantAccountSearchResultsDto.builder()
+            .searchResults(List.of(DefendantAccountSummaryDto.builder().build()))
             .totalCount(999L)
             .cursor(7)
             .build();

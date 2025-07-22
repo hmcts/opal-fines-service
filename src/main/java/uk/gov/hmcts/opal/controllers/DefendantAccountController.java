@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
@@ -99,12 +99,12 @@ public class DefendantAccountController {
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
-    public ResponseEntity<AccountSearchResultsDto> postDefendantAccountSearch(
+    public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
         @RequestBody AccountSearchDto accountSearchDto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
-        AccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
+        DefendantAccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
 
         return buildResponse(response);
     }

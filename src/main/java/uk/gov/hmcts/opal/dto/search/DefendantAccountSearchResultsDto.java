@@ -1,17 +1,17 @@
 package uk.gov.hmcts.opal.dto.search;
 
 
-import java.util.List;
-import java.util.Optional;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.dto.AccountSummaryDto;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+
+import java.util.List;
+import java.util.Optional;
 
 
 @Builder
@@ -19,7 +19,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class AccountSearchResultsDto implements ToJsonString {
+public class DefendantAccountSearchResultsDto implements ToJsonString {
 
     /** The number of AccountSummary objects returned within this response. */
     private Integer count;
@@ -33,16 +33,17 @@ public class AccountSearchResultsDto implements ToJsonString {
     private final Integer pageSize = 100;
     /** A list of AccountSummary objects, limited to a maximum of pageSize. */
     @JsonProperty("search_results")
-    private List<AccountSummaryDto> searchResults;
+    private List<DefendantAccountSummaryDto> searchResults;
 
-    public static class AccountSearchResultsDtoBuilder {
-        public AccountSearchResultsDtoBuilder searchResults(List<AccountSummaryDto> searchResults) {
+    public static class DefendantAccountSearchResultsDtoBuilder {
+
+        public DefendantAccountSearchResultsDtoBuilder searchResults(List<DefendantAccountSummaryDto> searchResults) {
             this.searchResults = searchResults;
             this.count(Optional.ofNullable(searchResults).map(List::size).orElse(0));
             return this;
         }
 
-        private AccountSearchResultsDtoBuilder count(Integer count) {
+        private DefendantAccountSearchResultsDtoBuilder count(Integer count) {
             this.count = count;
             return this;
         }

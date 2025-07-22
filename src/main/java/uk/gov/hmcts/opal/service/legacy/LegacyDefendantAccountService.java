@@ -7,12 +7,12 @@ import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
+import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsRequestDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 
@@ -56,11 +56,12 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
     }
 
     @Override
-    public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
-        DefendantAccountSearchCriteria criteria = DefendantAccountSearchCriteria.fromAccountSearchDto(accountSearchDto);
+    public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
+        LegacyDefendantAccountSearchCriteria criteria =
+            LegacyDefendantAccountSearchCriteria.fromAccountSearchDto(accountSearchDto);
         log.debug(":searchDefendantAccounts: criteria: {} via gateway {}", criteria.toJson(), legacyGateway.getUrl());
-        return postToGateway(SEARCH_DEFENDANT_ACCOUNTS, DefendantAccountsSearchResults.class, criteria)
-            .toAccountSearchResultsDto();
+        return postToGateway(SEARCH_DEFENDANT_ACCOUNTS, LegacyDefendantAccountsSearchResults.class, criteria)
+            .toDefendantAccountSearchResultsDto();
     }
 
     @Override
