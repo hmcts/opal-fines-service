@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Account Status Reference Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "account_status_code": {
+      "type": "string",
+      "enum": ["L", "C", "TO", "TS", "TA", "CS", "WO"]
+    },
+    "account_status_display_name": {
+      "type": "string",
+      "enum": [
+        "Live", "Completed", "TFO to be acknowledged",
+        "TFO to NI/Scotland to be acknowledged",
+        "TFO acknowledged", "Account consolidated", "Account written off"
+      ]
+    }
+  },
+  "required": ["account_status_code", "account_status_display_name"]
+}
