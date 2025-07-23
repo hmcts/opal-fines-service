@@ -69,7 +69,7 @@ opal-frontend:
       FEATURES_LAUNCH_DARKLY_ENABLED: false
       FEATURES_SSO_ENABLED: false
       FEATURES_APP_INSIGHTS_ENABLED: false
-      APPLICATIONINSIGHTS_ROLE_NAME: "opal-frontend-pr-${CHANGE_ID}"
+      APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-frontend"
 
 redis:
   enabled: true
