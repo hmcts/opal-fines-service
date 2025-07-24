@@ -1,5 +1,8 @@
 SET SCHEMA 'public';
-/*
+/* 
+ * Version: 2.0 - Column ACCOUNT_NUMBER_INDEX.ACCOUNT_INDEX_TYPE renamed to ASSOCIATED_RECORD_TYPE
+ * 
+ * 
  * Test 1 - Reset sequence when year changes. 
  *          Test data setup: Max account number, for the business unit, is in previous year  (e.g. 24000111W)
  *          Expected result: Account number generated is in current year with minimum value (i.e. 000001)  (e.g. 25000001E)
@@ -74,7 +77,7 @@ BEGIN
 
     RAISE INFO 'Inserting test data into table account_number_index...'; 
     --Data for tests 1 - 5
-    INSERT INTO account_number_index (account_number_index_id, business_unit_id, account_number, account_index_type)
+    INSERT INTO account_number_index (account_number_index_id, business_unit_id, account_number, associated_record_type)
     VALUES (NEXTVAL('account_number_index_seq'), v_bu_test1, v_prev_yy || '000001F', 'defendant_accounts')
          , (NEXTVAL('account_number_index_seq'), v_bu_test1, v_prev_yy || '000002B', 'defendant_accounts')
          , (NEXTVAL('account_number_index_seq'), v_bu_test2, v_curr_yy || '000009S', 'defendant_accounts')
@@ -95,7 +98,7 @@ BEGIN
         v_account_number := v_curr_yy || LPAD(v_i::VARCHAR, 6, '0');
         v_account_number := v_account_number || f_get_check_letter(v_account_number);
     
-        INSERT INTO public.account_number_index (account_number_index_id, business_unit_id, account_number, account_index_type)
+        INSERT INTO public.account_number_index (account_number_index_id, business_unit_id, account_number, associated_record_type)
             VALUES (NEXTVAL('account_number_index_seq'), v_bu_test6, v_account_number, 'creditor_accounts');
     END LOOP;
 
