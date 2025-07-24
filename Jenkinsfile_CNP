@@ -1,4 +1,5 @@
 #!groovy
+import uk.gov.hmcts.contino.GithubAPI
 
 @Library("Infrastructure")
 
@@ -6,8 +7,41 @@ def type = "java"
 def product = "opal"
 def component = "fines-service"
 
+def determineDevEnvironmentDeployment() {
+  env.DEV_ENABLE_OPAL_FRONT_END = false
+  env.DEV_OPAL_FRONT_END_URL = "https://opal-frontend.staging.platform.hmcts.net"
+  env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX = "latest"
+
+
+  def githubApi = new GithubAPI(this)
+  if (githubApi.checkForLabel(env.BRANCH_NAME, "enable_keep_helm")) {
+    for (label in githubApi.getLabelsbyPattern(env.BRANCH_NAME, "enable_opal_")) {
+
+      //Portal
+      if (label ==~ /enable_opal_front_end.*/) {
+        env.DEV_ENABLE_OPAL_FRONT_END = true
+        env.DEV_OPAL_FRONT_END_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}-frontend.dev.platform.hmcts.net"
+
+        if (label ==~ /enable_opal_front_end:pr-.*/) {
+          env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX = label.replace("enable_opal_front_end:", "")
+        }
+        echo "Deploying Opal Front end (${env.DEV_OPAL_FRONT_END_URL} - ${env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX}) instance in PR environment"
+      }
+    }
+  }
+}
+
 withPipeline(type, product, component) {
   env.FAIL_FAST = true
+  env.STAGING_DB_SCHEMA = 'public'
+//  enableSlackNotifications('#opal-fines-builds')
+
+  before('akschartsinstall') {
+    onPR {
+      determineDevEnvironmentDeployment()
+    }
+  }
+
   afterAlways('test') {
     steps.junit '**/test-results/integration/*.xml'
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/test-results/integration/*.xml'

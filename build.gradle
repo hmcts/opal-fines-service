@@ -280,6 +280,7 @@ ext['jackson.version'] = '2.19.1'
 ext['tomcat.version'] = '10.1.42'
 
 dependencies {
+  implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
