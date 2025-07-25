@@ -11,7 +11,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -26,7 +25,6 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 import java.time.LocalDate;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
@@ -69,9 +67,13 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        MvcResult result = mockMvc.perform(get(URL_BASE + "/1")
-                                               .header("authorization", "Bearer some_value"))
-            .andExpect(status().isOk())
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/1")
+                                               .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountById_success: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").value(1))
             .andExpect(jsonPath("$.business_unit_id").value(77))
@@ -82,14 +84,9 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.submitted_by_name").value("John Smith"))
             .andExpect(jsonPath("$.version").value(0))
             .andExpect(jsonPath("$.status_message").doesNotExist())
-            .andExpect(jsonPath("$.validated_by_name").doesNotExist())
-            .andReturn();
+            .andExpect(jsonPath("$.validated_by_name").doesNotExist());
 
-        String body = result.getResponse().getContentAsString();
-
-        log.info(":testGetDraftAccountById: Response body:\n" + ToJsonString.toPrettyJson(body));
-
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNT_RESPONSE));
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
     }
 
     @Test
@@ -97,23 +94,24 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetDraftAccountsSummaries_noParams() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        String body = mockMvc.perform(get(URL_BASE)
+        ResultActions resultActions =  mockMvc.perform(get(URL_BASE)
                                           .header("authorization", "Bearer some_value")
-                                          .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
+                                          .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountsSummaries_noParams: body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(8))
+            .andExpect(jsonPath("$.count").value(9))
             .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[2].account_type")
                            .value("Fixed Penalty Registration"))
             .andExpect(jsonPath("$.summaries[2].submitted_by").value("user_003"))
-            .andExpect(jsonPath("$.summaries[2].account_status").value("Publishing Failed"))
-            .andReturn().getResponse().getContentAsString();
+            .andExpect(jsonPath("$.summaries[2].account_status").value("Publishing Failed"));
 
-        log.info(":testGetDraftAccountsSummaries_noParams: body:\n" + ToJsonString.toPrettyJson(body));
-
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
 
     @Test
@@ -122,11 +120,15 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        String body = mockMvc.perform(get(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                                           .header("authorization", "Bearer some_value")
                                           .param("business_unit", BU_ID.toString())
-                                          .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
+                                          .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountsSummaries_paramBusinessUnit: body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(3))
@@ -134,12 +136,9 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.summaries[0].account_type")
                            .value("Fixed Penalty Registration"))
             .andExpect(jsonPath("$.summaries[0].submitted_by").value("user_003"))
-            .andExpect(jsonPath("$.summaries[0].account_status").value("Publishing Failed"))
-            .andReturn().getResponse().getContentAsString();
+            .andExpect(jsonPath("$.summaries[0].account_status").value("Publishing Failed"));
 
-        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
-
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
 
     @Test
@@ -151,25 +150,26 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         LocalDate fromDate = LocalDate.of(2025, 02, 03);
         LocalDate toDate = LocalDate.of(2025, 02, 03);
 
-        String body = mockMvc.perform(get(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                                           .header("authorization", "Bearer some_value")
                                           .param("account_status_date_from", fromDate.toString())
                                           .param("account_status_date_to", toDate.toString())
-                                          .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
+                                          .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountsSummaries_paramStatusDate: body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(2))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(7))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(78))
             .andExpect(jsonPath("$.summaries[0].account_type")
                            .value("Fixed Penalty Registration"))
             .andExpect(jsonPath("$.summaries[0].submitted_by").value("user_003"))
-            .andExpect(jsonPath("$.summaries[0].account_status").value("Submitted"))
-            .andReturn().getResponse().getContentAsString();
+            .andExpect(jsonPath("$.summaries[0].account_status").value("Submitted"));
 
-        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
-
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
 
     @Test
@@ -178,24 +178,24 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        String body = mockMvc.perform(get(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                                           .header("authorization", "Bearer some_value")
                                           .param("status", DraftAccountStatus.PUBLISHING_FAILED.name())
+                                                          .contentType(MediaType.APPLICATION_JSON));
 
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountsSummaries_paramStatus: body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[0].account_type")
                            .value("Fixed Penalty Registration"))
             .andExpect(jsonPath("$.summaries[0].submitted_by").value("user_003"))
-            .andExpect(jsonPath("$.summaries[0].account_status").value("Publishing Failed"))
-            .andReturn().getResponse().getContentAsString();
+            .andExpect(jsonPath("$.summaries[0].account_status").value("Publishing Failed"));
 
-        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
-
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
 
     @Test
@@ -204,23 +204,24 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        String body = mockMvc.perform(get(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                                           .header("authorization", "Bearer some_value")
                                           .param("submitted_by", "user_002")
-                                          .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                          .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountsSummaries_paramSubmittedBy: body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(2))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
             .andExpect(jsonPath("$.summaries[0].account_type")
                            .value("Fixed Penalty Registration"))
             .andExpect(jsonPath("$.summaries[0].submitted_by").value("user_002"))
-            .andExpect(jsonPath("$.summaries[0].account_status").value("Submitted"))
-            .andReturn().getResponse().getContentAsString();
+            .andExpect(jsonPath("$.summaries[0].account_status").value("Submitted"));
 
-        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
-
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
 
     @Test
@@ -230,23 +231,24 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        String body = mockMvc.perform(get(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                                           .header("authorization", "Bearer some_value")
                                           .param("not_submitted_by", "user_003")
-                                          .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                          .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountsSummaries_paramNotSubmittedBy: body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(3))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
             .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
             .andExpect(jsonPath("$.summaries[1].business_unit_id").value(77))
             .andExpect(jsonPath("$.summaries[2].draft_account_id").value(5))
-            .andExpect(jsonPath("$.summaries[2].business_unit_id").value(78))
-            .andReturn().getResponse().getContentAsString();
+            .andExpect(jsonPath("$.summaries[2].business_unit_id").value(78));
 
-        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
-
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
 
     @Test
@@ -257,19 +259,20 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
-        String body =
-            mockMvc.perform(get(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                                 .header("authorization", "Bearer some_value")
-                                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits1: body:\n"
+                     + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.count").value(1))
                 .andExpect(jsonPath("$.summaries[0].draft_account_id").value(3))
-                .andExpect(jsonPath("$.summaries[0].business_unit_id").value(73))
-                .andReturn().getResponse().getContentAsString();
+                .andExpect(jsonPath("$.summaries[0].business_unit_id").value(73));
 
-        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
-
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
 
     @Test
@@ -280,20 +283,21 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
-        String body =
-            mockMvc.perform(get(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                                 .header("authorization", "Bearer some_value")
                                 .param("business_unit", "73")
-                                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits2: body:\n"
+                     + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.count").value(1))
                 .andExpect(jsonPath("$.summaries[0].draft_account_id").value(3))
-                .andExpect(jsonPath("$.summaries[0].business_unit_id").value(73))
-                .andReturn().getResponse().getContentAsString();;
+                .andExpect(jsonPath("$.summaries[0].business_unit_id").value(73));
 
-        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
-
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
 
     @Test
@@ -304,23 +308,24 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
-        String body =
-            mockMvc.perform(get(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                                 .header("authorization", "Bearer some_value")
-                                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits3: body:\n"
+                     + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.count").value(3))
                 .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
                 .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
                 .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
                 .andExpect(jsonPath("$.summaries[1].business_unit_id").value(77))
                 .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
-                .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73))
-                .andReturn().getResponse().getContentAsString();
+                .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73));
 
-        log.info(":testGetDraftAccountsSummaries_permission: body:\n" + ToJsonString.toPrettyJson(body));
-
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNTS_RESPONSE));
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
 
     @Test
@@ -328,47 +333,49 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         + " [@PO-973, @PO-559]")
     void testSearchDraftAccountsPost() throws Exception {
 
-        String body = mockMvc.perform(post(URL_BASE + "/search")
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
                                           .header("authorization", "Bearer some_value")
                                           .contentType(MediaType.APPLICATION_JSON)
-                                          .content("{\"draftAccountId\":\"1\"}"))
-            .andExpect(status().isOk())
+                                          .content("{\"draftAccountId\":\"1\"}"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testSearchDraftAccountsPost: body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$[0].draft_account_id").value(1))
-            .andExpect(jsonPath("$[0].business_unit_id").value(77))
-            .andReturn().getResponse().getContentAsString();
+            .andExpect(jsonPath("$[0].business_unit_id").value(77));
 
-        log.info(":testSearchDraftAccountsPost: body:\n" + ToJsonString.toPrettyJson(body));
     }
 
 
     @Test
     void testSearchDraftAccountsPost_whenDraftAccountDoesNotExist() throws Exception {
-        String body = mockMvc.perform(post(URL_BASE + "/search")
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
                                           .header("authorization", "Bearer some_value")
                                           .contentType(MediaType.APPLICATION_JSON)
-                                          .content("{\"draftAccountId\":\"100\"}"))
-            .andExpect(status().isOk())
-            .andExpect(content().string("[]"))
-            .andReturn().getResponse().getContentAsString();
+                                          .content("{\"draftAccountId\":\"100\"}"));
 
+        String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testSearchDraftAccountsPost_whenDraftAccountDoesNotExist: body:\n"
                      + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk()).andExpect(content().string("[]"));
     }
 
     @Test
     @DisplayName("Delete draft accounts [@PO-973, @PO-591]")
     void testDeleteDraftAccountById_success() throws Exception {
 
-        MvcResult result = mockMvc.perform(delete(URL_BASE + "/4")
-                                               .header("authorization", "Bearer some_value"))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.message").value("Draft Account '4' deleted"))
-            .andReturn();
+        ResultActions resultActions = mockMvc.perform(delete(URL_BASE + "/4")
+                                               .header("authorization", "Bearer some_value"));
 
-        String body = result.getResponse().getContentAsString();
-        log.info(":testGetDraftAccountById: Response body:\n" + ToJsonString.toPrettyJson(body));
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testDeleteDraftAccountById_success: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.message").value("Draft Account '4' deleted"));
     }
 
     @Test
@@ -379,23 +386,24 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         String requestBody = validReplaceRequestBody(0L);
         log.info(":testReplaceDraftAccount_success: Request Body:\n{}", ToJsonString.toPrettyJson(requestBody));
 
-        String body  = mockMvc.perform(put(URL_BASE + "/" + 5)
+        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
                                            .header("authorization", "Bearer some_value")
                                            .contentType(MediaType.APPLICATION_JSON)
-                                           .content(requestBody))
-            .andExpect(status().isOk())
+                                           .content(requestBody));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testReplaceDraftAccount_success: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").value(5))
             .andExpect(jsonPath("$.business_unit_id").value(78))
             .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
             .andExpect(jsonPath("$.account_type").value("Fines"))
             .andExpect(jsonPath("$.account_status").value("Resubmitted"))
-            .andExpect(jsonPath("$.timeline_data").isArray())
-            .andReturn().getResponse().getContentAsString();
+            .andExpect(jsonPath("$.timeline_data").isArray());
 
-        log.info(":testReplaceDraftAccount_success: Response body:\n{}", ToJsonString.toPrettyJson(body));
-
-        assertTrue(jsonSchemaValidationService.isValid(body, GET_DRAFT_ACCOUNT_RESPONSE));
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
 
     }
 
@@ -465,22 +473,21 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         String validRequestBody = validRawJsonCreateRequestBody();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        MvcResult result = mockMvc.perform(post(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE)
                                                .header("authorization", "Bearer some_value")
                                                .contentType(MediaType.APPLICATION_JSON)
-                                               .content(validRequestBody))
-            .andExpect(status().isCreated())
+                                               .content(validRequestBody));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.submitted_by").value("BUUID1"))
             .andExpect(jsonPath("$.account_type").value("Fines"))
             .andExpect(jsonPath("$.account_status").value("Submitted"))
             .andExpect(jsonPath("$.account.defendant.surname")
-                           .value("LNAME"))
-            .andReturn();
-
-        String body = result.getResponse().getContentAsString();
-
-        log.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
+                           .value("LNAME"));
     }
 
     @Test
@@ -535,23 +542,22 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         Long draftAccountId = 8L; // not touched by any other PATCH/PUT test
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        ResultActions patchResultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                                                .header("authorization", "Bearer some_value")
                                                .contentType(MediaType.APPLICATION_JSON)
                                                .content(validUpdateRequestBody("Publishing Pending","A")));
 
-        String patchResponse = patchResultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testUpdateDraftAccount_success: PATCH Response body:\n{}", ToJsonString.toPrettyJson(patchResponse));
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testUpdateDraftAccount_success: Response body:\n{}", ToJsonString.toPrettyJson(response));
 
-        patchResultActions.andExpect(status().isOk())
+        resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.business_unit_id").value(78))
             .andExpect(jsonPath("$.account_status").value("Published"))
-            .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"))
-            .andReturn();
+            .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
 
-        jsonSchemaValidationService.validateOrError(patchResponse, GET_DRAFT_ACCOUNT_RESPONSE);
+        jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
     }
 
     @Test
@@ -561,14 +567,42 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         UserState user = permissionUser((short)78, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
-        mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                 .header("authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(validUpdateRequestBody("Rejected","A")))
-            .andExpect(status().isOk())
+                .content(validUpdateRequestBody("Rejected","A")));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testPatchDraftAccount_withCheckValidatePermission_shouldSucceed: Response body:\n"
+                     + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
             .andExpect(jsonPath("$.account_status").value("Rejected"))
+            .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
+    }
+
+    @Test
+    @DisplayName("Patch draft account - user with Publish Pending permission should succeed [@PO-991]")
+    void testPatchDraftAccount_withPublishPending_shouldSucceed() throws Exception {
+        Long draftAccountId = 9L; // not touched by any other PATCH/PUT test
+        UserState user = permissionUser((short)78, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
+
+        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+                            .header("authorization", "Bearer some_value")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(validUpdateRequestBody("Publishing Pending","D")));
+
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testPatchDraftAccount_withPublishPending_shouldSucceed: PATCH Response body:\n{}",
+                 ToJsonString.toPrettyJson(response));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
+            .andExpect(jsonPath("$.account_status").value("Published"))
             .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
     }
 
@@ -580,11 +614,16 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         UserState user = permissionUser((short)78, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
-        mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
+        ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                 .header("authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(validUpdateRequestBody("Publishing Pending","PO1820")))
-            .andExpect(status().isForbidden())
+                .content(validUpdateRequestBody("Publishing Pending","PO1820")));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testPatchDraftAccount_withCreateManagePermission_shouldFail403: Response body:\n"
+                     + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.status").value(403));
@@ -622,10 +661,15 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         UserState userState = permissionUser((short)005, Permissions.DRAFT_ACCOUNT_PERMISSIONS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
-        mockMvc.perform(
+        ResultActions resultActions = mockMvc.perform(
                 get(URL_BASE + "/2")
-                    .header("authorization", "Bearer some_value"))
-            .andExpect(status().isForbidden())
+                    .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountById_trap403Response_wrongBusinessUnit: Response body:\n"
+                     + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value(
@@ -643,11 +687,12 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
-        mockMvc.perform(get(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                             .header("authorization", "Bearer some_value")
                             .param("business_unit", businessId.toString())
-                            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isForbidden())
+                            .contentType(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
 
@@ -656,8 +701,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetDraftAccountById_trap404Response() throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        mockMvc.perform(
-                get(URL_BASE + "/99")
+        mockMvc.perform(get(URL_BASE + "/99")
                     .header("authorization", "Bearer some_value"))
             .andExpect(status().isNotFound())
         ;
@@ -681,13 +725,17 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
-        mockMvc.perform(get(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                             .header("authorization", "Bearer some_value")
                             .param("business_unit", businessId.toString())
                             .param("submitted_by", "Dave")
                             .param("not_submitted_by", "Tony")
-                            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isBadRequest())
+                            .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountsSummaries_trap400Response: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Bad Request"))
             .andExpect(jsonPath("$.detail")
@@ -708,8 +756,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(validCreateRequestBody()))
-            .andExpect(status().isForbidden())
-            .andReturn();
+            .andExpect(status().isForbidden());
 
     }
 
@@ -732,8 +779,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(requestBody))
-            .andExpect(status().isForbidden())
-            .andReturn();
+            .andExpect(status().isForbidden());
 
     }
 
@@ -747,11 +793,15 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        mockMvc.perform(post(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE)
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(invalidCreateRequestBody()))
-            .andExpect(status().isBadRequest())
+                            .content(invalidCreateRequestBody()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDraftAccount_trap400Response: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Bad Request"))
             .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"))
@@ -766,22 +816,22 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         String validRequestBody = validCreateRequestBody();
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
 
-        MvcResult result = mockMvc.perform(post(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE)
                                                .header("authorization", "Bearer some_value")
                                                .contentType(MediaType.APPLICATION_JSON)
-                                               .content(validRequestBody))
-            .andExpect(status().isForbidden())
+                                               .content(validRequestBody));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDraftAccount_trap403Response_noPermission: Response body:\n"
+                     + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value(
                 "You do not have permission to access this resource"))
             .andExpect(jsonPath("$.status").value(403))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
-            .andReturn();
-
-        String body = result.getResponse().getContentAsString();
-
-        log.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
     }
 
     @Test
@@ -793,22 +843,22 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
             permissionUser((short)5, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS, Permissions.ACCOUNT_ENQUIRY));
 
-        MvcResult result = mockMvc.perform(post(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE)
                                                .header("authorization", "Bearer some_value")
                                                .contentType(MediaType.APPLICATION_JSON)
-                                               .content(validRequestBody))
-            .andExpect(status().isForbidden())
+                                               .content(validRequestBody));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDraftAccount_trap403Response_wrongPermission: Response body:\n"
+                     + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.detail").value(
                 "You do not have permission to access this resource"))
             .andExpect(jsonPath("$.status").value(403))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
-            .andReturn();
-
-        String body = result.getResponse().getContentAsString();
-
-        log.info(":testPostDraftAccount_permission: Response body:\n" + ToJsonString.toPrettyJson(body));
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
     }
 
     //CEP 1 CEP1 - Invalid Request Payload (400)
@@ -842,16 +892,19 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
 
-        mockMvc.perform(requestBuilder
+        ResultActions resultActions = mockMvc.perform(requestBuilder
                             .header("Authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(requestBody))
-            .andExpect(status().isForbidden())
+                            .content(requestBody));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":methodsShouldReturn403_whenUserLacksPermission: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"))
             .andExpect(jsonPath("$.status").value(403))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
-
     }
 
     private static Stream<Arguments> testCasesRequiringAuthorizationProvider() {
