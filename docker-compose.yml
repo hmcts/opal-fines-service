@@ -33,7 +33,7 @@ services:
 
   opal-fines-db:
     container_name: opal-fines-db
-    image: postgres:17
+    image: postgres:17.5
     restart: always
     environment:
       - POSTGRES_DB=opal-fines-db

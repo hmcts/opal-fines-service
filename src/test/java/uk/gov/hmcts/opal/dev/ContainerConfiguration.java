@@ -22,7 +22,7 @@ public class ContainerConfiguration {
     @ServiceConnection
     @RestartScope
     PostgreSQLContainer<?> databaseContainer() {
-        return new PostgreSQLContainer<>("postgres:15-alpine")
+        return new PostgreSQLContainer<>("postgres:17.5")
             .withCreateContainerCmdModifier(cmd ->
                 cmd.withHostConfig(new HostConfig().withPortBindings(DB_PORT_BINDING)))
             .withExposedPorts(DB_EXPOSED_PORT)
