@@ -12,7 +12,7 @@
       "description": "ID of the User that last submitted the Draft Account for checking"
     },
     "defendant_account": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/accountLegacy.json",
+      "$ref": "./common-objects/accountLegacy.json",
       "description": "The structured Account data (JSON)"
     }
   },

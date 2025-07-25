@@ -4,10 +4,10 @@
   "type": "object",
   "properties": {
     "document_language_preference": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/documentLanguagePreferenceLegacy.json"
+      "$ref": "./languagePreferenceLegacy.json"
     },
     "hearing_language_preference": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/hearingLanguagePreferenceLegacy.json"
+      "$ref": "./languagePreferenceLegacy.json"
     }
   }
 }

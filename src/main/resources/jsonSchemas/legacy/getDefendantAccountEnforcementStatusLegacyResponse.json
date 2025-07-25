@@ -4,107 +4,78 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "version": {
+      "type": "integer"
+    },
     "enforcement_overview": {
-      "$ref": "#/$defs/enforcementOverview"
+      "$ref": "#$defs/enforcementOverview"
     },
     "enforcement_override": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/enforcementOverrideLegacy.json"
+      "$ref": "./common-objects/enforcementOverrideLegacy.json"
     },
     "last_enforcement_action": {
-      "$ref": "#/$defs/enforcementAction"
+      "$ref": "#$defs/enforcementOverview"
     },
-    "next_enforcement_action_data": {
-      "oneOf": [
-        {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9]{1,6}(,[A-Za-z0-9]{1,6})*$"
-        },
-        {
-          "type": "string",
-          "const": "all"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "description": "A comma-separated list of result IDs, 'all' , or null ."
-    },
-    "defendant_account_type": {
-      "type": "string",
-      "enum": [
-        "adult",
-        "company",
-        "youth"
-      ]
+    "next_enforcement_action": {
+      "type": "string"
     },
     "account_status": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/accountStatusReferenceLegacy.json"
+      "$ref": "./common-objects/accountStatusReferenceLegacy.json"
     },
     "employer_flag": {
       "type": "boolean"
-    },
-    "version": {
-      "type": "integer"
     }
+
   },
   "required": [
-    "enforcement_overview",
-    "defendant_account_type",
-    "account_status",
+    "version",
     "employer_flag",
-    "version"
+    "account_status",
+    "enforcement_overview"
   ],
   "$defs": {
     "enforcementOverview": {
       "type": "object",
-      "additionalProperties": false,
       "properties": {
-        "collection_order": {
-          "$ref": "resource:/jsonSchemas/legacy/common-objects/collectionOrderLegacy.json"
-        },
         "days_in_default": {
           "type": "integer"
         },
         "enforcement_court": {
-          "$ref": "resource:/jsonSchemas/legacy/common-objects/courtReferenceLegacy.json"
+          "$ref": "./common-objects/courtReferenceLegacy.json"
+        },
+        "collection_order": {
+          "$ref": "./common-objects/collectionOrderLegacy.json"
         }
       },
-      "required": [
-        "collection_order",
-        "enforcement_court"
-      ]
+      "required": ["enforcement_status"]
     },
-    "enforcementAction": {
+    "enforcement_action": {
       "type": "object",
-      "additionalProperties": false,
       "properties": {
-        "enforcement_action": {
-          "$ref": "resource:/jsonSchemas/legacy/common-objects/resultReferenceLegacy.json"
+        "result_reference": {
+          "$ref": "./common-objects/resultReferenceLegacy.json"
         },
         "reason": {
           "type": "string"
         },
         "enforcer": {
-          "$ref": "resource:/jsonSchemas/legacy/common-objects/enforcerReferenceLegacy.json"
+         "$ref": "./common-objects/enforcerReferenceLegacy.json"
         },
         "warrant_number": {
           "type": "string"
         },
         "date_added": {
           "type": "string",
-          "format": "date-time"
+          "format": "date"
         },
         "result_responses": {
           "type": "array",
           "items": {
-            "$ref": "resource:/jsonSchemas/legacy/common-objects/resultResponsesLegacy.json"
+            "$ref": "./common-objects/resultResponsesLegacy.json"
           }
         }
       },
-      "required": [
-        "enforcement_action",
-        "date_added"
-      ]
+      "required": ["result_reference", "date_added"]
     }
   }
 }

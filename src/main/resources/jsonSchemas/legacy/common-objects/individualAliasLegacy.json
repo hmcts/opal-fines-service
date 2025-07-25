@@ -12,5 +12,5 @@
     "surname": { "type": "string" },
     "forenames": { "type": "string" }
   },
-  "required": ["alias_id", "sequence_number"]
+  "required": ["alias_id", "sequence_number", "surname", "forenames"]
 }
