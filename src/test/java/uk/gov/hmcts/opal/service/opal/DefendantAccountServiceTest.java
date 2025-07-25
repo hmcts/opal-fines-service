@@ -132,9 +132,7 @@ public class DefendantAccountServiceTest {
     void testSearchDefendantAccounts() {
         // Arrange
         DefendantAccountSearchResultsDto expectedResponse =  DefendantAccountSearchResultsDto.builder()
-            .searchResults(List.of(DefendantAccountSummaryDto.builder().build()))
-            .totalCount(999L)
-            .cursor(1)
+            .defendantAccounts(Collections.emptyList())
             .build();
         Page<DefendantAccountSummaryDto> mockPage = new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 999L);
         when(defendantAccountRepository.findBy(any(Specification.class), any()))
@@ -145,7 +143,7 @@ public class DefendantAccountServiceTest {
             AccountSearchDto.builder().build());
 
         // Assert
-        assertEquals(expectedResponse.getTotalCount(), result.getTotalCount());
+        assertEquals(expectedResponse.getCount(), result.getCount());
 
         assertNotNull(defendantAccountService.toDto(new TestDefendantAccountSummary()));
     }
@@ -160,10 +158,11 @@ public class DefendantAccountServiceTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(100, result.getSearchResults().size());
+        assertNotNull(result.getDefendantAccounts());
+        assertEquals(100, result.getDefendantAccounts().size());
         assertEquals(100, result.getCount());
-        assertEquals(100, result.getPageSize());
-        assertEquals(100, result.getTotalCount());
+        assertEquals(100, result.getDefendantAccounts().size());
+        assertEquals(100, result.getCount());
     }
 
 
@@ -343,6 +342,7 @@ public class DefendantAccountServiceTest {
             .accountNotes("Activity")
             .pcr("123456")
             .paymentDetails("100.0 / PCM")
+            .businessUnitId((short) 200)
             .lumpSum(BigDecimal.valueOf(100.00))
             .commencing(LocalDate.of(2012, 1,1))
             .daysInDefault(10)
@@ -361,6 +361,7 @@ public class DefendantAccountServiceTest {
 
         BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder()
             .businessUnitName("CT")
+            .businessUnitId((short) 200)
             .build();
 
         CourtEntity courtEntity1 = CourtEntity.builder()

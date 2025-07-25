@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
@@ -100,6 +102,7 @@ public class DefendantAccountController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
     public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
+        @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
         @RequestBody AccountSearchDto accountSearchDto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());

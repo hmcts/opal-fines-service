@@ -2,8 +2,11 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
@@ -71,14 +74,17 @@ public class LegacyDefendantAccountService extends LegacyService implements Defe
         LegacyAccountDetailsRequestDto request = LegacyAccountDetailsRequestDto.builder()
             .defendantAccountId(defendantAccountId)
             .build();
+        try {
 
-        LegacyAccountDetailsResponseDto response = postToGateway(
-            GET_ACCOUNT_DETAILS,
-            LegacyAccountDetailsResponseDto.class,
-            request
-        );
+            LegacyAccountDetailsResponseDto response = postToGateway(
+                GET_ACCOUNT_DETAILS,
+                LegacyAccountDetailsResponseDto.class,
+                request
+            );
 
-        return LegacyAccountDetailsResponseDto.toAccountDetailsDto(response);
+            return LegacyAccountDetailsResponseDto.toAccountDetailsDto(response);
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Defendant account not found", e);
+        }
     }
-
 }

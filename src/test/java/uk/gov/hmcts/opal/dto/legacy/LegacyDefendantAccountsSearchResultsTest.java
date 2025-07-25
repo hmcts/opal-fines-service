@@ -47,25 +47,23 @@ public class LegacyDefendantAccountsSearchResultsTest {
 
     private String getJsonRepresentation() {
         return """
-            {
-              "defendantAccountsSearchResult" : [ {
-                "accountNumber" : "accountNo",
-                "organisation" : null,
-                "title" : "Mr",
-                "surname" : "Smith",
-                "forenames" : "John",
-                "initials" : null,
-                "rowNumber" : null,
-                "defendant_account_id" : 12345,
-                "business_unit_id" : 9,
-                "business_unit_name" : "Cardiff",
-                "organisation_name" : null,
-                "birth_date" : "1977-06-26",
-                "address_line_1" : "Scotland",
-                "account_balance" : 1000
-              } ],
-              "totalCount" : 1
-            }
+        {
+          "defendant_accounts" : [ {
+            "account_number" : "accountNo",
+            "organisation" : false,
+            "defendant_title" : "Mr",
+            "defendant_surname" : "Smith",
+            "defendant_firstnames" : "John",
+            "defendant_account_id" : 12345,
+            "business_unit_id" : "9",
+            "business_unit_name" : "Cardiff",
+            "organisation_name" : null,
+            "birth_date" : "1977-06-26",
+            "address_line_1" : "Scotland",
+            "account_balance" : 1000
+          } ],
+          "count" : 1
+        }
             """;
     }
 }

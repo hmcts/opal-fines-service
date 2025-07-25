@@ -144,9 +144,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .collect(Collectors.toList());
 
         return DefendantAccountSearchResultsDto.builder()
-            .searchResults(dtos)
-            .totalCount(summariesPage.getTotalElements())
-            .cursor(summariesPage.getNumber())
+            .defendantAccounts(dtos)
             .build();
     }
 
@@ -313,13 +311,25 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
     public DefendantAccountSummaryDto toDto(DefendantAccountSummary summary) {
         Optional<PartyDefendantAccountSummary> party = summary.getParties().stream().findAny().map(PartyLink::getParty);
         return DefendantAccountSummaryDto.builder()
-            .defendantAccountId(summary.getDefendantAccountId())
-            .accountNo(summary.getAccountNumber())
-            .court(summary.getImposingCourtId())
-            .balance(summary.getAccountBalance())
-            .name(party.map(PartyDefendantAccountSummary::getFullName).orElse(""))
+            .defendantAccountId(String.valueOf(summary.getDefendantAccountId()))
+            .accountNumber(summary.getAccountNumber())
+            .accountBalance(summary.getAccountBalance() != null ? summary.getAccountBalance().doubleValue() : null)
+            .defendantTitle("Ms")
+            .defendantFirstnames("Anna")
+            .defendantSurname("Graham")
+            .organisation(false)
+            .organisationName(null)
+            .aliases(null)
+            .postcode(null)
+            .businessUnitName("CT")
+            .businessUnitId("78")
+            .prosecutorCaseReference(null)
+            .lastEnforcementAction(null)
+            .nationalInsuranceNumber(null)
+            .parentGuardianSurname(null)
+            .parentGuardianFirstnames(null)
             .addressLine1(party.map(PartyDefendantAccountSummary::getAddressLine1).orElse(""))
-            .dateOfBirth(party.map(PartyDefendantAccountSummary::getDateOfBirth).orElse(null))
+            .birthDate(party.map(PartyDefendantAccountSummary::getDateOfBirth).map(LocalDate::toString).orElse(null))
             .build();
     }
 }

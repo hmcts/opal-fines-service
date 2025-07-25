@@ -6,11 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.DateDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.DefendantDto;
 
-import java.util.Objects;
 import java.util.Optional;
 
 @Data
@@ -49,6 +49,9 @@ public class LegacyDefendantAccountSearchCriteria implements ToJsonString {
     @JsonProperty("address_line_1")
     private String addressLine1;
 
+    @JsonProperty("postcode")
+    private String postcode;
+
     private Boolean searchAliases;
 
     private Boolean liveOnly;
@@ -58,24 +61,31 @@ public class LegacyDefendantAccountSearchCriteria implements ToJsonString {
     private Integer lastRowNumber;
 
     public static LegacyDefendantAccountSearchCriteria fromAccountSearchDto(AccountSearchDto dto) {
+        DefendantDto defendant = dto.getDefendant();
         return LegacyDefendantAccountSearchCriteria.builder()
-            //.account_number( no account number )
-            .surname(dto.getSurname())
-            .forenames(dto.getForename())
-            .initials(dto.getInitials())
-            .birthDate(Optional.ofNullable(dto.getDateOfBirth())
-                           .map(DateDto::toLocalDate)
-                           .map(Objects::toString)
-                           .orElse(null))
-            .addressLine1(dto.getAddressLine())
-            .nationalInsuranceNumber(dto.getNiNumber())
+            .accountNumber(null) // account number not present in this schema
+            .surname(defendant != null ? defendant.getSurname() : null)
+            .forenames(defendant != null ? defendant.getForenames() : null)
+            .initials(defendant != null ? defendant.getInitials() : null)
+            .birthDate(Optional.ofNullable(defendant)
+                .map(DefendantDto::getBirthDate)
+                .map(DateDto::toLocalDate)
+                .map(Object::toString)
+                .orElse(null))
+            .addressLine1(defendant != null ? defendant.getAddressLine1() : null)
+            .postcode(defendant != null ? defendant.getPostcode() : null)
+            .nationalInsuranceNumber(defendant != null ? defendant.getNationalInsuranceNumber() : null)
             .prosecutorCaseReference(dto.getPcr())
+            .organisation("Company".equalsIgnoreCase(dto.getSearchType()))
+            .organisationName("Company".equalsIgnoreCase(dto.getSearchType()) && defendant != null
+                ? defendant.getOrganisationName()
+                : null)
+            .searchAliases(false) // hardcoded for now
+            .liveOnly(true) // maps to active_accounts_only
             .businessUnitId(dto.getNumericCourt().orElse(null))
-            //.organisation_name(no organisation name)
-            //.searchAliases( dunno )
-            //.liveOnly( dunno )
             .firstRowNumber(1)
             .lastRowNumber(100)
             .build();
     }
+
 }

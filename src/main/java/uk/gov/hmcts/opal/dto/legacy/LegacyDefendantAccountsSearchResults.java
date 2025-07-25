@@ -37,8 +37,7 @@ public class LegacyDefendantAccountsSearchResults implements ToJsonString {
 
     public DefendantAccountSearchResultsDto toDefendantAccountSearchResultsDto() {
         DefendantAccountSearchResultsDto results = DefendantAccountSearchResultsDto.builder()
-            .totalCount(getTotalCount())
-            .searchResults(Optional.ofNullable(defendantAccountsSearchResult).orElse(Collections.emptyList())
+            .defendantAccounts(Optional.ofNullable(defendantAccountsSearchResult).orElse(Collections.emptyList())
                  .stream()
                  .map(LegacyDefendantAccountSearchResult::toDefendantAccountSummaryDto)
                  .collect(Collectors.toList()))

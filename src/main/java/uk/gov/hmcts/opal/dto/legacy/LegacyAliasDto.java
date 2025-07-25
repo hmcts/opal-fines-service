@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.dto.search.AliasDto;
 
 @Data
 @Builder
@@ -25,4 +26,14 @@ public class LegacyAliasDto {
     private String surname;
     @XmlElement(name = "forenames")
     private String forenames;
+
+    public AliasDto toAliasDto() {
+        return AliasDto.builder()
+            .aliasNumber(aliasNumber)
+            .organisationName(organisationName)
+            .surname(surname)
+            .forenames(forenames)
+            .build();
+    }
+
 }

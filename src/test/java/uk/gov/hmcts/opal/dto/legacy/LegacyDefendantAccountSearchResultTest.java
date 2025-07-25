@@ -22,9 +22,9 @@ public class LegacyDefendantAccountSearchResultTest {
         assertEquals("accountNo", accountEnquiryDto.getAccountNumber());
         assertEquals("Mr John Smith", accountEnquiryDto.getFullName());
         assertEquals("Scotland", accountEnquiryDto.getAddressLine1());
-        assertEquals("1977-06-26", accountEnquiryDto.getBirthDate());
+        assertEquals(LocalDate.of(1977, 6, 26), accountEnquiryDto.getBirthDate());
         assertEquals(BigDecimal.valueOf(1000), accountEnquiryDto.getAccountBalance());
-        assertEquals(9, accountEnquiryDto.getBusinessUnitId());
+        assertEquals("9", accountEnquiryDto.getBusinessUnitId());
 
         assertNotNull(AccountEnquiryDto.builder().toString());
     }
@@ -65,13 +65,14 @@ public class LegacyDefendantAccountSearchResultTest {
         assertNotNull(model2.toDefendantAccountSummaryDto());
 
         DefendantAccountSummaryDto dto = model2.toDefendantAccountSummaryDto();
-        assertEquals("Mr John Smith", dto.getName());
-        assertEquals("accountNo", dto.getAccountNo());
-        assertEquals("Cardiff", dto.getCourt());
-        assertEquals(12345L, dto.getDefendantAccountId());
-        assertEquals(BigDecimal.valueOf(1000), dto.getBalance());
+        assertEquals("Smith", dto.getDefendantSurname());
+        assertEquals("John", dto.getDefendantFirstnames());
+        assertEquals("Mr", dto.getDefendantTitle());
+        assertEquals("accountNo", dto.getAccountNumber());
+        assertEquals("12345", dto.getDefendantAccountId());
+        assertEquals(1000.0, dto.getAccountBalance());
         assertEquals("Scotland", dto.getAddressLine1());
-        assertEquals(LocalDate.of(1977, 6, 26), dto.getDateOfBirth());
+        assertEquals("1977-06-26", dto.getBirthDate());
 
     }
 
@@ -92,25 +93,23 @@ public class LegacyDefendantAccountSearchResultTest {
 
     private String getJsonRepresentation() {
         return """
-            {
-              "defendantAccountsSearchResult" : [ {
-                "accountNumber" : "accountNo",
-                "organisation" : null,
-                "title" : "Mr",
-                "surname" : "Smith",
-                "forenames" : "John",
-                "initials" : null,
-                "rowNumber" : null,
-                "defendant_account_id" : 12345,
-                "business_unit_id" : 9,
-                "business_unit_name" : "Cardiff",
-                "organisation_name" : null,
-                "birth_date" : "1977-06-26",
-                "address_line_1" : "Scotland",
-                "account_balance" : 1000
-              } ],
-              "totalCount" : 1
-            }
+        {
+          "defendant_accounts" : [ {
+            "account_number" : "accountNo",
+            "organisation" : false,
+            "defendant_title" : "Mr",
+            "defendant_surname" : "Smith",
+            "defendant_firstnames" : "John",
+            "defendant_account_id" : 12345,
+            "business_unit_id" : "9",
+            "business_unit_name" : "Cardiff",
+            "organisation_name" : null,
+            "birth_date" : "1977-06-26",
+            "address_line_1" : "Scotland",
+            "account_balance" : 1000
+          } ],
+          "count" : 1
+        }
             """;
     }
 }

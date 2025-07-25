@@ -13,10 +13,8 @@ public class LegacyDefendantAccountSearchResultsDtoTest {
     @Test
     void testBuilder() {
         DefendantAccountSearchResultsDto accountEnquiryDto = constructAccountSearchResultsDto();
-        assertEquals(999, accountEnquiryDto.getTotalCount());
-        assertEquals(7, accountEnquiryDto.getCursor());
-        assertEquals(100, accountEnquiryDto.getPageSize());
         assertEquals(1, accountEnquiryDto.getCount());
+        assertEquals(1, accountEnquiryDto.getDefendantAccounts().size());
         assertNotNull(AccountEnquiryDto.builder().toString());
     }
 
@@ -51,10 +49,23 @@ public class LegacyDefendantAccountSearchResultsDtoTest {
     }
 
     private DefendantAccountSearchResultsDto constructAccountSearchResultsDto() {
+        List<DefendantAccountSummaryDto> accounts = List.of(
+            DefendantAccountSummaryDto.builder()
+                .defendantAccountId("123")
+                .accountNumber("ACC-001")
+                .defendantFirstnames("Jane")
+                .defendantSurname("Doe")
+                .birthDate("1980-01-01")
+                .addressLine1("123 Street")
+                .accountBalance(100.0)
+                .organisation(false)
+                .build()
+        );
+
         return DefendantAccountSearchResultsDto.builder()
-            .searchResults(List.of(DefendantAccountSummaryDto.builder().build()))
-            .totalCount(999L)
-            .cursor(7)
+            .defendantAccounts(accounts)
+            .count(accounts.size()) // ✅ manually set
             .build();
     }
+
 }

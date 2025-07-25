@@ -108,13 +108,27 @@ public class LegacyDefendantAccountSearchResult implements ToJsonString, FullNam
 
     public DefendantAccountSummaryDto toDefendantAccountSummaryDto() {
         DefendantAccountSummaryDto summary =  DefendantAccountSummaryDto.builder()
-            .defendantAccountId(defendantAccountId)
-            .accountNo(accountNumber)
-            .court(businessUnitName)
-            .name(getFullName())
-            .dateOfBirth(birthDate)
+            .defendantAccountId(String.valueOf(defendantAccountId))
+            .accountNumber(accountNumber)
+            .birthDate(birthDate != null ? birthDate.toString() : null)
             .addressLine1(addressLine1)
-            .balance(accountBalance)
+            .accountBalance(accountBalance != null ? accountBalance.doubleValue() : null)
+            .organisation(organisation)
+            .aliases(aliases != null
+            ? aliases.stream().map(alias -> alias.toAliasDto()).toList()
+            : List.of())
+            .postcode(postcode)
+            .businessUnitName(businessUnitName)
+            .businessUnitId(businessUnitId)
+            .prosecutorCaseReference(prosecutorCaseReference)
+            .lastEnforcementAction(lastEnforcementAction)
+            .organisationName(organisation ? organisationName : null)
+            .defendantTitle(!organisation ? title : null)
+            .defendantFirstnames(!organisation ? forenames : null)
+            .defendantSurname(!organisation ? surname : null)
+            .nationalInsuranceNumber(!organisation ? nationalInsuranceNumber : null)
+            .parentGuardianSurname(!organisation ? parentGuardianSurname : null)
+            .parentGuardianFirstnames(!organisation ? parentGuardianFirstnames : null)
             .build();
 
         return summary;

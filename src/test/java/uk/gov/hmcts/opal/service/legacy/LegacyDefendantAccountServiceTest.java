@@ -45,6 +45,8 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -374,9 +376,23 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         mockRestClientPost();
 
+        List<LegacyDefendantAccountSearchResult> fakeAccounts = IntStream.range(0, 9)
+            .mapToObj(i -> LegacyDefendantAccountSearchResult.builder()
+                .accountNumber("ACC" + i)
+                .surname("Surname" + i)
+                .forenames("Firstname" + i)
+                .birthDate(LocalDate.of(1980, 1, (i % 28) + 1))
+                .addressLine1("Address " + i)
+                .accountBalance(BigDecimal.valueOf(100.0 + i))
+                .organisation(false)
+                .build())
+            .collect(Collectors.toList());
+
         // Arrange
         LegacyDefendantAccountsSearchResults resultsDto = LegacyDefendantAccountsSearchResults.builder()
-            .totalCount(9L).build();
+            .totalCount(9L)
+            .defendantAccountsSearchResult(fakeAccounts)
+            .build();
         String xml = marshalXmlString(resultsDto, LegacyDefendantAccountsSearchResults.class);
 
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(xml, HttpStatus.OK);
@@ -389,7 +405,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .searchDefendantAccounts(AccountSearchDto.builder().build());
 
         // Assert
-        assertEquals(9L, searchResultsDto.getTotalCount());
+        assertEquals(9, searchResultsDto.getCount());
     }
 
     @Test

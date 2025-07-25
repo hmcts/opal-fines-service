@@ -14,8 +14,10 @@ import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Data
 @Builder
@@ -47,6 +49,7 @@ public class LegacyAccountDetailsResponseDto implements ToJsonString {
                           ? legacyPartyDto.getOrganisationName()
                           : legacyPartyDto.getFullName())
             .accountCT(legacyDefendantAccountDto.getBusinessUnitName())
+            .businessUnitId((short) legacyDefendantAccountDto.getBusinessUnitId())
             .address(DefendantAccountService.buildFullAddress(
                 legacyPartyDto.getAddressLine1(),
                 legacyPartyDto.getAddressLine2(),
@@ -60,16 +63,24 @@ public class LegacyAccountDetailsResponseDto implements ToJsonString {
             .lastCourtAppAndCourtCode(legacyDefendantAccountDto.getLastHearingDate()
                                           + " " + legacyDefendantAccountDto.getLastHearingCourtCode())
             .lastMovement(legacyDefendantAccountDto.getLastMovementDate())
-            .commentField(List.of(legacyDefendantAccountDto.getAccountComments()))
+            .commentField(
+                Optional.ofNullable(legacyDefendantAccountDto.getAccountComments())
+                    .map(List::of)
+                    .orElse(Collections.emptyList())
+            )
             .accountNotes(legacyAccountActivityDto.getActivityText())
             .pcr(legacyDefendantAccountDto.getProsecutorCaseReference())
-            .paymentDetails(DefendantAccountService.buildPaymentDetails(
-                legacyPaymentTermsDto.getTermsTypeCode(),
-                legacyPaymentTermsDto.getInstalmentAmount(),
-                legacyPaymentTermsDto.getInstalmentPeriod(),
-                legacyPaymentTermsDto.getTermsDate()
-            ))
-            .lumpSum(legacyPaymentTermsDto.getInstalmentLumpSum())
+            .paymentDetails(
+                legacyPaymentTermsDto != null
+                    ? DefendantAccountService.buildPaymentDetails(
+                    legacyPaymentTermsDto.getTermsTypeCode(),
+                    legacyPaymentTermsDto.getInstalmentAmount(),
+                    legacyPaymentTermsDto.getInstalmentPeriod(),
+                    legacyPaymentTermsDto.getTermsDate()
+                )
+                    : null
+            )
+            .lumpSum(legacyPaymentTermsDto != null ? legacyPaymentTermsDto.getInstalmentLumpSum() : null)
             .commencing(legacyPaymentTermsDto.getTermsTypeCode().equals("I")
                             ? legacyPaymentTermsDto.getTermsDate()
                             : null)

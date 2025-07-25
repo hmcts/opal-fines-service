@@ -1,12 +1,11 @@
 package uk.gov.hmcts.opal.dto;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class DefendantAccountSummaryDtoTest {
 
@@ -15,12 +14,13 @@ public class DefendantAccountSummaryDtoTest {
         final LocalDate today = LocalDate.now();
         DefendantAccountSummaryDto accountEnquiryDto = constructTestAccountSummaryDto(today);
 
-        assertEquals("accountNameNo", accountEnquiryDto.getAccountNo());
-        assertEquals("Mr John Smith", accountEnquiryDto.getName());
+        assertEquals("accountNameNo", accountEnquiryDto.getAccountNumber());
+        assertEquals("Mr", accountEnquiryDto.getDefendantTitle());
+        assertEquals("John", accountEnquiryDto.getDefendantFirstnames());
+        assertEquals("Smith", accountEnquiryDto.getDefendantSurname());
         assertEquals("Scotland", accountEnquiryDto.getAddressLine1());
-        assertEquals(today, accountEnquiryDto.getDateOfBirth());
-        assertEquals(BigDecimal.valueOf(1000), accountEnquiryDto.getBalance());
-        assertEquals("London", accountEnquiryDto.getCourt());
+        assertEquals(today.toString(), accountEnquiryDto.getBirthDate());
+        assertEquals(1000.0, accountEnquiryDto.getAccountBalance());
 
         assertNotNull(AccountEnquiryDto.builder().toString());
     }
@@ -57,12 +57,13 @@ public class DefendantAccountSummaryDtoTest {
 
     private DefendantAccountSummaryDto constructTestAccountSummaryDto(final LocalDate today) {
         return DefendantAccountSummaryDto.builder()
-            .accountNo("accountNameNo")
-            .name("Mr John Smith")
-            .dateOfBirth(today)
+            .accountNumber("accountNameNo")
+            .defendantTitle("Mr")
+            .defendantFirstnames("John")
+            .defendantSurname("Smith")
+            .birthDate(today.toString())
             .addressLine1("Scotland")
-            .balance(BigDecimal.valueOf(1000))
-            .court("London")
+            .accountBalance(1000.0)
             .build();
     }
 }
