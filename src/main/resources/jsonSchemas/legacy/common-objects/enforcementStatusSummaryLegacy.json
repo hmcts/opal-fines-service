@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "properties": {
     "last_enforcement_action": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/lastEnforcementActionLegacy.json"
+      "$ref": "./lastEnforcementActionLegacy.json"
     },
     "collection_order_made": {
       "type": "boolean"
@@ -14,11 +14,14 @@
       "type": "integer"
     },
     "enforcement_override": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/enforcementOverrideLegacy.schema.json"
+      "$ref": "./enforcementOverrideLegacy.json"
     },
     "last_movement_date": {
       "type": "string",
       "format": "date"
     }
-  }
+  },
+  "required": [
+    "collection_order_made"
+  ]
 }
