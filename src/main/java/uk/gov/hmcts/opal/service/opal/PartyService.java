@@ -14,8 +14,10 @@ import uk.gov.hmcts.opal.entity.PartySummary;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.jpa.PartySpecs;
 import uk.gov.hmcts.opal.service.PartyServiceInterface;
+import uk.gov.hmcts.opal.dto.search.DefendantDto;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +39,10 @@ public class PartyService implements PartyServiceInterface {
     }
 
     public List<PartySummary> searchForParty(AccountSearchDto accountSearchDto) {
-        return partyRepository.findBySurnameContaining(accountSearchDto.getSurname());
+        String surname = Optional.ofNullable(accountSearchDto.getDefendant())
+            .map(DefendantDto::getSurname)
+            .orElse(null);
+        return partyRepository.findBySurnameContaining(surname);
     }
 
     @Override

@@ -14,8 +14,10 @@ import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Data
 @Builder
@@ -28,66 +30,76 @@ public class LegacyAccountDetailsResponseDto implements ToJsonString {
 
     @JsonProperty("defendant_account")
     @XmlElement(name = "defendant_account")
-    private DefendantAccountDto defendantAccount;
+    private LegacyDefendantAccountDto defendantAccount;
 
 
     public static AccountDetailsDto toAccountDetailsDto(LegacyAccountDetailsResponseDto legacy) {
 
-        DefendantAccountDto defendantAccountDto = legacy.getDefendantAccount();
-        PartyDto partyDto = defendantAccountDto.getParties().getParty().get(0);
-        PaymentTermsDto paymentTermsDto = defendantAccountDto.getPaymentTerms();
-        AccountActivityDto accountActivityDto = getLatestAccountActivity(defendantAccountDto.getAccountActivities()
+        LegacyDefendantAccountDto legacyDefendantAccountDto = legacy.getDefendantAccount();
+        LegacyPartyDto legacyPartyDto = legacyDefendantAccountDto.getParties().getParty().get(0);
+        LegacyPaymentTermsDto legacyPaymentTermsDto = legacyDefendantAccountDto.getPaymentTerms();
+        LegacyAccountActivityDto legacyAccountActivityDto =
+            getLatestAccountActivity(legacyDefendantAccountDto.getAccountActivities()
                                                                              .getAccountActivity());
 
         return AccountDetailsDto.builder()
-            .defendantAccountId(defendantAccountDto.getDefendantAccountId())
-            .accountNumber(defendantAccountDto.getAccountNumber())
-            .fullName(partyDto.getOrganisation()
-                          ? partyDto.getOrganisationName()
-                          : partyDto.getFullName())
-            .accountCT(defendantAccountDto.getBusinessUnitName())
+            .defendantAccountId(legacyDefendantAccountDto.getDefendantAccountId())
+            .accountNumber(legacyDefendantAccountDto.getAccountNumber())
+            .fullName(legacyPartyDto.getOrganisation()
+                          ? legacyPartyDto.getOrganisationName()
+                          : legacyPartyDto.getFullName())
+            .accountCT(legacyDefendantAccountDto.getBusinessUnitName())
+            .businessUnitId((short) legacyDefendantAccountDto.getBusinessUnitId())
             .address(DefendantAccountService.buildFullAddress(
-                partyDto.getAddressLine1(),
-                partyDto.getAddressLine2(),
-                partyDto.getAddressLine3(),
-                partyDto.getAddressLine4(),
-                partyDto.getAddressLine5()
+                legacyPartyDto.getAddressLine1(),
+                legacyPartyDto.getAddressLine2(),
+                legacyPartyDto.getAddressLine3(),
+                legacyPartyDto.getAddressLine4(),
+                legacyPartyDto.getAddressLine5()
             ))
-            .postCode(partyDto.getPostcode())
-            .dob(partyDto.getBirthDate())
-            .detailsChanged(defendantAccountDto.getLastChangedDate())
-            .lastCourtAppAndCourtCode(defendantAccountDto.getLastHearingDate()
-                                          + " " + defendantAccountDto.getLastHearingCourtCode())
-            .lastMovement(defendantAccountDto.getLastMovementDate())
-            .commentField(List.of(defendantAccountDto.getAccountComments()))
-            .accountNotes(accountActivityDto.getActivityText())
-            .pcr(defendantAccountDto.getProsecutorCaseReference())
-            .paymentDetails(DefendantAccountService.buildPaymentDetails(
-                paymentTermsDto.getTermsTypeCode(),
-                paymentTermsDto.getInstalmentAmount(),
-                paymentTermsDto.getInstalmentPeriod(),
-                paymentTermsDto.getTermsDate()
-            ))
-            .lumpSum(paymentTermsDto.getInstalmentLumpSum())
-            .commencing(paymentTermsDto.getTermsTypeCode().equals("I")
-                            ? paymentTermsDto.getTermsDate()
+            .postCode(legacyPartyDto.getPostcode())
+            .dob(legacyPartyDto.getBirthDate())
+            .detailsChanged(legacyDefendantAccountDto.getLastChangedDate())
+            .lastCourtAppAndCourtCode(legacyDefendantAccountDto.getLastHearingDate()
+                                          + " " + legacyDefendantAccountDto.getLastHearingCourtCode())
+            .lastMovement(legacyDefendantAccountDto.getLastMovementDate())
+            .commentField(
+                Optional.ofNullable(legacyDefendantAccountDto.getAccountComments())
+                    .map(List::of)
+                    .orElse(Collections.emptyList())
+            )
+            .accountNotes(legacyAccountActivityDto.getActivityText())
+            .pcr(legacyDefendantAccountDto.getProsecutorCaseReference())
+            .paymentDetails(
+                legacyPaymentTermsDto != null
+                    ? DefendantAccountService.buildPaymentDetails(
+                    legacyPaymentTermsDto.getTermsTypeCode(),
+                    legacyPaymentTermsDto.getInstalmentAmount(),
+                    legacyPaymentTermsDto.getInstalmentPeriod(),
+                    legacyPaymentTermsDto.getTermsDate()
+                )
+                    : null
+            )
+            .lumpSum(legacyPaymentTermsDto != null ? legacyPaymentTermsDto.getInstalmentLumpSum() : null)
+            .commencing(legacyPaymentTermsDto.getTermsTypeCode().equals("I")
+                            ? legacyPaymentTermsDto.getTermsDate()
                             : null)
-            .daysInDefault(defendantAccountDto.getPaymentTerms().getJailDays())
-            .sentencedDate(defendantAccountDto.getImposedHearingDate())
-            .lastEnforcement(defendantAccountDto.getLastEnforcement())
-            .override(defendantAccountDto.getEnfOverrideResultId())
-            .enforcer(defendantAccountDto.getEnfOverrideEnforcerCode())
-            .enforcementCourt(defendantAccountDto.getEnforcingCourtCode())
-            .imposed(defendantAccountDto.getAmountImposed())
-            .amountPaid(defendantAccountDto.getAmountPaid())
-            .balance(defendantAccountDto.getAccountBalance())
+            .daysInDefault(legacyDefendantAccountDto.getPaymentTerms().getJailDays())
+            .sentencedDate(legacyDefendantAccountDto.getImposedHearingDate())
+            .lastEnforcement(legacyDefendantAccountDto.getLastEnforcement())
+            .override(legacyDefendantAccountDto.getEnfOverrideResultId())
+            .enforcer(legacyDefendantAccountDto.getEnfOverrideEnforcerCode())
+            .enforcementCourt(legacyDefendantAccountDto.getEnforcingCourtCode())
+            .imposed(legacyDefendantAccountDto.getAmountImposed())
+            .amountPaid(legacyDefendantAccountDto.getAmountPaid())
+            .balance(legacyDefendantAccountDto.getAccountBalance())
             .build();
     }
 
-    private static AccountActivityDto getLatestAccountActivity(List<AccountActivityDto> accountActivities) {
+    private static LegacyAccountActivityDto getLatestAccountActivity(List<LegacyAccountActivityDto> accountActivities) {
 
         return accountActivities.stream()
-            .max(Comparator.comparing(AccountActivityDto::getPostedDate))
-            .orElse(new AccountActivityDto());
+            .max(Comparator.comparing(LegacyAccountActivityDto::getPostedDate))
+            .orElse(new LegacyAccountActivityDto());
     }
 }

@@ -9,7 +9,7 @@ import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.DynamicConfigService;
@@ -51,7 +51,7 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
 
     @Override
     @AuthorizedAnyBusinessUnitUserHasPermission(Permissions.ACCOUNT_ENQUIRY)
-    public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
+    public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts: isLegacyMode: {}", isLegacyMode(dynamicConfigService));
         return getCurrentModeService().searchDefendantAccounts(accountSearchDto);
     }

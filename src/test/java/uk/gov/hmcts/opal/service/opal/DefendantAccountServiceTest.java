@@ -13,8 +13,8 @@ import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.dto.AccountSummaryDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
@@ -131,21 +131,19 @@ public class DefendantAccountServiceTest {
     @Test
     void testSearchDefendantAccounts() {
         // Arrange
-        AccountSearchResultsDto expectedResponse =  AccountSearchResultsDto.builder()
-            .searchResults(List.of(AccountSummaryDto.builder().build()))
-            .totalCount(999L)
-            .cursor(1)
+        DefendantAccountSearchResultsDto expectedResponse =  DefendantAccountSearchResultsDto.builder()
+            .defendantAccounts(Collections.emptyList())
             .build();
-        Page<AccountSummaryDto> mockPage = new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 999L);
+        Page<DefendantAccountSummaryDto> mockPage = new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 999L);
         when(defendantAccountRepository.findBy(any(Specification.class), any()))
             .thenReturn(mockPage);
 
         // Act
-        AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(
+        DefendantAccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(
             AccountSearchDto.builder().build());
 
         // Assert
-        assertEquals(expectedResponse.getTotalCount(), result.getTotalCount());
+        assertEquals(expectedResponse.getCount(), result.getCount());
 
         assertNotNull(defendantAccountService.toDto(new TestDefendantAccountSummary()));
     }
@@ -156,14 +154,15 @@ public class DefendantAccountServiceTest {
         AccountSearchDto mockSearch = AccountSearchDto.builder().court("test").build();
 
         // Act
-        AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(mockSearch);
+        DefendantAccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(mockSearch);
 
         // Assert
         assertNotNull(result);
-        assertEquals(100, result.getSearchResults().size());
+        assertNotNull(result.getDefendantAccounts());
+        assertEquals(100, result.getDefendantAccounts().size());
         assertEquals(100, result.getCount());
-        assertEquals(100, result.getPageSize());
-        assertEquals(100, result.getTotalCount());
+        assertEquals(100, result.getDefendantAccounts().size());
+        assertEquals(100, result.getCount());
     }
 
 
@@ -343,6 +342,7 @@ public class DefendantAccountServiceTest {
             .accountNotes("Activity")
             .pcr("123456")
             .paymentDetails("100.0 / PCM")
+            .businessUnitId((short) 200)
             .lumpSum(BigDecimal.valueOf(100.00))
             .commencing(LocalDate.of(2012, 1,1))
             .daysInDefault(10)
@@ -361,6 +361,7 @@ public class DefendantAccountServiceTest {
 
         BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder()
             .businessUnitName("CT")
+            .businessUnitId((short) 200)
             .build();
 
         CourtEntity courtEntity1 = CourtEntity.builder()
