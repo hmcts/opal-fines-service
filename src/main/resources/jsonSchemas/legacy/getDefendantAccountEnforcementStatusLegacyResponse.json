@@ -8,13 +8,13 @@
       "type": "integer"
     },
     "enforcement_overview": {
-      "$ref": "#$defs/enforcementOverview"
+      "$ref": "#/$defs/enforcementOverview"
     },
     "enforcement_override": {
       "$ref": "./common-objects/enforcementOverrideLegacy.json"
     },
     "last_enforcement_action": {
-      "$ref": "#$defs/enforcementOverview"
+      "$ref": "#/$defs/enforcementOverview"
     },
     "next_enforcement_action": {
       "type": "string"
