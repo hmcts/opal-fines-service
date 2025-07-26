@@ -23,7 +23,7 @@
     "version": {
       "type": "integer"
     },
-    "party_details": {
+    "defendant_account_party": {
       "$ref": "./common-objects/partyDetailsLegacy.json"
     }
   },
@@ -33,6 +33,6 @@
     "business_unit_user_id",
     "defendant_account_party_id",
     "version",
-    "party_details"
+    "defendant_account_party"
   ]
 }
