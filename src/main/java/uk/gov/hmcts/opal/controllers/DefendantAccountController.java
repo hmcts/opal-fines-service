@@ -25,8 +25,8 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.service.DefendantAccountServiceInterface;
-import uk.gov.hmcts.opal.service.opal.NoteService;
+import uk.gov.hmcts.opal.disco.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.disco.opal.NoteService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.time.LocalDateTime;

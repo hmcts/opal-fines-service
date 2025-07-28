@@ -4,13 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.disco.legacy.GatewayService;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
-import uk.gov.hmcts.opal.service.DraftAccountPublishInterface;
-import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
+import uk.gov.hmcts.opal.service.iface.DraftAccountPublishInterface;
+import uk.gov.hmcts.opal.disco.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
 
 import java.time.LocalDate;

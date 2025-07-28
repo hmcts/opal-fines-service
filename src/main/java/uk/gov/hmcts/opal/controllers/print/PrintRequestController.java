@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.entity.print.PrintJob;
-import uk.gov.hmcts.opal.service.print.AsyncPrintJobProcessor;
-import uk.gov.hmcts.opal.service.print.PrintService;
+import uk.gov.hmcts.opal.disco.print.AsyncPrintJobProcessor;
+import uk.gov.hmcts.opal.disco.print.PrintService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ContentDisposition;
 

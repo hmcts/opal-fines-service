@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
+import uk.gov.hmcts.opal.disco.opal.DefendantAccountService;
 
 import java.util.Comparator;
 import java.util.List;
