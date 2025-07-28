@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -32,7 +31,7 @@ import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
-import uk.gov.hmcts.opal.disco.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.disco.DiscoDefendantAccountServiceInterface;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -46,10 +45,9 @@ import java.util.stream.Collectors;
 import static uk.gov.hmcts.opal.dto.ToJsonString.getObjectMapper;
 
 @Service
-@Slf4j(topic = "opal.DefendantAccountService")
+@Slf4j(topic = "opal.DiscoDefendantAccountService")
 @RequiredArgsConstructor
-@Qualifier("defendantAccountService")
-public class DefendantAccountService implements DefendantAccountServiceInterface {
+public class DiscoDefendantAccountService implements DiscoDefendantAccountServiceInterface {
 
     private final DefendantAccountRepository defendantAccountRepository;
 

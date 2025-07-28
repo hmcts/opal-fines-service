@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public class DefendantAccountServiceTest {
+public class DiscoDefendantAccountServiceTest {
 
     @Mock
     private DefendantAccountRepository defendantAccountRepository;
@@ -63,7 +63,7 @@ public class DefendantAccountServiceTest {
     NoteRepository noteRepository;
 
     @InjectMocks
-    private DefendantAccountService defendantAccountService;
+    private DiscoDefendantAccountService discoDefendantAccountService;
 
     @BeforeEach
     void setUp() {
@@ -82,7 +82,7 @@ public class DefendantAccountServiceTest {
             .thenReturn(mockEntity);
 
         // Act
-        DefendantAccountEntity result = defendantAccountService.getDefendantAccount(request);
+        DefendantAccountEntity result = discoDefendantAccountService.getDefendantAccount(request);
 
         // Assert
         assertEquals(mockEntity, result);
@@ -103,7 +103,7 @@ public class DefendantAccountServiceTest {
             .thenReturn(entity);
 
         // Act
-        DefendantAccountEntity result = defendantAccountService.putDefendantAccount(entity);
+        DefendantAccountEntity result = discoDefendantAccountService.putDefendantAccount(entity);
 
         // Assert
         assertEquals(entity, result);
@@ -119,7 +119,8 @@ public class DefendantAccountServiceTest {
             .thenReturn(mockEntity);
 
         // Act
-        List<DefendantAccountEntity> result = defendantAccountService.getDefendantAccountsByBusinessUnit((short) 123);
+        List<DefendantAccountEntity> result =
+            discoDefendantAccountService.getDefendantAccountsByBusinessUnit((short) 123);
 
         // Assert
         assertEquals(mockEntity, result);
@@ -141,13 +142,13 @@ public class DefendantAccountServiceTest {
             .thenReturn(mockPage);
 
         // Act
-        AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(
+        AccountSearchResultsDto result = discoDefendantAccountService.searchDefendantAccounts(
             AccountSearchDto.builder().build());
 
         // Assert
         assertEquals(expectedResponse.getTotalCount(), result.getTotalCount());
 
-        assertNotNull(defendantAccountService.toDto(new TestDefendantAccountSummary()));
+        assertNotNull(discoDefendantAccountService.toDto(new TestDefendantAccountSummary()));
     }
 
     @Test
@@ -156,7 +157,7 @@ public class DefendantAccountServiceTest {
         AccountSearchDto mockSearch = AccountSearchDto.builder().court("test").build();
 
         // Act
-        AccountSearchResultsDto result = defendantAccountService.searchDefendantAccounts(mockSearch);
+        AccountSearchResultsDto result = discoDefendantAccountService.searchDefendantAccounts(mockSearch);
 
         // Assert
         assertNotNull(result);
@@ -193,7 +194,7 @@ public class DefendantAccountServiceTest {
             .thenReturn(buildNotesEntityActivity());
 
         //act
-        AccountDetailsDto result = defendantAccountService.getAccountDetailsByDefendantAccountId(1L);
+        AccountDetailsDto result = discoDefendantAccountService.getAccountDetailsByDefendantAccountId(1L);
 
         //assert
         assertEquals(buildAccountDetailsDto(), result);
@@ -234,7 +235,7 @@ public class DefendantAccountServiceTest {
         expectedDetails.setCommencing(null);
 
         //act
-        AccountDetailsDto result = defendantAccountService.getAccountDetailsByDefendantAccountId(1L);
+        AccountDetailsDto result = discoDefendantAccountService.getAccountDetailsByDefendantAccountId(1L);
 
         //assert
         assertEquals(expectedDetails, result);
@@ -274,7 +275,7 @@ public class DefendantAccountServiceTest {
         expectedDetails.setCommencing(null);
 
         //act
-        AccountDetailsDto result = defendantAccountService.getAccountDetailsByDefendantAccountId(1L);
+        AccountDetailsDto result = discoDefendantAccountService.getAccountDetailsByDefendantAccountId(1L);
 
         //assert
         assertEquals(expectedDetails, result);
@@ -313,7 +314,7 @@ public class DefendantAccountServiceTest {
         expectedDetails.setFullName("The Bank of England");
 
         //act
-        AccountDetailsDto result = defendantAccountService.getAccountDetailsByDefendantAccountId(1L);
+        AccountDetailsDto result = discoDefendantAccountService.getAccountDetailsByDefendantAccountId(1L);
 
         //assert
         assertEquals(expectedDetails, result);
@@ -321,7 +322,7 @@ public class DefendantAccountServiceTest {
 
     @Test
     void testGetAccountDetailsByAccountSummaryTemporary() {
-        defendantAccountService.getAccountDetailsByDefendantAccountId(0L);
+        discoDefendantAccountService.getAccountDetailsByDefendantAccountId(0L);
         Assertions.assertDoesNotThrow(() -> { }); // Stops SonarQube complaining about no assertions in method.
     }
 

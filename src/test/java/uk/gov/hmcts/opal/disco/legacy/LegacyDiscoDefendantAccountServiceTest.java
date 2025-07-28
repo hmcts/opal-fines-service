@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.disco.opal.DiscoDefendantAccountServiceTest;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -35,7 +36,6 @@ import uk.gov.hmcts.opal.dto.legacy.PartiesDto;
 import uk.gov.hmcts.opal.dto.legacy.PartyDto;
 import uk.gov.hmcts.opal.dto.legacy.PaymentTermsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.disco.opal.DefendantAccountServiceTest;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -55,10 +55,10 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
+class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
 
     @InjectMocks
-    private LegacyDefendantAccountService legacyDefendantAccountService;
+    private LegacyDiscoDefendantAccountService legacyDefendantAccountService;
 
     @Test
     @SuppressWarnings("unchecked")
@@ -67,9 +67,11 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // Arrange
         mockRestClientPost();
 
-        final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
+        final DefendantAccountEntity inputAccountEntity = DiscoDefendantAccountServiceTest
+            .buildDefendantAccountEntity();
 
-        final DefendantAccountEntity expectedAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
+        final DefendantAccountEntity expectedAccountEntity = DiscoDefendantAccountServiceTest
+            .buildDefendantAccountEntity();
 
         String xml = marshalXmlString(inputAccountEntity, DefendantAccountEntity.class);
 
@@ -90,7 +92,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     void putDefendantAccount_FailureBodyResponse() {
         // Arrange
         mockRestClientPost();
-        final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
+        final DefendantAccountEntity inputAccountEntity = DiscoDefendantAccountServiceTest
+            .buildDefendantAccountEntity();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             null, HttpStatus.OK);
@@ -118,7 +121,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     void putDefendantAccount_FailureCodeResponse() throws Exception {
         // Arrange
         mockRestClientPost();
-        final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
+        final DefendantAccountEntity inputAccountEntity = DiscoDefendantAccountServiceTest
+            .buildDefendantAccountEntity();
 
         String xml = marshalXmlString(inputAccountEntity, DefendantAccountEntity.class);
 
@@ -149,7 +153,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     void putDefendantAccount_ErrorResponse() {
         // Arrange
         mockRestClientPost();
-        final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
+        final DefendantAccountEntity inputAccountEntity = DiscoDefendantAccountServiceTest
+            .buildDefendantAccountEntity();
 
         String jsonBody = createBrokenJson();
 
@@ -178,9 +183,11 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     void getParty_SuccessfulResponse() throws Exception {
         // Arrange
         mockRestClientPost();
-        final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
+        final DefendantAccountEntity inputAccountEntity = DiscoDefendantAccountServiceTest
+            .buildDefendantAccountEntity();
 
-        final DefendantAccountEntity expectedAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
+        final DefendantAccountEntity expectedAccountEntity = DiscoDefendantAccountServiceTest
+            .buildDefendantAccountEntity();
 
         String xml = marshalXmlString(inputAccountEntity, DefendantAccountEntity.class);
 
@@ -203,7 +210,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     void getParty_FailureBodyResponse() {
         // Arrange
         mockRestClientPost();
-        final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
+        final DefendantAccountEntity inputAccountEntity = DiscoDefendantAccountServiceTest
+            .buildDefendantAccountEntity();
 
         ResponseEntity<String> unsuccessfulResponseEntity = new ResponseEntity<>(
             null, HttpStatus.OK);
@@ -231,7 +239,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     void getParty_FailureCodeResponse() throws Exception {
         // Arrange
         mockRestClientPost();
-        final DefendantAccountEntity inputAccountEntity = DefendantAccountServiceTest.buildDefendantAccountEntity();
+        final DefendantAccountEntity inputAccountEntity = DiscoDefendantAccountServiceTest
+            .buildDefendantAccountEntity();
 
 
         String xml = marshalXmlString(inputAccountEntity, DefendantAccountEntity.class);
@@ -596,7 +605,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     private AccountDetailsDto buildAccountDetailsDto() {
 
-        return DefendantAccountServiceTest.buildAccountDetailsDto();
+        return DiscoDefendantAccountServiceTest.buildAccountDetailsDto();
     }
 
     private DefendantAccountSearchCriteria constructDefendantAccountSearchCriteria() {

@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.TemplateMappingEntity;
 import uk.gov.hmcts.opal.disco.TemplateMappingServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTemplateMappingService;
 import uk.gov.hmcts.opal.disco.opal.TemplateMappingService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

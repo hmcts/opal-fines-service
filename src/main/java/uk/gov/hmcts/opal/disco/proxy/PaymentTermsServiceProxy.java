@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.disco.PaymentTermsServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyPaymentTermsService;
 import uk.gov.hmcts.opal.disco.opal.PaymentTermsService;
+import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 import java.util.List;
 

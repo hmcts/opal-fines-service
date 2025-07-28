@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.disco.legacy;
+package uk.gov.hmcts.opal.service.legacy;
 
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
@@ -13,8 +13,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.disco.legacy.LegacyGatewayService;
 import uk.gov.hmcts.opal.dto.NoteDto;
-import uk.gov.hmcts.opal.disco.legacy.GatewayService.Response;
+import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 
 import java.time.LocalDateTime;
 import java.util.Collection;

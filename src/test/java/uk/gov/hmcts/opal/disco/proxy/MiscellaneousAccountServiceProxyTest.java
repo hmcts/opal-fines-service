@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.disco.MiscellaneousAccountServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyMiscellaneousAccountService;
 import uk.gov.hmcts.opal.disco.opal.MiscellaneousAccountService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

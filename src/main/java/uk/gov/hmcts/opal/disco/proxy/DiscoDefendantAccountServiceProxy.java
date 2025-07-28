@@ -6,30 +6,31 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.aspect.AuthorizedAnyBusinessUnitUserHasPermission;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.disco.DiscoDefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.disco.legacy.LegacyDiscoDefendantAccountService;
+import uk.gov.hmcts.opal.disco.opal.DiscoDefendantAccountService;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.disco.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
-import uk.gov.hmcts.opal.disco.legacy.LegacyDefendantAccountService;
-import uk.gov.hmcts.opal.disco.opal.DefendantAccountService;
+import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "opal.DefendantAccountServiceProxy")
+@Slf4j(topic = "opal.DiscoDefendantAccountServiceProxy")
 @Qualifier("defendantAccountServiceProxy")
-public class DefendantAccountServiceProxy implements DefendantAccountServiceInterface, ProxyInterface {
+public class DiscoDefendantAccountServiceProxy implements DiscoDefendantAccountServiceInterface, ProxyInterface {
 
-    private final DefendantAccountService opalDefendantAccountService;
-    private final LegacyDefendantAccountService legacyDefendantAccountService;
+    private final DiscoDefendantAccountService opalDiscoDefendantAccountService;
+    private final LegacyDiscoDefendantAccountService legacyDefendantAccountService;
     private final DynamicConfigService dynamicConfigService;
 
-    private DefendantAccountServiceInterface getCurrentModeService() {
-        return isLegacyMode(dynamicConfigService) ? legacyDefendantAccountService : opalDefendantAccountService;
+    private DiscoDefendantAccountServiceInterface getCurrentModeService() {
+        return isLegacyMode(dynamicConfigService) ? legacyDefendantAccountService : opalDiscoDefendantAccountService;
     }
 
     @Override

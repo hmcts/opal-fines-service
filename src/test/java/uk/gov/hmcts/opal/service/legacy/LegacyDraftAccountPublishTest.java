@@ -1,10 +1,11 @@
-package uk.gov.hmcts.opal.disco.legacy;
+package uk.gov.hmcts.opal.service.legacy;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.ParameterizedTypeReference;
@@ -12,13 +13,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.disco.legacy.LegacyGatewayService;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
-import uk.gov.hmcts.opal.service.legacy.LegacyDraftAccountPublish;
 
 import java.lang.reflect.Field;
 
@@ -46,7 +47,7 @@ class LegacyDraftAccountPublishTest {
 
     @BeforeEach
     void openMocks() throws Exception {
-        gatewayService = spy(new LegacyGatewayService(gatewayProperties, restClient));
+        gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
         injectGatewayService(legacyDraftAccountPublish, gatewayService);
     }
 
