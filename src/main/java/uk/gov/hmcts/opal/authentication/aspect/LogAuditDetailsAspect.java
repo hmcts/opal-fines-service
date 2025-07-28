@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddLogAuditDetailDto;
-import uk.gov.hmcts.opal.service.opal.LogAuditDetailService;
+import uk.gov.hmcts.opal.disco.opal.LogAuditDetailService;
 
 @Aspect
 @Component

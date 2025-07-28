@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.config.properties.BeDeveloperConfiguration;
+import uk.gov.hmcts.opal.disco.opal.UserEntitlementService;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 

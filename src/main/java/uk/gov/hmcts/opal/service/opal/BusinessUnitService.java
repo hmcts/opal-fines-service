@@ -19,7 +19,7 @@ import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs;
 import uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs;
-import uk.gov.hmcts.opal.service.BusinessUnitServiceInterface;
+import uk.gov.hmcts.opal.disco.BusinessUnitServiceInterface;
 
 import java.util.List;
 import java.util.Optional;
