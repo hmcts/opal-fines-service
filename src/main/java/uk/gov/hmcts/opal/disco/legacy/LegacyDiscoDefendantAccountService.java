@@ -14,21 +14,21 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.disco.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.disco.DiscoDefendantAccountServiceInterface;
 
 import java.util.Collections;
 import java.util.List;
 
 @Service
-@Slf4j(topic = "opal.LegacyDefendantAccountService")
-public class LegacyDefendantAccountService extends LegacyService implements DefendantAccountServiceInterface {
+@Slf4j(topic = "opal.LegacyDiscoDefendantAccountService")
+public class LegacyDiscoDefendantAccountService extends LegacyService implements DiscoDefendantAccountServiceInterface {
 
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
     public static final String PUT_DEFENDANT_ACCOUNT = "putDefendantAccount";
     public static final String GET_DEFENDANT_ACCOUNT = "getDefendantAccount";
     public static final String GET_ACCOUNT_DETAILS = "getAccountDetails";
 
-    public LegacyDefendantAccountService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
+    public LegacyDiscoDefendantAccountService(LegacyGatewayProperties legacyGatewayProperties, RestClient restClient) {
         super(legacyGatewayProperties, restClient);
     }
 

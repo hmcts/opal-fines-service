@@ -28,7 +28,7 @@ import org.xml.sax.SAXParseException;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.disco.legacy.LegacyGatewayService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.disco.legacy.GatewayService.Response;
+import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;

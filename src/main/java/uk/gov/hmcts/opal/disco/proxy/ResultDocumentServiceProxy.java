@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.disco.ResultDocumentServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyResultDocumentService;
 import uk.gov.hmcts.opal.disco.opal.ResultDocumentService;
+import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 import java.util.List;
 

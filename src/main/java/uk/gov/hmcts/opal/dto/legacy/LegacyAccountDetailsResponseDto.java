@@ -10,9 +10,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
+import uk.gov.hmcts.opal.disco.opal.DiscoDefendantAccountService;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.disco.opal.DefendantAccountService;
 
 import java.util.Comparator;
 import java.util.List;
@@ -46,7 +46,7 @@ public class LegacyAccountDetailsResponseDto implements ToJsonString {
                           ? partyDto.getOrganisationName()
                           : partyDto.getFullName())
             .accountCT(defendantAccountDto.getBusinessUnitName())
-            .address(DefendantAccountService.buildFullAddress(
+            .address(DiscoDefendantAccountService.buildFullAddress(
                 partyDto.getAddressLine1(),
                 partyDto.getAddressLine2(),
                 partyDto.getAddressLine3(),
@@ -62,7 +62,7 @@ public class LegacyAccountDetailsResponseDto implements ToJsonString {
             .commentField(List.of(defendantAccountDto.getAccountComments()))
             .accountNotes(accountActivityDto.getActivityText())
             .pcr(defendantAccountDto.getProsecutorCaseReference())
-            .paymentDetails(DefendantAccountService.buildPaymentDetails(
+            .paymentDetails(DiscoDefendantAccountService.buildPaymentDetails(
                 paymentTermsDto.getTermsTypeCode(),
                 paymentTermsDto.getInstalmentAmount(),
                 paymentTermsDto.getInstalmentPeriod(),

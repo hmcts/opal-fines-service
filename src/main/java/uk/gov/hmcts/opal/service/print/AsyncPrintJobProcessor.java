@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.disco.print;
+package uk.gov.hmcts.opal.service.print;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;

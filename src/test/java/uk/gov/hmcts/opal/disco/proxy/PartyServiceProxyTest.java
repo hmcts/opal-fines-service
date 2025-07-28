@@ -15,6 +15,7 @@ import uk.gov.hmcts.opal.entity.PartySummary;
 import uk.gov.hmcts.opal.disco.PartyServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyPartyService;
 import uk.gov.hmcts.opal.disco.opal.PartyService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.Collections;
 import java.util.List;

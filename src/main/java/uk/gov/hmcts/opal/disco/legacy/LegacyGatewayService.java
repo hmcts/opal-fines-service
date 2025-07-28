@@ -12,6 +12,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.service.legacy.GatewayService;
 import uk.gov.hmcts.opal.util.XmlUtil;
 
 import java.util.Base64;

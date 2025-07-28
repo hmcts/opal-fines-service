@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
+import uk.gov.hmcts.opal.disco.opal.DiscoDefendantAccountService;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
@@ -18,7 +19,6 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.disco.opal.DefendantAccountService;
 import uk.gov.hmcts.opal.disco.opal.NoteService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
@@ -39,7 +39,7 @@ class DefendantAccountControllerTest {
         { "error": "Not Found", "message": "No resource found at provided URI"}""";
 
     @Mock
-    private DefendantAccountService defendantAccountService;
+    private DiscoDefendantAccountService discoDefendantAccountService;
 
     @Mock
     private NoteService noteService;
@@ -55,7 +55,7 @@ class DefendantAccountControllerTest {
         // Arrange
         DefendantAccountEntity mockResponse = new DefendantAccountEntity();
 
-        when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(mockResponse);
+        when(discoDefendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(mockResponse);
 
         // Act
         ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
@@ -64,14 +64,14 @@ class DefendantAccountControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
-        verify(defendantAccountService, times(1)).getDefendantAccount(any(
+        verify(discoDefendantAccountService, times(1)).getDefendantAccount(any(
             AccountEnquiryDto.class));
     }
 
     @Test
     void testGetDefendantAccount_NoContent() {
         // Arrange
-        when(defendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(null);
+        when(discoDefendantAccountService.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(null);
 
         // Act
         ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
@@ -79,7 +79,7 @@ class DefendantAccountControllerTest {
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
-        verify(defendantAccountService, times(1)).getDefendantAccount(any(
+        verify(discoDefendantAccountService, times(1)).getDefendantAccount(any(
             AccountEnquiryDto.class));
     }
 
@@ -90,7 +90,8 @@ class DefendantAccountControllerTest {
         DefendantAccountEntity requestEntity = new DefendantAccountEntity();
         DefendantAccountEntity mockResponse = new DefendantAccountEntity();
 
-        when(defendantAccountService.putDefendantAccount(any(DefendantAccountEntity.class))).thenReturn(mockResponse);
+        when(discoDefendantAccountService.putDefendantAccount(any(DefendantAccountEntity.class)))
+            .thenReturn(mockResponse);
 
         // Act
         ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.putDefendantAccount(
@@ -99,7 +100,7 @@ class DefendantAccountControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
-        verify(defendantAccountService, times(1)).putDefendantAccount(any(
+        verify(discoDefendantAccountService, times(1)).putDefendantAccount(any(
             DefendantAccountEntity.class));
     }
 
@@ -108,7 +109,7 @@ class DefendantAccountControllerTest {
         // Arrange
         AccountDetailsDto mockResponse = new AccountDetailsDto();
 
-        when(defendantAccountService.getAccountDetailsByDefendantAccountId(any(Long.class)))
+        when(discoDefendantAccountService.getAccountDetailsByDefendantAccountId(any(Long.class)))
             .thenReturn(mockResponse);
 
         // Act
@@ -118,7 +119,7 @@ class DefendantAccountControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
-        verify(defendantAccountService, times(1)).getAccountDetailsByDefendantAccountId(any(
+        verify(discoDefendantAccountService, times(1)).getAccountDetailsByDefendantAccountId(any(
             Long.class));
     }
 
@@ -128,7 +129,8 @@ class DefendantAccountControllerTest {
         AccountSearchDto requestEntity = AccountSearchDto.builder().build();
         AccountSearchResultsDto mockResponse = AccountSearchResultsDto.builder().build();
 
-        when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class))).thenReturn(mockResponse);
+        when(discoDefendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class)))
+            .thenReturn(mockResponse);
 
         // Act
         ResponseEntity<AccountSearchResultsDto> responseEntity = defendantAccountController.postDefendantAccountSearch(
@@ -137,7 +139,7 @@ class DefendantAccountControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
-        verify(defendantAccountService, times(1)).searchDefendantAccounts(any(
+        verify(discoDefendantAccountService, times(1)).searchDefendantAccounts(any(
             AccountSearchDto.class));
     }
 
