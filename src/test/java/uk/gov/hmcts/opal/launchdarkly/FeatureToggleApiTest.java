@@ -10,6 +10,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.config.properties.LaunchDarklyProperties;
 
 import java.util.List;
 
@@ -37,7 +38,11 @@ class FeatureToggleApiTest {
 
     @BeforeEach
     void setUp() {
-        featureToggleApi = new FeatureToggleApi(ldClient, FAKE_ENVIRONMENT, FAKE_KEY);
+        LaunchDarklyProperties launchDarklyProperties = new LaunchDarklyProperties();
+        launchDarklyProperties.setEnv(FAKE_ENVIRONMENT);
+        launchDarklyProperties.setSdkKey(FAKE_KEY);
+        launchDarklyProperties.setEnabled(true);
+        featureToggleApi = new FeatureToggleApi(ldClient, launchDarklyProperties);
     }
 
     @ParameterizedTest
