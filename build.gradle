@@ -260,6 +260,9 @@ dependencyManagement {
 
 dependencyCheck {
   suppressionFile = 'config/owasp/suppressions.xml'
+  nvd {
+    apiKey = 'ffb77792-47ae-41ff-a95f-e5bd172663b4'
+  }
 }
 
 repositories {
@@ -314,7 +317,6 @@ dependencies {
   implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.8');
   implementation(group: 'com.jayway.jsonpath', name: 'json-path', version: '2.9.0');
 
-  implementation 'org.apache.commons:commons-lang3:3.18.0'
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
@@ -368,6 +370,11 @@ dependencies {
 
   testImplementation "net.serenity-bdd:serenity-cucumber:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
+
+  //Added to override dependency version to resolve vulnerability
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:10.1.43'
+  implementation 'org.apache.commons:commons-lang3:3.18.0'
+
 }
 
 application {
