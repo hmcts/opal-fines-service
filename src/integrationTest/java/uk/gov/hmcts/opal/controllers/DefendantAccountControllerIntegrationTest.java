@@ -16,16 +16,15 @@ import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountType;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
-import java.util.Collections;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -122,10 +121,60 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_title").value("Ms"))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_firstnames").value("Anna"))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"))
-            .andExpect(jsonPath("$.defendant_accounts[0].address_line_1").value("Lumber House"));
+            .andExpect(jsonPath("$.defendant_accounts[0].address_line_1").value("Lumber House"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_name").value("Business Unit A"));
 
         assertTrue(jsonSchemaValidationService.isValid(body, SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_RESPONSE));
 
+    }
+
+    @Test
+    @DisplayName("Search defendant accounts - Invalid payload with both reference_number and defendant")
+    void testPostDefendantAccountsSearch_InvalidPayload() throws Exception {
+        mockMvc.perform(post(URL_BASE + "search")
+                .header("authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+            {
+              "active_accounts_only": true,
+              "business_unit_ids": [78],
+              "reference_number": {
+                "organisation": true,
+                "account_number": "12345",
+                "prosecutor_case_reference": null
+              },
+              "defendant": {
+                "include_aliases": true,
+                "organisation": false,
+                "surname": "Smith"
+              }
+            }
+        """))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Search defendant accounts - Missing required fields")
+    void testPostDefendantAccountsSearch_MissingFields() throws Exception {
+        mockMvc.perform(post(URL_BASE + "search")
+                .header("authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+            {
+              "business_unit_ids": [78]
+            }
+        """))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Search defendant accounts - Empty payload")
+    void testPostDefendantAccountsSearch_EmptyPayload() throws Exception {
+        mockMvc.perform(post(URL_BASE + "search")
+                .header("authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+            .andExpect(status().isBadRequest());
     }
 
     @Test

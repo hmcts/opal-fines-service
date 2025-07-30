@@ -1,41 +1,31 @@
 package uk.gov.hmcts.opal.dto.search;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.networknt.schema.utils.StringUtils;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import uk.gov.hmcts.opal.dto.DateDto;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
-@Builder
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class DefendantDto {
-    private String surname;
-    private String forenames;
 
-    @JsonProperty("exact_match_surname")
-    private boolean exactMatchSurname;
+    @JsonProperty("include_aliases")
+    private Boolean includeAliases;
 
-    @JsonProperty("exact_match_forenames")
-    private boolean exactMatchForenames;
-
-    private String initials;
-
-    @JsonProperty("birth_date")
-    private LocalDate birthDate;
+    @JsonProperty("organisation")
+    private Boolean organisation;
 
     @JsonProperty("address_line_1")
     private String addressLine1;
 
+    @JsonProperty("postcode")
     private String postcode;
-
-    @JsonProperty("national_insurance_number")
-    private String nationalInsuranceNumber;
-
-    private boolean organisation;
-
-    @JsonProperty("include_aliases")
-    private boolean includeAliases;
 
     @JsonProperty("organisation_name")
     private String organisationName;
@@ -43,9 +33,35 @@ public class DefendantDto {
     @JsonProperty("exact_match_organisation_name")
     private Boolean exactMatchOrganisationName;
 
-    @JsonProperty("parent_guardian_surname")
-    private String parentGuardianSurname;
+    @JsonProperty("surname")
+    private String surname;
 
-    @JsonProperty("parent_guardian_firstnames")
-    private String parentGuardianFirstnames;
+    @JsonProperty("exact_match_surname")
+    private Boolean exactMatchSurname;
+
+    @JsonProperty("forenames")
+    private String forenames;
+
+    @JsonProperty("exact_match_forenames")
+    private Boolean exactMatchForenames;
+
+    @JsonProperty("birth_date")
+    private String birthDate;
+
+    @JsonProperty("national_insurance_number")
+    private String nationalInsuranceNumber;
+
+    public String getInitials() {
+        StringBuilder initials = new StringBuilder();
+
+        if (StringUtils.isNotBlank(forenames)) {
+            initials.append(forenames.charAt(0));
+        }
+
+        if (StringUtils.isNotBlank(surname)) {
+            initials.append(surname.charAt(0));
+        }
+
+        return initials.length() > 0 ? initials.toString().toUpperCase() : null;
+    }
 }

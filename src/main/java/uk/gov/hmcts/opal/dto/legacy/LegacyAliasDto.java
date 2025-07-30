@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.dto.legacy;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,6 +14,7 @@ import uk.gov.hmcts.opal.dto.search.AliasDto;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@XmlRootElement(name = "aliases_element")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyAliasDto {
 

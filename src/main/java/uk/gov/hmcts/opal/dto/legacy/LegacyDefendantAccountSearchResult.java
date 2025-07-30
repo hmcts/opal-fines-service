@@ -5,6 +5,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +24,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@XmlRootElement(name = "defendant_accounts_element")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyDefendantAccountSearchResult implements ToJsonString, FullNameBuilder {
 
@@ -38,9 +40,13 @@ public class LegacyDefendantAccountSearchResult implements ToJsonString, FullNam
     @XmlElement(name = "organisation")
     private boolean organisation;
 
+    @JsonProperty("organisation_name")
+    @XmlElement(name = "organisation_name")
+    private String organisationName;
+
     @JsonProperty("aliases")
     @XmlElementWrapper(name = "aliases")
-    @XmlElement(name = "alias")
+    @XmlElement(name = "aliases_element")
     private List<LegacyAliasDto> aliases;
 
     @JsonProperty("address_line_1")
@@ -70,11 +76,6 @@ public class LegacyDefendantAccountSearchResult implements ToJsonString, FullNam
     @JsonProperty("account_balance")
     @XmlElement(name = "account_balance")
     private BigDecimal accountBalance;
-
-    // Organisation-specific
-    @JsonProperty("organisation_name")
-    @XmlElement(name = "organisation_name")
-    private String organisationName;
 
     // Individual-specific
     @JsonProperty("defendant_title")
@@ -122,13 +123,13 @@ public class LegacyDefendantAccountSearchResult implements ToJsonString, FullNam
             .businessUnitId(businessUnitId)
             .prosecutorCaseReference(prosecutorCaseReference)
             .lastEnforcementAction(lastEnforcementAction)
-            .organisationName(organisation ? organisationName : null)
-            .defendantTitle(!organisation ? title : null)
-            .defendantFirstnames(!organisation ? forenames : null)
-            .defendantSurname(!organisation ? surname : null)
-            .nationalInsuranceNumber(!organisation ? nationalInsuranceNumber : null)
-            .parentGuardianSurname(!organisation ? parentGuardianSurname : null)
-            .parentGuardianFirstnames(!organisation ? parentGuardianFirstnames : null)
+            .organisationName(organisationName)
+            .defendantTitle(title)
+            .defendantFirstnames(forenames)
+            .defendantSurname(surname)
+            .nationalInsuranceNumber(nationalInsuranceNumber)
+            .parentGuardianSurname(parentGuardianSurname)
+            .parentGuardianFirstnames(parentGuardianFirstnames)
             .build();
 
         return summary;

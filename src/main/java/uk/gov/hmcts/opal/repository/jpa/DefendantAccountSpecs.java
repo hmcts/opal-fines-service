@@ -16,6 +16,9 @@ import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Objects;
 import java.util.Optional;
 
 import static uk.gov.hmcts.opal.repository.jpa.CourtSpecs.equalsCourtIdPredicate;
@@ -49,6 +52,14 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
                 .map(DefendantAccountSpecs::likeInitials),
 
             defendant.map(DefendantDto::getBirthDate)
+                .map(birthDate -> {
+                    try {
+                        return LocalDate.parse(birthDate, DateTimeFormatter.ISO_DATE); // Adjust formatter if needed
+                    } catch (DateTimeParseException e) {
+                        return null; // Handle invalid date formats gracefully
+                    }
+                })
+                .filter(Objects::nonNull) // Filter out null values
                 .map(DefendantAccountSpecs::equalsDateOfBirth),
 
             defendant.map(DefendantDto::getNationalInsuranceNumber)

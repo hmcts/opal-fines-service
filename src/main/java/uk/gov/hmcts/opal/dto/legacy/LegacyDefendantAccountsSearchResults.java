@@ -22,13 +22,13 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@XmlRootElement
+@XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyDefendantAccountsSearchResults implements ToJsonString {
 
     @JsonProperty("defendant_accounts")
     @XmlElementWrapper(name = "defendant_accounts")
-    @XmlElement(name = "defendant_account")
+    @XmlElement(name = "defendant_accounts_element") //confirm the xml the stub service returns is valid nd matches the xsd
     List<LegacyDefendantAccountSearchResult> defendantAccountsSearchResult;
 
     @JsonProperty("count")
