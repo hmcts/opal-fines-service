@@ -5,31 +5,28 @@ import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantDto;
 
-import java.time.LocalDate;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static uk.gov.hmcts.opal.dto.DateDto.fromLocalDate;
 
 @Slf4j(topic = "opal.AccountSearchDtoTest")
 public class AccountSearchDtoTest {
 
     @Test
     void testBuilder() {
-        final LocalDate today = LocalDate.now();
-        AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto(today);
+        final String dateOfBirth = "2024-01-01";
+        AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto(dateOfBirth);
         assertEquals("Bath", accountEnquiryDto.getCourt());
         assertEquals("Smith", accountEnquiryDto.getDefendant().getSurname());
         assertEquals("Scotland", accountEnquiryDto.getDefendant().getAddressLine1());
         assertEquals("case001", accountEnquiryDto.getPcr());
-        assertEquals(fromLocalDate(today), accountEnquiryDto.getDefendant().getBirthDate());
+        assertEquals(dateOfBirth, accountEnquiryDto.getDefendant().getBirthDate());
         assertEquals("Dave", accountEnquiryDto.getDefendant().getForenames());
-        assertEquals("HRH", accountEnquiryDto.getDefendant().getInitials());
+        assertEquals("DS", accountEnquiryDto.getDefendant().getInitials());
         assertEquals("QUICK", accountEnquiryDto.getSearchType());
         assertEquals("VISA", accountEnquiryDto.getMajorCreditor());
         assertEquals("XX12345678", accountEnquiryDto.getDefendant().getNationalInsuranceNumber());
         assertEquals("6", accountEnquiryDto.getTillNumber());
-        assertEquals(today, accountEnquiryDto.getDefendant().getBirthDate().toLocalDate());
+        assertEquals(dateOfBirth, accountEnquiryDto.getDefendant().getBirthDate());
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder().build())
@@ -37,73 +34,73 @@ public class AccountSearchDtoTest {
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder()
-                .birthDate(DateDto.builder().year(2024).build())
+                .birthDate("2024-01-01")
                 .build())
             .build());
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder()
-                .birthDate(DateDto.builder().year(2024).monthOfYear(-1).build())
+                .birthDate("2024-01-01")
                 .build())
             .build());
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder()
-                .birthDate(DateDto.builder().year(2024).monthOfYear(2).build())
+                .birthDate("2024-01-01")
                 .build())
             .build());
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder()
-                .birthDate(DateDto.builder().year(2024).monthOfYear(4).build())
+                .birthDate("2024-03-01")
                 .build())
             .build());
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder()
-                .birthDate(DateDto.builder().year(2024).monthOfYear(6).build())
+                .birthDate("2024-05-01")
                 .build())
             .build());
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder()
-                .birthDate(DateDto.builder().year(2024).monthOfYear(8).build())
+                .birthDate("2024-07-01")
                 .build())
             .build());
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder()
-                .birthDate(DateDto.builder().year(2024).monthOfYear(9).build())
+                .birthDate("2024-08-01")
                 .build())
             .build());
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder()
-                .birthDate(DateDto.builder().year(2024).monthOfYear(11).build())
+                .birthDate("2024-10-01")
                 .build())
             .build());
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder()
-                .birthDate(DateDto.builder().year(2024).monthOfYear(13).build())
+                .birthDate("2024-12-01")
                 .build())
             .build());
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder()
-                .birthDate(DateDto.builder().year(2024).monthOfYear(6).dayOfMonth(-5).build())
+                .birthDate("2024-04-26")
                 .build())
             .build());
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder()
-                .birthDate(DateDto.builder().year(2024).monthOfYear(6).dayOfMonth(5).build())
+                .birthDate("2024-05-05")
                 .build())
             .build());
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder()
-                .birthDate(DateDto.builder().year(2024).monthOfYear(6).dayOfMonth(35).build())
+                .birthDate("2024-04-25")
                 .build())
             .build());
 
@@ -111,7 +108,7 @@ public class AccountSearchDtoTest {
 
     @Test
     void testToJsonString() throws Exception {
-        AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto(LocalDate.now());
+        AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto("2024-01-01");
         assertNotNull(accountEnquiryDto.toJsonString());
     }
 
@@ -138,7 +135,7 @@ public class AccountSearchDtoTest {
         assertNotNull(result);
     }
 
-    private AccountSearchDto constructTestAccountSearchDto(final LocalDate today) {
+    private AccountSearchDto constructTestAccountSearchDto(final String datOfBirth) {
         return AccountSearchDto.builder()
             .court("Bath")
             .pcr("case001")
@@ -148,9 +145,8 @@ public class AccountSearchDtoTest {
             .defendant(DefendantDto.builder()
                 .surname("Smith")
                 .forenames("Dave")
-                .initials("HRH")
                 .addressLine1("Scotland")
-                .birthDate(fromLocalDate(today))
+                .birthDate(datOfBirth)
                 .nationalInsuranceNumber("XX12345678")
                 .build())
             .build();
