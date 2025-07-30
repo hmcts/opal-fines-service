@@ -18,8 +18,8 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.service.opal.DefendantAccountService;
-import uk.gov.hmcts.opal.service.opal.NoteService;
+import uk.gov.hmcts.opal.disco.opal.DefendantAccountService;
+import uk.gov.hmcts.opal.disco.opal.NoteService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;

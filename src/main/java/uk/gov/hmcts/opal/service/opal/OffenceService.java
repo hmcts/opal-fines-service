@@ -18,7 +18,7 @@ import uk.gov.hmcts.opal.mapper.OffenceMapper;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepositoryFull;
 import uk.gov.hmcts.opal.repository.jpa.OffenceSpecs;
-import uk.gov.hmcts.opal.service.OffenceServiceInterface;
+import uk.gov.hmcts.opal.disco.OffenceServiceInterface;
 
 import java.util.Collections;
 import java.util.List;

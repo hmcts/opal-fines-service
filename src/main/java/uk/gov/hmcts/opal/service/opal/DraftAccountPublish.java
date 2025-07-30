@@ -9,7 +9,7 @@ import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
-import uk.gov.hmcts.opal.service.DraftAccountPublishInterface;
+import uk.gov.hmcts.opal.service.iface.DraftAccountPublishInterface;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
 
 import java.time.LocalDate;
