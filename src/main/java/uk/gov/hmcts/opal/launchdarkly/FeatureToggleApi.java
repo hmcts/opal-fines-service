@@ -49,7 +49,7 @@ public class FeatureToggleApi {
         }else {
             result = internalClient.stringVariation(feature, createLDContext().build(), defaultValue);
         }
-        log.debug("Feature toggle '{}' value: {}", feature, result);
+        log.info("Feature toggle '{}' value: {}", feature, result);
         return result;
     }
 
