@@ -10,11 +10,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.disco.opal.BusinessUnitUserService;
 import uk.gov.hmcts.opal.dto.search.UserSearchDto;
 import uk.gov.hmcts.opal.entity.UserEntity;
 import uk.gov.hmcts.opal.repository.UserRepository;
 import uk.gov.hmcts.opal.repository.jpa.UserSpecs;
-import uk.gov.hmcts.opal.service.UserServiceInterface;
+import uk.gov.hmcts.opal.disco.UserServiceInterface;
 
 import java.util.List;
 import java.util.Optional;

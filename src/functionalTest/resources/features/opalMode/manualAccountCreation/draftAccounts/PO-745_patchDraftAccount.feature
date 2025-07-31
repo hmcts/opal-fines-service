@@ -36,7 +36,9 @@ Feature: PO-745 patch draft account
       | timeline_data[0].status             | Publishing Pending   |
       | timeline_data[0].username           | BUUID_REVIEWER       |
 
+    Then I delete the created defendant accounts
     Then I delete the created draft accounts
+
 
   @PO-745 @cleanUpData
   Scenario: Patch draft account - Rejected - happy path
