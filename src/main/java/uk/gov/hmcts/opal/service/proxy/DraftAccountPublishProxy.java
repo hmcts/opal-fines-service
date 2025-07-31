@@ -4,9 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.disco.proxy.ProxyInterface;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
-import uk.gov.hmcts.opal.service.DraftAccountPublishInterface;
-import uk.gov.hmcts.opal.service.DynamicConfigService;
+import uk.gov.hmcts.opal.service.iface.DraftAccountPublishInterface;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDraftAccountPublish;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPublish;
 

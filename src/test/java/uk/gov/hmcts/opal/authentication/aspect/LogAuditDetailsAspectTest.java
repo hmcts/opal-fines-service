@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddLogAuditDetailDto;
-import uk.gov.hmcts.opal.service.opal.LogAuditDetailService;
+import uk.gov.hmcts.opal.disco.opal.LogAuditDetailService;
 
 import java.util.Set;
 
