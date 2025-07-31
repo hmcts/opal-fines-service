@@ -43,10 +43,14 @@ public class FeatureToggleApi {
     }
 
     public String getFeatureValue(String feature, String defaultValue) {
+        String result;
         if (!properties.isEnabled()) {
-            return defaultValue;
+            result = defaultValue;
+        }else {
+            result = internalClient.stringVariation(feature, createLDContext().build(), defaultValue);
         }
-        return internalClient.stringVariation(feature, createLDContext().build(), defaultValue);
+        log.debug("Feature toggle '{}' value: {}", feature, result);
+        return result;
     }
 
     public ContextBuilder createLDContext() {
