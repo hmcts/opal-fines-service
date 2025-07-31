@@ -90,24 +90,24 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
                 {
-                "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                   "reference_number": null,
-                   "defendant": {
-                   "include_aliases": true,
-                   "organisation": false,
-                   "address_line_1": null,
-                   "postcode": null,
-                   "organisation_name": null,
-                   "exact_match_organisation_name": null,
-                   "surname": "Graham",
-                   "exact_match_surname": true,
-                   "forenames": null,
-                   "exact_match_forenames": false,
-                   "birth_date": null,
-                   "national_insurance_number": null
-                 }
-                    }
+                              "active_accounts_only": true,
+                              "business_unit_ids": [78],
+                              "reference_number": null,
+                              "defendant": {
+                                "organisation": true,
+                                "organisation_name": "Acme Ltd",
+                                "exact_match_organisation_name": true,
+                                "include_aliases": true,
+                                "address_line_1": "Lumber House",
+                                "postcode": "AB1 2CD",
+                                "surname": null,
+                                "exact_match_surname": null,
+                                "forenames": null,
+                                "exact_match_forenames": null,
+                                "birth_date": null,
+                                "national_insurance_number": null
+                              }
+                            }
                        """));
 
 
@@ -116,12 +116,15 @@ class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest 
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("1"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("100A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_title").value("Ms"))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_firstnames").value("Anna"))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"))
+            .andExpect(jsonPath("$.defendant_accounts[0].organisation").value(true))
+            .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value("Acme Ltd"))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_title").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_firstnames").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value(IsNull.nullValue()))
             .andExpect(jsonPath("$.defendant_accounts[0].address_line_1").value("Lumber House"))
+            .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("AB1 2CD"))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_name").value("Business Unit A"));
 
         assertTrue(jsonSchemaValidationService.isValid(body, SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_RESPONSE));
