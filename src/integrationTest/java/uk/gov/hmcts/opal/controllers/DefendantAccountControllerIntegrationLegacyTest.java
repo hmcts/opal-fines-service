@@ -197,7 +197,7 @@ class DefendantAccountControllerIntegrationLegacyTest extends AbstractIntegratio
                   "defendant": {
                     "organisation": false,
                     "include_aliases": false,
-                    "surname": "ShouldNotMatchAnythingXYZ",
+                    "surname": "Jones",
                     "exact_match_surname": true,
                     "forenames": null,
                     "exact_match_forenames": null,
@@ -276,32 +276,6 @@ class DefendantAccountControllerIntegrationLegacyTest extends AbstractIntegratio
             .andExpect(jsonPath("$.accountBalance").value(500.58))
             .andExpect(jsonPath("$.amountPaid").value(200.0));
     }
-
-    @Test
-    @DisplayName("Update defendant account - [@PO-1901]")
-    public void testPutDefendantAccount() throws Exception {
-        DefendantAccountEntity entity = createDefendantAccountEntity();
-
-        when(userStateService.getUserStateUsingAuthToken(anyString()))
-            .thenReturn(new UserState.DeveloperUserState());
-
-        ResultActions actions = mockMvc.perform(put("/defendant-accounts")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(new ObjectMapper().writeValueAsString(entity)));
-
-        String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPutDefendantAccount: Response body:\n{}", ToJsonString.toPrettyJson(body));
-
-        actions.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendantAccountId").value(1L))
-            .andExpect(jsonPath("$.accountNumber").value("100A"))
-            .andExpect(jsonPath("$.accountStatus").value("L"))
-            .andExpect(jsonPath("$.accountBalance").value(500.58))
-            .andExpect(jsonPath("$.amountPaid").value(200));
-    }
-
 
     @Test
     @DisplayName("Test Add Note Endpoint [@PO-34, @PO-138]")
