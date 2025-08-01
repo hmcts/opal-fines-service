@@ -50,7 +50,7 @@ public class LegacyAccountDetailsResponseDto implements ToJsonString {
                           : legacyPartyDto.getFullName())
             .accountCT(legacyDefendantAccountDto.getBusinessUnitName())
             .businessUnitId((short) legacyDefendantAccountDto.getBusinessUnitId())
-            .address(DefendantAccountService.buildFullAddress(
+            .address(DiscoDefendantAccountService.buildFullAddress(
                 legacyPartyDto.getAddressLine1(),
                 legacyPartyDto.getAddressLine2(),
                 legacyPartyDto.getAddressLine3(),
@@ -72,7 +72,7 @@ public class LegacyAccountDetailsResponseDto implements ToJsonString {
             .pcr(legacyDefendantAccountDto.getProsecutorCaseReference())
             .paymentDetails(
                 legacyPaymentTermsDto != null
-                    ? DefendantAccountService.buildPaymentDetails(
+                    ? DiscoDefendantAccountService.buildPaymentDetails(
                     legacyPaymentTermsDto.getTermsTypeCode(),
                     legacyPaymentTermsDto.getInstalmentAmount(),
                     legacyPaymentTermsDto.getInstalmentPeriod(),

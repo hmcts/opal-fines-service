@@ -43,16 +43,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 public class DiscoDefendantAccountServiceTest {
-public class DefendantAccountServiceTest {
 
     @Mock
     private DefendantAccountRepository defendantAccountRepository;
@@ -147,7 +138,7 @@ public class DefendantAccountServiceTest {
             .thenReturn(mockPage);
 
         // Act
-        AccountSearchResultsDto result = discoDefendantAccountService.searchDefendantAccounts(
+        DefendantAccountSearchResultsDto result = discoDefendantAccountService.searchDefendantAccounts(
             AccountSearchDto.builder().build());
 
         // Assert
@@ -162,7 +153,7 @@ public class DefendantAccountServiceTest {
         AccountSearchDto mockSearch = AccountSearchDto.builder().court("test").build();
 
         // Act
-        AccountSearchResultsDto result = discoDefendantAccountService.searchDefendantAccounts(mockSearch);
+        DefendantAccountSearchResultsDto result = discoDefendantAccountService.searchDefendantAccounts(mockSearch);
 
         // Assert
         assertNotNull(result);

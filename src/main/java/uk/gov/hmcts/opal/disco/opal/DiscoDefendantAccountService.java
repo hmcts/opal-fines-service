@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.disco.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.disco.DiscoDefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
@@ -32,7 +32,6 @@ import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
-import uk.gov.hmcts.opal.disco.DiscoDefendantAccountServiceInterface;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
