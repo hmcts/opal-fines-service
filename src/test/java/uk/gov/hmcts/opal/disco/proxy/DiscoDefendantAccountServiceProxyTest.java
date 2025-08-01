@@ -13,10 +13,9 @@ import uk.gov.hmcts.opal.disco.opal.DiscoDefendantAccountService;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
-
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -76,12 +75,13 @@ class DiscoDefendantAccountServiceProxyTest extends ProxyTestsBase {
     void testSearchDefendantAccounts(DiscoDefendantAccountServiceInterface targetService,
                                      DiscoDefendantAccountServiceInterface otherService) {
         // Given: a defendantAccounts results dto result is returned from the target service
-        AccountSearchResultsDto resultsDto = AccountSearchResultsDto.builder().build();
+        DefendantAccountSearchResultsDto resultsDto = DefendantAccountSearchResultsDto.builder().build();
         when(targetService.searchDefendantAccounts(any())).thenReturn(resultsDto);
 
         // When: searchDefendantAccounts is called on the proxy
         AccountSearchDto criteria = AccountSearchDto.builder().build();
-        AccountSearchResultsDto listResult = discoDefendantAccountServiceProxy.searchDefendantAccounts(criteria);
+        DefendantAccountSearchResultsDto listResult = discoDefendantAccountServiceProxy
+            .searchDefendantAccounts(criteria);
 
         // Then: target service should be used, and the returned list should be as expected
         verify(targetService).searchDefendantAccounts(criteria);
