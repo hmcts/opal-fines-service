@@ -12,30 +12,22 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -43,7 +35,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DefendantAccountServiceTest {
 
@@ -145,7 +143,7 @@ public class DefendantAccountServiceTest {
         // Assert
         assertEquals(expectedResponse.getCount(), result.getCount());
 
-        assertNotNull(defendantAccountService.toDto(new TestDefendantAccountSummary()));
+        assertNotNull(defendantAccountService.toDto(new DefendantAccountEntity()));
     }
 
     @Test
@@ -443,34 +441,6 @@ public class DefendantAccountServiceTest {
             .noteType("AA")
             .noteText("Activity")
             .build();
-    }
-
-    private class TestDefendantAccountSummary implements DefendantAccountSummary {
-
-        @Override
-        public Long getDefendantAccountId() {
-            return 0L;
-        }
-
-        @Override
-        public String getAccountNumber() {
-            return "";
-        }
-
-        @Override
-        public BigDecimal getAccountBalance() {
-            return BigDecimal.TEN;
-        }
-
-        @Override
-        public String getImposingCourtId() {
-            return "";
-        }
-
-        @Override
-        public Set<PartyLink> getParties() {
-            return Collections.emptySet();
-        }
     }
 
 }

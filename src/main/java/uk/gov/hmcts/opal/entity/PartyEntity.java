@@ -103,4 +103,7 @@ public class PartyEntity implements FullNameBuilder {
 
     @OneToMany(mappedBy = "party", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<DefendantAccountPartiesEntity> defendantAccounts;
+
+    @OneToMany(mappedBy = "party", fetch = FetchType.LAZY)
+    private List<AliasEntity> aliasEntities;
 }

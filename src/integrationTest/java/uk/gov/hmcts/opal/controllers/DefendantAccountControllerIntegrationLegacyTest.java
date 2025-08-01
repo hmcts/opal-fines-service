@@ -32,7 +32,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration", "legacy"})
 @Slf4j(topic = "opal.DefendantAccountControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_defendants.sql", executionPhase = BEFORE_TEST_CLASS)
-@DisplayName("Defendant Account Controller Integration Tests")
+@DisplayName("Defendant Account Controller Integration Tests - Legacy")
 class DefendantAccountControllerIntegrationLegacyTest extends AbstractIntegrationTest {
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
@@ -197,7 +196,7 @@ class DefendantAccountControllerIntegrationLegacyTest extends AbstractIntegratio
                   "defendant": {
                     "organisation": false,
                     "include_aliases": false,
-                    "surname": "Jones",
+                    "surname": "ShouldNotMatchAnythingXYZ",
                     "exact_match_surname": true,
                     "forenames": null,
                     "exact_match_forenames": null,

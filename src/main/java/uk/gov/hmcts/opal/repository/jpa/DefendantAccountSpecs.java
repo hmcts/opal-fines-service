@@ -6,25 +6,30 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantDto;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity_;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import static uk.gov.hmcts.opal.repository.jpa.CourtSpecs.equalsCourtIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.DefendantAccountPartySpecs.joinPartyOnAssociationType;
-import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeAnyAddressLinesPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.equalsDateOfBirthPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeAnyAddressLinesPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeForenamesPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeInitialsPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeNiNumberPredicate;
@@ -32,13 +37,16 @@ import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeOrganisationNamePr
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likePostcodePredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeSurnamePredicate;
 
+@Slf4j
 public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
 
     public static final String DEFENDANT_ASSOC_TYPE = "Defendant";
 
     public Specification<DefendantAccountEntity> findByAccountSearch(AccountSearchDto accountSearchDto) {
         Optional<DefendantDto> defendant = Optional.ofNullable(accountSearchDto.getDefendant());
-        return Specification.allOf(specificationList(
+
+        //Create list of specifications based on the defendant details
+        List<Specification<DefendantAccountEntity>> specificationList = new ArrayList<>(specificationList(
             defendant.map(DefendantDto::getSurname)
                 .filter(StringUtils::isNotBlank)
                 .map(DefendantAccountSpecs::likeSurname),
@@ -56,10 +64,10 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
                     try {
                         return LocalDate.parse(birthDate, DateTimeFormatter.ISO_DATE); // Adjust formatter if needed
                     } catch (DateTimeParseException e) {
+                        log.error("Failed to parse date of birth. {}", birthDate, e);
                         return null; // Handle invalid date formats gracefully
                     }
                 })
-                .filter(Objects::nonNull) // Filter out null values
                 .map(DefendantAccountSpecs::equalsDateOfBirth),
 
             defendant.map(DefendantDto::getNationalInsuranceNumber)
@@ -72,11 +80,32 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
 
             defendant.map(DefendantDto::getPostcode)
                 .filter(StringUtils::isNotBlank)
-                .map(DefendantAccountSpecs::likePostcode),
+                .map(DefendantAccountSpecs::likePostcode)));
 
-            accountSearchDto.getNumericCourt()
-                .map(DefendantAccountSpecs::equalsAnyCourtId)
-        ));
+        if (!CollectionUtils.isEmpty(accountSearchDto.getBusinessUnitIds())) {
+            specificationList.add(
+                equalsAnyBusinessUnitIdPredicate(accountSearchDto.getBusinessUnitIds().stream()
+                    .map(Integer::shortValue)
+                    .toList()
+                ));
+        }
+
+        //TODO confirm how we filter on court. Do we get CT/MET as the value once we have this how do we link to the
+        // court to filter on?
+        //accountSearchDto.getNumericCourt().map(DefendantAccountSpecs::equalsAnyCourtId)
+
+
+        //TODO confirm how we can filter on the following criteria
+        //private String court;
+        //private String searchType;
+        //private String pcr;
+        //private String majorCreditor;
+        //private String tillNumber;
+        //private Boolean activeAccountsOnly;
+        //private ReferenceNumberDto referenceNumber;
+
+
+        return Specification.allOf(specificationList);
     }
 
     public static Predicate equalsDefendantAccountIdPredicate(
@@ -148,6 +177,13 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
     }
 
 
+    public static Specification<DefendantAccountEntity> equalsAnyBusinessUnitIdPredicate(
+        Collection<Short> businessUnitIds) {
+        return (root, query, builder) ->
+            BusinessUnitSpecs.equalsAnyBusinessUnitIdPredicate(joinBusinessUnitEntity(root), builder, businessUnitIds);
+    }
+
+
     public static Join<DefendantAccountEntity, CourtEntity> joinEnforcingCourt(Root<DefendantAccountEntity> root) {
         return root.join(DefendantAccountEntity_.enforcingCourt);
     }
@@ -156,8 +192,14 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
         return root.join(DefendantAccountEntity_.lastHearingCourt);
     }
 
+    public static Join<DefendantAccountEntity, BusinessUnitEntity> joinBusinessUnitEntity(
+        Root<DefendantAccountEntity> root) {
+        return root.join(DefendantAccountEntity_.businessUnit);
+    }
+
     public static Join<DefendantAccountPartiesEntity, PartyEntity> joinDefendantParty(
         Root<DefendantAccountEntity> root, CriteriaBuilder builder) {
         return joinPartyOnAssociationType(root.join(DefendantAccountEntity_.parties), builder, DEFENDANT_ASSOC_TYPE);
     }
+
 }

@@ -9,20 +9,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.disco.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyDefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyLink;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
@@ -32,7 +32,7 @@ import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
-import uk.gov.hmcts.opal.disco.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.util.DateTimeUtils;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -128,20 +128,20 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                 ObjectMapper mapper = getObjectMapper();
                 DefendantAccountSearchResultsDto dto = mapper.readValue(in, DefendantAccountSearchResultsDto.class);
                 log.debug(":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
-                         dto.toPrettyJsonString());
+                    dto.toPrettyJsonString());
                 return dto;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
 
-        Page<DefendantAccountSummary> summariesPage = defendantAccountRepository
+        Page<DefendantAccountEntity> summariesPage = defendantAccountRepository
             .findBy(specs.findByAccountSearch(accountSearchDto),
-                    ffq -> ffq.as(DefendantAccountSummary.class).page(Pageable.unpaged()));
+                ffq -> ffq.page(Pageable.unpaged()));
 
         List<DefendantAccountSummaryDto> dtos = summariesPage.getContent().stream()
             .map(this::toDto)
-            .collect(Collectors.toList());
+            .toList();
 
         return DefendantAccountSearchResultsDto.builder()
             .defendantAccounts(dtos)
@@ -161,11 +161,11 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
                 ObjectMapper mapper = getObjectMapper();
                 AccountDetailsDto dto = mapper.readValue(in, AccountDetailsDto.class);
                 log.debug(
-                        """
+                    """
                         :getAccountDetailsByDefendantAccountId:
                         " temporary Hack for Front End testing. Read JSON file: \n{}
                         """,
-                         dto.toPrettyJsonString());
+                    dto.toPrettyJsonString());
                 return dto;
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -192,7 +192,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
 
         //query DB for EnforcementEntity
         EnforcerEntity enforcerEntity = enforcerRepository.findByEnforcerId(defendantAccountEntity
-                                                                                   .getEnforcementOverrideEnforcerId());
+            .getEnforcementOverrideEnforcerId());
 
         //query DB for NoteEntity by associatedRecordId (defendantAccountId) and noteType ("AC")
         List<NoteEntity> noteEntityAC = noteRepository.findByAssociatedRecordIdAndNoteType(
@@ -202,20 +202,20 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
         // returning only latest (postedDate)
         Optional<NoteEntity> noteEntityAA = Optional.ofNullable(
             noteRepository.findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(
-            defendantAccountEntity.getDefendantAccountId().toString(), "AA"));
+                defendantAccountEntity.getDefendantAccountId().toString(), "AA"));
 
         //build fullAddress
         final String fullAddress = buildFullAddress(partyEntity.getAddressLine1(),
-                                                    partyEntity.getAddressLine2(),
-                                                    partyEntity.getAddressLine3(),
-                                                    partyEntity.getAddressLine4(),
-                                                    partyEntity.getAddressLine5());
+            partyEntity.getAddressLine2(),
+            partyEntity.getAddressLine3(),
+            partyEntity.getAddressLine4(),
+            partyEntity.getAddressLine5());
 
         //build paymentDetails
         final String paymentDetails = buildPaymentDetails(paymentTermsEntity.getTermsTypeCode(),
-                                                          paymentTermsEntity.getInstalmentAmount(),
-                                                          paymentTermsEntity.getInstalmentPeriod(),
-                                                          paymentTermsEntity.getEffectiveDate());
+            paymentTermsEntity.getInstalmentAmount(),
+            paymentTermsEntity.getInstalmentPeriod(),
+            paymentTermsEntity.getEffectiveDate());
 
         //build comments
         final List<String> comments = buildCommentsFromAssociatedNotes(noteEntityAC);
@@ -226,8 +226,8 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .defendantAccountId(defendantAccountEntity.getDefendantAccountId())
             .accountNumber(defendantAccountEntity.getAccountNumber())
             .fullName(partyEntity.getOrganisationName() == null
-                          ? partyEntity.getFullName()
-                          : partyEntity.getOrganisationName())
+                ? partyEntity.getFullName()
+                : partyEntity.getOrganisationName())
             .accountCT(defendantAccountEntity.getBusinessUnit().getBusinessUnitName())
             .businessUnitId(defendantAccountEntity.getBusinessUnit().getBusinessUnitId())
             .address(fullAddress)
@@ -235,7 +235,7 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .dob(partyEntity.getDateOfBirth())
             .detailsChanged(defendantAccountEntity.getLastChangedDate())
             .lastCourtAppAndCourtCode(defendantAccountEntity.getLastHearingDate().toString()
-                                          + " " + defendantAccountEntity.getLastHearingCourt().getCourtCode())
+                + " " + defendantAccountEntity.getLastHearingCourt().getCourtCode())
             .lastMovement(defendantAccountEntity.getLastMovementDate())
             .commentField(comments)
             .accountNotes(noteEntityAA.map(NoteEntity::getNoteText).orElse(null))
@@ -243,8 +243,8 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
             .paymentDetails(paymentDetails)
             .lumpSum(paymentTermsEntity.getInstalmentLumpSum())
             .commencing(paymentTermsEntity.getTermsTypeCode().equals("I")
-                            ? paymentTermsEntity.getEffectiveDate()
-                            : null)
+                ? paymentTermsEntity.getEffectiveDate()
+                : null)
             .daysInDefault(paymentTermsEntity.getJailDays())
             .sentencedDate(defendantAccountEntity.getImposedHearingDate())
             .lastEnforcement(defendantAccountEntity.getLastEnforcement())
@@ -308,28 +308,49 @@ public class DefendantAccountService implements DefendantAccountServiceInterface
         return comments;
     }
 
-    public DefendantAccountSummaryDto toDto(DefendantAccountSummary summary) {
-        Optional<PartyDefendantAccountSummary> party = summary.getParties().stream().findAny().map(PartyLink::getParty);
+    public DefendantAccountSummaryDto toDto(DefendantAccountEntity defendantAccountEntity) {
+        //TODO confirm which party we want to use, currently just taking the first one
+        Optional<DefendantAccountPartiesEntity> defendantAccountPartiesEntity =
+            Optional.ofNullable(defendantAccountEntity.getParties())
+                .map(party -> party.stream().findFirst())
+                .filter(Optional::isPresent)
+                .map(Optional::get);
+
+        Optional<PartyEntity> partyEntity =
+            defendantAccountPartiesEntity.map(DefendantAccountPartiesEntity::getParty);
+        Optional<BusinessUnitEntity> businessUnit = Optional.ofNullable(defendantAccountEntity.getBusinessUnit());
+
         return DefendantAccountSummaryDto.builder()
-            .defendantAccountId(String.valueOf(summary.getDefendantAccountId()))
-            .accountNumber(summary.getAccountNumber())
-            .accountBalance(summary.getAccountBalance() != null ? summary.getAccountBalance().doubleValue() : null)
-            .defendantTitle("Ms")
-            .defendantFirstnames("Anna")
-            .defendantSurname("Graham")
-            .organisation(false)
-            .organisationName(null)
-            .aliases(null)
-            .postcode(null)
-            .businessUnitName("CT")
-            .businessUnitId("78")
-            .prosecutorCaseReference(null)
-            .lastEnforcementAction(null)
-            .nationalInsuranceNumber(null)
-            .parentGuardianSurname(null)
-            .parentGuardianFirstnames(null)
-            .addressLine1(party.map(PartyDefendantAccountSummary::getAddressLine1).orElse(""))
-            .birthDate(party.map(PartyDefendantAccountSummary::getDateOfBirth).map(LocalDate::toString).orElse(null))
+            .defendantAccountId(String.valueOf(defendantAccountEntity.getDefendantAccountId()))
+            .accountNumber(defendantAccountEntity.getAccountNumber())
+            .accountBalance(
+                defendantAccountEntity.getAccountBalance() != null ? defendantAccountEntity.getAccountBalance()
+                    .doubleValue() : null)
+            .defendantTitle(partyEntity.map(PartyEntity::getTitle).orElse(null))
+            .defendantFirstnames(partyEntity.map(PartyEntity::getForenames).orElse(null))
+            .defendantSurname(partyEntity.map(PartyEntity::getSurname).orElse(null))
+            .organisation(partyEntity.map(PartyEntity::isOrganisation).orElse(null))
+            .organisationName(partyEntity.map(PartyEntity::getOrganisationName).orElse(null))
+            .aliases(partyEntity
+                .map(part -> part.getAliasEntities().stream()
+                    .map(alias -> AliasDto.builder()
+                        .aliasNumber(alias.getSequenceNumber())//TODO confirm if this is correct
+                        .organisationName(alias.getOrganisationName())
+                        .forenames(alias.getForenames())
+                        .surname(alias.getSurname())
+                        .build())
+                    .collect(Collectors.toList())).orElse(null))
+            .postcode(partyEntity.map(PartyEntity::getPostcode).orElse(null))
+            .businessUnitName(businessUnit.map(BusinessUnitEntity::getBusinessUnitName).orElse(null))
+            .businessUnitId(businessUnit.map(BusinessUnitEntity::getBusinessUnitId).map(Object::toString).orElse(null))
+            .prosecutorCaseReference(defendantAccountEntity.getProsecutorCaseReference())
+            .lastEnforcementAction(defendantAccountEntity.getLastEnforcement())
+            .nationalInsuranceNumber(partyEntity.map(PartyEntity::getNiNumber).orElse(null))
+            .parentGuardianSurname(null)//TODO how do we get this?
+            .parentGuardianFirstnames(null)//TODO how do we get this?
+            .addressLine1(partyEntity.map(PartyEntity::getAddressLine1).orElse(null))
+            .birthDate(partyEntity.map(PartyEntity::getDateOfBirth)
+                .map(DateTimeUtils::toString).orElse(null))
             .build();
     }
 }

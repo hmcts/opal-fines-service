@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles({"integration", "opal"})
 @Slf4j(topic = "opal.DefendantAccountControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_defendants.sql", executionPhase = BEFORE_TEST_CLASS)
-@DisplayName("Defendant Account Controller Integration Tests")
+@DisplayName("Defendant Account Controller Integration Tests - Opal")
 class DefendantAccountControllerIntegrationOpalTest extends AbstractIntegrationTest {
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
@@ -99,7 +99,7 @@ class DefendantAccountControllerIntegrationOpalTest extends AbstractIntegrationT
                                 "exact_match_organisation_name": true,
                                 "include_aliases": true,
                                 "address_line_1": "Lumber House",
-                                "postcode": "AB1 2CD",
+                                "postcode": "MA4 1AL",
                                 "surname": null,
                                 "exact_match_surname": null,
                                 "forenames": null,
@@ -118,14 +118,14 @@ class DefendantAccountControllerIntegrationOpalTest extends AbstractIntegrationT
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("1"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("100A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].organisation").value(true))
-            .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value("Acme Ltd"))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_title").value(IsNull.nullValue()))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_firstnames").value(IsNull.nullValue()))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$.defendant_accounts[0].organisation").value(false))
+            .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value(IsNull.nullValue()))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_title").value("Ms"))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_firstnames").value("Anna"))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"))
             .andExpect(jsonPath("$.defendant_accounts[0].address_line_1").value("Lumber House"))
-            .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("AB1 2CD"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_name").value("Business Unit A"));
+            .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("MA4 1AL"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_name").value("N E Region"));
 
         assertTrue(jsonSchemaValidationService.isValid(body, SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_RESPONSE));
 
