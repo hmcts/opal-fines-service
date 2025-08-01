@@ -37,11 +37,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ActiveProfiles({"integration"})
+@ActiveProfiles({"integration", "legacy"})
 @Slf4j(topic = "opal.DefendantAccountControllerIntegrationTest")
 @Sql(scripts = "classpath:db/insertData/insert_into_defendants.sql", executionPhase = BEFORE_TEST_CLASS)
 @DisplayName("Defendant Account Controller Integration Tests")
-class DefendantAccountControllerIntegrationTest extends AbstractIntegrationTest {
+class DefendantAccountControllerIntegrationLegacyTest extends AbstractIntegrationTest {
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
     private static final String URL_BASE = "/defendant-accounts/";

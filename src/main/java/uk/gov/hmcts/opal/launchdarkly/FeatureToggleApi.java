@@ -46,7 +46,7 @@ public class FeatureToggleApi {
         String result;
         if (!properties.isEnabled()) {
             result = defaultValue;
-        }else {
+        } else {
             result = internalClient.stringVariation(feature, createLDContext().build(), defaultValue);
         }
         log.info("Feature toggle '{}' value: {}", feature, result);

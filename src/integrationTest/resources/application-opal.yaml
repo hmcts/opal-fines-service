@@ -1,0 +1,3 @@
+app-mode: opal
+launchdarkly:
+  enabled: false
