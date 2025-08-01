@@ -6,6 +6,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.client.user.service.UserStateClientService;
 import uk.gov.hmcts.opal.config.properties.BeDeveloperConfiguration;
 import uk.gov.hmcts.opal.disco.opal.UserEntitlementService;
 
@@ -22,6 +23,8 @@ public class UserStateService {
 
     private final UserService userService;
 
+    private final UserStateClientService userStateClientService;
+
     private final UserEntitlementService userEntitlementService;
 
     private final BeDeveloperConfiguration developerConfiguration;
@@ -31,7 +34,11 @@ public class UserStateService {
     }
 
     public UserState checkForAuthorisedUser(String authorization) {
-        return getUserStateByUsername(getPreferredUsername(authorization));
+       // return getUserStateByUsername(getPreferredUsername(authorization));
+        //  call client service to get user state by authorised user
+        return userStateClientService.getUserStateByAuthenticatedUser()
+            .orElseGet(() -> getDeveloperUserStateOrError((getPreferredUsername(authorization))));
+
     }
 
     public String getPreferredUsername(String authorization) {

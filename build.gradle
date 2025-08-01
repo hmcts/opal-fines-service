@@ -303,6 +303,7 @@ dependencies {
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-authorization-server', version: '1.5.1'
 
   implementation group: 'org.springframework', name: 'spring-aspects'
+  implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.9'
 
