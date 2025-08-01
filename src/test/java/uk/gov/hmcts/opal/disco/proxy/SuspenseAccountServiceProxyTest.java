@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.SuspenseAccountEntity;
 import uk.gov.hmcts.opal.disco.SuspenseAccountServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacySuspenseAccountService;
 import uk.gov.hmcts.opal.disco.opal.SuspenseAccountService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.disco.ChequeServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyChequeService;
 import uk.gov.hmcts.opal.disco.opal.ChequeService;
+import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 import java.util.List;
 

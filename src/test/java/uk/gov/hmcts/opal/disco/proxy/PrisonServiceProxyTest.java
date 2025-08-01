@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.PrisonEntity;
 import uk.gov.hmcts.opal.disco.PrisonServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyPrisonService;
 import uk.gov.hmcts.opal.disco.opal.PrisonService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

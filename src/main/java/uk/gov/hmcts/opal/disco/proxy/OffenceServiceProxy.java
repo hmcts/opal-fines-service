@@ -7,6 +7,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.disco.OffenceServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyOffenceService;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
+import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 
 @Service

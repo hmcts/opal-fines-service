@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.disco.CourtFeeServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyCourtFeeService;
 import uk.gov.hmcts.opal.disco.opal.CourtFeeService;
+import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 import java.util.List;
 

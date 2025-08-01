@@ -19,16 +19,18 @@ import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.disco.DiscoDefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
+import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.disco.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.disco.opal.NoteService;
+import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.time.LocalDateTime;
@@ -46,18 +48,24 @@ public class DefendantAccountController {
 
     public static final String NOTE_ASSOC_REC_TYPE = "defendant_accounts";
 
-    private final DefendantAccountServiceInterface defendantAccountService;
+    private final DefendantAccountService defendantAccountService;
 
-    private final NoteService opalNoteService;
+    // TODO - remove from controller
+    private final DiscoDefendantAccountServiceInterface discoDefendantAccountServiceInterface;
 
+    private final NoteService discoNoteService;
+
+    // TODO - remove from controller
     private final UserStateService userStateService;
 
-    public DefendantAccountController(
-        @Qualifier("defendantAccountServiceProxy") DefendantAccountServiceInterface defendantAccountService,
-        NoteService opalNoteService, UserStateService userStateService) {
+    public DefendantAccountController(DefendantAccountService defendantAccountService,
+                                      @Qualifier("defendantAccountServiceProxy")
+                                      DiscoDefendantAccountServiceInterface discoDefendantAccountServiceInterface,
+                                      NoteService opalNoteService, UserStateService userStateService) {
 
         this.defendantAccountService = defendantAccountService;
-        this.opalNoteService = opalNoteService;
+        this.discoDefendantAccountServiceInterface = discoDefendantAccountServiceInterface;
+        this.discoNoteService = opalNoteService;
         this.userStateService = userStateService;
     }
 
@@ -73,7 +81,7 @@ public class DefendantAccountController {
             .accountNumber(accountNumber)
             .build();
 
-        DefendantAccountEntity response = defendantAccountService.getDefendantAccount(enquiryDto);
+        DefendantAccountEntity response = discoDefendantAccountServiceInterface.getDefendantAccount(enquiryDto);
 
         return buildResponse(response);
     }
@@ -84,7 +92,8 @@ public class DefendantAccountController {
         @RequestBody DefendantAccountEntity defendantAccountEntity,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
-        DefendantAccountEntity response = defendantAccountService.putDefendantAccount(defendantAccountEntity);
+        DefendantAccountEntity response =
+            discoDefendantAccountServiceInterface.putDefendantAccount(defendantAccountEntity);
 
         return buildResponse(response);
     }
@@ -94,7 +103,8 @@ public class DefendantAccountController {
     public ResponseEntity<AccountDetailsDto> getAccountDetails(@PathVariable Long defendantAccountId,
                      @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
-        AccountDetailsDto response = defendantAccountService.getAccountDetailsByDefendantAccountId(defendantAccountId);
+        AccountDetailsDto response =
+            discoDefendantAccountServiceInterface.getAccountDetailsByDefendantAccountId(defendantAccountId);
 
         return buildResponse(response);
     }
@@ -107,7 +117,8 @@ public class DefendantAccountController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
-        DefendantAccountSearchResultsDto response = defendantAccountService.searchDefendantAccounts(accountSearchDto);
+        AccountSearchResultsDto response =
+            discoDefendantAccountServiceInterface.searchDefendantAccounts(accountSearchDto);
 
         return buildResponse(response);
     }
@@ -120,8 +131,7 @@ public class DefendantAccountController {
         log.debug(":POST:addNote: {}", addNote.toPrettyJson());
 
         UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
-        BusinessUnitUser businessUnitUser = getRequiredBusinessUnitUser(userState,
-                                                                                  addNote.getBusinessUnitId());
+        BusinessUnitUser businessUnitUser = getRequiredBusinessUnitUser(userState, addNote.getBusinessUnitId());
 
         NoteDto noteDto = NoteDto.builder()
             .associatedRecordId(addNote.getAssociatedRecordId())
@@ -134,7 +144,7 @@ public class DefendantAccountController {
             .postedDate(LocalDateTime.now())
             .build();
 
-        NoteDto response = opalNoteService.saveNote(noteDto);
+        NoteDto response = discoNoteService.saveNote(noteDto);
 
         log.debug(":POST:addNote: response: {}", response);
 
@@ -155,9 +165,18 @@ public class DefendantAccountController {
             .associatedId(defendantId)
             .build();
 
-        List<NoteDto> response = opalNoteService.searchNotes(criteria);
+        List<NoteDto> response = discoNoteService.searchNotes(criteria);
 
         return buildResponse(response);
     }
 
+    @GetMapping(value = "/{defendantAccountId}/header-summary")
+    @Operation(summary = "Get defendant account details by providing the defendant account summary")
+    public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(@PathVariable Long defendantAccountId,
+              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
+
+        return buildResponse(defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue));
+    }
 }

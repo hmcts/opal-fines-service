@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.DefendantTransactionEntity;
 import uk.gov.hmcts.opal.disco.DefendantTransactionServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyDefendantTransactionService;
 import uk.gov.hmcts.opal.disco.opal.DefendantTransactionService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 
