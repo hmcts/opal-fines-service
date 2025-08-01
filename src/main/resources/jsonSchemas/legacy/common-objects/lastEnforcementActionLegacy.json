@@ -6,5 +6,6 @@
   "properties": {
     "last_enforcement_action_id": { "type": "string" },
     "last_enforcement_action_title": { "type": "string" }
-  }
+  },
+  "required": ["last_enforcement_action_id", "last_enforcement_action_title"]
 }

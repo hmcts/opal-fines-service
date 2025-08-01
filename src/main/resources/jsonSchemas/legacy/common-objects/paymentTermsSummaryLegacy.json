@@ -5,14 +5,14 @@
   "additionalProperties": false,
   "properties": {
     "payment_terms_type": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/paymentTermsTypeLegacy.json"
+      "$ref": "./paymentTermsTypeLegacy.json"
     },
     "effective_date": {
       "type": "string",
       "format": "date"
     },
     "instalment_period": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/instalmentPeriodLegacy.json"
+      "$ref": "./instalmentPeriodLegacy.json"
     },
     "lump_sum_amount": {
       "type": "number",
@@ -21,10 +21,6 @@
     "instalment_amount": {
       "type": "number",
       "multipleOf": 0.01
-    },
-    "last_payment_date": {
-      "type": "string",
-      "format": "date"
     }
   },
   "required": ["payment_terms_type", "instalment_period"]

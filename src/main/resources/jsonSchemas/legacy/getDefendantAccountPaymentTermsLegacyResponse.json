@@ -7,27 +7,8 @@
     "version": {
       "type": "integer"
     },
-    "payment_terms_type_code": {
-      "type": "string",
-      "enum": ["B", "I", "P"]
-    },
-    "effective_date": {
-      "type": "string",
-      "format": "date"
-    },
-    "instalment_period": {
-      "type": "string",
-      "enum": ["W", "M", "F"]
-    },
-    "lump_sum": {
-      "type": "number",
-      "minimum": 0.01,
-      "multipleOf": 0.01
-    },
-    "instalment_amount": {
-      "type": "number",
-      "minimum": 0.01,
-      "multipleOf": 0.01
+    "payment_terms_summary" : {
+      "$ref": "./common-objects/paymentTermsSummaryLegacy.json"
     },
     "days_in_default": {
       "type": "integer",
@@ -64,6 +45,6 @@
       "minLength": 1
     }
   },
-  "required": ["version", "payment_terms_type_code"]
+  "required": ["version", "payment_terms_summary"]
 }
 

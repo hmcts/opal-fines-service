@@ -20,7 +20,7 @@
       "type": "integer"
     },
     "account_activity_note": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/accountActivityNoteLegacy.json"
+      "$ref": "./common-objects/accountActivityNoteLegacy.json"
     }
   },
   "required": [

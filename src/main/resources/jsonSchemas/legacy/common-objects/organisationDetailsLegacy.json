@@ -6,7 +6,7 @@
     "organisation_name": { "type": "string" },
     "organisation_aliases": {
       "type": "array",
-      "items": { "$ref": "resource:/jsonSchemas/legacy/common-objects/organisationAliasLegacy.json" }
+      "items": { "$ref": "./organisationAliasLegacy.json" }
     }
   },
   "required": ["organisation_name"]

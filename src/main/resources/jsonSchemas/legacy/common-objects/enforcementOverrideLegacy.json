@@ -8,5 +8,6 @@
     "enforcement_override_title": { "type": "string" },
     "enforcer": {"type": "string"},
     "lja": {"type": "string"}
-  }
+  },
+  "required": ["enforcement_override_id", "enforcement_override_title"]
 }
