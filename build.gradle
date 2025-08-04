@@ -49,7 +49,15 @@ sourceSets {
     }
     resources.srcDir file('src/integrationTest/resources')
   }
+}
 
+// (Temp?) Fix to solve the issue:
+// Toolchain from `executable` property does not match toolchain from `javaLauncher` property.
+gradle.taskGraph.whenReady { taskGraph ->
+  def task = taskGraph.allTasks.find { it.name.endsWith(".main()") }
+  if (task instanceof JavaExec) {
+    task.executable = task.javaLauncher.get().executablePath.asFile.absolutePath
+  }
 }
 
 configurations {

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.disco.legacy;
+package uk.gov.hmcts.opal.service.legacy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
@@ -58,19 +58,22 @@ public class LegacyGatewayService implements GatewayService {
     }
 
     public <T> Response<T> postToGateway(String actionType, Class<T> responseType, Object request) {
-        log.debug("postToGateway: POST to Gateway: {}", gatewayProperties.getUrl()
-            + "?" + ACTION_TYPE + "=" + actionType);
+        log.info("postToGateway: POST to Gateway: {}?{}={}", gatewayProperties.getUrl(), ACTION_TYPE, actionType);
 
         // Create a UriComponentsBuilder and add parameters
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
             .queryParam(ACTION_TYPE, actionType);
 
-        ResponseEntity<String> responseEntity = restClient.post()
+        RestClient.RequestBodySpec bodySpec = restClient.post()
             .uri(gatewayProperties.getUrl() + builder.toUriString())
             .header("AUTHORIZATION", encodeBasic(gatewayProperties.getUsername(), gatewayProperties.getPassword()))
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_XML)
-            .body(request)
+            .body(request);
+
+        log.info(":postToGateway: bodySpec: {}", bodySpec);
+
+        ResponseEntity<String> responseEntity = bodySpec
             .retrieve()
             .toEntity(String.class);
 

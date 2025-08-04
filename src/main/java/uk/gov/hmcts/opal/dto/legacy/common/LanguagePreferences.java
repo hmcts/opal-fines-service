@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.dto.legacy.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,10 +19,10 @@ import lombok.extern.jackson.Jacksonized;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LanguagePreferences {
 
-    @JsonProperty("document_language_preference")
+    @XmlElement(name = "document_language_preference")
     private DocumentLanguagePreference documentLanguagePreference;
 
-    @JsonProperty("hearing_language_preference")
+    @XmlElement(name = "hearing_language_preference")
     private HearingLanguagePreference hearingLanguagePreference;
 
     @Data
@@ -34,10 +34,10 @@ public class LanguagePreferences {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class DocumentLanguagePreference {
 
-        @JsonProperty("document_language_code")
+        @XmlElement(name = "document_language_code")
         private String documentLanguageCode;
 
-        @JsonProperty("document_language_display_name")
+        @XmlElement(name = "document_language_display_name")
         private String documentLanguageDisplayName;
     }
 
@@ -50,10 +50,10 @@ public class LanguagePreferences {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class HearingLanguagePreference {
 
-        @JsonProperty("hearing_language_code")
+        @XmlElement(name = "hearing_language_code")
         private String hearingLanguageCode;
 
-        @JsonProperty("hearing_language_display_name")
+        @XmlElement(name = "hearing_language_display_name")
         private String hearingLanguageDisplayName;
     }
 }

@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.dto.legacy.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,28 +19,28 @@ import lombok.extern.jackson.Jacksonized;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class DefendantDetails {
 
-    @JsonProperty("debtor_type")
+    @XmlElement(name = "debtor_type")
     private String debtorType;
 
-    @JsonProperty("is_debtor")
+    @XmlElement(name = "is_debtor")
     private Boolean isDebtor;
 
-    @JsonProperty("organisation_flag")
+    @XmlElement(name = "organisation_flag")
     private Boolean organisationFlag;
 
-    @JsonProperty("address")
+    @XmlElement(name = "address")
     private AddressDetails address;
 
-    @JsonProperty("language_preferences")
+    @XmlElement(name = "language_preferences")
     private LanguagePreferences languagePreferences;
 
-    @JsonProperty("organisation_details")
+    @XmlElement(name = "organisation_details")
     private OrganisationDetails organisationDetails;
 
-    @JsonProperty("individual_details")
+    @XmlElement(name = "individual_details")
     private IndividualDetails individualDetails;
 
-    @JsonProperty("is_youth_flag")
+    @XmlElement(name = "is_youth_flag")
     private Boolean isYouthFlag;
 
 }

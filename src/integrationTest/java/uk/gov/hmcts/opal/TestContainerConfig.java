@@ -9,6 +9,8 @@ public class TestContainerConfig {
 
     public static final PostgreSQLContainer<?> POSTGRES_CONTAINER;
 
+    // public static final GenericContainer<?> LEGACY_STUB_CONTAINER;
+
     static {
         POSTGRES_CONTAINER = new PostgreSQLContainer<>(DockerImageName.parse("postgres:17.5"))
             .withDatabaseName("testdb")
@@ -16,5 +18,8 @@ public class TestContainerConfig {
             .withPassword("test");
 
         POSTGRES_CONTAINER.start();
+
+        // LEGACY_STUB_CONTAINER = new GenericContainer(DockerImageName.parse("opal-legacy-db-stub"));
+        // LEGACY_STUB_CONTAINER.start();
     }
 }
