@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,12 +15,12 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class LegacyCreateDefendantAccountRequest {
 
-    @JsonProperty("business_unit_id")
+    @XmlElement(name = "business_unit_id")
     private Short businessUnitId;
 
-    @JsonProperty("business_unit_user_id")
+    @XmlElement(name = "business_unit_user_id")
     private String businessUnitUserId;
 
-    @JsonProperty("defendant_account")
+    @XmlElement(name = "defendant_account")
     private String defendantAccount;
 }

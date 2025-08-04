@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.authorisation.aspect.AuthorizedAnyBusinessUnitUserHasPermission;
-import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.disco.DiscoDefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyDiscoDefendantAccountService;
 import uk.gov.hmcts.opal.disco.opal.DiscoDefendantAccountService;
@@ -34,13 +32,11 @@ public class DiscoDefendantAccountServiceProxy implements DiscoDefendantAccountS
     }
 
     @Override
-    @AuthorizedAnyBusinessUnitUserHasPermission(Permissions.ACCOUNT_ENQUIRY)
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
         return getCurrentModeService().getDefendantAccount(request);
     }
 
     @Override
-    @AuthorizedAnyBusinessUnitUserHasPermission(Permissions.ACCOUNT_ENQUIRY)
     public DefendantAccountEntity putDefendantAccount(DefendantAccountEntity defendantAccountEntity) {
         return getCurrentModeService().putDefendantAccount(defendantAccountEntity);
     }
@@ -51,14 +47,12 @@ public class DiscoDefendantAccountServiceProxy implements DiscoDefendantAccountS
     }
 
     @Override
-    @AuthorizedAnyBusinessUnitUserHasPermission(Permissions.ACCOUNT_ENQUIRY)
     public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts: isLegacyMode: {}", isLegacyMode(dynamicConfigService));
         return getCurrentModeService().searchDefendantAccounts(accountSearchDto);
     }
 
     @Override
-    @AuthorizedAnyBusinessUnitUserHasPermission(Permissions.ACCOUNT_ENQUIRY)
     public AccountDetailsDto getAccountDetailsByDefendantAccountId(Long defendantAccountId) {
         return getCurrentModeService().getAccountDetailsByDefendantAccountId(defendantAccountId);
     }

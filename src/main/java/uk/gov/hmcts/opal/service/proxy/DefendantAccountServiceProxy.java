@@ -10,7 +10,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 
 @Service
-@Slf4j(topic = "opal.DraftAccountPublishProxy")
+@Slf4j(topic = "opal.DefendantAccountServiceProxy")
 @RequiredArgsConstructor
 public class DefendantAccountServiceProxy implements DefendantAccountServiceInterface, ProxyInterface {
 

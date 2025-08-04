@@ -40,13 +40,14 @@ public class LegacyDiscoDefendantAccountService extends LegacyService implements
 
     @Override
     public DefendantAccountEntity getDefendantAccount(AccountEnquiryDto request) {
-        log.debug("Get defendant account for {} from {}", request.toJson(), legacyGateway.getUrl());
+        log.debug(":getDefendantAccount: Get defendant account for {} from {}", request.toJson(),
+                  legacyGateway.getUrl());
         return postToGateway(GET_DEFENDANT_ACCOUNT, DefendantAccountEntity.class, request);
     }
 
     @Override
     public DefendantAccountEntity putDefendantAccount(DefendantAccountEntity defendantAccountEntity) {
-        log.debug("Sending defendantAccount to {}", legacyGateway.getUrl());
+        log.debug(":putDefendantAccount: Sending defendantAccount to {}", legacyGateway.getUrl());
         return postToGateway(PUT_DEFENDANT_ACCOUNT, DefendantAccountEntity.class, defendantAccountEntity);
     }
 
@@ -65,7 +66,7 @@ public class LegacyDiscoDefendantAccountService extends LegacyService implements
 
     @Override
     public AccountDetailsDto getAccountDetailsByDefendantAccountId(Long defendantAccountId) {
-        log.debug("Get defendant account for id: {}", defendantAccountId);
+        log.debug(":getAccountDetailsByDefendantAccountId: id: {}", defendantAccountId);
 
         LegacyAccountDetailsRequestDto request = LegacyAccountDetailsRequestDto.builder()
             .defendantAccountId(defendantAccountId)

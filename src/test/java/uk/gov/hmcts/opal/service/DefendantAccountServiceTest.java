@@ -7,8 +7,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
@@ -30,12 +28,8 @@ class DefendantAccountServiceTest {
     private DefendantAccountService defendantAccountService;
 
     @Test
-    void testGetDraftAccount() {
+    void testGetHeaderSummary() {
         // Arrange
-        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-            BusinessUnitEntity.builder().businessUnitId((short)77).build())
-            .build();
-
         DefendantAccountHeaderSummary headerSummary = DefendantAccountHeaderSummary.builder().build();
 
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(headerSummary);
