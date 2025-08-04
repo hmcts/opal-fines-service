@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.disco;
+package uk.gov.hmcts.opal.service;
 
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.AppMode;

@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.ChequeEntity;
 import uk.gov.hmcts.opal.disco.ChequeServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyChequeService;
 import uk.gov.hmcts.opal.disco.opal.ChequeService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

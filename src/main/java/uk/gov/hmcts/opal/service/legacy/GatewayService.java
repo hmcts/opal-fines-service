@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.disco.legacy;
+package uk.gov.hmcts.opal.service.legacy;
 
 import org.springframework.http.HttpStatusCode;
 import org.springframework.scheduling.annotation.Async;

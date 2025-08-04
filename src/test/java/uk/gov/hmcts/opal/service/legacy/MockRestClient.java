@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.disco.legacy;
+package uk.gov.hmcts.opal.service.legacy;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.disco.proxy;
+package uk.gov.hmcts.opal.service.proxy;
 
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 

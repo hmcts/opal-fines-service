@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.disco.proxy;
+package uk.gov.hmcts.opal.service.proxy;
 
 import org.mockito.Mock;
 import uk.gov.hmcts.opal.dto.AppMode;
@@ -8,14 +8,14 @@ import static org.mockito.Mockito.when;
 
 public abstract class ProxyTestsBase {
 
-    static final String LEGACY = "legacy";
+    public static final String LEGACY = "legacy";
 
-    static final String OPAL = "opal";
+    public static final String OPAL = "opal";
 
     @Mock
     private DynamicConfigService dynamicConfigService;
 
-    void setMode(String mode) {
+    public void setMode(String mode) {
         AppMode appMode = AppMode.builder().mode(mode).build();
         when(dynamicConfigService.getAppMode()).thenReturn(appMode);
     }

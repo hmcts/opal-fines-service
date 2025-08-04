@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.disco.BacsPaymentServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyBacsPaymentService;
 import uk.gov.hmcts.opal.disco.opal.BacsPaymentService;
+import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 import java.util.List;
 
