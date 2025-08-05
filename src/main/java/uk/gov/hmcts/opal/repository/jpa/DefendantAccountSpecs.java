@@ -20,7 +20,6 @@ import static uk.gov.hmcts.opal.repository.jpa.DefendantAccountPartySpecs.joinPa
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeAnyAddressLinesPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.equalsDateOfBirthPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeForenamesPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeInitialsPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeNiNumberPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeOrganisationNamePredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likePostcodePredicate;
@@ -34,7 +33,6 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
         return Specification.allOf(specificationList(
             notBlank(accountSearchDto.getSurname()).map(DefendantAccountSpecs::likeSurname),
             notBlank(accountSearchDto.getForename()).map(DefendantAccountSpecs::likeForename),
-            notBlank(accountSearchDto.getInitials()).map(DefendantAccountSpecs::likeInitials),
             notNullLocalDate(accountSearchDto.getDateOfBirth()).map(DefendantAccountSpecs::equalsDateOfBirth),
             notBlank(accountSearchDto.getNiNumber()).map(DefendantAccountSpecs::likeNiNumber),
             notBlank(accountSearchDto.getAddressLine()).map(DefendantAccountSpecs::likeAnyAddressLine),
@@ -79,11 +77,6 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
     public static Specification<DefendantAccountEntity> likeForename(String forename) {
         return (root, query, builder) ->
             likeForenamesPredicate(joinDefendantParty(root, builder), builder, forename);
-    }
-
-    public static Specification<DefendantAccountEntity> likeInitials(String initials) {
-        return (root, query, builder) ->
-            likeInitialsPredicate(joinDefendantParty(root, builder), builder, initials);
     }
 
     public static Specification<DefendantAccountEntity> likeOrganisationName(String organisation) {
