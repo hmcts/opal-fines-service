@@ -14,5 +14,5 @@
       "items": { "$ref": "./individualAliasLegacy.json" }
     }
   },
-  "required": ["title", "surname", "date_of_birth"]
+  "required": ["title", "surname"]
 }
