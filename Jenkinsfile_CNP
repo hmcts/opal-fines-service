@@ -12,8 +12,12 @@ def determineDevEnvironmentDeployment() {
   env.DEV_OPAL_FRONT_END_URL = "https://opal-frontend.staging.platform.hmcts.net"
   env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX = "latest"
 
+  env.APP_MODE = "opal"
 
   def githubApi = new GithubAPI(this)
+  if (githubApi.checkForLabel(env.BRANCH_NAME, "app_mode_legacy")) {
+    env.APP_MODE = "legacy"
+  }
   if (githubApi.checkForLabel(env.BRANCH_NAME, "enable_keep_helm")) {
     for (label in githubApi.getLabelsbyPattern(env.BRANCH_NAME, "enable_opal_")) {
 
