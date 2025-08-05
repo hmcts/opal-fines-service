@@ -9,6 +9,7 @@ import jakarta.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.CollectionUtils;
+import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
@@ -60,14 +61,6 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
                 .map(DefendantAccountSpecs::likeInitials),
 
             defendant.map(DefendantDto::getBirthDate)
-                .map(birthDate -> {
-                    try {
-                        return LocalDate.parse(birthDate, DateTimeFormatter.ISO_DATE); // Adjust formatter if needed
-                    } catch (DateTimeParseException e) {
-                        log.error("Failed to parse date of birth. {}", birthDate, e);
-                        return null; // Handle invalid date formats gracefully
-                    }
-                })
                 .map(DefendantAccountSpecs::equalsDateOfBirth),
 
             defendant.map(DefendantDto::getNationalInsuranceNumber)
@@ -90,19 +83,16 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
                 ));
         }
 
-        //TODO confirm how we filter on court. Do we get CT/MET as the value once we have this how do we link to the
-        // court to filter on?
-        //accountSearchDto.getNumericCourt().map(DefendantAccountSpecs::equalsAnyCourtId)
-
-
         //TODO confirm how we can filter on the following criteria
-        //private String court;
-        //private String searchType;
-        //private String pcr;
-        //private String majorCreditor;
-        //private String tillNumber;
-        //private Boolean activeAccountsOnly;
         //private ReferenceNumberDto referenceNumber;
+
+        if(accountSearchDto.getReferenceNumberDto() != null){
+            ReferenceNumberDto referenceNumberDto = accountSearchDto.getReferenceNumberDto();
+            Optional.ofNullable(referenceNumberDto.getProsecutorCaseReference())
+                .filter(StringUtils::isNotBlank)
+                .map(DefendantAccountSpecs::likeNiNumber)
+                .ifPresent(specificationList::add);
+        }
 
 
         return Specification.allOf(specificationList);
