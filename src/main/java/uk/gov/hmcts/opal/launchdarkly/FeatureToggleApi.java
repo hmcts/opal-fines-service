@@ -15,11 +15,11 @@ import java.io.IOException;
 public class FeatureToggleApi {
 
     private final LDClientInterface internalClient;
+
     private final LaunchDarklyProperties properties;
 
     @Autowired
-    public FeatureToggleApi(LDClientInterface internalClient,
-                            LaunchDarklyProperties properties) {
+    public FeatureToggleApi(LDClientInterface internalClient, LaunchDarklyProperties properties) {
         this.internalClient = internalClient;
         this.properties = properties;
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
@@ -43,14 +43,10 @@ public class FeatureToggleApi {
     }
 
     public String getFeatureValue(String feature, String defaultValue) {
-        String result;
         if (!properties.isEnabled()) {
-            result = defaultValue;
-        } else {
-            result = internalClient.stringVariation(feature, createLDContext().build(), defaultValue);
+            return defaultValue;
         }
-        log.info("Feature toggle '{}' value: {}", feature, result);
-        return result;
+        return internalClient.stringVariation(feature, createLDContext().build(), defaultValue);
     }
 
     public ContextBuilder createLDContext() {

@@ -4,15 +4,15 @@
   "type": "object",
   "properties": {
     "title": { "type": "string" },
-    "first_names": { "type": "string" },
+    "forenames": { "type": "string" },
     "surname": { "type": "string" },
     "date_of_birth": { "type": "string" },
     "age": { "type": "string" },
     "national_insurance_number": { "type": "string" },
     "individual_aliases": {
       "type": "array",
-      "items": { "$ref": "resource:/jsonSchemas/legacy/common-objects/individualAliasLegacy.json" }
+      "items": { "$ref": "./individualAliasLegacy.json" }
     }
   },
-  "required": ["title", "first_names", "surname", "date_of_birth"]
+  "required": ["title", "surname"]
 }

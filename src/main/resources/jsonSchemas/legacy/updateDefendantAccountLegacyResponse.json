@@ -11,16 +11,16 @@
       "type": "integer"
     },
     "comment_and_notes": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/commentsAndNotesLegacy.json"
+      "$ref": "./common-objects/commentsAndNotesLegacy.json"
     },
     "enforcement_court": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/courtReferenceLegacy.json"
+      "$ref": "./common-objects/courtReferenceLegacy.json"
     },
     "collection_order": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/collectionOrderLegacy.json"
+      "$ref": "./common-objects/collectionOrderLegacy.json"
     },
     "enforcement_overrides": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/enforcementOverrideLegacy.json"
+      "$ref": "./common-objects/enforcementOverrideLegacy.json"
     }
   },
   "oneOf": [

@@ -7,11 +7,7 @@
     "payment_terms_type_code": {
       "type": "string",
       "enum": ["B", "P", "I"]
-    },
-    "payment_terms_type_display_name": {
-      "type": "string",
-      "enum": ["By date", "Paid", "Instalments"]
     }
   },
-  "required": ["payment_terms_type_code", "payment_terms_type_display_name"]
+  "required": ["payment_terms_type_code"]
 }

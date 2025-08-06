@@ -11,5 +11,5 @@
     },
     "organisation_name": { "type": "string" }
   },
-  "required": ["alias_id", "sequence_number"]
+  "required": ["alias_id", "sequence_number", "organisation_name"]
 }
