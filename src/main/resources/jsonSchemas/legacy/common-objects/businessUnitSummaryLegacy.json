@@ -8,5 +8,5 @@
     "business_unit_id": { "type": "string" },
     "welsh_speaking": { "type": "string" }
   },
-  "required": ["business_unit_name", "business_unit_id", "business_unit_code", "welsh_speaking"]
+  "required": ["business_unit_name", "business_unit_id", "welsh_speaking"]
 }
