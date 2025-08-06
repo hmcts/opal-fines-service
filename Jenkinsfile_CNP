@@ -8,7 +8,7 @@ def product = "opal"
 def component = "fines-service"
 
 def determineDevEnvironmentDeployment() {
-  env.DEV_ENABLE_OPAL_FRONT_END = true
+  env.DEV_ENABLE_OPAL_FRONT_END = false
   env.DEV_OPAL_FRONT_END_URL = "https://opal-frontend.staging.platform.hmcts.net"
   env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX = "latest"
 
