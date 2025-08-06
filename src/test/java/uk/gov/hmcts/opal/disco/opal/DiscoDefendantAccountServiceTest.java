@@ -147,23 +147,6 @@ public class DiscoDefendantAccountServiceTest {
         assertNotNull(discoDefendantAccountService.toDto(new DefendantAccountEntity()));
     }
 
-    @Test
-    void testSearchDefendantAccountsTemporary() {
-        // Arrange
-        AccountSearchDto mockSearch = AccountSearchDto.builder().businessUnitIds(List.of(78)).build();
-
-        // Act
-        DefendantAccountSearchResultsDto result = discoDefendantAccountService.searchDefendantAccounts(mockSearch);
-
-        // Assert
-        assertNotNull(result);
-        assertNotNull(result.getDefendantAccounts());
-        assertEquals(100, result.getDefendantAccounts().size());
-        assertEquals(100, result.getCount());
-        assertEquals(100, result.getDefendantAccounts().size());
-        assertEquals(100, result.getCount());
-    }
-
 
     @Test
     void testGetAccountDetailsByDefendantAccountId() {

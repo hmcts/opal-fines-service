@@ -22,6 +22,7 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchResult;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPartyDto;
+import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -411,7 +412,17 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Act
         DefendantAccountSearchResultsDto searchResultsDto = legacyDefendantAccountService
-            .searchDefendantAccounts(AccountSearchDto.builder().build());
+            .searchDefendantAccounts(AccountSearchDto.builder()
+                .businessUnitIds(List.of(78))
+                .activeAccountsOnly(true)
+                .referenceNumberDto(
+                    ReferenceNumberDto.builder()
+                        .organisation(false)
+                        .accountNumber("ACC123")
+                        .prosecutorCaseReference("ABC123")
+                        .build()
+                )
+                .build());
 
         // Assert
         assertEquals(9, searchResultsDto.getCount());

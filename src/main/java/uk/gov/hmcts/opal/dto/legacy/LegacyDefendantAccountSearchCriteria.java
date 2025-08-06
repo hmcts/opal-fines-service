@@ -10,6 +10,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantDto;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Data
@@ -73,9 +74,14 @@ public class LegacyDefendantAccountSearchCriteria implements ToJsonString {
             .addressLine1(defendant != null ? defendant.getAddressLine1() : null)
             .postcode(defendant != null ? defendant.getPostcode() : null)
             .nationalInsuranceNumber(defendant != null ? defendant.getNationalInsuranceNumber() : null)
-            .prosecutorCaseReference(dto.getReferenceNumberDto().getProsecutorCaseReference())
-            .organisation(dto.getDefendant().getOrganisation())
-            .organisationName(dto.getDefendant().getOrganisation() ? dto.getDefendant().getOrganisationName() : null)
+            .prosecutorCaseReference(
+                Objects.requireNonNull(dto.getReferenceNumberDto(), "ReferenceNumberDto must not be null")
+                    .getProsecutorCaseReference()
+            )
+            .organisation(defendant != null ? defendant.getOrganisation() : null)
+            .organisationName(defendant != null ?
+                defendant.getOrganisation() ? defendant.getOrganisationName() : null
+                : null)
             .searchAliases(false)
             .liveOnly(true)
             .businessUnitId(dto.getBusinessUnitIds() == null ? null : dto.getBusinessUnitIds().get(0).longValue())

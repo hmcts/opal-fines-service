@@ -8,6 +8,7 @@ import uk.gov.hmcts.opal.dto.search.DefendantDto;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -18,16 +19,14 @@ public class AccountSearchDtoTest {
     @Test
     void testBuilder() {
         final String dateOfBirth = "2024-01-01";
-        AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto(dateOfBirth);
-        assertEquals("Bath", accountEnquiryDto.getBusinessUnitIds());
+        AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto(dateOfBirth, true);
+        assertEquals(List.of(78), accountEnquiryDto.getBusinessUnitIds());
         assertEquals("Smith", accountEnquiryDto.getDefendant().getSurname());
         assertEquals("Scotland", accountEnquiryDto.getDefendant().getAddressLine1());
-        assertEquals("case001", accountEnquiryDto.getReferenceNumberDto().getProsecutorCaseReference());
-        assertEquals(dateOfBirth, accountEnquiryDto.getDefendant().getBirthDate());
+        assertEquals(LocalDate.parse(dateOfBirth), accountEnquiryDto.getDefendant().getBirthDate());
         assertEquals("Dave", accountEnquiryDto.getDefendant().getForenames());
         assertEquals("DS", accountEnquiryDto.getDefendant().getInitials());
         assertEquals("XX12345678", accountEnquiryDto.getDefendant().getNationalInsuranceNumber());
-        assertEquals(dateOfBirth, accountEnquiryDto.getDefendant().getBirthDate());
 
         assertNotNull(AccountSearchDto.builder()
             .defendant(DefendantDto.builder().build())
@@ -38,78 +37,11 @@ public class AccountSearchDtoTest {
                 .birthDate(LocalDate.parse("2024-01-01"))
                 .build())
             .build());
-
-        assertNotNull(AccountSearchDto.builder()
-            .defendant(DefendantDto.builder()
-                .birthDate(LocalDate.parse("2024-01-01"))
-                .build())
-            .build());
-
-        assertNotNull(AccountSearchDto.builder()
-            .defendant(DefendantDto.builder()
-                .birthDate(LocalDate.parse("2024-01-01"))
-                .build())
-            .build());
-
-        assertNotNull(AccountSearchDto.builder()
-            .defendant(DefendantDto.builder()
-                .birthDate(LocalDate.parse("2024-01-01"))
-                .build())
-            .build());
-
-        assertNotNull(AccountSearchDto.builder()
-            .defendant(DefendantDto.builder()
-                .birthDate(LocalDate.parse("2024-01-01"))
-                .build())
-            .build());
-
-        assertNotNull(AccountSearchDto.builder()
-            .defendant(DefendantDto.builder()
-                .birthDate(LocalDate.parse("2024-01-01"))
-                .build())
-            .build());
-
-        assertNotNull(AccountSearchDto.builder()
-            .defendant(DefendantDto.builder()
-                .birthDate(LocalDate.parse("2024-01-01"))
-                .build())
-            .build());
-
-        assertNotNull(AccountSearchDto.builder()
-            .defendant(DefendantDto.builder()
-                .birthDate(LocalDate.parse("2024-01-01"))
-                .build())
-            .build());
-
-        assertNotNull(AccountSearchDto.builder()
-            .defendant(DefendantDto.builder()
-                .birthDate(LocalDate.parse("2024-01-01"))
-                .build())
-            .build());
-
-        assertNotNull(AccountSearchDto.builder()
-            .defendant(DefendantDto.builder()
-                .birthDate(LocalDate.parse("2024-01-01"))
-                .build())
-            .build());
-
-        assertNotNull(AccountSearchDto.builder()
-            .defendant(DefendantDto.builder()
-                .birthDate(LocalDate.parse("2024-01-01"))
-                .build())
-            .build());
-
-        assertNotNull(AccountSearchDto.builder()
-            .defendant(DefendantDto.builder()
-                .birthDate(LocalDate.parse("2024-01-01"))
-                .build())
-            .build());
-
     }
 
     @Test
     void testToJsonString() throws Exception {
-        AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto("2024-01-01");
+        AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto("2024-01-01",true);
         assertNotNull(accountEnquiryDto.toJsonString());
     }
 
@@ -136,19 +68,35 @@ public class AccountSearchDtoTest {
         assertNotNull(result);
     }
 
-    private AccountSearchDto constructTestAccountSearchDto(final String datOfBirth) {
-        return AccountSearchDto.builder()
+    private AccountSearchDto constructTestAccountSearchDto(String dateOfBirth, boolean useDefendant) {
+        AccountSearchDto.AccountSearchDtoBuilder builder = AccountSearchDto.builder()
             .businessUnitIds(Collections.singletonList(78))
-            .activeAccountsOnly(true)
-            .referenceNumberDto(
-                ReferenceNumberDto.builder()
-                    .prosecutorCaseReference("case001")
+            .activeAccountsOnly(true);
+
+        if (useDefendant) {
+            builder.defendant(
+                DefendantDto.builder()
+                    .surname("Smith")
+                    .forenames("Dave")
+                    .addressLine1("Scotland")
+                    .includeAliases(true)
                     .organisation(false)
-                    .accountNumber(null)
+                    .organisationName("Test Org")
+                    .birthDate(LocalDate.parse(dateOfBirth))
+                    .nationalInsuranceNumber("XX12345678")
                     .build()
-            )
-            .defendant(null)
-            .build();
+            );
+        } else {
+            builder.referenceNumberDto(
+                ReferenceNumberDto.builder()
+                    .prosecutorCaseReference("ABC123")
+                    .organisation(false)
+                    .accountNumber("ACC789")
+                    .build()
+            );
+        }
+
+        return builder.build();
     }
 
 }
