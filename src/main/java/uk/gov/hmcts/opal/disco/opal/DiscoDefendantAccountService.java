@@ -118,21 +118,6 @@ public class DiscoDefendantAccountService implements DiscoDefendantAccountServic
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts: criteria: {}", accountSearchDto.toJson());
 
-        // TODO - 25/06/2024 - remove this Disco+ 'test' code soon?
-        if ("test".equalsIgnoreCase(accountSearchDto.getCourt())) {
-
-            try (InputStream in = Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("tempSearchData.json")) {
-                ObjectMapper mapper = getObjectMapper();
-                DefendantAccountSearchResultsDto dto = mapper.readValue(in, DefendantAccountSearchResultsDto.class);
-                log.debug(":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
-                    dto.toPrettyJsonString());
-                return dto;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
         Page<DefendantAccountEntity> summariesPage = defendantAccountRepository
             .findBy(specs.findByAccountSearch(accountSearchDto),
                 ffq -> ffq.page(Pageable.unpaged()));

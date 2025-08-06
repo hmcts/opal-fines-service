@@ -150,7 +150,7 @@ public class DiscoDefendantAccountServiceTest {
     @Test
     void testSearchDefendantAccountsTemporary() {
         // Arrange
-        AccountSearchDto mockSearch = AccountSearchDto.builder().court("test").build();
+        AccountSearchDto mockSearch = AccountSearchDto.builder().businessUnitIds(List.of(78)).build();
 
         // Act
         DefendantAccountSearchResultsDto result = discoDefendantAccountService.searchDefendantAccounts(mockSearch);

@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.dto.search;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -11,7 +10,6 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 
 import java.util.List;
-import java.util.Optional;
 
 @Data
 @Builder

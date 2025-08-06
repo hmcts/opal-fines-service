@@ -20,8 +20,6 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -86,7 +84,7 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
         //TODO confirm how we can filter on the following criteria
         //private ReferenceNumberDto referenceNumber;
 
-        if(accountSearchDto.getReferenceNumberDto() != null){
+        if (accountSearchDto.getReferenceNumberDto() != null) {
             ReferenceNumberDto referenceNumberDto = accountSearchDto.getReferenceNumberDto();
             Optional.ofNullable(referenceNumberDto.getProsecutorCaseReference())
                 .filter(StringUtils::isNotBlank)

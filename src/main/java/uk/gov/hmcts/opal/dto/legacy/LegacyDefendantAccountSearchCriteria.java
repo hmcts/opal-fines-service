@@ -62,7 +62,7 @@ public class LegacyDefendantAccountSearchCriteria implements ToJsonString {
     public static LegacyDefendantAccountSearchCriteria fromAccountSearchDto(AccountSearchDto dto) {
         DefendantDto defendant = dto.getDefendant();
         return LegacyDefendantAccountSearchCriteria.builder()
-            .accountNumber(null) // account number not present in this schema
+            .accountNumber(null)
             .surname(defendant != null ? defendant.getSurname() : null)
             .forenames(defendant != null ? defendant.getForenames() : null)
             .initials(defendant != null ? defendant.getInitials() : null)
@@ -73,14 +73,12 @@ public class LegacyDefendantAccountSearchCriteria implements ToJsonString {
             .addressLine1(defendant != null ? defendant.getAddressLine1() : null)
             .postcode(defendant != null ? defendant.getPostcode() : null)
             .nationalInsuranceNumber(defendant != null ? defendant.getNationalInsuranceNumber() : null)
-            .prosecutorCaseReference(dto.getPcr())
-            .organisation("Company".equalsIgnoreCase(dto.getSearchType()))
-            .organisationName("Company".equalsIgnoreCase(dto.getSearchType()) && defendant != null
-                ? defendant.getOrganisationName()
-                : null)
-            .searchAliases(false) // hardcoded for now
-            .liveOnly(true) // maps to active_accounts_only
-            .businessUnitId(dto.getNumericCourt().orElse(null))
+            .prosecutorCaseReference(dto.getReferenceNumberDto().getProsecutorCaseReference())
+            .organisation(dto.getDefendant().getOrganisation())
+            .organisationName(dto.getDefendant().getOrganisation() ? dto.getDefendant().getOrganisationName() : null)
+            .searchAliases(false)
+            .liveOnly(true)
+            .businessUnitId(dto.getBusinessUnitIds() == null ? null : dto.getBusinessUnitIds().get(0).longValue())
             .firstRowNumber(1)
             .lastRowNumber(100)
             .build();
