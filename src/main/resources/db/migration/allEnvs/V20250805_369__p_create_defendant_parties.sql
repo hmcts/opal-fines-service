@@ -24,6 +24,7 @@ $BODY$
 * ----------    --------    --------    -------------------------------------------------------------------------------------------------------------
 * 22/07/2025    TMc         1.0         PO-1043 - Process the defendant Json and insert PARTIES, DEFENDANT_ACCOUNT_PARTIES, DEBTOR_DETAIL and ALIASES
 *                                                 records for the defendant and parent/guardian.
+*                           1.1         Corrected typo in INSERT INTO parties statement
 *
 **/
 DECLARE
@@ -86,7 +87,7 @@ BEGIN
         */
     )
     VALUES ( 
-          NEXTVAL('account_number_index_seq')
+          NEXTVAL('party_id_seq')
         , (pi_defendant_json ->> 'company_flag')::BOOLEAN
         , pi_defendant_json ->> 'company_name'
         , pi_defendant_json ->> 'surname'
