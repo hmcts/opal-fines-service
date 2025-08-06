@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Get Defendant Account At A Glance Legacy Response",
+  "title": "Get Defendant Account At A Glance Response",
   "type": "object",
   "additionalProperties": false,
   "properties": {
