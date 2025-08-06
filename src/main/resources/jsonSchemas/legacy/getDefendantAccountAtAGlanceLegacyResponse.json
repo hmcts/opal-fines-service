@@ -4,7 +4,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "account_version": { "type": "integer" },
+    "version": { "type": "integer" },
     "defendant_account_id": { "type": "string" },
     "account_number": { "type": "string" },
     "debtor_type": {
@@ -32,7 +32,7 @@
     }
   },
   "required": [
-    "account_version",
+    "version",
     "defendant_account_id",
     "account_number",
     "debtor_type",
