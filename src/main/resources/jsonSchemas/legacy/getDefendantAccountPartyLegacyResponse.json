@@ -4,24 +4,13 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "party_id": { "type": "string" },
     "version": { "type": "integer" },
-    "defendant_details": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/defendantDetailsLegacy.json"
-    },
-    "contact_details": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/contactDetailsLegacy.json"
-    },
-    "vehicle_details": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/vehicleDetailsLegacy.json"
-    },
-    "employer_details": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/employerDetailsLegacy.json"
+    "defendant_account_party": {
+      "$ref": "./common-objects/partyDetailsLegacy.json"
     }
   },
   "required": [
-    "party_id",
     "version",
-    "defendant_details"
+    "defendant_account_party"
   ]
 }

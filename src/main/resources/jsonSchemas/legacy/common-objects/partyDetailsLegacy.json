@@ -1,41 +1,25 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Debtor Details Legacy",
+  "title": "Party Details Legacy",
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "debtor_type": {
-      "type": "string",
-      "enum": ["Defendant", "Parent/Guardian"]
-    },
-    "is_debtor": {
-      "type": "boolean"
+    "party_id": {
+      "type": "string"
     },
     "organisation_flag": {
       "type": "boolean"
     },
-    "address": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/addressDetailsLegacy.json"
-    },
-    "language_preferences": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/languagePreferencesLegacy.json"
-    },
     "organisation_details": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/organisationDetailsLegacy.json"
+      "$ref": "./organisationDetailsLegacy.json"
     },
     "individual_details": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/individualDetailsLegacy.json"
-    },
-    "is_youth_flag": {
-      "type": "boolean"
+      "$ref": "./individualDetailsLegacy.json"
     }
   },
   "required": [
-    "debtor_type",
-    "is_debtor",
-    "organisation_flag",
-    "address",
-    "is_youth_flag"
+    "party_id",
+    "organisation_flag"
   ],
   "allOf": [
     {

@@ -57,7 +57,7 @@ class JsonSchemaValidationServiceTest {
         Set<String> messages = jsonSchemaValidationService
             .validate("", "testSchema.json");
         assertEquals(1, messages.size());
-        assertEquals(": unknown found, object expected", messages
+        assertEquals("$: unknown found, object expected", messages
             .stream()
             .findFirst()
             .orElse(""));

@@ -16,32 +16,23 @@
       "type": "string",
       "minLength": 1
     },
-    "party_id": {
+    "defendant_account_party_id": {
       "type": "string",
       "minLength": 1
     },
     "version": {
       "type": "integer"
     },
-    "defendant_details": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/defendantDetailsLegacy.json"
-    },
-    "contact_details": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/contactDetailsLegacy.json"
-    },
-    "vehicle_details": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/vehicleDetailsLegacy.json"
-    },
-    "employer_details": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/employerDetailsLegacy.json"
+    "defendant_account_party": {
+      "$ref": "./common-objects/partyDetailsLegacy.json"
     }
   },
   "required": [
     "defendant_account_id",
     "business_unit_id",
     "business_unit_user_id",
-    "party_id",
+    "defendant_account_party_id",
     "version",
-    "defendant_details"
+    "defendant_account_party"
   ]
 }

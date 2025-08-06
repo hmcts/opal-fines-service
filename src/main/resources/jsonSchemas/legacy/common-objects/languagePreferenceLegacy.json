@@ -1,12 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Instalment Period Legacy",
+  "title": "Language Preference Legacy",
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "instalment_period_code": {
+    "language_code": {
       "type": "string",
-      "enum": ["W", "M", "F"]
+      "enum": ["CY", "EN"]
     }
-  }
+  },
+    "required": ["language_code"]
 }
