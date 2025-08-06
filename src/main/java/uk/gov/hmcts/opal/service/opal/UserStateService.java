@@ -21,21 +21,20 @@ public class UserStateService {
 
     private final AccessTokenService tokenService;
 
-    private final UserService userService;
+//    private final UserService userService;
 
     private final UserStateClientService userStateClientService;
 
-    private final UserEntitlementService userEntitlementService;
+//    private final UserEntitlementService userEntitlementService;
 
     private final BeDeveloperConfiguration developerConfiguration;
 
-    public UserState getUserStateUsingAuthToken(String authorization) {
-        return getUserStateByUsername(getPreferredUsername(authorization));
-    }
+//    public UserState getUserStateUsingAuthToken(String authorization) {
+//        return getUserStateByUsername(getPreferredUsername(authorization));
+//    }
 
     public UserState checkForAuthorisedUser(String authorization) {
-       // return getUserStateByUsername(getPreferredUsername(authorization));
-        //  call client service to get user state by authorised user
+
         return userStateClientService.getUserStateByAuthenticatedUser()
             .orElseGet(() -> getDeveloperUserStateOrError((getPreferredUsername(authorization))));
 
@@ -45,11 +44,11 @@ public class UserStateService {
         return extractPreferredUsername(authorization, tokenService);
     }
 
-    public UserState getUserStateByUsername(String username) {
-        return userEntitlementService.getUserStateByUsername(username)
-            .orElseGet(() -> userService.getLimitedUserStateByUsername(username)
-                .orElseGet(() -> getDeveloperUserStateOrError(username)));
-    }
+//    public UserState getUserStateByUsername(String username) {
+//        return userEntitlementService.getUserStateByUsername(username)
+//            .orElseGet(() -> userService.getLimitedUserStateByUsername(username)
+//                .orElseGet(() -> getDeveloperUserStateOrError(username)));
+//    }
 
     private UserState getDeveloperUserStateOrError(String username) {
         if (DEVELOPER_PERMISSIONS.equals(developerConfiguration.getUserRolePermissions())) {

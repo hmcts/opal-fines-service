@@ -9,9 +9,6 @@ import uk.gov.hmcts.opal.client.user.dto.BusinessUnitUserDto;
 import uk.gov.hmcts.opal.client.user.dto.PermissionDto;
 import uk.gov.hmcts.opal.client.user.dto.UserStateDto;
 
-import java.util.List;
-import java.util.Set;
-
 @Mapper(componentModel = "spring")
 public interface UserStateMapper {
 
