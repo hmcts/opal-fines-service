@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Employer Details",
+  "type": ["object", "null"],
+  "additionalProperties": false,
+  "properties": {
+    "employer_name": { "type": ["string", "null"]},
+    "employer_reference": { "type": ["string", "null"]},
+    "employer_email_address": {
+      "type": ["string", "null"],
+      "format": "email"
+    },
+    "employer_telephone_number": { "type": ["string", "null"]},
+    "employer_address": {
+      "$ref": "./addressDetails.json"
+    }
+  },
+  "required": [
+    "employer_name",
+    "employer_reference",
+    "employer_email_address",
+    "employer_telephone_number",
+    "employer_address"
+  ]
+
+}

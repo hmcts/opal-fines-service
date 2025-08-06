@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Contact Details",
+  "type": ["object", "null"],
+  "additionalProperties": false,
+  "properties": {
+    "primary_email_address": {
+      "type": ["string", "null"],
+      "format": "email"
+    },
+    "secondary_email_address": {
+      "type": ["string", "null"],
+      "format": "email"
+    },
+    "mobile_telephone_number": { "type": ["string", "null"] },
+    "home_telephone_number": { "type": ["string", "null"] },
+    "work_telephone_number": { "type": ["string", "null"] }
+  },
+  "required": [
+    "primary_email_address",
+    "secondary_email_address",
+    "mobile_telephone_number",
+    "home_telephone_number",
+    "work_telephone_number"
+  ]
+}

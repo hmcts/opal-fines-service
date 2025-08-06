@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Address Details",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "address_line_1": {
+      "type": "string"
+    },
+    "address_line_2": {
+      "type": ["string","null"]
+    },
+    "address_line_3": {
+      "type": ["string","null"]
+    },
+    "address_line_4": {
+      "type": ["string","null"]
+    },
+    "address_line_5": {
+      "type": ["string","null"]
+    },
+    "postcode": {
+      "type": ["string","null"]
+    }
+  },
+  "required": ["address_line_1", "address_line_2", "address_line_3", "address_line_4", "address_line_5", "postcode"]
+}
