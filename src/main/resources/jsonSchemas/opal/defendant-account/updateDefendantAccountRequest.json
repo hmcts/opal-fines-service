@@ -7,24 +7,28 @@
     "version": {
       "type": "integer"
     },
-    "account_comment": {
-      "type": ["string", "null"],
-      "minLength": 1
+    "comment_and_notes": {
+      "$ref": "../common-objects/commentsAndNotes.json"
     },
-    "account_free_note_1": {
-      "type": ["string", "null"],
-      "minLength": 1
+    "enforcement_court": {
+      "$ref": "../common-objects/courtReference.json"
     },
-    "account_free_note_2": {
-      "type": ["string", "null"],
-      "minLength": 1
+    "collection_order": {
+      "$ref": "../common-objects/collectionOrder.json"
     },
-    "account_free_note_3": {
-      "type": ["string", "null"],
-      "minLength": 1
-    },
-    "required": [
-      "version"
-    ]
-  }
+    "enforcement_overrides": {
+      "$ref": "../common-objects/enforcementOverride.json"
+    }
+  },
+  "required": [
+    "defendant_account_id",
+    "business_unit_id",
+    "business_unit_user_id",
+    "version",
+    "comment_and_notes",
+    "enforcement_court",
+    "collection_order",
+    "enforcement_overrides"
+  ]
 }
+
