@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Language Preferences",
+  "type": ["object", "null"],
+  "properties": {
+    "document_language_preference": {
+      "$ref": "./languagePreference.json"
+    },
+    "hearing_language_preference": {
+      "$ref": "./languagePreference.json"
+    }
+  },
+  "required": [
+    "document_language_preference",
+    "hearing_language_preference"
+  ]
+}

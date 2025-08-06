@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Defendant Account Party",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "defendant_account_party_type": {
+      "type": "string"
+    },
+    "is_debtor": {
+      "type": "boolean"
+    },
+    "party_details": {
+      "$ref": "./partyDetailsLegacy.json"
+    },
+    "address": {
+      "$ref": "./addressDetailsLegacy.json"
+    },
+    "contact_details": {
+      "$ref": "./contactDetailsLegacy.json"
+    },
+    "vehicle_details": {
+      "$ref": "./vehicleDetailsLegacy.json"
+    },
+    "employer_details": {
+      "$ref": "./employerDetailsLegacy.json"
+    },
+    "language_preferences": {
+      "$ref": "./languagePreferencesLegacy.json"
+    }
+  },
+  "required": [
+    "defendant_account_party_type",
+    "is_debtor",
+    "party_details",
+    "address",
+    "contact_details",
+    "vehicle_details",
+    "employer_details",
+    "language_preferences"
+  ]
+}
