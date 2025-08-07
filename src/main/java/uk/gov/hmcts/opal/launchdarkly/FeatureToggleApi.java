@@ -5,8 +5,8 @@ import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.config.properties.LaunchDarklyProperties;
 
 import java.io.IOException;
 
@@ -15,16 +15,13 @@ import java.io.IOException;
 public class FeatureToggleApi {
 
     private final LDClientInterface internalClient;
-    private final String environment;
-    private final String key;
+
+    private final LaunchDarklyProperties properties;
 
     @Autowired
-    public FeatureToggleApi(LDClientInterface internalClient,
-                            @Value("${launchdarkly.env}") String environment,
-                            @Value("${launchdarkly.sdk-key}") String sdkKey) {
+    public FeatureToggleApi(LDClientInterface internalClient, LaunchDarklyProperties properties) {
         this.internalClient = internalClient;
-        this.environment = environment;
-        this.key = sdkKey;
+        this.properties = properties;
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
@@ -46,13 +43,16 @@ public class FeatureToggleApi {
     }
 
     public String getFeatureValue(String feature, String defaultValue) {
+        if (!properties.isEnabled()) {
+            return defaultValue;
+        }
         return internalClient.stringVariation(feature, createLDContext().build(), defaultValue);
     }
 
     public ContextBuilder createLDContext() {
-        return LDContext.builder(this.key)
+        return LDContext.builder(this.properties.getSdkKey())
             .set("timestamp", String.valueOf(System.currentTimeMillis()))
-            .set("environment", environment);
+            .set("environment", properties.getEnv());
     }
 
     private void close() {

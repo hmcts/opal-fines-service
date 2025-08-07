@@ -2,7 +2,7 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 
 buildscript {
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:11.10.4")
+    classpath("org.flywaydb:flyway-database-postgresql:11.10.5")
   }
 }
 
@@ -14,7 +14,7 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.52.0'
   id 'org.sonarqube' version '6.2.0.5505'
   id 'uk.gov.hmcts.java' version '0.12.67'
-  id 'org.flywaydb.flyway' version '11.10.4'
+  id 'org.flywaydb.flyway' version '11.10.5'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.34'
 }
 //Should we fail fast on test failures?
@@ -49,7 +49,15 @@ sourceSets {
     }
     resources.srcDir file('src/integrationTest/resources')
   }
+}
 
+// (Temp?) Fix to solve the issue:
+// Toolchain from `executable` property does not match toolchain from `javaLauncher` property.
+gradle.taskGraph.whenReady { taskGraph ->
+  def task = taskGraph.allTasks.find { it.name.endsWith(".main()") }
+  if (task instanceof JavaExec) {
+    task.executable = task.javaLauncher.get().executablePath.asFile.absolutePath
+  }
 }
 
 configurations {
@@ -320,13 +328,13 @@ dependencies {
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.10.4'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.10.5'
   implementation 'org.postgresql:postgresql'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.2'
   compileOnly 'org.projectlombok:lombok:1.18.38'
   annotationProcessor 'org.projectlombok:lombok:1.18.38'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.23.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.24.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -372,10 +380,10 @@ dependencies {
   testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
 
   //Added to override dependency version to resolve vulnerability
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.9'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.9'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.9'
-  implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.9'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.10'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.10'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.10'
+  implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.10'
   implementation 'org.apache.commons:commons-lang3:3.18.0'
 
 }

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vehicle Fixed Penalty Ticket Details",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "fp_registration_number": { "type": ["string", "null"]},
+    "fp_driving_license": { "type": ["string", "null"]},
+    "notice_to_owner_or_hirer_number": { "type": ["string", "null"]},
+    "date_notice_to_owner_was_issued": {
+      "type": ["string", "null"],
+      "format": "date"
+    }
+  },
+  "required": [
+    "fp_registration_number",
+    "fp_driving_license",
+    "notice_to_owner_or_hirer_number",
+    "date_notice_to_owner_was_issued"
+  ]
+}

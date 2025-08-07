@@ -31,4 +31,8 @@ public class LaunchDarklyProperties {
     private String[] file;
 
     private String env;
+
+    public boolean isEnabled() {
+        return enabled != null && enabled;
+    }
 }

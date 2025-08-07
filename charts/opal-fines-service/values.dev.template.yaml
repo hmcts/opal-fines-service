@@ -47,6 +47,7 @@ java:
     LAUNCH_DARKLY_ENABLED: false
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs, classpath:db/migration/devOnly
     APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}"
+    DEFAULT_APP_MODE: ${APP_MODE}
   postgresql:
     enabled: true
 
@@ -65,6 +66,7 @@ opal-frontend:
       REDIS_CONNECTION_STRING: redis://${SERVICE_NAME}-redis-master:6379
       OPAL_API_URL: "https://opal-fines-service-pr-${CHANGE_ID}.dev.platform.hmcts.net"
       OPAL_FINES_SERVICE_API_URL: "https://opal-fines-service-pr-${CHANGE_ID}.dev.platform.hmcts.net"
+      OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.staging.platform.hmcts.net
       FRONTEND_HOSTNAME: "${DEV_OPAL_FRONT_END_URL}"
       FEATURES_LAUNCH_DARKLY_ENABLED: false
       FEATURES_SSO_ENABLED: false

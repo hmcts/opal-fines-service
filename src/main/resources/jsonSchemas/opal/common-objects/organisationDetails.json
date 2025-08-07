@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Organisation Details",
+  "type": ["object", "null"],
+  "properties": {
+    "organisation_name": { "type": "string" },
+    "organisation_aliases": {
+      "type": ["array", "null"],
+      "items": { "$ref": "./organisationAlias.json" }
+    }
+  },
+  "required": ["organisation_name"]
+}

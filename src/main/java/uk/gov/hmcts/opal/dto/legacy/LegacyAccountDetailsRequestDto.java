@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,8 +15,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 @Jacksonized
 public class LegacyAccountDetailsRequestDto implements ToJsonString {
 
-    //defendant_accounts.defendant_account_id
-    @JsonProperty("defendant_account_id")
+    @XmlElement(name = "defendant_account_id")
     private Long defendantAccountId;
 
 }

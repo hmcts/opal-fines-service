@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.HmrcRequestEntity;
 import uk.gov.hmcts.opal.disco.HmrcRequestServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyHmrcRequestService;
 import uk.gov.hmcts.opal.disco.opal.HmrcRequestService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

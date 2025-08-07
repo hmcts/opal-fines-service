@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Party Details Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "party_id": {
+      "type": "string"
+    },
+    "organisation_flag": {
+      "type": "boolean"
+    },
+    "organisation_details": {
+      "$ref": "./organisationDetailsLegacy.json"
+    },
+    "individual_details": {
+      "$ref": "./individualDetailsLegacy.json"
+    }
+  },
+  "required": [
+    "party_id",
+    "organisation_flag"
+  ],
+  "allOf": [
+    {
+      "if": { "properties": { "organisation_flag": { "const": true } } },
+      "then": { "required": ["organisation_details"] }
+    },
+    {
+      "if": { "properties": { "organisation_flag": { "const": false } } },
+      "then": { "required": ["individual_details"] }
+    }
+  ],
+  "oneOf": [
+    { "required": ["individual_details"], "not": { "required": ["organisation_details"] } },
+    { "required": ["organisation_details"], "not": { "required": ["individual_details"] } }
+  ]
+}
