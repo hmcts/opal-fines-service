@@ -29,7 +29,7 @@
     }
   },
   "required": [
-    "account_version",
+    "version",
     "defendant_account_id",
     "account_number",
     "defendant_party_id",
