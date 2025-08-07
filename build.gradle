@@ -373,7 +373,7 @@ dependencies {
 
   //Added to override dependency version to resolve vulnerability
   implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.10'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.9'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.10'
   implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.10'
   implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.10'
   implementation 'org.apache.commons:commons-lang3:3.18.0'
