@@ -26,7 +26,6 @@ public class AccountSearchDto implements ToJsonString {
 
     /** Reference Number (optional, mutually exclusive with Defendant). */
     @JsonProperty("reference_number")
-    @NotNull
     private ReferenceNumberDto referenceNumberDto;
 
     /** Defendant (optional, mutually exclusive with Reference Number). */

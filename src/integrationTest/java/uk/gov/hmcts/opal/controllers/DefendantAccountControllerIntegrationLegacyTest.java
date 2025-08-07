@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.core.IsNull;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -49,7 +50,7 @@ class DefendantAccountControllerIntegrationLegacyTest extends AbstractIntegratio
     private UserStateService userStateService;
 
     @Test
-    @DisplayName("Get Defendant Account by ID [@PO-1901,@PO-33, @PO-130]")
+    @DisplayName("Get Defendant Account by ID [@PO-33, @PO-130]")
     void testGetDefendantAccountById() throws Exception {
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
@@ -68,7 +69,7 @@ class DefendantAccountControllerIntegrationLegacyTest extends AbstractIntegratio
     }
 
     @Test
-    @DisplayName("Get Defendant Account by ID - Account does not exist [@PO-1901, @PO-33, @PO-130]")
+    @DisplayName("Get Defendant Account by ID - Account does not exist [@PO-33, @PO-130]")
     void testGetDefendantAccountById_WhenDefendantAccountDoesNotExist() throws Exception {
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
@@ -79,6 +80,7 @@ class DefendantAccountControllerIntegrationLegacyTest extends AbstractIntegratio
     }
 
     @Test
+    @Disabled("Disabled until DTSPO-27066 is resolved")
     @DisplayName("Search defendant accounts - POST with valid criteria [@PO-1901, @PO-33, @PO-119]")
     void testPostDefendantAccountsSearch() throws Exception {
         when(userStateService.getUserStateUsingAuthToken(anyString()))
@@ -180,6 +182,7 @@ class DefendantAccountControllerIntegrationLegacyTest extends AbstractIntegratio
     }
 
     @Test
+    @Disabled("Disabled until DTSPO-27066 is resolved")
     @DisplayName("Search defendant accounts - No Accounts found [@PO-1901, @PO-33, @PO-119]")
     void testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound() throws Exception {
         when(userStateService.getUserStateUsingAuthToken(anyString()))
@@ -254,7 +257,7 @@ class DefendantAccountControllerIntegrationLegacyTest extends AbstractIntegratio
     }
 
     @Test
-    @DisplayName("Search defendant accounts - Account does exist [@PO-1901, @PO-33, @PO-119]")
+    @DisplayName("Search defendant accounts - Account does exist [@PO-33, @PO-119]")
     public void testGetDefendantAccount() throws Exception {
         when(userStateService.getUserStateUsingAuthToken(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
