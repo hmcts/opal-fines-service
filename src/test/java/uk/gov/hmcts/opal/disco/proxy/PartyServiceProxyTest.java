@@ -88,7 +88,7 @@ class PartyServiceProxyTest extends ProxyTestsBase {
     }
 
     void testSaveParty(PartyServiceInterface targetService, PartyServiceInterface otherService) {
-        // Given: a PartyDto is returned from the target service
+        // Given: a LegacyPartyDto is returned from the target service
         PartyDto partyDto = PartyDto.builder().build();
         when(targetService.saveParty(any(PartyDto.class))).thenReturn(partyDto);
 

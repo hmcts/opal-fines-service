@@ -12,30 +12,22 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
-import uk.gov.hmcts.opal.dto.AccountSummaryDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -43,7 +35,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DiscoDefendantAccountServiceTest {
 
@@ -132,39 +130,21 @@ public class DiscoDefendantAccountServiceTest {
     @Test
     void testSearchDefendantAccounts() {
         // Arrange
-        AccountSearchResultsDto expectedResponse =  AccountSearchResultsDto.builder()
-            .searchResults(List.of(AccountSummaryDto.builder().build()))
-            .totalCount(999L)
-            .cursor(1)
+        DefendantAccountSearchResultsDto expectedResponse =  DefendantAccountSearchResultsDto.builder()
+            .defendantAccounts(Collections.emptyList())
             .build();
-        Page<AccountSummaryDto> mockPage = new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 999L);
+        Page<DefendantAccountSummaryDto> mockPage = new PageImpl<>(Collections.emptyList(), Pageable.unpaged(), 999L);
         when(defendantAccountRepository.findBy(any(Specification.class), any()))
             .thenReturn(mockPage);
 
         // Act
-        AccountSearchResultsDto result = discoDefendantAccountService.searchDefendantAccounts(
+        DefendantAccountSearchResultsDto result = discoDefendantAccountService.searchDefendantAccounts(
             AccountSearchDto.builder().build());
 
         // Assert
-        assertEquals(expectedResponse.getTotalCount(), result.getTotalCount());
+        assertEquals(expectedResponse.getCount(), result.getCount());
 
-        assertNotNull(discoDefendantAccountService.toDto(new TestDefendantAccountSummary()));
-    }
-
-    @Test
-    void testSearchDefendantAccountsTemporary() {
-        // Arrange
-        AccountSearchDto mockSearch = AccountSearchDto.builder().court("test").build();
-
-        // Act
-        AccountSearchResultsDto result = discoDefendantAccountService.searchDefendantAccounts(mockSearch);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(100, result.getSearchResults().size());
-        assertEquals(100, result.getCount());
-        assertEquals(100, result.getPageSize());
-        assertEquals(100, result.getTotalCount());
+        assertNotNull(discoDefendantAccountService.toDto(new DefendantAccountEntity()));
     }
 
 
@@ -344,6 +324,7 @@ public class DiscoDefendantAccountServiceTest {
             .accountNotes("Activity")
             .pcr("123456")
             .paymentDetails("100.0 / PCM")
+            .businessUnitId((short) 200)
             .lumpSum(BigDecimal.valueOf(100.00))
             .commencing(LocalDate.of(2012, 1,1))
             .daysInDefault(10)
@@ -362,6 +343,7 @@ public class DiscoDefendantAccountServiceTest {
 
         BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder()
             .businessUnitName("CT")
+            .businessUnitId((short) 200)
             .build();
 
         CourtEntity courtEntity1 = CourtEntity.builder()
@@ -443,34 +425,6 @@ public class DiscoDefendantAccountServiceTest {
             .noteType("AA")
             .noteText("Activity")
             .build();
-    }
-
-    private class TestDefendantAccountSummary implements DefendantAccountSummary {
-
-        @Override
-        public Long getDefendantAccountId() {
-            return 0L;
-        }
-
-        @Override
-        public String getAccountNumber() {
-            return "";
-        }
-
-        @Override
-        public BigDecimal getAccountBalance() {
-            return BigDecimal.TEN;
-        }
-
-        @Override
-        public String getImposingCourtId() {
-            return "";
-        }
-
-        @Override
-        public Set<PartyLink> getParties() {
-            return Collections.emptySet();
-        }
     }
 
 }
