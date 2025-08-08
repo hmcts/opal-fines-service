@@ -23,7 +23,6 @@ public class AccountSearchDtoTest {
         assertEquals("case001", accountEnquiryDto.getPcr());
         assertEquals(fromLocalDate(today), accountEnquiryDto.getDateOfBirth());
         assertEquals("Dave", accountEnquiryDto.getForename());
-        assertEquals("HRH", accountEnquiryDto.getInitials());
         assertEquals("QUICK", accountEnquiryDto.getSearchType());
         assertEquals("VISA", accountEnquiryDto.getMajorCreditor());
         assertEquals("XX12345678", accountEnquiryDto.getNiNumber());
@@ -98,7 +97,6 @@ public class AccountSearchDtoTest {
             .pcr("case001")
             .dateOfBirth(fromLocalDate(today))
             .forename("Dave")
-            .initials("HRH")
             .searchType("QUICK")
             .majorCreditor("VISA")
             .niNumber("XX12345678")

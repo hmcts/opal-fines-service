@@ -29,7 +29,6 @@ public class PartyDto implements ToJsonString {
     private String organisationName;
     private String surname;
     private String forenames;
-    private String initials;
     private String title;
     private String addressLine1;
     private String addressLine2;

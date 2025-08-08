@@ -50,9 +50,6 @@ public class AliasEntity {
     @Column(name = "forenames", length = 50)
     private String forenames;
 
-    @Column(name = "initials", length = 10)
-    private String initials;
-
     @Column(name = "sequence_number", nullable = false)
     private Integer sequenceNumber;
 

@@ -16,7 +16,6 @@ import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.likeBusinessUni
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.equalsPartyIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeAnyAddressLinesPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeForenamesPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeInitialsPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeNiNumberPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likePostcodePredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeSurnamePredicate;
@@ -35,7 +34,6 @@ public class MiscellaneousAccountSpecs extends EntitySpecs<MiscellaneousAccountE
             numericLong(criteria.getPartyId()).map(MiscellaneousAccountSpecs::equalsPartyId),
             notBlank(criteria.getSurname()).map(MiscellaneousAccountSpecs::likeSurname),
             notBlank(criteria.getForenames()).map(MiscellaneousAccountSpecs::likeForename),
-            notBlank(criteria.getInitials()).map(MiscellaneousAccountSpecs::likeInitials),
             notBlank(criteria.getNiNumber()).map(MiscellaneousAccountSpecs::likeNiNumber),
             notBlank(criteria.getAddressLine()).map(MiscellaneousAccountSpecs::likeAnyAddressLine),
             notBlank(criteria.getPostcode()).map(MiscellaneousAccountSpecs::likePostcode)
@@ -84,11 +82,6 @@ public class MiscellaneousAccountSpecs extends EntitySpecs<MiscellaneousAccountE
     public static Specification<MiscellaneousAccountEntity> likeForename(String forename) {
         return (root, query, builder) ->
             likeForenamesPredicate(joinParty(root), builder, forename);
-    }
-
-    public static Specification<MiscellaneousAccountEntity> likeInitials(String initials) {
-        return (root, query, builder) ->
-            likeInitialsPredicate(joinParty(root), builder, initials);
     }
 
     public static Specification<MiscellaneousAccountEntity> likeNiNumber(String niNumber) {

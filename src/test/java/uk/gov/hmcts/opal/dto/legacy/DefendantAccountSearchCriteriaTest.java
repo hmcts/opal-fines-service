@@ -18,7 +18,6 @@ public class DefendantAccountSearchCriteriaTest {
 
         assertEquals("accountNo", criteria.getAccountNumber());
         assertEquals("John", criteria.getForenames());
-        assertEquals("D", criteria.getInitials());
         assertEquals("Smith", criteria.getSurname());
         assertEquals("1977-06-26", criteria.getBirthDate());
         assertEquals("Glasgow", criteria.getAddressLine1());
@@ -59,7 +58,6 @@ public class DefendantAccountSearchCriteriaTest {
             .lastRowNumber(44)
             .surname("Smith")
             .forenames("John")
-            .initials("D")
             .birthDate("1977-06-26")
             .nationalInsuranceNumber("XX123456C");
     }
@@ -69,7 +67,6 @@ public class DefendantAccountSearchCriteriaTest {
             {
               "surname" : "Smith",
               "forenames" : "John",
-              "initials" : "D",
               "firstRowNumber" : 4,
               "lastRowNumber" : 44,
               "account_number" : "accountNo",

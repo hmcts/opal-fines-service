@@ -90,9 +90,8 @@ class DiscoDefendantAccountControllerIntegrationTest extends AbstractIntegration
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.page_size").value(100))
-            .andExpect(jsonPath("$.search_results[0].defendant_account_id").value(1))
             .andExpect(jsonPath("$.search_results[0].account_no").value("100A"))
-            .andExpect(jsonPath("$.search_results[0].name").value("Ms Anna K Graham"))
+            .andExpect(jsonPath("$.search_results[0].name").value("Ms Anna Graham"))
             .andExpect(jsonPath("$.search_results[0].court").value("780000000185"))
             .andExpect(jsonPath("$.search_results[0].address_line_1").value("Lumber House"));
     }

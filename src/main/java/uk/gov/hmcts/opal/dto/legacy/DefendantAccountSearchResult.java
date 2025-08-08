@@ -41,8 +41,6 @@ public class DefendantAccountSearchResult  implements ToJsonString, FullNameBuil
 
     private String forenames;
 
-    private String initials;
-
     @JsonProperty("birth_date")
     private String birthDate;
 

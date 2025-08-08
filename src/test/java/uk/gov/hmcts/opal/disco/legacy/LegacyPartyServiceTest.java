@@ -271,7 +271,6 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
               <organisation>false</organisation>
               <surname>Smith</surname>
               <forenames>John James</forenames>
-              <initials>JJ</initials>
               <title>Mr</title>
               <addressLine1>22 Acacia Avenue</addressLine1>
               <addressLine2>Hammersmith</addressLine2>
@@ -294,7 +293,6 @@ class LegacyPartyServiceTest extends LegacyTestsBase {
               <organisation>false</organisation>
               <surname>Smith</surname>
               <forenames>John James</forenames>
-              <initials>JJ</initials>
               <title>Mr</title>
               <FOOBAR 1>22 Acacia Avenue</FOOBAR 1>
               <FOOBAR 2>Hammersmith</FOOBAR 2>
