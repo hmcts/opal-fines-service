@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Posted Details",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "posted_date": { "type": "string", "format": "date" },
+    "posted_by": { "type": ["string", "null"] },
+    "posted_by_name": { "type": ["string", "null"] }
+  },
+  "required": ["posted_date", "posted_by", "posted_by_name"]
+}
