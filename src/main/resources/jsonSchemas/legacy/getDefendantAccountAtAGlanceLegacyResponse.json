@@ -19,7 +19,7 @@
       "$ref": "./common-objects/addressDetailsLegacy.json"
     },
     "language_preferences": {
-      "$ref": "./common-objects/languagePreferenceLegacy.json"
+      "$ref": "./common-objects/languagePreferencesLegacy.json"
     },
     "payment_terms": {
       "$ref": "./common-objects/paymentTermsSummaryLegacy.json"
