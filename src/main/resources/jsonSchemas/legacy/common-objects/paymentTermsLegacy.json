@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Payment Terms Legacy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "days_in_default": {
+      "type": "integer"
+    },
+    "date_days_in_default_imposed": {
+      "type": "string",
+      "format": "date"
+    },
+    "reason_for_extension": {
+      "type": "string"
+    },
+    "payment_terms_type": {
+      "$ref": "./paymentTermsTypeLegacy.json"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "instalment_period": {
+      "$ref": "./instalmentPeriodLegacy.json"
+    },
+    "lump_sum_amount": {
+      "type": "number",
+      "multipleOf": 0.01
+    },
+    "instalment_amount": {
+      "type": "number",
+      "multipleOf": 0.01
+    }
+  },
+  "required": ["payment_terms_type", "instalment_period"]
+}
