@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Payment Terms",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "days_in_default": {
+      "type": ["integer", "null"]
+    },
+    "date_days_in_default_imposed": {
+      "type": ["string", "null"],
+      "format": "date"
+    },
+    "reason_for_extension": {
+      "type": ["string", "null"]
+    },
+    "payment_terms_type": {
+      "$ref": "./paymentTermsType.json"
+    },
+    "effective_date": {
+      "type": ["string", "null"],
+      "format": "date"
+    },
+    "instalment_period": {
+      "$ref": "./instalmentPeriod.json"
+    },
+    "lump_sum_amount": {
+      "type": ["number", "null"],
+      "multipleOf": 0.01
+    },
+    "instalment_amount": {
+      "type": ["number", "null"],
+      "multipleOf": 0.01
+    }
+  },
+  "required": ["days_in_default", "date_days_in_default_imposed", "reason_for_extension", "payment_terms_type", "effective_date", "instalment_period",
+               "lump_sum_amount", "instalment_amount"]
+}
