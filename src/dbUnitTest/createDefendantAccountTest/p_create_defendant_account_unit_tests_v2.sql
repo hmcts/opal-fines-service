@@ -59,7 +59,7 @@ BEGIN
     RAISE NOTICE '=== TEST 1: Basic account creation with minimum required fields ===';
     
     -- Prepare minimal test JSON
-    -- v2.0 - Added other required objects/fields: defendant_type (values: adultOrYouthOnly, parentOrGuardianToPay, company)
+    -- v2.0 - Added other required objects/fields: defendant_type (values: adultOrYouthOnly, pgToPay, company)
     --                                             defendant (company_flag, address_line_1), payment_card_request
     --                                             offences -> offence (date_of_sentence, offence_id, impositions (result_id, amount_imposed, amount_paid))
     --                                             payment_terms (payment_terms_type_code (values: B,P,I)) 
@@ -299,7 +299,7 @@ BEGIN
     -- Use the comprehensive JSON with account_type as Fixed Penalty
     v_account_json := '{
         "account_type": "Fixed Penalty",
-        "defendant_type": "parentOrGuardianToPay",
+        "defendant_type": "pgToPay",
         "originator_name": "LJS",
         "originator_id": "12345",
         "prosecutor_case_reference": "ABC123",
@@ -550,7 +550,7 @@ BEGIN
     ASSERT v_party_id_def IS NOT NULL, 'DEFENDANT_ACCOUNT_PARTIES record for the Defendant should exist';
     ASSERT v_is_debtor_def = FALSE, 'DEFENDANT_ACCOUNT_PARTIES - The debtor should NOT be the Defendant';
 
-    -- Verify the correct record was created for the parent/guardian because defendant_type = 'parentOrGuardianToPay'
+    -- Verify the correct record was created for the parent/guardian because defendant_type = 'pgToPay'
     SELECT party_id, debtor INTO v_party_id_pg, v_is_debtor_pg
       FROM defendant_account_parties 
      WHERE defendant_account_id = v_defendant_account_id AND association_type = 'Parent/Guardian';
@@ -953,7 +953,7 @@ BEGIN
 END $$;
 
 ----------------------------------------------------------------------------------------------------------------------
--- Test 7: Test handling when defendant_type = 'parentOrGuardianToPay' AND parent_guardian Json is missing
+-- Test 7: Test handling when defendant_type = 'pgToPay' AND parent_guardian Json is missing
 --         Expected exception: P2002 - Missing parent/guardian
 ----------------------------------------------------------------------------------------------------------------------
 DO LANGUAGE 'plpgsql' $$
@@ -968,12 +968,12 @@ DECLARE
     v_error_caught           boolean := FALSE;
     v_expected_errmsg        varchar    := 'Missing parent/guardian';
 BEGIN
-    RAISE NOTICE '=== TEST 7: Test handling when defendant_type = "parentOrGuardianToPay" AND parent_guardian Json is missing = P2002 ===';
+    RAISE NOTICE '=== TEST 7: Test handling when defendant_type = "pgToPay" AND parent_guardian Json is missing = P2002 ===';
     
     -- Prepare JSON with missing parent_guardian Json object
     v_account_json := '{
         "account_type": "Fine",
-        "defendant_type": "parentOrGuardianToPay",
+        "defendant_type": "pgToPay",
         "originator_name": "LJS",
         "originator_id": "12345",
         "prosecutor_case_reference": "ABC123",

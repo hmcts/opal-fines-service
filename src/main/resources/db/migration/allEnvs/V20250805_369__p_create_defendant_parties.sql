@@ -12,10 +12,10 @@ $BODY$
 * MODULE      : p_create_defendant_parties.sql
 *
 * DESCRIPTION : Process the defendant Json and insert PARTIES, DEFENDANT_ACCOUNT_PARTIES, DEBTOR_DETAIL and ALIASES records for the defendant and parent/guardian.
-*               Throws 'P2002 - Missing parent/guardian' exception if defendant_type = 'parentOrGuardianToPay' and the parent_guardian Json object is not present.
+*               Throws 'P2002 - Missing parent/guardian' exception if defendant_type = 'pgToPay' and the parent_guardian Json object is not present.
 *
 * PARAMETERS  : pi_defendant_account_id - The Opal defendant account id that has been generated and will be returned to the backend
-*               pi_defendant_type       - Type of the defendant account - adultOrYouthOnly, parentOrGuardianToPay, company
+*               pi_defendant_type       - Type of the defendant account - Adult Or Youth, Parent/Guardian to pay or company
 *               pi_defendant_json       - The dedendant Json object from the DRAFT_ACCOUNTS.ACCOUNT Json
 *
 * VERSION HISTORY:
@@ -25,13 +25,14 @@ $BODY$
 * 22/07/2025    TMc         1.0         PO-1043 - Process the defendant Json and insert PARTIES, DEFENDANT_ACCOUNT_PARTIES, DEBTOR_DETAIL and ALIASES
 *                                                 records for the defendant and parent/guardian.
 *                           1.1         Corrected typo in INSERT INTO parties statement
+*                           1.2         Amended c_defendant_type_pgToPay to use pgToPay instead of parentOrGuardianToPay
 *
 **/
 DECLARE
     c_account_type_defendant        CONSTANT    parties.account_type%TYPE := 'Defendant';
     c_association_type_defendant    CONSTANT    defendant_account_parties.association_type%TYPE := 'Defendant';
     c_association_type_pg           CONSTANT    defendant_account_parties.association_type%TYPE := 'Parent/Guardian';
-    c_defendant_type_pgToPay        CONSTANT    VARCHAR := 'parentOrGuardianToPay';
+    c_defendant_type_pgToPay        CONSTANT    VARCHAR := 'pgToPay';
 
     v_pg_exception_detail           TEXT;
     v_party_id_defendant            parties.party_id%TYPE := NULL;
@@ -128,7 +129,7 @@ BEGIN
     RETURNING party_id
     INTO      v_party_id_defendant;
 
-    RAISE INFO 'p_create_defendant_parties: Created parties record for the defendant. pi_defendant_account_id = %, party_id = %', pi_defendant_account_id, v_party_id_defendant;
+    RAISE INFO 'p_create_defendant_parties: Created parties record for the defendant. defendant_account_id = %, party_id = %', pi_defendant_account_id, v_party_id_defendant;
 
     --Insert the related DEFENDANT_ACCOUNT_PARTIES record for the defendant
     INSERT INTO defendant_account_parties (
@@ -146,7 +147,7 @@ BEGIN
         , (pi_defendant_type != c_defendant_type_pgToPay)
     );
 
-    RAISE INFO 'p_create_defendant_parties: Created defendant_account_parties record for the defendant. pi_defendant_account_id = %, party_id = %', pi_defendant_account_id, v_party_id_defendant;
+    RAISE INFO 'p_create_defendant_parties: Created defendant_account_parties record for the defendant. defendant_account_id = %, party_id = %', pi_defendant_account_id, v_party_id_defendant;
 
     --Call p_create_debtor_details to insert the related DEBTOR_DETAIL record, including ALIASES, for the defendant, if the Json object exists
     v_debtor_detail_def_json := json_extract_path(pi_defendant_json, 'debtor_detail');
@@ -170,7 +171,7 @@ BEGIN
             --Raise custom exception
             RAISE EXCEPTION 'Missing parent/guardian' 
                 USING ERRCODE = 'P2002'
-                    , DETAIL = 'p_create_defendant_parties: pi_defendant_account_id = ' || pi_defendant_account_id || ', pi_defendant_type = ' || pi_defendant_type;
+                    , DETAIL = 'p_create_defendant_parties: defendant_account_id = ' || pi_defendant_account_id || ', defendant_type = ' || pi_defendant_type;
 
         ELSE
             --Insert the parent/guardian record into PARTIES table
@@ -255,7 +256,7 @@ BEGIN
             RETURNING party_id
             INTO      v_party_id_pg;
 
-            RAISE INFO 'p_create_defendant_parties: Created parties record for the parent_guardian. pi_defendant_account_id = %, party_id = %', pi_defendant_account_id, v_party_id_pg;
+            RAISE INFO 'p_create_defendant_parties: Created parties record for the parent_guardian. defendant_account_id = %, party_id = %', pi_defendant_account_id, v_party_id_pg;
 
             --Insert the related DEFENDANT_ACCOUNT_PARTIES record for the parent/guardian
             INSERT INTO defendant_account_parties (
@@ -273,7 +274,7 @@ BEGIN
                 , (pi_defendant_type = c_defendant_type_pgToPay)
             );
 
-            RAISE INFO 'p_create_defendant_parties: Created defendant_account_parties record for the parent_guardian. pi_defendant_account_id = %, party_id = %', pi_defendant_account_id, v_party_id_pg;
+            RAISE INFO 'p_create_defendant_parties: Created defendant_account_parties record for the parent_guardian. defendant_account_id = %, party_id = %', pi_defendant_account_id, v_party_id_pg;
 
             --Call p_create_debtor_details to insert the related DEBTOR_DETAIL record, including ALIASES, for the parent/guardian, if the Json object exists
             v_debtor_detail_pg_json := json_extract_path(v_def_pg_json, 'debtor_detail');
