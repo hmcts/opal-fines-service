@@ -8,6 +8,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
@@ -73,4 +75,37 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
         // Then: the target service is called, but the other service is not
         testMode(legacyService, opalService);
     }
+
+    @Test
+    void shouldDelegateSearchToLegacyServiceWhenInLegacyMode() {
+
+        setMode(LEGACY);
+        AccountSearchDto dto = AccountSearchDto.builder().build();
+        DefendantAccountSearchResultsDto expected = new DefendantAccountSearchResultsDto();
+
+        when(legacyService.searchDefendantAccounts(dto)).thenReturn(expected);
+
+        DefendantAccountSearchResultsDto result = serviceProxy.searchDefendantAccounts(dto);
+
+        verify(legacyService).searchDefendantAccounts(dto);
+        verifyNoInteractions(opalService);
+        Assertions.assertEquals(expected, result);
+    }
+
+    @Test
+    void shouldDelegateSearchToOpalServiceWhenInOpalMode() {
+
+        setMode(OPAL);
+        AccountSearchDto dto = AccountSearchDto.builder().build();
+        DefendantAccountSearchResultsDto expected = new DefendantAccountSearchResultsDto();
+
+        when(opalService.searchDefendantAccounts(dto)).thenReturn(expected);
+
+        DefendantAccountSearchResultsDto result = serviceProxy.searchDefendantAccounts(dto);
+
+        verify(opalService).searchDefendantAccounts(dto);
+        verifyNoInteractions(legacyService);
+        Assertions.assertEquals(expected, result);
+    }
+
 }

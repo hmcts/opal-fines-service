@@ -109,20 +109,6 @@ public class DefendantAccountController {
         return buildResponse(response);
     }
 
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches defendant accounts based upon criteria in request body")
-    public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
-        @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
-        @RequestBody AccountSearchDto accountSearchDto,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-        log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
-
-        DefendantAccountSearchResultsDto response =
-            discoDefendantAccountServiceInterface.searchDefendantAccounts(accountSearchDto);
-
-        return buildResponse(response);
-    }
-
     @PostMapping(value = "/addNote", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Adds a single note associated with the defendant account")
     public ResponseEntity<NoteDto> addNote(
@@ -178,5 +164,19 @@ public class DefendantAccountController {
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
 
         return buildResponse(defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue));
+    }
+
+    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Searches defendant accounts based upon criteria in request body")
+    public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
+        @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
+        @RequestBody AccountSearchDto accountSearchDto,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
+
+        DefendantAccountSearchResultsDto response =
+            defendantAccountService.searchDefendantAccounts(accountSearchDto, authHeaderValue);
+
+        return buildResponse(response);
     }
 }

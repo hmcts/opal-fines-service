@@ -8,6 +8,8 @@ import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
@@ -28,6 +30,20 @@ public class DefendantAccountService {
 
         if (userState.anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)) {
             return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
+        } else {
+            throw new PermissionNotAllowedException(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+    }
+
+    public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto,
+                                                                    String authHeaderValue) {
+        log.debug(":searchDefendantAccounts:");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)) {
+
+            return defendantAccountServiceProxy.searchDefendantAccounts(accountSearchDto);
         } else {
             throw new PermissionNotAllowedException(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
         }
