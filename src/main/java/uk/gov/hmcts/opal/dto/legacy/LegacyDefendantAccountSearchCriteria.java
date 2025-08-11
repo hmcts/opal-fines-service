@@ -14,7 +14,6 @@ import uk.gov.hmcts.opal.dto.search.DefendantDto;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Data
 @Builder

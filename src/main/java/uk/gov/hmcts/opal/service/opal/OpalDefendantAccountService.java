@@ -17,10 +17,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         log.debug(":getHeaderSummary: ");
         return null;
     }
+
     @Override
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts: Opal implementation not yet provided.");
         return null; // TODO: implement this if/when Opal mode is supported
     }
-
 }

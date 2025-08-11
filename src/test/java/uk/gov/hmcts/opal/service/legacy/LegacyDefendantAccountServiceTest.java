@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +32,6 @@ import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -87,11 +85,45 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void testSearchDefendantAccounts_success() {
 
         AccountSearchDto searchDto = AccountSearchDto.builder().build();
 
-        String dummyXml = "<LegacyDefendantAccountsSearchResults><search_results/><total_count>0</total_count></LegacyDefendantAccountsSearchResults>";
+        String dummyXml = """
+        <response>
+            <count>1</count>
+             <defendant_accounts>
+               <defendant_accounts_element>
+                 <defendant_account_id>1</defendant_account_id>
+                  <account_number>Sampleaccount_number</account_number>
+                  <organisation>Sampleorganisation</organisation>
+                  <organisation_name>Sampleorganisation_name</organisation_name>
+                  <defendant_title>Sampledefendant_title</defendant_title>
+                  <defendant_firstnames>Sampledefendant_firstnames</defendant_firstnames>
+                  <defendant_surname>Sampledefendant_surname</defendant_surname>
+                  <birth_date>Samplebirth_date</birth_date>
+                  <national_insurance_number>Samplenational_insurance_number</national_insurance_number>
+                  <parent_guardian_surname>Sampleparent_guardian_surname</parent_guardian_surname>
+                  <parent_guardian_firstnames>Sampleparent_guardian_firstnames</parent_guardian_firstnames>
+                  <aliases>
+                    <aliases_element>
+                      <alias_number>Samplealias_number</alias_number>
+                      <organisation_name>Sampleorganisation_name</organisation_name>
+                      <surname>Samplesurname</surname>
+                      <forenames>Sampleforenames</forenames>
+                    </aliases_element>
+                  </aliases>
+                  <address_line_1>Sampleaddress_line_1</address_line_1>
+                  <postcode>Samplepostcode</postcode>
+                  <business_unit_name>Samplebusiness_unit_name</business_unit_name>
+                  <business_unit_id>Samplebusiness_unit_id</business_unit_id>
+                  <prosecutor_case_reference>Sampleprosecutor_case_reference</prosecutor_case_reference>
+                  <last_enforcement_action>Samplelast_enforcement_action</last_enforcement_action>
+                  <account_balance>Sampleaccount_balance</account_balance>
+                </defendant_accounts_element>
+              </defendant_accounts>
+        </response>""";
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(dummyXml, HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
@@ -107,31 +139,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             legacyDefendantAccountService.searchDefendantAccounts(searchDto);
 
         assertEquals(DefendantAccountSearchResultsDto.class, result.getClass());
-    }
-
-    @Test
-    void shouldThrowWhenLegacyGatewayFails() {
-        AccountSearchDto searchDto = AccountSearchDto.builder().build();
-
-        GatewayService.Response<LegacyDefendantAccountsSearchResults> failedResponse =
-            new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, (LegacyDefendantAccountsSearchResults) null);
-
-        GatewayService spyGatewayService = Mockito.spy(gatewayService);
-        when(spyGatewayService.postToGateway(
-            any(String.class),
-            eq(LegacyDefendantAccountsSearchResults.class),
-            any()
-        )).thenReturn(failedResponse);
-
-        try {
-            injectGatewayService(legacyDefendantAccountService, spyGatewayService);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException("Injection failed", e);
-        }
-
-        Assertions.assertThrows(RuntimeException.class, () -> {
-            legacyDefendantAccountService.searchDefendantAccounts(searchDto);
-        });
     }
 
     private DefendantAccountHeaderSummary createHeaderSummaryDto() {

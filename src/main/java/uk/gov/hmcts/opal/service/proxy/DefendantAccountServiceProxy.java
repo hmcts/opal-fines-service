@@ -32,5 +32,5 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     @Override
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         return getCurrentModeService().searchDefendantAccounts(accountSearchDto);
-        }
     }
+}

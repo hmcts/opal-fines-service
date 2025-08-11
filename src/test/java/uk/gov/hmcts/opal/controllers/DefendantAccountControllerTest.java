@@ -20,12 +20,15 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,6 +45,9 @@ class DefendantAccountControllerTest {
     private DiscoDefendantAccountServiceInterface discoDefendantAccountServiceInterface;
 
     @Mock
+    private DefendantAccountService defendantAccountService;
+
+    @Mock
     private NoteService noteService;
 
     @Mock
@@ -55,7 +61,8 @@ class DefendantAccountControllerTest {
         // Arrange
         DefendantAccountEntity mockResponse = new DefendantAccountEntity();
 
-        when(discoDefendantAccountServiceInterface.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(mockResponse);
+        when(discoDefendantAccountServiceInterface.getDefendantAccount(any(AccountEnquiryDto.class)))
+            .thenReturn(mockResponse);
 
         // Act
         ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
@@ -71,7 +78,8 @@ class DefendantAccountControllerTest {
     @Test
     void testGetDefendantAccount_NoContent() {
         // Arrange
-        when(discoDefendantAccountServiceInterface.getDefendantAccount(any(AccountEnquiryDto.class))).thenReturn(null);
+        when(discoDefendantAccountServiceInterface.getDefendantAccount(any(AccountEnquiryDto.class)))
+            .thenReturn(null);
 
         // Act
         ResponseEntity<DefendantAccountEntity> responseEntity = defendantAccountController.getDefendantAccount(
@@ -119,7 +127,8 @@ class DefendantAccountControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
-        verify(discoDefendantAccountServiceInterface, times(1)).getAccountDetailsByDefendantAccountId(any(
+        verify(discoDefendantAccountServiceInterface, times(1))
+            .getAccountDetailsByDefendantAccountId(any(
             Long.class));
     }
 
@@ -129,19 +138,20 @@ class DefendantAccountControllerTest {
         AccountSearchDto requestEntity = AccountSearchDto.builder().build();
         DefendantAccountSearchResultsDto mockResponse = DefendantAccountSearchResultsDto.builder().build();
 
-        when(discoDefendantAccountServiceInterface.searchDefendantAccounts(any(AccountSearchDto.class)))
+        when(defendantAccountService.searchDefendantAccounts(any(AccountSearchDto.class), eq(BEARER_TOKEN)))
             .thenReturn(mockResponse);
 
         // Act
         ResponseEntity<DefendantAccountSearchResultsDto> responseEntity =
-            defendantAccountController.postDefendantAccountSearch(
-            requestEntity, BEARER_TOKEN);
+            defendantAccountController.postDefendantAccountSearch(requestEntity, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertNotNull(responseEntity.getBody());
         assertEquals(mockResponse, responseEntity.getBody());
-        verify(discoDefendantAccountServiceInterface, times(1)).searchDefendantAccounts(any(
-            AccountSearchDto.class));
+
+        verify(defendantAccountService, times(1))
+            .searchDefendantAccounts(any(AccountSearchDto.class), eq(BEARER_TOKEN));
     }
 
     @Test

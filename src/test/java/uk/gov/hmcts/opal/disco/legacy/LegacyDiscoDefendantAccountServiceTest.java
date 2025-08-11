@@ -36,6 +36,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsRequestDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPartiesDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsDto;
+import uk.gov.hmcts.opal.dto.search.DefendantDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 
 import java.io.IOException;
@@ -638,15 +639,9 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
 
     private LegacyDefendantAccountSearchCriteria constructDefendantAccountSearchCriteria() {
         return LegacyDefendantAccountSearchCriteria.builder()
-            .accountNumber("accountNo")
-            .addressLine1("Glasgow")
-            .firstRowNumber(4)
-            .lastRowNumber(44)
-            .surname("Smith")
-            .forenames("John")
-            .initials("D")
-            .birthDate("1977-06-26")
-            .nationalInsuranceNumber("XX123456C")
+            .businessUnitIds(List.of(10))
+            .activeAccountsOnly(true)
+            .defendant(new DefendantDto())
             .build();
     }
 

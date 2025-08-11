@@ -58,7 +58,7 @@ public class LegacyDiscoDefendantAccountService extends LegacyService implements
         return Collections.emptyList();
     }
 
-   @Override
+    @Override
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         LegacyDefendantAccountSearchCriteria criteria =
             LegacyDefendantAccountSearchCriteria.fromAccountSearchDto(accountSearchDto);

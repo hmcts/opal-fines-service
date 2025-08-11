@@ -2,76 +2,70 @@ package uk.gov.hmcts.opal.dto.legacy;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.DefendantDto;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j(topic = "opal.LegacyDefendantAccountSearchCriteriaTest")
 public class LegacyDefendantAccountSearchCriteriaTest {
 
     @Test
     void testBuilder() {
-        LegacyDefendantAccountSearchCriteria criteria = constructDefendantAccountSearchCriteria();
+        LegacyDefendantAccountSearchCriteria criteria = constructCriteria();
 
-        assertEquals("accountNo", criteria.getAccountNumber());
-        assertEquals("John", criteria.getForenames());
-        assertEquals("D", criteria.getInitials());
-        assertEquals("Smith", criteria.getSurname());
-        assertEquals("1977-06-26", criteria.getBirthDate());
-        assertEquals("Glasgow", criteria.getAddressLine1());
-        assertEquals("XX123456C", criteria.getNationalInsuranceNumber());
-        assertEquals(1L, criteria.getBusinessUnitId());
-        assertNull(criteria.getOrganisationName());
-        assertNull(criteria.getProsecutorCaseReference());
+        assertNotNull(criteria.getBusinessUnitIds());
+        assertEquals(List.of(10), criteria.getBusinessUnitIds());
+
+        assertTrue(criteria.getActiveAccountsOnly());
+
+        assertNotNull(criteria.getDefendant());
+        assertNull(criteria.getReferenceNumberDto()); // mutually exclusive test
     }
 
     @Test
-    void testNullBusinessUnit() {
-        LegacyDefendantAccountSearchCriteria criteria = constructDefendantAccountSearchCriteria();
-        criteria.setBusinessUnitId(null);
-        assertNull(criteria.getBusinessUnitId());
-        assertEquals(getJsonRepresentation(), criteria.toPrettyJson());
+    void testNullReferenceNumberAllowsDefendant() {
+        LegacyDefendantAccountSearchCriteria criteria = constructCriteria();
+        criteria.setReferenceNumberDto(null);
+        assertNotNull(criteria.getDefendant());
     }
 
     @Test
-    void testJsonString() throws Exception {
-        LegacyDefendantAccountSearchCriteria model = constructDefendantAccountSearchCriteria();
-        assertNotNull(model.toJsonString());
-
-        LegacyDefendantAccountSearchCriteria parsed = ToJsonString.getObjectMapper()
-            .readValue(getJsonRepresentation(), LegacyDefendantAccountSearchCriteria.class);
-        assertNotNull(parsed);
-    }
-
-    private LegacyDefendantAccountSearchCriteria constructDefendantAccountSearchCriteria() {
-        return LegacyDefendantAccountSearchCriteria.builder()
-            .accountNumber("accountNo")
-            .addressLine1("Glasgow")
-            .businessUnitId(1L)
-            .firstRowNumber(4)
-            .lastRowNumber(44)
-            .surname("Smith")
-            .forenames("John")
-            .initials("D")
-            .birthDate("1977-06-26")
-            .nationalInsuranceNumber("XX123456C")
+    void testFromAccountSearchDto() {
+        AccountSearchDto dto = AccountSearchDto.builder()
+            .businessUnitIds(List.of(10))
+            .activeAccountsOnly(true)
+            .defendant(new DefendantDto())
             .build();
+
+        LegacyDefendantAccountSearchCriteria criteria = LegacyDefendantAccountSearchCriteria.fromAccountSearchDto(dto);
+
+        assertEquals(dto.getBusinessUnitIds(), criteria.getBusinessUnitIds());
+        assertEquals(dto.getActiveAccountsOnly(), criteria.getActiveAccountsOnly());
+        assertEquals(dto.getDefendant(), criteria.getDefendant());
     }
 
-    private String getJsonRepresentation() {
-        return """
-            {
-              "surname" : "Smith",
-              "forenames" : "John",
-              "initials" : "D",
-              "firstRowNumber" : 4,
-              "lastRowNumber" : 44,
-              "account_number" : "accountNo",
-              "birth_date" : "1977-06-26",
-              "national_insurance_number" : "XX123456C",
-              "address_line_1" : "Glasgow"
-            }""";
+    @Test
+    void testJsonStringSerialization() throws Exception {
+        LegacyDefendantAccountSearchCriteria criteria = constructCriteria();
+
+        String json = criteria.toJsonString();
+        assertNotNull(json);
+        assertTrue(json.contains("\"business_unit_ids\""));
+        assertTrue(json.contains("\"active_accounts_only\""));
+        assertTrue(json.contains("\"defendant\""));
+    }
+
+    private LegacyDefendantAccountSearchCriteria constructCriteria() {
+        return LegacyDefendantAccountSearchCriteria.builder()
+            .businessUnitIds(List.of(10))
+            .activeAccountsOnly(true)
+            .defendant(new DefendantDto())
+            .build();
     }
 }
