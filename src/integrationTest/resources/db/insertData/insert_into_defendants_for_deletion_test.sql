@@ -74,14 +74,14 @@ VALUES (
 -- Insert party
 INSERT INTO parties (
   party_id, organisation, organisation_name,
-  surname, forenames, initials, title,
+  surname, forenames, title,
   address_line_1, address_line_2, address_line_3,
   address_line_4, address_line_5, postcode,
   account_type, birth_date, age, national_insurance_number, last_changed_date
 )
 VALUES (
   9101, 'N', NULL,
-  'Graham', 'Anna', 'K', 'Ms',
+  'Graham', 'Anna', 'Ms',
   'Lumber House', '54 Gordon Road', 'Maidstone, Kent',
   NULL, NULL, 'MA4 1AL',
   'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL

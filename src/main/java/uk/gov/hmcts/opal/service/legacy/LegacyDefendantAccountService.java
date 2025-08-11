@@ -19,7 +19,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "opal.LegacyDraftAccountPublish")
+@Slf4j(topic = "opal.LegacyDefendantAccountService")
 public class LegacyDefendantAccountService implements DefendantAccountServiceInterface {
 
     public static final String GET_HEADER_SUMMARY = "LIBRA.get_header_summary";
@@ -29,13 +29,14 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private final LegacyGatewayProperties legacyGatewayProperties;
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
-        log.debug(":getHeaderSummary: ");
+        log.debug(":getHeaderSummary: id: {}", defendantAccountId);
 
         try {
 
             Response<LegacyGetDefendantAccountHeaderSummaryResponse> response = gatewayService.postToGateway(
                 GET_HEADER_SUMMARY, LegacyGetDefendantAccountHeaderSummaryResponse.class,
-                createGetDefendantAccountRequest(defendantAccountId.toString()));
+                createGetDefendantAccountRequest(defendantAccountId.toString())
+            );
 
             if (response.isError()) {
                 log.error(":getHeaderSummary: Legacy Gateway response: HTTP Response Code: {}", response.code);
@@ -85,6 +86,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private DefendantAccountHeaderSummary toHeaderSumaryDto(LegacyGetDefendantAccountHeaderSummaryResponse response) {
         return DefendantAccountHeaderSummary.builder()
             .defendantAccountId(response.getDefendantAccountId())
+            .version(response.getVersion())
             .accountNumber(response.getAccountNumber())
             .hasParentGuardian(!Optional.ofNullable(response.getParentGuardianPartyId())
                 .map(String::isBlank).orElse(true))  // TODO - is this the correct way?

@@ -15,11 +15,13 @@ import uk.gov.hmcts.opal.disco.opal.NoteService;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
+import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.disco.opal.NoteService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
@@ -42,6 +44,9 @@ class DefendantAccountControllerTest {
         { "error": "Not Found", "message": "No resource found at provided URI"}""";
 
     @Mock
+    private DefendantAccountService defendantAccountService;
+
+    @Mock
     private DiscoDefendantAccountServiceInterface discoDefendantAccountServiceInterface;
 
     @Mock
@@ -56,6 +61,7 @@ class DefendantAccountControllerTest {
     @InjectMocks
     private DefendantAccountController defendantAccountController;
 
+    // TODO - This is Disco+ Code. To Be Removed?
     @Test
     void testGetDefendantAccount_Success() {
         // Arrange
@@ -75,6 +81,7 @@ class DefendantAccountControllerTest {
             AccountEnquiryDto.class));
     }
 
+    // TODO - This is Disco+ Code. To Be Removed?
     @Test
     void testGetDefendantAccount_NoContent() {
         // Arrange
@@ -91,7 +98,7 @@ class DefendantAccountControllerTest {
             AccountEnquiryDto.class));
     }
 
-
+    // TODO - This is Disco+ Code. To Be Removed?
     @Test
     void testPutDefendantAccount_Success() {
         // Arrange
@@ -112,6 +119,7 @@ class DefendantAccountControllerTest {
             DefendantAccountEntity.class));
     }
 
+    // TODO - This is Disco+ Code. To Be Removed?
     @Test
     void testGetDefendantAccountDetails_Success() {
         // Arrange
@@ -132,6 +140,7 @@ class DefendantAccountControllerTest {
             Long.class));
     }
 
+    // TODO - This is Disco+ Code. To Be Removed?
     @Test
     void testPostDefendantAccountSearch_Success() {
         // Arrange
@@ -154,6 +163,7 @@ class DefendantAccountControllerTest {
             .searchDefendantAccounts(any(AccountSearchDto.class), eq(BEARER_TOKEN));
     }
 
+    // TODO - This is Disco+ Code. To Be Removed?
     @Test
     void testAddNote_Success() {
         // Arrange
@@ -176,6 +186,7 @@ class DefendantAccountControllerTest {
 
     }
 
+    // TODO - This is Disco+ Code. To Be Removed?
     @Test
     void testAddNote_NoContent() {
         // Arrange
@@ -196,6 +207,7 @@ class DefendantAccountControllerTest {
 
     }
 
+    // TODO - This is Disco+ Code. To Be Removed?
     @Test
     void testNotes_Success() {
         // Arrange
@@ -217,6 +229,7 @@ class DefendantAccountControllerTest {
 
     }
 
+    // TODO - This is Disco+ Code. To Be Removed?
     @Test
     void testNotes_NoContent() {
         // Arrange
@@ -235,6 +248,23 @@ class DefendantAccountControllerTest {
         verify(noteService, times(1)).searchNotes(any(
             NoteSearchDto.class));
 
+    }
+
+    @Test
+    void testGetHeaderSummary_Success() {
+        // Arrange
+        DefendantAccountHeaderSummary mockResponse = new DefendantAccountHeaderSummary();
+
+        when(defendantAccountService.getHeaderSummary(any(), any())).thenReturn(mockResponse);
+
+        // Act
+        ResponseEntity<DefendantAccountHeaderSummary> responseEntity = defendantAccountController.getHeaderSummary(
+             1L, BEARER_TOKEN);
+
+        // Assert
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(mockResponse, responseEntity.getBody());
+        verify(defendantAccountService, times(1)).getHeaderSummary(any(), any());
     }
 
 }

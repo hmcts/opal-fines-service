@@ -53,6 +53,7 @@ public class DefendantAccountController {
     // TODO - remove from controller
     private final DiscoDefendantAccountServiceInterface discoDefendantAccountServiceInterface;
 
+    // TODO - remove from controller (probably)
     private final NoteService discoNoteService;
 
     // TODO - remove from controller

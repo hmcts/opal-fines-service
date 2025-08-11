@@ -22,7 +22,6 @@ public class PartyEntityTest {
         party.setOrganisationName("Big Acme Corporation");
         party.setSurname("Smith");
         party.setForenames("John James");
-        party.setInitials("JJ");
         party.setTitle("Mr");
         party.setAddressLine1("22 Acacia Avenue");
         party.setAddressLine2("Hammersmith");
@@ -42,7 +41,6 @@ public class PartyEntityTest {
         assertEquals("Big Acme Corporation", party.getOrganisationName());
         assertEquals("Smith", party.getSurname());
         assertEquals("John James", party.getForenames());
-        assertEquals("JJ", party.getInitials());
         assertEquals("Mr", party.getTitle());
         assertEquals("22 Acacia Avenue", party.getAddressLine1());
         assertEquals("Hammersmith", party.getAddressLine2());

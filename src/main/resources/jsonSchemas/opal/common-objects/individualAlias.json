@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Individual Alias",
+  "type": "object",
+  "properties": {
+    "alias_id": { "type": "string" },
+    "sequence_number": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "surname": { "type": "string" },
+    "forenames": { "type": ["string", "null"]}
+  },
+  "required": ["alias_id", "sequence_number", "surname", "forenames"]
+}

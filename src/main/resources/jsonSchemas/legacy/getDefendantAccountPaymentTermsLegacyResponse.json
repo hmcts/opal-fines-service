@@ -7,16 +7,11 @@
     "version": {
       "type": "integer"
     },
-    "payment_terms_summary" : {
-      "$ref": "./common-objects/paymentTermsSummaryLegacy.json"
+    "payment_terms" : {
+      "$ref": "./common-objects/paymentTermsLegacy.json"
     },
-    "days_in_default": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "date_days_in_default_imposed": {
-      "type": "string",
-      "format": "date"
+    "posted_details": {
+      "$ref": "./common-objects/postedDetailsLegacy.json"
     },
     "payment_card_last_requested": {
       "type": "string",
@@ -26,17 +21,6 @@
       "type": "string",
       "format": "date"
     },
-    "last_amended_by": {
-      "type": "string",
-      "minLength": 1
-    },
-    "last_amended_by_id": {
-      "type": "integer"
-    },
-    "amendment_reason": {
-      "type": "string",
-      "minLength": 1
-    },
     "extension": {
       "type": "boolean"
     },
@@ -45,6 +29,6 @@
       "minLength": 1
     }
   },
-  "required": ["version", "payment_terms_summary"]
+  "required": ["version", "payment_terms", "posted_details"]
 }
 

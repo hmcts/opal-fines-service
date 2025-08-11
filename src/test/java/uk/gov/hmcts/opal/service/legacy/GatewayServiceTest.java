@@ -13,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.disco.legacy.LegacyGatewayService;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 

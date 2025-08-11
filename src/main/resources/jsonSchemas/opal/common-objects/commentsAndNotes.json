@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Comment and Notes",
+  "type": ["object", "null"],
+  "additionalProperties": false,
+  "properties": {
+    "account_comment": { "type": ["string", "null"] },
+    "free_text_note_1": { "type": ["string", "null"] },
+    "free_text_note_2": { "type": ["string", "null"] },
+    "free_text_note_3": { "type": ["string", "null"] }
+  },
+  "required": ["account_comment", "free_text_note_1", "free_text_note_2", "free_text_note_3"]
+}

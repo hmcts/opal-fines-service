@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
 @Service
-@Slf4j(topic = "opal.DiscoDefendantAccountService")
+@Slf4j(topic = "opal.DefendantAccountService")
 @RequiredArgsConstructor
 public class DefendantAccountService {
 

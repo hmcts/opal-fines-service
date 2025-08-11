@@ -20,7 +20,6 @@ public class LegacyPartyDtoTest {
         assertEquals("Big Acme Corporation", partyDto.getOrganisationName());
         assertEquals("Smith", partyDto.getSurname());
         assertEquals("John James", partyDto.getForenames());
-        assertEquals("JJ", partyDto.getInitials());
         assertEquals("Mr", partyDto.getTitle());
         assertEquals("22 Acacia Avenue", partyDto.getAddressLine1());
         assertEquals("Hammersmith", partyDto.getAddressLine2());
@@ -74,7 +73,6 @@ public class LegacyPartyDtoTest {
             .organisationName("Big Acme Corporation")
             .surname("Smith")
             .forenames("John James")
-            .initials("JJ")
             .title("Mr")
             .addressLine1("22 Acacia Avenue")
             .addressLine2("Hammersmith")

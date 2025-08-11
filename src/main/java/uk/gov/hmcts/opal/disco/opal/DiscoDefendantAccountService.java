@@ -134,6 +134,8 @@ public class DiscoDefendantAccountService implements DiscoDefendantAccountServic
     @Transactional
     public AccountDetailsDto getAccountDetailsByDefendantAccountId(Long defendantAccountId) {
 
+        log.debug(":getAccountDetailsByDefendantAccountId: id: {}", defendantAccountId);
+
         // TODO - 25/06/2024 - remove this Disco+ 'test' code soon?
         if (defendantAccountId.equals(0L)) {
 

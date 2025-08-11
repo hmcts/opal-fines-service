@@ -21,7 +21,6 @@ public class PartySearchDto extends AddressSearch implements ToJsonString {
     private String organisationName;
     private String surname;
     private String forenames;
-    private String initials;
     private DateDto dateOfBirth;
     private String niNumber;
     private String addressLine;
