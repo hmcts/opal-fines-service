@@ -11,7 +11,6 @@ public class AliasSearchDto implements ToJsonString {
     private String party;
     private String surname;
     private String forenames;
-    private String initials;
     private String niNumber;
     private String addressLine;
     private String postcode;

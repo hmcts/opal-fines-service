@@ -22,8 +22,6 @@ public class AccountSearchDto implements ToJsonString {
     private String searchType;
     /** Defendant Forenames. */
     private String forename;
-    /** Defendant Initials. */
-    private String initials;
     /** Defendant Date of Birth. */
     @JsonProperty("date_of_birth")
     private DateDto dateOfBirth;

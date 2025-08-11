@@ -51,10 +51,6 @@ public class PartyDto {
     @XmlElement(name = "forenames")
     private String forenames;
 
-    @JsonProperty("initials")
-    @XmlElement(name = "initials")
-    private String initials;
-
     @JsonProperty("title")
     @XmlElement(name = "title")
     private String title;

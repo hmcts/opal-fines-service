@@ -35,8 +35,6 @@ public class DefendantAccountSearchCriteria implements ToJsonString {
 
     private String forenames;
 
-    private String initials;
-
     @JsonProperty("birth_date")
     private String birthDate;
 
@@ -62,7 +60,6 @@ public class DefendantAccountSearchCriteria implements ToJsonString {
             //.account_number( no account number )
             .surname(dto.getSurname())
             .forenames(dto.getForename())
-            .initials(dto.getInitials())
             .birthDate(Optional.ofNullable(dto.getDateOfBirth())
                            .map(DateDto::toLocalDate)
                            .map(Objects::toString)
