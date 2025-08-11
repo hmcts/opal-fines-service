@@ -7,28 +7,12 @@
     "version": {
       "type": "integer"
     },
-    "account_type": {
-      "type": "string",
-      "enum": ["Defendant", "Creditor"]
-    },
-    "account_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "account_note_text": {
-      "type": "string",
-      "minLength": 1
-    },
-    "note_type": {
-      "type": "string",
-      "const": "AA"
+    "account_activity_note": {
+      "$ref": "../common-objects/accountActivityNote.json"
     }
   },
   "required": [
     "version",
-    "account_type",
-    "account_id",
-    "account_note_text",
-    "note_type"
+    "account_activity_note"
   ]
 }
