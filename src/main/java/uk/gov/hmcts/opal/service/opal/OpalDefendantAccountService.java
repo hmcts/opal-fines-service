@@ -16,12 +16,17 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary: id: {} - NOT YET IMPLEMENTED.", defendantAccountId);
+        // TODO: implement this when Opal mode is supported
         throw new EntityNotFoundException("Defendant Account not found with id: " + defendantAccountId);
     }
 
     @Override
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts: Opal implementation not yet provided.");
-        return null; // TODO: implement this if/when Opal mode is supported
+        // TODO: implement this when Opal mode is supported
+        return DefendantAccountSearchResultsDto.builder()
+                .defendantAccounts(null)
+                .count(0)
+                .build();
     }
 }
