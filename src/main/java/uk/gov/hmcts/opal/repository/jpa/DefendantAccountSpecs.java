@@ -30,7 +30,6 @@ import static uk.gov.hmcts.opal.repository.jpa.DefendantAccountPartySpecs.joinPa
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.equalsDateOfBirthPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeAnyAddressLinesPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeForenamesPredicate;
-import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeInitialsPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeNiNumberPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeOrganisationNamePredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likePostcodePredicate;
@@ -53,10 +52,6 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
             defendant.map(DefendantDto::getForenames)
                 .filter(StringUtils::isNotBlank)
                 .map(DefendantAccountSpecs::likeForename),
-
-            defendant.map(DefendantDto::getInitials)
-                .filter(StringUtils::isNotBlank)
-                .map(DefendantAccountSpecs::likeInitials),
 
             defendant.map(DefendantDto::getBirthDate)
                 .map(DefendantAccountSpecs::equalsDateOfBirth),
@@ -132,11 +127,6 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
     public static Specification<DefendantAccountEntity> likeForename(String forename) {
         return (root, query, builder) ->
             likeForenamesPredicate(joinDefendantParty(root, builder), builder, forename);
-    }
-
-    public static Specification<DefendantAccountEntity> likeInitials(String initials) {
-        return (root, query, builder) ->
-            likeInitialsPredicate(joinDefendantParty(root, builder), builder, initials);
     }
 
     public static Specification<DefendantAccountEntity> likeOrganisationName(String organisation) {
