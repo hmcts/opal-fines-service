@@ -16,7 +16,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class MinorCreditorControllerTest {
@@ -30,7 +32,7 @@ public class MinorCreditorControllerTest {
     private MinorCreditorController minorCreditorController;
 
     @Test
-    void testPOSTMinorCreditorSearch_Success() {
+    void testPostMinorCreditorSearch_Success() {
         // Arrange
         PostMinorCreditorAccountsSearchResponse mockResponse = new PostMinorCreditorAccountsSearchResponse();
 
@@ -44,8 +46,8 @@ public class MinorCreditorControllerTest {
         when(minorCreditorService.searchMinorCreditors(any(), any())).thenReturn(mockResponse);
 
         // Act
-        ResponseEntity<PostMinorCreditorAccountsSearchResponse> responseEntity = minorCreditorController.postMinorCreditorsSearch(
-            search, BEARER_TOKEN);
+        ResponseEntity<PostMinorCreditorAccountsSearchResponse> responseEntity =
+            minorCreditorController.postMinorCreditorsSearch(search, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());

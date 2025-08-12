@@ -30,13 +30,16 @@ public class MinorCreditorServiceTest {
     @Test
     void testPostSearchMinorCreditors() {
         // Arrange
-        PostMinorCreditorAccountsSearchResponse postMinorCreditorAccountsSearchResponse = PostMinorCreditorAccountsSearchResponse.builder().build();
+        PostMinorCreditorAccountsSearchResponse postMinorCreditorAccountsSearchResponse =
+            PostMinorCreditorAccountsSearchResponse.builder().build();
 
         when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(postMinorCreditorAccountsSearchResponse);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
         // Act
-        PostMinorCreditorAccountsSearchResponse result = minorCreditorService.searchMinorCreditors((MinorCreditorSearch.builder().build()) , "authHeaderValue");
+        PostMinorCreditorAccountsSearchResponse result =
+            minorCreditorService.searchMinorCreditors(
+                (MinorCreditorSearch.builder().build()), "authHeaderValue");
 
         // Assert
         assertNotNull(result);
