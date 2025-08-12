@@ -29,24 +29,25 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
 
         GatewayService.Response<LegacyMinorCreditorSearchResultsResponse> response =
             gatewayService.postToGateway(SEARCH_MINOR_CREDITORS, LegacyMinorCreditorSearchResultsResponse.class, request
-        );
+            );
 
-            if (response.isError()) {
-                log.error(":getHeaderSummary: Legacy Gateway response: HTTP Response Code: {}", response.code);
-                if (response.isException()) {
-                    log.error(":getHeaderSummary:", response.exception);
-                } else if (response.isLegacyFailure()) {
-                    log.error(":getHeaderSummary: Legacy Gateway: body: \n{}", response.body);
-                    LegacyMinorCreditorSearchResultsResponse responseEntity = response.responseEntity;
-                    log.error(":getHeaderSummary: Legacy Gateway: entity: \n{}", responseEntity.toXml());
-                }
-            } else if (response.isSuccessful()) {
-                log.info(":getHeaderSummary: Legacy Gateway response: Success.");
+        if (response.isError()) {
+            log.error(":getHeaderSummary: Legacy Gateway response: HTTP Response Code: {}", response.code);
+            if (response.isException()) {
+                log.error(":getHeaderSummary:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":getHeaderSummary: Legacy Gateway: body: \n{}", response.body);
+                LegacyMinorCreditorSearchResultsResponse responseEntity = response.responseEntity;
+                log.error(":getHeaderSummary: Legacy Gateway: entity: \n{}", responseEntity.toXml());
             }
+        } else if (response.isSuccessful()) {
+            log.info(":getHeaderSummary: Legacy Gateway response: Success.");
+        }
         return toMinorSearchDto(response.responseEntity);
     }
 
-    private PostMinorCreditorAccountsSearchResponse toMinorSearchDto(LegacyMinorCreditorSearchResultsResponse legacyResponse) {
+    private PostMinorCreditorAccountsSearchResponse toMinorSearchDto
+        (LegacyMinorCreditorSearchResultsResponse legacyResponse) {
         return PostMinorCreditorAccountsSearchResponse.builder()
             .count(legacyResponse != null ? legacyResponse.getCount() : 0)
             .creditorAccounts(
@@ -79,6 +80,5 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
                     : null
             )
             .build();
-
-    }}
-
+    }
+}
