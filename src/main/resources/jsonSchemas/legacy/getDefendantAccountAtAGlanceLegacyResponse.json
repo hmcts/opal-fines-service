@@ -19,12 +19,12 @@
       "$ref": "./common-objects/addressDetailsLegacy.json"
     },
     "language_preferences": {
-      "$ref": "./common-objects/languagePreferenceLegacy.json"
+      "$ref": "./common-objects/languagePreferencesLegacy.json"
     },
-    "payment_terms": {
+    "payment_terms_summary": {
       "$ref": "./common-objects/paymentTermsSummaryLegacy.json"
     },
-    "enforcement_status": {
+    "enforcement_status_summary": {
       "$ref": "./common-objects/enforcementStatusSummaryLegacy.json"
     },
     "comments_and_notes": {
@@ -39,7 +39,7 @@
     "is_youth",
     "party_details",
     "address",
-    "payment_terms",
-    "enforcement_status"
+    "payment_terms_summary",
+    "enforcement_status_summary"
   ]
 }

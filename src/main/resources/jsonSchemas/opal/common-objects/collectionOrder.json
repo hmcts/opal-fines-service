@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Collection Order Legacy",
-  "type": "object",
+  "title": "Collection Order",
+  "type": ["object", "null"],
   "additionalProperties": false,
   "properties": {
     "collection_order_flag": {

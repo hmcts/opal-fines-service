@@ -99,7 +99,6 @@ public class DefendantAccountSearchResultTest {
                 "title" : "Mr",
                 "surname" : "Smith",
                 "forenames" : "John",
-                "initials" : null,
                 "rowNumber" : null,
                 "defendant_account_id" : 12345,
                 "business_unit_id" : 9,

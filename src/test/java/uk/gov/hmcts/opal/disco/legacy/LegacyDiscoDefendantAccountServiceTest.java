@@ -458,7 +458,6 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
               "organisationName" : null,
               "surname" : "Smith",
               "forenames" : "John James",
-              "initials" : "JJ",
               "title" : "Mr",
               "FOOBAR 1" : "22 Acacia Avenue",
               "FOOBAR 2" : "Hammersmith",
@@ -616,7 +615,6 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
             .lastRowNumber(44)
             .surname("Smith")
             .forenames("John")
-            .initials("D")
             .birthDate("1977-06-26")
             .nationalInsuranceNumber("XX123456C")
             .build();
