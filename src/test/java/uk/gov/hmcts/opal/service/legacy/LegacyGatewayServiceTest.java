@@ -144,7 +144,7 @@ class LegacyGatewayServiceTest {
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(getTestEntityXml(), HttpStatus.OK);
         when(responseSpec.toEntity(String.class)).thenReturn(successfulResponseEntity);
 
-        Response<TestDto> response = legacy.postToGateway(actionType, TestDto.class, request);
+        Response<TestDto> response = legacy.postToGateway(actionType, TestDto.class, request, null);
 
         log.info(":postToGatewayDtoResponse_success:", response.exception);
 
@@ -171,7 +171,7 @@ class LegacyGatewayServiceTest {
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
         when(responseSpec.toEntity(String.class)).thenReturn(successfulResponseEntity);
 
-        Response<TestDto> response = legacy.postToGateway(actionType, TestDto.class, request);
+        Response<TestDto> response = legacy.postToGateway(actionType, TestDto.class, request, null);
 
         assertTrue(response.isError());
         assertInstanceOf(UnmarshalException.class, response.exception);
@@ -189,7 +189,7 @@ class LegacyGatewayServiceTest {
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(getBrokenEntityXml(), HttpStatus.OK);
         when(responseSpec.toEntity(String.class)).thenReturn(successfulResponseEntity);
 
-        Response<TestDto> response = legacy.postToGateway(actionType, TestDto.class, request);
+        Response<TestDto> response = legacy.postToGateway(actionType, TestDto.class, request, null);
 
         assertTrue(response.isError());
         assertInstanceOf(UnmarshalException.class, response.exception);

@@ -7,11 +7,11 @@ import java.util.concurrent.CompletableFuture;
 
 public interface GatewayService {
 
-    <T> Response<T> postToGateway(String actionType, Class<T> responseType, Object request);
+    <T> Response<T> postToGateway(String actionType, Class<T> responseType, Object request, String responseSchemaFile);
 
     @Async
     <T> CompletableFuture<Response<T>> postToGatewayAsync(
-        String actionType, Class<T> responseType, Object request);
+        String actionType, Class<T> responseType, Object request, String responseSchemaFile);
 
     class Response<T> {
         public final HttpStatusCode code;
