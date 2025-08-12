@@ -151,7 +151,7 @@ class DefendantAccountControllerTest {
             (short)50, Permissions.ACCOUNT_ENQUIRY, Permissions.ACCOUNT_ENQUIRY_NOTES);
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(mockResponse);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().businessUnitId((short) 50).build();
@@ -172,7 +172,7 @@ class DefendantAccountControllerTest {
             (short)50, Permissions.ACCOUNT_ENQUIRY, Permissions.ACCOUNT_ENQUIRY_NOTES);
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(null);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().businessUnitId((short) 50).build();

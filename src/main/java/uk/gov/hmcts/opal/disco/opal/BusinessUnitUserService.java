@@ -28,8 +28,6 @@ public class BusinessUnitUserService implements BusinessUnitUserServiceInterface
 
     private final BusinessUnitUserRepository businessUnitUserRepository;
 
-    private final UserEntitlementService userEntitlementService;
-
     private final BusinessUnitUserSpecs specs = new BusinessUnitUserSpecs();
 
     @Override
@@ -48,22 +46,7 @@ public class BusinessUnitUserService implements BusinessUnitUserServiceInterface
         return page.getContent();
     }
 
-    /**
-     * Return a Set of Authorisation Business Unit User Permissions mapped from BusinessUnitUsers keyed on the user
-     * id from the Users table.
-     */
-    @Transactional(readOnly = true)
-    public Set<BusinessUnitUser> getAuthorisationBusinessUnitPermissionsByUserId(Long userId) {
-        log.debug(":getAuthorisationBusinessUnitPermissionsByUserId: user id: {}", userId);
-        List<BusinessUnitUserEntity> buuList =  businessUnitUserRepository.findAllByUser_UserId(userId);
 
-        return buuList.stream().map(buu -> BusinessUnitUser.builder()
-            .businessUnitUserId(buu.getBusinessUnitUserId())
-            .businessUnitId(buu.getBusinessUnit().getBusinessUnitId())
-            .permissions(userEntitlementService.getPermissionsByBusinessUnitUserId(buu.getBusinessUnitUserId()))
-            .build()).collect(Collectors.toSet());
-
-    }
 
     /**
      * Return a Set of 'cut down' Authorisation Business Unit Permissions mapped from Business Unit Users keyed on the

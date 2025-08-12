@@ -106,7 +106,7 @@ class BusinessUnitControllerTest {
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
-        when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(true));
 
         // Act
@@ -132,7 +132,7 @@ class BusinessUnitControllerTest {
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
-        when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(false));
 
         // Act

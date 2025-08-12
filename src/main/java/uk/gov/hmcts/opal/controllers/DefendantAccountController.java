@@ -127,7 +127,7 @@ public class DefendantAccountController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":POST:addNote: {}", addNote.toPrettyJson());
 
-        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         BusinessUnitUser businessUnitUser = getRequiredBusinessUnitUser(userState, addNote.getBusinessUnitId());
 
         NoteDto noteDto = NoteDto.builder()

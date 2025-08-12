@@ -1,4 +1,3 @@
-// uk.gov.hmcts.opal.client.user.service.UserStateService.java
 package uk.gov.hmcts.opal.client.user.service;
 
 import feign.FeignException;
@@ -23,11 +22,10 @@ public class UserStateClientService {
     private final UserClient userClient;
     private final UserStateMapper userStateMapper;
 
-    //cannot cache just on id because zero is a valid id for the authenticated user
 
-//    @Cacheable(value = "userState",
-//        key = "#userId == 0 ? T(org.springframework.security.core.context.SecurityContextHolder)"
-//           + ".getContext().getAuthentication().getName() : #userId")
+    @Cacheable(value = "userState",
+        key = "#userId == 0 ? T(org.springframework.security.core.context.SecurityContextHolder)"
+           + ".getContext().getAuthentication().getName() : #userId")
     public Optional<UserState> getUserState(Long userId) {
 
         log.info("Fetching user state for specific userId: {}", userId);

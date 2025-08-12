@@ -50,7 +50,7 @@ class NoteControllerTest {
             (short)50, Permissions.ACCOUNT_ENQUIRY, Permissions.ACCOUNT_ENQUIRY_NOTES);
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(noteDtoResponse);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
         // Act
         ResponseEntity<NoteDto> response = noteController.createNote(noteDtoRequest, BEARER_TOKEN);

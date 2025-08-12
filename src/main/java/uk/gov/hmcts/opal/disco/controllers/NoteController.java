@@ -50,7 +50,7 @@ public class NoteController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":POST:createNote: {}", noteDto.toPrettyJson());
 
-        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         BusinessUnitUser businessUnitUser = getRequiredBusinessUnitUser(userState,
                                                                                   noteDto.getBusinessUnitId());
 

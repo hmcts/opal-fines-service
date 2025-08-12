@@ -8,7 +8,6 @@ import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.client.user.service.UserStateClientService;
 import uk.gov.hmcts.opal.config.properties.BeDeveloperConfiguration;
-import uk.gov.hmcts.opal.disco.opal.UserEntitlementService;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 
@@ -21,34 +20,21 @@ public class UserStateService {
 
     private final AccessTokenService tokenService;
 
-//    private final UserService userService;
-
     private final UserStateClientService userStateClientService;
 
-//    private final UserEntitlementService userEntitlementService;
 
     private final BeDeveloperConfiguration developerConfiguration;
 
-//    public UserState getUserStateUsingAuthToken(String authorization) {
-//        return getUserStateByUsername(getPreferredUsername(authorization));
-//    }
 
     public UserState checkForAuthorisedUser(String authorization) {
 
         return userStateClientService.getUserStateByAuthenticatedUser()
             .orElseGet(() -> getDeveloperUserStateOrError((getPreferredUsername(authorization))));
-
     }
 
     public String getPreferredUsername(String authorization) {
         return extractPreferredUsername(authorization, tokenService);
     }
-
-//    public UserState getUserStateByUsername(String username) {
-//        return userEntitlementService.getUserStateByUsername(username)
-//            .orElseGet(() -> userService.getLimitedUserStateByUsername(username)
-//                .orElseGet(() -> getDeveloperUserStateOrError(username)));
-//    }
 
     private UserState getDeveloperUserStateOrError(String username) {
         if (DEVELOPER_PERMISSIONS.equals(developerConfiguration.getUserRolePermissions())) {

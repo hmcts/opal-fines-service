@@ -40,7 +40,7 @@ public class UserStateAspectService {
             String authHeaderValue = authorizationAspectService.getAccessTokenParam(joinPoint).orElse(null);
             String bearerToken = authorizationAspectService.getAuthorization(authHeaderValue)
                 .orElseThrow(() -> new MissingRequestHeaderException(AUTHORIZATION));
-            return userStateService.getUserStateUsingAuthToken(bearerToken);
+            return userStateService.checkForAuthorisedUser(bearerToken);
         };
     }
 
