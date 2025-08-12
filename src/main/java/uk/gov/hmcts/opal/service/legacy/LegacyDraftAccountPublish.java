@@ -33,7 +33,7 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
 
         CompletableFuture<Response<LegacyCreateDefendantAccountResponse>> future = gatewayService.postToGatewayAsync(
             CREATE_DEFENDANT_ACCOUNT, LegacyCreateDefendantAccountResponse.class,
-            createDefendantAccountRequest(publishEntity, unitUser));
+            createDefendantAccountRequest(publishEntity, unitUser), null);
 
         publishEntity = draftAccountTransactions
             .updateStatus(publishEntity, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactions);

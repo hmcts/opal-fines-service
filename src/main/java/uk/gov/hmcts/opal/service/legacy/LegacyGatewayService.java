@@ -12,7 +12,6 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.legacy.GatewayService;
 import uk.gov.hmcts.opal.util.XmlUtil;
 
 import java.util.Base64;
@@ -31,7 +30,7 @@ public class LegacyGatewayService implements GatewayService {
     protected final RestClient restClient;
 
     @SuppressWarnings("unchecked")
-    public <T> Response<T> extractResponse(ResponseEntity<String> responseEntity, Class<T> clzz) {
+    public <T> Response<T> extractResponse(ResponseEntity<String> responseEntity, Class<T> clzz, String schemaFile) {
         HttpStatusCode code = responseEntity.getStatusCode();
 
         if (clzz.equals(String.class)) {
@@ -42,6 +41,8 @@ public class LegacyGatewayService implements GatewayService {
 
             String rawXml = responseEntity.getBody();
             log.info("extractResponse: Raw XML response: \n{}", rawXml);
+
+            XmlUtil.validateXmlString(schemaFile, rawXml);
 
             try {
                 T entity = XmlUtil.unmarshalXmlString(rawXml, clzz);
@@ -57,7 +58,8 @@ public class LegacyGatewayService implements GatewayService {
         }
     }
 
-    public <T> Response<T> postToGateway(String actionType, Class<T> responseType, Object request) {
+    public <T> Response<T> postToGateway(String actionType, Class<T> responseType, Object request,
+                                         String responseSchemaFile) {
         log.info("postToGateway: POST to Gateway: {}?{}={}", gatewayProperties.getUrl(), ACTION_TYPE, actionType);
 
         // Create a UriComponentsBuilder and add parameters
@@ -77,25 +79,25 @@ public class LegacyGatewayService implements GatewayService {
             .retrieve()
             .toEntity(String.class);
 
-        return extractResponse(responseEntity, responseType);
+        return extractResponse(responseEntity, responseType, responseSchemaFile);
     }
 
     /*
      * This may not be required, but a similar method was implemented in Disco+, so is left here for now.
      */
     public Response<String> postToGateway(String actionType, Object request) {
-        return postToGateway(actionType, String.class, request);
+        return postToGateway(actionType, String.class, request, null);
     }
 
     @Async
-    public <T> CompletableFuture<Response<T>> postToGatewayAsync(String actionType,
-                                                                 Class<T> responseType, Object request) {
+    public <T> CompletableFuture<Response<T>> postToGatewayAsync(String actionType, Class<T> responseType,
+                                                                 Object request, String responseSchemaFile) {
 
         log.debug("postToGatewayAsync: ASYNC POST to Gateway: {}", gatewayProperties.getUrl()
             + "?" + ACTION_TYPE + "=" + actionType);
 
         long start = System.currentTimeMillis();
-        Response<T> response = postToGateway(actionType, responseType, request);
+        Response<T> response = postToGateway(actionType, responseType, request, responseSchemaFile);
         long end = System.currentTimeMillis();
 
         log.debug("postToGatewayAsync: ASYNC POST to Gateway response in {} seconds.", (end - start) / 1000f);
@@ -112,7 +114,7 @@ public class LegacyGatewayService implements GatewayService {
 
         try {
             return postToGateway(actionType, responseType,
-                                 ToJsonString.getObjectMapper().writeValueAsString(requestParams)
+                                 ToJsonString.getObjectMapper().writeValueAsString(requestParams), null
             );
         } catch (JsonProcessingException jpe) {
             throw new RuntimeException(jpe);
