@@ -28,7 +28,7 @@ public class MinorCreditorServiceTest {
     private MinorCreditorService minorCreditorService;
 
     @Test
-    void testGetHeaderSummary() {
+    void testPostSearchMinorCreditors() {
         // Arrange
         PostMinorCreditorAccountsSearchResponse postMinorCreditorAccountsSearchResponse = PostMinorCreditorAccountsSearchResponse.builder().build();
 
