@@ -1,54 +1,28 @@
 package uk.gov.hmcts.opal.dto.legacy.search;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.jackson.Jacksonized;
-import uk.gov.hmcts.opal.entity.AddressEntity;
+import uk.gov.hmcts.opal.dto.ToXmlString;
+import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
 
+import java.util.List;
+
+@XmlRootElement(name = "PostMinorCreditorAccountsSearchLegacyResponse")
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(propOrder = { "count", "creditorAccounts" })
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Jacksonized
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@XmlRootElement
-@XmlAccessorType(XmlAccessType.FIELD)
-public class LegacyMinorCreditorSearchResultsResponse extends AddressEntity {
+@Builder
+public class LegacyMinorCreditorSearchResultsResponse implements ToXmlString {
 
-    @JsonProperty("creditor_account_id")
-    private String creditorAccountId;
+    @XmlElement(name = "count", required = true)
+    private int count;
 
-    @JsonProperty("account_number")
-    private String accountNumber;
-
-    @JsonProperty("business_unit_name")
-    private String businessUnitName;
-
-    @JsonProperty("business_unit_id")
-    private String businessUnitId;
-
-    @JsonProperty("account_balance")
-    private double accountBalance;
-
-    @JsonProperty("organisation")
-    private Boolean organisation;
-
-    @JsonProperty("organisation_name")
-    private String organisationName;
-
-    @JsonProperty("firstnames")
-    private String firstnames;
-
-    @JsonProperty("surname")
-    private String surname;
-
-    @JsonProperty("error_response")
-    private String errorResponse;
+    @XmlElementWrapper(name = "creditorAccounts")
+    @XmlElement(name = "creditorAccount")
+    private List<CreditorAccount> creditorAccounts;
 }

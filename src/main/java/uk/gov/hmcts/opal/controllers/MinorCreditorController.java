@@ -5,12 +5,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
-import uk.gov.hmcts.opal.service.legacy.LegacyMinorCreditorService;
+import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorSearch;
+import uk.gov.hmcts.opal.service.MinorCreditorService;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
@@ -20,19 +18,19 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 @Tag(name = "Minor Creditor Controller")
 public class MinorCreditorController {
 
-    private final LegacyMinorCreditorService minorCreditorService;
+    private final MinorCreditorService minorCreditorService;
 
-    public MinorCreditorController(LegacyMinorCreditorService minorCreditorService) {
+    public MinorCreditorController(MinorCreditorService minorCreditorService) {
         this.minorCreditorService = minorCreditorService;
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches MinorCreditors based upon criteria in request body")
-    public ResponseEntity<MinorCreditorEntity> postMinorCreditorsSearch(
-        @RequestBody MinorCreditorEntity criteria) {
+    public ResponseEntity<PostMinorCreditorAccountsSearchResponse> postMinorCreditorsSearch(
+        @RequestBody MinorCreditorSearch criteria, @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":POST:postMinorCreditorsSearch: query: \n{}", criteria);
 
-        MinorCreditorEntity response = minorCreditorService.searchMinorCreditors(criteria);
+        PostMinorCreditorAccountsSearchResponse response = minorCreditorService.searchMinorCreditors(criteria, authHeaderValue);
 
         return buildResponse(response);
     }

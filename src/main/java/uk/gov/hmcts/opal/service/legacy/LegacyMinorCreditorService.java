@@ -3,13 +3,15 @@ package uk.gov.hmcts.opal.service.legacy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
+import uk.gov.hmcts.opal.dto.legacy.Defendant;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
-import uk.gov.hmcts.opal.service.MinorCreditorServiceInterface;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorSearch;
+import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,38 +19,66 @@ import java.util.concurrent.ExecutionException;
 public class LegacyMinorCreditorService implements MinorCreditorServiceInterface {
 
     private final GatewayService gatewayService;
-private static final String SEARCH_MINOR_CREDITORS = "searchMinorCreditors";
+
+    private static final String SEARCH_MINOR_CREDITORS = "searchMinorCreditors";
 
     @Override
-    public MinorCreditorEntity searchMinorCreditors(MinorCreditorEntity minorCreditorEntity) {
+    public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch minorCreditorEntity) {
 
         LegacyMinorCreditorSearchResultsRequest request = LegacyMinorCreditorSearchResultsRequest.builder().build();
 
-        CompletableFuture<GatewayService.Response<LegacyMinorCreditorSearchResultsResponse>> future =
-            gatewayService.postToGatewayAsync(SEARCH_MINOR_CREDITORS, LegacyMinorCreditorSearchResultsResponse.class, request
+        GatewayService.Response<LegacyMinorCreditorSearchResultsResponse> response =
+            gatewayService.postToGateway(SEARCH_MINOR_CREDITORS, LegacyMinorCreditorSearchResultsResponse.class, request
         );
 
-        try {
-            GatewayService.Response<LegacyMinorCreditorSearchResultsResponse> response = future.get();
             if (response.isError()) {
-                log.error(
-                    ":postSearchMinorCreditorSearch: Legacy Gateway response: HTTP Response Code: {}",
-                    response.code
-                );
+                log.error(":getHeaderSummary: Legacy Gateway response: HTTP Response Code: {}", response.code);
                 if (response.isException()) {
-                    log.error(":postSearchMinorCreditorSearch:", response.exception);
-                    String errorResponse = response.responseEntity.getErrorResponse();
-                } else if (response.isSuccessful()) {
-                    log.info(":postSearchMinorCreditorSearch: Legacy Gateway response: Success.");
-                    minorCreditorEntity.setBusinessUnitId(response.responseEntity.getBusinessUnitId());
+                    log.error(":getHeaderSummary:", response.exception);
+                } else if (response.isLegacyFailure()) {
+                    log.error(":getHeaderSummary: Legacy Gateway: body: \n{}", response.body);
+                    LegacyMinorCreditorSearchResultsResponse responseEntity = response.responseEntity;
+                    log.error(":getHeaderSummary: Legacy Gateway: entity: \n{}", responseEntity.toXml());
                 }
+            } else if (response.isSuccessful()) {
+                log.info(":getHeaderSummary: Legacy Gateway response: Success.");
             }
-        } catch (ExecutionException e) {
-            log.error(":searchMinorCreditors: ExecutionException occurred while searching minor creditors.", e);
-        } catch (InterruptedException e) {
-            log.error(e.getMessage());
-        }
-        return minorCreditorEntity;
+        return toMinorSearchDto(response.responseEntity);
     }
-}
+
+    private PostMinorCreditorAccountsSearchResponse toMinorSearchDto(LegacyMinorCreditorSearchResultsResponse legacyResponse) {
+        return PostMinorCreditorAccountsSearchResponse.builder()
+            .count(legacyResponse != null ? legacyResponse.getCount() : 0)
+            .creditorAccounts(
+                legacyResponse != null && legacyResponse.getCreditorAccounts() != null
+                    ? legacyResponse.getCreditorAccounts().stream()
+                    .map(legacy -> CreditorAccount.builder()
+                        .creditorAccountId(legacy.getCreditorAccountId())
+                        .accountNumber(legacy.getAccountNumber())
+                        .organisation(legacy.isOrganisation())
+                        .addressLine1(legacy.getAddressLine1())
+                        .postcode(legacy.getPostcode())
+                        .businessUnitName(legacy.getBusinessUnitName())
+                        .businessUnitId(legacy.getBusinessUnitId())
+                        .accountBalance(legacy.getAccountBalance())
+                        .organisationName(legacy.getOrganisationName())
+                        .surname(legacy.getSurname())
+                        .firstnames(legacy.getFirstnames())
+                        .defendant(
+                            legacy.getDefendant() != null
+                                ? Defendant.builder()
+                                .organisationName(legacy.getDefendant().getOrganisationName())
+                                .defendantSurname(legacy.getDefendant().getDefendantSurname())
+                                .defendantFirstnames(legacy.getDefendant().getDefendantFirstnames())
+                                .build()
+                                : null
+                        )
+                        .build()
+                    )
+                    .collect(Collectors.toList())
+                    : null
+            )
+            .build();
+
+    }}
 

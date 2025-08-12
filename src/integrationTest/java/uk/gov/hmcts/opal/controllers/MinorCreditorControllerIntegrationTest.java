@@ -1,65 +1,98 @@
 package uk.gov.hmcts.opal.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.slf4j.Logger;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorSearch;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.gov.hmcts.opal.service.opal.UserStateService;
 
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
-@ActiveProfiles({"integration"})
-@Slf4j(topic = "opal.MinorCreditorControllerIntegrationTest")
-//@Sql(scripts = "classpath:db/insertData/insert_into_creditor_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
-@DisplayName("MinorCreditorController Integration Test")
-public class MinorCreditorControllerIntegrationTest {
+/**
+ * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
+ */
+abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private static final String URL_BASE = "/minor-creditor-accounts";
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private static final String GET_HEADER_SUMMARY_RESPONSE =
+        "opal/postMinorCreditorAccountSearchResponse.json";
 
-    private static final String URL_BASE = "/minor-creditor-accounts/";
+    @MockitoBean
+    UserStateService userStateService;
 
+    @MockitoSpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
 
-    @Test
-    @DisplayName("tests run as expected")
-    void postMinorCreditorsSearch_shouldReturnOk() throws Exception {
-        MinorCreditorEntity criteria = new MinorCreditorEntity();
-        criteria.setBusinessUnitId("1");
-        criteria.setName("test");
-        criteria.setPostcode("CR1 1CR");
-        criteria.setAddressLine1("123 sesame street");
-        criteria.setAddressLine2("Creditville");
-        criteria.setAddressLine3("Crediton");
+    void postSearchMinorCreditorImpl_Success(Logger log) throws Exception {
 
-        ResultActions actions = mockMvc.perform(post(URL_BASE + "search")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(criteria)));
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostMinorCreditorsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(1))
+            .activeAccountsOnly(true)
+            .accountNumber("ACC123456")
+            .build();
 
-        actions.andExpect(status().isOk())
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/search")
+                                                          .contentType(MediaType.APPLICATION_JSON)
+                                                          .content(objectMapper.writeValueAsString(search))
+                                                          .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions
+            .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$[0].minorCreditorId").value("1"))
-            .andExpect(jsonPath("$[0].name").value("test"))
-            .andExpect(jsonPath("$[0].addressLine1").value("Credit Lane"))
-            .andExpect(jsonPath("$[0].addressLine2").value("Creditville"))
-            .andExpect(jsonPath("$[0].addressLine3").value("Crediton"))
-            .andExpect(jsonPath("$[0].postcode").value("CR1 1CR"));
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.creditor_accounts").isArray())
+            .andExpect(jsonPath("$.creditor_accounts[0].creditorAccountId").value("CA123"))
+            .andExpect(jsonPath("$.creditor_accounts[0].accountNumber").value("100A"))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisationName").value("Sainsco"))
+            .andExpect(jsonPath("$.creditor_accounts[0].firstnames").value("Keith"))
+            .andExpect(jsonPath("$.creditor_accounts[0].surname").value("Thief"))
+            .andExpect(jsonPath("$.creditor_accounts[0].addressLine1").value("1 Main St"))
+            .andExpect(jsonPath("$.creditor_accounts[0].postcode").value("AB12 3CD"))
+            .andExpect(jsonPath("$.creditor_accounts[0].businessUnitName").value("UnitA"))
+            .andExpect(jsonPath("$.creditor_accounts[0].businessUnitId").value("78"))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendantAccountId").value("77"))
+            .andExpect(jsonPath("$.creditor_accounts[0].accountBalance").value(1000.0));
+
+        jsonSchemaValidationService.validateOrError(body, GET_HEADER_SUMMARY_RESPONSE);
+    }
+
+    void postSearchMinorCreditorImpl_500Error(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(101, 202, 303))
+            .activeAccountsOnly(false)
+            .accountNumber("FAIL")
+            .build();
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "search")
+                                                          .contentType(MediaType.APPLICATION_JSON)
+                                                          .content(objectMapper.writeValueAsString(search))
+                                                          .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().is5xxServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 }
