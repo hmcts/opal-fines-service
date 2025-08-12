@@ -46,8 +46,8 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         return toMinorSearchDto(response.responseEntity);
     }
 
-    private PostMinorCreditorAccountsSearchResponse toMinorSearchDto
-        (LegacyMinorCreditorSearchResultsResponse legacyResponse) {
+    private PostMinorCreditorAccountsSearchResponse toMinorSearchDto(
+        LegacyMinorCreditorSearchResultsResponse legacyResponse) {
         return PostMinorCreditorAccountsSearchResponse.builder()
             .count(legacyResponse != null ? legacyResponse.getCount() : 0)
             .creditorAccounts(

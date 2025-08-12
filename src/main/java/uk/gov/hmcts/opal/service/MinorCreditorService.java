@@ -20,7 +20,8 @@ public class MinorCreditorService {
 
     private final UserStateService userStateService;
 
-    public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity, String authHeaderValue) {
+    public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity,
+                                                                        String authHeaderValue) {
 
         log.debug(":getHeaderSummary:");
 

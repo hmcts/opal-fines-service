@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-    public class MinorCreditorSearch implements ToJsonString {
+public class MinorCreditorSearch implements ToJsonString {
 
     @JsonProperty("business_unit_ids")
     private List<Integer> businessUnitIds;

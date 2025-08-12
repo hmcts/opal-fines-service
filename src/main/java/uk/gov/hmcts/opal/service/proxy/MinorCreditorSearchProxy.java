@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.service.opal.OpalMinorCreditorService;
 @Service
 @Slf4j(topic = "opal.MinorCreditorSearchProxy")
 @RequiredArgsConstructor
-public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, ProxyInterface{
+public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, ProxyInterface {
 
     private final OpalMinorCreditorService opalMinorCreditorService;
     private final LegacyMinorCreditorService legacyMinorCreditorService;
