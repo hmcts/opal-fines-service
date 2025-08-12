@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Add Defendant Account Enforcement Legacy Request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "defendant_account_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "business_unit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "business_unit_user_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer"
+    },
+    "result_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "enforcement_defendant_account_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "enforcement_result_responses": {
+      "type": "array",
+      "items": {
+        "$ref": "./common-objects/resultResponsesLegacy.json"
+      },
+      "minItems": 1
+    },
+    "payment_terms": {
+      "$ref": "./common-objects/paymentTermsLegacy.json"
+    }
+  },
+  "required": [
+    "defendant_account_id",
+    "business_unit_id",
+    "business_unit_user_id",
+    "version",
+    "result_id",
+    "enforcement_defendant_account_id",
+    "enforcement_result_responses"
+  ]
+}
