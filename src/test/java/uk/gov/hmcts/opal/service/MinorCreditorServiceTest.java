@@ -5,14 +5,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorSearch;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +50,19 @@ public class MinorCreditorServiceTest {
         assertNotNull(result);
     }
 
+    @Test
+    void testPermissionNotAllowedException() {
+        // Arrange
+        UserState noPermissionUser = mock(UserState.class);
+        when(noPermissionUser.anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionUser);
+
+        // Act & Assert
+        assertThrows(
+            PermissionNotAllowedException.class, () ->
+            minorCreditorService.searchMinorCreditors(MinorCreditorSearch.builder().build(), "authHeaderValue")
+        );
+    }
 
 
 }
