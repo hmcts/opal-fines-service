@@ -47,6 +47,7 @@ public class MinorCreditorServiceProxyTest extends ProxyTestsBase {
 
     void testPostSearchMinorCreditors(MinorCreditorServiceInterface targetService,
                                       MinorCreditorServiceInterface otherService) {
+
         // Given: a Entity is returned from the target service
         PostMinorCreditorAccountsSearchResponse entity = PostMinorCreditorAccountsSearchResponse.builder().build();
         when(targetService.searchMinorCreditors(any())).thenReturn(entity);
