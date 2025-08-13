@@ -28,8 +28,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
             Response<LegacyGetDefendantAccountHeaderSummaryResponse> response = gatewayService.postToGateway(
                 GET_HEADER_SUMMARY, LegacyGetDefendantAccountHeaderSummaryResponse.class,
-                createGetDefendantAccountRequest(defendantAccountId.toString())
-            );
+                createGetDefendantAccountRequest(defendantAccountId.toString()), null);
 
             if (response.isError()) {
                 log.error(":getHeaderSummary: Legacy Gateway response: HTTP Response Code: {}", response.code);

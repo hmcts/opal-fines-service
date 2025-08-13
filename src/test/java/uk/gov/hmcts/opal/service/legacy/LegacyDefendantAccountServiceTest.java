@@ -63,7 +63,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @SuppressWarnings("unchecked")
     @Test
-    void testPublishDefendantAccount_success() {
+    void testGetHeaderSummary_success() {
 
         DefendantAccountHeaderSummary headerSummary = createHeaderSummaryDto();
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
