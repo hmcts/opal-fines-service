@@ -64,18 +64,64 @@ class LegacyMinorCreditorServiceTest {
                 .creditorAccounts(List.of(creditorAccount))
                 .build();
 
+        GatewayService.Response<LegacyMinorCreditorSearchResultsResponse> response =
+                new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
+
         when(gatewayService.postToGateway(
                 any(),
                 eq(LegacyMinorCreditorSearchResultsResponse.class),
                 any(),
                 any())
-        ).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        ).thenReturn(response);
 
         PostMinorCreditorAccountsSearchResponse result = legacyMinorCreditorService.searchMinorCreditors(search);
 
         assertEquals(1, result.getCount());
         assertEquals(1, result.getCreditorAccounts().size());
-        assertEquals("2", result.getCreditorAccounts().getFirst().getCreditorAccountId());
-        assertEquals("Jane", result.getCreditorAccounts().getFirst().getDefendant().getFirstnames());
+        assertEquals("2", result.getCreditorAccounts().get(0).getCreditorAccountId());
+        assertEquals("Jane", result.getCreditorAccounts().get(0).getDefendant().getFirstnames());
+    }
+
+    @Test
+    void searchMinorCreditors_shouldHandleGatewayException() {
+        MinorCreditorSearch search = MinorCreditorSearch.builder().activeAccountsOnly(true).build();
+
+        GatewayService.Response<LegacyMinorCreditorSearchResultsResponse> responseWithException =
+                new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, null, null, new RuntimeException("Gateway error"));
+
+        when(gatewayService.postToGateway(
+                any(),
+                eq(LegacyMinorCreditorSearchResultsResponse.class),
+                any(),
+                any())
+        ).thenReturn(responseWithException);
+
+        PostMinorCreditorAccountsSearchResponse result = legacyMinorCreditorService.searchMinorCreditors(search);
+        assertEquals(0, result.getCount());
+        assertEquals(0, result.getCreditorAccounts().size());
+    }
+
+    @Test
+    void searchMinorCreditors_shouldHandleLegacyFailure() {
+        MinorCreditorSearch search = MinorCreditorSearch.builder().activeAccountsOnly(true).build();
+        LegacyMinorCreditorSearchResultsResponse legacyResponse = LegacyMinorCreditorSearchResultsResponse.builder()
+                .count(0)
+                .creditorAccounts(List.of())
+                .build();
+
+        GatewayService.Response<LegacyMinorCreditorSearchResultsResponse> response =
+                new GatewayService.Response<>(HttpStatus.BAD_REQUEST, legacyResponse, null, null);
+
+        when(gatewayService.postToGateway(
+                any(),
+                eq(LegacyMinorCreditorSearchResultsResponse.class),
+                any(),
+                any())
+        ).thenReturn(response);
+
+        PostMinorCreditorAccountsSearchResponse result = legacyMinorCreditorService.searchMinorCreditors(search);
+
+        assertEquals(0, result.getCount());
+        assertEquals(0, result.getCreditorAccounts().size());
     }
 }
