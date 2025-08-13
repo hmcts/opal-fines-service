@@ -5,7 +5,6 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlType;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -21,50 +20,45 @@ import lombok.NoArgsConstructor;
     "postcode",
     "businessUnitName",
     "businessUnitId",
-    "defendantAccountId",
     "accountBalance",
     "defendant"
 })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class CreditorAccount {
 
-    @XmlElement(name = "creditorAccountId", required = true)
+    @XmlElement(name = "creditor_account_id")
     private String creditorAccountId;
 
-    @XmlElement(name = "accountNumber", required = true)
+    @XmlElement(name = "account_number")
     private String accountNumber;
 
-    @XmlElement(name = "organisation", required = true)
+    @XmlElement(name = "organisation")
     private boolean organisation;
 
-    @XmlElement(name = "organisationName")
+    @XmlElement(name = "organisation_name", nillable = true)
     private String organisationName;
 
-    @XmlElement(name = "firstnames")
+    @XmlElement(name = "firstnames", nillable = true)
     private String firstnames;
 
-    @XmlElement(name = "surname")
+    @XmlElement(name = "surname", nillable = true)
     private String surname;
 
-    @XmlElement(name = "addressLine1", required = true)
+    @XmlElement(name = "address_line_1")
     private String addressLine1;
 
-    @XmlElement(name = "postcode")
+    @XmlElement(name = "postcode", nillable = true)
     private String postcode;
 
-    @XmlElement(name = "businessUnitName", required = true)
+    @XmlElement(name = "business_unit_name")
     private String businessUnitName;
 
-    @XmlElement(name = "businessUnitId", required = true)
+    @XmlElement(name = "business_unit_id")
     private String businessUnitId;
 
-    @XmlElement(name = "defendantAccountId", required = true)
-    private String defendantAccountId;
-
-    @XmlElement(name = "accountBalance", required = true)
+    @XmlElement(name = "account_balance")
     private double accountBalance;
 
     @XmlElement(name = "defendant", required = true)

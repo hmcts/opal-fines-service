@@ -11,7 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
-import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.Creditor;
 
 import java.util.List;
 
@@ -35,5 +35,5 @@ public class LegacyMinorCreditorSearchResultsRequest {
     private String accountNumber;
 
     @JsonProperty("creditor")
-    private CreditorAccountEntity creditor;
+    private Creditor creditor;
 }

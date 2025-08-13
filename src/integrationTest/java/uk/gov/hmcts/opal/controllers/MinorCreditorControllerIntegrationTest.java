@@ -13,9 +13,10 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,7 +29,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     private static final String URL_BASE = "/minor-creditor-accounts";
 
-    private static final String GET_HEADER_SUMMARY_RESPONSE = "opal/postMinorCreditorAccountSearchResponse.json";
+    private static final String GET_HEADER_SUMMARY_RESPONSE = "postMinorCreditorAccountSearchResponse.json";
 
     @MockitoBean
     UserStateService userStateService;
@@ -45,30 +46,32 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .activeAccountsOnly(true)
             .accountNumber("ACC-987654").build();
 
-        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/search")
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
                                                           .contentType(MediaType.APPLICATION_JSON).content(
             objectMapper.writeValueAsString(search)).header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testPostMinorCreditorSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.creditor_accounts").isArray())
-            .andExpect(jsonPath("$.creditor_accounts[0].creditorAccountId").value("CA123456"))
-            .andExpect(jsonPath("$.creditor_accounts[0].accountNumber").value("ACC-987654"))
+            .andExpect(jsonPath("$.creditor_accounts[0].creditor_account_id").value("CA123456"))
+            .andExpect(jsonPath("$.creditor_accounts[0].account_number").value("ACC-987654"))
             .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
-            .andExpect(jsonPath("$.creditor_accounts[0].organisationName")
-                           .value("Acme Corp Ltd"))
-            .andExpect(jsonPath("$.creditor_accounts[0].addressLine1").value("123 Main Street"))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name").value("Acme Corp Ltd"))
+            .andExpect(jsonPath("$.creditor_accounts[0].firstnames").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[0].surname").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[0].address_line_1").value("123 Main Street"))
             .andExpect(jsonPath("$.creditor_accounts[0].postcode").value("AB1 2CD"))
-            .andExpect(jsonPath("$.creditor_accounts[0].businessUnitName")
-                           .value("Finance Department"))
-            .andExpect(jsonPath("$.creditor_accounts[0].businessUnitId").value("BU123"))
-            .andExpect(jsonPath("$.creditor_accounts[0].defendantAccountId").value("DA001"))
-            .andExpect(jsonPath("$.creditor_accounts[0].accountBalance").value(1000.0))
-            .andExpect(jsonPath("$.defendant[0].organisationName")
-                           .value("Example Holdings PLC"));
+            .andExpect(jsonPath("$.creditor_accounts[0].business_unit_name").value("Finance Department"))
+            .andExpect(jsonPath("$.creditor_accounts[0].business_unit_id").value("BU123"))
+            .andExpect(jsonPath("$.creditor_accounts[0].account_balance").value(1000.0))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.defendant_account_id").value("DA001"))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.organisation").value(true))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.organisation_name").value("Example Holdings PLC"))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.firstnames").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.surname").value(nullValue()));
 
         jsonSchemaValidationService.validateOrError(body, GET_HEADER_SUMMARY_RESPONSE);
     }
@@ -77,19 +80,19 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        MinorCreditorSearch search = MinorCreditorSearch.builder().businessUnitIds(List.of(
-            101,
-            202,
-            303
-        )).activeAccountsOnly(false).accountNumber("FAIL").build();
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(101))
+            .activeAccountsOnly(false)
+            .accountNumber("FAIL")
+            .build();
 
-        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "search")
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
                                                           .contentType(MediaType.APPLICATION_JSON)
                                                           .content(
             objectMapper.writeValueAsString(search)).header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testPostMinorCreditorSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(
             status().is5xxServerError()).andExpect(
