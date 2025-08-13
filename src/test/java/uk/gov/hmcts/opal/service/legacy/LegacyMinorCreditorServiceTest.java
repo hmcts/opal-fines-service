@@ -74,7 +74,7 @@ class LegacyMinorCreditorServiceTest {
 
         assertEquals(1, result.getCount());
         assertEquals(1, result.getCreditorAccounts().size());
-        assertEquals("2", result.getCreditorAccounts().get(0).getCreditorAccountId());
-        assertEquals("Jane", result.getCreditorAccounts().get(0).getDefendant().getFirstnames());
+        assertEquals("2", result.getCreditorAccounts().getFirst().getCreditorAccountId());
+        assertEquals("Jane", result.getCreditorAccounts().getFirst().getDefendant().getFirstnames());
     }
 }
