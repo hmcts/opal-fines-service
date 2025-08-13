@@ -67,6 +67,7 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(
                 any(),
                 eq(LegacyMinorCreditorSearchResultsResponse.class),
+                any(),
                 any())
         ).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
 

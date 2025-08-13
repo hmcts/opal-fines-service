@@ -29,7 +29,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         GatewayService.Response<LegacyMinorCreditorSearchResultsResponse> response =
             gatewayService.postToGateway(SEARCH_MINOR_CREDITORS,
                                          LegacyMinorCreditorSearchResultsResponse.class,
-                                         createRequest(minorCreditorEntity)
+                                         createRequest(minorCreditorEntity), null
             );
 
         if (response.isError()) {
