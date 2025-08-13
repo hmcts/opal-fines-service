@@ -8,10 +8,6 @@
       "type": "string",
       "minLength": 1
     },
-    "enforcement_defendant_account_id": {
-      "type": "string",
-      "minLength": 1
-    },
     "enforcement_result_responses": {
       "type": "array",
       "items": {
@@ -25,7 +21,6 @@
   },
   "required": [
     "result_id",
-    "enforcement_defendant_account_id",
     "enforcement_result_responses",
     "payment_terms"
   ]
