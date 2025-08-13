@@ -4,6 +4,7 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.DefendantAccountAtAGlanceResponseDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -48,5 +49,8 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
         return getCurrentModeService().getPaymentTerms(defendantAccountId);
     }
 
-
+    public DefendantAccountAtAGlanceResponseDto getAtAGlance(Long defendantAccountId) {
+        // TODO
+        return getCurrentModeService().getAtAGlance(defendantAccountId);
+    }
 }
