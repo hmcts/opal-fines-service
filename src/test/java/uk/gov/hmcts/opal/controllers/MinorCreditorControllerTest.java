@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class MinorCreditorControllerTest {
+class MinorCreditorControllerTest {
 
     static final String BEARER_TOKEN = "Bearer a_token_here";
 
