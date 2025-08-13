@@ -20,7 +20,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
 
     private final GatewayService gatewayService;
 
-    private static final String SEARCH_MINOR_CREDITORS = "searchMinorCreditors";
+    private static final String SEARCH_MINOR_CREDITORS = "LIBRA.searchMinorCreditors";
 
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch minorCreditorEntity) {
@@ -32,16 +32,16 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             );
 
         if (response.isError()) {
-            log.error(":getHeaderSummary: Legacy Gateway response: HTTP Response Code: {}", response.code);
+            log.error(":searchMinorCreditor: Legacy Gateway response: HTTP Response Code: {}", response.code);
             if (response.isException()) {
-                log.error(":getHeaderSummary:", response.exception);
+                log.error(":searchMinorCreditor:", response.exception);
             } else if (response.isLegacyFailure()) {
-                log.error(":getHeaderSummary: Legacy Gateway: body: \n{}", response.body);
+                log.error(":searchMinorCreditor: Legacy Gateway: body: \n{}", response.body);
                 LegacyMinorCreditorSearchResultsResponse responseEntity = response.responseEntity;
-                log.error(":getHeaderSummary: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+                log.error(":searchMinorCreditor: Legacy Gateway: entity: \n{}", responseEntity.toXml());
             }
         } else if (response.isSuccessful()) {
-            log.info(":getHeaderSummary: Legacy Gateway response: Success.");
+            log.info(":searchMinorCreditor: Legacy Gateway response: Success.");
         }
         return toMinorSearchDto(response.responseEntity);
     }

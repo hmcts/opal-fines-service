@@ -23,7 +23,7 @@ public class MinorCreditorService {
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity,
                                                                         String authHeaderValue) {
 
-        log.debug(":getHeaderSummary:");
+        log.debug(":searchMinorCreditor:");
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
