@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.DefendantAccountAtAGlanceResponseDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
@@ -468,4 +469,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
 
+    public DefendantAccountAtAGlanceResponseDto getAtAGlance(Long defendantAccountId) {
+        log.debug(":getAtAGlance: id: {} - NOT YET IMPLEMENTED.", defendantAccountId);
+        throw new EntityNotFoundException("Defendant Account not found with id: " + defendantAccountId);
+    }
 }
