@@ -87,7 +87,8 @@ class LegacyMinorCreditorServiceTest {
         MinorCreditorSearch search = MinorCreditorSearch.builder().activeAccountsOnly(true).build();
 
         GatewayService.Response<LegacyMinorCreditorSearchResultsResponse> responseWithException =
-                new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, null, null, new RuntimeException("Gateway error"));
+                new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR,
+                        null, null, new RuntimeException("Gateway error"));
 
         when(gatewayService.postToGateway(
                 any(),
