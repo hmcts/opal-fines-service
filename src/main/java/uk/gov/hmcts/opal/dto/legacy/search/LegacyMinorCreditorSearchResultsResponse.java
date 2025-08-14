@@ -22,7 +22,7 @@ import java.util.List;
 @Setter
 @ToString
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlRootElement(name = "postMinorCreditorAccountsSearchResponse")
+@XmlRootElement(name = "response")
 @Builder
 public class LegacyMinorCreditorSearchResultsResponse implements ToXmlString {
 

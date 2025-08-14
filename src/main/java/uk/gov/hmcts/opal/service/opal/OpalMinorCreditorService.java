@@ -15,8 +15,8 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch minorCreditorSearchDto) {
-        log.debug(":searchMinorCreditor: id: {} - NOT YET IMPLEMENTED.", 1);
-        throw new EntityNotFoundException("Minor Creditor not found with ID: " + 1);
+        log.debug(":searchMinorCreditor: Search not yet implemented");
+        throw new EntityNotFoundException("Search not Implemented");
     }
 
 }
