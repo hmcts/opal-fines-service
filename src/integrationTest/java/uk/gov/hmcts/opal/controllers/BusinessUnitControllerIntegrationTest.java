@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -117,7 +117,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetBusinessUnitRefData_Permission_success() throws Exception {
         UserState userState = Mockito.mock(UserState.class);
 
-        when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(true));
 
         mockMvc.perform(get(URL_BASE + "?permission=CREATE_MANAGE_DRAFT_ACCOUNTS")
@@ -137,7 +137,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetBusinessUnitRefData_Permission_empty() throws Exception {
         UserState userState = Mockito.mock(UserState.class);
 
-        when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(false));
 
         mockMvc.perform(get(URL_BASE + "?permission=CREATE_MANAGE_DRAFT_ACCOUNTS")

@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.disco.opal.NoteService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.util.List;
 
@@ -50,7 +50,7 @@ class NoteControllerTest {
             (short)50, Permissions.ACCOUNT_ENQUIRY, Permissions.ACCOUNT_ENQUIRY_NOTES);
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(noteDtoResponse);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
         // Act
         ResponseEntity<NoteDto> response = noteController.createNote(noteDtoRequest, BEARER_TOKEN);

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authorisation.aspect.AuthorizationAspectService;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.util.function.Supplier;
 
@@ -40,7 +40,7 @@ public class UserStateAspectService {
             String authHeaderValue = authorizationAspectService.getAccessTokenParam(joinPoint).orElse(null);
             String bearerToken = authorizationAspectService.getAuthorization(authHeaderValue)
                 .orElseThrow(() -> new MissingRequestHeaderException(AUTHORIZATION));
-            return userStateService.getUserStateUsingAuthToken(bearerToken);
+            return userStateService.checkForAuthorisedUser(bearerToken);
         };
     }
 

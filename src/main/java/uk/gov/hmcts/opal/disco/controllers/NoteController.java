@@ -19,7 +19,7 @@ import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.disco.NoteServiceInterface;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.util.List;
 
@@ -50,7 +50,7 @@ public class NoteController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":POST:createNote: {}", noteDto.toPrettyJson());
 
-        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         BusinessUnitUser businessUnitUser = getRequiredBusinessUnitUser(userState,
                                                                                   noteDto.getBusinessUnitId());
 
