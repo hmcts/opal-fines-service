@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Remove Defendant Account Enforcement Hold Legacy Response",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "defendant_account_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "business_unit_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "business_unit_user_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer"
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "defendant_account_id",
+    "business_unit_id",
+    "business_unit_user_id",
+    "version"
+  ]
+}
