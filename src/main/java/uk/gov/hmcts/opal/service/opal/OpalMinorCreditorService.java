@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 
 @Service

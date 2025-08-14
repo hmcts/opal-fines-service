@@ -10,7 +10,7 @@ import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
 import uk.gov.hmcts.opal.dto.legacy.Defendant;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 
 import java.util.List;
 

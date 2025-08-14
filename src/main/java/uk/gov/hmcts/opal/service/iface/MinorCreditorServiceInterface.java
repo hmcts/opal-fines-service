@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.service.iface;
 
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 
 public interface MinorCreditorServiceInterface {
 

@@ -8,8 +8,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.entity.minorcreditor.Creditor;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.Creditor;
+import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
 
 import java.util.List;

@@ -11,7 +11,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
-import uk.gov.hmcts.opal.entity.minorcreditor.Creditor;
+import uk.gov.hmcts.opal.dto.Creditor;
 
 import java.util.List;
 

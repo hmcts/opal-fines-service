@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.entity.minorcreditor;
+package uk.gov.hmcts.opal.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.dto.ToJsonString;
 
 import java.util.List;
 
