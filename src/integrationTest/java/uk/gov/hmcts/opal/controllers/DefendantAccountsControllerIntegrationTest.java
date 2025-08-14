@@ -228,12 +228,13 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_NoResults: Response body:\n{}",
-           ToJsonString.toPrettyJson(body));
+            ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(0));
     }
+
     @DisplayName("OPAL: Search by exact name + BU = 1 match (seed id=77)")
     void testPostDefendantAccountsSearch_Opal_ByNameAndBU(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString()))
@@ -264,8 +265,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                                 }
                 }"""));
 
-        String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_ByNameAndBU: Response body:\n{}", ToJsonString.toPrettyJson(body));
+        String body = actions.andReturn().getResponse()
+            .getContentAsString();
+        log.info(":testPostDefendantAccountsSearch_Opal_ByNameAndBU: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -305,7 +308,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces: Response body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -366,7 +370,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
           },
           "defendant": null
         }
-        """));
+            """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_PcrExact: Response body:\n{}",
@@ -400,10 +404,11 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
           },
           "defendant": null
         }
-        """));
+            """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_PcrNoMatch: Response body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":testPostDefendantAccountsSearch_Opal_PcrNoMatch: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -438,10 +443,11 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             "national_insurance_number": "A111"
           }
         }
-        """));
+            """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_NiStartsWith: Response body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":testPostDefendantAccountsSearch_Opal_NiStartsWith: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -479,7 +485,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             "national_insurance_number": "A11111A"
           }
         }
-        """));
+            """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_AddressStartsWith: Response body:\n{}",
@@ -524,7 +530,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             "national_insurance_number": "A11111A"
           }
         }
-        """));
+            """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_DobExact: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -568,10 +574,11 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             "national_insurance_number": "A11111A"
           }
         }
-        """));
+            """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName: Response body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -608,7 +615,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             "national_insurance_number": "A11111A"
           }
         }
-        """));
+            """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse: Response body:\n{}",

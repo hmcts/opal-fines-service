@@ -99,7 +99,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .addressLine1(party != null ? party.getAddressLine1() : null)
             .postcode(party != null ? party.getPostcode() : null)
             .businessUnitName(e.getBusinessUnit() != null ? e.getBusinessUnit().getBusinessUnitName() : null)
-            .businessUnitId(e.getBusinessUnit() != null ? String.valueOf(e.getBusinessUnit().getBusinessUnitId()) : null)
+            .businessUnitId(e.getBusinessUnit() != null
+                ? String.valueOf(e.getBusinessUnit().getBusinessUnitId()) : null)
             .prosecutorCaseReference(e.getProsecutorCaseReference())
             .lastEnforcementAction(e.getLastEnforcement())
             .accountBalance(e.getAccountBalance())

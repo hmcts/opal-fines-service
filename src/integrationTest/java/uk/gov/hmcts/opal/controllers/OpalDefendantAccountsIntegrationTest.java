@@ -36,28 +36,36 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test void opal_search_by_name_and_bu() throws Exception {
-        super.testPostDefendantAccountsSearch_Opal_ByNameAndBU(log); }
+        super.testPostDefendantAccountsSearch_Opal_ByNameAndBU(log);
+    }
 
     @Test void opal_postcode_ignores_spaces() throws Exception {
-        super.testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces(log); }
+        super.testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces(log);
+    }
 
     @Test void opal_account_number_starts_with() throws Exception {
-        super.testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith(log); }
+        super.testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith(log);
+    }
 
     @Test void opal_pcr_exact() throws Exception {
-        super.testPostDefendantAccountsSearch_Opal_PcrExact(log); }
+        super.testPostDefendantAccountsSearch_Opal_PcrExact(log);
+    }
 
     @Test void opal_pcr_no_match() throws Exception {
-        super.testPostDefendantAccountsSearch_Opal_PcrNoMatch(log); }
+        super.testPostDefendantAccountsSearch_Opal_PcrNoMatch(log);
+    }
 
     @Test void opal_ni_starts_with() throws Exception {
-        super.testPostDefendantAccountsSearch_Opal_NiStartsWith(log); }
+        super.testPostDefendantAccountsSearch_Opal_NiStartsWith(log);
+    }
 
     @Test void opal_address_starts_with() throws Exception {
-        super.testPostDefendantAccountsSearch_Opal_AddressStartsWith(log); }
+        super.testPostDefendantAccountsSearch_Opal_AddressStartsWith(log);
+    }
 
     @Test void opal_dob_exact() throws Exception {
-        super.testPostDefendantAccountsSearch_Opal_DobExact(log); }
+        super.testPostDefendantAccountsSearch_Opal_DobExact(log);
+    }
 
     @Test void opal_alias_flag_uses_main_name() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName(log);
