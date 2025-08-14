@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal;
+package uk.gov.hmcts.opal.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -6,8 +6,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.client.user.service.UserStateClientService;
 import uk.gov.hmcts.opal.config.properties.BeDeveloperConfiguration;
-import uk.gov.hmcts.opal.disco.opal.UserEntitlementService;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 
@@ -20,28 +20,19 @@ public class UserStateService {
 
     private final AccessTokenService tokenService;
 
-    private final UserService userService;
-
-    private final UserEntitlementService userEntitlementService;
+    private final UserStateClientService userStateClientService;
 
     private final BeDeveloperConfiguration developerConfiguration;
 
-    public UserState getUserStateUsingAuthToken(String authorization) {
-        return getUserStateByUsername(getPreferredUsername(authorization));
-    }
-
+    // TODO: authorization String no longer required.
     public UserState checkForAuthorisedUser(String authorization) {
-        return getUserStateByUsername(getPreferredUsername(authorization));
+
+        return userStateClientService.getUserStateByAuthenticatedUser(userStateClientService)
+            .orElseGet(() -> getDeveloperUserStateOrError((getPreferredUsername(authorization))));
     }
 
     public String getPreferredUsername(String authorization) {
         return extractPreferredUsername(authorization, tokenService);
-    }
-
-    public UserState getUserStateByUsername(String username) {
-        return userEntitlementService.getUserStateByUsername(username)
-            .orElseGet(() -> userService.getLimitedUserStateByUsername(username)
-                .orElseGet(() -> getDeveloperUserStateOrError(username)));
     }
 
     private UserState getDeveloperUserStateOrError(String username) {

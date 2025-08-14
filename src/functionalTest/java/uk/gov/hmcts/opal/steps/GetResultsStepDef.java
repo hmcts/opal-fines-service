@@ -43,4 +43,3 @@ public class GetResultsStepDef extends BaseStepDef {
         }
     }
 }
-

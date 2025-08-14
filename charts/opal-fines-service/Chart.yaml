@@ -10,6 +10,10 @@ dependencies:
   - name: java
     version: 5.3.0
     repository: 'oci://hmctspublic.azurecr.io/helm'
+  - name: opal-user-service
+    version: 0.0.37
+    repository: 'oci://sdshmctspublic.azurecr.io/helm'
+    condition: opal-user-service.enabled
   - name: redis
     version: 22.0.7
     repository: 'oci://registry-1.docker.io/bitnamicharts'
