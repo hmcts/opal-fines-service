@@ -18,5 +18,4 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         log.debug(":searchMinorCreditor: Search not yet implemented");
         throw new EntityNotFoundException("Search not Implemented");
     }
-
 }
