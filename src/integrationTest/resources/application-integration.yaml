@@ -42,5 +42,10 @@ jpa:
 testcontainers:
   reuse:
     enable: true
+    
 legacy-gateway:
   url: ${OPAL_LEGACY_GATEWAY_URL:https://opal-legacy-db-stub.staging.platform.hmcts.net}
+
+user:
+  service:
+    url: ${OPAL_USER_SERVICE_API_URL:https://opal-user-service.staging.platform.hmcts.net}

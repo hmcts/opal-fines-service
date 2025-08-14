@@ -18,7 +18,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.math.BigDecimal;
 
@@ -46,7 +46,7 @@ class DiscoDefendantAccountControllerIntegrationTest extends AbstractIntegration
     @Test
     @DisplayName("Get Defendant Account by ID [@PO-33, @PO-130]")
     void testGetDefendantAccountById() throws Exception {
-        when(userStateService.getUserStateUsingAuthToken(anyString()))
+        when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "1")
@@ -65,7 +65,7 @@ class DiscoDefendantAccountControllerIntegrationTest extends AbstractIntegration
     @Test
     @DisplayName("Get Defendant Account by ID - Account does not exist [@PO-33, @PO-130]")
     void testGetDefendantAccountById_WhenDefendantAccountDoesNotExist() throws Exception {
-        when(userStateService.getUserStateUsingAuthToken(anyString()))
+        when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         mockMvc.perform(get(URL_BASE + "2")
@@ -76,7 +76,7 @@ class DiscoDefendantAccountControllerIntegrationTest extends AbstractIntegration
     @Test
     @DisplayName("Search defendant accounts - Account does exist [@PO-33, @PO-119]")
     public void testGetDefendantAccount() throws Exception {
-        when(userStateService.getUserStateUsingAuthToken(anyString()))
+        when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(get("/defendant-accounts")
@@ -101,7 +101,7 @@ class DiscoDefendantAccountControllerIntegrationTest extends AbstractIntegration
     public void testPutDefendantAccount() throws Exception {
         DefendantAccountEntity entity = createDefendantAccountEntity();
 
-        when(userStateService.getUserStateUsingAuthToken(anyString()))
+        when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(put("/defendant-accounts")
@@ -131,7 +131,7 @@ class DiscoDefendantAccountControllerIntegrationTest extends AbstractIntegration
             .noteText("Non payment fine")
             .build();
 
-        when(userStateService.getUserStateUsingAuthToken(anyString()))
+        when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "addNote")
@@ -151,7 +151,7 @@ class DiscoDefendantAccountControllerIntegrationTest extends AbstractIntegration
     @Test
     @DisplayName("Get notes for defendant account - Note present [@PO-34, @PO-138]")
     public void testGetNotesForDefendantAccount_notePresent() throws Exception {
-        when(userStateService.getUserStateUsingAuthToken(anyString()))
+        when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "notes/{defendantId}", "1")
@@ -172,7 +172,7 @@ class DiscoDefendantAccountControllerIntegrationTest extends AbstractIntegration
 
     @Test
     public void testGetNotesForDefendantAccount_zeroNotes() throws Exception {
-        when(userStateService.getUserStateUsingAuthToken(anyString()))
+        when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         mockMvc.perform(get(URL_BASE + "notes/{defendantId}", "dummyDefendantId")
