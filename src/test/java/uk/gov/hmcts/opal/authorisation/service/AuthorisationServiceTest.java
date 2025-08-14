@@ -8,12 +8,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.service.opal.UserService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -24,26 +23,14 @@ class AuthorisationServiceTest {
 
     public static final String TEST_USER = "testUser";
     @Mock
-    UserService userService;
+    UserStateService userStateService;
     @Mock
     AccessTokenService accessTokenService;
 
     @InjectMocks
     private AuthorisationService authorisationService;
 
-    @Test
-    void getAuthorisation_ReturnsUserState_WhenUserFound() {
-        // Arrange
-        String emailAddress = "test@example.com";
-        UserState userState = UserState.builder().userId(123L).userName("John Smith").build();
-        when(userService.getUserStateByUsername(any())).thenReturn(userState);
 
-        // Act
-        UserState result = authorisationService.getAuthorisation(emailAddress);
-
-        // Assert
-        assertEquals(userState, result);
-    }
 
     @Test
     public void testGetSecurityTokenWithValidAccessToken() {
@@ -53,7 +40,7 @@ class AuthorisationServiceTest {
 
         // Mock UserService
         UserState userState = UserState.builder().userId(234L).userName(TEST_USER).build();
-        when(userService.getUserStateByUsername(TEST_USER)).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser(accessToken)).thenReturn(userState);
 
         // Call the method
         SecurityToken securityToken = authorisationService.getSecurityToken(accessToken);
@@ -65,8 +52,8 @@ class AuthorisationServiceTest {
 
         // Verify interactions with dependencies
         verify(accessTokenService).extractPreferredUsername(accessToken);
-        verify(userService).getUserStateByUsername(TEST_USER);
-        verifyNoMoreInteractions(accessTokenService, userService);
+        verify(userStateService).checkForAuthorisedUser(accessToken);
+        verifyNoMoreInteractions(accessTokenService, userStateService);
     }
 
     @Test
@@ -85,6 +72,6 @@ class AuthorisationServiceTest {
 
         // Verify interactions with dependencies
         verify(accessTokenService).extractPreferredUsername(accessToken);
-        verifyNoInteractions(userService);
+        verifyNoInteractions(userStateService);
     }
 }
