@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Remove Defendant Account Party Legacy Request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "defendant_account_party_id": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "defendant_account_party_id"
+  ]
+}
