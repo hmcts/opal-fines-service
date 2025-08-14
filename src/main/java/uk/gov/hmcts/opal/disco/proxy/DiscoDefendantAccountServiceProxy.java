@@ -9,8 +9,6 @@ import uk.gov.hmcts.opal.disco.legacy.LegacyDiscoDefendantAccountService;
 import uk.gov.hmcts.opal.disco.opal.DiscoDefendantAccountService;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
@@ -44,12 +42,6 @@ public class DiscoDefendantAccountServiceProxy implements DiscoDefendantAccountS
     @Override
     public List<DefendantAccountEntity> getDefendantAccountsByBusinessUnit(Short businessUnitId) {
         return getCurrentModeService().getDefendantAccountsByBusinessUnit(businessUnitId);
-    }
-
-    @Override
-    public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
-        log.debug(":searchDefendantAccounts: isLegacyMode: {}", isLegacyMode(dynamicConfigService));
-        return getCurrentModeService().searchDefendantAccounts(accountSearchDto);
     }
 
     @Override

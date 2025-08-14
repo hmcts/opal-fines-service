@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Remove Defendant Account Enforcement Hold Request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "reason": {
+      "type": ["string", "null"]
+    }
+  },
+  "required": [
+    "reason"
+  ]
+}

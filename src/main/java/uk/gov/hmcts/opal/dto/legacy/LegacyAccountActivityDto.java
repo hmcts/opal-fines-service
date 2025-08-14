@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @JsonRootName(value = "account_activity")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class AccountActivityDto {
+public class LegacyAccountActivityDto {
 
     @JsonProperty("activity_id")
     @XmlElement(name = "activity_id")

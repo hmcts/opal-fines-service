@@ -1,68 +1,46 @@
 package uk.gov.hmcts.opal.dto;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static uk.gov.hmcts.opal.dto.DateDto.fromLocalDate;
-
-import java.time.LocalDate;
-
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.DefendantDto;
+
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Slf4j(topic = "opal.AccountSearchDtoTest")
 public class AccountSearchDtoTest {
 
     @Test
     void testBuilder() {
-        final LocalDate today = LocalDate.now();
-        AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto(today);
-        assertEquals("Bath", accountEnquiryDto.getCourt());
-        assertEquals("Smith", accountEnquiryDto.getSurname());
-        assertEquals("Scotland", accountEnquiryDto.getAddressLine());
-        assertEquals("case001", accountEnquiryDto.getPcr());
-        assertEquals(fromLocalDate(today), accountEnquiryDto.getDateOfBirth());
-        assertEquals("Dave", accountEnquiryDto.getForename());
-        assertEquals("QUICK", accountEnquiryDto.getSearchType());
-        assertEquals("VISA", accountEnquiryDto.getMajorCreditor());
-        assertEquals("XX12345678", accountEnquiryDto.getNiNumber());
-        assertEquals("6", accountEnquiryDto.getTillNumber());
-        assertEquals(today, accountEnquiryDto.getDateOfBirth().toLocalDate());
+        final String dateOfBirth = "2024-01-01";
+        AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto(dateOfBirth, true);
+        assertEquals(List.of(78), accountEnquiryDto.getBusinessUnitIds());
+        assertEquals("Smith", accountEnquiryDto.getDefendant().getSurname());
+        assertEquals("Scotland", accountEnquiryDto.getDefendant().getAddressLine1());
+        assertEquals(LocalDate.parse(dateOfBirth), accountEnquiryDto.getDefendant().getBirthDate());
+        assertEquals("Dave", accountEnquiryDto.getDefendant().getForenames());
+        assertEquals("DS", accountEnquiryDto.getDefendant().getInitials());
 
-        assertNotNull(AccountEnquiryDto.builder().toString());
+        assertNotNull(AccountSearchDto.builder()
+            .defendant(DefendantDto.builder().build())
+            .toString());
 
-        assertNotNull(AccountSearchDto.builder().dateOfBirth(
-            DateDto.builder().build()).build());
-        assertNotNull(AccountSearchDto.builder().dateOfBirth(
-            DateDto.builder().year(2024).build()).build());
-        assertNotNull(AccountSearchDto.builder().dateOfBirth(
-            DateDto.builder().year(2024).monthOfYear(-1).build()).build());
-        assertNotNull(AccountSearchDto.builder().dateOfBirth(
-            DateDto.builder().year(2024).monthOfYear(2).build()).build());
-        assertNotNull(AccountSearchDto.builder().dateOfBirth(
-            DateDto.builder().year(2024).monthOfYear(4).build()).build());
-        assertNotNull(AccountSearchDto.builder().dateOfBirth(
-            DateDto.builder().year(2024).monthOfYear(6).build()).build());
-        assertNotNull(AccountSearchDto.builder().dateOfBirth(
-            DateDto.builder().year(2024).monthOfYear(8).build()).build());
-        assertNotNull(AccountSearchDto.builder().dateOfBirth(
-            DateDto.builder().year(2024).monthOfYear(9).build()).build());
-        assertNotNull(AccountSearchDto.builder().dateOfBirth(
-            DateDto.builder().year(2024).monthOfYear(11).build()).build());
-        assertNotNull(AccountSearchDto.builder().dateOfBirth(
-            DateDto.builder().year(2024).monthOfYear(13).build()).build());
-        assertNotNull(AccountSearchDto.builder().dateOfBirth(
-            DateDto.builder().year(2024).monthOfYear(6).dayOfMonth(-5).build()).build());
-        assertNotNull(AccountSearchDto.builder().dateOfBirth(
-            DateDto.builder().year(2024).monthOfYear(6).dayOfMonth(5).build()).build());
-        assertNotNull(AccountSearchDto.builder().dateOfBirth(
-            DateDto.builder().year(2024).monthOfYear(6).dayOfMonth(35).build()).build());
-
+        assertNotNull(AccountSearchDto.builder()
+            .defendant(DefendantDto.builder()
+                .birthDate(LocalDate.parse("2024-01-01"))
+                .build())
+            .build());
     }
 
     @Test
     void testToJsonString() throws Exception {
-        AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto(LocalDate.now());
+        AccountSearchDto accountEnquiryDto = constructTestAccountSearchDto("2024-01-01",true);
         assertNotNull(accountEnquiryDto.toJsonString());
     }
 
@@ -89,18 +67,34 @@ public class AccountSearchDtoTest {
         assertNotNull(result);
     }
 
-    private AccountSearchDto constructTestAccountSearchDto(final LocalDate today) {
-        return AccountSearchDto.builder()
-            .court("Bath")
-            .surname("Smith")
-            .addressLine("Scotland")
-            .pcr("case001")
-            .dateOfBirth(fromLocalDate(today))
-            .forename("Dave")
-            .searchType("QUICK")
-            .majorCreditor("VISA")
-            .niNumber("XX12345678")
-            .tillNumber("6")
-            .build();
+    private AccountSearchDto constructTestAccountSearchDto(String dateOfBirth, boolean useDefendant) {
+        AccountSearchDto.AccountSearchDtoBuilder builder = AccountSearchDto.builder()
+            .businessUnitIds(Collections.singletonList(78))
+            .activeAccountsOnly(true);
+
+        if (useDefendant) {
+            builder.defendant(
+                DefendantDto.builder()
+                    .surname("Smith")
+                    .forenames("Dave")
+                    .addressLine1("Scotland")
+                    .includeAliases(true)
+                    .organisation(false)
+                    .birthDate(LocalDate.parse(dateOfBirth))
+                    .nationalInsuranceNumber("XX12345678")
+                    .build()
+            );
+        } else {
+            builder.referenceNumberDto(
+                ReferenceNumberDto.builder()
+                    .prosecutorCaseReference("ABC123")
+                    .organisation(false)
+                    .accountNumber("ACC789")
+                    .build()
+            );
+        }
+
+        return builder.build();
     }
+
 }
