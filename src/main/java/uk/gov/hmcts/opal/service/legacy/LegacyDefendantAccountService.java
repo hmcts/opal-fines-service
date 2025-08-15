@@ -3,14 +3,21 @@ package uk.gov.hmcts.opal.service.legacy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
+import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+
+import static uk.gov.hmcts.opal.disco.legacy.LegacyDiscoDefendantAccountService.SEARCH_DEFENDANT_ACCOUNTS;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +27,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_HEADER_SUMMARY = "LIBRA.get_header_summary";
 
     private final GatewayService gatewayService;
+    private final LegacyGatewayProperties legacyGatewayProperties;
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary: id: {}", defendantAccountId);
@@ -50,6 +58,18 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             log.error(":getHeaderSummary:", e);
             throw e;
         }
+    }
+
+    public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
+        LegacyDefendantAccountSearchCriteria criteria =
+            LegacyDefendantAccountSearchCriteria.fromAccountSearchDto(accountSearchDto);
+        log.debug(":searchDefendantAccounts: criteria: {} via gateway {}", criteria.toJson(),
+                  legacyGatewayProperties.getUrl());
+        Response<LegacyDefendantAccountsSearchResults> response = gatewayService.postToGateway(
+            SEARCH_DEFENDANT_ACCOUNTS, LegacyDefendantAccountsSearchResults.class, criteria, null);
+
+        return response.responseEntity.toDefendantAccountSearchResultsDto();
+
     }
 
     /* This is probably common code that will be needed across multiple Legacy requests to get

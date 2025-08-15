@@ -20,7 +20,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
-public class DefendantAccountDto {
+public class LegacyDefendantAccountDto {
 
     @JsonProperty("defendant_account_id")
     @XmlElement(name = "defendant_account_id")
@@ -122,17 +122,17 @@ public class DefendantAccountDto {
 
     @JsonProperty("payment_terms")
     @XmlElement(name = "payment_terms")
-    private PaymentTermsDto paymentTerms;
+    private LegacyPaymentTermsDto paymentTerms;
 
     @JsonProperty("parties")
     @XmlElement(name = "parties")
-    private PartiesDto parties;
+    private LegacyPartiesDto parties;
 
     @JsonProperty("impositions")
     @XmlElement(name = "impositions")
-    private ImpositionsDto impositions;
+    private LegacyImpositionsDto impositions;
 
     @JsonProperty("account_activities")
     @XmlElement(name = "account_activities")
-    private AccountActivitiesDto accountActivities;
+    private LegacyAccountActivitiesDto accountActivities;
 }

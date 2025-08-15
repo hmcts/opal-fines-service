@@ -42,7 +42,7 @@ java:
     OPAL_FINES_DB_PORT: 5432
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: "${DEV_OPAL_FRONT_END_URL}"
-    OPAL_LEGACY_GATEWAY_URL: https://opal.clouddev.online/opal
+    OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.staging.platform.hmcts.net
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
     LAUNCH_DARKLY_ENABLED: false
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs, classpath:db/migration/devOnly

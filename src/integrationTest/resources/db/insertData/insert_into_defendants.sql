@@ -12,6 +12,11 @@
 * 02/06/2025  R DODD   1.0      PO-1047 Inserts rows of data into the DEFENDANT_ACCOUNTS table for the Integration Tests.
 *
 **/
+delete from NOTES where note_id = 001001;
+delete from payment_terms where payment_terms_id = 0001;
+delete from defendant_account_parties where defendant_account_party_id = 0001;
+delete from parties where party_id = 0001;
+delete from defendant_accounts where defendant_account_id = 0001;
 
 INSERT INTO defendant_accounts
 (

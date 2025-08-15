@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.disco.DiscoDefendantAccountServiceInterface;
@@ -24,7 +26,7 @@ import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.disco.opal.NoteService;
@@ -108,19 +110,6 @@ public class DefendantAccountController {
         return buildResponse(response);
     }
 
-    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "Searches defendant accounts based upon criteria in request body")
-    public ResponseEntity<AccountSearchResultsDto> postDefendantAccountSearch(
-        @RequestBody AccountSearchDto accountSearchDto,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-        log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
-
-        AccountSearchResultsDto response =
-            discoDefendantAccountServiceInterface.searchDefendantAccounts(accountSearchDto);
-
-        return buildResponse(response);
-    }
-
     @PostMapping(value = "/addNote", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Adds a single note associated with the defendant account")
     public ResponseEntity<NoteDto> addNote(
@@ -176,5 +165,19 @@ public class DefendantAccountController {
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
 
         return buildResponse(defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue));
+    }
+
+    @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Searches defendant accounts based upon criteria in request body")
+    public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
+        @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
+        @RequestBody AccountSearchDto accountSearchDto,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
+
+        DefendantAccountSearchResultsDto response =
+            defendantAccountService.searchDefendantAccounts(accountSearchDto, authHeaderValue);
+
+        return buildResponse(response);
     }
 }

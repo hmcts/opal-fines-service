@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonRootName(value = "imposition")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class ImpositionDto {
+public class LegacyImpositionDto {
     @JsonProperty("imposition_id")
     @XmlElement(name = "imposition_id")
     private Integer impositionId;

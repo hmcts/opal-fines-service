@@ -20,4 +20,16 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
     void testGetHeaderSummary_500Error() throws Exception {
         super.getHeaderSummaryImpl_500Error(log);
     }
+
+    @Disabled("See DTSPO-27066. A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testSearchDefendantAccounts() throws Exception {
+        super.testPostDefendantAccountsSearch(log);
+    }
+
+    @Disabled("See DTSPO-27066. A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testSearchDefendantAccount_NoAccountsFound() throws Exception {
+        super.testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound(log);
+    }
 }
