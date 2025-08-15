@@ -76,4 +76,15 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse(log);
     }
 
+    @Test void opal_accountNumber_with_check_letter() throws Exception {
+        super.testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter(log);
+    }
+
+    @Test void opal_accountNumber_with_check_letter_and_space() throws Exception {
+        super.testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty(log);
+    }
+
+    @Test void opal_without_business_unit_filter() throws Exception {
+        super.testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter(log);
+    }
 }

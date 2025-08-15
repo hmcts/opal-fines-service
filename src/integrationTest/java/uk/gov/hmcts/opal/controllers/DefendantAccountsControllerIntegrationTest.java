@@ -541,6 +541,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_title").value("Ms"))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_firstnames").value("Anna"))
             .andExpect(jsonPath("$.defendant_accounts[0].birth_date").value("1980-02-03"));
@@ -628,5 +629,104 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
+
+    @DisplayName("OPAL: Account number request includes check letter -> still matches (strips check letter)")
+    void testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+        {
+          "active_accounts_only": true,
+          "business_unit_ids": [78],
+          "reference_number": {
+            "account_number": "177A",
+            "prosecutor_case_reference": null,
+            "organisation": false
+          },
+          "defendant": null
+        }
+            """));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
+            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+    }
+
+    @DisplayName("OPAL: No defendant object in payload → party still resolved")
+    void testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+        {
+          "active_accounts_only": true,
+          "business_unit_ids": [78],
+          "reference_number": {
+            "account_number": "177A",
+            "prosecutor_case_reference": null,
+            "organisation": false
+          },
+          "defendant": null
+        }
+            """));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
+            .andExpect(jsonPath("$.defendant_accounts[0].address_line_1").value("Lumber House"))
+            .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("MA4 1AL"));
+    }
+
+    @DisplayName("OPAL: Search without business_unit_ids → still returns results")
+    void testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+        {
+          "active_accounts_only": true,
+          "business_unit_ids": [],
+          "reference_number": {
+            "account_number": "177A",
+            "prosecutor_case_reference": null,
+            "organisation": false
+          },
+          "defendant": null
+        }
+            """));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+    }
+
 
 }
