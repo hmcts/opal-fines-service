@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 @Jacksonized
 @XmlRootElement(name = "party")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class PartyDto implements ToJsonString {
+public class  PartyDto implements ToJsonString {
     private Long partyId;
     private boolean organisation;
     private String organisationName;
