@@ -87,4 +87,24 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     @Test void opal_without_business_unit_filter() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter(log);
     }
+
+    @Test void opal_personal_party_with_full_details() throws Exception {
+        super.testPostDefendantAccountsSearch_Opal_AnnaGraham_FullDetails(log);
+    }
+
+    @Test void opal_organisation_with_no_personal_names() throws Exception {
+        super.testPostDefendantAccountsSearch_Opal_OrganisationWithNoPersonalNames(log);
+    }
+
+    @Test
+    void opal_alias_fallback_to_main_name() throws Exception {
+        super.testPostDefendantAccountsSearch_Opal_AliasFallbackToMainName(log);
+    }
+
+    @Test
+    void opal_optional_fields_present_and_missing() throws Exception {
+        super.testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing(log);
+    }
+
+
 }
