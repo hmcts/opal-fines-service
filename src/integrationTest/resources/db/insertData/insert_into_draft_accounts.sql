@@ -37,12 +37,12 @@ VALUES
         "originator_id": 1234,
         "offences": [
             {
-                "offence_id": 1234,
+                "offence_id": 30002,
                 "impositions": [
                     {
                         "amount_paid": 200,
                         "amount_imposed": 500,
-                        "result_id": "123AA"
+                        "result_id": "FO"
                     }
                 ],
                 "date_of_sentence": "2023-11-15"
@@ -103,12 +103,12 @@ VALUES
         "originator_id": 1234,
         "offences": [
             {
-                "offence_id": 1234,
+                "offence_id": 30002,
                 "impositions": [
                     {
                         "amount_paid": 200,
                         "amount_imposed": 500,
-                        "result_id": "123AA"
+                        "result_id": "FO"
                     }
                 ],
                 "date_of_sentence": "2023-11-15"
@@ -169,12 +169,12 @@ VALUES
         "originator_id": 1234,
         "offences": [
             {
-                "offence_id": 1234,
+                "offence_id": 30002,
                 "impositions": [
                     {
                         "amount_paid": 200,
                         "amount_imposed": 500,
-                        "result_id": "123AA"
+                        "result_id": "FO"
                     }
                 ],
                 "date_of_sentence": "2023-11-15"
@@ -235,12 +235,12 @@ VALUES
         "originator_id": 1234,
         "offences": [
             {
-                "offence_id": 1234,
+                "offence_id": 30002,
                 "impositions": [
                     {
                         "amount_paid": 200,
                         "amount_imposed": 500,
-                        "result_id": "123AA"
+                        "result_id": "FO"
                     }
                 ],
                 "date_of_sentence": "2023-11-15"
@@ -301,12 +301,12 @@ VALUES
         "originator_id": 1234,
         "offences": [
             {
-                "offence_id": 1234,
+                "offence_id": 30002,
                 "impositions": [
                     {
                         "amount_paid": 200,
                         "amount_imposed": 500,
-                        "result_id": "123AA"
+                        "result_id": "FO"
                     }
                 ],
                 "date_of_sentence": "2023-11-15"
@@ -367,12 +367,12 @@ VALUES
         "originator_id": 1234,
         "offences": [
             {
-                "offence_id": 1234,
+                "offence_id": 30002,
                 "impositions": [
                     {
                         "amount_paid": 200,
                         "amount_imposed": 500,
-                        "result_id": "123AA"
+                        "result_id": "FO"
                     }
                 ],
                 "date_of_sentence": "2023-11-15"
@@ -436,12 +436,12 @@ VALUES
         "originator_id": 1234,
         "offences": [
             {
-                "offence_id": 1234,
+                "offence_id": 30002,
                 "impositions": [
                     {
                         "amount_paid": 200,
                         "amount_imposed": 500,
-                        "result_id": "123AA"
+                        "result_id": "FO"
                     }
                 ],
                 "date_of_sentence": "2023-11-15"
@@ -485,12 +485,12 @@ VALUES
         "originator_id": 1234,
         "offences": [
             {
-                "offence_id": 1234,
+                "offence_id": 30002,
                 "impositions": [
                     {
                         "amount_paid": 200,
                         "amount_imposed": 500,
-                        "result_id": "123AA"
+                        "result_id": "FO"
                     }
                 ],
                 "date_of_sentence": "2023-11-15"
@@ -534,12 +534,12 @@ VALUES
         "originator_id": 1234,
         "offences": [
             {
-                "offence_id": 1234,
+                "offence_id": 30002,
                 "impositions": [
                     {
                         "amount_paid": 200,
                         "amount_imposed": 500,
-                        "result_id": "123AA"
+                        "result_id": "FO"
                     }
                 ],
                 "date_of_sentence": "2023-11-15"
