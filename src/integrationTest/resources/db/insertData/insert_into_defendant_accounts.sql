@@ -95,3 +95,147 @@ VALUES
 001077, 'AC', 'defendant_accounts', 0077
 , 'Comment for Notes for Ms Anna Graham', NULL, 'Dr Notes'
 );
+
+--  NEW: Record with business_unit_id = 78, to test partially populated party (all nulls)
+INSERT INTO defendant_accounts
+(
+defendant_account_id, business_unit_id, account_number,
+amount_paid, account_balance, amount_imposed, account_status,
+prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type, collection_order, payment_card_requested
+)
+VALUES
+(
+88, 78, '188A',
+100.00, 400.00, 500.00, 'L',
+'188PCR', 'N', 'N', 'Fine', 'N', 'N'
+);
+
+
+--  NEW: Party record with all null personal fields (to test null field mapping and alias fallback)
+INSERT INTO parties
+(
+party_id, organisation, organisation_name,
+surname, forenames, title,
+address_line_1, postcode, birth_date, national_insurance_number
+)
+VALUES
+(
+88, 'N', NULL,
+NULL, NULL, NULL,
+NULL, NULL, NULL, NULL
+);
+
+INSERT INTO defendant_account_parties
+(
+defendant_account_party_id, defendant_account_id, party_id,
+association_type, debtor
+)
+VALUES
+(
+88, 88, 88,
+'Defendant', 'Y'
+);
+
+--  NEW: Alias added for party 88 (to test alias fallback mapping logic)
+INSERT INTO aliases
+(
+alias_id, party_id, surname, forenames, sequence_number, organisation_name
+)
+VALUES
+(
+8801, 88, 'AliasSurname', 'AliasForenames', 1, 'AliasOrg'
+);
+
+-- ✅ TEST DATA: Account with both main name and alias (used for alias match when main is present)
+-- Purpose: Ensure that alias match works even if party also has non-null surname/forenames
+
+INSERT INTO defendant_accounts (
+    defendant_account_id, business_unit_id, account_number,
+    amount_paid, account_balance, amount_imposed, account_status,
+    prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+    collection_order, payment_card_requested
+)
+VALUES
+(
+    901, 78, '901A',
+    100.00, 400.00, 500.00, 'L',
+    '901PCR', 'N', 'N', 'Fine',
+    'N', 'N'
+);
+
+INSERT INTO parties (
+    party_id, organisation, organisation_name,
+    surname, forenames, title,
+    address_line_1, postcode, birth_date, national_insurance_number
+) VALUES (
+    901, 'N', NULL,
+    'MainSurname', 'MainForenames', 'Mr',
+    'Alias Street', 'AL1 1AS', '1980-01-01', 'XX999999X'
+);
+
+INSERT INTO defendant_account_parties (
+    defendant_account_party_id, defendant_account_id, party_id,
+    association_type, debtor
+)
+VALUES
+(
+    901, 901, 901,
+    'Defendant', 'Y'
+);
+
+INSERT INTO aliases (
+    alias_id, party_id, surname, forenames, sequence_number, organisation_name
+)
+VALUES
+(
+    9011, 901, 'AliasSurname', 'AliasForenames', 1, 'AliasOrg'
+);
+
+-- Dummy business unit to satisfy FK constraint but trigger Hibernate fallback
+INSERT INTO business_units (
+    business_unit_id,
+    business_unit_name,
+    business_unit_type
+)
+VALUES
+(
+    9999,
+    '',         -- Empty name to simulate "missing"
+    'INVALID'   -- Invalid type (must not match enum/expected values)
+);
+
+--  Test record with non-existent business_unit_id to test fallback logic (getBusinessUnit() == null)
+INSERT INTO defendant_accounts (
+    defendant_account_id, business_unit_id, account_number,
+    amount_paid, account_balance, amount_imposed, account_status,
+    prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+    collection_order, payment_card_requested
+)
+ VALUES
+(
+    999, 9999, '199A',
+    100.00, 400.00, 500.00, 'L',
+    '199PCR', 'N', 'N', 'Fine',
+    'N', 'N'
+);
+
+-- Party + link
+INSERT INTO parties (
+    party_id, organisation, organisation_name,
+    surname, forenames, title
+)
+ VALUES
+(
+    999, 'N', NULL,
+    'Fallback', 'NullBU', 'Mr'
+);
+
+INSERT INTO defendant_account_parties (
+    defendant_account_party_id, defendant_account_id, party_id,
+    association_type, debtor
+)
+VALUES
+(
+    999, 999, 999,
+    'Defendant', 'Y'
+);
