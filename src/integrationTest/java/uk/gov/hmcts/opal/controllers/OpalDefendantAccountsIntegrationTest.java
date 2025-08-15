@@ -106,5 +106,30 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing(log);
     }
 
+    @Test
+    void get_header_summary_throws_not_found() throws Exception {
+        super.testGetHeaderSummary_ThrowsNotFound(log);
+    }
+
+    @Test
+    void opal_defendant_with_null_party_fields_uses_aliases() throws Exception {
+        super.testPostDefendantAccountsSearch_Opal_AliasFieldsMapped(log);
+    }
+
+    @Test
+    void opal_business_unit_is_null_in_summary_dto() throws Exception {
+        super.testPostDefendantAccountsSearch_Opal_BusinessUnitNullFallback(log);
+    }
+
+    @Test
+    void opal_surname_partial_match() throws Exception {
+        super.testPostDefendantAccountsSearch_Opal_SurnamePartialMatch(log);
+    }
+
+    @Test
+    void opal_matchOnAlias_over_main() throws Exception {
+        super.testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent(log);
+    }
+
 
 }

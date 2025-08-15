@@ -1,7 +1,10 @@
 package uk.gov.hmcts.opal.controllers;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -13,6 +16,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
+import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -38,6 +42,18 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
+
+    // Suppressed until @MockBean is replaced with new approach (Spring Boot 3.3+)
+    @SuppressWarnings("removal")
+    @MockBean
+    private UserState userState;
+
+    @BeforeEach
+    void setupUserState() {
+        Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any()))
+            .thenReturn(true);
+    }
+
 
     void getHeaderSummaryImpl(Logger log) throws Exception {
 
@@ -901,4 +917,157 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_accounts[0].parent_guardian_surname").doesNotExist())
             .andExpect(jsonPath("$.defendant_accounts[0].parent_guardian_firstnames").doesNotExist());
     }
+
+    void testGetHeaderSummary_ThrowsNotFound(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get("/defendant-accounts/999/header-summary")
+            .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetHeaderSummary_ThrowsNotFound: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isNotFound());
+    }
+
+    @DisplayName("OPAL: Alias fields are mapped when party personal details are null")
+    void testPostDefendantAccountsSearch_Opal_AliasFieldsMapped(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+            {
+              "active_accounts_only": true,
+              "business_unit_ids": [78],
+              "reference_number": {
+                "account_number": "188A",
+                "prosecutor_case_reference": null,
+                "organisation": false
+              },
+              "defendant": null
+            }
+            """));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDefendantAccountsSearch_Opal_AliasFieldsMapped: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].alias_number").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].organisation_name").value("AliasOrg"))
+            .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].surname").value("AliasSurname"))
+            .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].forenames").value("AliasForenames"));
+    }
+
+    public void testPostDefendantAccountsSearch_Opal_BusinessUnitNullFallback(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        mockMvc.perform(post("/defendant-accounts/search")
+                .header("authorization", "Bearer some_value")
+                .contentType(APPLICATION_JSON)
+                .content("""
+                {
+                  "active_accounts_only": true,
+                  "business_unit_ids": [9999],
+                  "reference_number": {
+                    "account_number": "199A",
+                    "prosecutor_case_reference": null,
+                    "organisation": false
+                  },
+                  "defendant": null
+                }
+                """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_name").value(""))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("9999"));
+    }
+
+    @DisplayName("OPAL: Fuzzy surname match when exact_match_surname = false")
+    void testPostDefendantAccountsSearch_Opal_SurnamePartialMatch(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                    {
+                       "active_accounts_only": true,
+                       "business_unit_ids": [78],
+                       "reference_number": null,
+                       "defendant": {
+                         "include_aliases": false,
+                         "organisation": false,
+                         "organisation_name": null,
+                         "exact_match_organisation_name": null,
+                         "surname": "Grah",
+                         "exact_match_surname": false,
+                         "forenames": "Anna",
+                         "exact_match_forenames": true,
+                         "address_line_1": "Lumber House",
+                         "postcode": "MA4 1AL",
+                         "birth_date": "1980-02-03",
+                         "national_insurance_number": "A11111A"
+                       }
+                     }
+                     
+                """));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDefendantAccountsSearch_Opal_SurnamePartialMatch: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"));
+    }
+
+    @DisplayName("OPAL: Match on alias when both alias and main name exist")
+    void testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+                    {
+                      "active_accounts_only": true,
+                      "business_unit_ids": [78],
+                      "reference_number": null,
+                      "defendant": {
+                        "include_aliases": true,
+                        "organisation": false,
+                        "surname": "AliasSurname",
+                        "exact_match_surname": true,
+                        "forenames": "AliasForenames",
+                        "exact_match_forenames": true,
+                        "address_line_1": "Alias Street",
+                        "postcode": "AL1 1AS",
+                        "organisation_name": null,
+                        "exact_match_organisation_name": null,
+                        "birth_date": "1980-01-01",
+                        "national_insurance_number": "XX999999X"
+                      }
+                    }
+                """));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].surname").value("AliasSurname"));
+    }
+
 }
