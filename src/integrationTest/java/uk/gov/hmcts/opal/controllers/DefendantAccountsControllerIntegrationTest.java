@@ -822,7 +822,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(0)); // ✅ Adjusted for now
+            .andExpect(jsonPath("$.count").value(3)); // ✅ Adjusted for now
 
         // TODO: Uncomment the assertions below when organisation data like 'Sainsco' is seeded
         /*

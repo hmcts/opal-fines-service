@@ -22,6 +22,9 @@ import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import static uk.gov.hmcts.opal.repository.jpa.CourtSpecs.equalsCourtIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.DefendantAccountPartySpecs.joinPartyOnAssociationType;
@@ -162,95 +165,71 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
         return (acc.length() == 9 && Character.isLetter(acc.charAt(8))) ? acc.substring(0, 8) : acc;
     }
 
-    public Specification<DefendantAccountEntity> filterByBusinessUnits(java.util.List<Integer> businessUnitIds) {
-        return (root, query, cb) -> {
-            if (businessUnitIds == null || businessUnitIds.isEmpty()) {
-                return cb.conjunction();
-            }
-            var bu = root.join(DefendantAccountEntity_.businessUnit);
-            var in = cb.in(bu.get(BusinessUnitEntity_.businessUnitId));
-            for (Integer id : businessUnitIds) {
-                if (id != null) {
-                    in.value(id.shortValue());
-                }
-            }
-            return in;
-        };
+    public Specification<DefendantAccountEntity> filterByBusinessUnits(List<Integer> businessUnitIds) {
+        return (root, query, cb) ->
+            Optional.ofNullable(businessUnitIds)
+                .filter(list -> !list.isEmpty())
+                .map(list -> {
+                    var bu = root.join(DefendantAccountEntity_.businessUnit);
+                    var path = bu.get(BusinessUnitEntity_.businessUnitId);
+                    var inClause = cb.in(path);
+                    list.stream()
+                        .filter(Objects::nonNull)
+                        .map(Integer::shortValue)
+                        .forEach(inClause::value);
+                    return (Predicate) inClause;
+                })
+                .orElse(cb.conjunction());
     }
+
+
 
     public Specification<DefendantAccountEntity> filterByActiveOnly(Boolean activeOnly) {
-        return (root, query, cb) -> {
-            if (!Boolean.TRUE.equals(activeOnly)) {
-                return cb.conjunction();
-            }
-            var status = root.get(DefendantAccountEntity_.accountStatus);
-            return cb.notEqual(cb.upper(status), "C");
-        };
+        return (root, query, cb) ->
+            Boolean.TRUE.equals(activeOnly)
+                ? cb.notEqual(cb.upper(root.get(DefendantAccountEntity_.accountStatus)), "C")
+                : cb.conjunction();
     }
 
-    public Specification<DefendantAccountEntity> filterByAccountNumberStartsWithWithCheckLetter(AccountSearchDto dto) {
-        return (root, query, cb) -> {
-            ReferenceNumberDto ref = dto.getReferenceNumberDto();
-            String acc = (ref != null) ? ref.getAccountNumber() : null;
-            if (acc == null || acc.isBlank()) {
-                return cb.conjunction();
-            }
 
-            String stripped = stripCheckLetter(acc);
-            return likeStartsWithNormalized(cb, root.get(DefendantAccountEntity_.accountNumber), stripped);
-        };
+    public Specification<DefendantAccountEntity> filterByAccountNumberStartsWithWithCheckLetter(AccountSearchDto dto) {
+        return (root, query, cb) ->
+            Optional.ofNullable(dto.getReferenceNumberDto())
+                .map(ReferenceNumberDto::getAccountNumber)
+                .filter(acc -> !acc.isBlank())
+                .map(DefendantAccountSpecs::stripCheckLetter)
+                .map(stripped ->
+                    likeStartsWithNormalized(
+                        cb,
+                        root.get(DefendantAccountEntity_.accountNumber),
+                        stripped
+                    )
+                )
+                .orElse(cb.conjunction());
     }
 
     public Specification<DefendantAccountEntity> filterByPcrExact(AccountSearchDto dto) {
-        return (root, query, cb) -> {
-            var ref = dto.getReferenceNumberDto();
-            var pcr = (ref != null) ? ref.getProsecutorCaseReference() : null;
-            if (pcr == null || pcr.isBlank()) {
-                return cb.conjunction();
-            }
-            return equalsNormalized(cb, root.get(DefendantAccountEntity_.prosecutorCaseReference), pcr);
-        };
+        return (root, query, cb) ->
+            Optional.ofNullable(dto.getReferenceNumberDto())
+                .map(ReferenceNumberDto::getProsecutorCaseReference)
+                .filter(pcr -> !pcr.isBlank())
+                .map(pcr -> equalsNormalized(cb, root.get(DefendantAccountEntity_.prosecutorCaseReference), pcr))
+                .orElse(cb.conjunction());
     }
 
-    public Specification<DefendantAccountEntity> filterByDefendantName(AccountSearchDto dto) {
-        return (root, query, cb) -> {
-            DefendantDto def = dto.getDefendant();
-            if (def == null) {
-                return cb.conjunction();
-            }
-
-            var party = joinDefendantParty(root, cb);
-
-            Predicate p = cb.conjunction();
-
-            if (Boolean.TRUE.equals(def.getOrganisation())) {
-                String org = def.getOrganisationName();
-                if (org == null || org.isBlank()) {
-                    return cb.conjunction();
-                }
-                Expression<String> field = party.get("organisationName").as(String.class);
-                p = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
-                    ? equalsNormalized(cb, field, org)
-                    : likeStartsWithNormalized(cb, field, org);
-            } else {
-                String surname = def.getSurname();
-                String forenames = def.getForenames();
-
-                if (surname != null && !surname.isBlank()) {
-                    Expression<String> f = party.get("surname").as(String.class);
-                    p = cb.and(p, Boolean.TRUE.equals(def.getExactMatchSurname())
-                        ? equalsNormalized(cb, f, surname)
-                        : likeStartsWithNormalized(cb, f, surname));
-                }
-                if (forenames != null && !forenames.isBlank()) {
-                    Expression<String> f = party.get("forenames").as(String.class);
-                    p = cb.and(p, Boolean.TRUE.equals(def.getExactMatchForenames())
-                        ? equalsNormalized(cb, f, forenames)
-                        : likeStartsWithNormalized(cb, f, forenames));
-                }
-            }
-            return p;
-        };
+    public Specification<DefendantAccountEntity> filterByDobStartsWith(AccountSearchDto dto) {
+        return (root, query, cb) ->
+            Optional.ofNullable(dto.getDefendant())
+                .map(DefendantDto::getBirthDate)
+                .map(dob -> {
+                    var party = joinDefendantParty(root, cb);
+                    Expression<String> dobStr = cb.function(
+                        "to_char", String.class,
+                        party.get(PartyEntity_.dateOfBirth),
+                        cb.literal("YYYY-MM-DD"));
+                    return cb.like(dobStr, dob.toString() + "%");
+                })
+                .orElse(cb.conjunction());
     }
 
     public Specification<DefendantAccountEntity> filterByAliasesIfRequested(AccountSearchDto dto) {
@@ -296,79 +275,74 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
         };
     }
 
+    public Specification<DefendantAccountEntity> filterByDefendantName(AccountSearchDto dto) {
+        return (root, query, cb) -> {
+            Optional<Predicate> surnamePredicate = Optional.ofNullable(dto.getDefendant())
+                .map(DefendantDto::getSurname)
+                .filter(surname -> !surname.isBlank())
+                .map(surname -> likeSurname(surname).toPredicate(root, query, cb));
+
+            Optional<Predicate> forenamePredicate = Optional.ofNullable(dto.getDefendant())
+                .map(DefendantDto::getForenames)
+                .filter(forenames -> !forenames.isBlank())
+                .map(forenames -> likeForename(forenames).toPredicate(root, query, cb));
+
+            return cb.and(
+                surnamePredicate.orElse(cb.conjunction()),
+                forenamePredicate.orElse(cb.conjunction())
+            );
+        };
+    }
 
     public Specification<DefendantAccountEntity> filterByNameIncludingAliases(AccountSearchDto dto) {
         return (root, query, cb) -> {
             query.distinct(true);
-            DefendantDto def = dto.getDefendant();
-            if (def == null) {
-                return cb.conjunction();
-            }
+            Predicate partyPredicate = filterByDefendantName(dto).toPredicate(root, query, cb);
 
-            Predicate partyPredicate = this.filterByDefendantName(dto).toPredicate(root, query, cb);
-
-            if (!Boolean.TRUE.equals(def.getIncludeAliases())) {
-                return partyPredicate;
-            }
-
-            Predicate aliasPredicate = this.filterByAliasesIfRequested(dto).toPredicate(root, query, cb);
-
-            return cb.or(partyPredicate, aliasPredicate);
-        };
-    }
-
-
-    public Specification<DefendantAccountEntity> filterByDobStartsWith(AccountSearchDto dto) {
-        return (root, query, cb) -> {
-            DefendantDto def = dto.getDefendant();
-            if (def == null || def.getBirthDate() == null) {
-                return cb.conjunction();
-            }
-
-            var party = joinDefendantParty(root, cb);
-
-            Expression<String> dobStr = cb.function(
-                "to_char", String.class,
-                party.get(uk.gov.hmcts.opal.entity.PartyEntity_.dateOfBirth),
-                cb.literal("YYYY-MM-DD")
-            );
-
-            String prefix = def.getBirthDate().toString();
-            return cb.like(dobStr, prefix + "%");
+            return Optional.ofNullable(dto.getDefendant())
+                .filter(DefendantDto::getIncludeAliases)
+                .map(def -> {
+                    Predicate aliasPredicate = filterByAliasesIfRequested(dto).toPredicate(root, query, cb);
+                    return cb.or(partyPredicate, aliasPredicate);
+                })
+                .orElse(partyPredicate);
         };
     }
 
     public Specification<DefendantAccountEntity> filterByNiStartsWith(AccountSearchDto dto) {
-        return (root, query, cb) -> {
-            DefendantDto def = dto.getDefendant();
-            if (def == null || def.getNationalInsuranceNumber() == null || def.getNationalInsuranceNumber().isBlank()) {
-                return cb.conjunction();
-            }
-            var party = joinDefendantParty(root, cb);
-            return likeStartsWithNormalized(cb, party.get(PartyEntity_.niNumber), def.getNationalInsuranceNumber());
-        };
+        return (root, query, cb) ->
+            Optional.ofNullable(dto.getDefendant())
+                .map(DefendantDto::getNationalInsuranceNumber)
+                .filter(nino -> !nino.isBlank())
+                .map(nino -> {
+                    var party = joinDefendantParty(root, cb);
+                    return likeStartsWithNormalized(cb, party.get(PartyEntity_.niNumber), nino);
+                })
+                .orElse(cb.conjunction());
     }
 
 
     public Specification<DefendantAccountEntity> filterByAddress1StartsWith(AccountSearchDto dto) {
-        return (root, query, cb) -> {
-            DefendantDto def = dto.getDefendant();
-            if (def == null || def.getAddressLine1() == null || def.getAddressLine1().isBlank()) {
-                return cb.conjunction();
-            }
-            var party = joinDefendantParty(root, cb);
-            return likeStartsWithNormalized(cb, party.get(PartyEntity_.addressLine1), def.getAddressLine1());
-        };
+        return (root, query, cb) ->
+            Optional.ofNullable(dto.getDefendant())
+                .map(DefendantDto::getAddressLine1)
+                .filter(addr -> !addr.isBlank())
+                .map(addr -> {
+                    var party = joinDefendantParty(root, cb);
+                    return likeStartsWithNormalized(cb, party.get(PartyEntity_.addressLine1), addr);
+                })
+                .orElse(cb.conjunction());
     }
 
     public Specification<DefendantAccountEntity> filterByPostcodeStartsWith(AccountSearchDto dto) {
-        return (root, query, cb) -> {
-            DefendantDto def = dto.getDefendant();
-            if (def == null || def.getPostcode() == null || def.getPostcode().isBlank()) {
-                return cb.conjunction();
-            }
-            var party = joinDefendantParty(root, cb);
-            return likeStartsWithNormalized(cb, party.get(PartyEntity_.postcode), def.getPostcode());
-        };
+        return (root, query, cb) ->
+            Optional.ofNullable(dto.getDefendant())
+                .map(DefendantDto::getPostcode)
+                .filter(postcode -> !postcode.isBlank())
+                .map(postcode -> {
+                    var party = joinDefendantParty(root, cb);
+                    return likeStartsWithNormalized(cb, party.get(PartyEntity_.postcode), postcode);
+                })
+                .orElse(cb.conjunction());
     }
 }
