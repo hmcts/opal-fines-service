@@ -44,6 +44,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 .and(defendantAccountSpecs.filterByAccountNumberStartsWithWithCheckLetter(accountSearchDto))
                 .and(defendantAccountSpecs.filterByPcrExact(accountSearchDto))
                 .and(defendantAccountSpecs.filterByNameIncludingAliases(accountSearchDto))
+                .and(defendantAccountSpecs.filterByAliasesIfRequested(accountSearchDto))
                 .and(defendantAccountSpecs.filterByDobStartsWith(accountSearchDto))
                 .and(defendantAccountSpecs.filterByNiStartsWith(accountSearchDto))
                 .and(defendantAccountSpecs.filterByAddress1StartsWith(accountSearchDto))

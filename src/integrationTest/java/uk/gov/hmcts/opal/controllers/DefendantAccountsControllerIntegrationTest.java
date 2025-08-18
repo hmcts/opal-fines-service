@@ -822,16 +822,14 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(3)); // ✅ Adjusted for now
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value(333))
+            .andExpect(jsonPath("$.defendant_accounts[0].organisation").value(true))
+            .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value("Sainsco"))
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_title").doesNotExist())
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_firstnames").doesNotExist())
+            .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").doesNotExist());
 
-        // TODO: Uncomment the assertions below when organisation data like 'Sainsco' is seeded
-        /*
-        .andExpect(jsonPath("$.defendant_accounts[0].organisation").value(true))
-        .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value("Sainsco"))
-        .andExpect(jsonPath("$.defendant_accounts[0].defendant_title").doesNotExist())
-        .andExpect(jsonPath("$.defendant_accounts[0].defendant_firstnames").doesNotExist())
-        .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").doesNotExist());
-         */
     }
 
     @DisplayName("OPAL: Alias search fallback → matches on main name when no alias exists")

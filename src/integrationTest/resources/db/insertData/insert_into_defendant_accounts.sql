@@ -239,3 +239,33 @@ VALUES
     999, 999, 999,
     'Defendant', 'Y'
 );
+
+-- Organisation party for Sainsco (used in organisation-only search tests)
+INSERT INTO parties (
+    party_id, organisation, organisation_name
+)
+VALUES (
+    333, 'Y', 'Sainsco'
+);
+
+INSERT INTO defendant_accounts (
+    defendant_account_id, business_unit_id, account_number,
+    amount_paid, account_balance, amount_imposed, account_status,
+    prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+    collection_order, payment_card_requested
+)
+VALUES (
+    333, 78, '333A',
+    100.00, 100.00, 200.00, 'L',
+    '333PCR', 'N', 'N', 'Fine',
+    'N', 'N'
+);
+
+INSERT INTO defendant_account_parties (
+    defendant_account_party_id, defendant_account_id, party_id,
+    association_type, debtor
+)
+VALUES (
+    333, 333, 333,
+    'Defendant', 'Y'
+);

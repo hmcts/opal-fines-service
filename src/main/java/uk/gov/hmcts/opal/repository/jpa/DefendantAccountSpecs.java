@@ -183,7 +183,6 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
     }
 
 
-
     public Specification<DefendantAccountEntity> filterByActiveOnly(Boolean activeOnly) {
         return (root, query, cb) ->
             Boolean.TRUE.equals(activeOnly)
@@ -235,45 +234,74 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
     public Specification<DefendantAccountEntity> filterByAliasesIfRequested(AccountSearchDto dto) {
         return (root, query, cb) -> {
             DefendantDto def = dto.getDefendant();
-            if (def == null || !Boolean.TRUE.equals(def.getIncludeAliases())) {
+            if (def == null) {
                 return cb.conjunction();
             }
 
-            var party = joinDefendantParty(root, cb);
-            var alias = party.join(PartyEntity_.aliasEntities, JoinType.LEFT);
+            // Make sure we don't get inflated counts due to joins
+            query.distinct(true);
 
-            Predicate any = cb.disjunction();
+            var party = joinDefendantParty(root, cb);
 
             if (Boolean.TRUE.equals(def.getOrganisation())) {
-                String organisationName = def.getOrganisationName();
-                if (organisationName == null || organisationName.isBlank()) {
+                String orgName = def.getOrganisationName();
+                if (orgName == null || orgName.isBlank()) {
                     return cb.conjunction();
                 }
-                var aliasOrganisationName = alias.get(AliasEntity_.organisationName);
-                any = cb.or(any, Boolean.TRUE.equals(def.getExactMatchOrganisationName())
-                    ? equalsNormalized(cb, aliasOrganisationName, organisationName)
-                    : likeStartsWithNormalized(cb, aliasOrganisationName, organisationName));
-            } else {
-                String surname = def.getSurname();
-                String forenames = def.getForenames();
 
-                if (surname != null && !surname.isBlank()) {
-                    var aliasSurname = alias.get(AliasEntity_.surname);
-                    any = cb.or(any, Boolean.TRUE.equals(def.getExactMatchSurname())
-                        ? equalsNormalized(cb, aliasSurname, surname)
-                        : likeStartsWithNormalized(cb, aliasSurname, surname));
+                // Always guard by party being an organisation
+                Predicate matchOnParty = cb.and(
+                    cb.isTrue(party.get(PartyEntity_.organisation)),
+                    Boolean.TRUE.equals(def.getExactMatchOrganisationName())
+                        ? equalsNormalized(cb, party.get(PartyEntity_.organisationName), orgName)
+                        : likeStartsWithNormalized(cb, party.get(PartyEntity_.organisationName), orgName)
+                );
+
+                // If aliases are requested, LEFT JOIN so we don't exclude orgs with no aliases
+                Predicate matchOnAlias = cb.disjunction();
+                if (Boolean.TRUE.equals(def.getIncludeAliases())) {
+                    var alias = party.join(PartyEntity_.aliasEntities, JoinType.LEFT);
+
+                    Predicate aliasName = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
+                        ? equalsNormalized(cb, alias.get(AliasEntity_.organisationName), orgName)
+                        : likeStartsWithNormalized(cb, alias.get(AliasEntity_.organisationName), orgName);
+
+                    // Only allow alias matches for organisation parties
+                    matchOnAlias = cb.and(cb.isTrue(party.get(PartyEntity_.organisation)), aliasName);
                 }
-                if (forenames != null && !forenames.isBlank()) {
-                    var aliasForenames = alias.get(AliasEntity_.forenames);
-                    any = cb.or(any, Boolean.TRUE.equals(def.getExactMatchForenames())
-                        ? equalsNormalized(cb, aliasForenames, forenames)
-                        : likeStartsWithNormalized(cb, aliasForenames, forenames));
-                }
+
+                return cb.or(matchOnParty, matchOnAlias);
             }
 
-            return any.getExpressions().isEmpty() ? cb.conjunction() : any;
+            // --- (unchanged) person-name path ---
+            if (!Boolean.TRUE.equals(def.getIncludeAliases())) {
+                return cb.conjunction();
+            }
+
+            var alias = party.join(PartyEntity_.aliasEntities, JoinType.LEFT); // also LEFT here is safer
+            Predicate finalPredicate = cb.disjunction();
+
+            String surname = def.getSurname();
+            String forenames = def.getForenames();
+
+            if (surname != null && !surname.isBlank()) {
+                Predicate surnameMatch = Boolean.TRUE.equals(def.getExactMatchSurname())
+                    ? equalsNormalized(cb, alias.get(AliasEntity_.surname), surname)
+                    : likeStartsWithNormalized(cb, alias.get(AliasEntity_.surname), surname);
+                finalPredicate = cb.or(finalPredicate, surnameMatch);
+            }
+
+            if (forenames != null && !forenames.isBlank()) {
+                Predicate forenamesMatch = Boolean.TRUE.equals(def.getExactMatchForenames())
+                    ? equalsNormalized(cb, alias.get(AliasEntity_.forenames), forenames)
+                    : likeStartsWithNormalized(cb, alias.get(AliasEntity_.forenames), forenames);
+                finalPredicate = cb.or(finalPredicate, forenamesMatch);
+            }
+
+            return finalPredicate.getExpressions().isEmpty() ? cb.conjunction() : finalPredicate;
         };
     }
+
 
     public Specification<DefendantAccountEntity> filterByDefendantName(AccountSearchDto dto) {
         return (root, query, cb) -> {
