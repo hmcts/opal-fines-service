@@ -43,8 +43,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 .and(defendantAccountSpecs.filterByActiveOnly(accountSearchDto.getActiveAccountsOnly()))
                 .and(defendantAccountSpecs.filterByAccountNumberStartsWithWithCheckLetter(accountSearchDto))
                 .and(defendantAccountSpecs.filterByPcrExact(accountSearchDto))
-                .and(defendantAccountSpecs.filterByNameIncludingAliases(accountSearchDto))
-                .and(defendantAccountSpecs.filterByAliasesIfRequested(accountSearchDto))
+                .and(
+                    accountSearchDto.getDefendant() != null
+                        && Boolean.TRUE.equals(accountSearchDto.getDefendant().getOrganisation())
+                        ? defendantAccountSpecs.filterByAliasesIfRequested(accountSearchDto)
+                        : defendantAccountSpecs.filterByNameIncludingAliases(accountSearchDto)
+                )
                 .and(defendantAccountSpecs.filterByDobStartsWith(accountSearchDto))
                 .and(defendantAccountSpecs.filterByNiStartsWith(accountSearchDto))
                 .and(defendantAccountSpecs.filterByAddress1StartsWith(accountSearchDto))
