@@ -2,8 +2,8 @@
   "account_type": "Fine",
   "defendant_type": "Adult",
   "originator_name": "Police Force",
-  "originator_id": 12345,
-  "enforcement_court_id": 50000000001,
+  "originator_id": 372,
+  "enforcement_court_id": 730000000002,
   "collection_order_made": true,
   "collection_order_made_today": false,
   "payment_card_request": true,
@@ -18,10 +18,10 @@
   "offences": [
     {
       "date_of_sentence": "2023-11-15",
-      "offence_id": 1234,
+      "offence_id": 43312,
       "impositions": [
         {
-          "result_id": "1234",
+          "result_id": "FO",
           "amount_imposed": 500.0,
           "amount_paid": 200.0
         }
