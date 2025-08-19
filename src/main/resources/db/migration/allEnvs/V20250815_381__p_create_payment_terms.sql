@@ -38,6 +38,7 @@ DECLARE
     v_instalment_amount         payment_terms.instalment_amount%TYPE;
     v_jail_days                 payment_terms.jail_days%TYPE;
     v_is_fixed_penalty          BOOLEAN;
+    v_payment_term_condition    BOOLEAN; --Flag to check if payment terms are valid
 BEGIN
 
     --Insert the PAYMENT_TERMS record, if the Json passed is not NULL
@@ -54,11 +55,25 @@ BEGIN
         v_effective_date          := TO_TIMESTAMP(pi_payment_terms_json ->> 'effective_date', 'YYYY-MM-DD');
         v_instalment_amount       := (pi_payment_terms_json ->> 'instalment_amount')::NUMERIC(18,2);
         v_jail_days               := (pi_payment_terms_json ->> 'default_days_in_jail')::INTEGER;
-        v_is_fixed_penalty        := (LOWER(pi_account_type) = 'fixed penalty');  
+        v_is_fixed_penalty        := (LOWER(pi_account_type) = 'fixed penalty'); 
+        v_payment_term_condition  := FALSE; --Flag to check if payment terms are valid 
 
-        IF (v_payment_terms_type_code = 'B' AND v_effective_date IS NOT NULL AND v_is_fixed_penalty) OR
-           (v_payment_terms_type_code = 'I' AND v_effective_date IS NOT NULL AND v_instalment_amount IS NOT NULL) OR
-           (v_payment_terms_type_code = 'P') 
+        IF v_is_fixed_penalty 
+        THEN 
+            IF (v_payment_terms_type_code = 'B' AND v_effective_date IS NOT NULL)
+            THEN
+                v_payment_term_condition  := TRUE;
+            END IF;
+        ELSE
+            IF (v_payment_terms_type_code = 'B' AND v_effective_date IS NOT NULL AND NOT v_is_fixed_penalty) OR
+               (v_payment_terms_type_code = 'I' AND v_effective_date IS NOT NULL AND v_instalment_amount IS NOT NULL) OR
+               (v_payment_terms_type_code = 'P') 
+            THEN
+                v_payment_term_condition := TRUE;
+            END IF;
+        END IF;
+
+        IF v_payment_term_condition 
         THEN
             
             --Payment terms are valid
