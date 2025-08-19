@@ -19,7 +19,7 @@ public class DefendantAccountDeleteStep extends BaseStepDef {
     @Then("I delete the created defendant accounts")
     public void deleteCreatedDefendantAccounts() {
         List<Long> defendantAccountIds = getDefendantAccountIdsFromDraftAccounts();
-        
+
         if (!defendantAccountIds.isEmpty()) {
             for (Long defendantAccountId : defendantAccountIds) {
                 log.info("Deleting defendant account: {}", defendantAccountId);
@@ -29,7 +29,7 @@ public class DefendantAccountDeleteStep extends BaseStepDef {
             log.info("No defendant accounts to delete");
         }
     }
-    
+
     private void deleteDefendantAccount(Long defendantAccountId) {
         SerenityRest
             .given()
@@ -40,19 +40,19 @@ public class DefendantAccountDeleteStep extends BaseStepDef {
             .delete(getTestUrl() + "/testing-support/defendant-accounts/" + defendantAccountId);
     }
 
-        
+
     public static List<Long> getDefendantAccountIdsFromDraftAccounts() {
         List<String> draftAccounts = DraftAccountUtils.getAllDraftAccountIds();
         if (draftAccounts == null || draftAccounts.isEmpty()) {
             return Collections.emptyList();
         }
-        
+
         return draftAccounts.stream()
             .map(id -> getDefendantAccountIdFromDraftAccount(id))
             .filter(id -> id != null && id > 0)
             .collect(Collectors.toList());
     }
-    
+
     private static Long getDefendantAccountIdFromDraftAccount(String draftAccountId) {
         try {
             var response = SerenityRest
@@ -61,18 +61,19 @@ public class DefendantAccountDeleteStep extends BaseStepDef {
                 .accept("*/*")
                 .when()
                 .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
-            
+
             if (response.statusCode() == 200) {
-                Object accountIdObj = response.jsonPath().get("accountId");
+                Object accountIdObj = response.jsonPath().get("account_id");
                 if (accountIdObj != null) {
+                    log.info("Defendant account ID for draft account {}: {}", draftAccountId, accountIdObj);
                     return Long.valueOf(accountIdObj.toString());
                 }
             }
-            log.warn("Failed to get defendant account ID from draft account {}: Status code {}", 
+            log.warn("Failed to get defendant account ID from draft account {}: Status code {}",
                      draftAccountId, response.statusCode());
             return null;
         } catch (Exception e) {
-            log.error("Error getting defendant account ID for draft account {}: {}", 
+            log.error("Error getting defendant account ID for draft account {}: {}",
                       draftAccountId, e.getMessage());
             return null;
         }
