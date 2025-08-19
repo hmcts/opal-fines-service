@@ -4,10 +4,9 @@
   "type": ["object", "null"],
   "additionalProperties": false,
   "properties": {
-    "enforcement_override_id": { "type": "string"},
-    "enforcement_override_title": { "type": "string" },
-    "enforcer": {"type": ["string", "null"]},
-    "lja": {"type": ["string", "null"]}
+    "enforcement_override_result": { "$ref": "../common-objects/enforcementOverrideResultReference.json" },
+    "enforcer": {"$ref": "../common-objects/enforcerReference.json" },
+    "lja": {"$ref": "../common-objects/ljaReference.json"}
   },
-  "required": ["enforcement_override_id", "enforcement_override_title", "enforcer", "lja"]
+  "required": ["enforcement_override_result", "enforcer", "lja"]
 }
