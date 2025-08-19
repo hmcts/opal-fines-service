@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "LJA Reference",
-  "type": "object",
+  "type": ["object", "null"],
   "additionalProperties": false,
   "properties": {
     "lja_id": { "type": "integer" },
