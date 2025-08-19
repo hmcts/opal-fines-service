@@ -4,8 +4,8 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "warrant_enforcer_id": { "type": "integer" },
-    "warrant_enforcer_name": { "type": "string" }
+    "enforcer_id": { "type": "integer" },
+    "enforcer_name": { "type":  "string"}
   },
-  "required": ["warrant_enforcer_id", "warrant_enforcer_name"]
+  "required": ["enforcer_id", "enforcer_name"]
 }
