@@ -42,9 +42,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(1))
-            .activeAccountsOnly(true)
-            .accountNumber("ACC-987654").build();
+            .businessUnitIds(List.of(10))
+            .activeAccountsOnly(false)
+            .accountNumber("ACC9000").build();
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
                                                           .contentType(MediaType.APPLICATION_JSON).content(
