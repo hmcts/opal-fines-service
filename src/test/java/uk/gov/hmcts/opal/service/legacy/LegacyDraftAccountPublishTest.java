@@ -247,7 +247,7 @@ class LegacyDraftAccountPublishTest {
         );
 
         assertEquals("testUser", lcdar.getBusinessUnitUserId());
-        assertEquals(null , lcdar.getDefendantAccount());
+        assertEquals(null, lcdar.getDefendantAccount());
     }
 
     @Test
@@ -262,6 +262,7 @@ class LegacyDraftAccountPublishTest {
             LegacyDraftAccountPublish.createDefendantAccountRequest(entity, user);
         });
     }
+
     @Test
     void testcreateDefendantAccountRequest() {
 
