@@ -4,9 +4,6 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "version": {
-      "type": "integer"
-    },
     "vehicle_fixed_penalty_flag": {
       "type": "boolean"
     },
@@ -68,7 +65,6 @@
     }
   },
   "required": [
-    "version",
     "vehicle_fixed_penalty_flag",
     "fixed_penalty_ticket_details",
     "vehicle_fixed_penalty_details"
