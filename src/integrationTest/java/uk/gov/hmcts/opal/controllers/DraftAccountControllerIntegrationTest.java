@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -39,7 +40,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
-import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
