@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutionException;
 @Slf4j(topic = "opal.LegacyDraftAccountPublish")
 public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
 
-    public static final String CREATE_DEFENDANT_ACCOUNT = "LIBRA.of_create_defendant_account";
+    public static final String CREATE_DEFENDANT_ACCOUNT = "createAccount";
 
     private final GatewayService gatewayService;
     private final DraftAccountTransactions draftAccountTransactions;
