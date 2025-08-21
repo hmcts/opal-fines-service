@@ -25,9 +25,9 @@ $BODY$
 *
 * VERSION HISTORY:
 *
-* Date          Author      Version     Nature of Change
-* ----------    --------    --------    ----------------------------------------------------------------------------------------------
-* 29/07/2025    TMc         1.0         PO-1036 - Insert into the PAYMENT_TERMS table and update JAIL_DAYS on DEFENDANT_ACCOUNTS table
+* Date          Author               Version     Nature of Change
+* ----------    -----------------    --------    ----------------------------------------------------------------------------------------------
+* 29/07/2025    TMc and A Dennis     1.0         PO-1036 - Insert into the PAYMENT_TERMS table and update JAIL_DAYS on DEFENDANT_ACCOUNTS table                                   
 *
 **/
 DECLARE
@@ -60,12 +60,12 @@ BEGIN
 
         IF v_is_fixed_penalty 
         THEN 
-            IF (v_payment_terms_type_code = 'B' AND v_effective_date IS NOT NULL)
+            IF (v_payment_terms_type_code = 'B' AND v_effective_date IS NULL)  -- effective date not required for fixed penalty accounts
             THEN
                 v_payment_term_condition  := TRUE;
             END IF;
         ELSE
-            IF (v_payment_terms_type_code = 'B' AND v_effective_date IS NOT NULL AND NOT v_is_fixed_penalty) OR
+            IF (v_payment_terms_type_code = 'B' AND v_effective_date IS NOT NULL AND NOT v_is_fixed_penalty) OR  -- A non fixed penalty account can have payment type code of B
                (v_payment_terms_type_code = 'I' AND v_effective_date IS NOT NULL AND v_instalment_amount IS NOT NULL) OR
                (v_payment_terms_type_code = 'P') 
             THEN
