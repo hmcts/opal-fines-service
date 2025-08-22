@@ -79,8 +79,8 @@ BEGIN
             --Payment terms are valid
 
             IF v_is_fixed_penalty THEN
-                --Add 28 days to the effective_date
-                v_effective_date := v_effective_date + INTERVAL '28 days';
+                --Add 28 days to the current_timestamp
+                v_effective_date := CURRENT_TIMESTAMP + INTERVAL '28 days';
             END IF;
             
             INSERT INTO payment_terms (
