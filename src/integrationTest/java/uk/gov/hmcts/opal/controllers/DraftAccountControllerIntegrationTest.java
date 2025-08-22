@@ -545,7 +545,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                                                .header("authorization", "Bearer some_value")
                                                .contentType(MediaType.APPLICATION_JSON)
-                                               .content(validUpdateRequestBody("Publishing Pending","A")));
+                                               .content(validUpdateRequestBody("65", "Publishing Pending","A")));
 
         String response = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testUpdateDraftAccount_success: Response body:\n{}", ToJsonString.toPrettyJson(response));
@@ -553,7 +553,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
-            .andExpect(jsonPath("$.business_unit_id").value(78))
+            .andExpect(jsonPath("$.business_unit_id").value(65))
             .andExpect(jsonPath("$.account_status").value("Published"))
             .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
 
@@ -570,7 +570,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                 .header("authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(validUpdateRequestBody("Rejected","A")));
+                .content(validUpdateRequestBody("78","Rejected","A")));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testPatchDraftAccount_withCheckValidatePermission_shouldSucceed: Response body:\n"
@@ -587,13 +587,13 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Patch draft account - user with Publish Pending permission should succeed [@PO-991]")
     void testPatchDraftAccount_withPublishPending_shouldSucceed() throws Exception {
         Long draftAccountId = 9L; // not touched by any other PATCH/PUT test
-        UserState user = permissionUser((short)78, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+        UserState user = permissionUser((short)65, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                             .header("authorization", "Bearer some_value")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(validUpdateRequestBody("Publishing Pending","D")));
+                            .content(validUpdateRequestBody("65", "Publishing Pending","D")));
 
         String response = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testPatchDraftAccount_withPublishPending_shouldSucceed: PATCH Response body:\n{}",
@@ -617,7 +617,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                 .header("authorization", "Bearer some_value")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(validUpdateRequestBody("Publishing Pending","PO1820")));
+                .content(validUpdateRequestBody("78", "Publishing Pending","PO1820")));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testPatchDraftAccount_withCreateManagePermission_shouldFail403: Response body:\n"
@@ -911,7 +911,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         return Stream.of(
             Arguments.of(post(URL_BASE), validCreateRequestBody()),
             Arguments.of(put(URL_BASE + "/1"), validCreateRequestBody()),
-            Arguments.of(patch(URL_BASE + "/1"), validUpdateRequestBody("Publishing Pending","B")),
+            Arguments.of(patch(URL_BASE + "/1"), validUpdateRequestBody("78", "Publishing Pending","B")),
             Arguments.of(get(URL_BASE), "")  // GET endpoints with empty body
         );
     }
@@ -938,7 +938,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         return Stream.of(
             Arguments.of(get(URL_BASE + "/999"), ""),
             Arguments.of(put(URL_BASE + "/999"), validCreateRequestBody()),
-            Arguments.of(patch(URL_BASE + "/999"), validUpdateRequestBody("Publishing Pending","C"))
+            Arguments.of(patch(URL_BASE + "/999"), validUpdateRequestBody("78", "Publishing Pending","C"))
         );
     }
 
@@ -1241,12 +1241,12 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             }""";
     }
 
-    private static String validUpdateRequestBody(String status, String delta) {
+    private static String validUpdateRequestBody(String businessUnit, String status, String delta) {
         return "{\n"
             + "    \"account_status\": \"" + status + "\",\n"
             + "    \"validated_by\": \"BUUID1" + delta + "\",\n"
             + "    \"validated_by_name\": \"" + delta + "\",\n"
-            + "    \"business_unit_id\": 78,\n"
+            + "    \"business_unit_id\": " + businessUnit + ",\n"
             + "    \"version\": 0,\n"
             + "    \"timeline_data\": " + validTimelineDataJson() + "\n"
             + "}";
