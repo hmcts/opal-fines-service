@@ -46,7 +46,7 @@ INSERT INTO public.creditor_accounts (
 VALUES (
   104,                -- creditor_account_id
   10,                 -- using existing business_unit_id
-  'ACC9000',          -- account_number
+  '12345678A',          -- account_number
   'MJ',            -- creditor_account_type
   true,              -- prosecution_service
   NULL,               -- major_creditor_id

@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
@@ -26,10 +27,13 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch criteria) {
 
-        List<MinorCreditorEntity> optionalMinorCreditor = minorCreditorRepository
-            .findAll(specs.findBySearchCriteria(criteria));
+        Specification<MinorCreditorEntity> spec = Specification.allOf(
+            specs.findBySearchCriteria(criteria),
+            specs.filterByAccountNumberStartsWithWithCheckLetter(criteria)
+        );
 
-        return toResponse(optionalMinorCreditor);
+        List<MinorCreditorEntity> minorCreditors = minorCreditorRepository.findAll(spec);
+        return toResponse(minorCreditors);
     }
 
     private CreditorAccountDto toCreditorAccountDto(MinorCreditorEntity entity) {

@@ -5,84 +5,154 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
-import uk.gov.hmcts.opal.dto.Creditor;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity_;
 
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class MinorCreditorSpecs extends EntitySpecs<MinorCreditorEntity> {
+public class MinorCreditorSpecs {
 
     private static final String[] STRIP_CHARS = {
         " ", "-", "'", ".", ",", "/", "\\", "(", ")", "[", "]", "{", "}",
         ":", ";", "!", "?", "\"", "@", "#", "$", "%", "&", "*", "+"
     };
 
+    /** Build a Specification for MinorCreditorEntity from the search DTO (functional style). */
     public Specification<MinorCreditorEntity> findBySearchCriteria(MinorCreditorSearch criteria) {
         if (criteria == null) {
-            return Specification.allOf(); // empty AND spec
+            return Specification.allOf();
         }
 
-        Specification<MinorCreditorEntity> spec = Specification.allOf();
+        Optional<Specification<MinorCreditorEntity>> businessUnitSpec =
+            Optional.ofNullable(criteria.getBusinessUnitIds())
+                .map(list -> list.stream()
+                    .filter(Objects::nonNull)
+                    .map(i -> (short) i.intValue())
+                    .collect(Collectors.toList()))
+                .filter(ids -> !ids.isEmpty())
+                .map(ids -> (Specification<MinorCreditorEntity>) (root, q, cb) -> root.get("businessUnitId").in(ids));
 
-        // 1) businessUnitIds -> IN
-        if (criteria.getBusinessUnitIds() != null && !criteria.getBusinessUnitIds().isEmpty()) {
-            List<Short> ids = criteria.getBusinessUnitIds().stream()
-                .filter(Objects::nonNull)
-                .map(i -> (short) i.intValue())
-                .collect(Collectors.toList());
+        Optional<Specification<MinorCreditorEntity>> accountNumberSpec =
+            hasText(criteria.getAccountNumber())
+                ? Optional.of(likeStartsWithAttr("accountNumber", criteria.getAccountNumber()))
+                : Optional.empty();
 
-            spec = spec.and((root, query, cb) -> root.get("businessUnitId").in(ids));
-        }
+        Stream<Specification<MinorCreditorEntity>> creditorSpecs =
+            Optional.ofNullable(criteria.getCreditor())
+                .map(cred -> {
+                    // boolean organisation equality
+                    Specification<MinorCreditorEntity> organisationEq =
+                        (root, q, cb) -> cb.equal(root.get("organisation"), cred.getOrganisation());
 
-        // 2) accountNumber
-        spec = andIfPresent(spec, "accountNumber", criteria.getAccountNumber());
+                    // string-like fields (normalized starts-with)
+                    Stream<Specification<MinorCreditorEntity>> textSpecs = Stream
+                        .<Map.Entry<String, String>>of(
+                            entry("defendantOrganisationName", cred.getOrganisationName()),
+                            entry("forenames",                  cred.getForenames()),
+                            entry("surname",                    cred.getSurname()),
+                            entry("addressLine1",               cred.getAddressLine1()),
+                            entry("postCode",                   cred.getPostcode())
+                        )
+                        .filter(e -> hasText(e.getValue()))
+                        .map(e -> likeStartsWithAttr(e.getKey(), e.getValue()));
 
-        // 3) creditor sub-object
-        Creditor cred = criteria.getCreditor();
-        if (cred != null) {
-            if (cred.getOrganisation() != null) {
-                spec = spec.and((root, query, cb) -> cb.equal(root.get("organisation"), cred.getOrganisation()));
-            }
-            spec = andIfPresent(spec, "defendantOrganisationName", cred.getOrganisationName());
-            spec = andIfPresent(spec, "forenames", cred.getForenames());
-            spec = andIfPresent(spec, "surname", cred.getSurname());
-            spec = andIfPresent(spec, "addressLine1", cred.getAddressLine1());
-            spec = andIfPresent(spec, "postCode", cred.getPostcode());
-        }
+                    return Stream.concat(Stream.of(organisationEq), textSpecs);
+                })
+                .orElseGet(Stream::empty);
 
-        return spec;
+        List<Specification<MinorCreditorEntity>> parts = Stream
+            .concat(
+                Stream.of(optStream(businessUnitSpec), optStream(accountNumberSpec)).flatMap(s -> s),
+                creditorSpecs
+            )
+            .toList();
+
+        return parts.stream().reduce(Specification.allOf(), Specification::and);
     }
 
-    private Specification<MinorCreditorEntity> andIfPresent(
-        Specification<MinorCreditorEntity> base,
-        String attribute,
-        String value
-    ) {
-        if (value == null || value.isBlank()) return base;
-        return base.and((root, query, cb) -> likeStartsWithNormalized(root, cb, attribute, value));
+
+    public Specification<MinorCreditorEntity> filterByAccountNumberStartsWithWithCheckLetter(MinorCreditorSearch dto) {
+        return (root, query, cb) ->
+            Optional.ofNullable(dto)
+                .map(MinorCreditorSearch::getAccountNumber)
+                .filter(MinorCreditorSpecs::hasText)
+                .map(MinorCreditorSpecs::stripCheckLetter)
+                .map(stripped -> likeStartsWithNormalized(cb, root.get(MinorCreditorEntity_.accountNumber), stripped))
+                .orElseGet(cb::conjunction);
     }
 
-    /** AC3b: starts-with, AC3c: case-insensitive, AC3d: ignore special chars */
-    private Predicate likeStartsWithNormalized(Root<MinorCreditorEntity> root,
-                                               CriteriaBuilder cb,
-                                               String attribute,
-                                               String raw) {
+    // -------------------------- functional helpers --------------------------
+
+    private static <T> Specification<T> andAll(List<Specification<T>> specs) {
+        if (specs == null || specs.isEmpty()) {
+            return Specification.allOf();
+        }
+        return specs.stream().reduce(Specification.allOf(), Specification::and);
+    }
+
+    private static <T> Optional<Specification<T>> specIfHasText(String value,
+                                                                Function<String, Specification<T>> builder) {
+        return hasText(value) ? Optional.of(builder.apply(value)) : Optional.empty();
+    }
+
+    private static <K, V> AbstractMap.SimpleEntry<K, V> entry(K k, V v) {
+        return new AbstractMap.SimpleEntry<>(k, v);
+    }
+
+    private static boolean hasText(String s) {
+        return s != null && !s.trim().isEmpty();
+    }
+
+    private static <T> Stream<T> optStream(Optional<T> opt) {
+        return opt.map(Stream::of).orElseGet(Stream::empty);
+    }
+
+    private static Specification<MinorCreditorEntity> likeStartsWithAttr(String attribute, String raw) {
+        return (root, q, cb) -> likeStartsWithNormalized(root, cb, attribute, raw);
+    }
+
+    private static String stripCheckLetter(String acc) {
+        if (acc == null) {
+            return null;
+        }
+        return (acc.length() == 9 && Character.isLetter(acc.charAt(8))) ? acc.substring(0, 8) : acc;
+    }
+
+    private static <T> Predicate likeStartsWithNormalized(Root<T> root,
+                                                          CriteriaBuilder cb,
+                                                          String attribute,
+                                                          String raw) {
         Expression<String> normField = normalizeExpr(cb, root.get(attribute));
         String norm = normalize(raw) + "%"; // starts-with
         return cb.like(normField, escapeForLike(norm), '\\');
     }
 
-    private String normalize(String s) {
+    private static Predicate likeStartsWithNormalized(CriteriaBuilder cb,
+                                                      Expression<String> expr,
+                                                      String raw) {
+        Expression<String> normField = normalizeExpr(cb, expr);
+        String norm = normalize(raw) + "%";
+        return cb.like(normField, escapeForLike(norm), '\\');
+    }
+
+    private static String normalize(String s) {
         String out = s.toLowerCase(Locale.ROOT);
-        for (String ch : STRIP_CHARS) out = out.replace(ch, "");
+        for (String ch : STRIP_CHARS) {
+            out = out.replace(ch, "");
+        }
         return out;
     }
 
-    private Expression<String> normalizeExpr(CriteriaBuilder cb, Expression<String> expr) {
+    private static Expression<String> normalizeExpr(CriteriaBuilder cb, Expression<String> expr) {
         Expression<String> e = cb.lower(expr);
         for (String ch : STRIP_CHARS) {
             e = cb.function("REPLACE", String.class, e, cb.literal(ch), cb.literal(""));
@@ -90,7 +160,7 @@ public class MinorCreditorSpecs extends EntitySpecs<MinorCreditorEntity> {
         return e;
     }
 
-    private String escapeForLike(String s) {
+    private static String escapeForLike(String s) {
         return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 }

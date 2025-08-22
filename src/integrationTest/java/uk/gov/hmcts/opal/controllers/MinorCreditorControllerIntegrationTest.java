@@ -6,8 +6,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
@@ -42,9 +42,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(10))
-            .activeAccountsOnly(false)
-            .accountNumber("ACC9000").build();
+            .accountNumber("12345678A").build();
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/search")
                                                           .contentType(MediaType.APPLICATION_JSON).content(
