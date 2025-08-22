@@ -4,15 +4,11 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "version": {
-      "type": "integer"
-    },
     "account_activity_note": {
       "$ref": "../common-objects/accountActivityNote.json"
     }
   },
   "required": [
-    "version",
     "account_activity_note"
   ]
 }
