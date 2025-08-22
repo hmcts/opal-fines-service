@@ -4,9 +4,6 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "version": {
-      "type": "integer"
-    },
     "comment_and_notes": {
       "$ref": "../common-objects/commentsAndNotes.json"
     },
@@ -24,7 +21,6 @@
     "defendant_account_id",
     "business_unit_id",
     "business_unit_user_id",
-    "version",
     "comment_and_notes",
     "enforcement_court",
     "collection_order",
