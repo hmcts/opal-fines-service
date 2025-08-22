@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
@@ -13,15 +12,29 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 @Slf4j(topic = "opal.OpalDefendantAccountsIntegrationTest")
 class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIntegrationTest {
 
-    @Disabled("Legacy has been implemented. But Opal still to be completed - see ticket PO-985")
     @Test
     void testGetHeaderSummary() throws Exception {
         super.getHeaderSummaryImpl(log);
     }
 
-    @Disabled("Legacy has been implemented. But Opal still to be completed - see ticket PO-985")
     @Test
     void testGetHeaderSummary_500Error() throws Exception {
         super.getHeaderSummaryImpl(log);
     }
+
+    @Test
+    void testGetHeaderSummary_NotFound() throws Exception {
+        super.getHeaderSummary_NotFound(log);
+    }
+
+    @Test
+    void testGetHeaderSummary_Unauthorized_NoHeader() throws Exception {
+        super.getHeaderSummary_Unauthorized_NoHeader(log);
+    }
+
+    @Test
+    void testGetHeaderSummary_Forbidden() throws Exception {
+        super.getHeaderSummary_Forbidden(log);
+    }
+
 }

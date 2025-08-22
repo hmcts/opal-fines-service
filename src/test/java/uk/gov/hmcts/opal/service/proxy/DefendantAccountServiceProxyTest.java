@@ -8,12 +8,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.response.GetHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -43,22 +45,26 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
     }
 
     void testMode(DefendantAccountServiceInterface targetService, DefendantAccountServiceInterface otherService) {
-        testGetHeaderSummary(targetService, otherService);
+        testGetHeaderSummaryWithVersion(targetService, otherService);
     }
 
-    void testGetHeaderSummary(DefendantAccountServiceInterface targetService,
-                              DefendantAccountServiceInterface otherService) {
-        // Given: a Entity is returned from the target service
+    void testGetHeaderSummaryWithVersion(DefendantAccountServiceInterface targetService,
+                                         DefendantAccountServiceInterface otherService) {
         DefendantAccountHeaderSummary entity = DefendantAccountHeaderSummary.builder().build();
-        when(targetService.getHeaderSummary(anyLong())).thenReturn(entity);
+        Long version = 42L;
 
-        DefendantAccountHeaderSummary headerSummaryResult = serviceProxy.getHeaderSummary(1L);
+        when(targetService.getHeaderSummaryWithVersion(anyLong(), any()))
+            .thenReturn(new GetHeaderSummaryResponse(entity, version));
 
-        // Then: target service should be used, and the returned entity should be as expected
-        verify(targetService).getHeaderSummary(1L);
+        GetHeaderSummaryResponse response = serviceProxy.getHeaderSummaryWithVersion(1L, null);
+
+        verify(targetService).getHeaderSummaryWithVersion(1L, null);
         verifyNoInteractions(otherService);
-        Assertions.assertEquals(entity, headerSummaryResult);
+
+        Assertions.assertEquals(entity, response.getData());
+        Assertions.assertEquals(version, response.getVersion());
     }
+
 
     @Test
     void shouldUseOpalServiceWhenModeIsNotLegacy() {

@@ -13,6 +13,18 @@
 *
 **/
 
+-- Ensure BU 78 exists for joins
+INSERT INTO business_units (
+  business_unit_id, business_unit_name, business_unit_code, business_unit_type, welsh_language
+) VALUES
+  (78, 'N E Region', 'NE', 'Area', FALSE)
+ON CONFLICT (business_unit_id) DO UPDATE
+  SET business_unit_name = EXCLUDED.business_unit_name,
+      business_unit_code = EXCLUDED.business_unit_code,
+      business_unit_type = EXCLUDED.business_unit_type,
+      welsh_language = EXCLUDED.welsh_language;
+
+
 INSERT INTO defendant_accounts
 (
 defendant_account_id, business_unit_id, account_number
@@ -26,7 +38,7 @@ defendant_account_id, business_unit_id, account_number
 ,unit_fine_detail, unit_fine_value, collection_order, collection_order_date
 ,further_steps_notice_date, confiscation_order_date, fine_registration_date, suspended_committal_date
 ,consolidated_account_type, payment_card_requested, payment_card_requested_date, payment_card_requested_by
-,prosecutor_case_reference, enforcement_case_status, account_type
+,prosecutor_case_reference, enforcement_case_status, account_type,version_number
 )
 VALUES
 (
@@ -36,12 +48,12 @@ VALUES
 , 780000000185, 780000000185, '2024-01-04 18:06:11'
 , '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'REM'
 , 'Kingston-upon-Thames Mags Court', NULL, NULL
-, 'N', 'N', 14, 21
+, FALSE, FALSE, 14, 21
 , 'FWEC', 780000000021, 240
-, 'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00'
+, 'GB pound sterling', 700.00, TRUE, '2023-12-18 00:00:00'
 , '2023-12-19 00:00:00', NULL, NULL, NULL
-, 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
-, '090A', NULL, 'Fine'
+, 'Y', TRUE, '2024-01-01 00:00:00', '11111111A'
+, '090A', NULL, 'Fine',1
 );
 
 INSERT INTO parties
@@ -54,12 +66,22 @@ party_id, organisation, organisation_name
 )
 VALUES
 (
-0077, 'N', NULL
+0077, FALSE, 'Sainsco'
 , 'Graham', 'Anna', 'Ms'
 , 'Lumber House', '77 Gordon Road', 'Maidstone, Kent'
 , NULL, NULL, 'MA4 1AL'
 , 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL
 );
+
+INSERT INTO fixed_penalty_offences
+(
+defendant_account_id, ticket_number
+)
+VALUES
+(
+77, '888'
+);
+
 
 INSERT INTO defendant_account_parties
 (
@@ -69,7 +91,7 @@ defendant_account_party_id, defendant_account_id, party_id
 VALUES
 (
 0077, 0077, 0077
-,'Defendant','Y'
+,'Defendant', TRUE
 );
 
 INSERT INTO payment_terms
@@ -84,7 +106,16 @@ VALUES
 , 'B', '2025-10-12 00:00:00', NULL, NULL, NULL
 , 120, 'N', 700.58
 );
-
+UPDATE payment_terms
+   SET active = TRUE
+ WHERE payment_terms_id = 77
+   AND EXISTS (
+         SELECT 1
+           FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name   = 'payment_terms'
+            AND column_name  = 'active'
+       );
 INSERT INTO NOTES
 (
 note_id, note_type, associated_record_type, associated_record_id
