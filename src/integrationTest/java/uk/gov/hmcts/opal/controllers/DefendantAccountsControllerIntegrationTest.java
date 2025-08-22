@@ -1688,7 +1688,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         String allBody = allAccountsActions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly): Response body:\n{}", 
-        ToJsonString.toPrettyJson(allBody));
+            ToJsonString.toPrettyJson(allBody));
 
         allAccountsActions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(2))
