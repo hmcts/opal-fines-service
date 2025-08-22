@@ -1,12 +1,12 @@
 package uk.gov.hmcts.opal.controllers;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+
+import lombok.extern.slf4j.Slf4j;
 
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -130,6 +130,100 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     void opal_matchOnAlias_over_main() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent(log);
     }
+    
+    @Test
+    void testAC1_MultiParameter_SurnameAndPostcode() throws Exception {
+        super.testPostDefendantAccountsSearch_AC1_SurnameAndPostcode(log);
+    }
 
+    @Test
+    void testAC1_MultiParameter_SurnameAndWrongPostcode() throws Exception {
+        super.testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode(log);
+    }
+
+    @Test
+    void testAC1_MultiParameter_CompletePersonalDetails() throws Exception {
+        super.testPostDefendantAccountsSearch_AC1_CompletePersonalDetails(log);
+    }
+
+    @Test
+    void testAC1_MultiParameter_AddressAndNI() throws Exception {
+        super.testPostDefendantAccountsSearch_AC1_AddressAndNI(log);
+    }
+
+    @Test
+    void testAC1_MultiParameter_WrongBusinessUnitExcludes() throws Exception {
+        super.testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes(log);
+    }
+
+    @Test
+    void testAC2_BusinessUnitFiltering() throws Exception {
+        super.testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering(log);
+    }
+
+    @Test
+    void testAC3a_ActiveAccountsOnlyFalse() throws Exception {
+        super.testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse(log);
+    }
+
+    @Test
+    void testAC5a_ForenamesPartialMatch() throws Exception {
+        super.testPostDefendantAccountsSearch_AC5a_ForenamesPartialMatch(log);
+    }
+
+    @Test
+    void testAC9_CompanyNameAndAddress() throws Exception {
+        super.testPostDefendantAccountsSearch_AC9_CompanyNameAndAddress(log);
+    }
+
+    @Test
+    void testAC9_CompanyNameAndPostcode() throws Exception {
+        super.testPostDefendantAccountsSearch_AC9_CompanyNameAndPostcode(log);
+    }
+
+    @Test
+    void testAC9_CompanyPartialNameAndAddress() throws Exception {
+        super.testPostDefendantAccountsSearch_AC9_CompanyPartialNameAndAddress(log);
+    }
+
+    @Test
+    void testAC9_CompanyNameAndWrongAddress() throws Exception {
+        super.testPostDefendantAccountsSearch_AC9_CompanyNameAndWrongAddress(log);
+    }
+
+    @Test
+    void testAC9_CompanyMultipleAddressFields() throws Exception {
+        super.testPostDefendantAccountsSearch_AC9_CompanyMultipleAddressFields(log);
+    }
+
+    @Test
+    void testAC9a_CompanyBusinessUnitFiltering() throws Exception {
+        super.testPostDefendantAccountsSearch_AC9a_CompanyBusinessUnitFiltering(log);
+    }
+
+    @Test
+    void testAC9b_CompanyActiveAccountsOnly() throws Exception {
+        super.testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly(log);
+    }
+
+    @Test
+    void testAC9d_CompanyAliasExactMatch() throws Exception {
+        super.testPostDefendantAccountsSearch_AC9d_CompanyAliasExactMatch(log);
+    }
+
+    @Test
+    void testAC9di_CompanyAliasPartialMatch() throws Exception {
+        super.testPostDefendantAccountsSearch_AC9di_CompanyAliasPartialMatch(log);
+    }
+
+    @Test
+    void testAC9e_CompanyAddressPartialMatch() throws Exception {
+        super.testPostDefendantAccountsSearch_AC9e_CompanyAddressPartialMatch(log);
+    }
+
+    @Test
+    void testAC9ei_CompanyPostcodePartialMatch() throws Exception {
+        super.testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch(log);
+    }
 
 }

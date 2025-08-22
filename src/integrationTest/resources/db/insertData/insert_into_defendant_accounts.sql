@@ -269,3 +269,195 @@ VALUES (
     333, 333, 333,
     'Defendant', 'Y'
 );
+
+-- Complete organisation with address details for AC9 multi-parameter testing
+INSERT INTO defendant_accounts (
+    defendant_account_id, business_unit_id, account_number,
+    amount_paid, account_balance, amount_imposed, account_status,
+    prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+    collection_order, payment_card_requested
+)
+VALUES (
+    555, 78, '555O',
+    250.00, 750.00, 1000.00, 'L',
+    '555PCR', 'N', 'N', 'Fine',
+    'N', 'N'
+);
+
+INSERT INTO parties (
+    party_id, organisation, organisation_name,
+    surname, forenames, title,
+    address_line_1, address_line_2, address_line_3,
+    address_line_4, address_line_5, postcode,
+    account_type, birth_date, age, national_insurance_number, last_changed_date
+)
+VALUES (
+    555, 'Y', 'TechCorp Solutions Ltd',
+    NULL, NULL, NULL,
+    'Business Park', '42 Innovation Drive', 'Tech District',
+    'Birmingham', NULL, 'B15 3TG',
+    'Debtor', NULL, NULL, NULL, NULL
+);
+
+INSERT INTO defendant_account_parties (
+    defendant_account_party_id, defendant_account_id, party_id,
+    association_type, debtor
+)
+VALUES (
+    555, 555, 555,
+    'Defendant', 'Y'
+);
+
+-- Company in different business unit for AC9a business unit filtering test
+INSERT INTO defendant_accounts (
+    defendant_account_id, business_unit_id, account_number,
+    amount_paid, account_balance, amount_imposed, account_status,
+    prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+    collection_order, payment_card_requested
+)
+VALUES (
+    666, 9999, '666C',
+    150.00, 850.00, 1000.00, 'L',
+    '666PCR', 'N', 'N', 'Fine',
+    'N', 'N'
+);
+
+INSERT INTO parties (
+    party_id, organisation, organisation_name,
+    surname, forenames, title,
+    address_line_1, address_line_2, address_line_3,
+    address_line_4, address_line_5, postcode,
+    account_type, birth_date, age, national_insurance_number, last_changed_date
+)
+VALUES (
+    666, 'Y', 'TechCorp Global Ltd',
+    NULL, NULL, NULL,
+    'Corporate Plaza', '15 Finance Street', 'Business Quarter',
+    'Manchester', NULL, 'M1 4BD',
+    'Debtor', NULL, NULL, NULL, NULL
+);
+
+INSERT INTO defendant_account_parties (
+    defendant_account_party_id, defendant_account_id, party_id,
+    association_type, debtor
+)
+VALUES (
+    666, 666, 666,
+    'Defendant', 'Y'
+);
+
+-- Completed company account for AC9b active account filtering test
+INSERT INTO defendant_accounts (
+    defendant_account_id, business_unit_id, account_number,
+    amount_paid, account_balance, amount_imposed, account_status,
+    completed_date, prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+    collection_order, payment_card_requested
+)
+VALUES (
+    777, 78, '777CC',
+    500.00, 0.00, 500.00, 'C',
+    '2024-01-15 10:00:00', '777PCR', 'N', 'N', 'Fine',
+    'N', 'N'
+);
+
+INSERT INTO parties (
+    party_id, organisation, organisation_name,
+    surname, forenames, title,
+    address_line_1, address_line_2, address_line_3,
+    address_line_4, address_line_5, postcode,
+    account_type, birth_date, age, national_insurance_number, last_changed_date
+)
+VALUES (
+    777, 'Y', 'TechCorp Completed Ltd',
+    NULL, NULL, NULL,
+    'Completed Business Park', '99 Finished Drive', 'Final District',
+    'London', NULL, 'EC1A 1BB',
+    'Debtor', NULL, NULL, NULL, NULL
+);
+
+INSERT INTO defendant_account_parties (
+    defendant_account_party_id, defendant_account_id, party_id,
+    association_type, debtor
+)
+VALUES (
+    777, 777, 777,
+    'Defendant', 'Y'
+);
+
+-- Add a completed (inactive) account for testing active_accounts_only filtering
+INSERT INTO defendant_accounts (
+    defendant_account_id, business_unit_id, account_number,
+    imposed_hearing_date, imposing_court_id, amount_imposed,
+    amount_paid, account_balance, account_status,
+    completed_date, enforcing_court_id, last_hearing_court_id, last_hearing_date,
+    last_movement_date, last_changed_date, last_enforcement,
+    originator_name, originator_id, originator_type,
+    allow_writeoffs, allow_cheques, cheque_clearance_period, credit_trans_clearance_period,
+    enf_override_result_id, enf_override_enforcer_id, enf_override_tfo_lja_id,
+    unit_fine_detail, unit_fine_value, collection_order, collection_order_date,
+    further_steps_notice_date, confiscation_order_date, fine_registration_date, suspended_committal_date,
+    consolidated_account_type, payment_card_requested, payment_card_requested_date, payment_card_requested_by,
+    prosecutor_case_reference, enforcement_case_status, account_type
+)
+VALUES (
+    444, 78, '444C',
+    '2023-10-15 14:30:00', 780000000185, 300.00,
+    300.00, 0.00, 'C',
+    '2024-02-15 10:00:00', 780000000185, 780000000185, '2024-02-14 16:00:00',
+    '2024-02-15 10:00:00', '2024-02-15 10:00:00', 'PAID',
+    'Magistrates Court', NULL, NULL,
+    'N', 'N', 14, 21,
+    NULL, NULL, NULL,
+    'GB pound sterling', 300.00, 'Y', '2023-10-20 00:00:00',
+    '2023-10-21 00:00:00', NULL, NULL, NULL,
+    'Y', 'N', NULL, NULL,
+    '444PCR', NULL, 'Fine'
+);
+
+INSERT INTO parties (
+    party_id, organisation, organisation_name,
+    surname, forenames, title,
+    address_line_1, address_line_2, address_line_3,
+    address_line_4, address_line_5, postcode,
+    account_type, birth_date, age, national_insurance_number, last_changed_date
+)
+VALUES (
+    444, 'N', NULL,
+    'Graham', 'Robert', 'Mr',
+    'High Street', '123 Main Road', 'London',
+    NULL, NULL, 'SW1A 1AA',
+    'Debtor', '1975-05-15 00:00:00', 48, 'B22222B', NULL
+);
+
+INSERT INTO defendant_account_parties (
+    defendant_account_party_id, defendant_account_id, party_id,
+    association_type, debtor
+)
+VALUES (
+    444, 444, 444,
+    'Defendant', 'Y'
+);
+
+-- Company aliases for AC9d/AC9di testing (inserted after all parties exist)
+INSERT INTO aliases (
+    alias_id, party_id, surname, forenames, sequence_number, organisation_name
+)
+VALUES
+-- Aliases for TechCorp Solutions Ltd (party 555)
+(
+    5551, 555, NULL, NULL, 1, 'TechCorp Ltd'
+),
+(
+    5552, 555, NULL, NULL, 2, 'TC Solutions Limited'
+),
+-- Aliases for TechCorp Global Ltd (party 666)
+(
+    6661, 666, NULL, NULL, 1, 'TechCorp Global Limited'
+),
+(
+    6662, 666, NULL, NULL, 2, 'TC Global Ltd'
+),
+-- Aliases for TechCorp Completed Ltd (party 777)
+(
+    7771, 777, NULL, NULL, 1, 'TechCorp Completed Limited'
+);
