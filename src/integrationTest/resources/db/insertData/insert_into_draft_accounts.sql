@@ -745,7 +745,7 @@ VALUES
         },
         "payment_terms": {
             "payment_terms_type_code": "B",
-            "effective_date": "2023-01-01",
+            "effective_date": null,
             "instalment_period": "M",
             "lump_sum_amount": 500.00,
             "instalment_amount": 50.00,
@@ -1087,7 +1087,7 @@ VALUES
             },
             "payment_terms": {
                 "payment_terms_type_code": "B",
-                "effective_date": "2023-01-01",
+                "effective_date": null,
                 "instalment_period": "M",
                 "lump_sum_amount": 500.00,
                 "instalment_amount": 50.00,
