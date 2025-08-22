@@ -1352,13 +1352,13 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.count").value(2))
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists())
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')]").exists())
-            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')].account_number").value("444C"));
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')].account_number")
+                .value("444C"));
     }
-
 
     // AC5a: Forenames match filtering tests
 
-        @DisplayName("AC5a: Fuzzy forenames match when exact_match_forenames = false [@PO-710]")
+    @DisplayName("AC5a: Fuzzy forenames match when exact_match_forenames = false [@PO-710]")
     void testPostDefendantAccountsSearch_AC5a_ForenamesPartialMatch(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
@@ -1687,8 +1687,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             """));
 
         String allBody = allAccountsActions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly (active_only=false): Response body:\n{}",
-            ToJsonString.toPrettyJson(allBody));
+        log.info(":testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly): Response body:\n{}", 
+        ToJsonString.toPrettyJson(allBody));
 
         allAccountsActions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(2))
@@ -1696,7 +1696,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '777')]").exists());
     }
 
-    @DisplayName("AC9d: Company alias partial match search - 'Include aliases' returns accounts where company name or alias starts with input [@PO-710]")
+    @DisplayName("AC9d: Where company name or alias starts with input [@PO-710]")
     void testPostDefendantAccountsSearch_AC9d_CompanyAliasExactMatch(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
@@ -1738,7 +1738,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value("TechCorp Global Ltd"));
     }
 
-    @DisplayName("AC9di: Company alias exact match search - 'Search exact match' returns accounts where company name or alias exactly matches input [@PO-710]")
+    @DisplayName("AC9di: Where company name or alias results exactly matches input [@PO-710]")
     void testPostDefendantAccountsSearch_AC9di_CompanyAliasPartialMatch(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
