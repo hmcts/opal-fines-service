@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -20,7 +19,6 @@ import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
-import uk.gov.hmcts.opal.service.legacy.LegacyTestingSupportService;
 
 import java.util.Set;
 
@@ -29,7 +27,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -67,9 +64,6 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     private AuthorisationService authorisationService;
-
-    @MockitoBean
-    private LegacyTestingSupportService legacyTestingSupportService;
 
     @Test
     void testGetAppMode() throws Exception {
@@ -207,22 +201,6 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(
                 jsonPath("$.user_state.business_unit_user[0].permissions[0].permission_name")
                            .value("Notes"));
-    }
-
-    @Test
-    void legacyTestFunctionReturnsResponse() throws Exception {
-        String functionName = "testFunction";
-        String requestBody = "testBody";
-        String responseBody = "testResponse";
-
-        when(legacyTestingSupportService.postLegacyFunction(functionName, requestBody))
-            .thenReturn(ResponseEntity.ok(responseBody));
-
-        mockMvc.perform(post("/testing-support/legacy/test-function/{functionName}", functionName)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(requestBody))
-            .andExpect(status().isOk())
-            .andExpect(content().string(responseBody));
     }
 
     @Sql(
