@@ -4,15 +4,11 @@
   "title": "Replace Defendant Account Party Request",
   "additionalProperties": false,
   "properties": {
-    "version": {
-      "type": "integer"
-    },
     "defendant_account_party": {
       "$ref": "../common-objects/partyDetails.json"
     }
   },
   "required": [
-    "version",
     "defendant_account_party"
   ]
 }

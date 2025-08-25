@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "properties": {
     "lja_id": { "type": "integer" },
-    "lja_name": { "type": "string" }
+    "lja_name": { "type":  "string" }
   },
   "required": ["lja_id", "lja_name"]
 }
