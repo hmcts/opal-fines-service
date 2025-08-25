@@ -9,7 +9,6 @@ import org.springframework.test.context.ActiveProfiles;
 @Slf4j(topic = "opal.LegacyDefendantAccountsIntegrationTest")
 class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsControllerIntegrationTest {
 
-    @Disabled("See DTSPO-27066. A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetHeaderSummary() throws Exception {
         super.getHeaderSummaryImpl(log);
@@ -21,13 +20,11 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
         super.getHeaderSummaryImpl_500Error(log);
     }
 
-    @Disabled("See DTSPO-27066. A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testSearchDefendantAccounts() throws Exception {
         super.testPostDefendantAccountsSearch(log);
     }
 
-    @Disabled("See DTSPO-27066. A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testSearchDefendantAccount_NoAccountsFound() throws Exception {
         super.testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound(log);
