@@ -17,12 +17,14 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.NoteDto;
+import uk.gov.hmcts.opal.dto.response.GetHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
 import java.util.List;
 
@@ -53,6 +55,9 @@ class DefendantAccountControllerTest {
 
     @Mock
     private UserStateService userStateService;
+
+    @Mock
+    private DefendantAccountServiceProxy defendantAccountServiceProxy;
 
     @InjectMocks
     private DefendantAccountController defendantAccountController;
@@ -249,18 +254,36 @@ class DefendantAccountControllerTest {
     @Test
     void testGetHeaderSummary_Success() {
         // Arrange
-        DefendantAccountHeaderSummary mockResponse = new DefendantAccountHeaderSummary();
+        DefendantAccountHeaderSummary mockBody = new DefendantAccountHeaderSummary();
+        GetHeaderSummaryResponse wrapped = new GetHeaderSummaryResponse(mockBody, 1L);
 
-        when(defendantAccountService.getHeaderSummary(any(), any())).thenReturn(mockResponse);
+        // userState must have at least one BU permission to avoid 403
+        var userWithPermission = uk.gov.hmcts.opal.authorisation.model.UserState.builder()
+            .userId(99L)
+            .userName("tester")
+            .businessUnitUser(java.util.Set.of(
+                uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser.builder()
+                    .businessUnitUserId("1L")
+                    .businessUnitId((short) 78)
+                    .build()
+            ))
+            .build();
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userWithPermission);
+        when(defendantAccountServiceProxy.getHeaderSummaryWithVersion(eq(1L), any()))
+            .thenReturn(wrapped);
 
         // Act
-        ResponseEntity<DefendantAccountHeaderSummary> responseEntity = defendantAccountController.getHeaderSummary(
-             1L, BEARER_TOKEN);
+        ResponseEntity<DefendantAccountHeaderSummary> response =
+            defendantAccountController.getHeaderSummary(1L, BEARER_TOKEN);
 
         // Assert
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(mockResponse, responseEntity.getBody());
-        verify(defendantAccountService, times(1)).getHeaderSummary(any(), any());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(mockBody, response.getBody());
+        assertEquals("\"1\"", response.getHeaders().getFirst("ETag"));
+
+        verify(userStateService).checkForAuthorisedUser(any());
+        verify(defendantAccountServiceProxy).getHeaderSummaryWithVersion(eq(1L), any());
     }
 
 }

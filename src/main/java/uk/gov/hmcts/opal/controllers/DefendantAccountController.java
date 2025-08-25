@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +22,7 @@ import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.disco.DiscoDefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.disco.opal.NoteService;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
@@ -29,9 +32,9 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.disco.opal.NoteService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -59,15 +62,19 @@ public class DefendantAccountController {
     // TODO - remove from controller
     private final UserStateService userStateService;
 
+    private final DefendantAccountServiceProxy defendantAccountServiceProxy;
+
     public DefendantAccountController(DefendantAccountService defendantAccountService,
                                       @Qualifier("defendantAccountServiceProxy")
                                       DiscoDefendantAccountServiceInterface discoDefendantAccountServiceInterface,
-                                      NoteService opalNoteService, UserStateService userStateService) {
+                                      NoteService opalNoteService, UserStateService userStateService,
+                                      DefendantAccountServiceProxy defendantAccountServiceProxy) {
 
         this.defendantAccountService = defendantAccountService;
         this.discoDefendantAccountServiceInterface = discoDefendantAccountServiceInterface;
         this.discoNoteService = opalNoteService;
         this.userStateService = userStateService;
+        this.defendantAccountServiceProxy = defendantAccountServiceProxy;
     }
 
     @GetMapping
@@ -159,12 +166,33 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/{defendantAccountId}/header-summary")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
-    public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(@PathVariable Long defendantAccountId,
-              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-
+    public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue
+    ) {
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
 
-        return buildResponse(defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue));
+        // --- Minimal auth for unhappy-path tests ---
+        if (authHeaderValue == null || authHeaderValue.isBlank()) {
+            throw new AuthenticationCredentialsNotFoundException("Missing Authorization header"); // -> 401
+        }
+        UserState user = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        boolean isDeveloper = (user instanceof UserState.DeveloperUserState);
+        boolean hasBuAccess = user != null
+            && user.getBusinessUnitUser() != null
+            && !user.getBusinessUnitUser().isEmpty();
+
+        if (user == null || (!isDeveloper && !hasBuAccess)) {
+            throw new AccessDeniedException("You do not have permission to access this resource"); // -> 403
+        }
+        // -------------------------------------------
+
+        var result = defendantAccountServiceProxy.getHeaderSummaryWithVersion(defendantAccountId, authHeaderValue);
+
+        return ResponseEntity.ok()
+            .header("ETag", result.getVersion() != null ? "\"" + result.getVersion() + "\"" : "")
+            .body(result.getData());
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
