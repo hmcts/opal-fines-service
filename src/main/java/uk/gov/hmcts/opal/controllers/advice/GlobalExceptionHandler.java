@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers.advice;
 
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.QueryTimeoutException;
@@ -437,6 +438,32 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("conflictReason", e.getConflictReason());
 
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail);
+    }
+
+    @ExceptionHandler(FeignException.Unauthorized.class)
+    public ResponseEntity<ProblemDetail> handleFeignExceptionUnauthorized(FeignException.Unauthorized e) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.UNAUTHORIZED,
+            "Not Authorised for Connection",
+            e.getMessage(),
+            "unauthorized",
+            e
+        );
+
+        return responseWithProblemDetail(HttpStatus.valueOf(e.status()), problemDetail);
+    }
+
+    @ExceptionHandler(FeignException.class)
+    public ResponseEntity<ProblemDetail> handleFeignException(FeignException e) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Downstream Service Error",
+            "Problem with connecting to a dependant service: " + e.getMessage(),
+            "internal-server-error",
+            e
+        );
+
+        return responseWithProblemDetail(HttpStatus.valueOf(e.status()), problemDetail);
     }
 
     private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,
