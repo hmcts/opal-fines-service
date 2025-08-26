@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.StandardLetterEntity;
 import uk.gov.hmcts.opal.disco.StandardLetterServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyStandardLetterService;
 import uk.gov.hmcts.opal.disco.opal.StandardLetterService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

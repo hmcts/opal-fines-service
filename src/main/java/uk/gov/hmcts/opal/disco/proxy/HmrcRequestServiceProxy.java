@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.disco.HmrcRequestServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyHmrcRequestService;
 import uk.gov.hmcts.opal.disco.opal.HmrcRequestService;
+import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 import java.util.List;
 

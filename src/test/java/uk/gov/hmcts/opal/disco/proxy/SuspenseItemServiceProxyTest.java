@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.SuspenseItemEntity;
 import uk.gov.hmcts.opal.disco.SuspenseItemServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacySuspenseItemService;
 import uk.gov.hmcts.opal.disco.opal.SuspenseItemService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

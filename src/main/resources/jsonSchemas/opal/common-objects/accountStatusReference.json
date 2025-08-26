@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Account Status Reference Legacy",
+  "title": "Account Status Reference",
   "type": "object",
   "additionalProperties": false,
   "properties": {

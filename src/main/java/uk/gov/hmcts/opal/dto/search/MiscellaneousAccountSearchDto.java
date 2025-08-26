@@ -19,7 +19,6 @@ public class MiscellaneousAccountSearchDto implements ToJsonString {
     private String partyId;
     private String surname;
     private String forenames;
-    private String initials;
     private String niNumber;
     private String addressLine;
     private String postcode;

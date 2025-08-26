@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.CommittalWarrantProgressEntity;
 import uk.gov.hmcts.opal.disco.CommittalWarrantProgressServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyCommittalWarrantProgressService;
 import uk.gov.hmcts.opal.disco.opal.CommittalWarrantProgressService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

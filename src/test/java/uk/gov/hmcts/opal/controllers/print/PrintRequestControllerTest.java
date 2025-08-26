@@ -8,8 +8,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.entity.print.PrintJob;
-import uk.gov.hmcts.opal.disco.print.AsyncPrintJobProcessor;
-import uk.gov.hmcts.opal.disco.print.PrintService;
+import uk.gov.hmcts.opal.service.print.AsyncPrintJobProcessor;
+import uk.gov.hmcts.opal.service.print.PrintService;
 
 import java.util.Collections;
 import java.util.List;

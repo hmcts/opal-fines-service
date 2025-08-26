@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.disco.AliasServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyAliasService;
 import uk.gov.hmcts.opal.disco.opal.AliasService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

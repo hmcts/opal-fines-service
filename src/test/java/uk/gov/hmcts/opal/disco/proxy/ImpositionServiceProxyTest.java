@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.ImpositionEntity;
 import uk.gov.hmcts.opal.disco.ImpositionServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyImpositionService;
 import uk.gov.hmcts.opal.disco.opal.ImpositionService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

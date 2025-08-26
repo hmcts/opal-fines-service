@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "title": "Get Defendant Account Payment Terms Response",
+  "additionalProperties": false,
+  "properties": {
+    "payment_terms" : {
+      "$ref": "../common-objects/paymentTerms.json"
+    },
+    "posted_details": {
+      "$ref": "../common-objects/postedDetails.json"
+    },
+    "payment_card_last_requested": {
+      "type": ["string", "null"],
+      "format": "date"
+    },
+    "date_last_amended": {
+      "type": ["string", "null"],
+      "format": "date"
+    },
+    "extension": {
+      "type": ["boolean", "null"]
+    },
+    "last_enforcement": {
+      "type": ["string", "null"],
+      "minLength": 1
+    }
+  },
+  "required": ["payment_terms", "posted_details"]
+}
+

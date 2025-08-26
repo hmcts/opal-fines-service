@@ -11,6 +11,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.disco.NoteServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyNoteService;
 import uk.gov.hmcts.opal.disco.opal.NoteService;
+import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 import java.util.List;
 

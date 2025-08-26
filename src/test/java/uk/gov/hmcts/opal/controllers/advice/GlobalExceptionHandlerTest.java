@@ -19,6 +19,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
@@ -488,6 +490,25 @@ class GlobalExceptionHandlerTest {
         assertEquals("Internal Server Error", problemDetail.getTitle());
         assertEquals("A persistence error occurred while processing your request", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/jpa-system-error"), problemDetail.getType());
+        assertNotNull(problemDetail.getInstance());
+
+        assertTrue(response.getHeaders().getContentType().toString()
+                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    @Test
+    void testHandleHttpServerErrorException() {
+        HttpServerErrorException jse = new HttpServerErrorException(HttpStatusCode.valueOf(404), "Not Found!");
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler
+            .handleHttpServerErrorException(jse);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        ProblemDetail problemDetail = response.getBody();
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
+        assertEquals("Downstream Server Error", problemDetail.getTitle());
+        assertEquals("404 Not Found!", problemDetail.getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/http-server-error"), problemDetail.getType());
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()

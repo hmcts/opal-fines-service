@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.LogActionEntity;
 import uk.gov.hmcts.opal.disco.LogActionServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyLogActionService;
 import uk.gov.hmcts.opal.disco.opal.LogActionService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Payment Terms Type",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "payment_terms_type_code": {
+      "type": "string",
+      "enum": ["B", "P", "I"]
+    }
+  },
+  "required": ["payment_terms_type_code"]
+}

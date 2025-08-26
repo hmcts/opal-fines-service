@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Enforcement Override Result Reference",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enforcement_override_result_id": {"type": "string" },
+    "enforcement_override_result_name": { "type": "string" }
+  },
+  "required": ["enforcement_override_result_id", "enforcement_override_result_name"]
+}

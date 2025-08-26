@@ -73,16 +73,16 @@ public abstract class EntitySpecs<E> {
         return numeric(candidate).map(Short::parseShort);
     }
 
+    public <T> Optional<T> notNullObject(T candidate) {
+        return Optional.ofNullable(candidate);
+    }
+
     public Optional<LocalDate> notNullLocalDate(DateDto candidate) {
         return Optional.ofNullable(candidate).map(DateDto::toLocalDate);
     }
 
     public Optional<LocalDateTime> notNullLocalDateTime(DateDto candidate) {
         return Optional.ofNullable(candidate).map(DateDto::toLocalDate).map(d -> d.atTime(0, 0, 0));
-    }
-
-    public Optional<LocalDateTime> notNullLocalDateTime(LocalDateTime candidate) {
-        return Optional.ofNullable(candidate);
     }
 
     public <T> Optional<Collection<T>> notEmpty(Collection<T> collection) {

@@ -52,13 +52,10 @@
       ]
     },
     "account_status": {
-      "$ref": "resource:/jsonSchemas/opal/common-objects/accountStatusReference.json"
+      "$ref": "../common-objects/accountStatusReference.json"
     },
     "employer_flag": {
       "type": "boolean"
-    },
-    "version": {
-      "type": "integer"
     }
   },
   "required": [
@@ -68,8 +65,7 @@
     "next_enforcement_action_data",
     "defendant_account_type",
     "account_status",
-    "employer_flag",
-    "version"
+    "employer_flag"
   ],
   "$defs": {
     "enforcementOverview": {
@@ -77,13 +73,13 @@
       "additionalProperties": false,
       "properties": {
         "collection_order": {
-          "$ref": "resource:/jsonSchemas/opal/common-objects/collectionOrder.json"
+          "$ref": "../common-objects/collectionOrder.json"
         },
         "days_in_default": {
           "type": ["integer", "null"]
         },
         "enforcement_court": {
-          "$ref": "resource:/jsonSchemas/opal/common-objects/courtReference.json"
+          "$ref": "../common-objects/courtReference.json"
         }
       },
       "required": [
@@ -97,7 +93,7 @@
       "additionalProperties": false,
       "properties": {
         "enforcement_action": {
-          "$ref": "resource:/jsonSchemas/opal/common-objects/resultReference.json"
+          "$ref": "../common-objects/resultReference.json"
         },
         "reason": {
           "type": ["string", "null"]
@@ -105,7 +101,7 @@
         "enforcer": {
           "oneOf": [
             {
-              "$ref": "resource:/jsonSchemas/opal/common-objects/enforcerReference.json"
+              "$ref": "../common-objects/enforcerReference.json"
             },
             {
               "type": "null"
@@ -122,7 +118,7 @@
         "result_responses": {
           "type": ["array","null"],
           "items": {
-            "$ref": "resource:/jsonSchemas/opal/common-objects/resultResponses.json"
+            "$ref": "../common-objects/resultResponses.json"
           }
         }
       },

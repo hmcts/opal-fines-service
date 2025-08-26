@@ -15,6 +15,7 @@ import uk.gov.hmcts.opal.entity.PartySummary;
 import uk.gov.hmcts.opal.disco.PartyServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyPartyService;
 import uk.gov.hmcts.opal.disco.opal.PartyService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.Collections;
 import java.util.List;
@@ -87,7 +88,7 @@ class PartyServiceProxyTest extends ProxyTestsBase {
     }
 
     void testSaveParty(PartyServiceInterface targetService, PartyServiceInterface otherService) {
-        // Given: a PartyDto is returned from the target service
+        // Given: a LegacyPartyDto is returned from the target service
         PartyDto partyDto = PartyDto.builder().build();
         when(targetService.saveParty(any(PartyDto.class))).thenReturn(partyDto);
 

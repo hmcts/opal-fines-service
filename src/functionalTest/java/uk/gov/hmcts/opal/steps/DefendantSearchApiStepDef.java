@@ -19,7 +19,7 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
     public void postToDefendantSearchAPI(DataTable searchCriteria) throws JSONException {
         Map<String, String> dataToPost = searchCriteria.asMap(String.class, String.class);
 
-        JSONObject requestBody = addToNewJsonObject(dataToPost, "forename", "surname", "initials", "address_line");
+        JSONObject requestBody = addToNewJsonObject(dataToPost, "forename", "surname", "address_line");
         JSONObject dateOfBirth = addToNewJsonObject(dataToPost, "day_of_month", "month_of_year", "year");
         requestBody.put("date_of_birth", dateOfBirth);
 

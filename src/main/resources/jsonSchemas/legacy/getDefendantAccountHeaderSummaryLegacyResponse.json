@@ -10,7 +10,7 @@
     "defendant_party_id": { "type": "string" },
     "parent_guardian_party_id": { "type": "string" },
     "account_status_reference": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/accountStatusReferenceLegacy.json"
+      "$ref": "./common-objects/accountStatusReferenceLegacy.json"
     },
     "account_type": {
       "type": "string",
@@ -19,17 +19,17 @@
     "prosecutor_case_reference": { "type": "string" },
     "fixed_penalty_ticket_number": { "type": "string" },
     "business_unit_summary": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/businessUnitSummaryLegacy.json"
+      "$ref": "./common-objects/businessUnitSummaryLegacy.json"
     },
     "payment_state_summary": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/paymentStateSummaryLegacy.json"
+      "$ref": "./common-objects/paymentStateSummaryLegacy.json"
     },
-    "defendant_details": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/defendantDetailsLegacy.json"
+    "party_details": {
+      "$ref": "./common-objects/partyDetailsLegacy.json"
     }
   },
   "required": [
-    "account_version",
+    "version",
     "defendant_account_id",
     "account_number",
     "defendant_party_id",
@@ -37,6 +37,6 @@
     "account_type",
     "business_unit_summary",
     "payment_state_summary",
-    "defendant_details"
+    "party_details"
   ]
 }

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Language Preference",
+  "type": ["object", "null"],
+  "additionalProperties": false,
+  "properties": {
+    "language_code": {
+      "type": "string",
+      "enum": ["CY", "EN"]
+    }
+  },
+    "required": ["language_code"]
+}

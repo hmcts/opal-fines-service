@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.disco.CreditorAccountServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyCreditorAccountService;
 import uk.gov.hmcts.opal.disco.opal.CreditorAccountService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

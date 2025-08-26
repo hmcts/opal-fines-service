@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "title": "Add Defendant Account Payment Terms Request",
+  "additionalProperties": false,
+  "properties": {
+    "payment_terms": {
+      "$ref": "../common-objects/paymentTerms.json"
+    },
+    "request_payment_card": {
+      "type": ["boolean", "null"]
+    },
+    "generate_payment_terms_change_letter": {
+      "type": ["boolean", "null"]
+    }
+  },
+  "required": ["payment_terms", "request_payment_card", "generate_payment_terms_change_letter"]
+}

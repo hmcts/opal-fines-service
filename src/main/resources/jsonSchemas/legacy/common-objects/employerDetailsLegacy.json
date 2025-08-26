@@ -12,8 +12,7 @@
     },
     "employer_telephone_number": { "type": "string" },
     "employer_address": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/addressDetailsLegacy.json"
+      "$ref": "./addressDetailsLegacy.json"
     }
-  },
-  "required": ["employer_name", "employer_reference", "employer_address"]
+  }
 }

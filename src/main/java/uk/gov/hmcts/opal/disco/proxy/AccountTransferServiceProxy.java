@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.disco.AccountTransferServiceInterface;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.disco.legacy.LegacyAccountTransferService;
 import uk.gov.hmcts.opal.disco.opal.AccountTransferService;
+import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 import java.util.List;
 

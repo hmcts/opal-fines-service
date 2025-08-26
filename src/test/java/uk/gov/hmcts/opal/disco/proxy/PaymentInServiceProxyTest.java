@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.disco.PaymentInServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyPaymentInService;
 import uk.gov.hmcts.opal.disco.opal.PaymentInService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

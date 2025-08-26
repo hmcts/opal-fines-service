@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.disco.DebtorDetailServiceInterface;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.disco.legacy.LegacyDebtorDetailService;
 import uk.gov.hmcts.opal.disco.opal.DebtorDetailService;
+import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 import java.util.List;
 

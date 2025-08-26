@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Add Defendant Account Enforcement Request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "result_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "enforcement_result_responses": {
+      "type": "array",
+      "items": {
+        "$ref": "../common-objects/resultResponses.json"
+      },
+      "minItems": 1
+    },
+    "payment_terms": {
+      "$ref": "../common-objects/paymentTerms.json"
+    }
+  },
+  "required": [
+    "result_id",
+    "enforcement_result_responses",
+    "payment_terms"
+  ]
+}

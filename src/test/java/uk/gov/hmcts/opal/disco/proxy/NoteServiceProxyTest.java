@@ -15,6 +15,7 @@ import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.disco.NoteServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyNoteService;
 import uk.gov.hmcts.opal.disco.opal.NoteService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

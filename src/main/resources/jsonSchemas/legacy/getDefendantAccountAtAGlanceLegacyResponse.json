@@ -4,28 +4,42 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "account_version": { "type": "integer" },
+    "version": { "type": "integer" },
     "defendant_account_id": { "type": "string" },
     "account_number": { "type": "string" },
-    "defendant_details": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/defendantDetailsLegacy.json"
+    "debtor_type": {
+      "type": "string",
+      "enum": ["Defendant", "Parent/Guardian"]
     },
-    "payment_terms": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/paymentTermsSummaryLegacy.json"
+    "is_youth": { "type": "boolean" },
+    "party_details": {
+      "$ref": "./common-objects/partyDetailsLegacy.json"
     },
-    "enforcement_status": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/enforcementStatusSummaryLegacy.json"
+    "address": {
+      "$ref": "./common-objects/addressDetailsLegacy.json"
     },
-    "comment_and_notes": {
-      "$ref": "resource:/jsonSchemas/legacy/common-objects/commentsAndNotesLegacy.json"
+    "language_preferences": {
+      "$ref": "./common-objects/languagePreferencesLegacy.json"
+    },
+    "payment_terms_summary": {
+      "$ref": "./common-objects/paymentTermsSummaryLegacy.json"
+    },
+    "enforcement_status_summary": {
+      "$ref": "./common-objects/enforcementStatusSummaryLegacy.json"
+    },
+    "comments_and_notes": {
+      "$ref": "./common-objects/commentsAndNotesLegacy.json"
     }
   },
   "required": [
-    "account_version",
+    "version",
     "defendant_account_id",
     "account_number",
-    "defendant_details",
-    "payment_terms",
-    "enforcement_status"
+    "debtor_type",
+    "is_youth",
+    "party_details",
+    "address",
+    "payment_terms_summary",
+    "enforcement_status_summary"
   ]
 }

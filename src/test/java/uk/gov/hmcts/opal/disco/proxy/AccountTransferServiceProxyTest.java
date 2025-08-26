@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.AccountTransferEntity;
 import uk.gov.hmcts.opal.disco.AccountTransferServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyAccountTransferService;
 import uk.gov.hmcts.opal.disco.opal.AccountTransferService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

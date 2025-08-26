@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.AmendmentEntity;
 import uk.gov.hmcts.opal.disco.AmendmentServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyAmendmentService;
 import uk.gov.hmcts.opal.disco.opal.AmendmentService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

@@ -18,7 +18,6 @@ public class PartySpecs extends EntitySpecs<PartyEntity> {
             notBlank(criteria.getOrganisationName()).map(PartySpecs::likeOrganisationName),
             notBlank(criteria.getSurname()).map(PartySpecs::likeSurname),
             notBlank(criteria.getForenames()).map(PartySpecs::likeForenames),
-            notBlank(criteria.getInitials()).map(PartySpecs::likeInitials),
             notNullLocalDate(criteria.getDateOfBirth()).map(PartySpecs::equalsDateOfBirth),
             notBlank(criteria.getNiNumber()).map(PartySpecs::likeNiNumber),
             notBlank(criteria.getAddressLine()).map(PartySpecs::likeAnyAddressLine),
@@ -58,14 +57,6 @@ public class PartySpecs extends EntitySpecs<PartyEntity> {
     public static Predicate likeForenamesPredicate(From<?, PartyEntity> from, CriteriaBuilder builder,
                                                    String forenames) {
         return likeWildcardPredicate(from.get(PartyEntity_.forenames), builder, forenames);
-    }
-
-    public static Specification<PartyEntity> likeInitials(String initials) {
-        return (root, query, builder) -> likeInitialsPredicate(root, builder, initials);
-    }
-
-    public static Predicate likeInitialsPredicate(From<?, PartyEntity> from, CriteriaBuilder builder, String initials) {
-        return likeWildcardPredicate(from.get(PartyEntity_.initials), builder, initials);
     }
 
     public static Specification<PartyEntity> equalsDateOfBirth(LocalDate dob) {

@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.ApplicationFunctionEntity;
 import uk.gov.hmcts.opal.disco.ApplicationFunctionServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyApplicationFunctionService;
 import uk.gov.hmcts.opal.disco.opal.ApplicationFunctionService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

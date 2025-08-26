@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="creditor_accounts_element.xsd"/>
+  <xsd:complexType name="creditor_accounts">
+    <xsd:sequence>
+      <xsd:element name="creditor_accounts_element" type="creditor_accounts_element" minOccurs="1" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+</xsd:schema>

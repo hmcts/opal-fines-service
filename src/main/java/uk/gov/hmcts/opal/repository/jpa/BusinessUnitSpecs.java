@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import com.nimbusds.oauth2.sdk.util.CollectionUtils;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
@@ -10,6 +11,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity_;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
@@ -33,6 +35,13 @@ public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
 
     public static Specification<BusinessUnitEntity> equalsBusinessUnitId(Short businessUnitId) {
         return (root, query, builder) -> equalsBusinessUnitIdPredicate(root, builder, businessUnitId);
+    }
+
+    public static Specification<BusinessUnitEntity> businessUnitIdIsOneOf(List<Short> businessUnitIds) {
+        return (root, query, builder) ->
+            CollectionUtils.isEmpty(businessUnitIds)
+                ? builder.disjunction() // No business unit IDs means no filter
+                : equalsAnyBusinessUnitIdPredicate(root, builder, businessUnitIds);
     }
 
     public static Predicate equalsBusinessUnitIdPredicate(
@@ -74,7 +83,7 @@ public class BusinessUnitSpecs extends EntitySpecs<BusinessUnitEntity> {
 
     public static Specification<BusinessUnitEntity> equalsAccountNumberPrefix(String accountNumberPrefix) {
         return (root, query, builder) -> builder.equal(root.get(BusinessUnitEntity_.accountNumberPrefix),
-                                                       accountNumberPrefix);
+            accountNumberPrefix);
     }
 
     public static Specification<BusinessUnitEntity> equalsParentBusinessUnitId(Short parentBusinessUnitId) {

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="defendant.xsd"/>
+  <xsd:complexType name="creditor_accounts_element">
+    <xsd:sequence>
+      <xsd:element name="creditor_account_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="account_number" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="organisation" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+      <xsd:choice>
+        <xsd:sequence>
+          <xsd:element name="organisation_name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:sequence>
+          <xsd:element name="firstnames" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="surname" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:choice>
+      <xsd:element name="address_line_1" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="postcode" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="business_unit_name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="business_unit_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="defendant" type="defendant" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="defendant_account_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="account_balance" type="xsd:decimal" minOccurs="1" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

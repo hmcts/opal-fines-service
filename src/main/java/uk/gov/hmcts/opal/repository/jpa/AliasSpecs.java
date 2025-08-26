@@ -19,7 +19,6 @@ public class AliasSpecs extends EntitySpecs<AliasEntity> {
             numericLong(criteria.getAliasId()).map(AliasSpecs::equalsAliasId),
             notBlank(criteria.getSurname()).map(AliasSpecs::likeEitherSurname),
             notBlank(criteria.getForenames()).map(AliasSpecs::likeEitherForenames),
-            notBlank(criteria.getInitials()).map(AliasSpecs::likeEitherInitials),
             notBlank(criteria.getNiNumber()).map(AliasSpecs::likePartyNiNumber),
             notBlank(criteria.getAddressLine()).map(AliasSpecs::likeAnyPartyAddressLine),
             notBlank(criteria.getPostcode()).map(AliasSpecs::likePartyPostcode),
@@ -61,22 +60,6 @@ public class AliasSpecs extends EntitySpecs<AliasEntity> {
     public static Specification<AliasEntity> likePartyForenames(String forenames) {
         return (root, query, builder) ->
             PartySpecs.likeForenamesPredicate(joinParty(root), builder, forenames);
-    }
-
-    public static Specification<AliasEntity> likeEitherInitials(String initials) {
-        return Specification.anyOf(
-            likeInitials(initials),
-            likePartyInitials(initials));
-    }
-
-    private static Specification<AliasEntity> likeInitials(String initials) {
-        return (root, query, builder) ->
-            likeWildcardPredicate(root.get(AliasEntity_.initials), builder, initials);
-    }
-
-    public static Specification<AliasEntity> likePartyInitials(String initials) {
-        return (root, query, builder) ->
-            PartySpecs.likeInitialsPredicate(joinParty(root), builder, initials);
     }
 
     public static Specification<AliasEntity> likePartyNiNumber(String niNumber) {

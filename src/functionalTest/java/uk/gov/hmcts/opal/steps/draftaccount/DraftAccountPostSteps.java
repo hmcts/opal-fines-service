@@ -49,13 +49,6 @@ public class DraftAccountPostSteps extends BaseStepDef {
             offence.put("offence_id", offence.getLong("offence_id"));
         }
 
-        if (accountObject.has("payment_terms")) {
-            JSONObject paymentTerms = accountObject.getJSONObject("payment_terms");
-            if (paymentTerms.has("default_days_in_jail")) {
-                paymentTerms.put("default_days_in_jail", paymentTerms.getInt("default_days_in_jail"));
-            }
-        }
-
         String timelineFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation"
             + "/draftAccounts/timelineJson/default.json";
         String timeline = new String(Files.readAllBytes(Paths.get(timelineFilePath)));

@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.disco.FixedPenaltyOffenceServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyFixedPenaltyOffenceService;
 import uk.gov.hmcts.opal.disco.opal.FixedPenaltyOffenceService;
+import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 import java.util.List;
 

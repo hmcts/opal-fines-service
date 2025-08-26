@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Party Details",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "party_id": {
+      "type": "string"
+    },
+    "organisation_flag": {
+      "type": "boolean"
+    },
+    "organisation_details": {
+      "$ref": "./organisationDetails.json"
+    },
+    "individual_details": {
+      "$ref": "./individualDetails.json"
+    }
+  },
+  "required": [
+    "party_id",
+    "organisation_flag",
+    "organisation_details",
+    "individual_details"
+  ]
+}

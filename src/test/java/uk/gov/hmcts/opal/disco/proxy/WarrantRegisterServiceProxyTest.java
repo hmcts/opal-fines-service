@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.WarrantRegisterEntity;
 import uk.gov.hmcts.opal.disco.WarrantRegisterServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyWarrantRegisterService;
 import uk.gov.hmcts.opal.disco.opal.WarrantRegisterService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 

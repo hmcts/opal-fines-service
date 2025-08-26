@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.disco.PartyServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyPartyService;
 import uk.gov.hmcts.opal.disco.opal.PartyService;
+import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 import java.util.List;
 

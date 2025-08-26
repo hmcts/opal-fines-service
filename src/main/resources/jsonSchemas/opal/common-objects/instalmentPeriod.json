@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Instalment Period",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "instalment_period_code": {
+      "type": "string",
+      "enum": ["W", "M", "F"]
+    }
+  },
+  "required": ["instalment_period_code"]
+}

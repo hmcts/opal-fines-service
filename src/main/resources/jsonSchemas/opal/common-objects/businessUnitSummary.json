@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Business Unit Summary",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "business_unit_name": { "type": "string" },
+    "business_unit_id": { "type": "string" },
+    "welsh_speaking": { "type": "string" }
+  },
+  "required": ["business_unit_name", "business_unit_id", "welsh_speaking"]
+}

@@ -4,19 +4,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SchemaValidatorsConfig;
 import com.networknt.schema.SpecVersion.VersionFlag;
 import com.networknt.schema.ValidationMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -108,33 +105,31 @@ public class JsonSchemaValidationService {
     }
 
     private JsonSchema getJsonSchema(String schemaFileName) {
-        if (schemaCache.containsKey(schemaFileName)) {
-            return schemaCache.get(schemaFileName);
-        }
-        String fileContents = readJsonSchemaFileContents(schemaFileName);
-        JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
-
-        JsonSchema jsonSchema = factory.getSchema(fileContents,
-                                                  SchemaValidatorsConfig.builder()
-                                                      .formatAssertionsEnabled(true).build());
-
-        schemaCache.put(schemaFileName, jsonSchema);
-        return jsonSchema;
-    }
-
-    private String readJsonSchemaFileContents(String schemaFileName) {
         if (schemaFileName.isBlank()) {
             throw new SchemaConfigurationException("A schema filename is required to validate a JSON document.");
         }
+
+        if (schemaCache.containsKey(schemaFileName)) {
+            return schemaCache.get(schemaFileName);
+        }
+
         String filePath = Path.of(PATH_ROOT, schemaFileName).toString();
         ClassPathResource cpr = new ClassPathResource(filePath);
+
         if (!cpr.exists()) {
             throw new SchemaConfigurationException(format("No JSON Schema file found at '%s'", cpr.getPath()));
         }
+
         try {
-            return StreamUtils.copyToString(cpr.getInputStream(), Charset.defaultCharset());
+            // Key change: Use URL instead of string content
+            JsonSchemaFactory factory = JsonSchemaFactory.getInstance(VersionFlag.V202012);
+            JsonSchema jsonSchema = factory.getSchema(cpr.getURI());
+
+            schemaCache.put(schemaFileName, jsonSchema);
+            return jsonSchema;
         } catch (IOException e) {
-            throw new SchemaConfigurationException(format("Problem opening InputStream at '%s'", filePath), e);
+            throw new SchemaConfigurationException(
+                format("Problem reading JSON Schema from '%s'", filePath), e);
         }
     }
 

@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
 import uk.gov.hmcts.opal.disco.LogAuditDetailServiceInterface;
 import uk.gov.hmcts.opal.disco.legacy.LegacyLogAuditDetailService;
 import uk.gov.hmcts.opal.disco.opal.LogAuditDetailService;
+import uk.gov.hmcts.opal.service.proxy.ProxyTestsBase;
 
 import java.util.List;
 
