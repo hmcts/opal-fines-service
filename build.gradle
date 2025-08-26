@@ -386,6 +386,7 @@ dependencies {
   implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.10'
   implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.10'
   implementation 'org.apache.commons:commons-lang3:3.18.0'
+  implementation 'commons-fileupload:commons-fileupload:1.6.0'
 
 }
 
