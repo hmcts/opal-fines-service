@@ -42,6 +42,7 @@ java:
     OPAL_FINES_DB_PORT: 5432
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: "${DEV_OPAL_FRONT_END_URL}"
+    OPAL_USER_SERVICE_URL: "${DEV_OPAL_USER_SERVICE_URL}"
     OPAL_LEGACY_GATEWAY_URL: https://opal.clouddev.online/opal
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
     LAUNCH_DARKLY_ENABLED: false
@@ -72,6 +73,40 @@ opal-frontend:
       FEATURES_SSO_ENABLED: false
       FEATURES_APP_INSIGHTS_ENABLED: false
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-frontend"
+opal-user-service:
+  enabled: ${DEV_ENABLE_OPAL_USER_SERVICE}
+  java:
+    image: 'sdshmctspublic.azurecr.io/opal/frontend:${DEV_OPAL_FRONT_END_IMAGE_SUFFIX}'
+    ingressHost: "opal-fines-service-pr-${CHANGE_ID}-user-service.dev.platform.hmcts.net"
+    keyVaults:
+      opal:
+        secrets:
+          - name: app-insights-connection-string
+            alias: app-insights-connection-string
+          - name: launch-darkly-sdk-key
+            alias: LAUNCH_DARKLY_SDK_KEY
+          - name: AzureADTenantId
+            alias: AAD_TENANT_ID
+          - name: AzureADClientId
+            alias: AAD_CLIENT_ID
+          - name: AzureADClientSecret
+            alias: AAD_CLIENT_SECRET
+          - name: OpalTestUserPassword
+            alias: OPAL_TEST_USER_PASSWORD
+    environment:
+      OPAL_USER_DB_HOST: "{{ .Release.Name }}-postgresql"
+      OPAL_USER_DB_NAME: "{{ .Values.postgresql.auth.database}}"
+      OPAL_USER_DB_USERNAME: "{{ .Values.postgresql.auth.username}}"
+      OPAL_USER_DB_PASSWORD: "{{ .Values.postgresql.auth.password}}"
+      OPAL_USER_DB_OPTIONS: "?stringtype=unspecified"
+      OPAL_USER_DB_PORT: 5432
+      RUN_DB_MIGRATION_ON_STARTUP: true
+      OPAL_FRONTEND_URL: https://opal-frontend.staging.platform.hmcts.net
+      TESTING_SUPPORT_ENDPOINTS_ENABLED: true
+      LAUNCH_DARKLY_ENABLED: false
+      APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-user-service"
+    postgresql:
+      enabled: true
 
 redis:
   enabled: true

@@ -52,5 +52,7 @@ java:
       tag: '17.5.0'
 opal-frontend:
   enabled: false
+opal-user-service:
+  enabled: false
 redis:
   enabled: false
