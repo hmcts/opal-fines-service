@@ -76,7 +76,7 @@ opal-frontend:
 opal-user-service:
   enabled: ${DEV_ENABLE_OPAL_USER_SERVICE}
   java:
-    image: 'sdshmctspublic.azurecr.io/opal/frontend:${DEV_OPAL_FRONT_END_IMAGE_SUFFIX}'
+    image: 'sdshmctspublic.azurecr.io/opal/user-service:${DEV_OPAL_USER_SERVICE_IMAGE_SUFFIX}'
     ingressHost: "opal-fines-service-pr-${CHANGE_ID}-user-service.dev.platform.hmcts.net"
     keyVaults:
       opal:
