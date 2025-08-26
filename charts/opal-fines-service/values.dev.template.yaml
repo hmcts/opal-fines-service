@@ -108,9 +108,7 @@ opal-user-service:
       LAUNCH_DARKLY_ENABLED: false
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-user-service"
     postgresql:
-      enabled: true
-      auth:
-        database: user-service-db
+      enabled: false
 
 redis:
   enabled: true
