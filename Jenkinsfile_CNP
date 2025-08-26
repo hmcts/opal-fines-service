@@ -1,6 +1,11 @@
 #!groovy
 import uk.gov.hmcts.contino.GithubAPI
 
+properties([
+    parameters([
+        booleanParam(name: 'SKIP_SONAR', defaultValue: false, description: 'Skip sonar'),
+    ])
+])
 @Library("Infrastructure")
 
 def type = "java"
@@ -22,6 +27,9 @@ def determineDevEnvironmentDeployment() {
   def githubApi = new GithubAPI(this)
   if (githubApi.checkForLabel(env.BRANCH_NAME, "app_mode_legacy")) {
     env.APP_MODE = "legacy"
+  }
+  if (githubApi.checkForLabel(env.BRANCH_NAME, "SKIP_SONAR")) {
+    env.SKIP_SONAR = true
   }
 
   if (githubApi.checkForLabel(env.BRANCH_NAME, "enable_keep_helm")) {
@@ -57,9 +65,17 @@ withPipeline(type, product, component) {
   env.OPAL_LEGACY_GATEWAY_URL = 'https://opal-legacy-db-stub.staging.platform.hmcts.net'
 //  enableSlackNotifications('#opal-fines-builds')
 
+  env.SKIP_SONAR = params.SKIP_SONAR ?: false
   before('akschartsinstall') {
     onPR {
       determineDevEnvironmentDeployment()
+    }
+  }
+  afterAlways('akschartsinstall') {
+    if (env.SKIP_SONAR) {
+      stage('SKIP_SONAR IS TRUE') {
+        error("Build can not fully complete when SKIP_SONAR is set to true")
+      }
     }
   }
 
