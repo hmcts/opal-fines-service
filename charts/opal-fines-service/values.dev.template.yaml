@@ -112,7 +112,7 @@ opal-user-service:
       LAUNCH_DARKLY_ENABLED: false
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-user-service"
     postgresql:
-      enabled: true
+      enabled: false
       auth:
         username: javapostgres
         password: javapassword
