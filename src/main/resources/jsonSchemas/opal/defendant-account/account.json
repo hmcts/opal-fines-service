@@ -513,7 +513,7 @@
                     "description": "Indicator if payment is by BACS"
                 },
                 "bank_account_type": {
-                    "type": ["integer", "null"],
+                    "type": ["string", "null"],
                     "description": "Type of bank account"
                 },
                 "bank_sort_code": {
