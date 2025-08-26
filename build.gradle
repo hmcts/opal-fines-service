@@ -240,6 +240,8 @@ sonarqube {
     property 'sonar.cpd.exclusions', "**/entity/*"
     if (skipSonar) {
       property 'sonar.exclusions', "**/**"
+      property 'sonar.coverage.exclusions', "**/**"
+      property 'sonar.cpd.exclusions', "**/**"
     }
   }
 }
