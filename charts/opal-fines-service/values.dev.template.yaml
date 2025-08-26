@@ -116,7 +116,7 @@ opal-user-service:
       enabled: false
 
 userServicePostgresql:
-  enabled: true
+  enabled: ${DEV_ENABLE_OPAL_USER_SERVICE}
   nameOverride: postgresql-user-service
   auth:
     username: javapostgres
