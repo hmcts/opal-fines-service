@@ -57,3 +57,7 @@ opal-user-service:
   enabled: true
 redis:
   enabled: false
+userServicePostgresql:
+  enabled: false
+  image:
+    tag: '17.5.0'

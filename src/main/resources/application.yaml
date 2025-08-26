@@ -194,4 +194,4 @@ logging:
 
 user:
   service:
-    url: ${OPAL_USER_SERVICE_URL:http://localhost:4555}
+    url: ${OPAL_USER_SERVICE_API_URL:http://localhost:4555}
