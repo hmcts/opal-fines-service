@@ -7,6 +7,7 @@ public class SchemaPaths {
     public static final String PAYMENT_TERMS = "opal/payment-terms";
     public static final String REFERENCE_DATA = "opal/reference-data";
     public static final String TIMELINE = "opal/timeline";
+    public static final String MINOR_CREDITORS = "opal/minor-creditor-accounts";
 
 
     public static final String ADD_DRAFT_ACCOUNT_REQUEST = DRAFT_ACCOUNT + "/addDraftAccountRequest.json";
@@ -24,7 +25,6 @@ public class SchemaPaths {
 
     public static final String POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST = DEFENDANT_ACCOUNT
         + "/postDefendantAccountsSearchRequest.json";
-
 
     private SchemaPaths() {
         // Utility class — prevent instantiation
