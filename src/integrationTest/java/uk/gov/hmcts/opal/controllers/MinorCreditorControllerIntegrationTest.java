@@ -13,11 +13,15 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 /**
@@ -27,7 +31,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     private static final String URL_BASE = "/minor-creditor-accounts";
 
-    private static final String MINOR_CREDITOR_RESPONSE = "opal/minor-creditor/postMinorCreditorAccountSearchResponse.json";
+    private static final String MINOR_CREDITOR_RESPONSE =
+        "opal/minor-creditor/postMinorCreditorAccountSearchResponse.json";
 
     @MockitoBean
     UserStateService userStateService;
@@ -102,7 +107,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     }
 
-    void LegacyPostSearchMinorCreditorImpl_500Error(Logger log) throws Exception {
+    void legacyPostSearchMinorCreditorImpl_500Error(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 

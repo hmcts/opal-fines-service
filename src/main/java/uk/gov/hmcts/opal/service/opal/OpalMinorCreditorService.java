@@ -32,7 +32,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         List<MinorCreditorEntity> results =
             minorCreditorRepository.findAll(spec);
 
-       return toResponse(results);
+        return toResponse(results);
 
     }
 
