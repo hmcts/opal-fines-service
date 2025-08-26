@@ -18,8 +18,29 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
-    void testPostSearchMinorCreditor_500Error() throws Exception {
-        super.postSearchMinorCreditorImpl_500Error(log);
+    void search_checkLetterReturnsBoth() throws Exception {
+        super.search_checkLetter_returnsBoth(log);
     }
+
+    @Test
+    void search_NoCheckLetterReturnsBoth() throws Exception {
+        super.search_noCheckLetter_returnsBoth(log);
+    }
+
+    @Test
+    void search_noResultsForUnknownBusinessUnit_returnsEmpty() throws Exception {
+        super.search_noResultsForUnknownBusinessUnit_returnsEmpty(log);
+    }
+
+    @Test
+    void search_orgNamePrefix_normalizedMatches() throws Exception {
+        super.search_orgNamePrefix_normalizedMatches(log);
+    }
+
+    @Test
+    void search_accountNumber_withWildcardChars_treatedLiterally() throws Exception {
+        super.search_accountNumber_withWildcardChars_treatedLiterally(log);
+    }
+
 }
 

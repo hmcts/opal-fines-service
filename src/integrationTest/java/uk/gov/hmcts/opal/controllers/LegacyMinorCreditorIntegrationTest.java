@@ -18,7 +18,7 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     @Disabled("See DTSPO-27066. A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testPostSearchMinorCreditor_500Error() throws Exception {
-        super.postSearchMinorCreditorImpl_500Error(log);
+        super.LegacyPostSearchMinorCreditorImpl_500Error(log);
     }
 
 }

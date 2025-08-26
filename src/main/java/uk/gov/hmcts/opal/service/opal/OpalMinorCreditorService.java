@@ -26,14 +26,14 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch criteria) {
+        Specification<MinorCreditorEntity> spec =
+            specs.findBySearchCriteria(criteria);
 
-        Specification<MinorCreditorEntity> spec = Specification.allOf(
-            specs.findBySearchCriteria(criteria),
-            specs.filterByAccountNumberStartsWithWithCheckLetter(criteria)
-        );
+        List<MinorCreditorEntity> results =
+            minorCreditorRepository.findAll(spec);
 
-        List<MinorCreditorEntity> minorCreditors = minorCreditorRepository.findAll(spec);
-        return toResponse(minorCreditors);
+       return toResponse(results);
+
     }
 
     private CreditorAccountDto toCreditorAccountDto(MinorCreditorEntity entity) {

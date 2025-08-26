@@ -5,80 +5,95 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity_;
 
-import java.util.AbstractMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Component
 public class MinorCreditorSpecs {
 
     private static final String[] STRIP_CHARS = {
         " ", "-", "'", ".", ",", "/", "\\", "(", ")", "[", "]", "{", "}",
         ":", ";", "!", "?", "\"", "@", "#", "$", "%", "&", "*", "+"
     };
+    // --- PUBLIC ENTRYPOINT ---
+// public entry
+    public Specification<MinorCreditorEntity> findBySearchCriteria(MinorCreditorSearch c) {
+        if (c == null) return Specification.allOf();
 
-    /** Build a Specification for MinorCreditorEntity from the search DTO (functional style). */
-    public Specification<MinorCreditorEntity> findBySearchCriteria(MinorCreditorSearch criteria) {
-        if (criteria == null) {
-            return Specification.allOf();
-        }
+        List<Specification<MinorCreditorEntity>> parts = new ArrayList<>();
+        byBusinessUnitIds(c).ifPresent(parts::add);
+        byCreditorAccountNumber(c).ifPresent(parts::add);               // <-- uses view's account_number
+        parts.addAll(byCreditorTextFields(c));                          // organisationName etc.
 
-        Optional<Specification<MinorCreditorEntity>> businessUnitSpec =
-            Optional.ofNullable(criteria.getBusinessUnitIds())
-                .map(list -> list.stream()
-                    .filter(Objects::nonNull)
-                    .map(i -> (short) i.intValue())
-                    .collect(Collectors.toList()))
-                .filter(ids -> !ids.isEmpty())
-                .map(ids -> (Specification<MinorCreditorEntity>) (root, q, cb) -> root.get("businessUnitId").in(ids));
-
-        Optional<Specification<MinorCreditorEntity>> accountNumberSpec =
-            hasText(criteria.getAccountNumber())
-                ? Optional.of(likeStartsWithAttr("accountNumber", criteria.getAccountNumber()))
-                : Optional.empty();
-
-        Stream<Specification<MinorCreditorEntity>> creditorSpecs =
-            Optional.ofNullable(criteria.getCreditor())
-                .map(cred -> {
-                    // boolean organisation equality
-                    Specification<MinorCreditorEntity> organisationEq =
-                        (root, q, cb) -> cb.equal(root.get("organisation"), cred.getOrganisation());
-
-                    // string-like fields (normalized starts-with)
-                    Stream<Specification<MinorCreditorEntity>> textSpecs = Stream
-                        .<Map.Entry<String, String>>of(
-                            entry("defendantOrganisationName", cred.getOrganisationName()),
-                            entry("forenames",                  cred.getForenames()),
-                            entry("surname",                    cred.getSurname()),
-                            entry("addressLine1",               cred.getAddressLine1()),
-                            entry("postCode",                   cred.getPostcode())
-                        )
-                        .filter(e -> hasText(e.getValue()))
-                        .map(e -> likeStartsWithAttr(e.getKey(), e.getValue()));
-
-                    return Stream.concat(Stream.of(organisationEq), textSpecs);
-                })
-                .orElseGet(Stream::empty);
-
-        List<Specification<MinorCreditorEntity>> parts = Stream
-            .concat(
-                Stream.of(optStream(businessUnitSpec), optStream(accountNumberSpec)).flatMap(s -> s),
-                creditorSpecs
-            )
-            .toList();
-
-        return parts.stream().reduce(Specification.allOf(), Specification::and);
+        return combineAnd(parts);
     }
 
+    // business_unit_id IN (...)
+    private Optional<Specification<MinorCreditorEntity>> byBusinessUnitIds(MinorCreditorSearch c) {
+        return Optional.ofNullable(c.getBusinessUnitIds())
+            .map(list -> list.stream()
+                .filter(Objects::nonNull)
+                .map(i -> (short) i.intValue())
+                .toList())
+            .filter(ids -> !ids.isEmpty())
+            .map(ids -> (root, q, cb) -> root.get(MinorCreditorEntity_.businessUnitId).in(ids));
+    }
+
+    // account_number starts-with (creditor account; strip optional check letter)
+    private Optional<Specification<MinorCreditorEntity>> byCreditorAccountNumber(MinorCreditorSearch c) {
+        return Optional.ofNullable(c.getAccountNumber())
+            .filter(s -> !s.isBlank())
+            .map(MinorCreditorSpecs::stripCheckLetter) // "12345678A" -> "12345678"
+            .map(prefix -> (Specification<MinorCreditorEntity>)
+                (root, q, cb) -> likeStartsWithNormalized(
+                    cb, root.get(MinorCreditorEntity_.accountNumber), prefix));
+    }
+
+    // text fields on the creditor side (from your view columns)
+    private List<Specification<MinorCreditorEntity>> byCreditorTextFields(MinorCreditorSearch c) {
+        return Optional.ofNullable(c.getCreditor())
+            .map(cred -> {
+                List<Specification<MinorCreditorEntity>> out = new ArrayList<>();
+                addStartsWithIfPresent(out, "organisationName", cred.getOrganisationName()); // <-- view column
+                addStartsWithIfPresent(out, "forenames",        cred.getForenames());
+                addStartsWithIfPresent(out, "surname",          cred.getSurname());
+                addStartsWithIfPresent(out, "addressLine1",     cred.getAddressLine1());
+                addStartsWithIfPresent(out, "postCode",         cred.getPostcode());
+                // Only add organisation == true/false if your search DTO uses Boolean and it's non-null:
+                // if (cred.getOrganisation() != null) {
+                //     out.add((root, q, cb) -> cb.equal(root.get(MinorCreditorEntity_.organisation), cred.getOrganisation()));
+                // }
+                return out;
+            })
+            .orElseGet(java.util.Collections::emptyList);
+    }
+
+// unchanged helpers you already have: stripCheckLetter, likeStartsWithNormalized(...), normalizeExpr, etc.
+
+    /** Adds a normalized LIKE 'value%' spec for attribute if the value has text. */
+    private void addStartsWithIfPresent(List<Specification<MinorCreditorEntity>> acc,
+                                        String attribute,
+                                        String value) {
+        if (value != null && !value.isBlank()) {
+            acc.add((root, q, cb) -> likeStartsWithNormalized(root, cb, attribute, value));
+        }
+    }
+
+// --- COMBINER ---
+
+    /** AND-combine all specs; neutral spec if empty. */
+    private Specification<MinorCreditorEntity> combineAnd(List<Specification<MinorCreditorEntity>> parts) {
+        if (parts == null || parts.isEmpty()) return Specification.allOf();
+        @SuppressWarnings("unchecked")
+        Specification<MinorCreditorEntity>[] arr = parts.toArray(Specification[]::new);
+        return Specification.allOf(arr);
+    }
 
     public Specification<MinorCreditorEntity> filterByAccountNumberStartsWithWithCheckLetter(MinorCreditorSearch dto) {
         return (root, query, cb) ->
@@ -127,21 +142,23 @@ public class MinorCreditorSpecs {
         return (acc.length() == 9 && Character.isLetter(acc.charAt(8))) ? acc.substring(0, 8) : acc;
     }
 
+    /** Attribute-name based normalized starts-with LIKE. */
     private static <T> Predicate likeStartsWithNormalized(Root<T> root,
                                                           CriteriaBuilder cb,
                                                           String attribute,
                                                           String raw) {
         Expression<String> normField = normalizeExpr(cb, root.get(attribute));
-        String norm = normalize(raw) + "%"; // starts-with
-        return cb.like(normField, escapeForLike(norm), '\\');
+        String pattern = escapeForLike(normalize(raw)) + "%";   // escape first, then add %
+        return cb.like(normField, pattern, '\\');
     }
 
+    /** Expression-based normalized starts-with LIKE (for metamodel paths, joins, etc.). */
     private static Predicate likeStartsWithNormalized(CriteriaBuilder cb,
                                                       Expression<String> expr,
                                                       String raw) {
         Expression<String> normField = normalizeExpr(cb, expr);
-        String norm = normalize(raw) + "%";
-        return cb.like(normField, escapeForLike(norm), '\\');
+        String pattern = escapeForLike(normalize(raw)) + "%";   // escape first, then add %
+        return cb.like(normField, pattern, '\\');
     }
 
     private static String normalize(String s) {
