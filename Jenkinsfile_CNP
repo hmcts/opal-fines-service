@@ -28,9 +28,6 @@ def determineDevEnvironmentDeployment() {
   if (githubApi.checkForLabel(env.BRANCH_NAME, "app_mode_legacy")) {
     env.APP_MODE = "legacy"
   }
-  if (githubApi.checkForLabel(env.BRANCH_NAME, "SKIP_SONAR")) {
-    env.SKIP_SONAR = true
-  }
 
   if (githubApi.checkForLabel(env.BRANCH_NAME, "enable_keep_helm")) {
     for (label in githubApi.getLabelsbyPattern(env.BRANCH_NAME, "enable_opal_")) {
@@ -62,6 +59,9 @@ def determineDevEnvironmentDeployment() {
 withPipeline(type, product, component) {
   env.FAIL_FAST = true
   env.SKIP_SONAR = params.SKIP_SONAR ?: false
+  if (githubApi.checkForLabel(env.BRANCH_NAME, "SKIP_SONAR")) {
+    env.SKIP_SONAR = true
+  }
   env.STAGING_DB_SCHEMA = 'public'
   env.OPAL_LEGACY_GATEWAY_URL = 'https://opal-legacy-db-stub.staging.platform.hmcts.net'
 //  enableSlackNotifications('#opal-fines-builds')
