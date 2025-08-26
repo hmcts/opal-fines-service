@@ -11,7 +11,6 @@ properties([
 def type = "java"
 def product = "opal"
 def component = "fines-service"
-def githubApi = new GithubAPI(this)
 
 def determineDevEnvironmentDeployment() {
   env.DEV_ENABLE_OPAL_FRONT_END = false
@@ -25,6 +24,7 @@ def determineDevEnvironmentDeployment() {
 
   env.APP_MODE = "opal"
 
+  def githubApi = new GithubAPI(this)
   if (githubApi.checkForLabel(env.BRANCH_NAME, "app_mode_legacy")) {
     env.APP_MODE = "legacy"
   }
@@ -64,6 +64,7 @@ withPipeline(type, product, component) {
 //  enableSlackNotifications('#opal-fines-builds')
 
 
+  def githubApi = new GithubAPI(this)
   if (githubApi.checkForLabel(env.BRANCH_NAME, "SKIP_SONAR")) {
     env.SKIP_SONAR = true
   }
