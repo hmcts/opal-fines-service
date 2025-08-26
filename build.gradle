@@ -268,9 +268,6 @@ dependencyManagement {
 
 dependencyCheck {
   suppressionFile = 'config/owasp/suppressions.xml'
-  nvd {
-    apiKey = 'ffb77792-47ae-41ff-a95f-e5bd172663b4'
-  }
 }
 
 repositories {
@@ -385,6 +382,7 @@ dependencies {
   implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.10'
   implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.10'
   implementation 'org.apache.commons:commons-lang3:3.18.0'
+  implementation 'commons-fileupload:commons-fileupload:1.6.0'
 
 }
 
