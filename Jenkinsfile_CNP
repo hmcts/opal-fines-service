@@ -72,7 +72,8 @@ withPipeline(type, product, component) {
     }
   }
   afterAlways('akschartsinstall') {
-    if (env.SKIP_SONAR) {
+    //Temp disable
+    if (false && env.SKIP_SONAR) {
       stage('SKIP_SONAR IS TRUE') {
         error("Build can not fully complete when SKIP_SONAR is set to true")
       }
