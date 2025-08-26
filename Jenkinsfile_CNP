@@ -59,13 +59,14 @@ def determineDevEnvironmentDeployment() {
 withPipeline(type, product, component) {
   env.FAIL_FAST = true
   env.SKIP_SONAR = params.SKIP_SONAR ?: false
-  if (githubApi.checkForLabel(env.BRANCH_NAME, "SKIP_SONAR")) {
-    env.SKIP_SONAR = true
-  }
   env.STAGING_DB_SCHEMA = 'public'
   env.OPAL_LEGACY_GATEWAY_URL = 'https://opal-legacy-db-stub.staging.platform.hmcts.net'
 //  enableSlackNotifications('#opal-fines-builds')
 
+
+  if (githubApi.checkForLabel(env.BRANCH_NAME, "SKIP_SONAR")) {
+    env.SKIP_SONAR = true
+  }
   before('akschartsinstall') {
     onPR {
       determineDevEnvironmentDeployment()
