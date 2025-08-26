@@ -51,6 +51,10 @@ java:
     DEFAULT_APP_MODE: ${APP_MODE}
   postgresql:
     enabled: true
+    auth:
+      username: javapostgres
+      password: javapassword
+      database: opal-fines-db
 
 opal-frontend:
   enabled: ${DEV_ENABLE_OPAL_FRONT_END}
@@ -108,7 +112,11 @@ opal-user-service:
       LAUNCH_DARKLY_ENABLED: false
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-user-service"
     postgresql:
-      enabled: false
+      enabled: true
+      auth:
+        username: javapostgres
+        password: javapassword
+        database: user-service-db
 
 redis:
   enabled: true
