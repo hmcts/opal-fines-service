@@ -4,20 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.disco.DiscoDefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.AccountSummaryDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyDefendantAccountSummary;
-import uk.gov.hmcts.opal.entity.projection.DefendantAccountSummary.PartyLink;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -31,7 +24,6 @@ import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
-import uk.gov.hmcts.opal.disco.DiscoDefendantAccountServiceInterface;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -40,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.opal.dto.ToJsonString.getObjectMapper;
 
@@ -113,43 +104,10 @@ public class DiscoDefendantAccountService implements DiscoDefendantAccountServic
         return defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId(businessUnitId);
     }
 
-    @Override
-    @Transactional
-    public AccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
-        log.debug(":searchDefendantAccounts: criteria: {}", accountSearchDto.toJson());
-
-        // TODO - 25/06/2024 - remove this Disco+ 'test' code soon?
-        if ("test".equalsIgnoreCase(accountSearchDto.getCourt())) {
-
-            try (InputStream in = Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("tempSearchData.json")) {
-                ObjectMapper mapper = getObjectMapper();
-                AccountSearchResultsDto dto = mapper.readValue(in, AccountSearchResultsDto.class);
-                log.debug(":searchDefendantAccounts: temporary Hack for Front End testing. Read JSON file: \n{}",
-                         dto.toPrettyJsonString());
-                return dto;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        Page<DefendantAccountSummary> summariesPage = defendantAccountRepository
-            .findBy(specs.findByAccountSearch(accountSearchDto),
-                    ffq -> ffq.as(DefendantAccountSummary.class).page(Pageable.unpaged()));
-
-        List<AccountSummaryDto> dtos = summariesPage.getContent().stream()
-            .map(this::toDto)
-            .collect(Collectors.toList());
-
-        return AccountSearchResultsDto.builder()
-            .searchResults(dtos)
-            .totalCount(summariesPage.getTotalElements())
-            .cursor(summariesPage.getNumber())
-            .build();
-    }
-
     @Transactional
     public AccountDetailsDto getAccountDetailsByDefendantAccountId(Long defendantAccountId) {
+
+        log.debug(":getAccountDetailsByDefendantAccountId: id: {}", defendantAccountId);
 
         // TODO - 25/06/2024 - remove this Disco+ 'test' code soon?
         if (defendantAccountId.equals(0L)) {
@@ -161,11 +119,11 @@ public class DiscoDefendantAccountService implements DiscoDefendantAccountServic
                 ObjectMapper mapper = getObjectMapper();
                 AccountDetailsDto dto = mapper.readValue(in, AccountDetailsDto.class);
                 log.debug(
-                        """
+                    """
                         :getAccountDetailsByDefendantAccountId:
                         " temporary Hack for Front End testing. Read JSON file: \n{}
                         """,
-                         dto.toPrettyJsonString());
+                    dto.toPrettyJsonString());
                 return dto;
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -192,7 +150,7 @@ public class DiscoDefendantAccountService implements DiscoDefendantAccountServic
 
         //query DB for EnforcementEntity
         EnforcerEntity enforcerEntity = enforcerRepository.findByEnforcerId(defendantAccountEntity
-                                                                                   .getEnforcementOverrideEnforcerId());
+            .getEnforcementOverrideEnforcerId());
 
         //query DB for NoteEntity by associatedRecordId (defendantAccountId) and noteType ("AC")
         List<NoteEntity> noteEntityAC = noteRepository.findByAssociatedRecordIdAndNoteType(
@@ -202,20 +160,20 @@ public class DiscoDefendantAccountService implements DiscoDefendantAccountServic
         // returning only latest (postedDate)
         Optional<NoteEntity> noteEntityAA = Optional.ofNullable(
             noteRepository.findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(
-            defendantAccountEntity.getDefendantAccountId().toString(), "AA"));
+                defendantAccountEntity.getDefendantAccountId().toString(), "AA"));
 
         //build fullAddress
         final String fullAddress = buildFullAddress(partyEntity.getAddressLine1(),
-                                                    partyEntity.getAddressLine2(),
-                                                    partyEntity.getAddressLine3(),
-                                                    partyEntity.getAddressLine4(),
-                                                    partyEntity.getAddressLine5());
+            partyEntity.getAddressLine2(),
+            partyEntity.getAddressLine3(),
+            partyEntity.getAddressLine4(),
+            partyEntity.getAddressLine5());
 
         //build paymentDetails
         final String paymentDetails = buildPaymentDetails(paymentTermsEntity.getTermsTypeCode(),
-                                                          paymentTermsEntity.getInstalmentAmount(),
-                                                          paymentTermsEntity.getInstalmentPeriod(),
-                                                          paymentTermsEntity.getEffectiveDate());
+            paymentTermsEntity.getInstalmentAmount(),
+            paymentTermsEntity.getInstalmentPeriod(),
+            paymentTermsEntity.getEffectiveDate());
 
         //build comments
         final List<String> comments = buildCommentsFromAssociatedNotes(noteEntityAC);
@@ -226,8 +184,8 @@ public class DiscoDefendantAccountService implements DiscoDefendantAccountServic
             .defendantAccountId(defendantAccountEntity.getDefendantAccountId())
             .accountNumber(defendantAccountEntity.getAccountNumber())
             .fullName(partyEntity.getOrganisationName() == null
-                          ? partyEntity.getFullName()
-                          : partyEntity.getOrganisationName())
+                ? partyEntity.getFullName()
+                : partyEntity.getOrganisationName())
             .accountCT(defendantAccountEntity.getBusinessUnit().getBusinessUnitName())
             .businessUnitId(defendantAccountEntity.getBusinessUnit().getBusinessUnitId())
             .address(fullAddress)
@@ -235,7 +193,7 @@ public class DiscoDefendantAccountService implements DiscoDefendantAccountServic
             .dob(partyEntity.getDateOfBirth())
             .detailsChanged(defendantAccountEntity.getLastChangedDate())
             .lastCourtAppAndCourtCode(defendantAccountEntity.getLastHearingDate().toString()
-                                          + " " + defendantAccountEntity.getLastHearingCourt().getCourtCode())
+                + " " + defendantAccountEntity.getLastHearingCourt().getCourtCode())
             .lastMovement(defendantAccountEntity.getLastMovementDate())
             .commentField(comments)
             .accountNotes(noteEntityAA.map(NoteEntity::getNoteText).orElse(null))
@@ -243,8 +201,8 @@ public class DiscoDefendantAccountService implements DiscoDefendantAccountServic
             .paymentDetails(paymentDetails)
             .lumpSum(paymentTermsEntity.getInstalmentLumpSum())
             .commencing(paymentTermsEntity.getTermsTypeCode().equals("I")
-                            ? paymentTermsEntity.getEffectiveDate()
-                            : null)
+                ? paymentTermsEntity.getEffectiveDate()
+                : null)
             .daysInDefault(paymentTermsEntity.getJailDays())
             .sentencedDate(defendantAccountEntity.getImposedHearingDate())
             .lastEnforcement(defendantAccountEntity.getLastEnforcement())
@@ -306,18 +264,5 @@ public class DiscoDefendantAccountService implements DiscoDefendantAccountServic
         }
 
         return comments;
-    }
-
-    public AccountSummaryDto toDto(DefendantAccountSummary summary) {
-        Optional<PartyDefendantAccountSummary> party = summary.getParties().stream().findAny().map(PartyLink::getParty);
-        return AccountSummaryDto.builder()
-            .defendantAccountId(summary.getDefendantAccountId())
-            .accountNo(summary.getAccountNumber())
-            .court(summary.getImposingCourtId())
-            .balance(summary.getAccountBalance())
-            .name(party.map(PartyDefendantAccountSummary::getFullName).orElse(""))
-            .addressLine1(party.map(PartyDefendantAccountSummary::getAddressLine1).orElse(""))
-            .dateOfBirth(party.map(PartyDefendantAccountSummary::getDateOfBirth).orElse(null))
-            .build();
     }
 }

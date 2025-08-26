@@ -13,17 +13,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.disco.legacy.LegacyGatewayService;
+import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
 
 import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -210,6 +212,74 @@ class LegacyDraftAccountPublishTest {
         DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
 
         assertEquals(publish, published);
+    }
+
+    @Test
+    void testcreateDefendantAccountRequest_emptyAccount() {
+
+        LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
+            DraftAccountEntity.builder()
+                .businessUnit(
+                    BusinessUnitEntity.builder()
+                        .businessUnitId((short) 6)
+                        .build())
+                .account("{}")
+                .build(),
+            BusinessUnitUser.builder().businessUnitUserId("testUser").build()
+        );
+
+        assertEquals("testUser", lcdar.getBusinessUnitUserId());
+        assertEquals("{}", lcdar.getDefendantAccount().toString());
+    }
+
+    @Test
+    void testcreateDefendantAccountRequest_nullAccount() {
+
+        LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
+            DraftAccountEntity.builder()
+                .businessUnit(
+                    BusinessUnitEntity.builder()
+                        .businessUnitId((short) 6)
+                        .build())
+                .account(null)
+                .build(),
+            BusinessUnitUser.builder().businessUnitUserId("testUser").build()
+        );
+
+        assertEquals("testUser", lcdar.getBusinessUnitUserId());
+        assertEquals(null, lcdar.getDefendantAccount());
+    }
+
+    @Test
+    void testcreateDefendantAccountRequest_invalidJson_throwsException() {
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
+            .account("{invalidJson:}") // malformed JSON
+            .build();
+        BusinessUnitUser user = BusinessUnitUser.builder().businessUnitUserId("testUser").build();
+
+        assertThrows(JsonSchemaValidationException.class, () -> {
+            LegacyDraftAccountPublish.createDefendantAccountRequest(entity, user);
+        });
+    }
+
+    @Test
+    void testcreateDefendantAccountRequest() {
+
+        LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
+            DraftAccountEntity.builder()
+                .businessUnit(
+                    BusinessUnitEntity.builder()
+                        .businessUnitId((short) 6)
+                        .build())
+                .account("{\"defendantAccountId\":12345,\"accountNumber\":\"77-007\"}")
+                .build(),
+            BusinessUnitUser.builder().businessUnitUserId("testUser").build()
+        );
+
+        assertEquals("testUser", lcdar.getBusinessUnitUserId());
+        assertEquals("{\"defendantAccountId\":12345,\"accountNumber\":\"77-007\"}",
+                     lcdar.getDefendantAccount().toString());
     }
 
     private String emptyTimelineData() {

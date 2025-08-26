@@ -1,14 +1,18 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
+import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.service.iface.DraftAccountPublishInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
@@ -22,7 +26,7 @@ import java.util.concurrent.ExecutionException;
 @Slf4j(topic = "opal.LegacyDraftAccountPublish")
 public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
 
-    public static final String CREATE_DEFENDANT_ACCOUNT = "LIBRA.of_create_defendant_account";
+    public static final String CREATE_DEFENDANT_ACCOUNT = "createAccount";
 
     private final GatewayService gatewayService;
     private final DraftAccountTransactions draftAccountTransactions;
@@ -33,7 +37,7 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
 
         CompletableFuture<Response<LegacyCreateDefendantAccountResponse>> future = gatewayService.postToGatewayAsync(
             CREATE_DEFENDANT_ACCOUNT, LegacyCreateDefendantAccountResponse.class,
-            createDefendantAccountRequest(publishEntity, unitUser));
+            createDefendantAccountRequest(publishEntity, unitUser), null);
 
         publishEntity = draftAccountTransactions
             .updateStatus(publishEntity, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactions);
@@ -83,10 +87,22 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
 
     public static LegacyCreateDefendantAccountRequest createDefendantAccountRequest(DraftAccountEntity entity,
                                                                                     BusinessUnitUser unitUser) {
+        String accountJson = entity.getAccount();
+        JsonNode account;
+        try {
+            account = (accountJson == null || accountJson.isBlank())
+                ? null
+                : ToJsonString.toJsonNode(accountJson);
+        } catch (JsonProcessingException e) {
+            throw new JsonSchemaValidationException(
+                "Failed to parse account JSON: " + e.getMessage(), e
+            );
+        }
+
         return LegacyCreateDefendantAccountRequest.builder()
             .businessUnitId(entity.getBusinessUnit().getBusinessUnitId())
             .businessUnitUserId(unitUser.getBusinessUnitUserId())
-            .defendantAccount(entity.getAccount())
+            .defendantAccount(account)
             .build();
     }
 }

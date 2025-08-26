@@ -59,9 +59,6 @@ public class PartyEntity implements FullNameBuilder {
     @Column(name = "forenames", length = 50)
     private String forenames;
 
-    @Column(name = "initials", length = 2)
-    private String initials;
-
     @Column(name = "title", length = 20)
     private String title;
 
@@ -103,4 +100,7 @@ public class PartyEntity implements FullNameBuilder {
 
     @OneToMany(mappedBy = "party", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<DefendantAccountPartiesEntity> defendantAccounts;
+
+    @OneToMany(mappedBy = "party", fetch = FetchType.LAZY)
+    private List<AliasEntity> aliasEntities;
 }

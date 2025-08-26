@@ -13,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.disco.legacy.LegacyGatewayService;
 import uk.gov.hmcts.opal.dto.NoteDto;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 
@@ -75,7 +74,7 @@ class GatewayServiceTest {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 
         // Act
-        Response<NoteDto> response = legacy.postToGateway("", NoteDto.class, "");
+        Response<NoteDto> response = legacy.postToGateway("", NoteDto.class, "", null);
 
         // Assert
         assertNotNull(response);
@@ -106,7 +105,7 @@ class GatewayServiceTest {
         when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
 
         // Act
-        CompletableFuture<Response<NoteDto>> future = legacy.postToGatewayAsync("", NoteDto.class, "");
+        CompletableFuture<Response<NoteDto>> future = legacy.postToGatewayAsync("", NoteDto.class, "", null);
 
         // Assert
         assertNotNull(future);

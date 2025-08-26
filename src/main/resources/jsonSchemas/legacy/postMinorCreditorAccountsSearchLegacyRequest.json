@@ -2,7 +2,17 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://opal-fines-service/postMinorCreditorAccountsSearchLegacyRequest.json",
   "type": "object",
-  "required": ["active_accounts_only"],
+  "allOf": [
+    {
+      "required": ["active_accounts_only"]
+    },
+    {
+      "oneOf": [
+        { "required": ["account_number"] },
+        { "required": ["creditor"] }
+      ]
+    }
+  ],
   "properties": {
     "business_unit_ids": {
       "type": "array",
@@ -45,11 +55,11 @@
           "properties": {
             "organisation": { "const": true },
             "organisation_name": {
-              "type": ["string, null"],
+              "type": "string",
               "description": "Name of the organisation"
             },
             "exact_match_organisation_name": {
-              "type": ["boolean", null],
+              "type": "boolean",
               "description": "Apply exact match for organisation name"
             }
           }

@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.dto.legacy.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,10 +19,10 @@ import lombok.extern.jackson.Jacksonized;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class OrganisationDetails {
 
-    @JsonProperty("organisation_name")
+    @XmlElement(name = "organisation_name")
     private String organisationName;
 
-    @JsonProperty("organisation_aliases")
+    @XmlElement(name = "organisation_aliases")
     private OrganisationAlias[] organisationAliases;
 
     @Data
@@ -34,13 +34,13 @@ public class OrganisationDetails {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class OrganisationAlias {
 
-        @JsonProperty("alias_id")
+        @XmlElement(name = "alias_id")
         private String aliasId;
 
-        @JsonProperty("sequence_number")
+        @XmlElement(name = "sequence_number")
         private Short sequenceNumber;
 
-        @JsonProperty("organisation_name")
+        @XmlElement(name = "organisation_name")
         private String organisationName;
 
     }

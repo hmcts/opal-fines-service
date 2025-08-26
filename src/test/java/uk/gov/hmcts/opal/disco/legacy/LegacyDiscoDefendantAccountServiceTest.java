@@ -19,22 +19,21 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.disco.opal.DiscoDefendantAccountServiceTest;
 import uk.gov.hmcts.opal.dto.AccountDetailsDto;
 import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.AccountSearchResultsDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
+import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchResult;
+import uk.gov.hmcts.opal.dto.legacy.LegacyPartyDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.legacy.AccountActivitiesDto;
-import uk.gov.hmcts.opal.dto.legacy.AccountActivityDto;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountDto;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchCriteria;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountSearchResult;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountsSearchResults;
-import uk.gov.hmcts.opal.dto.legacy.ImpositionDto;
-import uk.gov.hmcts.opal.dto.legacy.ImpositionsDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyAccountActivitiesDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyAccountActivityDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.LegacyImpositionDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyImpositionsDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsRequestDto;
 import uk.gov.hmcts.opal.dto.legacy.LegacyAccountDetailsResponseDto;
-import uk.gov.hmcts.opal.dto.legacy.PartiesDto;
-import uk.gov.hmcts.opal.dto.legacy.PartyDto;
-import uk.gov.hmcts.opal.dto.legacy.PaymentTermsDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyPartiesDto;
+import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsDto;
+import uk.gov.hmcts.opal.dto.search.DefendantDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 
 import java.io.IOException;
@@ -325,10 +324,10 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void getAccountDetailsByDefendantAccountId_ValidateResponse() throws IOException, ProcessingException {
 
-        DefendantAccountDto defendantAccountDto = buildDefendantAccountDto();
+        LegacyDefendantAccountDto legacyDefendantAccountDto = buildDefendantAccountDto();
 
         LegacyAccountDetailsResponseDto legacyAccountDetailsDto = LegacyAccountDetailsResponseDto.builder()
-            .defendantAccount(defendantAccountDto)
+            .defendantAccount(legacyDefendantAccountDto)
             .build();
 
         // Serialize the DTO to JSON using Jackson
@@ -378,33 +377,9 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    void searchForDefendantAccounts_SuccessfulResponse() throws Exception {
-
-        mockRestClientPost();
-
-        // Arrange
-        DefendantAccountsSearchResults resultsDto = DefendantAccountsSearchResults.builder()
-            .totalCount(9L).build();
-        String xml = marshalXmlString(resultsDto, DefendantAccountsSearchResults.class);
-
-        ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(xml, HttpStatus.OK);
-        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
-        when(requestBodySpec.body(any(DefendantAccountSearchCriteria.class))).thenReturn(requestBodySpec);
-        when(responseSpec.toEntity(any(Class.class))).thenReturn(successfulResponseEntity);
-
-        // Act
-        AccountSearchResultsDto searchResultsDto = legacyDefendantAccountService
-            .searchDefendantAccounts(AccountSearchDto.builder().build());
-
-        // Assert
-        assertEquals(9L, searchResultsDto.getTotalCount());
-    }
-
-    @Test
     void searchForDefendantAccounts_ValidateRequest() throws IOException, ProcessingException {
 
-        DefendantAccountSearchCriteria legacyAccountSearchCriteria = constructDefendantAccountSearchCriteria();
+        LegacyDefendantAccountSearchCriteria legacyAccountSearchCriteria = constructDefendantAccountSearchCriteria();
 
         // Serialize the DTO to JSON using Jackson
         String json = ToJsonString.getObjectMapper().writeValueAsString(legacyAccountSearchCriteria);
@@ -425,7 +400,8 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void searchForDefendantAccounts_ValidateResponse() throws IOException, ProcessingException {
 
-        DefendantAccountsSearchResults legacyAccountsSearchResults = DefendantAccountsSearchResults.builder()
+        LegacyDefendantAccountsSearchResults legacyAccountsSearchResults =
+            LegacyDefendantAccountsSearchResults.builder()
             .totalCount(1L)
             .defendantAccountsSearchResult(List.of(constructDefendantAccountSearchResult()))
             .build();
@@ -458,7 +434,6 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
               "organisationName" : null,
               "surname" : "Smith",
               "forenames" : "John James",
-              "initials" : "JJ",
               "title" : "Mr",
               "FOOBAR 1" : "22 Acacia Avenue",
               "FOOBAR 2" : "Hammersmith",
@@ -475,9 +450,9 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
             """;
     }
 
-    private DefendantAccountDto buildDefendantAccountDto() {
+    private LegacyDefendantAccountDto buildDefendantAccountDto() {
 
-        return DefendantAccountDto.builder()
+        return LegacyDefendantAccountDto.builder()
             .defendantAccountId(1000L)
             .parties(buildPartiesDto())
             .paymentTerms(buildPaymentTermsDto())
@@ -507,16 +482,16 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
             .build();
     }
 
-    private PartiesDto buildPartiesDto() {
+    private LegacyPartiesDto buildPartiesDto() {
 
-        return PartiesDto.builder()
+        return LegacyPartiesDto.builder()
             .party(List.of(buildPartyDto()))
             .build();
     }
 
-    private PartyDto buildPartyDto() {
+    private LegacyPartyDto buildPartyDto() {
 
-        return PartyDto.builder()
+        return LegacyPartyDto.builder()
             .partyId(1)
             .debtor(true)
             .associationType("A_type")
@@ -531,9 +506,9 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
             .build();
     }
 
-    private PaymentTermsDto buildPaymentTermsDto() {
+    private LegacyPaymentTermsDto buildPaymentTermsDto() {
 
-        return PaymentTermsDto.builder()
+        return LegacyPaymentTermsDto.builder()
             .termsTypeCode("I")
             .instalmentAmount(BigDecimal.valueOf(100.00))
             .instalmentPeriod("PCM")
@@ -544,16 +519,16 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
             .build();
     }
 
-    private AccountActivitiesDto buildAccountActivitiesDto() {
+    private LegacyAccountActivitiesDto buildAccountActivitiesDto() {
 
-        return AccountActivitiesDto.builder()
+        return LegacyAccountActivitiesDto.builder()
             .accountActivity(List.of(buildAccountActivityDto(), buildAccountActivityDtoOlder()))
             .build();
     }
 
-    private AccountActivityDto buildAccountActivityDto() {
+    private LegacyAccountActivityDto buildAccountActivityDto() {
 
-        return AccountActivityDto.builder()
+        return LegacyAccountActivityDto.builder()
             .activityId(1)
             .activityText("Activity")
             .activityType("Activity")
@@ -562,16 +537,16 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
             .build();
     }
 
-    private ImpositionsDto buildImpositionsDto() {
+    private LegacyImpositionsDto buildImpositionsDto() {
 
-        return ImpositionsDto.builder()
+        return LegacyImpositionsDto.builder()
             .imposition(List.of(buildImpositionDto()))
             .build();
     }
 
-    private ImpositionDto buildImpositionDto() {
+    private LegacyImpositionDto buildImpositionDto() {
 
-        return ImpositionDto.builder()
+        return LegacyImpositionDto.builder()
             .creditorAccountNumber("123")
             .creditorName("John")
             .imposedAmount(1000.00)
@@ -585,9 +560,9 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
             .build();
     }
 
-    private AccountActivityDto buildAccountActivityDtoOlder() {
+    private LegacyAccountActivityDto buildAccountActivityDtoOlder() {
 
-        return AccountActivityDto.builder()
+        return LegacyAccountActivityDto.builder()
             .activityId(2)
             .activityText("Activity OLD")
             .activityType("Activity")
@@ -608,31 +583,25 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
         return DiscoDefendantAccountServiceTest.buildAccountDetailsDto();
     }
 
-    private DefendantAccountSearchCriteria constructDefendantAccountSearchCriteria() {
-        return DefendantAccountSearchCriteria.builder()
-            .accountNumber("accountNo")
-            .addressLine1("Glasgow")
-            .firstRowNumber(4)
-            .lastRowNumber(44)
-            .surname("Smith")
-            .forenames("John")
-            .initials("D")
-            .birthDate("1977-06-26")
-            .nationalInsuranceNumber("XX123456C")
+    private LegacyDefendantAccountSearchCriteria constructDefendantAccountSearchCriteria() {
+        return LegacyDefendantAccountSearchCriteria.builder()
+            .businessUnitIds(List.of(10))
+            .activeAccountsOnly(true)
+            .defendant(new DefendantDto())
             .build();
     }
 
-    public static DefendantAccountSearchResult constructDefendantAccountSearchResult() {
-        return DefendantAccountSearchResult.builder()
+    public static LegacyDefendantAccountSearchResult constructDefendantAccountSearchResult() {
+        return LegacyDefendantAccountSearchResult.builder()
             .accountNumber("accountNo")
             .defendantAccountId(12345L)
             .surname("Smith")
             .forenames("John")
             .title("Mr")
-            .birthDate("1977-06-26")
+            .birthDate(LocalDate.parse("1977-06-26"))
             .addressLine1("Scotland")
             .accountBalance(BigDecimal.valueOf(1000))
-            .businessUnitId(9)
+            .businessUnitId("9")
             .businessUnitName("Cardiff")
             .build();
     }

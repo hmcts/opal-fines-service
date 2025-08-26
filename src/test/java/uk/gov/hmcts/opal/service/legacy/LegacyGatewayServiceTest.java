@@ -26,7 +26,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 import org.xml.sax.SAXParseException;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.disco.legacy.LegacyGatewayService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
@@ -145,7 +144,7 @@ class LegacyGatewayServiceTest {
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(getTestEntityXml(), HttpStatus.OK);
         when(responseSpec.toEntity(String.class)).thenReturn(successfulResponseEntity);
 
-        Response<TestDto> response = legacy.postToGateway(actionType, TestDto.class, request);
+        Response<TestDto> response = legacy.postToGateway(actionType, TestDto.class, request, null);
 
         log.info(":postToGatewayDtoResponse_success:", response.exception);
 
@@ -172,7 +171,7 @@ class LegacyGatewayServiceTest {
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(responseBody, HttpStatus.OK);
         when(responseSpec.toEntity(String.class)).thenReturn(successfulResponseEntity);
 
-        Response<TestDto> response = legacy.postToGateway(actionType, TestDto.class, request);
+        Response<TestDto> response = legacy.postToGateway(actionType, TestDto.class, request, null);
 
         assertTrue(response.isError());
         assertInstanceOf(UnmarshalException.class, response.exception);
@@ -190,7 +189,7 @@ class LegacyGatewayServiceTest {
         ResponseEntity<String> successfulResponseEntity = new ResponseEntity<>(getBrokenEntityXml(), HttpStatus.OK);
         when(responseSpec.toEntity(String.class)).thenReturn(successfulResponseEntity);
 
-        Response<TestDto> response = legacy.postToGateway(actionType, TestDto.class, request);
+        Response<TestDto> response = legacy.postToGateway(actionType, TestDto.class, request, null);
 
         assertTrue(response.isError());
         assertInstanceOf(UnmarshalException.class, response.exception);

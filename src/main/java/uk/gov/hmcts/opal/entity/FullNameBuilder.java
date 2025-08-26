@@ -12,10 +12,8 @@ public interface FullNameBuilder {
 
     String getSurname();
 
-    String getInitials();
-
     default String getFullName() {
-        return Stream.of(getTitle(), getForenames(), getInitials(), getSurname())
+        return Stream.of(getTitle(), getForenames(), getSurname())
             .filter(Objects::nonNull)
             .collect(Collectors.joining(" "));
     }

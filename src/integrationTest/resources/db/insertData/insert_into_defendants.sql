@@ -12,6 +12,11 @@
 * 02/06/2025  R DODD   1.0      PO-1047 Inserts rows of data into the DEFENDANT_ACCOUNTS table for the Integration Tests.
 *
 **/
+delete from NOTES where note_id = 001001;
+delete from payment_terms where payment_terms_id = 0001;
+delete from defendant_account_parties where defendant_account_party_id = 0001;
+delete from parties where party_id = 0001;
+delete from defendant_accounts where defendant_account_id = 0001;
 
 INSERT INTO defendant_accounts
 (
@@ -47,7 +52,7 @@ VALUES
 INSERT INTO parties
 (
 party_id, organisation, organisation_name
-, surname, forenames, initials, title
+, surname, forenames, title
 , address_line_1, address_line_2, address_line_3
 , address_line_4, address_line_5, postcode
 , account_type, birth_date, age, national_insurance_number, last_changed_date
@@ -55,7 +60,7 @@ party_id, organisation, organisation_name
 VALUES
 (
 0001, 'N', NULL
-, 'Graham', 'Anna', 'K', 'Ms'
+, 'Graham', 'Anna',  'Ms'
 , 'Lumber House', '54 Gordon Road', 'Maidstone, Kent'
 , NULL, NULL, 'MA4 1AL'
 , 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL

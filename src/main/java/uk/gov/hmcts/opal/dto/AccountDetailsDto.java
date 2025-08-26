@@ -24,7 +24,7 @@ public class AccountDetailsDto implements ToJsonString {
     @JsonProperty("account_number")
     private String accountNumber;
 
-    // parties.surname, parties,initials, parties.forenames, parties.title
+    // parties.surname, parties.forenames, parties.title
     @JsonProperty("full_name")
     private String fullName;
 
