@@ -18,3 +18,8 @@ dependencies:
     version: ~0.0.37
     repository: 'oci://sdshmctspublic.azurecr.io/helm'
     condition: opal-user-service.enabled
+  - name: postgresql
+    version: 15.2.4
+    alias: userServicePostgresql
+    repository: https://charts.bitnami.com/bitnami
+    condition: userServicePostgresql.enabled
