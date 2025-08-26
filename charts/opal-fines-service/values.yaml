@@ -54,7 +54,7 @@ java:
 opal-frontend:
   enabled: false
 opal-user-service:
-  enabled: true
+  enabled: false
 redis:
   enabled: false
 userServicePostgresql:
