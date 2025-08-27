@@ -33,7 +33,6 @@ class DefendantAccountServiceTest {
         DefendantAccountHeaderSummary headerSummary = DefendantAccountHeaderSummary.builder().build();
 
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(headerSummary);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
         // Act
         DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L);

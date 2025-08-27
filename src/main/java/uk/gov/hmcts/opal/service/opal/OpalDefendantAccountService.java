@@ -39,6 +39,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final DefendantAccountHeaderViewRepository repository;
 
+    private final DefendantAccountRepository defendantAccountRepository;
+    private final DefendantAccountSpecs defendantAccountSpecs;
+
+
     @Override
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary: Opal mode - ID: {}", defendantAccountId);

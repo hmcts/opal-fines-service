@@ -266,8 +266,7 @@ class DefendantAccountControllerTest {
             ))
             .build();
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userWithPermission);
-        when(defendantAccountServiceProxy.getHeaderSummary(eq(1L)))
+        when(defendantAccountService.getHeaderSummary(eq(1L)))
             .thenReturn(mockBody);
 
         // Act
@@ -278,8 +277,7 @@ class DefendantAccountControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(mockBody, response.getBody());
 
-        verify(userStateService).checkForAuthorisedUser(any());
-        verify(defendantAccountServiceProxy).getHeaderSummary(eq(1L));
+        verify(defendantAccountService).getHeaderSummary(eq(1L));
     }
 
 }
