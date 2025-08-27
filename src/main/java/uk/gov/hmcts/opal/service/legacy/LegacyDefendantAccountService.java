@@ -142,7 +142,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                     .build();
 
             opalPartyDetails = PartyDetails.builder()
-                .defendantAccountPartyId(legacyParty.getDefendantAccountPartyId())
+                .partyId(legacyParty.getDefendantAccountPartyId())
                 .organisationFlag(legacyParty.getOrganisationFlag())
                 .organisationDetails(opalOrg)
                 .individualDetails(opalInd)

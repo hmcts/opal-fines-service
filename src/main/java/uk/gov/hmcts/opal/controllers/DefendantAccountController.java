@@ -165,10 +165,10 @@ public class DefendantAccountController {
     @GetMapping("/{defendantAccountId}/header-summary")
     @Operation(summary = "Get defendant account header summary (Opal mode)")
     public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(
-        @PathVariable Long defendantAccountId
-    ) {
+        @PathVariable Long defendantAccountId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
-        DefendantAccountHeaderSummary summary = defendantAccountService.getHeaderSummary(defendantAccountId);
+        DefendantAccountHeaderSummary summary = defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue);
         return ResponseEntity.ok(summary);
     }
 

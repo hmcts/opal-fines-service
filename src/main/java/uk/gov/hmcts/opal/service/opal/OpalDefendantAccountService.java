@@ -58,7 +58,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private DefendantAccountHeaderSummary mapToDto(DefendantAccountHeaderViewEntity e) {
         return DefendantAccountHeaderSummary.builder()
             .defendantPartyId(
-                e.getDefendantAccountPartyId() != null ? e.getDefendantAccountPartyId().toString() : null
+                e.getPartyId() != null ? e.getPartyId().toString() : null
             )
             .parentGuardianPartyId(
                 e.getParentGuardianAccountPartyId() != null ? e.getParentGuardianAccountPartyId().toString() : null
@@ -91,8 +91,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private PartyDetails buildPartyDetails(DefendantAccountHeaderViewEntity e) {
         return PartyDetails.builder()
-            .defendantAccountPartyId(
-                e.getDefendantAccountPartyId() != null ? e.getDefendantAccountPartyId().toString() : null
+            .partyId(
+                e.getPartyId() != null ? e.getPartyId().toString() : null
             )
             .organisationFlag(e.getOrganisation())
             .organisationDetails(

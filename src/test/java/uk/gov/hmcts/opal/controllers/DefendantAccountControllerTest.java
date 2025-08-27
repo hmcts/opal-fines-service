@@ -266,18 +266,18 @@ class DefendantAccountControllerTest {
             ))
             .build();
 
-        when(defendantAccountService.getHeaderSummary(eq(1L)))
+        when(defendantAccountService.getHeaderSummary(eq(1L), any()))
             .thenReturn(mockBody);
 
         // Act
         ResponseEntity<DefendantAccountHeaderSummary> response =
-            defendantAccountController.getHeaderSummary(1L);
+            defendantAccountController.getHeaderSummary(1L, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(mockBody, response.getBody());
 
-        verify(defendantAccountService).getHeaderSummary(eq(1L));
+        verify(defendantAccountService).getHeaderSummary(eq(1L), any());
     }
 
 }

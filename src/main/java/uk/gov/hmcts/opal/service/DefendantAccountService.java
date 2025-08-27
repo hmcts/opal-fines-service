@@ -23,7 +23,7 @@ public class DefendantAccountService {
 
     private final UserStateService userStateService;
 
-    public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
+    public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId, String authHeaderValue) {
         log.debug(":getHeaderSummary:");
         return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
     }

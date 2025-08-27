@@ -18,7 +18,7 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
 
     @Test
     void testGetHeaderSummary_500Error() throws Exception {
-        super.getHeaderSummaryImpl(log);
+        super.getHeaderSummaryImpl_500Error(log);
     }
 
     @Test
