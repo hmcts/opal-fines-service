@@ -25,8 +25,24 @@ public class DefendantAccountService {
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId, String authHeaderValue) {
         log.debug(":getHeaderSummary:");
+
+        // --- 401 Unauthorized ---
+        if (authHeaderValue == null || authHeaderValue.isBlank()) {
+            throw new AuthenticationCredentialsNotFoundException("Missing Authorization header");
+        }
+
+        // --- Authenticate user ---
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        // --- 403 Forbidden ---
+        if (userState == null || !userState.anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)) {
+            throw new PermissionNotAllowedException(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+
+        // --- Happy Path ---
         return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
     }
+
 
 
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto,
