@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -14,7 +13,6 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
         super.getHeaderSummaryImpl(log);
     }
 
-    @Disabled("See DTSPO-27066. A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetHeaderSummary_500Error() throws Exception {
         super.getHeaderSummaryImpl_500Error(log);
@@ -28,5 +26,10 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
     @Test
     void testSearchDefendantAccount_NoAccountsFound() throws Exception {
         super.testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound(log);
+    }
+
+    @Override
+    String getHeaderSummaryResponseSchemaLocation() {
+        return "legacy/getDefendantAccountHeaderSummaryLegacyResponse.json";
     }
 }
