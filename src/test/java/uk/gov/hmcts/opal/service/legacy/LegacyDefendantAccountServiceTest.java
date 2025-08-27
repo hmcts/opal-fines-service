@@ -110,30 +110,12 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         return DefendantAccountHeaderSummary.builder()
             .accountNumber("SAMPLE")
             .accountType("Fine")
-            .accountStatusReference(
-                AccountStatusReference.builder()
-                    .accountStatusCode("L")
-                    .accountStatusDisplayName("Live")
-                    .build()
-            )
-            .businessUnitSummary(
-                BusinessUnitSummary.builder()
-                    .businessUnitId("1")
-                    .businessUnitName("Test BU")
-                    .welshSpeaking("N")
-                    .build()
-            )
-            .paymentStateSummary(
-                PaymentStateSummary.builder()
-                    .imposedAmount(BigDecimal.ZERO)
-                    .arrearsAmount(BigDecimal.ZERO)
-                    .paidAmount(BigDecimal.ZERO)
-                    .accountBalance(BigDecimal.ZERO)
-                    .build()
-            )
-            .partyDetails(
-                PartyDetails.builder().build()
-            )
+            .accountStatusDisplayName("Live")
+            .businessUnitId("78")
+            .imposed(new BigDecimal("700.58"))
+            .arrears(BigDecimal.ZERO)
+            .paid(new BigDecimal("200.00"))
+            .accountBalance(new BigDecimal("500.58"))
             .build();
     }
 
