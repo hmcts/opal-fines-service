@@ -45,6 +45,9 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
         try {
             Response<LegacyCreateDefendantAccountResponse> response = future.get();
 
+            log.error(":publishDefendantAccount: 1: {}", response.isException());
+            log.error(":publishDefendantAccount: 2: {}", response.code.isError());
+            log.error(":publishDefendantAccount: 3: {}", response.hasErrorResponse());
             if (response.isError()) {
                 log.error(":publishDefendantAccount: Legacy Gateway response: HTTP Response Code: {}", response.code);
                 if (response.isException()) {
