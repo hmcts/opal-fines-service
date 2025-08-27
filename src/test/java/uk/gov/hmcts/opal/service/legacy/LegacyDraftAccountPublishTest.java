@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.legacy.ErrorResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -120,11 +121,13 @@ class LegacyDraftAccountPublishTest {
             .build();
 
         LegacyCreateDefendantAccountResponse responseBody = LegacyCreateDefendantAccountResponse.builder()
-            .errorResponse("Something went wrong on the server.")
+            .errorResponse(ErrorResponse.builder()
+                .errorCode("some code")
+                .errorMessage("Something went wrong on the server.")
+                .build())
             .build();
 
         when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);
-
         ResponseEntity<String> serverErrorResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.INTERNAL_SERVER_ERROR);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverErrorResponse);
@@ -192,7 +195,10 @@ class LegacyDraftAccountPublishTest {
             .build();
 
         LegacyCreateDefendantAccountResponse responseBody = LegacyCreateDefendantAccountResponse.builder()
-            .errorResponse("Something went wrong on the server.")
+            .errorResponse(ErrorResponse.builder()
+                .errorCode("some code")
+                .errorMessage("Something went wrong on the server.")
+                .build())
             .build();
 
         when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);

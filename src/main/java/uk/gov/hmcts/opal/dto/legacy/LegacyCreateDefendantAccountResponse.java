@@ -30,5 +30,5 @@ public class LegacyCreateDefendantAccountResponse implements ToXmlString, HasErr
     private String defendantAccountNumber;
 
     @XmlElement(name = "error_response")
-    private String errorResponse;
+    private ErrorResponse errorResponse;
 }
