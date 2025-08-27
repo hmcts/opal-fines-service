@@ -17,7 +17,6 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
-import uk.gov.hmcts.opal.dto.response.GetHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
@@ -86,35 +85,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return LegacyGetDefendantAccountRequest.builder()
             .defendantAccountId(defendantAccountId)
             .build();
-    }
-
-
-    @Override
-    public GetHeaderSummaryResponse getHeaderSummaryWithVersion(Long defendantAccountId, String authHeader) {
-        log.debug(":getHeaderSummaryWithVersion: id: {}", defendantAccountId);
-
-        Response<LegacyGetDefendantAccountHeaderSummaryResponse> response = gatewayService.postToGateway(
-            GET_HEADER_SUMMARY, LegacyGetDefendantAccountHeaderSummaryResponse.class,
-            createGetDefendantAccountRequest(defendantAccountId.toString()), null);
-
-        if (response.isError()) {
-            log.error(":getHeaderSummaryWithVersion: Legacy Gateway response: HTTP Response Code: {}", response.code);
-            if (response.isException()) {
-                log.error(":getHeaderSummaryWithVersion:", response.exception);
-            } else if (response.isLegacyFailure()) {
-                log.error(":getHeaderSummaryWithVersion: Legacy Gateway: body: \n{}", response.body);
-                LegacyGetDefendantAccountHeaderSummaryResponse responseEntity = response.responseEntity;
-                log.error(":getHeaderSummaryWithVersion: Legacy Gateway: entity: \n{}", responseEntity.toXml());
-            }
-        } else if (response.isSuccessful()) {
-            log.info(":getHeaderSummaryWithVersion: Legacy Gateway response: Success.");
-        }
-
-        LegacyGetDefendantAccountHeaderSummaryResponse legacyResponse = response.responseEntity;
-        DefendantAccountHeaderSummary dto = toHeaderSumaryDto(legacyResponse);
-        Long version = legacyResponse.getVersion() != null ? legacyResponse.getVersion().longValue() : null;
-
-        return new GetHeaderSummaryResponse(dto, version);
     }
 
 

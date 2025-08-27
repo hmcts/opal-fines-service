@@ -57,7 +57,6 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-            .andExpect(header().string("ETag", "\"1\""))
             .andExpect(jsonPath("$.account_number").value("177A"))
             .andExpect(jsonPath("$.defendant_party_id").value("77"))
             .andExpect(jsonPath("$.parent_guardian_party_id", nullValue()))

@@ -6,8 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -164,35 +162,14 @@ public class DefendantAccountController {
         return buildResponse(response);
     }
 
-    @GetMapping(value = "/{defendantAccountId}/header-summary")
-    @Operation(summary = "Get defendant account details by providing the defendant account summary")
+    @GetMapping("/{defendantAccountId}/header-summary")
+    @Operation(summary = "Get defendant account header summary (Opal mode)")
     public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(
-        @PathVariable Long defendantAccountId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue
+        @PathVariable Long defendantAccountId
     ) {
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
-
-        // --- Minimal auth for unhappy-path tests ---
-        if (authHeaderValue == null || authHeaderValue.isBlank()) {
-            throw new AuthenticationCredentialsNotFoundException("Missing Authorization header"); // -> 401
-        }
-        UserState user = userStateService.checkForAuthorisedUser(authHeaderValue);
-
-        boolean isDeveloper = (user instanceof UserState.DeveloperUserState);
-        boolean hasBuAccess = user != null
-            && user.getBusinessUnitUser() != null
-            && !user.getBusinessUnitUser().isEmpty();
-
-        if (user == null || (!isDeveloper && !hasBuAccess)) {
-            throw new AccessDeniedException("You do not have permission to access this resource"); // -> 403
-        }
-        // -------------------------------------------
-
-        var result = defendantAccountServiceProxy.getHeaderSummaryWithVersion(defendantAccountId, authHeaderValue);
-
-        return ResponseEntity.ok()
-            .header("ETag", result.getVersion() != null ? "\"" + result.getVersion() + "\"" : "")
-            .body(result.getData());
+        DefendantAccountHeaderSummary summary = defendantAccountService.getHeaderSummary(defendantAccountId);
+        return ResponseEntity.ok(summary);
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)

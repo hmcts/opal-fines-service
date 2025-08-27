@@ -7,16 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.response.GetHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -42,44 +37,6 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
     @AfterEach
     void tearDown() throws Exception {
         closeable.close();
-    }
-
-    void testMode(DefendantAccountServiceInterface targetService, DefendantAccountServiceInterface otherService) {
-        testGetHeaderSummaryWithVersion(targetService, otherService);
-    }
-
-    void testGetHeaderSummaryWithVersion(DefendantAccountServiceInterface targetService,
-                                         DefendantAccountServiceInterface otherService) {
-        DefendantAccountHeaderSummary entity = DefendantAccountHeaderSummary.builder().build();
-        Long version = 42L;
-
-        when(targetService.getHeaderSummaryWithVersion(anyLong(), any()))
-            .thenReturn(new GetHeaderSummaryResponse(entity, version));
-
-        GetHeaderSummaryResponse response = serviceProxy.getHeaderSummaryWithVersion(1L, null);
-
-        verify(targetService).getHeaderSummaryWithVersion(1L, null);
-        verifyNoInteractions(otherService);
-
-        Assertions.assertEquals(entity, response.getData());
-        Assertions.assertEquals(version, response.getVersion());
-    }
-
-
-    @Test
-    void shouldUseOpalServiceWhenModeIsNotLegacy() {
-        // Given: app mode is set
-        setMode(OPAL);
-        // Then: the target service is called, but the other service is not
-        testMode(opalService, legacyService);
-    }
-
-    @Test
-    void shouldUseLegacyServiceWhenModeIsLegacy() {
-        // Given: app mode is set
-        setMode(LEGACY);
-        // Then: the target service is called, but the other service is not
-        testMode(legacyService, opalService);
     }
 
     @Test

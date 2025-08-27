@@ -36,7 +36,7 @@ class DefendantAccountServiceTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
         // Act
-        DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L, "authHeaderValue");
+        DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L);
 
         // Assert
         assertNotNull(result);

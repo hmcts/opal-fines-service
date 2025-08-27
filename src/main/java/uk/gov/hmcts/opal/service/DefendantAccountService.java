@@ -23,20 +23,11 @@ public class DefendantAccountService {
 
     private final UserStateService userStateService;
 
-    public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId, String authHeaderValue) {
-
+    public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary:");
-
-        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
-
-        ensureAuthenticated(userState);
-
-        if (userState.anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)) {
-            return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
-        } else {
-            throw new PermissionNotAllowedException(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
-        }
+        return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
     }
+
 
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto,
                                                                     String authHeaderValue) {

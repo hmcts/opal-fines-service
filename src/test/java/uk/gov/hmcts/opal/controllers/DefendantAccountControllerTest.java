@@ -17,7 +17,6 @@ import uk.gov.hmcts.opal.dto.AccountEnquiryDto;
 import uk.gov.hmcts.opal.dto.AddNoteDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.NoteDto;
-import uk.gov.hmcts.opal.dto.response.GetHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
@@ -255,9 +254,7 @@ class DefendantAccountControllerTest {
     void testGetHeaderSummary_Success() {
         // Arrange
         DefendantAccountHeaderSummary mockBody = new DefendantAccountHeaderSummary();
-        GetHeaderSummaryResponse wrapped = new GetHeaderSummaryResponse(mockBody, 1L);
 
-        // userState must have at least one BU permission to avoid 403
         var userWithPermission = uk.gov.hmcts.opal.authorisation.model.UserState.builder()
             .userId(99L)
             .userName("tester")
@@ -270,20 +267,19 @@ class DefendantAccountControllerTest {
             .build();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userWithPermission);
-        when(defendantAccountServiceProxy.getHeaderSummaryWithVersion(eq(1L), any()))
-            .thenReturn(wrapped);
+        when(defendantAccountServiceProxy.getHeaderSummary(eq(1L)))
+            .thenReturn(mockBody);
 
         // Act
         ResponseEntity<DefendantAccountHeaderSummary> response =
-            defendantAccountController.getHeaderSummary(1L, BEARER_TOKEN);
+            defendantAccountController.getHeaderSummary(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(mockBody, response.getBody());
-        assertEquals("\"1\"", response.getHeaders().getFirst("ETag"));
 
         verify(userStateService).checkForAuthorisedUser(any());
-        verify(defendantAccountServiceProxy).getHeaderSummaryWithVersion(eq(1L), any());
+        verify(defendantAccountServiceProxy).getHeaderSummary(eq(1L));
     }
 
 }

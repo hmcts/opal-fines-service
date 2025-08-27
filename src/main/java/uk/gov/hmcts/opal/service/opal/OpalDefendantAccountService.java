@@ -11,7 +11,6 @@ import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
-import uk.gov.hmcts.opal.dto.response.GetHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
@@ -38,15 +37,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 + defendantAccountId));
 
         return mapToDto(entity);
-    }
-
-    public GetHeaderSummaryResponse getHeaderSummaryWithVersion(Long defendantAccountId, String authHeader) {
-        var entity = repository.findById(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Defendant Account not found with id: " + defendantAccountId));
-        var dto = mapToDto(entity);
-        Long version = entity.getVersion();
-        return new GetHeaderSummaryResponse(dto, version);
     }
 
 
