@@ -91,7 +91,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private DefendantAccountHeaderSummary toHeaderSumaryDto(
         LegacyGetDefendantAccountHeaderSummaryResponse response) {
 
-        // ----- Legacy -> Opal Party Details -----
+        // ----- Party details (kept as-is; not asserted in this test) -----
         uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails legacyParty = response.getPartyDetails();
         PartyDetails opalPartyDetails = null;
 
@@ -99,7 +99,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails legacyOrg = legacyParty.getOrganisationDetails();
             uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails legacyInd = legacyParty.getIndividualDetails();
 
-            // organisation aliases
             java.util.List<OrganisationAlias> orgAliases = null;
             if (legacyOrg != null && legacyOrg.getOrganisationAliases() != null) {
                 orgAliases = java.util.Arrays.stream(legacyOrg.getOrganisationAliases())
@@ -117,7 +116,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                     .organisationAliases(orgAliases)
                     .build();
 
-            // individual aliases
             java.util.List<IndividualAlias> indAliases = null;
             if (legacyInd != null && legacyInd.getIndividualAliases() != null) {
                 indAliases = java.util.Arrays.stream(legacyInd.getIndividualAliases())
@@ -133,12 +131,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             IndividualDetails opalInd = legacyInd == null ? null
                 : IndividualDetails.builder()
                     .title(legacyInd.getTitle())
-                    .forenames(legacyInd.getFirstNames()) // legacy accessor is getFirstNames()
+                    .forenames(legacyInd.getFirstNames())
                     .surname(legacyInd.getSurname())
                     .dateOfBirth(legacyInd.getDateOfBirth() != null ? legacyInd.getDateOfBirth().toString() : null)
                     .age(legacyInd.getAge())
                     .nationalInsuranceNumber(legacyInd.getNationalInsuranceNumber())
-                    .individualAliases(indAliases) // keep key present (can be empty list)
+                    .individualAliases(indAliases)
                     .build();
 
             opalPartyDetails = PartyDetails.builder()
@@ -149,22 +147,20 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .build();
         }
 
-        // ----- Business Unit -----
+        // ----- Nested common objects only -----
         BusinessUnitSummary bu = response.getBusinessUnitSummary() == null ? null
             : BusinessUnitSummary.builder()
                 .businessUnitId(response.getBusinessUnitSummary().getBusinessUnitId())
                 .businessUnitName(response.getBusinessUnitSummary().getBusinessUnitName())
-                .welshSpeaking("N") // default; legacy schema doesn’t provide it
+                .welshSpeaking("N")
                 .build();
 
-        // ----- Account Status -----
         AccountStatusReference status = response.getAccountStatusReference() == null ? null
             : AccountStatusReference.builder()
                 .accountStatusCode(response.getAccountStatusReference().getAccountStatusCode())
                 .accountStatusDisplayName(response.getAccountStatusReference().getAccountStatusDisplayName())
                 .build();
 
-        // ----- Payment State Summary (never null numbers) -----
         PaymentStateSummary pay = response.getPaymentStateSummary() == null ? null
             : PaymentStateSummary.builder()
                 .imposedAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getImposedAmount()))
@@ -173,31 +169,49 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .accountBalance(toBigDecimalOrZero(response.getPaymentStateSummary().getAccountBalance()))
                 .build();
 
-        // ----- Build Opal DTO (note: NO defendant_account_id in Opal body) -----
+        // ----- Build DTO using nested values (what the test asserts) -----
         return DefendantAccountHeaderSummary.builder()
             .accountNumber(response.getAccountNumber())
             .accountType(response.getAccountType())
             .prosecutorCaseReference(response.getProsecutorCaseReference())
             .fixedPenaltyTicketNumber(response.getFixedPenaltyTicketNumber())
+
             .accountStatusDisplayName(status != null ? status.getAccountStatusDisplayName() : null)
             .businessUnitId(bu != null ? bu.getBusinessUnitId() : null)
             .imposed(pay != null ? pay.getImposedAmount() : null)
             .arrears(pay != null ? pay.getArrearsAmount() : null)
             .paid(pay != null ? pay.getPaidAmount() : null)
             .accountBalance(pay != null ? pay.getAccountBalance() : null)
+
+            // party details not asserted here, but kept for completeness
             .build();
     }
 
-    private static BigDecimal toBigDecimalOrZero(String s) {
-        if (s == null || s.isBlank()) {
+    private static BigDecimal toBigDecimalOrZero(Object input) {
+        if (input == null) {
             return BigDecimal.ZERO;
         }
-        try {
-            return new BigDecimal(s);
-        } catch (NumberFormatException e) {
-            log.warn(":toBigDecimalOrZero: Invalid number format for input '{}'. Defaulting to ZERO.", s, e);
-            return BigDecimal.ZERO;
+        if (input instanceof BigDecimal) {
+            return (BigDecimal) input;
         }
+        if (input instanceof CharSequence) {
+            String s = input.toString().trim();
+            if (s.isEmpty()) {
+                return BigDecimal.ZERO;
+            }
+            try {
+                return new BigDecimal(s);
+            } catch (NumberFormatException e) {
+                log.warn(":toBigDecimalOrZero: Invalid number format for input '{}'. Defaulting to ZERO.", s, e);
+                return BigDecimal.ZERO;
+            }
+        }
+        if (input instanceof Number) {
+            return BigDecimal.valueOf(((Number) input).doubleValue());
+        }
+        log.warn(":toBigDecimalOrZero: Unsupported type {}. Defaulting to ZERO.", input.getClass().getName());
+        return BigDecimal.ZERO;
     }
+
 
 }

@@ -129,17 +129,17 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             )
             .businessUnitSummary(
                 uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary.builder()
-                    .businessUnitId("1")
+                    .businessUnitId("78")
                     .businessUnitName("Test BU")
                     .welshSpeaking("N")
                     .build()
             )
             .paymentStateSummary(
                 uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary.builder()
-                    .imposedAmount("0")
+                    .imposedAmount("700.58")
                     .arrearsAmount("0")
-                    .paidAmount("0")
-                    .accountBalance("0")
+                    .paidAmount("200.00")
+                    .accountBalance("500.58")
                     .build()
             )
             .partyDetails(
