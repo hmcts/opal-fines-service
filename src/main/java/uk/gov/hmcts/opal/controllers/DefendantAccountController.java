@@ -31,7 +31,7 @@ import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.disco.opal.NoteService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -117,7 +117,7 @@ public class DefendantAccountController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":POST:addNote: {}", addNote.toPrettyJson());
 
-        UserState userState = userStateService.getUserStateUsingAuthToken(authHeaderValue);
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         BusinessUnitUser businessUnitUser = getRequiredBusinessUnitUser(userState, addNote.getBusinessUnitId());
 
         NoteDto noteDto = NoteDto.builder()

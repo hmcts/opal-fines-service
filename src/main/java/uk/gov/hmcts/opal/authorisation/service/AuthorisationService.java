@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.service.opal.UserService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.util.Optional;
 
@@ -16,12 +16,8 @@ import java.util.Optional;
 @Slf4j(topic = "AuthorisationService")
 public class AuthorisationService {
 
-    private final UserService userService;
+    private final UserStateService userStateService;
     private final AccessTokenService accessTokenService;
-
-    public UserState getAuthorisation(String username) {
-        return userService.getUserStateByUsername(username);
-    }
 
     public SecurityToken getSecurityToken(String accessToken) {
         SecurityToken.SecurityTokenBuilder securityTokenBuilder = SecurityToken.builder()
@@ -31,7 +27,7 @@ public class AuthorisationService {
         log.debug(":getSecurityToken: preferred user name: {}", preferredUsernameOptional);
 
         if (preferredUsernameOptional.isPresent()) {
-            UserState userStateOptional = this.getAuthorisation(preferredUsernameOptional.get());
+            UserState userStateOptional = userStateService.checkForAuthorisedUser(accessToken);
             securityTokenBuilder.userState(userStateOptional);
         }
         return securityTokenBuilder.build();

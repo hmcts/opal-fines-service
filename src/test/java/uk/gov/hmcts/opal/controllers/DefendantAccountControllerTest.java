@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.dto.search.NoteSearchDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.util.List;
 
@@ -168,7 +168,7 @@ class DefendantAccountControllerTest {
             (short)50, Permissions.ACCOUNT_ENQUIRY, Permissions.ACCOUNT_ENQUIRY_NOTES);
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(mockResponse);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().businessUnitId((short) 50).build();
@@ -190,7 +190,7 @@ class DefendantAccountControllerTest {
             (short)50, Permissions.ACCOUNT_ENQUIRY, Permissions.ACCOUNT_ENQUIRY_NOTES);
 
         when(noteService.saveNote(any(NoteDto.class))).thenReturn(null);
-        when(userStateService.getUserStateUsingAuthToken(any())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
         // Act
         AddNoteDto addNote = AddNoteDto.builder().businessUnitId((short) 50).build();

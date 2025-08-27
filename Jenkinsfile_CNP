@@ -12,6 +12,10 @@ def determineDevEnvironmentDeployment() {
   env.DEV_OPAL_FRONT_END_URL = "https://opal-frontend.staging.platform.hmcts.net"
   env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX = "latest"
 
+  env.DEV_ENABLE_OPAL_USER_SERVICE = false
+  env.DEV_OPAL_USER_SERVICE_API_URL = "https://opal-user-service.staging.platform.hmcts.net"
+  env.DEV_OPAL_USER_SERVICE_IMAGE_SUFFIX = "latest"
+
   env.APP_MODE = "opal"
 
   def githubApi = new GithubAPI(this)
@@ -30,6 +34,16 @@ def determineDevEnvironmentDeployment() {
           env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX = label.replace("enable_opal_front_end:", "")
         }
         echo "Deploying Opal Front end (${env.DEV_OPAL_FRONT_END_URL} - ${env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX}) instance in PR environment"
+      }
+
+      //User service
+      if (label ==~ /enable_opal_user_service.*/) {
+        env.DEV_ENABLE_OPAL_USER_SERVICE = true
+        env.DEV_OPAL_USER_SERVICE_API_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}-user-service.dev.platform.hmcts.net"
+        if (label ==~ /enable_opal_user_service:pr-.*/) {
+          env.DEV_OPAL_USER_SERVICE_IMAGE_SUFFIX = label.replace("enable_opal_user_service:", "")
+        }
+        echo "Deploying Opal User service (${env.DEV_OPAL_USER_SERVICE_API_URL} - ${env.DEV_OPAL_USER_SERVICE_IMAGE_SUFFIX}) instance in PR environment"
       }
     }
   }

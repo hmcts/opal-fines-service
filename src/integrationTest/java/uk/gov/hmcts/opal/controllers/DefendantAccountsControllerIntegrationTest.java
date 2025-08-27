@@ -25,7 +25,7 @@ import uk.gov.hmcts.opal.authorisation.model.UserState;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
@@ -1102,7 +1102,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC1_SurnameAndPostcode: Response body:\n{}", 
+        log.info(":testPostDefendantAccountsSearch_AC1_SurnameAndPostcode: Response body:\n{}",
             ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
@@ -1142,7 +1142,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode: Response body:\n{}", 
+        log.info(":testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode: Response body:\n{}",
             ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
@@ -1180,7 +1180,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC1_CompletePersonalDetails: Response body:\n{}", 
+        log.info(":testPostDefendantAccountsSearch_AC1_CompletePersonalDetails: Response body:\n{}",
             ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
@@ -1220,7 +1220,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC1_AddressAndNI: Response body:\n{}", 
+        log.info(":testPostDefendantAccountsSearch_AC1_AddressAndNI: Response body:\n{}",
             ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
@@ -1260,7 +1260,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes: Response body:\n{}", 
+        log.info(":testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes: Response body:\n{}",
             ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
@@ -1301,7 +1301,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering: Response body:\n{}", 
+        log.info(":testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering: Response body:\n{}",
             ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
@@ -1345,7 +1345,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             """));
 
         String body = allAccountsActions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse: Response body:\n{}", 
+        log.info(":testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse: Response body:\n{}",
             ToJsonString.toPrettyJson(body));
 
         allAccountsActions.andExpect(status().isOk())
@@ -1687,7 +1687,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             """));
 
         String allBody = allAccountsActions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly): Response body:\n{}", 
+        log.info(":testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly): Response body:\n{}",
             ToJsonString.toPrettyJson(allBody));
 
         allAccountsActions.andExpect(status().isOk())
@@ -1743,7 +1743,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
-        // Search with exact alias "TechCorp Ltd" - should match exactly 
+        // Search with exact alias "TechCorp Ltd" - should match exactly
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
             .header("authorization", "Bearer some_value")
             .contentType(MediaType.APPLICATION_JSON)
@@ -1785,7 +1785,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
-        // Search with partial address "Business" - should match "Business Park" 
+        // Search with partial address "Business" - should match "Business Park"
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
             .header("authorization", "Bearer some_value")
             .contentType(MediaType.APPLICATION_JSON)
