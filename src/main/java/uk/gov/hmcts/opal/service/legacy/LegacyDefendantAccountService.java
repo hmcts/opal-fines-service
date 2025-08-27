@@ -179,6 +179,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .accountType(response.getAccountType())
             .prosecutorCaseReference(response.getProsecutorCaseReference())
             .fixedPenaltyTicketNumber(response.getFixedPenaltyTicketNumber())
+            .accountStatusDisplayName(status != null ? status.getAccountStatusDisplayName() : null)
+            .businessUnitId(bu != null ? bu.getBusinessUnitId() : null)
+            .imposed(pay != null ? pay.getImposedAmount() : null)
+            .arrears(pay != null ? pay.getArrearsAmount() : null)
+            .paid(pay != null ? pay.getPaidAmount() : null)
+            .accountBalance(pay != null ? pay.getAccountBalance() : null)
             .build();
     }
 
