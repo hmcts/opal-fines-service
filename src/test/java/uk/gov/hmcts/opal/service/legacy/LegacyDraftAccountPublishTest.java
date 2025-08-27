@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -84,8 +85,7 @@ class LegacyDraftAccountPublishTest {
             .defendantAccountNumber("77-007")
             .build();
 
-        ParameterizedTypeReference typeRef = new ParameterizedTypeReference<LegacyCreateDefendantAccountResponse>(){};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.valueOf(200));
@@ -123,8 +123,7 @@ class LegacyDraftAccountPublishTest {
             .errorResponse("Something went wrong on the server.")
             .build();
 
-        ParameterizedTypeReference typeRef = new ParameterizedTypeReference<LegacyCreateDefendantAccountResponse>(){};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);
 
         ResponseEntity<String> serverErrorResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -159,11 +158,9 @@ class LegacyDraftAccountPublishTest {
             .build();
 
         LegacyCreateDefendantAccountResponse responseBody = LegacyCreateDefendantAccountResponse.builder()
-            .errorResponse("Something went wrong on the server.")
             .build();
 
-        ParameterizedTypeReference typeRef = new ParameterizedTypeReference<LegacyCreateDefendantAccountResponse>(){};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);
 
         ResponseEntity<String> serverErrorResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.NOT_FOUND);
@@ -198,8 +195,7 @@ class LegacyDraftAccountPublishTest {
             .errorResponse("Something went wrong on the server.")
             .build();
 
-        ParameterizedTypeReference typeRef = new ParameterizedTypeReference<LegacyCreateDefendantAccountResponse>(){};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);
 
         ResponseEntity<String> serverErrorResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.MOVED_PERMANENTLY);
@@ -208,10 +204,15 @@ class LegacyDraftAccountPublishTest {
         when(draftAccountTransactions
                  .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactions))
             .thenReturn(publish);
+        when(draftAccountTransactions
+            .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactions))
+            .thenReturn(publish);
 
         DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
 
         assertEquals(publish, published);
+        verify(draftAccountTransactions)
+            .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactions);
     }
 
     @Test

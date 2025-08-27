@@ -21,7 +21,7 @@ import uk.gov.hmcts.opal.dto.ToXmlString;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LegacyCreateDefendantAccountResponse implements ToXmlString {
+public class LegacyCreateDefendantAccountResponse implements ToXmlString, HasErrorResponse {
 
     @XmlElement(name = "defendant_account_id")
     private Long defendantAccountId;

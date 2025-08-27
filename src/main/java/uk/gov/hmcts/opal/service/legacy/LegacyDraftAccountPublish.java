@@ -49,7 +49,7 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
                 log.error(":publishDefendantAccount: Legacy Gateway response: HTTP Response Code: {}", response.code);
                 if (response.isException()) {
                     log.error(":publishDefendantAccount:", response.exception);
-                } else if (response.isLegacyFailure()) {
+                } else if (response.hasErrorResponse()) {
                     log.error(":publishDefendantAccount: Legacy Gateway: body: \n{}", response.body);
                     LegacyCreateDefendantAccountResponse responseEntity = response.responseEntity;
                     log.error(":publishDefendantAccount: Legacy Gateway: entity: \n{}", responseEntity.toXml());
@@ -65,6 +65,8 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
 
                     publishEntity = draftAccountTransactions
                         .updateStatus(publishEntity, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactions);
+                } else {
+                    log.warn(":publishDefendantAccount: Unexpected Legacy Gateway response");
                 }
             } else if (response.isSuccessful()) {
                 log.info(":publishDefendantAccount: Legacy Gateway response: Success.");

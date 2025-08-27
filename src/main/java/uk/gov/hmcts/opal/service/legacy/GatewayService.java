@@ -1,7 +1,9 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.scheduling.annotation.Async;
+import uk.gov.hmcts.opal.dto.legacy.HasErrorResponse;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -47,7 +49,13 @@ public interface GatewayService {
         }
 
         public boolean isError() {
-            return isException() || code.isError();
+            return isException() || code.isError() || hasErrorResponse();
+        }
+
+        public boolean hasErrorResponse() {
+            return responseEntity != null
+                && responseEntity instanceof HasErrorResponse hasErrorResponse
+                && StringUtils.isNotBlank(hasErrorResponse.getErrorResponse());
         }
 
         public boolean isLegacyFailure() {
