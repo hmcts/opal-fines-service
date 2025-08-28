@@ -9,8 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +19,6 @@ import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
-import uk.gov.hmcts.opal.service.legacy.LegacyTestingSupportService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 
 @RestController
@@ -38,7 +35,6 @@ public class TestingSupportController {
     private final FeatureToggleService featureToggleService;
     private final AccessTokenService accessTokenService;
     private final AuthorisationService authorisationService;
-    private final LegacyTestingSupportService legacyTestingSupportService;
     private final DefendantAccountDeletionService defendantAccountDeletionService;
 
     @GetMapping("/app-mode")
@@ -76,13 +72,6 @@ public class TestingSupportController {
     @GetMapping("/token/parse")
     public ResponseEntity<String> parseToken(@RequestHeader("Authorization") String authorization) {
         return ResponseEntity.ok(this.accessTokenService.extractPreferredUsername(authorization));
-    }
-
-    @PostMapping("/legacy/test-function/{functionName}")
-    @Operation(summary = "Posts to the legacy gateway for testing purposes.")
-    public ResponseEntity<String> legacyTestFunction(@PathVariable String functionName, @RequestBody String body) {
-        String response = legacyTestingSupportService.postLegacyFunction(functionName, body).getBody();
-        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/defendant-accounts/{defendantAccountId}")
