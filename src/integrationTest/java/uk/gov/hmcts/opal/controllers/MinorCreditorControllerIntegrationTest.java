@@ -77,8 +77,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.creditor_accounts[0].account_balance").value(150.0))
 
             // defendant object (first account)
-            .andExpect(jsonPath("$.creditor_accounts[0].defendant.defendant_account_id").value("0"))
-            .andExpect(jsonPath("$.creditor_accounts[0].defendant.organisation").value(true))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.defendant_account_id").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.organisation").value(false))
             .andExpect(jsonPath("$.creditor_accounts[0].defendant.organisation_name").value(nullValue()))
             .andExpect(jsonPath("$.creditor_accounts[0].defendant.firstnames").value(nullValue()))
             .andExpect(jsonPath("$.creditor_accounts[0].defendant.surname").value(nullValue()))
@@ -97,8 +97,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.creditor_accounts[1].account_balance").value(0.0))
 
             // defendant object (second account)
-            .andExpect(jsonPath("$.creditor_accounts[1].defendant.defendant_account_id").value("0"))
-            .andExpect(jsonPath("$.creditor_accounts[1].defendant.organisation").value(true))
+            .andExpect(jsonPath("$.creditor_accounts[1].defendant.defendant_account_id").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[1].defendant.organisation").value(false))
             .andExpect(jsonPath("$.creditor_accounts[1].defendant.organisation_name").value(nullValue()))
             .andExpect(jsonPath("$.creditor_accounts[1].defendant.firstnames").value(nullValue()))
             .andExpect(jsonPath("$.creditor_accounts[1].defendant.surname").value(nullValue()));
@@ -180,8 +180,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         ra.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(0))
-            .andExpect(jsonPath("$.creditor_accounts").isArray())
-            .andExpect(jsonPath("$.creditor_accounts").isEmpty());
+            .andExpect(jsonPath("$.creditor_accounts").doesNotExist());
     }
 
     void search_orgNamePrefix_normalizedMatches(Logger log) throws Exception {

@@ -52,8 +52,7 @@ public class MinorCreditorEntity {
     private String surname;
 
     @Column(name = "defendant_account_id")
-    @org.hibernate.annotations.ColumnTransformer(read = "COALESCE(defendant_account_id, 0)")
-    private long defendantAccountId;
+    private Long defendantAccountId;
 
     @Column(name = "defendant_organisation_name")
     private String defendantOrganisationName;
@@ -65,9 +64,6 @@ public class MinorCreditorEntity {
     private String defendantSurname;
 
     @Column(name = "creditor_account_balance")
-    @org.hibernate.annotations.ColumnTransformer(
-        read = "COALESCE(creditor_account_balance, 0)"
-    )
-    private int creditorAccountBalance;
+    private Integer creditorAccountBalance;
 
 }

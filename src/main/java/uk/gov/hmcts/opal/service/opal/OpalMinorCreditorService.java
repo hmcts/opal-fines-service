@@ -48,15 +48,16 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             .postcode(entity.getPostCode())
             .businessUnitName(entity.getBusinessUnitName())
             .businessUnitId(String.valueOf(entity.getBusinessUnitId()))
-            .accountBalance(entity.getCreditorAccountBalance())
+            .accountBalance(entity.getCreditorAccountBalance() != null ? entity.getCreditorAccountBalance() : 0)
             .defendant(toDefendantDto(entity))
             .build();
     }
 
     private DefendantDto toDefendantDto(MinorCreditorEntity entity) {
         return DefendantDto.builder()
-            .defendantAccountId(String.valueOf(entity.getDefendantAccountId()))
-            .organisation(true) // or map from a column if you have a defendant_organisation flag
+            .defendantAccountId(entity.getDefendantAccountId() != null
+                                    ? String.valueOf(entity.getDefendantAccountId()) : null)
+            .organisation(entity.isOrganisation()) // or map from a column if you have a defendant_organisation flag
             .organisationName(entity.getDefendantOrganisationName())
             .firstnames(entity.getDefendantFornames())
             .surname(entity.getDefendantSurname())
@@ -70,7 +71,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         return PostMinorCreditorAccountsSearchResponse.builder()
             .count(accounts.size())
-            .creditorAccounts(accounts)
+            .creditorAccounts(accounts.isEmpty() ? null : accounts)
             .build();
     }
 }
