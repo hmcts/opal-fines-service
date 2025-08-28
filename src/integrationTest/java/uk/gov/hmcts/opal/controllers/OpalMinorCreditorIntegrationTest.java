@@ -44,5 +44,20 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         super.search_accountNumber_withWildcardChars_treatedLiterally(log);
     }
 
+    @Test
+    void postSearch_missingAuthHeader_returns401ProblemJson() throws Exception {
+        super.postSearch_missingAuthHeader_returns401();
+    }
+
+    @Test
+    void postSearch_invalidToken_returns401ProblemJson() throws Exception {
+        super.postSearch_invalidToken_returns401ProblemJson();
+    }
+
+    @Test
+    void postSearch_authenticatedWithoutPermission_returns403ProblemJson() throws Exception {
+        super.postSearch_authenticatedWithoutPermission_returns403ProblemJson();
+    }
+
 }
 

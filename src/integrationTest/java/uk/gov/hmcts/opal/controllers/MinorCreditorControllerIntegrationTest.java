@@ -5,6 +5,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -13,15 +14,13 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 /**
@@ -168,7 +167,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         MinorCreditorSearch search = MinorCreditorSearch.builder()
-            .businessUnitIds(List.of(999)) // no data in this BU
+            .businessUnitIds(List.of(999))
             .activeAccountsOnly(false)
             .build();
 
@@ -218,6 +217,59 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .content(objectMapper.writeValueAsString(search)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(0));
+    }
+
+    void postSearch_missingAuthHeader_returns401() throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(java.util.List.of(10))
+            .activeAccountsOnly(false)
+            .accountNumber("12345678")
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_PROBLEM_JSON) // ok even if server doesn't set it
+                            .content(objectMapper.writeValueAsString(search)))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
+    void postSearch_invalidToken_returns401ProblemJson() throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Invalid token"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(java.util.List.of(10))
+            .activeAccountsOnly(false)
+            .accountNumber("12345678")
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("authorization", "Bearer some_value")
+                            .content(objectMapper.writeValueAsString(search)))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
+
+    void postSearch_authenticatedWithoutPermission_returns403ProblemJson() throws Exception {
+        doThrow(new ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Forbidden"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(java.util.List.of(10))
+            .activeAccountsOnly(false)
+            .accountNumber("12345678")
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("authorization", "Bearer some_value")
+                            .content(objectMapper.writeValueAsString(search)))
+            .andExpect(status().isForbidden())
+            .andExpect(content().string(""));
     }
 
 }
