@@ -17,14 +17,13 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import static uk.gov.hmcts.opal.disco.legacy.LegacyDiscoDefendantAccountService.SEARCH_DEFENDANT_ACCOUNTS;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.LegacyDefendantAccountService")
 public class LegacyDefendantAccountService implements DefendantAccountServiceInterface {
 
     public static final String GET_HEADER_SUMMARY = "LIBRA.get_header_summary";
+    public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;

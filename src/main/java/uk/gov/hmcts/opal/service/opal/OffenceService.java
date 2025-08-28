@@ -18,7 +18,6 @@ import uk.gov.hmcts.opal.mapper.OffenceMapper;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepositoryFull;
 import uk.gov.hmcts.opal.repository.jpa.OffenceSpecs;
-import uk.gov.hmcts.opal.disco.OffenceServiceInterface;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +27,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Qualifier("offenceService")
-public class OffenceService implements OffenceServiceInterface {
+public class OffenceService {
 
     private static final int NO_REQUESTED_LIMIT = 0;
 
