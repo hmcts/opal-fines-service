@@ -14,13 +14,17 @@ import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 /**
@@ -236,7 +240,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(status().isUnauthorized())
             .andExpect(content().string(""));
     }
+
     void postSearch_invalidToken_returns401ProblemJson() throws Exception {
+
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Invalid token"))
             .when(userStateService).checkForAuthorisedUser(any());
 
