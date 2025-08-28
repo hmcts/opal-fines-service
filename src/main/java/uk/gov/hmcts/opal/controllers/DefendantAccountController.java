@@ -35,9 +35,9 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/{defendantAccountId}/header-summary")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
-    public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(@PathVariable Long defendantAccountId,
-                                                                          @RequestHeader(value = "Authorization",
-                                                                              required = false) String authHeaderValue) {
+    public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
         DefendantAccountHeaderSummary summary =
