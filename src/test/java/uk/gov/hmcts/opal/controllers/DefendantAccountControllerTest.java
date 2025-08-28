@@ -158,7 +158,8 @@ class DefendantAccountControllerTest {
 
         // Use reflection to call mapToDto (since it's private)
         try {
-            Method m = OpalDefendantAccountService.class.getDeclaredMethod("mapToDto", DefendantAccountHeaderViewEntity.class);
+            Method m = OpalDefendantAccountService.class.getDeclaredMethod("mapToDto",
+                DefendantAccountHeaderViewEntity.class);
             m.setAccessible(true);
             DefendantAccountHeaderSummary dto = (DefendantAccountHeaderSummary) m.invoke(service, entity);
             assertNotNull(dto);
@@ -173,8 +174,6 @@ class DefendantAccountControllerTest {
 
     @Test
     void testOpalDefendantAccountService_nz_and_calculateAge() throws Exception {
-        OpalDefendantAccountService service = new OpalDefendantAccountService(null, null, null);
-
         Method nzMethod = OpalDefendantAccountService.class.getDeclaredMethod("nz", BigDecimal.class);
         nzMethod.setAccessible(true);
 
@@ -183,6 +182,8 @@ class DefendantAccountControllerTest {
 
         Method ageMethod = OpalDefendantAccountService.class.getDeclaredMethod("calculateAge", LocalDate.class);
         ageMethod.setAccessible(true);
+
+        OpalDefendantAccountService service = new OpalDefendantAccountService(null, null, null);
 
         int thisYear = LocalDate.now().getYear();
         int age = (int) ageMethod.invoke(service, LocalDate.of(thisYear - 40, 1, 1));
@@ -302,8 +303,9 @@ class DefendantAccountControllerTest {
     void testOpalDefendantAccountService_mapToDto_nullsSafe() throws Exception {
         OpalDefendantAccountService service = new OpalDefendantAccountService(null, null, null);
         DefendantAccountHeaderViewEntity e = new DefendantAccountHeaderViewEntity();
-        e.setAccountStatus("L"); // <-- set a default status
-        Method m = OpalDefendantAccountService.class.getDeclaredMethod("mapToDto", DefendantAccountHeaderViewEntity.class);
+        e.setAccountStatus("L"); // set a default status
+        Method m = OpalDefendantAccountService.class.getDeclaredMethod("mapToDto",
+            DefendantAccountHeaderViewEntity.class);
         m.setAccessible(true);
         var dto = (DefendantAccountHeaderSummary) m.invoke(service, e);
         assertNotNull(dto);
@@ -319,7 +321,8 @@ class DefendantAccountControllerTest {
             .organisationDetails(
                 uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.builder()
                     .organisationName("Acme Org")
-                    .organisationAliases(new uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[]{
+                    .organisationAliases(new uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[]
+                        {
                         uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias.builder()
                             .aliasId("1")
                             .sequenceNumber((short) 1)
@@ -369,13 +372,17 @@ class DefendantAccountControllerTest {
     }
 
     @Test
-    void testDefendantAccountService_ensureAuthenticated() throws Exception {
-        Method m = DefendantAccountService.class.getDeclaredMethod("ensureAuthenticated", uk.gov.hmcts.opal.authorisation.model.UserState.class);
+    void testDefendantAccountService_ensureAuthenticated()
+        throws Exception {
+        Method m = DefendantAccountService.class.getDeclaredMethod(
+            "ensureAuthenticated", uk.gov.hmcts.opal.authorisation.model.UserState.class);
         m.setAccessible(true);
         try {
             m.invoke(null, (Object) null);
         } catch (Exception e) {
-            assertTrue(e.getCause() instanceof org.springframework.security.authentication.AuthenticationCredentialsNotFoundException);
+            assertTrue(e.getCause()
+                instanceof
+                org.springframework.security.authentication.AuthenticationCredentialsNotFoundException);
         }
     }
 
