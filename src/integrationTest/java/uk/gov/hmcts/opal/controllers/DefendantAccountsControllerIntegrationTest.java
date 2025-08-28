@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import org.junit.jupiter.api.DisplayName;
 import org.slf4j.Logger;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -86,7 +87,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
     void getHeaderSummaryImpl_500Error(Logger log) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenThrow(new InvalidDataAccessApiUsageException("Some error"));
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/500/header-summary")
                                                .header("authorization", "Bearer some_value"));

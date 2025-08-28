@@ -26,11 +26,6 @@ public class DefendantAccountService {
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId, String authHeaderValue) {
         log.debug(":getHeaderSummary:");
 
-        // --- 401 Unauthorized ---
-        if (authHeaderValue == null || authHeaderValue.isBlank()) {
-            throw new AuthenticationCredentialsNotFoundException("Missing Authorization header");
-        }
-
         // --- Authenticate user ---
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
