@@ -18,10 +18,6 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
-import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
-import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
-
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
@@ -33,27 +29,19 @@ public class DefendantAccountController {
 
     private final DefendantAccountService defendantAccountService;
 
-    // TODO - remove from controller
-    private final UserStateService userStateService;
-
-    private final DefendantAccountServiceProxy defendantAccountServiceProxy;
-
-    public DefendantAccountController(DefendantAccountService defendantAccountService,
-                                      UserStateService userStateService,
-                                      DefendantAccountServiceProxy defendantAccountServiceProxy) {
-
+    public DefendantAccountController(DefendantAccountService defendantAccountService) {
         this.defendantAccountService = defendantAccountService;
-        this.userStateService = userStateService;
-        this.defendantAccountServiceProxy = defendantAccountServiceProxy;
     }
 
     @GetMapping(value = "/{defendantAccountId}/header-summary")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(@PathVariable Long defendantAccountId,
-              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+                                                                          @RequestHeader(value = "Authorization",
+                                                                              required = false) String authHeaderValue) {
 
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
-        DefendantAccountHeaderSummary summary = defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue);
+        DefendantAccountHeaderSummary summary =
+            defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue);
         return ResponseEntity.ok(summary);
     }
 
