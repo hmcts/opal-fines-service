@@ -13,15 +13,17 @@
 *
 */
 
+-- Delete test creditor transactions first (FK references creditor_accounts)
+DELETE FROM public.creditor_transactions
+WHERE creditor_transaction_id = 90001;
+
 -- Delete test creditor accounts
 DELETE FROM public.creditor_accounts
-WHERE creditor_account_id IN (105);
+WHERE creditor_account_id IN (104, 105);
 
 -- Delete test creditor party
 DELETE FROM public.parties
 WHERE party_id = 9000;
 
--- Delete test creditor transactions first (FK references creditor_accounts)
-DELETE FROM public.creditor_transactions
-WHERE creditor_transaction_id = 90001;
+
 
