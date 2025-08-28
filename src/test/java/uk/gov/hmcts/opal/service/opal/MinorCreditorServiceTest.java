@@ -163,7 +163,7 @@ class MinorCreditorServiceTest {
         verify(minorCreditorRepository, times(1))
             .findAll(Mockito.<Specification<MinorCreditorEntity>>any());
         assertEquals(0, response.getCount());
-        assertTrue(response.getCreditorAccounts().isEmpty());
+        assertNull(response.getCreditorAccounts());
     }
 
     @Test
