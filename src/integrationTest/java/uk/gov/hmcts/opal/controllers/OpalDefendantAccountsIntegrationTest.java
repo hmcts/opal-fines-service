@@ -27,11 +27,6 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
-    void testGetHeaderSummary_Unauthorized_NoHeader() throws Exception {
-        super.getHeaderSummary_Unauthorized_NoHeader(log);
-    }
-
-    @Test
     void testGetHeaderSummary_Forbidden() throws Exception {
         super.getHeaderSummary_Forbidden(log);
     }

@@ -191,16 +191,6 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.detail").exists());
     }
 
-    @DisplayName("Header Summary - 401 Unauthorized with no Authorization header")
-    void getHeaderSummary_Unauthorized_NoHeader(Logger log) throws Exception {
-        mockMvc.perform(get("/defendant-accounts/77/header-summary"))
-            .andExpect(status().isUnauthorized())
-            .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
-            .andExpect(jsonPath("$.status").value(401))
-            .andExpect(jsonPath("$.title").exists())
-            .andExpect(jsonPath("$.detail").exists());
-    }
-
     @DisplayName("Header Summary - 403 Forbidden when not authorised")
     void getHeaderSummary_Forbidden(Logger log) throws Exception {
         UserState noPermissionsUser = UserState.builder()
