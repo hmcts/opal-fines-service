@@ -150,7 +150,7 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
         return s.toLowerCase().replace(" ", "").replace("-", "").replace("'", "");
     }
 
-    static Predicate likeStartsWithNormalized(CriteriaBuilder cb, Expression<String> field, String value) {
+    private static Predicate likeStartsWithNormalized(CriteriaBuilder cb, Expression<String> field, String value) {
         return cb.like(normalized(cb, field), normalizeLiteral(value) + "%");
     }
 
