@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -43,7 +45,7 @@ public class CreditorAccountDto {
     private String businessUnitId;
 
     @JsonProperty("account_balance")
-    private double accountBalance;
+    private BigDecimal accountBalance;
 
     @JsonProperty("defendant")
     private DefendantDto defendant;
