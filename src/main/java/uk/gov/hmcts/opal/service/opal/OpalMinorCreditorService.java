@@ -13,6 +13,7 @@ import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 import uk.gov.hmcts.opal.repository.jpa.MinorCreditorSpecs;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -48,7 +49,9 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             .postcode(entity.getPostCode())
             .businessUnitName(entity.getBusinessUnitName())
             .businessUnitId(String.valueOf(entity.getBusinessUnitId()))
-            .accountBalance(entity.getCreditorAccountBalance() != null ? entity.getCreditorAccountBalance() : 0)
+            .accountBalance(java.util.Optional.ofNullable(entity.getCreditorAccountBalance())
+                                .map(BigDecimal::valueOf)
+                                .orElse(BigDecimal.ZERO))
             .defendant(toDefendantDto(entity))
             .build();
     }

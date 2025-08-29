@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
@@ -117,7 +118,7 @@ class MinorCreditorServiceTest {
         assertEquals("MA4 1AL", a0.getPostcode());
         assertEquals("Derbyshire", a0.getBusinessUnitName());
         assertEquals("10", a0.getBusinessUnitId());
-        assertEquals(150.0, a0.getAccountBalance());
+        assertEquals(new java.math.BigDecimal("150"), a0.getAccountBalance());
 
         DefendantDto d0 = a0.getDefendant();
         assertNotNull(d0);
@@ -138,7 +139,7 @@ class MinorCreditorServiceTest {
         assertEquals("MA4 1AL", a1.getPostcode());
         assertEquals("Derbyshire", a1.getBusinessUnitName());
         assertEquals("10", a1.getBusinessUnitId());
-        assertEquals(0.0, a1.getAccountBalance());
+        assertEquals(BigDecimal.ZERO, a1.getAccountBalance());
 
         DefendantDto d1 = a1.getDefendant();
         assertNotNull(d1);
