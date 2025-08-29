@@ -12,6 +12,7 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 
 @Service
 @Slf4j(topic = "opal.DefendantAccountService")
@@ -23,17 +24,21 @@ public class DefendantAccountService {
     private final UserStateService userStateService;
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId, String authHeaderValue) {
-
         log.debug(":getHeaderSummary:");
 
+        // --- Authenticate user ---
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        if (userState.anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)) {
-            return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
-        } else {
+        // --- 403 Forbidden ---
+        if (userState == null || !userState.anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
         }
+
+        // --- Happy Path ---
+        return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
     }
+
+
 
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto,
                                                                     String authHeaderValue) {
@@ -41,11 +46,20 @@ public class DefendantAccountService {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
+        ensureAuthenticated(userState);
+
         if (userState.anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)) {
 
             return defendantAccountServiceProxy.searchDefendantAccounts(accountSearchDto);
         } else {
             throw new PermissionNotAllowedException(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+    }
+
+    // ADD: fail fast if unauthenticated (so we don't NPE on permission checks)
+    private static void ensureAuthenticated(UserState userState) {
+        if (userState == null) {
+            throw new AuthenticationCredentialsNotFoundException("Missing or invalid Authorization header");
         }
     }
 

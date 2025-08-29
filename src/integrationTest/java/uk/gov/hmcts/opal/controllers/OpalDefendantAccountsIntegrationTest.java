@@ -1,28 +1,35 @@
 package uk.gov.hmcts.opal.controllers;
 
-import org.junit.jupiter.api.Disabled;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
-import lombok.extern.slf4j.Slf4j;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Slf4j(topic = "opal.OpalDefendantAccountsIntegrationTest")
 class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIntegrationTest {
 
-    @Disabled("Legacy has been implemented. But Opal still to be completed - see ticket PO-985")
     @Test
     void testGetHeaderSummary() throws Exception {
         super.getHeaderSummaryImpl(log);
     }
 
-    @Disabled("Legacy has been implemented. But Opal still to be completed - see ticket PO-985")
     @Test
     void testGetHeaderSummary_500Error() throws Exception {
-        super.getHeaderSummaryImpl(log);
+        super.getHeaderSummaryImpl_500Error(log);
+    }
+
+    @Test
+    void testGetHeaderSummary_NotFound() throws Exception {
+        super.getHeaderSummary_NotFound(log);
+    }
+
+    @Test
+    void testGetHeaderSummary_Forbidden() throws Exception {
+        super.getHeaderSummary_Forbidden(log);
     }
 
     @Test
@@ -35,39 +42,48 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.testPostDefendantAccountsSearch_Opal_NoResults(log);
     }
 
-    @Test void opal_search_by_name_and_bu() throws Exception {
+    @Test
+    void opal_search_by_name_and_bu() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_ByNameAndBU(log);
     }
 
-    @Test void opal_postcode_ignores_spaces() throws Exception {
+    @Test
+    void opal_postcode_ignores_spaces() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces(log);
     }
 
-    @Test void opal_account_number_starts_with() throws Exception {
+    @Test
+    void opal_account_number_starts_with() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith(log);
     }
 
-    @Test void opal_pcr_exact() throws Exception {
+    @Test
+    void opal_pcr_exact() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_PcrExact(log);
     }
 
-    @Test void opal_pcr_no_match() throws Exception {
+    @Test
+    void opal_pcr_no_match() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_PcrNoMatch(log);
     }
 
-    @Test void opal_ni_starts_with() throws Exception {
+    @Test
+    void opal_ni_starts_with() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_NiStartsWith(log);
     }
 
-    @Test void opal_address_starts_with() throws Exception {
+    @Test
+    void opal_address_starts_with() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_AddressStartsWith(log);
     }
 
-    @Test void opal_dob_exact() throws Exception {
+    @Test
+    void opal_dob_exact() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_DobExact(log);
     }
 
-    @Test void opal_alias_flag_uses_main_name() throws Exception {
+    @Test
+    void opal_alias_flag_uses_main_name() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName(log);
     }
 
@@ -76,23 +92,28 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse(log);
     }
 
-    @Test void opal_accountNumber_with_check_letter() throws Exception {
+    @Test
+    void opal_accountNumber_with_check_letter() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter(log);
     }
 
-    @Test void opal_accountNumber_with_check_letter_and_space() throws Exception {
+    @Test
+    void opal_accountNumber_with_check_letter_and_space() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty(log);
     }
 
-    @Test void opal_without_business_unit_filter() throws Exception {
+    @Test
+    void opal_without_business_unit_filter() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter(log);
     }
 
-    @Test void opal_personal_party_with_full_details() throws Exception {
+    @Test
+    void opal_personal_party_with_full_details() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_AnnaGraham_FullDetails(log);
     }
 
-    @Test void opal_organisation_with_no_personal_names() throws Exception {
+    @Test
+    void opal_organisation_with_no_personal_names() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_OrganisationWithNoPersonalNames(log);
     }
 
@@ -130,7 +151,7 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     void opal_matchOnAlias_over_main() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent(log);
     }
-    
+
     @Test
     void testAC1_MultiParameter_SurnameAndPostcode() throws Exception {
         super.testPostDefendantAccountsSearch_AC1_SurnameAndPostcode(log);

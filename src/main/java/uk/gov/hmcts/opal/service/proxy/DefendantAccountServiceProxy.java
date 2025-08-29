@@ -5,11 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
+import uk.gov.hmcts.opal.service.opal.UserStateService;
+
 
 @Service
 @Slf4j(topic = "opal.DefendantAccountServiceProxy")
@@ -20,10 +22,13 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     private final LegacyDefendantAccountService legacyDraftAccountPromotion;
     private final DynamicConfigService dynamicConfigService;
 
+    private final UserStateService userStateService;
+
     private DefendantAccountServiceInterface getCurrentModeService() {
         return isLegacyMode(dynamicConfigService) ? legacyDraftAccountPromotion : draftAccountPromotion;
     }
 
+    @Override
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         return getCurrentModeService().getHeaderSummary(defendantAccountId);
     }
@@ -32,5 +37,4 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         return getCurrentModeService().searchDefendantAccounts(accountSearchDto);
     }
-
 }

@@ -6,8 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
+import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
+import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.PartyDetails;
+import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 
 @Data
 @NoArgsConstructor
@@ -16,72 +18,36 @@ import java.math.BigDecimal;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DefendantAccountHeaderSummary implements ToJsonString {
 
-    @JsonProperty("defendant_account_id")
-    private String defendantAccountId;
-
-    @JsonProperty("version")
-    private Long version;
-
     @JsonProperty("account_number")
     private String accountNumber;
 
-    @JsonProperty("has_parent_guardian")
-    private Boolean hasParentGuardian;
+    @JsonProperty("defendant_party_id")
+    private String defendantPartyId;
 
-    @JsonProperty("debtor_type")
-    private String debtorType;
-
-    @JsonProperty("organisation")
-    private Boolean organisation;
-
-    @JsonProperty("account_status_display_name")
-    private String accountStatusDisplayName;
+    @JsonInclude(JsonInclude.Include.ALWAYS)
+    @JsonProperty("parent_guardian_party_id")
+    private String parentGuardianPartyId;
 
     @JsonProperty("account_type")
     private String accountType;
 
     @JsonProperty("prosecutor_case_reference")
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     private String prosecutorCaseReference;
 
     @JsonProperty("fixed_penalty_ticket_number")
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     private String fixedPenaltyTicketNumber;
 
-    @JsonProperty("business_unit_name")
-    private String businessUnitName;
+    @JsonProperty("account_status_reference")
+    private AccountStatusReference accountStatusReference;
 
-    @JsonProperty("business_unit_id")
-    private String businessUnitId;
+    @JsonProperty("business_unit_summary")
+    private BusinessUnitSummary businessUnitSummary;
 
-    @JsonProperty("business_unit_code")
-    private String businessUnitCode;
+    @JsonProperty("payment_state_summary")
+    private PaymentStateSummary paymentStateSummary;
 
-    @JsonProperty("imposed")
-    private BigDecimal imposed;
-
-    @JsonProperty("arrears")
-    private BigDecimal arrears;
-
-    @JsonProperty("paid")
-    private BigDecimal paid;
-
-    @JsonProperty("written_off")
-    private BigDecimal writtenOff;
-
-    @JsonProperty("account_balance")
-    private BigDecimal accountBalance;
-
-    @JsonProperty("organisation_name")
-    private String organisationName;
-
-    @JsonProperty("is_youth")
-    private Boolean isYouth;
-
-    @JsonProperty("title")
-    private String title;
-
-    @JsonProperty("firstnames")
-    private String firstnames;
-
-    @JsonProperty("surname")
-    private String surname;
+    @JsonProperty("party_details")
+    private PartyDetails partyDetails;
 }
