@@ -4,11 +4,11 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "account_activity_note": {
-      "$ref": "../common-objects/accountActivityNote.json"
+    "activity_note": {
+      "$ref": "../common-objects/note.json"
     }
   },
   "required": [
-    "account_activity_note"
+    "activity_note"
   ]
 }

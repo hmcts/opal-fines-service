@@ -3,7 +3,7 @@
   "title": "Individual Details",
   "type": ["object", "null"],
   "properties": {
-    "title": { "type": "string" },
+    "title": { "type": ["string", "null"]},
     "forenames": { "type": ["string", "null"]},
     "surname": { "type": "string" },
     "date_of_birth": { "type": ["string", "null"]},

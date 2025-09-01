@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Record Activity Note",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "record_type": {
+      "type": "string",
+      "enum": ["Defendant Account", "Creditor Account", "Suspense Account", "Report Instances"]
+    },
+    "record_id": { "type": "string" },
+    "note_text": { "type": "string" },
+    "note_type": {
+      "type": "string",
+      "const": "AA"
+    }
+  },
+  "required": ["record_type", "record_id", "note_text", "note_type"]
+}
