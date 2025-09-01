@@ -25,7 +25,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary;
 public class LegacyGetDefendantAccountHeaderSummaryResponse implements ToXmlString {
 
     @XmlElement(name = "version")
-    private Long version;
+    private Integer version; // or Long, just match the schema
 
     @XmlElement(name = "defendant_account_id")
     private String defendantAccountId;

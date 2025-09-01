@@ -86,7 +86,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-
     private DefendantAccountHeaderSummary toHeaderSumaryDto(
         LegacyGetDefendantAccountHeaderSummaryResponse response) {
 
@@ -187,15 +186,29 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-    private static BigDecimal toBigDecimalOrZero(String s) {
-        if (s == null) {
+    private static BigDecimal toBigDecimalOrZero(Object input) {
+        if (input == null) {
             return BigDecimal.ZERO;
         }
-        try {
-            return new BigDecimal(s);
-        } catch (NumberFormatException e) {
-            return BigDecimal.ZERO;
+        if (input instanceof BigDecimal) {
+            return (BigDecimal) input;
         }
+        if (input instanceof CharSequence) {
+            String s = input.toString().trim();
+            if (s.isEmpty()) {
+                return BigDecimal.ZERO;
+            }
+            try {
+                return new BigDecimal(s);
+            } catch (NumberFormatException e) {
+                log.warn(":toBigDecimalOrZero: Invalid number format for input '{}'. Defaulting to ZERO.", s, e);
+                return BigDecimal.ZERO;
+            }
+        }
+        if (input instanceof Number) {
+            return BigDecimal.valueOf(((Number) input).doubleValue());
+        }
+        log.warn(":toBigDecimalOrZero: Unsupported type {}. Defaulting to ZERO.", input.getClass().getName());
+        return BigDecimal.ZERO;
     }
-
 }

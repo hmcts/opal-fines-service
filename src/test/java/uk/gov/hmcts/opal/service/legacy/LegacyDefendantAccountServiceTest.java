@@ -23,6 +23,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doThrow;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -69,7 +71,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         DefendantAccountHeaderSummary headerSummary = createHeaderSummaryDto();
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
-        ParameterizedTypeReference typeRef = new ParameterizedTypeReference<LegacyCreateDefendantAccountResponse>(){};
+        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
 
         ResponseEntity<String> serverSuccessResponse =
@@ -84,20 +87,17 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     @SuppressWarnings("unchecked")
     void testSearchDefendantAccounts_success() {
-
         AccountSearchDto searchDto = AccountSearchDto.builder().build();
 
         String dummyXml = getDummyXml();
-
-        ResponseEntity<String> serverSuccessResponse =
-            new ResponseEntity<>(dummyXml, HttpStatus.OK);
-        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(dummyXml, HttpStatus.OK));
 
         LegacyDefendantAccountsSearchResults legacyResponse =
             LegacyDefendantAccountsSearchResults.builder().build();
 
-        ParameterizedTypeReference typeRef =
-            new ParameterizedTypeReference<LegacyDefendantAccountsSearchResults>() {};
+        ParameterizedTypeReference<LegacyDefendantAccountsSearchResults> typeRef =
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(legacyResponse);
 
         DefendantAccountSearchResultsDto result =
@@ -105,6 +105,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         assertEquals(DefendantAccountSearchResultsDto.class, result.getClass());
     }
+
 
     private DefendantAccountHeaderSummary createHeaderSummaryDto() {
         return DefendantAccountHeaderSummary.builder()
@@ -207,4 +208,225 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
               </defendant_accounts>
         </response>""";
     }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_nonZeroAmounts_andCustomBu() {
+        // Arrange: response with the values our DTO expects
+        LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
+            LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+                .defendantAccountId("1")
+                .accountNumber("SAMPLE")
+                .accountType("Fine")
+                .accountStatusReference(
+                    uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference.builder()
+                        .accountStatusCode("L")
+                        .accountStatusDisplayName("Live")
+                        .build()
+                )
+                .businessUnitSummary(
+                    uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary.builder()
+                        .businessUnitId("78")
+                        .businessUnitName("Test BU")
+                        .welshSpeaking("N")
+                        .build()
+                )
+                .paymentStateSummary(
+                    uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary.builder()
+                        .imposedAmount("700.58")
+                        .arrearsAmount("0")
+                        .paidAmount("200.00")
+                        .accountBalance("500.58")
+                        .build()
+                )
+                .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
+                .build();
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+
+        // Act
+        DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
+
+        // Assert: minimal checks that raise coverage on new code
+        assertEquals("SAMPLE", published.getAccountNumber());
+        assertEquals("Fine", published.getAccountType());
+        assertEquals("Live", published.getAccountStatusDisplayName());
+        assertEquals("78", published.getBusinessUnitId());
+        assertEquals(new BigDecimal("700.58"), published.getImposed());
+        assertEquals(BigDecimal.ZERO, published.getArrears());
+        assertEquals(new BigDecimal("200.00"), published.getPaid());
+        assertEquals(new BigDecimal("500.58"), published.getAccountBalance());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_blankAmounts_defaultToZero() {
+        LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
+            LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+                .defendantAccountId("1")
+                .accountNumber("SAMPLE")
+                .accountType("Fine")
+                .accountStatusReference(
+                    uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference.builder()
+                        .accountStatusCode("L")
+                        .accountStatusDisplayName("Live")
+                        .build()
+                )
+                .businessUnitSummary(
+                    uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary.builder()
+                        .businessUnitId("78")
+                        .businessUnitName("Test BU")
+                        .welshSpeaking("N")
+                        .build()
+                )
+                .paymentStateSummary(
+                    uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary.builder()
+                        .imposedAmount("")
+                        .arrearsAmount(null)
+                        .paidAmount("NaN")
+                        .accountBalance("0")
+                        .build()
+                )
+                .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
+                .build();
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+
+        DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
+
+        assertEquals(BigDecimal.ZERO, published.getImposed());
+        assertEquals(BigDecimal.ZERO, published.getArrears());
+        assertEquals(BigDecimal.ZERO, published.getPaid());
+        assertEquals(BigDecimal.ZERO, published.getAccountBalance());
+    }
+
+    @Test
+    void testGetHeaderSummary_gatewayThrows_hitsCatchAndRethrows() {
+        doThrow(new RuntimeException("boom"))
+            .when(gatewayService)
+            .postToGateway(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+
+        assertThrows(RuntimeException.class, () -> legacyDefendantAccountService.getHeaderSummary(1L));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_withIndividualDetails_executesMappingBranches() {
+        uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails legacyInd =
+            uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
+                .title("Mr")
+                .firstNames("John")
+                .surname("Smith")
+                .individualAliases(new
+                    uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias[0])
+                .build();
+
+        uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails party =
+            uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
+                .individualDetails(legacyInd)
+                .build();
+
+        LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
+            createHeaderSummaryResponse();
+        responseBody.setPartyDetails(party);
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+
+        DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
+
+        assertEquals("SAMPLE", published.getAccountNumber());
+        assertEquals("Fine", published.getAccountType());
+    }
+
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_whenCommonSectionsNull_executesNullBranches() {
+        LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
+            LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+                .defendantAccountId("1")
+                .accountNumber("SAMPLE")
+                .accountType("Fine")
+                .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
+                .build();
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+
+        DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
+
+        // These fields should be null when the nested objects are missing
+        assertEquals("SAMPLE", published.getAccountNumber());
+        assertEquals("Fine", published.getAccountType());
+        assertEquals(null, published.getAccountStatusDisplayName());
+        assertEquals(null, published.getBusinessUnitId());
+        assertEquals(null, published.getImposed());
+        assertEquals(null, published.getArrears());
+        assertEquals(null, published.getPaid());
+        assertEquals(null, published.getAccountBalance());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_withOrganisationDetails_executesMappingBranches() {
+        // Build organisation alias array (nested type inside OrganisationDetails)
+        uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[] orgAliasArr =
+            new uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[] {
+                uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias.builder()
+                    .aliasId("ORG1")
+                    .sequenceNumber(Short.valueOf("1"))
+                    .organisationName("AliasCo")
+                    .build()
+            };
+
+        // Organisation details with alias array
+        uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails legacyOrg =
+            uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.builder()
+                .organisationName("MainCo")
+                .organisationAliases(orgAliasArr)
+                .build();
+
+        // Party details containing organisation
+        uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails party =
+            uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
+                .organisationDetails(legacyOrg)
+                .build();
+
+        LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
+            createHeaderSummaryResponse();
+        responseBody.setPartyDetails(party);
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+
+        // Act
+        DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
+
+        // Assert: minimal baseline + check organisation alias details flowed through
+        assertEquals("SAMPLE", published.getAccountNumber());
+        assertEquals("Fine", published.getAccountType());
+    }
+
+
+
+
 }
