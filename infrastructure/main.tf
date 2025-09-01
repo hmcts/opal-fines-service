@@ -23,7 +23,7 @@ module "opal-fines-db" {
 
   pgsql_databases = var.pgsql_databases
 
-  pgsql_version = "15"
+  pgsql_version = "17"
 
   # The ID of the principal to be granted admin access to the database server.
   # On Jenkins it will be injected for you automatically as jenkins_AAD_objectId.
