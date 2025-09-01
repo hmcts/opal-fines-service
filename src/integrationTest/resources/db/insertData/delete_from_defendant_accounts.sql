@@ -15,8 +15,8 @@ DELETE FROM fixed_penalty_offences WHERE defendant_account_id IN (77,88,901,333,
 -- Remove payment_terms
 DELETE FROM payment_terms WHERE defendant_account_id IN (77,88,901,333,555,666,777,444,999);
 
--- Remove notes
-DELETE FROM notes WHERE associated_record_id IN (77,88,901,333,555,666,777,444,999);
+-- Remove notes (ASSOCIATED_RECORD_ID is varchar, so use quoted strings!)
+DELETE FROM notes WHERE associated_record_id IN ('77','88','901','333','555','666','777','444','999');
 
 -- Remove main defendant accounts
 DELETE FROM defendant_accounts WHERE defendant_account_id IN (77,88,901,333,555,666,777,444,999);
@@ -27,4 +27,3 @@ DELETE FROM parties WHERE party_id IN (77,88,901,333,555,666,777,444,999);
 -- Remove any business units you inserted just for tests
 DELETE FROM business_units WHERE business_unit_id IN (78,9999);
 
--- For robustness, if any inserted ids may collide with PKs or other test data, feel free to add them here!
