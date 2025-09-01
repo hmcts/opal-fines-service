@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Instalment Period",
-  "type": "object",
+  "type": ["object", "null"],
   "additionalProperties": false,
   "properties": {
     "instalment_period_code": {
