@@ -918,7 +918,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());
 
-        ResultActions resultActions = mockMvc.perform(get("/defendant-accounts/999/header-summary")
+        ResultActions resultActions = mockMvc.perform(get("/defendant-accounts/999777/header-summary")
             .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
