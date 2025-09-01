@@ -1,39 +1,97 @@
 {
   "account_type": "Fine",
-  "defendant_type": "Adult",
-  "originator_name": "Police Force",
-  "originator_id": 12345,
-  "enforcement_court_id": 50000000001,
+  "defendant_type": "adultOrYouthOnly",
+  "originator_name": "Central London County Court",
+  "originator_id": 372,
+  "prosecutor_case_reference": "12345",
+  "enforcement_court_id": 730000000043,
   "collection_order_made": true,
-  "collection_order_made_today": false,
-  "payment_card_request": true,
-  "account_sentence_date": "2023-12-01",
+  "collection_order_made_today": null,
+  "collection_order_date": "2020-01-01",
+  "suspended_committal_date": null,
+  "payment_card_request": null,
+  "account_sentence_date": "2020-01-01",
   "defendant": {
     "company_flag": false,
+    "title": "Mr",
     "surname": "LNAME",
     "forenames": "FNAME",
+    "company_name": null,
     "dob": "2000-01-01",
-    "address_line_1": "123 Elm Street"
+    "address_line_1": "123 elm street",
+    "address_line_2": null,
+    "address_line_3": null,
+    "address_line_4": null,
+    "address_line_5": null,
+    "post_code": null,
+    "telephone_number_home": null,
+    "telephone_number_business": null,
+    "telephone_number_mobile": null,
+    "email_address_1": null,
+    "email_address_2": null,
+    "national_insurance_number": null,
+    "driving_licence_number": null,
+    "pnc_id": null,
+    "nationality_1": null,
+    "nationality_2": null,
+    "ethnicity_self_defined": null,
+    "ethnicity_observed": null,
+    "cro_number": null,
+    "occupation": null,
+    "gender": null,
+    "custody_status": null,
+    "prison_number": null,
+    "interpreter_lang": null,
+    "debtor_detail": {
+      "vehicle_make": null,
+      "vehicle_registration_mark": null,
+      "document_language": null,
+      "hearing_language": null,
+      "employee_reference": null,
+      "employer_company_name": null,
+      "employer_address_line_1": null,
+      "employer_address_line_2": null,
+      "employer_address_line_3": null,
+      "employer_address_line_4": null,
+      "employer_address_line_5": null,
+      "employer_post_code": null,
+      "employer_telephone_number": null,
+      "employer_email_address": null,
+      "aliases": null
+    },
+    "parent_guardian": null
   },
   "offences": [
     {
-      "date_of_sentence": "2023-11-15",
-      "offence_id": 1234,
+      "date_of_sentence": "2020-01-01",
+      "imposing_court_id": 730000000043,
+      "offence_id": 43312,
       "impositions": [
         {
-          "result_id": "1234",
-          "amount_imposed": 500.0,
-          "amount_paid": 200.0
+          "result_id": "FO",
+          "amount_imposed": 500,
+          "amount_paid": 200,
+          "major_creditor_id": null,
+          "minor_creditor": null
         }
       ]
     }
   ],
+  "fp_ticket_detail": null,
   "payment_terms": {
-    "payment_terms_type_code": "P",
-    "effective_date": "2023-11-01",
-    "instalment_period": "M",
-    "lump_sum_amount": 1000.00,
-    "instalment_amount": 200.00,
-    "default_days_in_jail": 5
-  }
+    "payment_terms_type_code": "B",
+    "effective_date": "2027-01-01",
+    "instalment_period": null,
+    "lump_sum_amount": null,
+    "instalment_amount": null,
+    "default_days_in_jail": null,
+    "enforcements": null
+  },
+  "account_notes": [
+    {
+      "account_note_serial": 1,
+      "account_note_text": "A collection order was previously made on 01/01/2020 prior to this account creation",
+      "note_type": "AA"
+    }
+  ]
 }
