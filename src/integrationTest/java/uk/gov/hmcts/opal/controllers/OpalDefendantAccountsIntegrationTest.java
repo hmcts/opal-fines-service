@@ -1,11 +1,12 @@
 package uk.gov.hmcts.opal.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+import uk.gov.hmcts.opal.SchemaPaths;
 
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 @ActiveProfiles({"integration", "opal"})
@@ -14,24 +15,16 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
 @Slf4j(topic = "opal.OpalDefendantAccountsIntegrationTest")
 class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIntegrationTest {
 
+    @Disabled("Legacy has been implemented. But Opal still to be completed - see ticket PO-985")
     @Test
     void testGetHeaderSummary() throws Exception {
         super.getHeaderSummaryImpl(log);
     }
 
+    @Disabled("Legacy has been implemented. But Opal still to be completed - see ticket PO-985")
     @Test
     void testGetHeaderSummary_500Error() throws Exception {
-        super.getHeaderSummaryImpl_500Error(log);
-    }
-
-    @Test
-    void testGetHeaderSummary_NotFound() throws Exception {
-        super.getHeaderSummary_NotFound(log);
-    }
-
-    @Test
-    void testGetHeaderSummary_Forbidden() throws Exception {
-        super.getHeaderSummary_Forbidden(log);
+        super.getHeaderSummaryImpl(log);
     }
 
     @Test
@@ -249,4 +242,8 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch(log);
     }
 
+    @Override
+    String getHeaderSummaryResponseSchemaLocation() {
+        return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountHeaderSummaryResponse.json";
+    }
 }

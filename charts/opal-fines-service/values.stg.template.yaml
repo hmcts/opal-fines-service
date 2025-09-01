@@ -4,7 +4,7 @@ java:
   ingressHost: ${SERVICE_FQDN}
   environment:
     OPAL_FRONTEND_URL: https://opal-frontend-staging.staging.platform.hmcts.net
-    OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.staging.platform.hmcts.net
+    OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.staging.platform.hmcts.net/opal
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
     OPAL_SFTP_INBOUND_CREATE_SUB_LOCATIONS: true
     OPAL_SFTP_OUTBOUND_CREATE_SUB_LOCATIONS: true

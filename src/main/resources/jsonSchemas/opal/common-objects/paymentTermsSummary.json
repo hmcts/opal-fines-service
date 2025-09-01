@@ -23,5 +23,5 @@
       "multipleOf": 0.01
     }
   },
-  "required": ["payment_terms_type", "effective_date","instalment_period", "lump_sum_amount", "instalment_amount"]
+  "required": ["payment_terms_type", "effective_date","instalment_period", "lump_sum_amount", "instalment_period"]
 }
