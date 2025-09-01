@@ -10,10 +10,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.ToXmlString;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.dto.legacy.common.DefendantDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary;
+
 
 @Data
 @Builder
@@ -24,7 +25,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary;
 public class LegacyGetDefendantAccountHeaderSummaryResponse implements ToXmlString {
 
     @XmlElement(name = "version")
-    private Long version;
+    private Integer version; // or Long, just match the schema
 
     @XmlElement(name = "defendant_account_id")
     private String defendantAccountId;
@@ -56,7 +57,7 @@ public class LegacyGetDefendantAccountHeaderSummaryResponse implements ToXmlStri
     @XmlElement(name = "payment_state_summary")
     private PaymentStateSummary paymentStateSummary;
 
-    @XmlElement(name = "defendant_details")
-    private DefendantDetails defendantDetails;
+    @XmlElement(name = "party_details")
+    private LegacyPartyDetails partyDetails;
 
 }
