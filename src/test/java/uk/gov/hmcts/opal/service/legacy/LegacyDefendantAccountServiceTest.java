@@ -18,19 +18,19 @@ import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
-import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doThrow;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
@@ -72,7 +72,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
+            new ParameterizedTypeReference<>() {
+            };
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
 
         ResponseEntity<String> serverSuccessResponse =
@@ -97,7 +98,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             LegacyDefendantAccountsSearchResults.builder().build();
 
         ParameterizedTypeReference<LegacyDefendantAccountsSearchResults> typeRef =
-            new ParameterizedTypeReference<>() {};
+            new ParameterizedTypeReference<>() {
+            };
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(legacyResponse);
 
         DefendantAccountSearchResultsDto result =
@@ -174,39 +176,39 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     private String getDummyXml() {
         return """
-        <response>
-            <count>1</count>
-             <defendant_accounts>
-               <defendant_accounts_element>
-                 <defendant_account_id>1</defendant_account_id>
-                  <account_number>Sampleaccount_number</account_number>
-                  <organisation>Sampleorganisation</organisation>
-                  <organisation_name>Sampleorganisation_name</organisation_name>
-                  <defendant_title>Sampledefendant_title</defendant_title>
-                  <defendant_firstnames>Sampledefendant_firstnames</defendant_firstnames>
-                  <defendant_surname>Sampledefendant_surname</defendant_surname>
-                  <birth_date>Samplebirth_date</birth_date>
-                  <national_insurance_number>Samplenational_insurance_number</national_insurance_number>
-                  <parent_guardian_surname>Sampleparent_guardian_surname</parent_guardian_surname>
-                  <parent_guardian_firstnames>Sampleparent_guardian_firstnames</parent_guardian_firstnames>
-                  <aliases>
-                    <aliases_element>
-                      <alias_number>Samplealias_number</alias_number>
+            <response>
+                <count>1</count>
+                 <defendant_accounts>
+                   <defendant_accounts_element>
+                     <defendant_account_id>1</defendant_account_id>
+                      <account_number>Sampleaccount_number</account_number>
+                      <organisation>Sampleorganisation</organisation>
                       <organisation_name>Sampleorganisation_name</organisation_name>
-                      <surname>Samplesurname</surname>
-                      <forenames>Sampleforenames</forenames>
-                    </aliases_element>
-                  </aliases>
-                  <address_line_1>Sampleaddress_line_1</address_line_1>
-                  <postcode>Samplepostcode</postcode>
-                  <business_unit_name>Samplebusiness_unit_name</business_unit_name>
-                  <business_unit_id>Samplebusiness_unit_id</business_unit_id>
-                  <prosecutor_case_reference>Sampleprosecutor_case_reference</prosecutor_case_reference>
-                  <last_enforcement_action>Samplelast_enforcement_action</last_enforcement_action>
-                  <account_balance>Sampleaccount_balance</account_balance>
-                </defendant_accounts_element>
-              </defendant_accounts>
-        </response>""";
+                      <defendant_title>Sampledefendant_title</defendant_title>
+                      <defendant_firstnames>Sampledefendant_firstnames</defendant_firstnames>
+                      <defendant_surname>Sampledefendant_surname</defendant_surname>
+                      <birth_date>Samplebirth_date</birth_date>
+                      <national_insurance_number>Samplenational_insurance_number</national_insurance_number>
+                      <parent_guardian_surname>Sampleparent_guardian_surname</parent_guardian_surname>
+                      <parent_guardian_firstnames>Sampleparent_guardian_firstnames</parent_guardian_firstnames>
+                      <aliases>
+                        <aliases_element>
+                          <alias_number>Samplealias_number</alias_number>
+                          <organisation_name>Sampleorganisation_name</organisation_name>
+                          <surname>Samplesurname</surname>
+                          <forenames>Sampleforenames</forenames>
+                        </aliases_element>
+                      </aliases>
+                      <address_line_1>Sampleaddress_line_1</address_line_1>
+                      <postcode>Samplepostcode</postcode>
+                      <business_unit_name>Samplebusiness_unit_name</business_unit_name>
+                      <business_unit_id>Samplebusiness_unit_id</business_unit_id>
+                      <prosecutor_case_reference>Sampleprosecutor_case_reference</prosecutor_case_reference>
+                      <last_enforcement_action>Samplelast_enforcement_action</last_enforcement_action>
+                      <account_balance>Sampleaccount_balance</account_balance>
+                    </defendant_accounts_element>
+                  </defendant_accounts>
+            </response>""";
     }
 
     @Test
@@ -243,7 +245,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
+            new ParameterizedTypeReference<>() {
+            };
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
@@ -254,12 +257,12 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // Assert: minimal checks that raise coverage on new code
         assertEquals("SAMPLE", published.getAccountNumber());
         assertEquals("Fine", published.getAccountType());
-        assertEquals("Live", published.getAccountStatusDisplayName());
-        assertEquals("78", published.getBusinessUnitId());
-        assertEquals(new BigDecimal("700.58"), published.getImposed());
-        assertEquals(BigDecimal.ZERO, published.getArrears());
-        assertEquals(new BigDecimal("200.00"), published.getPaid());
-        assertEquals(new BigDecimal("500.58"), published.getAccountBalance());
+        assertEquals("Live", published.getAccountStatusReference().getAccountStatusDisplayName());
+        assertEquals("78", published.getBusinessUnitSummary().getBusinessUnitId());
+        assertEquals(new BigDecimal("700.58"), published.getPaymentStateSummary().getImposedAmount());
+        assertEquals(BigDecimal.ZERO, published.getPaymentStateSummary().getArrearsAmount());
+        assertEquals(new BigDecimal("200.00"), published.getPaymentStateSummary().getPaidAmount());
+        assertEquals(new BigDecimal("500.58"), published.getPaymentStateSummary().getAccountBalance());
     }
 
     @Test
@@ -295,17 +298,18 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
+            new ParameterizedTypeReference<>() {
+            };
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
-
-        assertEquals(BigDecimal.ZERO, published.getImposed());
-        assertEquals(BigDecimal.ZERO, published.getArrears());
-        assertEquals(BigDecimal.ZERO, published.getPaid());
-        assertEquals(BigDecimal.ZERO, published.getAccountBalance());
+        PaymentStateSummary paymentStateSummary = published.getPaymentStateSummary();
+        assertEquals(BigDecimal.ZERO, paymentStateSummary.getImposedAmount());
+        assertEquals(BigDecimal.ZERO, paymentStateSummary.getArrearsAmount());
+        assertEquals(BigDecimal.ZERO, paymentStateSummary.getPaidAmount());
+        assertEquals(BigDecimal.ZERO, paymentStateSummary.getAccountBalance());
     }
 
     @Test
@@ -340,7 +344,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         responseBody.setPartyDetails(party);
 
         ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
+            new ParameterizedTypeReference<>() {
+            };
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
@@ -364,7 +369,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
+            new ParameterizedTypeReference<>() {
+            };
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
@@ -374,12 +380,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // These fields should be null when the nested objects are missing
         assertEquals("SAMPLE", published.getAccountNumber());
         assertEquals("Fine", published.getAccountType());
-        assertEquals(null, published.getAccountStatusDisplayName());
-        assertEquals(null, published.getBusinessUnitId());
-        assertEquals(null, published.getImposed());
-        assertEquals(null, published.getArrears());
-        assertEquals(null, published.getPaid());
-        assertEquals(null, published.getAccountBalance());
+        assertNull(published.getAccountStatusReference());
+        assertNull(published.getBusinessUnitSummary());
+        assertNull(published.getPaymentStateSummary());
     }
 
     @Test
@@ -387,7 +390,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     void testGetHeaderSummary_withOrganisationDetails_executesMappingBranches() {
         // Build organisation alias array (nested type inside OrganisationDetails)
         uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[] orgAliasArr =
-            new uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[] {
+            new uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[]{
                 uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias.builder()
                     .aliasId("ORG1")
                     .sequenceNumber(Short.valueOf("1"))
@@ -413,7 +416,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         responseBody.setPartyDetails(party);
 
         ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
+            new ParameterizedTypeReference<>() {
+            };
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
@@ -425,8 +429,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("SAMPLE", published.getAccountNumber());
         assertEquals("Fine", published.getAccountType());
     }
-
-
 
 
 }

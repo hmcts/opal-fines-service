@@ -209,7 +209,7 @@ class DefendantAccountControllerTest {
 
     @Test
     void testLegacyDefendantAccountService_toBigDecimalOrZero() throws Exception {
-        Method m = LegacyDefendantAccountService.class.getDeclaredMethod("toBigDecimalOrZero", String.class);
+        Method m = LegacyDefendantAccountService.class.getDeclaredMethod("toBigDecimalOrZero", Object.class);
         m.setAccessible(true);
         assertEquals(BigDecimal.ZERO, m.invoke(null, (String) null));
         assertEquals(BigDecimal.ZERO, m.invoke(null, "not_a_number"));
