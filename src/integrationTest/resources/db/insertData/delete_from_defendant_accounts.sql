@@ -27,5 +27,8 @@ DELETE FROM parties WHERE party_id IN (77,88,901,333,555,666,777,444,999);
 -- Remove from draft_accounts referencing test business units
 DELETE FROM draft_accounts WHERE business_unit_id IN (78, 9999);
 
+-- Remove from creditor_accounts referencing test business units
+DELETE FROM creditor_accounts WHERE business_unit_id IN (78, 9999);
+
 -- Now safe to remove any business units you inserted just for tests
 DELETE FROM business_units WHERE business_unit_id IN (78,9999);
