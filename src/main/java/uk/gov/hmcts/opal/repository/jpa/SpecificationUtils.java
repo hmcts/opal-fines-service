@@ -66,4 +66,22 @@ public class SpecificationUtils {
     public static boolean hasText(String s) {
         return s != null && !s.trim().isEmpty();
     }
+
+    public static <T> Predicate equalNormalized(Root<T> root,
+                                                CriteriaBuilder cb,
+                                                String attribute,
+                                                String raw) {
+        Expression<String> normField = normalizeExpr(cb, root.get(attribute));
+        String normalized = normalize(raw);
+        return cb.equal(normField, normalized);
+    }
+
+    public static Predicate equalNormalized(CriteriaBuilder cb,
+                                            Expression<String> expr,
+                                            String raw) {
+        Expression<String> normField = normalizeExpr(cb, expr);
+        String normalized = normalize(raw);
+        return cb.equal(normField, normalized);
+    }
+
 }

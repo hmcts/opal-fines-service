@@ -15,6 +15,7 @@ import java.util.Optional;
 
 import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.hasText;
 import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.likeStartsWithNormalized;
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.equalNormalized;
 
 @Component
 public class MinorCreditorSpecs {
@@ -55,14 +56,51 @@ public class MinorCreditorSpecs {
         return Optional.ofNullable(c.getCreditor())
             .map(cred -> {
                 List<Specification<MinorCreditorEntity>> out = new ArrayList<>();
-                addStartsWithIfPresent(out, MinorCreditorEntity_.ORGANISATION_NAME, cred.getOrganisationName());
-                addStartsWithIfPresent(out, MinorCreditorEntity_.FORENAMES,         cred.getForenames());
-                addStartsWithIfPresent(out, MinorCreditorEntity_.SURNAME,           cred.getSurname());
-                addStartsWithIfPresent(out, MinorCreditorEntity_.ADDRESS_LINE1,     cred.getAddressLine1());
-                addStartsWithIfPresent(out, MinorCreditorEntity_.POST_CODE,         cred.getPostcode());
+
+                // Organisation name
+                addTextFilterIfPresent(
+                    out,
+                    MinorCreditorEntity_.ORGANISATION_NAME,
+                    cred.getOrganisationName(),
+                    Boolean.TRUE.equals(cred.getExactMatchOrganisationName())
+                );
+
+                // Forenames
+                addTextFilterIfPresent(
+                    out,
+                    MinorCreditorEntity_.FORENAMES,
+                    cred.getForenames(),
+                    Boolean.TRUE.equals(cred.getExactMatchForenames())
+                );
+
+                // Surname
+                addTextFilterIfPresent(
+                    out,
+                    MinorCreditorEntity_.SURNAME,
+                    cred.getSurname(),
+                    Boolean.TRUE.equals(cred.getExactMatchSurname())
+                );
+
+                // Address & Postcode (no exact flags; keep starts-with)
+                addStartsWithIfPresent(out, MinorCreditorEntity_.ADDRESS_LINE1, cred.getAddressLine1());
+                addStartsWithIfPresent(out, MinorCreditorEntity_.POST_CODE,     cred.getPostcode());
+
                 return out;
             })
             .orElseGet(List::of);
+    }
+
+    private void addTextFilterIfPresent(List<Specification<MinorCreditorEntity>> acc,
+                                        String attribute,
+                                        String value,
+                                        boolean exactMatch) {
+        if (!hasText(value)) return;
+
+        if (exactMatch) {
+            acc.add((root, q, cb) -> equalNormalized(root, cb, attribute, value));
+        } else {
+            acc.add((root, q, cb) -> likeStartsWithNormalized(root, cb, attribute, value));
+        }
     }
 
     private void addStartsWithIfPresent(List<Specification<MinorCreditorEntity>> acc,
@@ -80,7 +118,6 @@ public class MinorCreditorSpecs {
                 HttpStatus.BAD_REQUEST,
                 "Search request must include at least one filter"
             );
-
         }
         return parts.stream().reduce(Specification.allOf(), Specification::and);
     }
