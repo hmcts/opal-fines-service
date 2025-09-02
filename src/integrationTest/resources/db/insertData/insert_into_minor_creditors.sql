@@ -51,21 +51,21 @@ VALUES
    'Creditor', NULL, NULL, NULL, NULL),
    
   -- Company creditor for testing organisation name exact match - exact match "Tech Solutions"
-  (9004, 'Y', 'Tech Solutions',
+  (9004, 'N', 'Tech Solutions',
    NULL, NULL, NULL,
    'Tech House', '100 Business Park', 'London',
    NULL, NULL, 'TH1 2BC',
    'Creditor', NULL, NULL, NULL, NULL),
    
   -- Company creditor for testing organisation name starts with - starts with "Tech"
-  (9005, 'Y', 'Tech Solutions Ltd',
+  (9005, 'N', 'Tech Solutions Ltd',
    NULL, NULL, NULL,
    'Tech Building', '200 Corporate Street', 'Birmingham',
    NULL, NULL, 'TC3 4DE',
    'Creditor', NULL, NULL, NULL, NULL),
    
   -- Company creditor for testing organisation name starts with - starts with "Tech"
-  (9006, 'Y', 'Technology Partner',
+  (9006, 'N', 'Technology Partner',
    NULL, NULL, NULL,
    'Digital Centre', '300 Innovation Drive', 'Manchester',
    NULL, NULL, 'TP5 6FG',
