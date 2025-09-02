@@ -4,10 +4,12 @@
     "local>hmcts/.github:renovate-config",
     "local>hmcts/.github//renovate/automerge-all"
   ],
-    "packageRules": [
+  "packageRules": [
     {
       "matchPackageNames": ["net.serenity-bdd.serenity-gradle-plugin"],
       "allowedVersions": "4.2.1"
     }
-  ]
+  ],
+  "description": "Schedule for Wednesdays only.",
+  "schedule": [ "* * * * 3" ]
 }
