@@ -31,87 +31,11 @@ BEGIN
     DELETE FROM defendant_accounts WHERE account_number LIKE 'TEST%';
     DELETE FROM parties WHERE surname IN ('TestDefendant', 'TestCreditor', 'TestParent', 'TestDefendant2', 'TestDefendant3');
     
-    -- Delete test audit amendment fields (using field_code range for test data)
-    DELETE FROM audit_amendment_fields WHERE field_code BETWEEN 9000 AND 9999;
-
     -- Drop any existing temp tables from previous sessions
     DROP TABLE IF EXISTS temp_def_ac_amendment_list;
     DROP TABLE IF EXISTS temp_cred_ac_amendment_list;
 
     RAISE NOTICE 'Data cleanup before tests completed';
-END $$;
-
--- Insert test data for audit_amendment_fields
-DO LANGUAGE 'plpgsql' $$
-BEGIN
-    RAISE NOTICE '=== Setting up audit_amendment_fields test data ===';
-    
-    -- Insert test audit amendment fields for defendant accounts
-    INSERT INTO audit_amendment_fields (field_code, data_item) VALUES
-        (9001, 'cheque_clearance_period'),
-        (9002, 'allow_cheques'),
-        (9003, 'credit_trans_clearance_period'),
-        (9004, 'allow_writeoffs'),
-        (9005, 'enf_override_enforcer_id'),
-        (9006, 'enf_override_result_id'),
-        (9007, 'enf_override_tfo_lja_id'),
-        (9008, 'enforcing_court_id'),
-        (9009, 'collection_order'),
-        (9010, 'suspended_committal_date'),
-        (9011, 'account_comments'),
-        (9012, 'account_note_1'),
-        (9013, 'account_note_2'),
-        (9014, 'account_note_3'),
-        (9015, 'name'),
-        (9016, 'birth_date'),
-        (9017, 'age'),
-        (9018, 'address_line_1'),
-        (9019, 'address_line_2'),
-        (9020, 'address_line_3'),
-        (9021, 'postcode'),
-        (9022, 'national_insurance_number'),
-        (9023, 'telephone_home'),
-        (9024, 'telephone_business'),
-        (9025, 'telephone_mobile'),
-        (9026, 'email_1'),
-        (9027, 'email_2'),
-        (9028, 'pname'),
-        (9029, 'paddr1'),
-        (9030, 'paddr2'),
-        (9031, 'paddr3'),
-        (9032, 'pbdate'),
-        (9033, 'pninumber'),
-        (9034, 'alias1'),
-        (9035, 'alias2'),
-        (9036, 'alias3'),
-        (9037, 'alias4'),
-        (9038, 'alias5'),
-        (9039, 'document_language'),
-        (9040, 'hearing_language'),
-        (9041, 'vehicle_make'),
-        (9042, 'vehicle_registration'),
-        (9043, 'employee_reference'),
-        (9044, 'employer_name'),
-        (9045, 'employer_address_line_1'),
-        (9046, 'employer_address_line_2'),
-        (9047, 'employer_address_line_3'),
-        (9048, 'employer_address_line_4'),
-        (9049, 'employer_address_line_5'),
-        (9050, 'employer_postcode'),
-        (9051, 'employer_telephone'),
-        (9052, 'employer_email');
-
-    -- Insert test audit amendment fields for creditor accounts
-    INSERT INTO audit_amendment_fields (field_code, data_item) VALUES
-        (9060, 'hold_payout'),
-        (9061, 'pay_by_bacs'),
-        (9062, 'bank_sort_code'),
-        (9063, 'bank_account_type'),
-        (9064, 'bank_account_number'),
-        (9065, 'bank_account_name'),
-        (9066, 'bank_account_reference');
-
-    RAISE NOTICE 'Test audit amendment fields data setup completed';
 END $$;
 
 ----------------------------------------------------------------------------------------------------------------------
@@ -415,7 +339,7 @@ BEGIN
     -- Verify specific amendments exist
     PERFORM 1 FROM amendments 
     WHERE associated_record_id = v_creditor_account_id::VARCHAR
-    AND field_code = (SELECT field_code FROM audit_amendment_fields WHERE data_item = 'hold_payout')
+    AND field_code = (SELECT field_code FROM audit_amendment_fields WHERE data_item = 'Hold Pay Out')
     AND old_value = 'false'
     AND new_value = 'true'
     AND function_code = 'CREDITOR_MAINTENANCE';
@@ -424,7 +348,7 @@ BEGIN
 
     PERFORM 1 FROM amendments 
     WHERE associated_record_id = v_creditor_account_id::VARCHAR
-    AND field_code = (SELECT field_code FROM audit_amendment_fields WHERE data_item = 'bank_sort_code')
+    AND field_code = (SELECT field_code FROM audit_amendment_fields WHERE data_item = 'BACS Sort Code')
     AND old_value = '123456'
     AND new_value = '654321';
 
@@ -873,9 +797,6 @@ BEGIN
     DELETE FROM defendant_accounts WHERE account_number LIKE 'TEST%';
     DELETE FROM parties WHERE surname IN ('TestDefendant', 'TestCreditor', 'TestParent', 'TestDefendant2', 'TestDefendant3');
     
-    -- Delete test audit amendment fields
-    DELETE FROM audit_amendment_fields WHERE field_code BETWEEN 9000 AND 9999;
-
     -- Drop temporary tables
     DROP TABLE IF EXISTS temp_def_ac_amendment_list;
     DROP TABLE IF EXISTS temp_cred_ac_amendment_list;

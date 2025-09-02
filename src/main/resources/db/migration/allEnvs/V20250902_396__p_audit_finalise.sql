@@ -184,8 +184,69 @@ BEGIN
                 
                 -- Compare values
                 IF COALESCE(v_new_value, '') != COALESCE(v_old_value, '') THEN
-                    -- Get field code
-                    SELECT field_code INTO v_field_code FROM audit_amendment_fields WHERE data_item = v_field_name;
+                    -- Map database column name to audit field name
+                    DECLARE
+                        v_audit_field_name TEXT;
+                    BEGIN
+                        CASE v_field_name
+                            WHEN 'cheque_clearance_period' THEN v_audit_field_name := 'Cheque Clearance Period';
+                            WHEN 'allow_cheques' THEN v_audit_field_name := 'Cheque Hold';
+                            WHEN 'credit_trans_clearance_period' THEN v_audit_field_name := 'Credit Transfer Clearance Period';
+                            WHEN 'allow_writeoffs' THEN v_audit_field_name := 'Inhibit Write Off';
+                            WHEN 'enf_override_enforcer_id' THEN v_audit_field_name := 'Override Enforcer';
+                            WHEN 'enf_override_result_id' THEN v_audit_field_name := 'Enforcement Override';
+                            WHEN 'enf_override_tfo_lja_id' THEN v_audit_field_name := 'TFOOUT LJA Code';
+                            WHEN 'enforcing_court_id' THEN v_audit_field_name := 'Enforcement Court';
+                            WHEN 'collection_order' THEN v_audit_field_name := 'Collection Order';
+                            WHEN 'suspended_committal_date' THEN v_audit_field_name := 'SC Date';
+                            WHEN 'account_comments' THEN v_audit_field_name := 'Comment';
+                            WHEN 'account_note_1' THEN v_audit_field_name := 'Free Text Notes 1';
+                            WHEN 'account_note_2' THEN v_audit_field_name := 'Free Text Notes 2';
+                            WHEN 'account_note_3' THEN v_audit_field_name := 'Free Text Notes 3';
+                            WHEN 'name' THEN v_audit_field_name := 'Name';
+                            WHEN 'birth_date' THEN v_audit_field_name := 'Date of Birth';
+                            WHEN 'age' THEN v_audit_field_name := 'Age';
+                            WHEN 'address_line_1' THEN v_audit_field_name := 'Address Line 1';
+                            WHEN 'address_line_2' THEN v_audit_field_name := 'Address Line 2';
+                            WHEN 'address_line_3' THEN v_audit_field_name := 'Address Line 3';
+                            WHEN 'postcode' THEN v_audit_field_name := 'Postcode';
+                            WHEN 'national_insurance_number' THEN v_audit_field_name := 'National Insurance Number';
+                            WHEN 'telephone_home' THEN v_audit_field_name := 'Home Phone Number';
+                            WHEN 'telephone_business' THEN v_audit_field_name := 'Business Phone Number';
+                            WHEN 'telephone_mobile' THEN v_audit_field_name := 'Mobile Phone Number';
+                            WHEN 'email_1' THEN v_audit_field_name := 'Email Address 1';
+                            WHEN 'email_2' THEN v_audit_field_name := 'Email Address 2';
+                            WHEN 'pname' THEN v_audit_field_name := 'Parent Name';
+                            WHEN 'paddr1' THEN v_audit_field_name := 'Parent Address Line 1';
+                            WHEN 'paddr2' THEN v_audit_field_name := 'Parent Address Line 2';
+                            WHEN 'paddr3' THEN v_audit_field_name := 'Parent Address Line 3';
+                            WHEN 'pbdate' THEN v_audit_field_name := 'Parent Date of Birth';
+                            WHEN 'pninumber' THEN v_audit_field_name := 'Parent NI Number';
+                            WHEN 'alias1' THEN v_audit_field_name := 'AKA Name 1';
+                            WHEN 'alias2' THEN v_audit_field_name := 'AKA Name 2';
+                            WHEN 'alias3' THEN v_audit_field_name := 'AKA Name 3';
+                            WHEN 'alias4' THEN v_audit_field_name := 'AKA Name 4';
+                            WHEN 'alias5' THEN v_audit_field_name := 'AKA Name 5';
+                            WHEN 'document_language' THEN v_audit_field_name := 'Document Language';
+                            WHEN 'hearing_language' THEN v_audit_field_name := 'Hearing Language';
+                            WHEN 'vehicle_make' THEN v_audit_field_name := 'Vehicle Make';
+                            WHEN 'vehicle_registration' THEN v_audit_field_name := 'Vehicle Registration';
+                            WHEN 'employee_reference' THEN v_audit_field_name := 'Employee Reference';
+                            WHEN 'employer_name' THEN v_audit_field_name := 'Employer Name';
+                            WHEN 'employer_address_line_1' THEN v_audit_field_name := 'Employer Address Line 1';
+                            WHEN 'employer_address_line_2' THEN v_audit_field_name := 'Employer Address Line 2';
+                            WHEN 'employer_address_line_3' THEN v_audit_field_name := 'Employer Address Line 3';
+                            WHEN 'employer_address_line_4' THEN v_audit_field_name := 'Employer Address Line 4';
+                            WHEN 'employer_address_line_5' THEN v_audit_field_name := 'Employer Address Line 5';
+                            WHEN 'employer_postcode' THEN v_audit_field_name := 'Employer Postcode';
+                            WHEN 'employer_telephone' THEN v_audit_field_name := 'Employer Phone Number';
+                            WHEN 'employer_email' THEN v_audit_field_name := 'Employer Email';
+                            ELSE v_audit_field_name := NULL;
+                        END CASE;
+                        
+                        -- Get field code using audit field name
+                        SELECT field_code INTO v_field_code FROM audit_amendment_fields WHERE data_item = v_audit_field_name;
+                    END;
                     
                     -- Only insert if field_code was found
                     IF v_field_code IS NOT NULL THEN
@@ -200,7 +261,7 @@ BEGIN
                             v_update_defendant_last_changed := TRUE;
                         END IF;
                     ELSE
-                        RAISE NOTICE 'p_audit_finalise: Field code not found for data_item: %', v_field_name;
+                        RAISE NOTICE 'p_audit_finalise: Field code not found for data_item: % (column: %)', v_audit_field_name, v_field_name;
                     END IF;
                 END IF;
             EXCEPTION
@@ -278,8 +339,29 @@ BEGIN
                 
                 -- Compare values
                 IF COALESCE(v_new_value, '') != COALESCE(v_old_value, '') THEN
-                    -- Get field code
-                    SELECT field_code INTO v_field_code FROM audit_amendment_fields WHERE data_item = v_field_name;
+                    -- Map database column name to audit field name
+                    DECLARE
+                        v_audit_field_name TEXT;
+                    BEGIN
+                        CASE v_field_name
+                            WHEN 'name' THEN v_audit_field_name := 'Name';
+                            WHEN 'address_line_1' THEN v_audit_field_name := 'Address Line 1';
+                            WHEN 'address_line_2' THEN v_audit_field_name := 'Address Line 2';
+                            WHEN 'address_line_3' THEN v_audit_field_name := 'Address Line 3';
+                            WHEN 'postcode' THEN v_audit_field_name := 'Postcode';
+                            WHEN 'hold_payout' THEN v_audit_field_name := 'Hold Pay Out';
+                            WHEN 'pay_by_bacs' THEN v_audit_field_name := 'Pay by BACS';
+                            WHEN 'bank_sort_code' THEN v_audit_field_name := 'BACS Sort Code';
+                            WHEN 'bank_account_type' THEN v_audit_field_name := 'BACS Account Type';
+                            WHEN 'bank_account_number' THEN v_audit_field_name := 'BACS Account Number';
+                            WHEN 'bank_account_name' THEN v_audit_field_name := 'BACS Account Name';
+                            WHEN 'bank_account_reference' THEN v_audit_field_name := 'BACS Account Reference';
+                            ELSE v_audit_field_name := NULL;
+                        END CASE;
+                        
+                        -- Get field code using audit field name
+                        SELECT field_code INTO v_field_code FROM audit_amendment_fields WHERE data_item = v_audit_field_name;
+                    END;
                     
                     -- Only insert if field_code was found
                     IF v_field_code IS NOT NULL THEN
@@ -294,7 +376,7 @@ BEGIN
                             v_update_creditor_last_changed := TRUE;
                         END IF;
                     ELSE
-                        RAISE NOTICE 'p_audit_finalise: Field code not found for data_item: %', v_field_name;
+                        RAISE NOTICE 'p_audit_finalise: Field code not found for data_item: % (column: %)', v_audit_field_name, v_field_name;
                     END IF;
                 END IF;
             EXCEPTION
