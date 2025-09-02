@@ -553,9 +553,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
         MinorCreditorSearch search = MinorCreditorSearch.builder()
             .businessUnitIds(List.of(10))
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
-                          .organisationName("Tech Solutions") 
-                          .exactMatchOrganisationName(true) 
-                          .organisation(true) 
+                          .organisationName("Tech Solutions")
+                          .exactMatchOrganisationName(true)
+                          .organisation(true)
                           .build())
             .build();
 
@@ -565,7 +565,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name").value("Tech Solutions")); // Should return exact match only
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name")
+                           .value("Tech Solutions"));
     }
 
     // AC3ai: Test "starts with" behavior for Company name when exact match is not selected
@@ -577,7 +578,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                           .organisationName("Tech")
                           .exactMatchOrganisationName(false)
-                          .organisation(true) 
+                          .organisation(true)
                           .build())
             .build();
 
@@ -588,7 +589,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(3)))
             .andExpect(jsonPath("$.creditor_accounts[*].organisation_name")
-                           .value(hasItems("Tech Solutions", "Tech Solutions Ltd", "Technology Partner"))); // Should return all companies starting with "Tech"
+                           .value(hasItems("Tech Solutions", "Tech Solutions Ltd", "Technology Partner")));
     }
 
     // AC3ai: Test "starts with" behavior with partial Company name
@@ -600,7 +601,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
                           .organisationName("Technology")
                           .exactMatchOrganisationName(false)
-                          .organisation(true) 
+                          .organisation(true)
                           .build())
             .build();
 
@@ -610,6 +611,6 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name").value("Technology Partner")); 
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name").value("Technology Partner"));
     }
 }

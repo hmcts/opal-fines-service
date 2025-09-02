@@ -94,7 +94,9 @@ public class MinorCreditorSpecs {
                                         String attribute,
                                         String value,
                                         boolean exactMatch) {
-        if (!hasText(value)) return;
+        if (!hasText(value)) {
+            return;
+        }
 
         if (exactMatch) {
             acc.add((root, q, cb) -> equalNormalized(root, cb, attribute, value));
