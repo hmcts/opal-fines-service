@@ -5,21 +5,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
-
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
@@ -44,7 +38,7 @@ public class DefendantAccountController {
     @GetMapping(value = "/{defendantAccountId}/header-summary")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(@PathVariable Long defendantAccountId,
-              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+                                                                          @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
 
@@ -64,4 +58,16 @@ public class DefendantAccountController {
 
         return buildResponse(response);
     }
+
+    @GetMapping(value = "/{defendantAccountId}/payment-terms/latest")
+    @Operation(summary = "Get defendant account details by providing the defendant account summary")
+    public ResponseEntity<GetDefendantAccountPaymentTermsResponse> DefendantAccountPaymentTerms(@PathVariable Long defendantAccountId,
+                                                                                                @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.debug(":GET:DefendantAccountPaymentTerms: for defendant id: {}", defendantAccountId);
+
+        return buildResponse(defendantAccountService.getPaymentTerms(defendantAccountId, authHeaderValue));
+    }
+
+
 }

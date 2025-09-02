@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
@@ -76,6 +77,13 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         return response.responseEntity.toDefendantAccountSearchResultsDto();
 
+    }
+
+    @Override
+    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
+        log.info(":getPaymentTerms: Legacy Gateway response: NOT YET IMPLEMENTED.");
+
+        return null;
     }
 
     /* This is probably common code that will be needed across multiple Legacy requests to get

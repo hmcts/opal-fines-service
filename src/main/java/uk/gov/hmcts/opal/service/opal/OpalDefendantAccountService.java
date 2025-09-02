@@ -3,19 +3,21 @@ package uk.gov.hmcts.opal.service.opal;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.*;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
-import org.springframework.data.jpa.domain.Specification;
-import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
+import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +29,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final DefendantAccountRepository defendantAccountRepository;
     private final DefendantAccountSpecs defendantAccountSpecs;
+    private final DefendantAccountPaymentTermsRepository defendantAccountPaymentTermsRepository;
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary: id: {} - NOT YET IMPLEMENTED.", defendantAccountId);
@@ -66,6 +69,17 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 .defendantAccounts(summaries)
                 .count(summaries.size())
                 .build();
+    }
+
+    @Override
+    public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
+        log.debug(":getPaymentTerms (Opal): criteria: {}", defendantAccountId);
+
+        PaymentTermsEntity entity = defendantAccountPaymentTermsRepository.findById(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: "
+                                                               + defendantAccountId));
+
+        return toResponse(entity);
     }
 
     private DefendantAccountSummaryDto toSummaryDto(DefendantAccountEntity e) {
@@ -115,5 +129,70 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .aliases(aliases)
             .build();
     }
+
+    private static GetDefendantAccountPaymentTermsResponse toResponse(PaymentTermsEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        DefendantAccountEntity account = entity.getDefendantAccount();
+
+        PaymentTerms paymentTerms = PaymentTerms.builder()
+            .daysInDefault(entity.getJailDays())
+            .dateDaysInDefaultImposed(account.getSuspendedCommittalDate())
+            .reasonForExtension(null)                               // not present on entity
+            .paymentTermsType(
+                PaymentTermsType.builder()
+                    .paymentTermsTypeCode(
+                        safePaymentTermsTypeCode(entity.getTermsTypeCode())
+                    )
+                    .build()
+            )
+            .effectiveDate(entity.getEffectiveDate())
+            .instalmentPeriod(
+                InstalmentPeriod.builder()
+                    .instalmentPeriodCode(
+                        safeInstalmentPeriodCode(entity.getInstalmentPeriod())
+                    )
+                    .build()
+            )
+            .lumpSumAmount(entity.getInstalmentLumpSum())
+            .instalmentAmount(entity.getInstalmentAmount())
+            .build();
+
+        PostedDetails postedDetails = PostedDetails.builder()
+            .postedDate(entity.getPostedDate())
+            .postedBy(entity.getPostedBy())
+            .postedByName(entity.getPostedByUsername())
+            .build();
+
+        return GetDefendantAccountPaymentTermsResponse.builder()
+            .paymentTerms(paymentTerms)
+            .postedDetails(postedDetails)
+            .paymentCardLastRequested(account.getPaymentCardRequestedDate())
+            .dateLastAmended(account.getLastChangedDate())
+            .extension(entity.getExtension())
+            .lastEnforcement(account.getLastEnforcement())
+            .build();
+    }
+
+    private static PaymentTermsType.PaymentTermsTypeCode safePaymentTermsTypeCode(String dbValue) {
+        if (dbValue == null) return null;
+        try {
+            return PaymentTermsType.PaymentTermsTypeCode.fromValue(dbValue);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    private static InstalmentPeriod.InstalmentPeriodCode safeInstalmentPeriodCode(String dbValue) {
+        if (dbValue == null) return null;
+        try {
+            return InstalmentPeriod.InstalmentPeriodCode.fromValue(dbValue);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
 
 }

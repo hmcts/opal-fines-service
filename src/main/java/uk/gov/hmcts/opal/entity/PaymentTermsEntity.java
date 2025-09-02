@@ -80,4 +80,7 @@ public class PaymentTermsEntity {
     @Column(name = "posted_by_name", length = 100)
     private String postedByUsername;
 
+    @Column(name = "active")
+    private Boolean active;
+
 }
