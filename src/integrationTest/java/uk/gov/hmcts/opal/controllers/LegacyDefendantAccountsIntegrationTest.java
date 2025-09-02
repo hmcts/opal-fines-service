@@ -55,4 +55,9 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
     String getPaymentTermsResponseSchemaLocation() {
         return "legacy/getDefendantAccountPaymentTermsLegacyResponse.json";
     }
+
+    @Override
+    String getAtAGlanceResponseSchemaLocation() {
+        return "legacy/getDefendantAccountAtAGlanceResponse.json";
+    }
 }
