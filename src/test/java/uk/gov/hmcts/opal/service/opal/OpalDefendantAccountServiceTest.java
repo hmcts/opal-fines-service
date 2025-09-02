@@ -1,7 +1,9 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
@@ -10,6 +12,7 @@ import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -19,7 +22,7 @@ class OpalDefendantAccountServiceTest {
 
     // If you need to create the service, mock the repos as needed.
     private final OpalDefendantAccountService service =
-        new OpalDefendantAccountService(null, null, null, null);
+        new OpalDefendantAccountService(null, null, null, null, null);
 
     @Test
     void testNzHelper() {
@@ -117,5 +120,39 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
         assertEquals("ACCT100", dto.getAccountNumber());
         assertNotNull(dto.getPartyDetails());
+    }
+
+    @Test
+    void convertEntityToAtAGlanceResponse_mapsAllFieldsCorrectly() {
+        DefendantAccountSummaryViewEntity entity = DefendantAccountSummaryViewEntity.builder()
+            .defendantAccountId(1L)
+            .accountNumber("ACC123")
+            .debtorType("Individual")
+            .birthDate(LocalDateTime.now().minusYears(17))
+            .forenames("John")
+            .surname("Doe")
+            .addressLine1("123 Main St")
+            .addressLine2("Apt 4B")
+            .addressLine3("City Center")
+            .addressLine4("Region")
+            .addressLine5("Country")
+            .postcode("12345")
+            .collectionOrder(true)
+            .jailDays(10)
+            .lastMovementDate(LocalDateTime.now().minusDays(5))
+            .accountComments("Comment")
+            .accountNote1("Note1")
+            .accountNote2("Note2")
+            .accountNote3("Note3")
+            .build();
+
+        DefendantAccountAtAGlanceResponse response = service.convertEntityToAtAGlanceResponse(entity);
+
+        assertNotNull(response);
+        assertEquals(1L, response.getDefendantAccountId());
+        assertEquals("ACC123", response.getAccountNumber());
+        assertEquals("Individual", response.getDebtorType());
+        assertTrue(response.getIsYouth());
+        assertNotNull(response.getPartyDetails());
     }
 }

@@ -37,6 +37,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
     abstract String getPaymentTermsResponseSchemaLocation();
 
+    abstract String getAtAGlanceResponseSchemaLocation();
+
     @MockitoBean
     UserStateService userStateService;
 
@@ -2003,4 +2005,26 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").doesNotExist());
     }
 
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564]")
+    public void opalGetAtAGlance(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/at-a-glance")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetAtAGlance: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        // TODO: Add more detailed checks here
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value(77))
+            .andExpect(jsonPath("$.account_number").value("177A"))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"));
+
+        // TODO: enable schema validation when missing fields have been added.
+        jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
+    }
 }
