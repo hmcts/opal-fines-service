@@ -19,11 +19,11 @@ WHERE creditor_transaction_id = 90001;
 
 -- Delete test creditor accounts
 DELETE FROM public.creditor_accounts
-WHERE creditor_account_id IN (104, 105);
+WHERE creditor_account_id IN (104, 105, 999950, 999951, 999952, 999953, 999954, 999955);
 
--- Delete test creditor party
+-- Delete test creditor parties
 DELETE FROM public.parties
-WHERE party_id = 9000;
+WHERE party_id IN (9000, 9001, 9002, 9003, 9004, 9005, 9006);
 
 
 

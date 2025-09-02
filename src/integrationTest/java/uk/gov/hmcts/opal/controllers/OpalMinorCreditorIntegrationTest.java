@@ -59,5 +59,79 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         super.postSearch_authenticatedWithoutPermission_returns403ProblemJson();
     }
 
+    @Test
+    void testAC1b_ActiveAccountsOnlyTrue() throws Exception {
+        super.testAC1b_ActiveAccountsOnlyTrue(log);
+    }
+
+    @Test
+    void testAC1b_ActiveAccountsOnlyFalse() throws Exception {
+        super.testAC1b_ActiveAccountsOnlyFalse(log);
+    }
+
+    @Test
+    void testAC1a_MultiParam_ForenamesAndSurname() throws Exception {
+        super.testAC1a_MultiParam_ForenamesAndSurname(log);
+    }
+
+    @Test
+    void testAC1a_MultiParam_PostcodeAndBusinessUnitAndAccountNumber() throws Exception {
+        super.testAC1a_MultiParam_PostcodeAndAccountNumber(log);
+    }
+
+    @Test
+    void testAC1a_MultiParam_OrganisationAndAddress() throws Exception {
+        super.testAC1a_MultiParam_OrganisationAndAddress(log);
+    }
+
+    @Test
+    void testAC1ai_BusinessUnitFiltering() throws Exception {
+        super.testAC1ai_BusinessUnitFiltering(log);
+    }
+
+    @Test
+    void testAC2a_ExactMatchSurnameEnabled() throws Exception {
+        super.testAC2a_ExactMatchSurnameEnabled(log);
+    }
+
+    @Test
+    void testAC2ai_ExactMatchSurnameDisabled() throws Exception {
+        super.testAC2ai_ExactMatchSurnameDisabled(log);
+    }
+
+    @Test
+    void testAC2b_ExactMatchForenamesEnabled() throws Exception {
+        super.testAC2b_ExactMatchForenamesEnabled(log);
+    }
+
+    @Test
+    void testAC2bi_ExactMatchForenamesDisabled() throws Exception {
+        super.testAC2bi_ExactMatchForenamesDisabled(log);
+    }
+
+    @Test
+    void testAC2c_AddressLine1StartsWith() throws Exception {
+        super.testAC2c_AddressLine1StartsWith(log);
+    }
+
+    @Test
+    void testAC2c_PostcodeStartsWith() throws Exception {
+        super.testAC2c_PostcodeStartsWith(log);
+    }
+
+    @Test
+    void testAC3a_CompanyNameExactMatch() throws Exception {
+        super.testAC3a_CompanyNameExactMatch(log);
+    }
+
+    @Test
+    void testAC3ai_CompanyNameStartsWith() throws Exception {
+        super.testAC3ai_CompanyNameStartsWith(log);
+    }
+
+    @Test
+    void testAC3ai_CompanyNameStartsWithPartial() throws Exception {
+        super.testAC3ai_CompanyNameStartsWithPartial(log);
+    }
 }
 

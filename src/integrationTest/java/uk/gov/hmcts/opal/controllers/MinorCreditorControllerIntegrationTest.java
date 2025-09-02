@@ -278,4 +278,338 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(content().string(""));
     }
 
+    // AC1b: Test that both active and inactive accounts are returned regardless of activeAccountsOnly value
+    void testAC1b_ActiveAccountsOnlyTrue(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .activeAccountsOnly(true)
+            .accountNumber("12345678")
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].account_number")
+                           .value(hasItems("12345678A", "12345678")));
+    }
+
+    void testAC1b_ActiveAccountsOnlyFalse(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .activeAccountsOnly(false)
+            .accountNumber("12345678")
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].account_number")
+                           .value(hasItems("12345678A", "12345678")));
+    }
+
+    // AC1a: Test multiple search parameters - creditor personal details + business unit
+    void testAC1a_MultiParam_ForenamesAndSurname(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .forenames("John")
+                          .surname("Smith")
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.creditor_accounts[*].account_number")
+                           .value(hasItems("JS987654")))
+            .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
+                           .value(hasItems("John")))
+            .andExpect(jsonPath("$.creditor_accounts[*].surname")
+                           .value(hasItems("Smith")));
+    }
+
+    // AC1a: Test multiple search parameters - postcode + business unit + account number
+    void testAC1a_MultiParam_PostcodeAndAccountNumber(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .accountNumber("12345678")
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .postcode("MA4 1AL")
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.creditor_accounts[*].account_number")
+                           .value(hasItems("12345678A", "12345678")))
+            .andExpect(jsonPath("$.creditor_accounts[*].postcode")
+                           .value(hasItems("MA4 1AL")));
+    }
+
+    // AC1a: Test multiple search parameters - organisation details + business unit + address
+    void testAC1a_MultiParam_OrganisationAndAddress(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .organisationName("Acme")
+                          .addressLine1("Acme House")
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.creditor_accounts[*].address_line_1")
+                           .value(hasItems("Acme House")));
+    }
+
+    // AC1ai: Test that accounts from different business units are not returned
+    void testAC1ai_BusinessUnitFiltering(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10, 11)) // Multiple business units
+            .activeAccountsOnly(false)
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.creditor_accounts[*].business_unit_id")
+                           .value(org.hamcrest.Matchers.everyItem(
+                               org.hamcrest.Matchers.anyOf(
+                                   org.hamcrest.Matchers.equalTo("10"),
+                                   org.hamcrest.Matchers.equalTo("11")
+                               )
+                           )));
+    }
+
+    // AC2a: Test exact match surname functionality - exact match enabled
+    void testAC2a_ExactMatchSurnameEnabled(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .surname("Smith")
+                          .exactMatchSurname(true) // Exact match enabled
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.creditor_accounts[*].surname")
+                           .value(hasItems("Smith"))) // Should only return exact "Smith"
+            .andExpect(jsonPath("$.creditor_accounts[*].surname")
+                           .value(org.hamcrest.Matchers.not(hasItems("Smithson")))); // Should NOT return "Smithson"
+    }
+
+    // AC2ai: Test exact match surname functionality - exact match disabled (starts with)
+    void testAC2ai_ExactMatchSurnameDisabled(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .surname("Smith")
+                          .exactMatchSurname(false) // Exact match disabled - should do "starts with"
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].surname")
+                           .value(hasItems("Smith", "Smithson"))); // Should return both "Smith" and "Smithson"
+    }
+
+    // AC2b: Test exact match forenames functionality - exact match enabled
+    void testAC2b_ExactMatchForenamesEnabled(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .forenames("John")
+                          .exactMatchForenames(true) // Exact match enabled
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
+                           .value(hasItems("John"))) // Should only return exact "John"
+            .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
+                           .value(org.hamcrest.Matchers.not(hasItems("Johnathan")))); // Should NOT return "Jonathan"
+    }
+
+    // AC2bi: Test exact match forenames functionality - exact match disabled (starts with)
+    void testAC2bi_ExactMatchForenamesDisabled(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .forenames("John")
+                          .exactMatchForenames(false) // Exact match disabled - should do "starts with"
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].firstnames")
+                           .value(hasItems("John", "Johnathan"))); // Should return both "John" and "Jonathan"
+    }
+
+    // AC2c: Test "starts with" behavior for Address Line 1
+    void testAC2c_AddressLine1StartsWith(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .addressLine1("123") // Should match addresses starting with "123"
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(1)))
+            .andExpect(jsonPath("$.creditor_accounts[*].address_line_1")
+                           .value(hasItems("123 Test Street"))); // Should return addresses starting with "123"
+    }
+
+    // AC2c: Test "starts with" behavior for Postcode
+    void testAC2c_PostcodeStartsWith(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .postcode("TS") // Should match postcodes starting with "TS"
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].postcode")
+                           .value(hasItems("TS1 2AB", "TS3 4CD"))); // Should return postcodes starting with "TS"
+    }
+
+    // AC3a: Test exact match for Company name
+    void testAC3a_CompanyNameExactMatch(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .organisationName("Tech Solutions") 
+                          .exactMatchOrganisationName(true) 
+                          .organisation(true) 
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name").value("Tech Solutions")); // Should return exact match only
+    }
+
+    // AC3ai: Test "starts with" behavior for Company name when exact match is not selected
+    void testAC3ai_CompanyNameStartsWith(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .organisationName("Tech")
+                          .exactMatchOrganisationName(false)
+                          .organisation(true) 
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(3)))
+            .andExpect(jsonPath("$.creditor_accounts[*].organisation_name")
+                           .value(hasItems("Tech Solutions", "Tech Solutions Ltd", "Technology Partner"))); // Should return all companies starting with "Tech"
+    }
+
+    // AC3ai: Test "starts with" behavior with partial Company name
+    void testAC3ai_CompanyNameStartsWithPartial(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .organisationName("Technology")
+                          .exactMatchOrganisationName(false)
+                          .organisation(true) 
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name").value("Technology Partner")); 
+    }
 }
