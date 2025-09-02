@@ -33,5 +33,5 @@
       "multipleOf": 0.01
     }
   },
-  "required": ["payment_terms_type", "instalment_period"]
+  "required": ["payment_terms_type"]
 }
