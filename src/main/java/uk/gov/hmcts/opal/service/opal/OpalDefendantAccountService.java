@@ -66,20 +66,22 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
         return DefendantAccountSearchResultsDto.builder()
-                .defendantAccounts(summaries)
-                .count(summaries.size())
-                .build();
+            .defendantAccounts(summaries)
+            .count(summaries.size())
+            .build();
     }
 
     @Override
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
         log.debug(":getPaymentTerms (Opal): criteria: {}", defendantAccountId);
 
-        PaymentTermsEntity entity = defendantAccountPaymentTermsRepository.findById(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: "
+        PaymentTermsEntity entity = defendantAccountPaymentTermsRepository
+            .findTopByDefendantAccount_DefendantAccountIdOrderByPostedDateDescPaymentTermsIdDesc(
+                defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException("payment terms not found for id: "
                                                                + defendantAccountId));
 
-        return toResponse(entity);
+        return toPaymentTermsResponse(entity);
     }
 
     private DefendantAccountSummaryDto toSummaryDto(DefendantAccountEntity e) {
@@ -119,18 +121,18 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .postcode(party != null ? party.getPostcode() : null)
             .businessUnitName(e.getBusinessUnit() != null ? e.getBusinessUnit().getBusinessUnitName() : null)
             .businessUnitId(e.getBusinessUnit() != null
-                ? String.valueOf(e.getBusinessUnit().getBusinessUnitId()) : null)
+                                ? String.valueOf(e.getBusinessUnit().getBusinessUnitId()) : null)
             .prosecutorCaseReference(e.getProsecutorCaseReference())
             .lastEnforcementAction(e.getLastEnforcement())
             .accountBalance(e.getAccountBalance())
             .birthDate(party != null && !isOrganisation
-                ? uk.gov.hmcts.opal.util.DateTimeUtils.toString(party.getDateOfBirth())
-                : null)
+                           ? uk.gov.hmcts.opal.util.DateTimeUtils.toString(party.getDateOfBirth())
+                           : null)
             .aliases(aliases)
             .build();
     }
 
-    private static GetDefendantAccountPaymentTermsResponse toResponse(PaymentTermsEntity entity) {
+    private static GetDefendantAccountPaymentTermsResponse toPaymentTermsResponse(PaymentTermsEntity entity) {
         if (entity == null) {
             return null;
         }
@@ -140,7 +142,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         PaymentTerms paymentTerms = PaymentTerms.builder()
             .daysInDefault(entity.getJailDays())
             .dateDaysInDefaultImposed(account.getSuspendedCommittalDate())
-            .reasonForExtension(null)                               // not present on entity
+            .reasonForExtension(null) // TODO - this isn't in DB or entity, check if it should be
             .paymentTermsType(
                 PaymentTermsType.builder()
                     .paymentTermsTypeCode(
@@ -177,7 +179,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     private static PaymentTermsType.PaymentTermsTypeCode safePaymentTermsTypeCode(String dbValue) {
-        if (dbValue == null) return null;
+        if (dbValue == null) {
+            return null;
+        }
         try {
             return PaymentTermsType.PaymentTermsTypeCode.fromValue(dbValue);
         } catch (IllegalArgumentException ex) {
@@ -186,7 +190,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     private static InstalmentPeriod.InstalmentPeriodCode safeInstalmentPeriodCode(String dbValue) {
-        if (dbValue == null) return null;
+        if (dbValue == null) {
+            return null;
+        }
         try {
             return InstalmentPeriod.InstalmentPeriodCode.fromValue(dbValue);
         } catch (IllegalArgumentException ex) {
