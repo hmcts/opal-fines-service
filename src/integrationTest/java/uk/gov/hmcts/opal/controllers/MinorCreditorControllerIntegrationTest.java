@@ -637,7 +637,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].address_line_1")
-                           .value(hasItems("Tech House", "Tech Building"))); // Should return company addresses starting with "Tech"
+                           .value(hasItems("Tech House", "Tech Building"))); 
     }
 
     // AC3b: Test "starts with" behavior for Company Postcode
