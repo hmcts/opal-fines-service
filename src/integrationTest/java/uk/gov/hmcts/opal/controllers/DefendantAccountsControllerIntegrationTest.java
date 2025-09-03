@@ -1015,7 +1015,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                          "national_insurance_number": "A11111A"
                        }
                      }
-                
+
                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -1384,7 +1384,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                          "national_insurance_number": null
                        }
                      }
-                
+
                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -1741,7 +1741,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
-        // Search with exact alias "TechCorp Ltd" - should match exactly 
+        // Search with exact alias "TechCorp Ltd" - should match exactly
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
             .header("authorization", "Bearer some_value")
             .contentType(MediaType.APPLICATION_JSON)
@@ -1783,7 +1783,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
-        // Search with partial address "Business" - should match "Business Park" 
+        // Search with partial address "Business" - should match "Business Park"
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
             .header("authorization", "Bearer some_value")
             .contentType(MediaType.APPLICATION_JSON)
@@ -1862,5 +1862,30 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("B15 3TG"));
     }
 
+    void testGetPaymentTerms(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/payment-terms/latest")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetPaymentTerms: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value(77))
+            .andExpect(jsonPath("$.account_number").value("100A"))
+            .andExpect(jsonPath("$.has_parent_guardian").value(true))
+            .andExpect(jsonPath("$.fixed_penalty_ticket_number").value(888))
+            .andExpect(jsonPath("$.business_unit_id").value(78))
+            .andExpect(jsonPath("$.imposed").value(1000.0f))
+            .andExpect(jsonPath("$.arrears").value(300.0d))
+            .andExpect(jsonPath("$.organisation_name").value("Sainsco"))
+            .andExpect(jsonPath("$.firstnames").value("Keith"))
+            .andExpect(jsonPath("$.surname").value("Thief"));
+
+        jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
+    }
 
 }

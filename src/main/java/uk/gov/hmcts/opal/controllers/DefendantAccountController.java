@@ -79,5 +79,4 @@ public class DefendantAccountController {
         return buildResponse(defendantAccountService.getPaymentTerms(defendantAccountId, authHeaderValue));
     }
 
-
 }

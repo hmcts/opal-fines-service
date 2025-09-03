@@ -241,6 +241,11 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch(log);
     }
 
+    @Test
+    void testGetPaymentTermsLatest_Success() throws Exception {
+        super.testGetPaymentTerms(log);
+    }
+
     @Override
     String getHeaderSummaryResponseSchemaLocation() {
         return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountHeaderSummaryResponse.json";
