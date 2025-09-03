@@ -4,7 +4,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "defendant_account_party_id": {
+    "party_id": {
       "type": "string"
     },
     "organisation_flag": {
@@ -18,7 +18,7 @@
     }
   },
   "required": [
-    "defendant_account_party_id",
+    "party_id",
     "organisation_flag"
   ],
   "allOf": [
