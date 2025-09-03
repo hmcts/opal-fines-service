@@ -66,7 +66,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(2))
 
-            // --- first creditor account ---
+                        // --- first creditor account ---
             .andExpect(jsonPath("$.creditor_accounts[0].creditor_account_id").value("104"))
             .andExpect(jsonPath("$.creditor_accounts[0].account_number").value("12345678A"))
             .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(false))

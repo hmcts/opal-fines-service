@@ -119,19 +119,19 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         super.testAC2c_PostcodeStartsWith(log);
     }
 
-    // @Test
-    // void testAC3a_CompanyNameExactMatch() throws Exception {
-    //     super.testAC3a_CompanyNameExactMatch(log);
-    // }
+    @Test
+    void testAC3a_CompanyNameExactMatch() throws Exception {
+        super.testAC3a_CompanyNameExactMatch(log);
+    }
 
-    // @Test
-    // void testAC3ai_CompanyNameStartsWith() throws Exception {
-    //     super.testAC3ai_CompanyNameStartsWith(log);
-    // }
+    @Test
+    void testAC3ai_CompanyNameStartsWith() throws Exception {
+        super.testAC3ai_CompanyNameStartsWith(log);
+    }
 
-    // @Test
-    // void testAC3ai_CompanyNameStartsWithPartial() throws Exception {
-    //     super.testAC3ai_CompanyNameStartsWithPartial(log);
-    // }
+    @Test
+    void testAC3ai_CompanyNameStartsWithPartial() throws Exception {
+        super.testAC3ai_CompanyNameStartsWithPartial(log);
+    }
 }
 
