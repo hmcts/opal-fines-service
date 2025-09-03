@@ -55,7 +55,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
 
-    private DefendantAccountHeaderSummary mapToDto(DefendantAccountHeaderViewEntity e) {
+    DefendantAccountHeaderSummary mapToDto(DefendantAccountHeaderViewEntity e) {
         return DefendantAccountHeaderSummary.builder()
             .defendantPartyId(
                 e.getPartyId() != null ? e.getPartyId().toString() : null
@@ -75,7 +75,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
 
-    private PaymentStateSummary buildPaymentStateSummary(DefendantAccountHeaderViewEntity e) {
+    PaymentStateSummary buildPaymentStateSummary(DefendantAccountHeaderViewEntity e) {
         return PaymentStateSummary.builder()
             .imposedAmount(nz(e.getImposed()))
             .arrearsAmount(nz(e.getArrears()))
@@ -84,12 +84,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
-    private static BigDecimal nz(BigDecimal v) {
+    static BigDecimal nz(BigDecimal v) {
         return v != null ? v : BigDecimal.ZERO;
     }
 
 
-    private PartyDetails buildPartyDetails(DefendantAccountHeaderViewEntity e) {
+    PartyDetails buildPartyDetails(DefendantAccountHeaderViewEntity e) {
         return PartyDetails.builder()
             .partyId(
                 e.getPartyId() != null ? e.getPartyId().toString() : null
@@ -114,14 +114,14 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
-    private AccountStatusReference buildAccountStatusReference(String code) {
+    AccountStatusReference buildAccountStatusReference(String code) {
         return AccountStatusReference.builder()
             .accountStatusCode(code)
             .accountStatusDisplayName(resolveStatusDisplayName(code))
             .build();
     }
 
-    private BusinessUnitSummary buildBusinessUnitSummary(DefendantAccountHeaderViewEntity e) {
+    BusinessUnitSummary buildBusinessUnitSummary(DefendantAccountHeaderViewEntity e) {
         return BusinessUnitSummary.builder()
             .businessUnitId(e.getBusinessUnitId() != null ? String.valueOf(e.getBusinessUnitId()) : null)
             .businessUnitName(e.getBusinessUnitName())
@@ -129,13 +129,13 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
-    private int calculateAge(LocalDate birthDate) {
+    int calculateAge(LocalDate birthDate) {
         return birthDate != null
             ? java.time.Period.between(birthDate, java.time.LocalDate.now()).getYears()
             : 0;
     }
 
-    private String resolveStatusDisplayName(String code) {
+    String resolveStatusDisplayName(String code) {
         return switch (code) {
             case "L" -> "Live";
             case "C" -> "Completed";
