@@ -42,7 +42,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             .creditorAccountId(String.valueOf(entity.getCreditorId()))
             .accountNumber(entity.getAccountNumber())
             .organisation(entity.isOrganisation())
-            .organisationName(entity.getDefendantOrganisationName()) // confirm if this is creditor org or defendant org
+            .organisationName(entity.getOrganisationName()) // confirm if this is creditor org or defendant org
             .firstnames(entity.getForenames())
             .surname(entity.getSurname())
             .addressLine1(entity.getAddressLine1())

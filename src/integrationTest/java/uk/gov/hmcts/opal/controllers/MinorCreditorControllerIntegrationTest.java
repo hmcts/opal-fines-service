@@ -70,7 +70,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.creditor_accounts[0].creditor_account_id").value("104"))
             .andExpect(jsonPath("$.creditor_accounts[0].account_number").value("12345678A"))
             .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(false))
-            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name").value("Acme Supplies Ltd"))
             .andExpect(jsonPath("$.creditor_accounts[0].firstnames").value(nullValue()))
             .andExpect(jsonPath("$.creditor_accounts[0].surname").value(nullValue()))
             .andExpect(jsonPath("$.creditor_accounts[0].address_line_1").value("Acme House"))
@@ -90,7 +90,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.creditor_accounts[1].creditor_account_id").value("105"))
             .andExpect(jsonPath("$.creditor_accounts[1].account_number").value("12345678"))
             .andExpect(jsonPath("$.creditor_accounts[1].organisation").value(false))
-            .andExpect(jsonPath("$.creditor_accounts[1].organisation_name").value(nullValue()))
+            .andExpect(jsonPath("$.creditor_accounts[1].organisation_name").value("Acme Supplies Ltd"))
             .andExpect(jsonPath("$.creditor_accounts[1].firstnames").value(nullValue()))
             .andExpect(jsonPath("$.creditor_accounts[1].surname").value(nullValue()))
             .andExpect(jsonPath("$.creditor_accounts[1].address_line_1").value("Acme House"))
@@ -589,7 +589,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(3)))
-            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true)) 
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
             .andExpect(jsonPath("$.creditor_accounts[*].organisation_name")
                            .value(hasItems("Tech Solutions", "Tech Solutions Ltd", "Technology Partner")));
     }
@@ -613,7 +613,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true)) 
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
             .andExpect(jsonPath("$.creditor_accounts[0].organisation_name")
                             .value("Technology Partner"));
     }
