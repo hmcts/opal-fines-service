@@ -32,11 +32,10 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUse
 abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
-    private static final String GET_PAYMENTS_TERMS_RESPONSE =
-        "opal/defendant-account/getDefendantAccountPaymentTermsResponse.json";
 
     abstract String getHeaderSummaryResponseSchemaLocation();
 
+    abstract String getPaymentTermsResponseSchemaLocation();
 
     @MockitoBean
     UserStateService userStateService;
@@ -1895,7 +1894,26 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.extension").value(false))
             .andExpect(jsonPath("$.last_enforcement").value("REM"));
 
-        jsonSchemaValidationService.validateOrError(body, GET_PAYMENTS_TERMS_RESPONSE);
+        jsonSchemaValidationService.validateOrError(body, getPaymentTermsResponseSchemaLocation());
+    }
+
+    void testGetPaymentTermsLatest_NoPaymentTermFoundForId(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/79/payment-terms/latest")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetPaymentTerms: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isNotFound()) // 404 HTTP status
+            .andExpect(jsonPath("$.type")
+                           .value("https://hmcts.gov.uk/problems/entity-not-found"))
+            .andExpect(jsonPath("$.title").value("Entity Not Found"))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"));
+
     }
 
 }

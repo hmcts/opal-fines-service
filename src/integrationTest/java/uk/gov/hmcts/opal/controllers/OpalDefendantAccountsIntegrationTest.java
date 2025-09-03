@@ -246,8 +246,19 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.testGetPaymentTerms(log);
     }
 
+    @Test
+    void testGetPaymentTermsLatest_NoPaymentTermFoundForId() throws Exception {
+        super.testGetPaymentTermsLatest_NoPaymentTermFoundForId(log);
+    }
+
     @Override
     String getHeaderSummaryResponseSchemaLocation() {
         return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountHeaderSummaryResponse.json";
     }
+
+    @Override
+    String getPaymentTermsResponseSchemaLocation() {
+        return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountPaymentTermsResponse.json";
+    }
+
 }
