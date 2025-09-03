@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -16,6 +17,15 @@ import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.dto.common.PartyDetails;
+import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
+import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
+import uk.gov.hmcts.opal.dto.common.IndividualDetails;
+import uk.gov.hmcts.opal.dto.common.IndividualAlias;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.AliasEntity;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -113,6 +123,104 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 ? uk.gov.hmcts.opal.util.DateTimeUtils.toString(party.getDateOfBirth())
                 : null)
             .aliases(aliases)
+            .build();
+    }
+
+    @Override
+    public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
+                                                                     Long defendantAccountPartyId) {
+        log.debug(":getDefendantAccountParty: Opal mode: accountId={}, partyId={}", defendantAccountId,
+            defendantAccountPartyId);
+
+        // Find the DefendantAccountEntity by ID
+        DefendantAccountEntity account = defendantAccountRepository
+            .findById(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: "
+                + defendantAccountId));
+
+        // Find the DefendantAccountPartiesEntity by Party ID
+        DefendantAccountPartiesEntity party = account.getParties().stream()
+            .filter(p -> p.getDefendantAccountPartyId().equals(defendantAccountPartyId))
+            .findFirst()
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account Party not found for accountId=" + defendantAccountId
+                    + ", partyId=" + defendantAccountPartyId));
+
+        // Map entity to PartyDetails DTO
+        PartyDetails partyDetails = mapPartyEntityToPartyDetails(party);
+
+        return GetDefendantAccountPartyResponse.builder()
+            .defendantAccountParty(partyDetails)
+            .build();
+    }
+
+    private PartyDetails mapPartyEntityToPartyDetails(DefendantAccountPartiesEntity partyEntity) {
+        PartyEntity party = partyEntity.getParty();
+
+        // Organisation aliases
+        List<OrganisationAlias> organisationAliases = null;
+        if (party.isOrganisation() && party.getAliasEntities() != null) {
+            organisationAliases = party.getAliasEntities().stream()
+                .filter(alias -> alias.getOrganisationName() != null)
+                .map(this::mapOrganisationAlias)
+                .toList();
+        }
+
+        OrganisationDetails organisationDetails = null;
+        if (party.isOrganisation()) {
+            organisationDetails = OrganisationDetails.builder()
+                .organisationName(party.getOrganisationName())
+                .organisationAliases(organisationAliases)
+                .build();
+        }
+
+        // Individual aliases
+        List<IndividualAlias> individualAliases = null;
+        if (!party.isOrganisation() && party.getAliasEntities() != null) {
+            individualAliases = party.getAliasEntities().stream()
+                .filter(alias -> alias.getSurname() != null)
+                .map(this::mapIndividualAlias)
+                .toList();
+        }
+
+        IndividualDetails individualDetails = null;
+        if (!party.isOrganisation()) {
+            individualDetails = IndividualDetails.builder()
+                .title(party.getTitle())
+                .forenames(party.getForenames())
+                .surname(party.getSurname())
+                .dateOfBirth(party.getDateOfBirth() != null ? party.getDateOfBirth().toString() : null)
+                .age(party.getAge() != null ? String.valueOf(party.getAge()) : null)
+                .nationalInsuranceNumber(party.getNiNumber())
+                .individualAliases(individualAliases)
+                .build();
+        }
+
+        return PartyDetails.builder()
+            .defendantAccountPartyId(String.valueOf(party.getPartyId()))
+            .organisationFlag(party.isOrganisation())
+            .organisationDetails(organisationDetails)
+            .individualDetails(individualDetails)
+            .build();
+    }
+
+
+
+    private OrganisationAlias mapOrganisationAlias(AliasEntity aliasEntity) {
+        return OrganisationAlias.builder()
+            .aliasId(String.valueOf(aliasEntity.getAliasId()))
+            .sequenceNumber(aliasEntity.getSequenceNumber())
+            .organisationName(aliasEntity.getOrganisationName())
+            .build();
+    }
+
+
+    private IndividualAlias mapIndividualAlias(AliasEntity aliasEntity) {
+        return IndividualAlias.builder()
+            .aliasId(String.valueOf(aliasEntity.getAliasId()))
+            .sequenceNumber(aliasEntity.getSequenceNumber())
+            .surname(aliasEntity.getSurname())
+            .forenames(aliasEntity.getForenames())
             .build();
     }
 

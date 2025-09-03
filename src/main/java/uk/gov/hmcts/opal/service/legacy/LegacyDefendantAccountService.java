@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
@@ -212,5 +213,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return BigDecimal.ZERO;
     }
 
+    @Override
+    public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
+                                                                     Long defendantAccountPartyId) {
+        throw new UnsupportedOperationException("getDefendantAccountParty is not implemented in"
+            + " LegacyDefendantAccountService");
+    }
 
 }
