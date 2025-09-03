@@ -565,8 +565,9 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
             .andExpect(jsonPath("$.creditor_accounts[0].organisation_name")
-                           .value("Tech Solutions"));
+                            .value("Tech Solutions"));
     }
 
     // AC3ai: Test "starts with" behavior for Company name when exact match is not selected
@@ -588,6 +589,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(3)))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true)) 
             .andExpect(jsonPath("$.creditor_accounts[*].organisation_name")
                            .value(hasItems("Tech Solutions", "Tech Solutions Ltd", "Technology Partner")));
     }
@@ -611,6 +613,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
                             .header("authorization", "Bearer some_value"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name").value("Technology Partner"));
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true)) 
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name")
+                            .value("Technology Partner"));
     }
 }
