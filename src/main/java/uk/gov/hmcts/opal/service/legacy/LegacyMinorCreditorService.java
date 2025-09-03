@@ -5,12 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
+import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
-import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,7 +72,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
                 .postcode(legacy.getPostcode())
                 .businessUnitName(legacy.getBusinessUnitName())
                 .businessUnitId(legacy.getBusinessUnitId())
-                .accountBalance(legacy.getAccountBalance())
+                .accountBalance(BigDecimal.valueOf(legacy.getAccountBalance()))
                 .defendant(
                     legacy.getDefendant() == null ? null :
                         DefendantDto.builder()
