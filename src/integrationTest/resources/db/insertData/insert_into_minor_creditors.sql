@@ -61,7 +61,7 @@ VALUES
   (9005, 'Y', 'Tech Solutions Ltd',
    NULL, NULL, NULL,
    'Tech Building', '200 Corporate Street', 'Birmingham',
-   NULL, NULL, 'TC3 4DE',
+   NULL, NULL, 'TP3 4DE',
    'Creditor', NULL, NULL, NULL, NULL),
    
   -- Company creditor for testing organisation name starts with - starts with "Tech"

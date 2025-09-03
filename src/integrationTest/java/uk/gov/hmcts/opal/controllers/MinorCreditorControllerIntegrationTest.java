@@ -617,4 +617,73 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.creditor_accounts[0].organisation_name")
                             .value("Technology Partner"));
     }
+
+    // AC3b: Test "starts with" behavior for Company Address Line 1
+    void testAC3b_CompanyAddressLine1StartsWith(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .addressLine1("Tech") // Should match company addresses starting with "Tech"
+                          .organisation(true)
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].address_line_1")
+                           .value(hasItems("Tech House", "Tech Building"))); // Should return company addresses starting with "Tech"
+    }
+
+    // AC3b: Test "starts with" behavior for Company Postcode
+    void testAC3b_CompanyPostcodeStartsWith(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .postcode("TP") // Match company postcodes starting with "T"
+                          .organisation(true)
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.creditor_accounts[*].postcode")
+                           .value(hasItems("TP3 4DE", "TP5 6FG"))); // Should return company postcodes starting with "T"
+    }
+
+    // AC3b: Test combined Address Line 1 and Postcode search for companies
+    void testAC3b_CompanyAddressAndPostcodeCombined(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        MinorCreditorSearch search = MinorCreditorSearch.builder()
+            .businessUnitIds(List.of(10))
+            .creditor(uk.gov.hmcts.opal.dto.Creditor.builder()
+                          .addressLine1("Tech House") // Specific address
+                          .postcode("TH1") // Specific postcode prefix
+                          .organisation(true)
+                          .build())
+            .build();
+
+        mockMvc.perform(post(URL_BASE + "/search")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(search))
+                            .header("authorization", "Bearer some_value"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
+            .andExpect(jsonPath("$.creditor_accounts[0].address_line_1").value("Tech House"))
+            .andExpect(jsonPath("$.creditor_accounts[0].postcode").value("TH1 2BC"))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation_name").value("Tech Solutions"));
+    }
 }

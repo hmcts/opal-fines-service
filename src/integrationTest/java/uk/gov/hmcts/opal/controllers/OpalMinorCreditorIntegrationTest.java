@@ -133,5 +133,21 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     void testAC3ai_CompanyNameStartsWithPartial() throws Exception {
         super.testAC3ai_CompanyNameStartsWithPartial(log);
     }
+
+    @Test
+    void testAC3b_CompanyAddressLine1StartsWith() throws Exception {
+        super.testAC3b_CompanyAddressLine1StartsWith(log);
+    }
+
+    @Test
+    void testAC3b_CompanyPostcodeStartsWith() throws Exception {
+        super.testAC3b_CompanyPostcodeStartsWith(log);
+    }
+
+    @Test
+    void testAC3b_CompanyAddressAndPostcodeCombined() throws Exception {
+        super.testAC3b_CompanyAddressAndPostcodeCombined(log);
+    }
+
 }
 
