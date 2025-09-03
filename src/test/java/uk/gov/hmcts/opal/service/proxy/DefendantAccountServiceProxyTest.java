@@ -8,6 +8,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -104,6 +105,21 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
         DefendantAccountSearchResultsDto result = serviceProxy.searchDefendantAccounts(dto);
 
         verify(opalService).searchDefendantAccounts(dto);
+        verifyNoInteractions(legacyService);
+        Assertions.assertEquals(expected, result);
+    }
+
+    @Test
+    void shouldDelegateGetPaymentTermsToOpalServiceWhenInOpalMode() {
+
+        setMode(OPAL);
+        GetDefendantAccountPaymentTermsResponse expected = new GetDefendantAccountPaymentTermsResponse();
+
+        when(opalService.getPaymentTerms(77L)).thenReturn(expected);
+
+        GetDefendantAccountPaymentTermsResponse result = serviceProxy.getPaymentTerms(77L);
+
+        verify(opalService).getPaymentTerms(77L);
         verifyNoInteractions(legacyService);
         Assertions.assertEquals(expected, result);
     }
