@@ -5,7 +5,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -38,7 +44,9 @@ public class DefendantAccountController {
     @GetMapping(value = "/{defendantAccountId}/header-summary")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(@PathVariable Long defendantAccountId,
-                                                                          @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+                                                                          @RequestHeader(value = "Authorization",
+                                                                              required = false)
+                                                                          String authHeaderValue) {
 
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
 
@@ -61,8 +69,10 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/{defendantAccountId}/payment-terms/latest")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
-    public ResponseEntity<GetDefendantAccountPaymentTermsResponse> DefendantAccountPaymentTerms(@PathVariable Long defendantAccountId,
-                                                                                                @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+    public ResponseEntity<GetDefendantAccountPaymentTermsResponse> defendantAccountPaymentTerms(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader(value = "Authorization", required = false)
+        String authHeaderValue) {
 
         log.debug(":GET:DefendantAccountPaymentTerms: for defendant id: {}", defendantAccountId);
 

@@ -83,4 +83,7 @@ public class PaymentTermsEntity {
     @Column(name = "active")
     private Boolean active;
 
+    @Column(name = "reason_for_extension")
+    private String reasonForExtension;
+
 }

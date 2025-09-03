@@ -12,6 +12,6 @@ public interface DefendantAccountPaymentTermsRepository extends JpaRepository<Pa
     JpaSpecificationExecutor<PaymentTermsEntity> {
 
     Optional<PaymentTermsEntity>
-    findTopByDefendantAccount_DefendantAccountIdOrderByPostedDateDescPaymentTermsIdDesc(Long accountId);
+        findTopByDefendantAccount_DefendantAccountIdOrderByPostedDateDescPaymentTermsIdDesc(Long accountId);
 
 }

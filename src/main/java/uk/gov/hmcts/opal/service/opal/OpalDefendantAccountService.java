@@ -5,7 +5,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.*;
+import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.InstalmentPeriod;
+import uk.gov.hmcts.opal.dto.PaymentTerms;
+import uk.gov.hmcts.opal.dto.PaymentTermsType;
+import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -142,7 +148,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         PaymentTerms paymentTerms = PaymentTerms.builder()
             .daysInDefault(entity.getJailDays())
             .dateDaysInDefaultImposed(account.getSuspendedCommittalDate())
-            .reasonForExtension(null) // TODO - this isn't in DB or entity, check if it should be
+            .reasonForExtension(entity.getReasonForExtension())
             .paymentTermsType(
                 PaymentTermsType.builder()
                     .paymentTermsTypeCode(
