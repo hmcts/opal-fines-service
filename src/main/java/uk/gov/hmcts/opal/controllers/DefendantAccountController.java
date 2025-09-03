@@ -40,7 +40,7 @@ public class DefendantAccountController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
-        return ResponseEntity.ok(
+        return buildResponse(
             defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue)
         );
     }
