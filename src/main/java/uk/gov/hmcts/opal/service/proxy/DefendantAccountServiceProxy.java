@@ -10,7 +10,6 @@ import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 
 @Service
@@ -21,8 +20,6 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     private final OpalDefendantAccountService draftAccountPromotion;
     private final LegacyDefendantAccountService legacyDraftAccountPromotion;
     private final DynamicConfigService dynamicConfigService;
-
-    private final UserStateService userStateService;
 
     private DefendantAccountServiceInterface getCurrentModeService() {
         return isLegacyMode(dynamicConfigService) ? legacyDraftAccountPromotion : draftAccountPromotion;

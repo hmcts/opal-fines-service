@@ -208,7 +208,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                       <account_balance>Sampleaccount_balance</account_balance>
                     </defendant_accounts_element>
                   </defendant_accounts>
-            </response>""";
+            </response>
+               """;
     }
 
     @Test
@@ -245,8 +246,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {
-            };
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
@@ -298,8 +298,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {
-            };
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
@@ -344,8 +343,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         responseBody.setPartyDetails(party);
 
         ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {
-            };
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
@@ -369,8 +367,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {
-            };
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
@@ -416,8 +413,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         responseBody.setPartyDetails(party);
 
         ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {
-            };
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
