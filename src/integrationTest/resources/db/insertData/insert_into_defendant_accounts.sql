@@ -81,7 +81,7 @@ payment_terms_id, defendant_account_id, posted_date, posted_by
 VALUES
 (
  0077, 0077, '2023-11-03 16:05:10', '01000000A'
-, 'B', '2025-10-12 00:00:00', NULL, NULL, NULL
+, 'B', '2025-10-12 00:00:00', 'W', NULL, NULL
 , 120, 'N', 700.58
 );
 

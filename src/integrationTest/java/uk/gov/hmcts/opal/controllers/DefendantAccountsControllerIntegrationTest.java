@@ -32,8 +32,11 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUse
 abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
+    private static final String GET_PAYMENTS_TERMS_RESPONSE =
+        "opal/defendant-account/getDefendantAccountPaymentTermsResponse.json";
 
     abstract String getHeaderSummaryResponseSchemaLocation();
+
 
     @MockitoBean
     UserStateService userStateService;
@@ -1874,18 +1877,25 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendant_account_id").value(77))
-            .andExpect(jsonPath("$.account_number").value("100A"))
-            .andExpect(jsonPath("$.has_parent_guardian").value(true))
-            .andExpect(jsonPath("$.fixed_penalty_ticket_number").value(888))
-            .andExpect(jsonPath("$.business_unit_id").value(78))
-            .andExpect(jsonPath("$.imposed").value(1000.0f))
-            .andExpect(jsonPath("$.arrears").value(300.0d))
-            .andExpect(jsonPath("$.organisation_name").value("Sainsco"))
-            .andExpect(jsonPath("$.firstnames").value("Keith"))
-            .andExpect(jsonPath("$.surname").value("Thief"));
+            .andExpect(jsonPath("$.payment_terms.days_in_default").value(120))
+            .andExpect(jsonPath("$.payment_terms.date_days_in_default_imposed").isEmpty())
+            .andExpect(jsonPath("$.payment_terms.reason_for_extension").isEmpty())
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
+            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12"))
+            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
+            .andExpect(jsonPath("$.payment_terms.lump_sum_amount").isEmpty())
+            .andExpect(jsonPath("$.payment_terms.instalment_amount").isEmpty())
 
-        jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
+            .andExpect(jsonPath("$.posted_details.posted_date").value("2023-11-03"))
+            .andExpect(jsonPath("$.posted_details.posted_by").value("01000000A"))
+            .andExpect(jsonPath("$.posted_details.posted_by_name").isEmpty())
+
+            .andExpect(jsonPath("$.payment_card_last_requested").value("2024-01-01"))
+            .andExpect(jsonPath("$.date_last_amended").value("2024-01-03"))
+            .andExpect(jsonPath("$.extension").value(false))
+            .andExpect(jsonPath("$.last_enforcement").value("REM"));
+
+        jsonSchemaValidationService.validateOrError(body, GET_PAYMENTS_TERMS_RESPONSE);
     }
 
 }
