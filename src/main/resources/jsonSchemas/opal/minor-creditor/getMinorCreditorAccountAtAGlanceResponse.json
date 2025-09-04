@@ -21,12 +21,19 @@
       "type": "object",
       "properties": {
         "account_number": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "minLength": 8,
           "maxLength": 9
         },
         "id": {
-          "$ref": "../../types/bigint_value.json"
+          "$ref": "../../types/bigint_value.json",
+          "type": [
+            "number",
+            "null"
+          ]
         }
       }
     },
