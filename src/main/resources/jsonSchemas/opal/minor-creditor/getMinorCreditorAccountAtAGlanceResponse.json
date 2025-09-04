@@ -34,7 +34,11 @@
             "number",
             "null"
           ]
-        }
+        },
+        "required": [
+          "account_number",
+          "id"
+        ]
       }
     },
     "payment": {
