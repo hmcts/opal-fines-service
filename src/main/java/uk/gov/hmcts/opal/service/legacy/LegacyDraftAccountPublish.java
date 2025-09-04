@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.legacy.ErrorResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
@@ -45,26 +46,31 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
         try {
             Response<LegacyCreateDefendantAccountResponse> response = future.get();
 
+            log.error(":publishDefendantAccount: 1: {}", response.isException());
+            log.error(":publishDefendantAccount: 2: {}", response.code.isError());
+            log.error(":publishDefendantAccount: 3: {}", response.hasErrorResponse());
             if (response.isError()) {
                 log.error(":publishDefendantAccount: Legacy Gateway response: HTTP Response Code: {}", response.code);
                 if (response.isException()) {
                     log.error(":publishDefendantAccount:", response.exception);
-                } else if (response.isLegacyFailure()) {
+                } else if (response.hasErrorResponse()) {
                     log.error(":publishDefendantAccount: Legacy Gateway: body: \n{}", response.body);
                     LegacyCreateDefendantAccountResponse responseEntity = response.responseEntity;
                     log.error(":publishDefendantAccount: Legacy Gateway: entity: \n{}", responseEntity.toXml());
-                    String errorResponse = responseEntity.getErrorResponse();
+                    ErrorResponse errorResponse = responseEntity.getErrorResponse();
 
                     TimelineData timelineData = new TimelineData(publishEntity.getTimelineData());
                     timelineData.insertEntry(
                         unitUser.getBusinessUnitUserId(), DraftAccountStatus.PUBLISHING_FAILED.getLabel(),
-                        LocalDate.now(), errorResponse
+                        LocalDate.now(), errorResponse.getErrorMessage()
                     );
                     publishEntity.setTimelineData(timelineData.toJson());
-                    publishEntity.setStatusMessage(errorResponse);
+                    publishEntity.setStatusMessage(errorResponse.getErrorMessage());
 
                     publishEntity = draftAccountTransactions
                         .updateStatus(publishEntity, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactions);
+                } else {
+                    log.warn(":publishDefendantAccount: Unexpected Legacy Gateway response");
                 }
             } else if (response.isSuccessful()) {
                 log.info(":publishDefendantAccount: Legacy Gateway response: Success.");
