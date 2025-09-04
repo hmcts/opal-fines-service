@@ -1,0 +1,39 @@
+Timing is on.
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:45: NOTICE:  === Cleanup data before tests ===
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:45: NOTICE:  Data cleanup before tests completed
+DO
+Time: 57.922 ms
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:94: NOTICE:  === Setting up test data ===
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:94: NOTICE:  Test data setup completed: defendant_account_id = 999901 and 999902
+DO
+Time: 6.591 ms
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:172: NOTICE:  === TEST 1: Valid account_notes JSON (3 AA notes (not in serial order), 1 AC note, 1 AN note) ===
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:172: INFO:  p_create_account_notes: Inserted 2 AA notes records, out of 3, for defendant_account_id = 999901
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:172: INFO:  p_create_account_notes: defendant_accounts has been updated with account comments. defendant_account_id = 999901
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:172: NOTICE:  TEST 1 PASSED
+DO
+Time: 4.135 ms
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:240: NOTICE:  === TEST 2: Valid account_notes JSON (2 AA notes (not in serial order), 0 AC notes, 1 AN note) ===
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:240: INFO:  p_create_account_notes: Inserted 2 AA notes records, out of 2, for defendant_account_id = 999902
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:240: INFO:  p_create_account_notes: defendant_accounts has been updated with account comments. defendant_account_id = 999902
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:240: NOTICE:  TEST 2 PASSED
+DO
+Time: 0.861 ms
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:305: NOTICE:  === TEST 3: Invalid account notes JSON: An element has an invalid note_type (i.e. not AA, AC or AN) ===
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:305: NOTICE:  Error in p_create_account_notes: P2012 - Note_type ZZ is not valid
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:305: NOTICE:  Expected error caught: P2012 - Note_type ZZ is not valid
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:305: NOTICE:  TEST 3 PASSED
+DO
+Time: 0.741 ms
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:370: NOTICE:  === TEST 4: Invalid account notes JSON: More than one AC elements in the JSON array ===
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:370: INFO:  p_create_account_notes: Inserted 1 AA notes records, out of 1, for defendant_account_id = 999904
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:370: NOTICE:  Error in p_create_account_notes: P2013 - Only one AC note type is expected. Number of AC entries = 2
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:370: NOTICE:  Expected error caught: P2013 - Only one AC note type is expected. Number of AC entries = 2
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:370: NOTICE:  TEST 4 PASSED
+DO
+Time: 0.558 ms
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:383: NOTICE:  === Cleanup test data ===
+psql:/Users/tonymccallion/Library/CloudStorage/OneDrive-CGI/Assignments/HMCTS_OPAL/OPAL_DB_Scripts/Manual_Account_Creation/Phase_4/Additional dbUnitTests/p_create_account_notes_unit_tests.sql:383: NOTICE:  Test data cleanup completed
+DO
+Time: 3.782 ms
+Timing is off.
