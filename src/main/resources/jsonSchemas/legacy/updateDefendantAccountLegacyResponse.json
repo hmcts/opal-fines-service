@@ -23,6 +23,10 @@
       "$ref": "./common-objects/enforcementOverrideLegacy.json"
     }
   },
+  "required": [
+  "defendant_account_id",
+  "version"
+  ],
   "oneOf": [
     {
       "required": ["comment_and_notes"],
