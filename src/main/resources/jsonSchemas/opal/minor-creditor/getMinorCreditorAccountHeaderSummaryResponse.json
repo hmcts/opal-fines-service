@@ -58,7 +58,7 @@
           "description": "This is the sum of all payment transactions that have been paid by the defendant which has not been paid out to the minor creditor. So transaction_amount in creditor_transactions that are related to the minor creditor where payment_processed is FALSE and transaction_type = 'PAYMNT'"
         },
         "outstanding": {
-          "$ref": "../../types/positive_monetary_value.json",
+          "$ref": "../../types/monetary_value.json",
           "description": "Total amount that associated defendant has not paid to the minor creditor  - so it is Imposed amounts minus Paid amounts."
         }
       }
