@@ -34,8 +34,8 @@ public class DefendantAccountController {
     // TODO - remove from controller
     private final UserStateService userStateService;
 
-    public DefendantAccountController(DefendantAccountService defendantAccountService,
-                                      UserStateService userStateService) {
+    public DefendantAccountController(
+        DefendantAccountService defendantAccountService, UserStateService userStateService) {
 
         this.defendantAccountService = defendantAccountService;
         this.userStateService = userStateService;
@@ -43,21 +43,22 @@ public class DefendantAccountController {
 
     @GetMapping(value = "/{defendantAccountId}/header-summary")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
-    public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(@PathVariable Long defendantAccountId,
-                                                                          @RequestHeader(value = "Authorization",
-                                                                              required = false)
-                                                                          String authHeaderValue) {
+    public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
 
-        return buildResponse(defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue));
+        return buildResponse(
+            defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue));
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
     public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
         @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
-        @RequestBody AccountSearchDto accountSearchDto,
+            @RequestBody
+           AccountSearchDto accountSearchDto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
@@ -71,12 +72,11 @@ public class DefendantAccountController {
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
     public ResponseEntity<GetDefendantAccountPaymentTermsResponse> defendantAccountPaymentTerms(
         @PathVariable Long defendantAccountId,
-        @RequestHeader(value = "Authorization", required = false)
-        String authHeaderValue) {
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":GET:DefendantAccountPaymentTerms: for defendant id: {}", defendantAccountId);
 
-        return buildResponse(defendantAccountService.getPaymentTerms(defendantAccountId, authHeaderValue));
+        return buildResponse(
+            defendantAccountService.getPaymentTerms(defendantAccountId, authHeaderValue));
     }
-
 }
