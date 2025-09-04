@@ -52,7 +52,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(true);
     }
 
-
+    @DisplayName("Get header summary for defendant account [@PO-985]")
     void getHeaderSummaryImpl(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -79,6 +79,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
     }
 
+    @DisplayName("Get header summary for defendant account - 500 Error [@PO-985]")
     void getHeaderSummaryImpl_500Error(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
