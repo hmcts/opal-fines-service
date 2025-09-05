@@ -7,6 +7,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
