@@ -87,11 +87,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-
     private DefendantAccountHeaderSummary toHeaderSumaryDto(
         LegacyGetDefendantAccountHeaderSummaryResponse response) {
 
-        // ----- Party details (kept as-is; not asserted in this test) -----
+        // ----- Legacy -> Opal Party Details -----
         uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails legacyParty = response.getPartyDetails();
         PartyDetails opalPartyDetails = null;
 
@@ -99,6 +98,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails legacyOrg = legacyParty.getOrganisationDetails();
             uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails legacyInd = legacyParty.getIndividualDetails();
 
+            // organisation aliases
             java.util.List<OrganisationAlias> orgAliases = null;
             if (legacyOrg != null && legacyOrg.getOrganisationAliases() != null) {
                 orgAliases = java.util.Arrays.stream(legacyOrg.getOrganisationAliases())
@@ -116,6 +116,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                     .organisationAliases(orgAliases)
                     .build();
 
+            // individual aliases
             java.util.List<IndividualAlias> indAliases = null;
             if (legacyInd != null && legacyInd.getIndividualAliases() != null) {
                 indAliases = java.util.Arrays.stream(legacyInd.getIndividualAliases())
@@ -131,36 +132,38 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             IndividualDetails opalInd = legacyInd == null ? null
                 : IndividualDetails.builder()
                     .title(legacyInd.getTitle())
-                    .forenames(legacyInd.getFirstNames())
+                    .forenames(legacyInd.getFirstNames()) // legacy accessor is getFirstNames()
                     .surname(legacyInd.getSurname())
                     .dateOfBirth(legacyInd.getDateOfBirth() != null ? legacyInd.getDateOfBirth().toString() : null)
                     .age(legacyInd.getAge())
                     .nationalInsuranceNumber(legacyInd.getNationalInsuranceNumber())
-                    .individualAliases(indAliases)
+                    .individualAliases(indAliases) // keep key present (can be empty list)
                     .build();
 
             opalPartyDetails = PartyDetails.builder()
-                .defendantAccountPartyId(legacyParty.getDefendantAccountPartyId())
+                .partyId(legacyParty.getDefendantAccountPartyId())
                 .organisationFlag(legacyParty.getOrganisationFlag())
                 .organisationDetails(opalOrg)
                 .individualDetails(opalInd)
                 .build();
         }
 
-        // ----- Nested common objects only -----
+        // ----- Business Unit -----
         BusinessUnitSummary bu = response.getBusinessUnitSummary() == null ? null
             : BusinessUnitSummary.builder()
                 .businessUnitId(response.getBusinessUnitSummary().getBusinessUnitId())
                 .businessUnitName(response.getBusinessUnitSummary().getBusinessUnitName())
-                .welshSpeaking("N")
+                .welshSpeaking("N") // default; legacy schema doesn’t provide it
                 .build();
 
+        // ----- Account Status -----
         AccountStatusReference status = response.getAccountStatusReference() == null ? null
             : AccountStatusReference.builder()
                 .accountStatusCode(response.getAccountStatusReference().getAccountStatusCode())
                 .accountStatusDisplayName(response.getAccountStatusReference().getAccountStatusDisplayName())
                 .build();
 
+        // ----- Payment State Summary (never null numbers) -----
         PaymentStateSummary pay = response.getPaymentStateSummary() == null ? null
             : PaymentStateSummary.builder()
                 .imposedAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getImposedAmount()))
@@ -169,21 +172,18 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .accountBalance(toBigDecimalOrZero(response.getPaymentStateSummary().getAccountBalance()))
                 .build();
 
-        // ----- Build DTO using nested values (what the test asserts) -----
+        // ----- Build Opal DTO (note: NO defendant_account_id in Opal body) -----
         return DefendantAccountHeaderSummary.builder()
             .accountNumber(response.getAccountNumber())
+            .defendantPartyId(response.getDefendantPartyId())
+            .parentGuardianPartyId(response.getParentGuardianPartyId())
+            .accountStatusReference(status)
             .accountType(response.getAccountType())
             .prosecutorCaseReference(response.getProsecutorCaseReference())
             .fixedPenaltyTicketNumber(response.getFixedPenaltyTicketNumber())
-
-            .accountStatusDisplayName(status != null ? status.getAccountStatusDisplayName() : null)
-            .businessUnitId(bu != null ? bu.getBusinessUnitId() : null)
-            .imposed(pay != null ? pay.getImposedAmount() : null)
-            .arrears(pay != null ? pay.getArrearsAmount() : null)
-            .paid(pay != null ? pay.getPaidAmount() : null)
-            .accountBalance(pay != null ? pay.getAccountBalance() : null)
-
-            // party details not asserted here, but kept for completeness
+            .businessUnitSummary(bu)
+            .paymentStateSummary(pay)
+            .partyDetails(opalPartyDetails)
             .build();
     }
 
@@ -219,5 +219,3 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         throw new UnsupportedOperationException("getDefendantAccountParty is not implemented in"
             + " LegacyDefendantAccountService");
     }
-
-}

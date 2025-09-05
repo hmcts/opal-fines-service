@@ -32,24 +32,20 @@ public class DefendantAccountController {
 
     private final DefendantAccountService defendantAccountService;
 
-    // TODO - remove from controller
-    private final UserStateService userStateService;
-
-    public DefendantAccountController(DefendantAccountService defendantAccountService,
-                                      UserStateService userStateService) {
-
+    public DefendantAccountController(DefendantAccountService defendantAccountService) {
         this.defendantAccountService = defendantAccountService;
-        this.userStateService = userStateService;
     }
 
     @GetMapping(value = "/{defendantAccountId}/header-summary")
     @Operation(summary = "Get defendant account details by providing the defendant account summary")
-    public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(@PathVariable Long defendantAccountId,
-              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+    public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
-
-        return buildResponse(defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue));
+        return buildResponse(
+            defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue)
+        );
     }
 
     @GetMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}")
