@@ -3,44 +3,41 @@ package uk.gov.hmcts.opal.service.opal;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
+import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.ContactDetails;
+import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.common.EmployerDetails;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
+import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
+import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
-import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
-import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
-import org.springframework.data.jpa.domain.Specification;
-import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
-import uk.gov.hmcts.opal.dto.common.IndividualDetails;
-import uk.gov.hmcts.opal.dto.common.IndividualAlias;
-import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.entity.AliasEntity;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j(topic = "opal.OpalDefendantAccountService")
@@ -261,80 +258,73 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     + ", partyId=" + defendantAccountPartyId));
 
         // Map entity to PartyDetails DTO
-        PartyDetails partyDetails = mapPartyEntityToPartyDetails(party);
+        DefendantAccountParty defendantAccountParty = mapDefendantAccountParty(account, party);
 
         return GetDefendantAccountPartyResponse.builder()
-            .defendantAccountParty(partyDetails)
+            .defendantAccountParty(defendantAccountParty)
             .build();
+
     }
 
-    private PartyDetails mapPartyEntityToPartyDetails(DefendantAccountPartiesEntity partyEntity) {
+    private DefendantAccountParty mapDefendantAccountParty(
+        DefendantAccountEntity account,
+        DefendantAccountPartiesEntity partyEntity
+    ) {
         PartyEntity party = partyEntity.getParty();
 
-        // Organisation aliases
-        List<OrganisationAlias> organisationAliases = null;
-        if (party.isOrganisation() && party.getAliasEntities() != null) {
-            organisationAliases = party.getAliasEntities().stream()
-                .filter(alias -> alias.getOrganisationName() != null)
-                .map(this::mapOrganisationAlias)
-                .toList();
-        }
+        String defendantAccountPartyType = partyEntity.getAssociationType();
+        Boolean isDebtor = partyEntity.getDebtor();
 
-        OrganisationDetails organisationDetails = null;
-        if (party.isOrganisation()) {
-            organisationDetails = OrganisationDetails.builder()
-                .organisationName(party.getOrganisationName())
-                .organisationAliases(organisationAliases)
-                .build();
-        }
-
-        // Individual aliases
-        List<IndividualAlias> individualAliases = null;
-        if (!party.isOrganisation() && party.getAliasEntities() != null) {
-            individualAliases = party.getAliasEntities().stream()
-                .filter(alias -> alias.getSurname() != null)
-                .map(this::mapIndividualAlias)
-                .toList();
-        }
-
-        IndividualDetails individualDetails = null;
-        if (!party.isOrganisation()) {
-            individualDetails = IndividualDetails.builder()
-                .title(party.getTitle())
-                .forenames(party.getForenames())
-                .surname(party.getSurname())
-                .dateOfBirth(party.getDateOfBirth() != null ? party.getDateOfBirth().toString() : null)
-                .age(party.getAge() != null ? String.valueOf(party.getAge()) : null)
-                .nationalInsuranceNumber(party.getNiNumber())
-                .individualAliases(individualAliases)
-                .build();
-        }
-
-        return PartyDetails.builder()
-            .defendantAccountPartyId(String.valueOf(party.getPartyId()))
+        PartyDetails partyDetails = PartyDetails.builder()
+            .partyId(String.valueOf(party.getPartyId()))
             .organisationFlag(party.isOrganisation())
-            .organisationDetails(organisationDetails)
-            .individualDetails(individualDetails)
+            .organisationDetails(
+                party.isOrganisation()
+                    ? OrganisationDetails.builder()
+                    .organisationName(party.getOrganisationName())
+                    .organisationAliases(null)
+                    .build()
+                    : null
+            )
+            .individualDetails(
+                !party.isOrganisation()
+                    ? IndividualDetails.builder()
+                    .title(party.getTitle())
+                    .forenames(party.getForenames())
+                    .surname(party.getSurname())
+                    .dateOfBirth(party.getDateOfBirth() != null ? party.getDateOfBirth().toString() : null)
+                    .age(party.getAge() != null ? String.valueOf(party.getAge()) : null)
+                    .nationalInsuranceNumber(party.getNiNumber())
+                    .individualAliases(null)
+                    .build()
+                    : null
+            )
             .build();
-    }
 
-
-
-    private OrganisationAlias mapOrganisationAlias(AliasEntity aliasEntity) {
-        return OrganisationAlias.builder()
-            .aliasId(String.valueOf(aliasEntity.getAliasId()))
-            .sequenceNumber(aliasEntity.getSequenceNumber())
-            .organisationName(aliasEntity.getOrganisationName())
+        AddressDetails address = AddressDetails.builder()
+            .addressLine1(party.getAddressLine1())
+            .addressLine2(party.getAddressLine2())
+            .addressLine3(party.getAddressLine3())
+            .addressLine4(party.getAddressLine4())
+            .addressLine5(party.getAddressLine5())
+            .postcode(party.getPostcode())
             .build();
-    }
 
+        // These are not available in PartyEntity, so set as null
+        ContactDetails contactDetails = null;
+        VehicleDetails vehicleDetails = null;
+        EmployerDetails employerDetails = null;
+        LanguagePreferences languagePreferences = null;
 
-    private IndividualAlias mapIndividualAlias(AliasEntity aliasEntity) {
-        return IndividualAlias.builder()
-            .aliasId(String.valueOf(aliasEntity.getAliasId()))
-            .sequenceNumber(aliasEntity.getSequenceNumber())
-            .surname(aliasEntity.getSurname())
-            .forenames(aliasEntity.getForenames())
+        return DefendantAccountParty.builder()
+            .defendantAccountPartyType(defendantAccountPartyType)
+            .isDebtor(isDebtor)
+            .partyDetails(partyDetails)
+            .address(address)
+            .contactDetails(contactDetails)
+            .vehicleDetails(vehicleDetails)
+            .employerDetails(employerDetails)
+            .languagePreferences(languagePreferences)
             .build();
     }
 
