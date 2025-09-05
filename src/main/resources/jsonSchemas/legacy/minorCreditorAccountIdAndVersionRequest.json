@@ -10,6 +10,10 @@
       "type": "string",
       "description": "The unique identifier for the creditor account."
     },
+    "creditor_account_version": {
+      "type": "integer",
+      "description": "The version number of the creditor account."
+    }
     "additionalProperties": false
   }
 }
