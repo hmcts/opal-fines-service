@@ -12,9 +12,20 @@ import uk.gov.hmcts.opal.dto.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.PostedDetails;
+import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
+import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.IndividualDetails;
+import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
+import uk.gov.hmcts.opal.dto.common.PartyDetails;
+import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
+import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
+import org.springframework.data.jpa.domain.Specification;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -28,19 +39,125 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Collections;
+
 @Service
 @Slf4j(topic = "opal.OpalDefendantAccountService")
 @RequiredArgsConstructor
 public class OpalDefendantAccountService implements DefendantAccountServiceInterface {
 
+    private final DefendantAccountHeaderViewRepository repository;
+
     private final DefendantAccountRepository defendantAccountRepository;
     private final DefendantAccountSpecs defendantAccountSpecs;
     private final DefendantAccountPaymentTermsRepository defendantAccountPaymentTermsRepository;
 
+
+    @Override
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
-        log.debug(":getHeaderSummary: id: {} - NOT YET IMPLEMENTED.", defendantAccountId);
-        // TODO: implement this when Opal mode is supported
-        throw new EntityNotFoundException("Defendant Account not found with id: " + defendantAccountId);
+        log.debug(":getHeaderSummary: Opal mode - ID: {}", defendantAccountId);
+
+        DefendantAccountHeaderViewEntity entity = repository.findById(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: "
+                + defendantAccountId));
+
+        return mapToDto(entity);
+    }
+
+
+    DefendantAccountHeaderSummary mapToDto(DefendantAccountHeaderViewEntity e) {
+        return DefendantAccountHeaderSummary.builder()
+            .defendantPartyId(
+                e.getPartyId() != null ? e.getPartyId().toString() : null
+            )
+            .parentGuardianPartyId(
+                e.getParentGuardianAccountPartyId() != null ? e.getParentGuardianAccountPartyId().toString() : null
+            )
+            .accountNumber(e.getAccountNumber())
+            .accountType(e.getAccountType())
+            .prosecutorCaseReference(e.getProsecutorCaseReference())
+            .fixedPenaltyTicketNumber(e.getFixedPenaltyTicketNumber())
+            .accountStatusReference(buildAccountStatusReference(e.getAccountStatus()))
+            .businessUnitSummary(buildBusinessUnitSummary(e))
+            .paymentStateSummary(buildPaymentStateSummary(e))
+            .partyDetails(buildPartyDetails(e))
+            .build();
+    }
+
+
+    PaymentStateSummary buildPaymentStateSummary(DefendantAccountHeaderViewEntity e) {
+        return PaymentStateSummary.builder()
+            .imposedAmount(nz(e.getImposed()))
+            .arrearsAmount(nz(e.getArrears()))
+            .paidAmount(nz(e.getPaid()))
+            .accountBalance(nz(e.getAccountBalance()))
+            .build();
+    }
+
+    static BigDecimal nz(BigDecimal v) {
+        return v != null ? v : BigDecimal.ZERO;
+    }
+
+
+    PartyDetails buildPartyDetails(DefendantAccountHeaderViewEntity e) {
+        return PartyDetails.builder()
+            .partyId(
+                e.getPartyId() != null ? e.getPartyId().toString() : null
+            )
+            .organisationFlag(e.getOrganisation())
+            .organisationDetails(
+                OrganisationDetails.builder()
+                    .organisationName(e.getOrganisationName())
+                    .build()
+            )
+            .individualDetails(
+                IndividualDetails.builder()
+                    .title(e.getTitle())
+                    .forenames(e.getFirstnames())
+                    .surname(e.getSurname())
+                    .dateOfBirth(e.getBirthDate() != null ? e.getBirthDate().toString() : null)
+                    .age(e.getBirthDate() != null ? String.valueOf(calculateAge(e.getBirthDate())) : null)
+                    .individualAliases(Collections.emptyList())
+                    .nationalInsuranceNumber(null)
+                    .build()
+            )
+            .build();
+    }
+
+    AccountStatusReference buildAccountStatusReference(String code) {
+        return AccountStatusReference.builder()
+            .accountStatusCode(code)
+            .accountStatusDisplayName(resolveStatusDisplayName(code))
+            .build();
+    }
+
+    BusinessUnitSummary buildBusinessUnitSummary(DefendantAccountHeaderViewEntity e) {
+        return BusinessUnitSummary.builder()
+            .businessUnitId(e.getBusinessUnitId() != null ? String.valueOf(e.getBusinessUnitId()) : null)
+            .businessUnitName(e.getBusinessUnitName())
+            .welshSpeaking("N")
+            .build();
+    }
+
+    int calculateAge(LocalDate birthDate) {
+        return birthDate != null
+            ? java.time.Period.between(birthDate, java.time.LocalDate.now()).getYears()
+            : 0;
+    }
+
+    String resolveStatusDisplayName(String code) {
+        return switch (code) {
+            case "L" -> "Live";
+            case "C" -> "Completed";
+            case "TO" -> "TFO to be acknowledged";
+            case "TS" -> "TFO to NI/Scotland to be acknowledged";
+            case "TA" -> "TFO acknowledged";
+            case "CS" -> "Account consolidated";
+            case "WO" -> "Account written off";
+            default -> "Unknown";
+        };
     }
 
     @Override

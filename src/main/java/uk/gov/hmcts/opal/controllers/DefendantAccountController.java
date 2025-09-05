@@ -19,7 +19,6 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
@@ -31,14 +30,8 @@ public class DefendantAccountController {
 
     private final DefendantAccountService defendantAccountService;
 
-    // TODO - remove from controller
-    private final UserStateService userStateService;
-
-    public DefendantAccountController(
-        DefendantAccountService defendantAccountService, UserStateService userStateService) {
-
+    public DefendantAccountController(DefendantAccountService defendantAccountService) {
         this.defendantAccountService = defendantAccountService;
-        this.userStateService = userStateService;
     }
 
     @GetMapping(value = "/{defendantAccountId}/header-summary")

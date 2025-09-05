@@ -54,7 +54,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(true);
     }
 
-
+    @DisplayName("Get header summary for defendant account [@PO-985]")
     void getHeaderSummaryImpl(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -81,6 +81,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
     }
 
+    @DisplayName("Get header summary for defendant account - 500 Error [@PO-985]")
     void getHeaderSummaryImpl_500Error(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -920,7 +921,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());
 
-        ResultActions resultActions = mockMvc.perform(get("/defendant-accounts/999/header-summary")
+        ResultActions resultActions = mockMvc.perform(get("/defendant-accounts/999777/header-summary")
             .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
