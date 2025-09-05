@@ -3,7 +3,8 @@
   "$id": "https://opal-fines-service/minorCreditorAccountIdRequest.json",
   "type": "object",
   "required": [
-    "creditor_account_id"
+    "creditor_account_id",
+    "creditor_account_version"
   ],
   "properties": {
     "creditor_account_id": {
