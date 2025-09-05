@@ -196,4 +196,10 @@ public class DefendantAccountEntity {
     @Column(name = "account_type", length = 30, nullable = false)
     @Convert(converter = DefendantAccountTypeConverter.class)
     private DefendantAccountType accountType;
+
+    @Column(name = "suspended_committal_date")
+    @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
+    private LocalDate suspendedCommittalDate;
+
 }
