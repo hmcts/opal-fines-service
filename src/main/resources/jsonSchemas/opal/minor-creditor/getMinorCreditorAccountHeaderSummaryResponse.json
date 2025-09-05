@@ -32,7 +32,7 @@
           "maxLength": 9
         },
         "account_type": {
-          "$ref": "../common-objects/creditor_account_type_reference.json"
+          "$ref": "../common-objects/creditorAccountTypeReference.json"
         }
       }
     },

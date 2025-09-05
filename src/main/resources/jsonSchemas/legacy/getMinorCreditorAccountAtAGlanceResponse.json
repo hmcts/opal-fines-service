@@ -5,7 +5,8 @@
   "required": [
     "party",
     "address",
-    "creditor_account_id"
+    "creditor_account_id",
+    "creditor_account_version"
   ],
   "properties": {
     "party": {
@@ -16,6 +17,10 @@
     },
     "creditor_account_id": {
       "$ref": "../types/bigint_value.json"
+    },
+    "creditor_account_version": {
+      "type": "integer",
+      "description": "The version number of the creditor account."
     },
     "defendant": {
       "type": "object",

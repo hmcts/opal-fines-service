@@ -10,21 +10,26 @@
   ],
   "properties": {
     "party": {
-      "$ref": "../common-objects/partyDetails.json"
+      "$ref": "./common-objects/partyDetailsLegacy.json"
     },
     "business_unit": {
-      "$ref": "../common-objects/businessUnitSummary.json"
+      "$ref": "./common-objects/businessUnitSummaryLegacy.json"
     },
     "creditor": {
       "type": "object",
       "required": [
         "account_id",
         "account_number",
-        "account_type"
+        "account_type",
+        "account_version"
       ],
       "properties": {
+        "account_version": {
+          "type": "integer",
+          "description": "The version number of the creditor account."
+        },
         "account_id": {
-          "$ref": "../../types/bigint_value.json"
+          "$ref": "./../types/bigint_value.json"
         },
         "account_number": {
           "type": "string",
@@ -32,7 +37,7 @@
           "maxLength": 9
         },
         "account_type": {
-          "$ref": "../common-objects/creditor_account_type_reference.json"
+          "$ref": "./common-objects/creditorAccountTypeReferenceLegacy.json"
         }
       }
     },
@@ -46,19 +51,19 @@
       ],
       "properties": {
         "awarded": {
-          "$ref": "../../types/positive_monetary_value.json",
+          "$ref": "../types/positive_monetary_value.json",
           "description": "Total of all impositions related to that minor creditor"
         },
         "paid_out": {
-          "$ref": "../../types/positive_monetary_value.json",
+          "$ref": "../types/positive_monetary_value.json",
           "description": "Total sum of Creditor Transactions where payment_processed is TRUE and transaction_type is 'PAYMNT'."
         },
         "awaiting_payout": {
-          "$ref": "../../types/positive_monetary_value.json",
+          "$ref": "../types/positive_monetary_value.json",
           "description": "This is the sum of all payment transactions that have been paid by the defendant which has not been paid out to the minor creditor. So transaction_amount in creditor_transactions that are related to the minor creditor where payment_processed is FALSE and transaction_type = 'PAYMNT'"
         },
         "outstanding": {
-          "$ref": "../../types/positive_monetary_value.json",
+          "$ref": "../types/positive_monetary_value.json",
           "description": "Total amount that associated defendant has not paid to the minor creditor  - so it is Imposed amounts minus Paid amounts."
         }
       }
