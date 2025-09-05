@@ -23,7 +23,6 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
-import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -149,7 +148,8 @@ class DraftAccountTransactionsTest {
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
         // Act
-        boolean deleted = draftAccountTransactions.deleteDraftAccount(1, true, draftAccountTransactions);
+        boolean deleted = draftAccountTransactions
+            .deleteDraftAccount(1, true, draftAccountTransactions);
         assertTrue(deleted);
     }
 
@@ -160,8 +160,8 @@ class DraftAccountTransactionsTest {
 
         // Act
         EntityNotFoundException enfe = assertThrows(
-            EntityNotFoundException.class, () -> draftAccountTransactions.deleteDraftAccount(1, true,
-                                                                                             draftAccountTransactions)
+            EntityNotFoundException.class, () -> draftAccountTransactions
+                .deleteDraftAccount(1, true, draftAccountTransactions)
         );
 
         // Assert
@@ -209,8 +209,8 @@ class DraftAccountTransactionsTest {
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(updatedAccount);
 
         // Act
-        DraftAccountEntity result = draftAccountTransactions.replaceDraftAccount(draftAccountId, replaceDto,
-                                                                                 draftAccountTransactions);
+        DraftAccountEntity result = draftAccountTransactions
+            .replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactions, "0");
 
         // Assert
         assertNotNull(result);
@@ -244,7 +244,7 @@ class DraftAccountTransactionsTest {
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-            draftAccountTransactions.replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactions)
+            draftAccountTransactions.replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactions, "")
         );
         assertEquals("Draft Account not found with id: 1", exception.getMessage());
     }
@@ -270,7 +270,7 @@ class DraftAccountTransactionsTest {
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-            draftAccountTransactions.replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactions)
+            draftAccountTransactions.replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactions, "0")
         );
         assertEquals("Business Unit not found with id: 2", exception.getMessage());
     }
@@ -304,7 +304,7 @@ class DraftAccountTransactionsTest {
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () ->
-            draftAccountTransactions.replaceDraftAccount(draftAccountId, dto, draftAccountTransactions)
+            draftAccountTransactions.replaceDraftAccount(draftAccountId, dto, draftAccountTransactions, "0")
         );
     }
 
@@ -328,7 +328,7 @@ class DraftAccountTransactionsTest {
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () ->
-            draftAccountTransactions.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactions)
+            draftAccountTransactions.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactions, "0")
         );
     }
 
@@ -368,8 +368,8 @@ class DraftAccountTransactionsTest {
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(updatedAccount);
 
         // Act
-        DraftAccountEntity result = draftAccountTransactions.updateDraftAccount(draftAccountId, updateDto,
-                                                                                draftAccountTransactions);
+        DraftAccountEntity result = draftAccountTransactions
+            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactions, "0");
 
         // Assert
         assertNotNull(result);
@@ -408,7 +408,7 @@ class DraftAccountTransactionsTest {
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-            draftAccountTransactions.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactions)
+            draftAccountTransactions.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactions, "0")
         );
         assertEquals("'SUBMITTED' is not a valid Draft Account Status.", exception.getMessage());
 
