@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/getMinorCreditorAccountAtAGlanceResponse.json",
+  "type": "object",
+  "required": [
+    "party",
+    "address",
+    "creditor_account_id",
+    "creditor_account_version"
+  ],
+  "properties": {
+    "party": {
+      "$ref": "./common-objects/partyDetailsLegacy.json"
+    },
+    "address": {
+      "$ref": "./common-objects/addressDetailsLegacy.json"
+    },
+    "creditor_account_id": {
+      "$ref": "../types/bigint_value.json"
+    },
+    "creditor_account_version": {
+      "type": "integer",
+      "description": "The version number of the creditor account."
+    },
+    "defendant": {
+      "type": "object",
+      "properties": {
+        "account_number": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 9
+        },
+        "id": {
+          "$ref": "../types/bigint_value.json"
+        }
+      }
+    },
+    "payment": {
+      "type": "object",
+      "properties": {
+        "is_bacs": {
+          "type": "boolean"
+        },
+        "hold_payment": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "is_bacs",
+        "hold_payment"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

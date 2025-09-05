@@ -1,0 +1,4 @@
+{
+  "$ref": "monetary_value.json",
+  "minimum": 0
+}

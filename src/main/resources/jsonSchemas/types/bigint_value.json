@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Postgres Big int restrictions",
+  "type": "number",
+  "maximum": 9223372036854775807,
+  "minimum": -9223372036854775808
+}
