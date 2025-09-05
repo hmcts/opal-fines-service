@@ -166,7 +166,7 @@ class DraftAccountControllerTest {
 
         // Act
         ResponseEntity<String> response = draftAccountController
-            .deleteDraftAccountById(7L, BEARER_TOKEN, Optional.empty());
+            .deleteDraftAccountById(7L, BEARER_TOKEN, "", Optional.empty());
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -185,7 +185,7 @@ class DraftAccountControllerTest {
 
         // Act
         RuntimeException rte = assertThrows(UnexpectedRollbackException.class, () ->
-            draftAccountController.deleteDraftAccountById(7L, BEARER_TOKEN, Optional.empty())
+            draftAccountController.deleteDraftAccountById(7L, BEARER_TOKEN, "", Optional.empty())
         );
 
         // Assert

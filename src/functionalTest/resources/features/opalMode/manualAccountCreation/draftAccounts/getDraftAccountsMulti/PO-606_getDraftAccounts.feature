@@ -83,7 +83,7 @@ Feature: PO-606 get draft accounts
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
-
+      | If-Match          | 0                                           |
 
     When I create a draft account with the following details
       | business_unit_id  | 77                                          |
