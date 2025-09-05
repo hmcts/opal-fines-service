@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.steps;
 
+import io.restassured.http.Header;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -62,5 +63,24 @@ public class BaseStepDef {
                                              String key) throws JSONException {
         String value = data.get(key);
         json.put(key, dataExists(value) ? value : JSONObject.NULL); // added here
+    }
+
+    public static Header createStringHeader(String headerName, Map<String, String> dataToPatch)
+        throws JSONException {
+        return new Header(headerName, dataToPatch.get(headerName));
+    }
+
+    public static Header createLongHeader(String headerName, Map<String, String> dataToPatch)
+        throws JSONException {
+        return new Header(headerName, checkLong(dataToPatch.get(headerName)));
+    }
+
+    public static Header createQuotedLongHeader(String headerName, Map<String, String> dataToPatch)
+        throws JSONException {
+        return new Header(headerName, "\"" + checkLong(dataToPatch.get(headerName)) + "\"");
+    }
+
+    private static String checkLong(String candidate) {
+        return String.valueOf(Long.parseLong(candidate));
     }
 }
