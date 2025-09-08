@@ -1,32 +1,44 @@
 package uk.gov.hmcts.opal.steps.draftaccount;
 
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
-import uk.gov.hmcts.opal.steps.BaseStepDef;
-import uk.gov.hmcts.opal.utils.DraftAccountUtils;
-
-import java.util.Map;
-
 import static net.serenitybdd.rest.SerenityRest.then;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
+import uk.gov.hmcts.opal.steps.BaseStepDef;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
+import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 
 public class DraftAccountGetSteps extends BaseStepDef {
     @When("I get the draft account {string}")
     public void getDraftAccount(String draftAccountId) {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .when()
-            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
+        try {
+            String encodedId = java.net.URLEncoder.encode(draftAccountId, "UTF-8");
+            SerenityRest
+                .given()
+                .header("Authorization", "Bearer " + getToken())
+                .accept("*/*")
+                .contentType("application/json")
+                .when()
+                .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + encodedId);
+        } catch (java.io.UnsupportedEncodingException e) {
+            // Fallback to original if encoding fails
+            SerenityRest
+                .given()
+                .header("Authorization", "Bearer " + getToken())
+                .accept("*/*")
+                .contentType("application/json")
+                .when()
+                .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
+        }
     }
 
 
