@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "properties": {
     "defendant_account_party": {
-      "$ref": "../common-objects/partyDetails.json"
+      "$ref": "../common-objects/defendantAccountParty.json"
     }
   },
   "required": [
