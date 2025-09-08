@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -34,12 +33,10 @@ import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
-import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
-import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
-
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 
 import java.math.BigDecimal;

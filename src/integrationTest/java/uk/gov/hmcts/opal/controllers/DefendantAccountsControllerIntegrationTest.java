@@ -1921,6 +1921,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.detail").value("The requested entity could not be found"));
 
     }
+
     @DisplayName("OPAL: Get Defendant Account Party - Happy Path [@PO-1588]")
     public void opalGetDefendantAccountParty_Happy(Logger log) throws Exception {
         ResultActions actions = mockMvc.perform(get("/defendant-accounts/77/defendant-account-parties/77")
