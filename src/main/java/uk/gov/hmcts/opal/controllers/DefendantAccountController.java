@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -40,16 +41,17 @@ public class DefendantAccountController {
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
+
         return buildResponse(
-            defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue)
-        );
+            defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue));
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
     public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
         @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
-        @RequestBody AccountSearchDto accountSearchDto,
+            @RequestBody
+           AccountSearchDto accountSearchDto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
@@ -57,5 +59,17 @@ public class DefendantAccountController {
             defendantAccountService.searchDefendantAccounts(accountSearchDto, authHeaderValue);
 
         return buildResponse(response);
+    }
+
+    @GetMapping(value = "/{defendantAccountId}/payment-terms/latest")
+    @Operation(summary = "Get defendant account details by providing the defendant account summary")
+    public ResponseEntity<GetDefendantAccountPaymentTermsResponse> defendantAccountPaymentTerms(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.debug(":GET:DefendantAccountPaymentTerms: for defendant id: {}", defendantAccountId);
+
+        return buildResponse(
+            defendantAccountService.getPaymentTerms(defendantAccountId, authHeaderValue));
     }
 }
