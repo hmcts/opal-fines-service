@@ -1,29 +1,28 @@
 package uk.gov.hmcts.opal.steps;
 
 
-import io.cucumber.datatable.DataTable;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
-import net.serenitybdd.core.Serenity;
-import org.apache.http.HttpStatus;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.junit.Assert;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.sql.SQLException;
 import java.util.Map;
 
-import static net.serenitybdd.rest.SerenityRest.then;
+import org.apache.http.HttpStatus;
 import static org.hamcrest.Matchers.equalTo;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.junit.Assert;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import net.serenitybdd.core.Serenity;
+import static net.serenitybdd.rest.SerenityRest.then;
 import static uk.gov.hmcts.opal.config.Constants.BUSINESS_UNIT_REF_DATA_URI;
 import static uk.gov.hmcts.opal.config.Constants.COURTS_REF_DATA_URI;
 import static uk.gov.hmcts.opal.config.Constants.ENFORCERS_REF_DATA_URI;

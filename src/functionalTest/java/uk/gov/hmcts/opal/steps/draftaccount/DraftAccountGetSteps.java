@@ -1,21 +1,21 @@
 package uk.gov.hmcts.opal.steps.draftaccount;
 
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
-import uk.gov.hmcts.opal.steps.BaseStepDef;
-import uk.gov.hmcts.opal.utils.DraftAccountUtils;
-
-import java.util.Map;
-
 import static net.serenitybdd.rest.SerenityRest.then;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
+import uk.gov.hmcts.opal.steps.BaseStepDef;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
+import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 
 public class DraftAccountGetSteps extends BaseStepDef {
     @When("I get the draft account {string}")
