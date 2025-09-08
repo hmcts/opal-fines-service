@@ -4,10 +4,6 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "defendant_account_id": {
-      "type": "string",
-      "minLength": 1
-    },
     "business_unit_id": {
       "type": "string",
       "minLength": 1
@@ -19,14 +15,14 @@
     "version": {
       "type": "integer"
     },
-    "account_activity_note": {
-      "$ref": "./common-objects/accountActivityNoteLegacy.json"
+    "activity_note": {
+      "$ref": "common-objects/noteLegacy.json"
     }
   },
   "required": [
-    "defendant_account_id",
     "business_unit_id",
+    "business_unit_user_id",
     "version",
-    "account_activity_note"
+    "activity_note"
   ]
 }

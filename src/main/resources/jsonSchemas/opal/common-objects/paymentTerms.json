@@ -33,6 +33,6 @@
       "multipleOf": 0.01
     }
   },
-  "required": ["days_in_default", "date_days_in_default_imposed", "reason_for_extension", "payment_terms_type", "effective_date", "instalment_period",
+  "required": ["days_in_default", "date_days_in_default_imposed", "reason_for_extension", "payment_terms_type", "effective_date",
                "lump_sum_amount", "instalment_amount"]
 }

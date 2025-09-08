@@ -15,11 +15,9 @@ import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
-import uk.gov.hmcts.opal.service.legacy.LegacyTestingSupportService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +27,6 @@ import static org.mockito.Mockito.when;
             TestingSupportController.class,
             DynamicConfigService.class,
             FeatureToggleService.class,
-            LegacyTestingSupportService.class,
             LegacyGatewayProperties.class,
             RestClient.class,
             DefendantAccountDeletionService.class
@@ -57,9 +54,6 @@ class TestingSupportControllerTest {
 
     @MockitoBean
     private AuthorisationService authorisationService;
-
-    @MockitoBean
-    private LegacyTestingSupportService legacyTestingSupportService;
 
     @MockitoBean DefendantAccountDeletionService defendantAccountDeletionService;
 
@@ -164,19 +158,5 @@ class TestingSupportControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("my@email.com", response.getBody());
-    }
-
-    @Test
-    void legacyTestFunctionReturnsResponse() {
-        String functionName = "testFunction";
-        String requestBody = "testBody";
-        String responseBody = "testResponse";
-
-        when(legacyTestingSupportService.postLegacyFunction(functionName, requestBody))
-            .thenReturn(ResponseEntity.ok(responseBody));
-
-        ResponseEntity<String> response = controller.legacyTestFunction(functionName, requestBody);
-
-        assertNotNull(response);
     }
 }
