@@ -24,7 +24,7 @@
       "type": "integer"
     },
     "defendant_account_party": {
-      "$ref": "./common-objects/partyDetailsLegacy.json"
+      "$ref": "./common-objects/defendantAccountPartyLegacy.json"
     }
   },
   "required": [
