@@ -15,8 +15,8 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PartyDetails {
 
-    @JsonProperty("defendant_account_party_id")
-    private String defendantAccountPartyId;
+    @JsonProperty("party_id")
+    private String partyId;
 
     @JsonProperty("organisation_flag")
     private Boolean organisationFlag;

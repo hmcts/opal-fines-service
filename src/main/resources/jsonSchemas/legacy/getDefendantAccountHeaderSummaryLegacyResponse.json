@@ -9,6 +9,11 @@
     "account_number": { "type": "string" },
     "defendant_party_id": { "type": "string" },
     "parent_guardian_party_id": { "type": "string" },
+    "debtor_type": {
+      "type": "string",
+      "enum": ["Defendant", "Parent/Guardian"]
+    },
+    "is_youth": { "type": "boolean" },
     "account_status_reference": {
       "$ref": "./common-objects/accountStatusReferenceLegacy.json"
     },
@@ -33,6 +38,8 @@
     "defendant_account_id",
     "account_number",
     "defendant_party_id",
+    "debtor_type",
+    "is_youth",
     "account_status_reference",
     "account_type",
     "business_unit_summary",
