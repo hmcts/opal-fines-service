@@ -6,10 +6,12 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.authentication.exception.AuthenticationException;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -1866,6 +1868,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("B15 3TG"));
     }
 
+    @DisplayName("OPAL: Get Defendant Account Party - Happy Path [@PO-1588]")
     public void opalGetDefendantAccountParty_Happy(Logger log) throws Exception {
         ResultActions actions = mockMvc.perform(get("/defendant-accounts/77/defendant-account-parties/77")
             .header("Authorization", "Bearer test-token"));
@@ -1878,16 +1881,19 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"));
     }
 
+    @DisplayName("OPAL: Get Defendant Account Party - Organisation Only [@PO-1588]")
     public void opalGetDefendantAccountParty_Organisation(Logger log) throws Exception {
         ResultActions actions = mockMvc.perform(get("/defendant-accounts/555/defendant-account-parties/555")
             .header("Authorization", "Bearer test-token"));
         log.info("Organisation response:\n" + actions.andReturn().getResponse().getContentAsString());
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_flag").value(true))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name").value("TechCorp Solutions Ltd"))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name")
+                .value("TechCorp Solutions Ltd"))
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist());
     }
 
+    @DisplayName("OPAL: Get Defendant Account Party - Null/Optional Fields [@PO-1588]")
     public void opalGetDefendantAccountParty_NullFields(Logger log) throws Exception {
         ResultActions actions = mockMvc.perform(get("/defendant-accounts/88/defendant-account-parties/88")
             .header("Authorization", "Bearer test-token"));
@@ -1897,6 +1903,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").doesNotExist());
     }
 
+    @DisplayName("OPAL: Get Defendant Account Party - 404 Not Found [@PO-1588]")
     public void opalGetDefendantAccountParty_404(Logger log) throws Exception {
         ResultActions actions = mockMvc.perform(get("/defendant-accounts/999999/defendant-account-parties/999999")
             .header("Authorization", "Bearer test-token"));
@@ -1904,16 +1911,20 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         actions.andExpect(status().isNotFound());
     }
 
+    @DisplayName("OPAL: Get Defendant Account Party - 401 Unauthorized [@PO-1588]")
     public void opalGetDefendantAccountParty_401(Logger log) throws Exception {
-        ResultActions actions = mockMvc.perform(get("/defendant-accounts/77/defendant-account-parties/77"));
+        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any()))
+            .thenThrow(new AuthenticationException("Unauthorized"));
+        ResultActions actions = mockMvc.perform(get("/defendant-accounts/77/defendant-account-parties/77")
+            .header("Authorization", "InvalidToken"));
         log.info("401 response:\n" + actions.andReturn().getResponse().getContentAsString());
         actions.andExpect(status().isUnauthorized());
     }
 
+    @DisplayName("OPAL: Get Defendant Account Party - 403 Forbidden [@PO-1588]")
     public void opalGetDefendantAccountParty_403(Logger log) throws Exception {
-        // This assumes your code throws a Forbidden/AccessDenied exception.
-        // Mock the userStateService or other permission mechanism here as needed:
-        when(userStateService.checkForAuthorisedUser(any())).thenThrow(new RuntimeException("Forbidden"));
+        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any()))
+            .thenThrow(new AccessDeniedException("Forbidden"));
         ResultActions actions = mockMvc.perform(get("/defendant-accounts/77/defendant-account-parties/77")
             .header("Authorization", "Bearer forbidden-token"));
         log.info("403 response:\n" + actions.andReturn().getResponse().getContentAsString());

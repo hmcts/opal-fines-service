@@ -86,11 +86,11 @@ public class DefendantAccountEntity {
     private LocalDate completedDate;
 
     @ManyToOne
-    @JoinColumn(name = "enforcing_court_id", referencedColumnName = "court_id", nullable = false)
+    @JoinColumn(name = "enforcing_court_id", referencedColumnName = "court_id")
     private CourtEntity enforcingCourt;
 
     @ManyToOne
-    @JoinColumn(name = "last_hearing_court_id", referencedColumnName = "court_id", nullable = false)
+    @JoinColumn(name = "last_hearing_court_id", referencedColumnName = "court_id")
     private CourtEntity lastHearingCourt;
 
     @Column(name = "last_hearing_date")

@@ -258,7 +258,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     + ", partyId=" + defendantAccountPartyId));
 
         // Map entity to PartyDetails DTO
-        DefendantAccountParty defendantAccountParty = mapDefendantAccountParty(account, party);
+        DefendantAccountParty defendantAccountParty = mapDefendantAccountParty(party);
 
         return GetDefendantAccountPartyResponse.builder()
             .defendantAccountParty(defendantAccountParty)
@@ -267,7 +267,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     private DefendantAccountParty mapDefendantAccountParty(
-        DefendantAccountEntity account,
         DefendantAccountPartiesEntity partyEntity
     ) {
         PartyEntity party = partyEntity.getParty();
