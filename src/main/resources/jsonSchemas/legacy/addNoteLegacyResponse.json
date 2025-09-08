@@ -4,10 +4,6 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "note_id": {
-      "type": "string",
-      "minLength": 1
-    },
     "version": {
       "type": "integer"
     },
@@ -16,7 +12,6 @@
     }
   },
   "required": [
-    "note_id",
     "version",
     "activity_note"
   ]

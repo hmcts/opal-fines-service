@@ -52,7 +52,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(true);
     }
 
-
+    @DisplayName("Get header summary for defendant account [@PO-985]")
     void getHeaderSummaryImpl(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -79,6 +79,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
     }
 
+    @DisplayName("Get header summary for defendant account - 500 Error [@PO-985]")
     void getHeaderSummaryImpl_500Error(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -918,7 +919,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());
 
-        ResultActions resultActions = mockMvc.perform(get("/defendant-accounts/999/header-summary")
+        ResultActions resultActions = mockMvc.perform(get("/defendant-accounts/999777/header-summary")
             .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
@@ -1015,7 +1016,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                          "national_insurance_number": "A11111A"
                        }
                      }
-                
+
                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -1384,7 +1385,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                          "national_insurance_number": null
                        }
                      }
-                
+
                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -1741,7 +1742,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
-        // Search with exact alias "TechCorp Ltd" - should match exactly 
+        // Search with exact alias "TechCorp Ltd" - should match exactly
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
             .header("authorization", "Bearer some_value")
             .contentType(MediaType.APPLICATION_JSON)
@@ -1783,7 +1784,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
-        // Search with partial address "Business" - should match "Business Park" 
+        // Search with partial address "Business" - should match "Business Park"
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
             .header("authorization", "Bearer some_value")
             .contentType(MediaType.APPLICATION_JSON)
