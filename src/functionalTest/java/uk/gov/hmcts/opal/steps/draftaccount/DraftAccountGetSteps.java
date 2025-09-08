@@ -20,25 +20,13 @@ import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 public class DraftAccountGetSteps extends BaseStepDef {
     @When("I get the draft account {string}")
     public void getDraftAccount(String draftAccountId) {
-        try {
-            String encodedId = java.net.URLEncoder.encode(draftAccountId, "UTF-8");
-            SerenityRest
-                .given()
-                .header("Authorization", "Bearer " + getToken())
-                .accept("*/*")
-                .contentType("application/json")
-                .when()
-                .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + encodedId);
-        } catch (java.io.UnsupportedEncodingException e) {
-            // Fallback to original if encoding fails
-            SerenityRest
-                .given()
-                .header("Authorization", "Bearer " + getToken())
-                .accept("*/*")
-                .contentType("application/json")
-                .when()
-                .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
-        }
+        SerenityRest
+            .given()
+            .header("Authorization", "Bearer " + getToken())
+            .accept("*/*")
+            .contentType("application/json")
+            .when()
+            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
     }
 
 

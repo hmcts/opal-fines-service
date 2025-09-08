@@ -39,13 +39,9 @@ public class RefDataStepDef extends BaseStepDef {
 
     @When("I make a request to the business unit ref data api filtering by business unit type {string}")
     public void getRequestToBusinessUnitRefData(String filter) {
-        try {
-            String encodedFilter = java.net.URLEncoder.encode(filter, "UTF-8");
-            methods.getRequest(BUSINESS_UNIT_REF_DATA_URI  + "?q=" + encodedFilter);
-        } catch (java.io.UnsupportedEncodingException e) {
-            // Fallback to original if encoding fails
-            methods.getRequest(BUSINESS_UNIT_REF_DATA_URI  + "?q=" + filter);
-        }
+
+        methods.getRequest(BUSINESS_UNIT_REF_DATA_URI  + "?q=" + filter);
+
     }
 
     @When("I make a request to the offence ref data api filtering by business unit {int}")
