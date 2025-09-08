@@ -219,3 +219,4 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         throw new UnsupportedOperationException("getDefendantAccountParty is not implemented in"
             + " LegacyDefendantAccountService");
     }
+}

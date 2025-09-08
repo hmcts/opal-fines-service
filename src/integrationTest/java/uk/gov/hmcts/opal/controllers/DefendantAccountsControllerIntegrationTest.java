@@ -50,6 +50,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     void setupUserState() {
         Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any()))
             .thenReturn(true);
+
+        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any()))
+            .thenReturn(userState);
     }
 
     @DisplayName("Get header summary for defendant account [@PO-985]")
@@ -1861,6 +1864,60 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("555"))
             .andExpect(jsonPath("$.defendant_accounts[0].organisation").value(true))
             .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("B15 3TG"));
+    }
+
+    public void opalGetDefendantAccountParty_Happy(Logger log) throws Exception {
+        ResultActions actions = mockMvc.perform(get("/defendant-accounts/77/defendant-account-parties/77")
+            .header("Authorization", "Bearer test-token"));
+        log.info("Opal happy path response:\n" + actions.andReturn().getResponse().getContentAsString());
+        actions.andExpect(status().isOk())
+            .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"))
+            .andExpect(jsonPath("$.defendant_account_party.is_debtor").value(true))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.party_id").value("77"))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value("Graham"))
+            .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"));
+    }
+
+    public void opalGetDefendantAccountParty_Organisation(Logger log) throws Exception {
+        ResultActions actions = mockMvc.perform(get("/defendant-accounts/555/defendant-account-parties/555")
+            .header("Authorization", "Bearer test-token"));
+        log.info("Organisation response:\n" + actions.andReturn().getResponse().getContentAsString());
+        actions.andExpect(status().isOk())
+            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name").value("TechCorp Solutions Ltd"))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist());
+    }
+
+    public void opalGetDefendantAccountParty_NullFields(Logger log) throws Exception {
+        ResultActions actions = mockMvc.perform(get("/defendant-accounts/88/defendant-account-parties/88")
+            .header("Authorization", "Bearer test-token"));
+        log.info("Null fields response:\n" + actions.andReturn().getResponse().getContentAsString());
+        actions.andExpect(status().isOk())
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").doesNotExist())
+            .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").doesNotExist());
+    }
+
+    public void opalGetDefendantAccountParty_404(Logger log) throws Exception {
+        ResultActions actions = mockMvc.perform(get("/defendant-accounts/999999/defendant-account-parties/999999")
+            .header("Authorization", "Bearer test-token"));
+        log.info("404 response:\n" + actions.andReturn().getResponse().getContentAsString());
+        actions.andExpect(status().isNotFound());
+    }
+
+    public void opalGetDefendantAccountParty_401(Logger log) throws Exception {
+        ResultActions actions = mockMvc.perform(get("/defendant-accounts/77/defendant-account-parties/77"));
+        log.info("401 response:\n" + actions.andReturn().getResponse().getContentAsString());
+        actions.andExpect(status().isUnauthorized());
+    }
+
+    public void opalGetDefendantAccountParty_403(Logger log) throws Exception {
+        // This assumes your code throws a Forbidden/AccessDenied exception.
+        // Mock the userStateService or other permission mechanism here as needed:
+        when(userStateService.checkForAuthorisedUser(any())).thenThrow(new RuntimeException("Forbidden"));
+        ResultActions actions = mockMvc.perform(get("/defendant-accounts/77/defendant-account-parties/77")
+            .header("Authorization", "Bearer forbidden-token"));
+        log.info("403 response:\n" + actions.andReturn().getResponse().getContentAsString());
+        actions.andExpect(status().isForbidden());
     }
 
 

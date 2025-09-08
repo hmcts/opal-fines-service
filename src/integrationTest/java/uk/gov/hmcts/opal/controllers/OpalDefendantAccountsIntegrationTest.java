@@ -3,9 +3,16 @@ package uk.gov.hmcts.opal.controllers;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+
+import java.util.List;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
@@ -247,4 +254,46 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     String getHeaderSummaryResponseSchemaLocation() {
         return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountHeaderSummaryResponse.json";
     }
+
+    @Test
+    void opal_getDefendantAccountParty_happy() throws Exception {
+        super.opalGetDefendantAccountParty_Happy(log);
+    }
+
+    @Test
+    void opal_getDefendantAccountParty_organisation() throws Exception {
+        super.opalGetDefendantAccountParty_Organisation(log);
+    }
+
+    @Test
+    void opal_getDefendantAccountParty_nullFields() throws Exception {
+        super.opalGetDefendantAccountParty_NullFields(log);
+    }
+
+    @Test
+    void opal_getDefendantAccountParty_404() throws Exception {
+        super.opalGetDefendantAccountParty_404(log);
+    }
+
+    @Test
+    void opal_getDefendantAccountParty_401() throws Exception {
+        super.opalGetDefendantAccountParty_401(log);
+    }
+
+    @Test
+    void opal_getDefendantAccountParty_403() throws Exception {
+        super.opalGetDefendantAccountParty_403(log);
+    }
+    @Autowired
+    private DefendantAccountRepository defendantAccountRepository;
+
+    @Test
+    void debugLoadAccountAndParties() {
+        var account = defendantAccountRepository.findById(88L).orElseThrow();
+        System.out.println("Parties: " + account.getParties().size());
+        for (DefendantAccountPartiesEntity party : account.getParties()) {
+            System.out.println("Party DAP ID: " + party.getDefendantAccountPartyId());
+        }
+    }
+
 }
