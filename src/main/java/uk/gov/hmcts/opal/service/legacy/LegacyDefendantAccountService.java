@@ -96,8 +96,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             GET_PAYMENT_TERMS, LegacyGetDefendantAccountPaymentTermsResponse.class,
             createGetDefendantAccountRequest(defendantAccountId.toString()), null);
 
-
-
         if (response.isError()) {
             log.error(":getPaymentTerms: Legacy Gateway response: HTTP Response Code: {}", response.code);
             if (response.isException()) {
@@ -256,7 +254,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
 
         return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(legacy.getVersion() != null ? legacy.getVersion().toString() : null)
+            .version(legacy.getVersion() != null ? legacy.getVersion() : null)
             .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
             .postedDetails(toPostedDetails(legacy.getPostedDetails()))
             .paymentCardLastRequested(legacy.getPaymentCardLastRequested())

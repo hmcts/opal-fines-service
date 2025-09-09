@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,8 +14,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class GetDefendantAccountPaymentTermsResponse {
 
-    @JsonIgnore
-    private String version;
+    @JsonProperty("version")
+    private Integer version;
 
     @JsonProperty("payment_terms")
     private PaymentTerms paymentTerms;

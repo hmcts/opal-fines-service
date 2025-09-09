@@ -14,25 +14,23 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
@@ -43,15 +41,24 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Mock
     private LegacyGatewayProperties gatewayProperties;
 
-    private GatewayService gatewayService;
+    @Mock
+    private GatewayService mockGatewayService;
+
+    private GatewayService gatewayServiceSpy;
 
     @InjectMocks
     private LegacyDefendantAccountService legacyDefendantAccountService;
 
     @BeforeEach
     void openMocks() throws Exception {
-        gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
-        injectGatewayService(legacyDefendantAccountService, gatewayService);
+        // Default: use the REAL spy so header-summary/search tests behave as before
+        gatewayServiceSpy = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
+        injectGatewayService(legacyDefendantAccountService, gatewayServiceSpy);
+    }
+
+    /** Swap the service’s gateway to the MOCK (used in payment-terms tests to avoid NPEs). */
+    private void useMockGateway() throws Exception {
+        injectGatewayService(legacyDefendantAccountService, mockGatewayService);
     }
 
     private void injectGatewayService(
@@ -314,7 +321,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void testGetHeaderSummary_gatewayThrows_hitsCatchAndRethrows() {
         doThrow(new RuntimeException("boom"))
-            .when(gatewayService)
+            .when(gatewayServiceSpy)
             .postToGateway(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
 
@@ -426,5 +433,102 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("Fine", published.getAccountType());
     }
 
+    @Test
+    void getPaymentTerms_success_returnsDto() throws Exception {
+        useMockGateway();
+
+        LegacyGetDefendantAccountPaymentTermsResponse legacy =
+            LegacyGetDefendantAccountPaymentTermsResponse.builder()
+                .version(7)
+                .build();
+
+        when(mockGatewayService.postToGateway(
+            any(),
+            eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
+            any(),
+            isNull()))
+            .thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacy));
+
+        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(1L);
+
+        assertNotNull(out);
+        assertEquals(7, out.getVersion()); // Integer -> String
+        verify(mockGatewayService).postToGateway(any(),
+                                                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
+    }
+
+    @Test
+    void getPaymentTerms_success_nullEntity_returnsNull() throws Exception {
+        useMockGateway();
+
+        when(mockGatewayService.postToGateway(
+            any(),
+            eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
+            any(),
+            isNull()))
+            .thenReturn(new GatewayService.Response<>(HttpStatus.OK, (LegacyGetDefendantAccountPaymentTermsResponse) null));
+
+        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(2L);
+
+        assertNull(out);
+        verify(mockGatewayService).postToGateway(any(),
+                                                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
+    }
+
+    @Test
+    void getPaymentTerms_error_withException_returnsNull() throws Exception {
+        useMockGateway();
+
+        GatewayService.Response<LegacyGetDefendantAccountPaymentTermsResponse> resp =
+            new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, new RuntimeException("boom"), "body");
+
+        when(mockGatewayService.postToGateway(
+            any(),
+            eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
+            any(),
+            isNull()))
+            .thenReturn(resp);
+
+        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(3L);
+
+        // mapper sees null legacy entity -> null result
+        assertNull(out);
+        verify(mockGatewayService).postToGateway(any(),
+                                                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
+    }
+
+    @Test
+    void getPaymentTerms_legacyFailure5xx_withEntity_returnsDto() throws Exception {
+        useMockGateway();
+
+        LegacyGetDefendantAccountPaymentTermsResponse legacy =
+            LegacyGetDefendantAccountPaymentTermsResponse.builder()
+                .version(2)
+                .build();
+
+        when(mockGatewayService.postToGateway(
+            any(),
+            eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
+            any(),
+            isNull()))
+            .thenReturn(new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacy, "<failure/>", null));
+
+        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(4L);
+
+        assertNotNull(out);
+        assertEquals(2, out.getVersion());
+        verify(mockGatewayService).postToGateway(any(),
+                                                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
+    }
+
+    @Test
+    void getPaymentTerms_gatewayThrows_propagates() throws Exception {
+        useMockGateway();
+
+        when(mockGatewayService.postToGateway(any(), any(), any(), any()))
+            .thenThrow(new IllegalStateException("network down"));
+
+        assertThrows(IllegalStateException.class, () -> legacyDefendantAccountService.getPaymentTerms(5L));
+    }
 
 }

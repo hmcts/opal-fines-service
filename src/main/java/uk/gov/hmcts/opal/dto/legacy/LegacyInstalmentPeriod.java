@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@XmlRootElement
+@XmlRootElement(name = "installment_period")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyInstalmentPeriod {
 

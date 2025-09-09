@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@XmlRootElement
+@XmlRootElement(name = "payment_terms_type")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyPaymentTermsType {
 
