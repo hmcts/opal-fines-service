@@ -63,13 +63,7 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     private AccessTokenService accessTokenService;
 
     @MockitoBean
-    private LegacyTestingSupportService legacyTestingSupportService;
-
-    @MockitoBean
     private UserClient userClient;
-
-    @MockitoBean
-    private AuthorisationService authorisationService;
 
     @Test
     void testGetAppMode() throws Exception {
