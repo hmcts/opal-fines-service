@@ -61,6 +61,21 @@ VALUES ( 0077, 'N', 'Sainsco'
        , 'Lumber House', '77 Gordon Road', 'Maidstone, Kent'
        , NULL, NULL, 'MA4 1AL'
        , 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
+
+INSERT INTO debtor_detail
+( party_id, vehicle_make, vehicle_registration,
+  employer_name, employer_address_line_1, employer_address_line_2,
+  employer_address_line_3, employer_address_line_4, employer_address_line_5,
+  employer_postcode, employee_reference, employer_telephone, employer_email,
+  document_language, document_language_date, hearing_language, hearing_language_date )
+VALUES
+( 77, 'Toyota Prius', 'AB77CDE',
+  'Tesco Ltd', '123 Employer Road', NULL,
+  NULL, NULL, NULL,
+  'EMP1 2AA', 'EMPREF77', '02079997777', 'employer77@company.com',
+  'EN', NULL, 'EN', NULL );
+
+
 INSERT INTO fixed_penalty_offences
 (defendant_account_id, ticket_number)
 VALUES (77, '888');

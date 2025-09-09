@@ -467,17 +467,4 @@ public class GlobalExceptionHandler {
         }
     }
 
-    @ExceptionHandler(uk.gov.hmcts.opal.authentication.exception.AuthenticationException.class)
-    public ResponseEntity<ProblemDetail> handleAuthenticationException(
-        uk.gov.hmcts.opal.authentication.exception.AuthenticationException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.UNAUTHORIZED,
-            "Unauthorized",
-            "Authentication failed or missing. Please provide a valid Authorization header.",
-            "unauthorized",
-            ex
-        );
-        return responseWithProblemDetail(HttpStatus.UNAUTHORIZED, problemDetail);
-    }
-
 }

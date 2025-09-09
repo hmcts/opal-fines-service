@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -28,11 +29,14 @@ import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.repository.AliasRepository;
+import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
@@ -57,6 +61,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final DefendantAccountSpecs defendantAccountSpecs;
     private final DefendantAccountPaymentTermsRepository defendantAccountPaymentTermsRepository;
 
+    @Autowired
+    private DebtorDetailRepository debtorDetailRepository;
+
+    @Autowired
+    private AliasRepository aliasRepository;
 
     @Override
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
@@ -223,17 +232,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String forenames = party != null ? party.getForenames() : null;
         String surname = party != null ? party.getSurname() : null;
 
-        List<AliasDto> aliases = Optional.ofNullable(party)
-            .map(PartyEntity::getAliasEntities) // Get aliasEntities from PartyEntity
-            .orElseGet(List::of) // Return an empty list if aliasEntities is null
-            .stream()
+        List<AliasDto> aliases = party != null
+            ? aliasRepository.findByParty_PartyId(party.getPartyId()).stream()
             .map(a -> AliasDto.builder()
-                .aliasNumber(a.getSequenceNumber()) // Map sequenceNumber to aliasNumber
-                .organisationName(a.getOrganisationName()) // Map organisationName
-                .surname(a.getSurname()) // Map surname
-                .forenames(a.getForenames()) // Map forenames
+                .aliasNumber(a.getSequenceNumber())
+                .organisationName(a.getOrganisationName())
+                .surname(a.getSurname())
+                .forenames(a.getForenames())
                 .build())
-            .toList();
+            .toList()
+            : List.of();
 
         return DefendantAccountSummaryDto.builder()
             .defendantAccountId(String.valueOf(e.getDefendantAccountId()))
@@ -252,7 +260,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .lastEnforcementAction(e.getLastEnforcement())
             .accountBalance(e.getAccountBalance())
             .birthDate(party != null && !isOrganisation
-                           ? uk.gov.hmcts.opal.util.DateTimeUtils.toString(party.getDateOfBirth())
+                           ? uk.gov.hmcts.opal.util.DateTimeUtils.toString(party.getBirthDate())
                            : null)
             .aliases(aliases)
             .build();
@@ -291,6 +299,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         DefendantAccountPartiesEntity partyEntity
     ) {
         PartyEntity party = partyEntity.getParty();
+        DebtorDetailEntity debtorDetail = debtorDetailRepository.findByPartyId(party.getPartyId());
 
         String defendantAccountPartyType = partyEntity.getAssociationType();
         Boolean isDebtor = partyEntity.getDebtor();
@@ -312,7 +321,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     .title(party.getTitle())
                     .forenames(party.getForenames())
                     .surname(party.getSurname())
-                    .dateOfBirth(party.getDateOfBirth() != null ? party.getDateOfBirth().toString() : null)
+                    .dateOfBirth(party.getBirthDate() != null ? party.getBirthDate().toString() : null)
                     .age(party.getAge() != null ? String.valueOf(party.getAge()) : null)
                     .nationalInsuranceNumber(party.getNiNumber())
                     .individualAliases(null)
@@ -330,11 +339,54 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .postcode(party.getPostcode())
             .build();
 
-        // These are not available in PartyEntity, so set as null
-        ContactDetails contactDetails = null;
-        VehicleDetails vehicleDetails = null;
-        EmployerDetails employerDetails = null;
-        LanguagePreferences languagePreferences = null;
+        ContactDetails contactDetails = ContactDetails.builder()
+            .primaryEmailAddress(party.getPrimaryEmailAddress())
+            .secondaryEmailAddress(party.getSecondaryEmailAddress())
+            .mobileTelephoneNumber(party.getMobileTelephoneNumber())
+            .homeTelephoneNumber(party.getHomeTelephoneNumber())
+            .workTelephoneNumber(party.getWorkTelephoneNumber())
+            .build();
+
+
+        VehicleDetails vehicleDetails = VehicleDetails.builder()
+            .vehicleMakeAndModel(debtorDetail != null ? debtorDetail.getVehicleMake() : null)
+            .vehicleRegistration(debtorDetail != null ? debtorDetail.getVehicleRegistration() : null)
+            .build();
+
+        AddressDetails employerAddress = AddressDetails.builder()
+            .addressLine1(debtorDetail != null ? debtorDetail.getEmployerAddressLine1() : "")
+            .addressLine2(debtorDetail != null ? debtorDetail.getEmployerAddressLine2() : null)
+            .addressLine3(debtorDetail != null ? debtorDetail.getEmployerAddressLine3() : null)
+            .addressLine4(debtorDetail != null ? debtorDetail.getEmployerAddressLine4() : null)
+            .addressLine5(debtorDetail != null ? debtorDetail.getEmployerAddressLine5() : null)
+            .postcode(debtorDetail != null ? debtorDetail.getEmployerPostcode() : null)
+            .build();
+
+        EmployerDetails employerDetails = EmployerDetails.builder()
+            .employerName(debtorDetail != null ? debtorDetail.getEmployerName() : null)
+            .employerReference(debtorDetail != null ? debtorDetail.getEmployeeReference() : null)
+            .employerEmailAddress(debtorDetail != null ? debtorDetail.getEmployerEmail() : null)
+            .employerTelephoneNumber(debtorDetail != null ? debtorDetail.getEmployerTelephone() : null)
+            .employerAddress(employerAddress)
+            .build();
+
+        LanguagePreferences.LanguagePreference documentLanguagePref =
+            LanguagePreferences.LanguagePreference.builder()
+                .languageCode(debtorDetail != null ? debtorDetail.getDocumentLanguage() : null)
+                .languageDisplayName(null)
+                .build();
+
+        LanguagePreferences.LanguagePreference hearingLanguagePref =
+            LanguagePreferences.LanguagePreference.builder()
+                .languageCode(debtorDetail != null ? debtorDetail.getHearingLanguage() : null)
+                .languageDisplayName(null)
+                .build();
+
+        LanguagePreferences languagePreferences = LanguagePreferences.builder()
+            .documentLanguagePreference(documentLanguagePref)
+            .hearingLanguagePreference(hearingLanguagePref)
+            .build();
+
 
         return DefendantAccountParty.builder()
             .defendantAccountPartyType(defendantAccountPartyType)

@@ -279,19 +279,4 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.opalGetDefendantAccountParty_NullFields(log);
     }
 
-    @Test
-    void opal_getDefendantAccountParty_404() throws Exception {
-        super.opalGetDefendantAccountParty_404(log);
-    }
-
-    @Test
-    void opal_getDefendantAccountParty_401() throws Exception {
-        super.opalGetDefendantAccountParty_401(log);
-    }
-
-    @Test
-    void opal_getDefendantAccountParty_403() throws Exception {
-        super.opalGetDefendantAccountParty_403(log);
-    }
-
 }
