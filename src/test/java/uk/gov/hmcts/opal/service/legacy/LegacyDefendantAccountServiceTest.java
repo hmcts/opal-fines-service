@@ -28,9 +28,17 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.isNull;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
@@ -449,12 +457,13 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             isNull()))
             .thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacy));
 
-        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(1L);
+        GetDefendantAccountPaymentTermsResponse out =
+            legacyDefendantAccountService.getPaymentTerms(1L);
 
         assertNotNull(out);
         assertEquals(7, out.getVersion()); // Integer -> String
-        verify(mockGatewayService).postToGateway(any(),
-                                                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
+        verify(mockGatewayService)
+            .postToGateway(any(), eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
     }
 
     @Test
@@ -466,13 +475,14 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
             any(),
             isNull()))
-            .thenReturn(new GatewayService.Response<>(HttpStatus.OK, (LegacyGetDefendantAccountPaymentTermsResponse) null));
+            .thenReturn(
+                new GatewayService.Response<>(HttpStatus.OK, (LegacyGetDefendantAccountPaymentTermsResponse) null));
 
         GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(2L);
 
         assertNull(out);
-        verify(mockGatewayService).postToGateway(any(),
-                                                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
+        verify(mockGatewayService)
+            .postToGateway(any(), eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
     }
 
     @Test
@@ -493,8 +503,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // mapper sees null legacy entity -> null result
         assertNull(out);
-        verify(mockGatewayService).postToGateway(any(),
-                                                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
+        verify(mockGatewayService)
+            .postToGateway(any(), eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
     }
 
     @Test
@@ -517,8 +527,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         assertNotNull(out);
         assertEquals(2, out.getVersion());
-        verify(mockGatewayService).postToGateway(any(),
-                                                 eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
+        verify(mockGatewayService)
+            .postToGateway(any(), eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
     }
 
     @Test
