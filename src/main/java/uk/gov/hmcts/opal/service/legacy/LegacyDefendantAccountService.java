@@ -35,6 +35,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     public static final String GET_HEADER_SUMMARY = "LIBRA.get_header_summary";
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
+    public static final String GET_PAYMENT_TERMS = "LIBRA.get_payment_terms";
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
@@ -86,8 +87,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
 
         Response<LegacyGetDefendantAccountPaymentTermsResponse> response = gatewayService.postToGateway(
-            GET_HEADER_SUMMARY, LegacyGetDefendantAccountPaymentTermsResponse.class,
+            GET_PAYMENT_TERMS, LegacyGetDefendantAccountPaymentTermsResponse.class,
             createGetDefendantAccountRequest(defendantAccountId.toString()), null);
+
+
 
         if (response.isError()) {
             log.error(":getPaymentTerms: Legacy Gateway response: HTTP Response Code: {}", response.code);

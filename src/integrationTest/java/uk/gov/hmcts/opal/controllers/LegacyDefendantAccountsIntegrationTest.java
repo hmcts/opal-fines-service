@@ -34,6 +34,16 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
         super.testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound(log);
     }
 
+    @Test
+    void testGetDefendantAccountsPaymentTerms_SUCCESS() throws Exception {
+        super.testGetPaymentTerms(log);
+    }
+
+    @Test
+    void testGetDefendantAccountsPaymentTerms_500Error() throws Exception {
+        super.getDefendantAccountPaymentTerms_500Error(log);
+    }
+
     @Override
     String getHeaderSummaryResponseSchemaLocation() {
         return "legacy/getDefendantAccountHeaderSummaryLegacyResponse.json";

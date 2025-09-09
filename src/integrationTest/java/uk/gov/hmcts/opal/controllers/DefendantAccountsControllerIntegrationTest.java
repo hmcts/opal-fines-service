@@ -1917,4 +1917,18 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
     }
 
+    void getDefendantAccountPaymentTerms_500Error(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/500/payment-terms/latest")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().is5xxServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
 }
