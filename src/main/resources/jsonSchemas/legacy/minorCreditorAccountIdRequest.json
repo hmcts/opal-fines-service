@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/minorCreditorAccountIdRequest.json",
+  "type": "object",
+  "required": [
+    "creditor_account_id"
+  ],
+  "properties": {
+    "creditor_account_id": {
+      "type": "string",
+      "description": "The unique identifier for the creditor account."
+    },
+    "additionalProperties": false
+  }
+}
