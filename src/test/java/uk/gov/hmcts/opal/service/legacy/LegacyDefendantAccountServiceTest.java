@@ -30,9 +30,14 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
@@ -426,14 +431,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("Fine", published.getAccountType());
     }
 
-// --------------------------
-// Payment Terms (spy gateway + stubbed restClient)
-// --------------------------
-
     @SuppressWarnings("unchecked")
     @Test
     void getPaymentTerms_success_spyGatewayAndRestClientStub() throws Exception {
-        // ensure the spy (real LegacyGatewayService) is wired for this test
 
         LegacyGetDefendantAccountPaymentTermsResponse responseBody =
             LegacyGetDefendantAccountPaymentTermsResponse.builder()
@@ -464,7 +464,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(99L);
 
         assertNotNull(out);
-        // If your DTO's version is String use "2"; if it's Integer use 2
         assertEquals(2, out.getVersion());
         assertEquals(120, out.getPaymentTerms().getDaysInDefault());
         assertEquals(
@@ -497,7 +496,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
             new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
-        // Simulate 503 from legacy
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
 
@@ -520,7 +519,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
 
-        // IMPORTANT: do NOT throw here; return a 5xx ResponseEntity instead
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
 
@@ -528,11 +526,11 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         assertNull(out);
     }
+
     @SuppressWarnings("unchecked")
     @Test
     void getPaymentTerms_success_withNullEntity_returnsEmptyDto() throws Exception {
 
-        // Simulate 200 OK but no typed body
         ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
             new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
@@ -541,7 +539,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(3L);
 
-        // The spy gateway yields an empty entity → mapper returns an empty DTO, not null
         assertNotNull(out);
         assertNull(out.getVersion());
         assertNull(out.getPaymentTerms());
