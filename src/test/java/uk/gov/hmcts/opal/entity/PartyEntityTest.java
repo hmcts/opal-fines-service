@@ -30,7 +30,7 @@ public class PartyEntityTest {
         party.setAddressLine5("Scotland");
         party.setPostcode("SN15 9TT");
         party.setAccountType("TFO");  // TFO = Transfer. Could also be FP = Fixed Penalty
-        party.setDateOfBirth(LocalDate.of(2001, 8, 16));
+        party.setBirthDate(LocalDate.of(2001, 8, 16));
         party.setAge((short)21);
         party.setNiNumber("FF22446688");
         party.setLastChangedDate(LocalDateTime.of(2023, 12, 5, 15, 45));
@@ -49,7 +49,7 @@ public class PartyEntityTest {
         assertEquals("Scotland", party.getAddressLine5());
         assertEquals("SN15 9TT", party.getPostcode());
         assertEquals("TFO", party.getAccountType());
-        assertEquals(LocalDate.of(2001, 8, 16), party.getDateOfBirth());
+        assertEquals(LocalDate.of(2001, 8, 16), party.getBirthDate());
         assertEquals(Short.valueOf((short) 21), party.getAge());
         assertEquals("FF22446688", party.getNiNumber());
         assertEquals(LocalDateTime.of(2023, 12, 5, 15, 45), party.getLastChangedDate());

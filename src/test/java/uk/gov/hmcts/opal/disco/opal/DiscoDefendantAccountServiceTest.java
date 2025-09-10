@@ -354,7 +354,7 @@ public class DiscoDefendantAccountServiceTest {
             .addressLine2("Westminster")
             .addressLine3("London")
             .postcode("W1 1AA")
-            .dateOfBirth(LocalDate.of(1979,12,12))
+            .birthDate(LocalDate.of(1979,12,12))
             .build();
     }
 

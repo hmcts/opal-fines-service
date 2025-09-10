@@ -263,4 +263,20 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountPaymentTermsResponse.json";
     }
 
+
+    @Test
+    void opal_getDefendantAccountParty_happy() throws Exception {
+        super.opalGetDefendantAccountParty_Happy(log);
+    }
+
+    @Test
+    void opal_getDefendantAccountParty_organisation() throws Exception {
+        super.opalGetDefendantAccountParty_Organisation(log);
+    }
+
+    @Test
+    void opal_getDefendantAccountParty_nullFields() throws Exception {
+        super.opalGetDefendantAccountParty_NullFields(log);
+    }
+
 }

@@ -65,7 +65,7 @@ public class PartySpecs extends EntitySpecs<PartyEntity> {
 
     public static Predicate equalsDateOfBirthPredicate(From<?, PartyEntity> from, CriteriaBuilder builder,
                                                        LocalDate dob) {
-        return builder.equal(from.get(PartyEntity_.dateOfBirth), dob);
+        return builder.equal(from.get(PartyEntity_.birthDate), dob);
     }
 
     public static Specification<PartyEntity> likeNiNumber(String niNumber) {
