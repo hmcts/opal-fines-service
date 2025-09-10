@@ -437,7 +437,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         LegacyGetDefendantAccountPaymentTermsResponse responseBody =
             LegacyGetDefendantAccountPaymentTermsResponse.builder()
-                .version(2)
+                .version(2L)
                 .paymentTerms(
                     uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms.builder()
                         .daysInDefault(120)
@@ -481,7 +481,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         LegacyGetDefendantAccountPaymentTermsResponse responseBody =
             LegacyGetDefendantAccountPaymentTermsResponse.builder()
-                .version(3)
+                .version(3L)
                 .paymentTerms(
                     uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms.builder()
                         .daysInDefault(5)
@@ -567,7 +567,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         LegacyGetDefendantAccountPaymentTermsResponse responseBody =
             LegacyGetDefendantAccountPaymentTermsResponse.builder()
-                .version(4)
+                .version(4L)
                 .paymentTerms(legacyTerms)
                 .postedDetails(null) // toPostedDetails → null
                 .build();

@@ -22,7 +22,7 @@ import java.time.LocalDate;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyGetDefendantAccountPaymentTermsResponse implements ToXmlString {
 
-    private Integer version;
+    private Long version;
 
     @XmlElement(name = "payment_terms")
     private LegacyPaymentTerms paymentTerms;
