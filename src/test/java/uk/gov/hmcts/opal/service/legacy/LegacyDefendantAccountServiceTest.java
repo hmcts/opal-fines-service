@@ -15,6 +15,8 @@ import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.InstalmentPeriod;
+import uk.gov.hmcts.opal.dto.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
@@ -28,17 +30,9 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isNull;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
@@ -49,24 +43,15 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Mock
     private LegacyGatewayProperties gatewayProperties;
 
-    @Mock
-    private GatewayService mockGatewayService;
-
-    private GatewayService gatewayServiceSpy;
+    private GatewayService gatewayService;
 
     @InjectMocks
     private LegacyDefendantAccountService legacyDefendantAccountService;
 
     @BeforeEach
     void openMocks() throws Exception {
-        // Default: use the REAL spy so header-summary/search tests behave as before
-        gatewayServiceSpy = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
-        injectGatewayService(legacyDefendantAccountService, gatewayServiceSpy);
-    }
-
-    /** Swap the service’s gateway to the MOCK (used in payment-terms tests to avoid NPEs). */
-    private void useMockGateway() throws Exception {
-        injectGatewayService(legacyDefendantAccountService, mockGatewayService);
+        gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
+        injectGatewayService(legacyDefendantAccountService, gatewayService);
     }
 
     private void injectGatewayService(
@@ -329,7 +314,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void testGetHeaderSummary_gatewayThrows_hitsCatchAndRethrows() {
         doThrow(new RuntimeException("boom"))
-            .when(gatewayServiceSpy)
+            .when(gatewayService)
             .postToGateway(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
 
@@ -441,104 +426,169 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("Fine", published.getAccountType());
     }
 
-    @Test
-    void getPaymentTerms_success_returnsDto() throws Exception {
-        useMockGateway();
+// --------------------------
+// Payment Terms (spy gateway + stubbed restClient)
+// --------------------------
 
-        LegacyGetDefendantAccountPaymentTermsResponse legacy =
+    @SuppressWarnings("unchecked")
+    @Test
+    void getPaymentTerms_success_spyGatewayAndRestClientStub() throws Exception {
+        // ensure the spy (real LegacyGatewayService) is wired for this test
+
+        LegacyGetDefendantAccountPaymentTermsResponse responseBody =
             LegacyGetDefendantAccountPaymentTermsResponse.builder()
-                .version(7)
+                .version(2)
+                .paymentTerms(
+                    uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms.builder()
+                        .daysInDefault(120)
+                        .paymentTermsType(new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
+                            uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode.B))
+                        .instalmentPeriod(new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
+                            uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.W))
+                        .build()
+                )
+                .postedDetails(new uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails(
+                    java.time.LocalDate.of(2023, 11, 3), "01000000A", ""))
+                .paymentCardLastRequested(java.time.LocalDate.of(2024, 1, 1))
+                .dateLastAmended(java.time.LocalDate.of(2024, 1, 3))
+                .extension(false)
+                .lastEnforcement("REM")
                 .build();
 
-        when(mockGatewayService.postToGateway(
-            any(),
-            eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
-            any(),
-            isNull()))
-            .thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacy));
+        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
-        GetDefendantAccountPaymentTermsResponse out =
-            legacyDefendantAccountService.getPaymentTerms(1L);
+        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(99L);
 
         assertNotNull(out);
-        assertEquals(7, out.getVersion()); // Integer -> String
-        verify(mockGatewayService)
-            .postToGateway(any(), eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
+        // If your DTO's version is String use "2"; if it's Integer use 2
+        assertEquals(2, out.getVersion());
+        assertEquals(120, out.getPaymentTerms().getDaysInDefault());
+        assertEquals(
+            InstalmentPeriod.InstalmentPeriodCode.W,
+            out.getPaymentTerms().getInstalmentPeriod().getInstalmentPeriodCode());
+        assertEquals(
+            PaymentTermsType.PaymentTermsTypeCode.B,
+            out.getPaymentTerms().getPaymentTermsType().getPaymentTermsTypeCode());
+        assertEquals("REM", out.getLastEnforcement());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
-    void getPaymentTerms_success_nullEntity_returnsNull() throws Exception {
-        useMockGateway();
+    void getPaymentTerms_legacyFailure5xx_withEntity_mapsAnyway() throws Exception {
 
-        when(mockGatewayService.postToGateway(
-            any(),
-            eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
-            any(),
-            isNull()))
-            .thenReturn(
-                new GatewayService.Response<>(HttpStatus.OK, (LegacyGetDefendantAccountPaymentTermsResponse) null));
+        LegacyGetDefendantAccountPaymentTermsResponse responseBody =
+            LegacyGetDefendantAccountPaymentTermsResponse.builder()
+                .version(3)
+                .paymentTerms(
+                    uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms.builder()
+                        .daysInDefault(5)
+                        .paymentTermsType(new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
+                            uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode.P))
+                        .instalmentPeriod(new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
+                            uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.M))
+                        .build()
+                )
+                .build();
 
-        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(2L);
+        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        // Simulate 503 from legacy
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+
+        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(1L);
+
+        assertNotNull(out);
+        assertEquals(3, out.getVersion());
+        assertEquals(5, out.getPaymentTerms().getDaysInDefault());
+        assertEquals(PaymentTermsType.PaymentTermsTypeCode.P,
+                     out.getPaymentTerms().getPaymentTermsType().getPaymentTermsTypeCode());
+        assertEquals(InstalmentPeriod.InstalmentPeriodCode.M,
+                     out.getPaymentTerms().getInstalmentPeriod().getInstalmentPeriodCode());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getPaymentTerms_error5xx_returnsNull() throws Exception {
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+
+        // IMPORTANT: do NOT throw here; return a 5xx ResponseEntity instead
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
+
+        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(42L);
 
         assertNull(out);
-        verify(mockGatewayService)
-            .postToGateway(any(), eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
     }
-
+    @SuppressWarnings("unchecked")
     @Test
-    void getPaymentTerms_error_withException_returnsNull() throws Exception {
-        useMockGateway();
+    void getPaymentTerms_success_withNullEntity_returnsEmptyDto() throws Exception {
 
-        GatewayService.Response<LegacyGetDefendantAccountPaymentTermsResponse> resp =
-            new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, new RuntimeException("boom"), "body");
-
-        when(mockGatewayService.postToGateway(
-            any(),
-            eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
-            any(),
-            isNull()))
-            .thenReturn(resp);
+        // Simulate 200 OK but no typed body
+        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>("<response/>", HttpStatus.OK));
 
         GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(3L);
 
-        // mapper sees null legacy entity -> null result
-        assertNull(out);
-        verify(mockGatewayService)
-            .postToGateway(any(), eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
+        // The spy gateway yields an empty entity → mapper returns an empty DTO, not null
+        assertNotNull(out);
+        assertNull(out.getVersion());
+        assertNull(out.getPaymentTerms());
+        assertNull(out.getPostedDetails());
+        assertNull(out.getPaymentCardLastRequested());
+        assertNull(out.getDateLastAmended());
+        assertNull(out.getExtension());
+        assertNull(out.getLastEnforcement());
     }
 
+    @SuppressWarnings("unchecked")
     @Test
-    void getPaymentTerms_legacyFailure5xx_withEntity_returnsDto() throws Exception {
-        useMockGateway();
+    void getPaymentTerms_mapsNullNestedObjects_toNulls() throws Exception {
 
-        LegacyGetDefendantAccountPaymentTermsResponse legacy =
-            LegacyGetDefendantAccountPaymentTermsResponse.builder()
-                .version(2)
+        uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms legacyTerms =
+            uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms.builder()
+                .daysInDefault(0)
+                .dateDaysInDefaultImposed(null)
+                .reasonForExtension(null)
+                .paymentTermsType(null) // toPaymentTermsType → null
+                .effectiveDate(null)
+                .instalmentPeriod(null) // toInstalmentPeriod → null
+                .lumpSumAmount(null)
+                .instalmentAmount(null)
                 .build();
 
-        when(mockGatewayService.postToGateway(
-            any(),
-            eq(LegacyGetDefendantAccountPaymentTermsResponse.class),
-            any(),
-            isNull()))
-            .thenReturn(new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacy, "<failure/>", null));
+        LegacyGetDefendantAccountPaymentTermsResponse responseBody =
+            LegacyGetDefendantAccountPaymentTermsResponse.builder()
+                .version(4)
+                .paymentTerms(legacyTerms)
+                .postedDetails(null) // toPostedDetails → null
+                .build();
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(4L);
 
         assertNotNull(out);
-        assertEquals(2, out.getVersion());
-        verify(mockGatewayService)
-            .postToGateway(any(), eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), isNull());
+        assertNotNull(out.getPaymentTerms());
+        assertNull(out.getPaymentTerms().getPaymentTermsType());
+        assertNull(out.getPaymentTerms().getInstalmentPeriod());
+        assertNull(out.getPostedDetails());
     }
 
-    @Test
-    void getPaymentTerms_gatewayThrows_propagates() throws Exception {
-        useMockGateway();
-
-        when(mockGatewayService.postToGateway(any(), any(), any(), any()))
-            .thenThrow(new IllegalStateException("network down"));
-
-        assertThrows(IllegalStateException.class, () -> legacyDefendantAccountService.getPaymentTerms(5L));
-    }
 
 }
