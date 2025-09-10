@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <xsd:complexType name="defendant">
+    <xsd:sequence>
+      <xsd:element name="defendant_account_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
       <xsd:choice>
         <xsd:sequence>
           <xsd:element name="organisation_name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
@@ -10,5 +12,6 @@
           <xsd:element name="defendant_surname" type="xsd:string" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
       </xsd:choice>
+    </xsd:sequence>
   </xsd:complexType>
 </xsd:schema>
