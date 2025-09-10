@@ -6,7 +6,7 @@
   "properties": {
     "record_type": {
       "type": "string",
-      "enum": ["defendant_accounts", "creditor_accounts", "suspense_ accounts", "report_instances"]
+      "enum": ["defendant_accounts", "creditor_accounts", "suspense_accounts", "report_instances"]
     },
     "record_id": { "type": "string" },
     "note_text": { "type": "string" },
