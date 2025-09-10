@@ -336,19 +336,19 @@ dependencies {
   implementation 'org.postgresql:postgresql'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
-  compileOnly 'org.projectlombok:lombok:1.18.38'
-  annotationProcessor 'org.projectlombok:lombok:1.18.38'
+  compileOnly 'org.projectlombok:lombok:1.18.40'
+  annotationProcessor 'org.projectlombok:lombok:1.18.40'
   annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.28.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
   annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
-  testCompileOnly 'org.projectlombok:lombok:1.18.38'
-  testAnnotationProcessor 'org.projectlombok:lombok:1.18.38'
+  testCompileOnly 'org.projectlombok:lombok:1.18.40'
+  testAnnotationProcessor 'org.projectlombok:lombok:1.18.40'
 
-  integrationTestCompileOnly 'org.projectlombok:lombok:1.18.38'
-  integrationTestAnnotationProcessor 'org.projectlombok:lombok:1.18.38'
+  integrationTestCompileOnly 'org.projectlombok:lombok:1.18.40'
+  integrationTestAnnotationProcessor 'org.projectlombok:lombok:1.18.40'
 
   implementation 'org.mapstruct:mapstruct:1.6.3'
   annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
