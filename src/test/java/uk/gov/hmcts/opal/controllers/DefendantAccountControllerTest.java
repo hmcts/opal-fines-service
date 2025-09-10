@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -94,7 +94,6 @@ class DefendantAccountControllerTest {
 
         verify(defendantAccountService).getHeaderSummary(eq(1L), any());
     }
-
 
     @Test
     void testGetHeaderSummaryResponseGetters() {
