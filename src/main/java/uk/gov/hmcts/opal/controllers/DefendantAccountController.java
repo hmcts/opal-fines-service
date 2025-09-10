@@ -19,6 +19,8 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
+
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
@@ -44,6 +46,23 @@ public class DefendantAccountController {
 
         return buildResponse(
             defendantAccountService.getHeaderSummary(defendantAccountId, authHeaderValue));
+    }
+
+    @GetMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}")
+    @Operation(summary = "Get details for a defendant account party")
+    public ResponseEntity<GetDefendantAccountPartyResponse> getDefendantAccountParty(
+        @PathVariable Long defendantAccountId,
+        @PathVariable Long defendantAccountPartyId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.debug(":GET:getDefendantAccountParty: for accountId={}, partyId={}", defendantAccountId,
+            defendantAccountPartyId);
+
+        GetDefendantAccountPartyResponse response =
+            defendantAccountService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId,
+                authHeaderValue);
+
+        return buildResponse(response);
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -190,7 +190,7 @@ public class DiscoDefendantAccountService implements DiscoDefendantAccountServic
             .businessUnitId(defendantAccountEntity.getBusinessUnit().getBusinessUnitId())
             .address(fullAddress)
             .postCode(partyEntity.getPostcode())
-            .dob(partyEntity.getDateOfBirth())
+            .dob(partyEntity.getBirthDate())
             .detailsChanged(defendantAccountEntity.getLastChangedDate())
             .lastCourtAppAndCourtCode(defendantAccountEntity.getLastHearingDate().toString()
                 + " " + defendantAccountEntity.getLastHearingCourt().getCourtCode())
