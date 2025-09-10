@@ -254,7 +254,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
 
         return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(legacy.getVersion() != null ? legacy.getVersion() : null)
+            .version(Long.valueOf(legacy.getVersion()))
             .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
             .postedDetails(toPostedDetails(legacy.getPostedDetails()))
             .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
