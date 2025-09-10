@@ -8,6 +8,20 @@
     {
       "matchPackageNames": ["net.serenity-bdd.serenity-gradle-plugin"],
       "allowedVersions": "4.2.1"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["postgres"],
+      "enabled": false
+    },
+    {
+      "matchManagers": ["gradle-wrapper"],
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
+      "matchManagers": ["gradle"],
+      "matchPackageNames": ["org.hibernate.orm:hibernate-jpamodelgen"],
+      "matchUpdateTypes": ["minor", "patch"]
     }
   ],
   "description": "Schedule for Wednesdays only.",
