@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="simple_type.xsd"/>
+
+  <xsd:complexType name="payment_terms_summary">
+    <xsd:sequence>
+      <xsd:element name="payment_terms_type"  minOccurs="1" maxOccurs="1">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="payment_terms_type_code" type="payment_terms_type_code" minOccurs="1" maxOccurs="1"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <!-- "xsd:date" type string and format expected is (YYYY-MM-DD) -->
+      <xsd:element name="effective_date" type="xsd:date" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="instalment_period" minOccurs="0" maxOccurs="1">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="instalment_period_code" type="instalment_period_code" minOccurs="1" maxOccurs="1"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="lump_sum_amount" type="Money2Decimal" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="instalment_amount" type="Money2Decimal" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

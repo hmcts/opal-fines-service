@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="last_enforcement_action.xsd"/>
+  <xsd:include schemaLocation="enforcement_override.xsd"/>
+
+  <xsd:complexType name="enforcement_status_summary">
+    <xsd:sequence>
+      <xsd:element name="last_enforcement_action" type="last_enforcement_action" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="collection_order_made" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="default_days_in_jail" type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="enforcement_override" type="enforcement_override" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="last_movement_date" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>
