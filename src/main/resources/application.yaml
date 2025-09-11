@@ -191,7 +191,3 @@ logging:
           descriptor:
             sql:
               BasicBinder: WARN
-
-user:
-  service:
-    url: ${OPAL_USER_SERVICE_API_URL:http://localhost:4555}

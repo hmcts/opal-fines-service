@@ -9,12 +9,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.client.user.UserClient;
+import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -22,7 +23,6 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -63,7 +63,7 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     private AccessTokenService accessTokenService;
 
     @MockitoBean
-    private UserClient userClient;
+    private AuthorisationService authorisationService;
 
     @Test
     void testGetAppMode() throws Exception {
@@ -99,12 +99,17 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void testGetToken() throws Exception {
+        AccessTokenResponse accessTokenResponse = new AccessTokenResponse();
+        accessTokenResponse.setAccessToken("testAccessToken");
+
+        when(accessTokenService.getTestUserToken()).thenReturn(accessTokenResponse);
+
         SecurityToken securityToken = SecurityToken.builder()
             .accessToken(TEST_TOKEN)
             .userState(USER_STATE)
             .build();
 
-        when(userClient.getTestUserToken()).thenReturn(securityToken);
+        when(authorisationService.getSecurityToken("testAccessToken")).thenReturn(securityToken);
 
         mockMvc.perform(get("/testing-support/token/test-user"))
             .andExpect(status().isOk())
@@ -126,12 +131,16 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void testGetTokenForUser() throws Exception {
+        AccessTokenResponse accessTokenResponse = new AccessTokenResponse();
+        accessTokenResponse.setAccessToken("testAccessToken");
+
+        when(accessTokenService.getTestUserToken(anyString())).thenReturn(accessTokenResponse);
+
         SecurityToken securityToken = SecurityToken.builder()
             .accessToken(TEST_TOKEN)
             .userState(USER_STATE)
             .build();
-
-        when(userClient.getTestUserToken(any())).thenReturn(securityToken);
+        when(authorisationService.getSecurityToken("testAccessToken")).thenReturn(securityToken);
 
         mockMvc.perform(get("/testing-support/token/user")
                             .header("X-User-Email", "test@example.com"))
@@ -165,12 +174,16 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void testGetTokenForUserFailure() throws Exception {
+        AccessTokenResponse accessTokenResponse = new AccessTokenResponse();
+        accessTokenResponse.setAccessToken("testAccessToken");
+
+        when(accessTokenService.getTestUserToken(anyString())).thenReturn(accessTokenResponse);
+
         SecurityToken securityToken = SecurityToken.builder()
             .accessToken(TEST_TOKEN)
             .userState(USER_STATE)
             .build();
-
-        when(userClient.getTestUserToken(any())).thenReturn(securityToken);
+        when(authorisationService.getSecurityToken("testAccessToken")).thenReturn(securityToken);
 
         mockMvc.perform(get("/testing-support/token/user")
                             .header("X-User-Email", "test@example.com"))

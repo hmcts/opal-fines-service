@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.opal.UserStateService;
 
 import java.util.Optional;
 import java.util.Set;
