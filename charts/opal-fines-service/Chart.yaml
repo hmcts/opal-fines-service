@@ -3,7 +3,7 @@ appVersion: "1.0"
 description: A Helm chart for opal-fines-service app
 name: opal-fines-service
 home: https://github.com/hmcts/opal-fines-service
-version: 0.0.59
+version: 0.0.60
 maintainers:
   - name: HMCTS Opal Team
 dependencies:
@@ -15,7 +15,7 @@ dependencies:
     repository: 'oci://sdshmctspublic.azurecr.io/helm'
     condition: opal-user-service.enabled
   - name: postgresql
-    version: 15.2.4
+    version: 15.5.38
     alias: userServicePostgresql
     repository: 'oci://registry-1.docker.io/bitnamicharts'
     condition: userServicePostgresql.enabled
