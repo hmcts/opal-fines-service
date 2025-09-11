@@ -16,7 +16,7 @@ import java.time.LocalDate;
 public class GetDefendantAccountPaymentTermsResponse {
 
     @JsonIgnore
-    private String version;
+    private Long version;
 
     @JsonProperty("payment_terms")
     private PaymentTerms paymentTerms;
