@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <xsd:include schemaLocation="../common-objects/simple_type.xsd"/>
+  <xsd:include schemaLocation="simple_type.xsd"/>
   <xsd:complexType name="account_status_reference">
     <xsd:sequence>
       <xsd:element name="account_status_code" type="account_status_code" minOccurs="1" maxOccurs="1"/>
