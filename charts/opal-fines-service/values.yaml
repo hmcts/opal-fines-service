@@ -45,23 +45,12 @@ java:
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
     LAUNCH_DARKLY_ENABLED: true
     OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.{{ .Values.global.environment }}.platform.hmcts.net
-    OPAL_USER_SERVICE_API_URL: https://opal-user-service.{{ .Values.global.environment }}.platform.hmcts.net
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs
   postgresql:
     enabled: false
     image:
-      registry: hmctspublic.azurecr.io
-      repository: imported/bitnami/postgresql
       tag: '17.5.0'
 opal-frontend:
   enabled: false
-opal-user-service:
-  enabled: false
 redis:
   enabled: false
-userServicePostgresql:
-  enabled: false
-  image:
-    registry: hmctspublic.azurecr.io
-    repository: imported/bitnami/postgresql
-    tag: '17.5.0'
