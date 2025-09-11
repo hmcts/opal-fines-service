@@ -1,4 +1,7 @@
 import org.flywaydb.gradle.task.FlywayMigrateTask
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+import static groovy.io.FileType.FILES
 
 buildscript {
   dependencies {
@@ -16,11 +19,55 @@ plugins {
   id 'uk.gov.hmcts.java' version '0.12.67'
   id 'org.flywaydb.flyway' version '11.11.2'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.34'
+  id "org.openapi.generator" version "7.13.0"
 }
 //Should we fail fast on test failures?
 
 //Defaults to true if env is not present
 var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
+
+
+//here we are going to store swagger files
+def swaggerList = []
+
+//iteration by swagger file root folder and save into swaggerList variable
+def dir = new File("$rootDir/src/main/resources/openapi/".toString())
+
+dir.eachFileRecurse(FILES) { file ->
+  if (file.getName().endsWith(".yaml") && file.getName() != "problem.yaml")
+    swaggerList << file
+}
+
+def openApiGenerateTaskList = []
+
+// Iterate on all swagger files and generate a task for each one with the nomenclature openApiGenerate + swagger name
+swaggerList.each {
+  def apiName = it.getName().replace(".yaml", "");
+  def taskName = "openApiGenerate" + apiName.capitalize()
+  openApiGenerateTaskList << taskName
+  tasks.register(taskName, GenerateTask, {
+    generatorName = "spring"
+    inputSpec = "$rootDir/src/main/resources/openapi/".toString() + "${apiName}.yaml"
+    outputDir = "$buildDir/generated/openapi".toString()
+    apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "${apiName}" + ".http.api"
+    modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "${apiName}" + ".model"
+    //    https://openapi-generator.tech/docs/generators/java/#config-options
+    skipOperationExample = true
+    openapiNormalizer = [
+      REF_AS_PARENT_IN_ALLOF: "true"
+    ]
+    configOptions = [
+      dateLibrary                         : "java8",
+      interfaceOnly                       : "true",
+      useTags                             : "true",
+      useSpringBoot3                      : "true",
+      containerDefaultToNull              : "true",
+      generatedConstructorWithRequiredArgs: "false",
+      additionalModelTypeAnnotations      : "@lombok.AllArgsConstructor;@lombok.NoArgsConstructor"
+    ]
+
+  })
+}
 
 group = 'uk.gov.hmcts'
 version = '0.0.1'
@@ -32,6 +79,12 @@ java {
 }
 
 sourceSets {
+  main {
+    java {
+      srcDirs files("$buildDir/generated/openapi/src/main/java").builtBy(openApiGenerateTaskList)
+    }
+  }
+
   functionalTest {
     java {
       compileClasspath += main.output
@@ -290,6 +343,7 @@ ext['snakeyaml.version'] = '2.0'
 ext['jackson.version'] = '2.19.1'
 ext['tomcat.version'] = '10.1.42'
 
+
 dependencies {
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
@@ -307,12 +361,11 @@ dependencies {
   implementation group: 'org.springframework.integration', name: 'spring-integration-sftp'
   implementation group: 'org.springframework.integration', name: 'spring-integration-file'
 
-
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-authorization-server', version: '1.5.2'
 
   implementation group: 'org.springframework', name: 'spring-aspects'
 
-  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.12'
+  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.9'
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.1.9'
 
@@ -326,6 +379,7 @@ dependencies {
   implementation(group: 'com.jayway.jsonpath', name: 'json-path', version: '2.9.0');
 
 
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
   runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.11.2'
@@ -385,7 +439,6 @@ dependencies {
   implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.10'
   implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.10'
   implementation 'org.apache.commons:commons-lang3:3.18.0'
-
 }
 
 application {
@@ -435,3 +488,4 @@ tasks.register('runAllStyleChecks') {
   dependsOn 'checkstyleIntegrationTest'
   dependsOn 'checkstyleFunctionalTest'
 }
+compileJava.dependsOn = openApiGenerateTaskList
