@@ -1,0 +1,797 @@
+openapi: 3.1.1
+info:
+  description: Opal Fines Service - Common components
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+  title: Opal Fines Service
+  version: v0.0.1
+components:
+  schemas:
+    ProblemDetail:
+      type: object
+      required:
+        - title
+        - status
+        - detail
+      properties:
+        type:
+          type: string
+          format: uri
+          example: 'https://example.com/problem'
+        title:
+          type: string
+          maxLength: 100
+          example: Not Found
+        status:
+          type: integer
+          format: int32
+          example: 404
+        detail:
+          type: string
+          example: The requested resource was not found.
+        instance:
+          type: string
+          format: uri
+          example: 'https://example.com/problem/12345'
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+
+    ljaReference:
+      title: LJA Reference
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        lja_id:
+          type: integer
+        lja_name:
+          type: string
+      required:
+        - lja_id
+        - lja_name
+    paymentTermsSummary:
+      title: Payment Terms Summary
+      type: object
+      additionalProperties: false
+      properties:
+        payment_terms_type:
+          $ref: '#/components/schemas/paymentTermsType'
+        effective_date:
+          type:
+            - string
+            - 'null'
+          format: date
+        instalment_period:
+          $ref: '#/components/schemas/instalmentPeriod'
+        lump_sum_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+        instalment_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+      required:
+        - payment_terms_type
+        - effective_date
+        - instalment_period
+        - lump_sum_amount
+    languagePreferences:
+      title: Language Preferences
+      type:
+        - object
+        - 'null'
+      properties:
+        document_language_preference:
+          $ref: '#/components/schemas/languagePreference'
+        hearing_language_preference:
+          $ref: '#/components/schemas/languagePreference'
+      required:
+        - document_language_preference
+        - hearing_language_preference
+    contactDetails:
+      title: Contact Details
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        primary_email_address:
+          type:
+            - string
+            - 'null'
+          format: email
+        secondary_email_address:
+          type:
+            - string
+            - 'null'
+          format: email
+        mobile_telephone_number:
+          type:
+            - string
+            - 'null'
+        home_telephone_number:
+          type:
+            - string
+            - 'null'
+        work_telephone_number:
+          type:
+            - string
+            - 'null'
+      required:
+        - primary_email_address
+        - secondary_email_address
+        - mobile_telephone_number
+        - home_telephone_number
+        - work_telephone_number
+    commentsAndNotes:
+      title: Comment and Notes
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        account_comment:
+          type:
+            - string
+            - 'null'
+        free_text_note_1:
+          type:
+            - string
+            - 'null'
+        free_text_note_2:
+          type:
+            - string
+            - 'null'
+        free_text_note_3:
+          type:
+            - string
+            - 'null'
+      required:
+        - account_comment
+        - free_text_note_1
+        - free_text_note_2
+        - free_text_note_3
+    organisationDetails:
+      title: Organisation Details
+      type:
+        - object
+        - 'null'
+      properties:
+        organisation_name:
+          type: string
+        organisation_aliases:
+          type:
+            - array
+            - 'null'
+          items:
+            $ref: '#/components/schemas/organisationAlias'
+      required:
+        - organisation_name
+    vehicleFixedPenaltyTicketDetails:
+      title: Vehicle Fixed Penalty Ticket Details
+      type: object
+      additionalProperties: false
+      properties:
+        fp_registration_number:
+          type:
+            - string
+            - 'null'
+        fp_driving_license:
+          type:
+            - string
+            - 'null'
+        notice_to_owner_or_hirer_number:
+          type:
+            - string
+            - 'null'
+        date_notice_to_owner_was_issued:
+          type:
+            - string
+            - 'null'
+          format: date
+      required:
+        - fp_registration_number
+        - fp_driving_license
+        - notice_to_owner_or_hirer_number
+        - date_notice_to_owner_was_issued
+    enforcementOverrideResultReference:
+      title: Enforcement Override Result Reference
+      type: object
+      additionalProperties: false
+      properties:
+        enforcement_override_result_id:
+          type: string
+        enforcement_override_result_name:
+          type: string
+      required:
+        - enforcement_override_result_id
+        - enforcement_override_result_name
+    paymentStateSummary:
+      title: Payment State Summary
+      type: object
+      additionalProperties: false
+      properties:
+        imposed_amount:
+          type: number
+          multipleOf: 0.01
+        arrears_amount:
+          type: number
+          multipleOf: 0.01
+        paid_amount:
+          type: number
+          multipleOf: 0.01
+        account_balance:
+          type: number
+          multipleOf: 0.01
+      required:
+        - imposed_amount
+        - arrears_amount
+        - paid_amount
+        - account_balance
+    paymentTermsType:
+      title: Payment Terms Type
+      type: object
+      additionalProperties: false
+      properties:
+        payment_terms_type_code:
+          type: string
+          enum:
+            - B
+            - P
+            - I
+      required:
+        - payment_terms_type_code
+    organisationAlias:
+      title: Organisation Alias
+      type: object
+      properties:
+        alias_id:
+          type: string
+        sequence_number:
+          type: integer
+          minimum: 1
+          maximum: 5
+        organisation_name:
+          type: string
+      required:
+        - alias_id
+        - sequence_number
+        - organisation_name
+    individualAlias:
+      title: Individual Alias
+      type: object
+      properties:
+        alias_id:
+          type: string
+        sequence_number:
+          type: integer
+          minimum: 1
+          maximum: 5
+        surname:
+          type: string
+        forenames:
+          type:
+            - string
+            - 'null'
+      required:
+        - alias_id
+        - sequence_number
+        - surname
+        - forenames
+    accountStatusReference:
+      title: Account Status Reference
+      type: object
+      additionalProperties: false
+      properties:
+        account_status_code:
+          type: string
+          enum:
+            - L
+            - C
+            - TO
+            - TS
+            - TA
+            - CS
+            - WO
+        account_status_display_name:
+          type: string
+          enum:
+            - Live
+            - Completed
+            - TFO to be acknowledged
+            - TFO to NI/Scotland to be acknowledged
+            - TFO acknowledged
+            - Account consolidated
+            - Account written off
+      required:
+        - account_status_code
+        - account_status_display_name
+    note:
+      title: Record Activity Note
+      type: object
+      additionalProperties: false
+      properties:
+        record_type:
+          type: string
+          enum:
+            - Defendant Account
+            - Creditor Account
+            - Suspense Account
+            - Report Instances
+        record_id:
+          type: string
+        note_text:
+          type: string
+        note_type:
+          type: string
+          const: AA
+      required:
+        - record_type
+        - record_id
+        - note_text
+        - note_type
+    individualDetails:
+      title: Individual Details
+      type:
+        - object
+        - 'null'
+      properties:
+        title:
+          type:
+            - string
+            - 'null'
+        forenames:
+          type:
+            - string
+            - 'null'
+        surname:
+          type: string
+        date_of_birth:
+          type:
+            - string
+            - 'null'
+        age:
+          type:
+            - string
+            - 'null'
+        national_insurance_number:
+          type:
+            - string
+            - 'null'
+        individual_aliases:
+          type:
+            - array
+            - 'null'
+          items:
+            $ref: '#/components/schemas/individualAlias'
+      required:
+        - title
+        - forenames
+        - surname
+        - date_of_birth
+        - age
+        - national_insurance_number
+        - individual_aliases
+    courtReference:
+      title: Court Reference
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        court_id:
+          type: integer
+        court_name:
+          type: string
+      required:
+        - court_id
+        - court_name
+    employerDetails:
+      title: Employer Details
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        employer_name:
+          type:
+            - string
+            - 'null'
+        employer_reference:
+          type:
+            - string
+            - 'null'
+        employer_email_address:
+          type:
+            - string
+            - 'null'
+          format: email
+        employer_telephone_number:
+          type:
+            - string
+            - 'null'
+        employer_address:
+          $ref: '#/components/schemas/addressDetails'
+      required:
+        - employer_name
+        - employer_reference
+        - employer_email_address
+        - employer_telephone_number
+        - employer_address
+    fixedPenaltyTicketDetails:
+      title: Fixed Penalty Ticket Details
+      type: object
+      additionalProperties: false
+      properties:
+        issuing_authority:
+          type: string
+        ticket_number:
+          type: string
+        time_of_offence:
+          type: string
+        place_of_offence:
+          type: string
+      required:
+        - issuing_authority
+        - ticket_number
+        - time_of_offence
+        - place_of_offence
+    resultReference:
+      title: Result Reference
+      type: object
+      additionalProperties: false
+      properties:
+        result_id:
+          type: integer
+        result_title:
+          type: string
+      required:
+        - result_id
+        - result_title
+    defendantAccountParty:
+      title: Defendant Account Party
+      type: object
+      additionalProperties: false
+      properties:
+        defendant_account_party_type:
+          type: string
+        is_debtor:
+          type: boolean
+        party_details:
+          $ref: '#/components/schemas/partyDetails'
+        address:
+          $ref: '#/components/schemas/addressDetails'
+        contact_details:
+          $ref: '#/components/schemas/contactDetails'
+        vehicle_details:
+          $ref: '#/components/schemas/vehicleDetails'
+        employer_details:
+          $ref: '#/components/schemas/employerDetails'
+        language_preferences:
+          $ref: '#/components/schemas/languagePreferences'
+      required:
+        - defendant_account_party_type
+        - is_debtor
+        - party_details
+        - address
+        - contact_details
+        - vehicle_details
+        - employer_details
+        - language_preferences
+    enforcementOverride:
+      title: Enforcement Override
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        enforcement_override_result:
+          $ref: '#/components/schemas/enforcementOverrideResultReference'
+        enforcer:
+          $ref: '#/components/schemas/enforcerReference'
+        lja:
+          $ref: '#/components/schemas/ljaReference'
+      required:
+        - enforcement_override_result
+        - enforcer
+        - lja
+    resultResponses:
+      title: Result Responses
+      type: object
+      additionalProperties: false
+      properties:
+        parameter_name:
+          type: string
+        response:
+          type: string
+      required:
+        - parameter_name
+        - response
+    lastEnforcementAction:
+      title: Last Enforcement Action
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        last_enforcement_action_id:
+          type: string
+        last_enforcement_action_title:
+          type: string
+      required:
+        - last_enforcement_action_id
+        - last_enforcement_action_title
+    instalmentPeriod:
+      title: Instalment Period
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        instalment_period_code:
+          type: string
+          enum:
+            - W
+            - M
+            - F
+      required:
+        - instalment_period_code
+    postedDetails:
+      title: Posted Details
+      type: object
+      additionalProperties: false
+      properties:
+        posted_date:
+          type: string
+          format: date
+        posted_by:
+          type:
+            - string
+            - 'null'
+        posted_by_name:
+          type:
+            - string
+            - 'null'
+      required:
+        - posted_date
+        - posted_by
+        - posted_by_name
+    paymentTerms:
+      title: Payment Terms
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        days_in_default:
+          type:
+            - integer
+            - 'null'
+        date_days_in_default_imposed:
+          type:
+            - string
+            - 'null'
+          format: date
+        reason_for_extension:
+          type:
+            - string
+            - 'null'
+        payment_terms_type:
+          $ref: '#/components/schemas/paymentTermsType'
+        effective_date:
+          type:
+            - string
+            - 'null'
+          format: date
+        instalment_period:
+          $ref: '#/components/schemas/instalmentPeriod'
+        lump_sum_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+        instalment_amount:
+          type:
+            - number
+            - 'null'
+          multipleOf: 0.01
+      required:
+        - days_in_default
+        - date_days_in_default_imposed
+        - reason_for_extension
+        - payment_terms_type
+        - effective_date
+        - lump_sum_amount
+        - instalment_amount
+    enforcementStatusSummary:
+      title: Enforcement Status Summary
+      type: object
+      additionalProperties: false
+      properties:
+        last_enforcement_action:
+          $ref: '#/components/schemas/lastEnforcementAction'
+        collection_order_made:
+          type: boolean
+        default_days_in_jail:
+          type:
+            - integer
+            - 'null'
+        enforcement_override:
+          $ref: '#/components/schemas/enforcementOverride'
+        last_movement_date:
+          type:
+            - string
+            - 'null'
+          format: date
+      required:
+        - last_enforcement_action
+        - collection_order_made
+        - default_days_in_jail
+        - enforcement_override
+        - last_movement_date
+    vehicleDetails:
+      title: Vehicle Details
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        vehicle_make_and_model:
+          type:
+            - string
+            - 'null'
+        vehicle_registration:
+          type:
+            - string
+            - 'null'
+      required:
+        - vehicle_make_and_model
+        - vehicle_registration
+    collectionOrder:
+      title: Collection Order
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        collection_order_flag:
+          type: boolean
+          description: Flag indicating if a collection order is applied to the account
+        collection_order_date:
+          type: string
+          format: date
+          description: The date when the collection order was applied
+      required:
+        - collection_order_flag
+        - collection_order_date
+    enforcerReference:
+      title: Enforcer Reference
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        enforcer_id:
+          type: integer
+        enforcer_name:
+          type: string
+      required:
+        - enforcer_id
+        - enforcer_name
+    partyDetails:
+      title: Party Details
+      type: object
+      additionalProperties: false
+      properties:
+        party_id:
+          type: string
+        organisation_flag:
+          type: boolean
+        organisation_details:
+          $ref: '#/components/schemas/organisationDetails'
+        individual_details:
+          $ref: '#/components/schemas/individualDetails'
+      required:
+        - party_id
+        - organisation_flag
+        - organisation_details
+        - individual_details
+    businessUnitSummary:
+      title: Business Unit Summary
+      type: object
+      additionalProperties: false
+      properties:
+        business_unit_name:
+          type: string
+        business_unit_id:
+          type: string
+        welsh_speaking:
+          type: string
+      required:
+        - business_unit_name
+        - business_unit_id
+        - welsh_speaking
+    languagePreference:
+      title: Language Preference
+      type:
+        - object
+        - 'null'
+      additionalProperties: false
+      properties:
+        language_code:
+          type: string
+          enum:
+            - CY
+            - EN
+      required:
+        - language_code
+    addressDetails:
+      title: Address Details
+      type: object
+      additionalProperties: false
+      properties:
+        address_line_1:
+          type: string
+        address_line_2:
+          type:
+            - string
+            - 'null'
+        address_line_3:
+          type:
+            - string
+            - 'null'
+        address_line_4:
+          type:
+            - string
+            - 'null'
+        address_line_5:
+          type:
+            - string
+            - 'null'
+        postcode:
+          type:
+            - string
+            - 'null'
+      required:
+        - address_line_1
+        - address_line_2
+        - address_line_3
+        - address_line_4
+        - address_line_5
+        - postcode
+    creditorAccountPaymentDetails:
+      type: object
+      additionalProperties: false
+      required:
+        - pay_by_bacs
+      properties:
+        account_name:
+          type: string
+          description: DB Mapping - creditor_accounts.bank_account_name
+          minLength: 1
+          maxLength: 18
+        sort_code:
+          type: string
+          description: DB Mapping - creditor_accounts.bank_sort_code
+          minLength: 1
+          maxLength: 6
+        account_number:
+          type: string
+          description: DB Mapping - creditor_accounts.bank_account_number
+          minLength: 1
+          maxLength: 10
+        account_reference:
+          type: string
+          description: DB Mapping - creditor_accounts.bank_account_reference
+          minLength: 1
+          maxLength: 18
+        pay_by_bacs:
+          type: boolean
+          description: DB Mapping - creditor_accounts.pay_by_bacs
