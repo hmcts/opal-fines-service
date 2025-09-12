@@ -473,7 +473,9 @@ flyway {
   baselineOnMigrate = true
   baselineVersion = '000'
 }
-
+checkstyle {
+  checkstyleMain.exclude '**uk/gov/hmcts/opal/generated/**'
+}
 tasks.register('migratePostgresDatabase', FlywayMigrateTask) {
   baselineOnMigrate = true
   if (project.hasProperty("dburl")) {
