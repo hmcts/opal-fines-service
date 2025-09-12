@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
@@ -10,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.util.KeepAsJsonDeserializer;
+import uk.gov.hmcts.opal.util.Versioned;
 
 import java.time.OffsetDateTime;
 
@@ -18,7 +20,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL) // This line forces the HTTP Response to be of type 'application/json'
-public class DraftAccountResponseDto implements ToJsonString {
+public class DraftAccountResponseDto implements ToJsonString, Versioned {
 
     @JsonProperty("draft_account_id")
     private Long draftAccountId;
@@ -77,6 +79,6 @@ public class DraftAccountResponseDto implements ToJsonString {
     @JsonProperty("account_id")
     private Long accountId;
 
-    @JsonProperty("version")
+    @JsonIgnore
     private Long version;
 }

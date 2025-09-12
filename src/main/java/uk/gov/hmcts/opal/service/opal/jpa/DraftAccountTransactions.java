@@ -38,6 +38,7 @@ import java.util.Optional;
 
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
 import static uk.gov.hmcts.opal.util.VersionUtils.verifyVersions;
 
 @Service
@@ -103,9 +104,9 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
 
     @Transactional
     public DraftAccountEntity replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto,
-                                                  DraftAccountTransactionsProxy proxy) {
+                                                  DraftAccountTransactionsProxy proxy, String ifMatch) {
         DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
-        verifyVersions(existingAccount, dto, draftAccountId, "replaceDraftAccount");
+        verifyIfMatch(existingAccount, ifMatch, draftAccountId, "replaceDraftAccount");
 
         BusinessUnitEntity businessUnit = businessUnitRepository.findById(dto.getBusinessUnitId())
             .orElseThrow(() -> new RuntimeException("Business Unit not found with id: " + dto.getBusinessUnitId()));
@@ -136,9 +137,9 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
 
     @Transactional
     public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
-                                                 DraftAccountTransactionsProxy proxy) {
+                                                 DraftAccountTransactionsProxy proxy, String ifMatch) {
         DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
-        verifyVersions(existingAccount, dto, draftAccountId, "updateDraftAccount");
+        verifyIfMatch(existingAccount, ifMatch, draftAccountId, "updateDraftAccount");
 
         if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
             log.warn("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
@@ -175,8 +176,8 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
     }
 
     @Transactional
-    public DraftAccountEntity updateStatus(
-        DraftAccountEntity entity, DraftAccountStatus status, DraftAccountTransactionsProxy proxy) {
+    public DraftAccountEntity updateStatus(DraftAccountEntity entity, DraftAccountStatus status,
+                                           DraftAccountTransactionsProxy proxy) {
 
         Long draftAccountId = entity.getDraftAccountId();
         log.debug(":updateStatus: Updating draft account with ID: {} to status: {}",
