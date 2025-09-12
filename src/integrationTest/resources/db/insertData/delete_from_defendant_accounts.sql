@@ -19,6 +19,9 @@ DELETE FROM notes WHERE associated_record_id IN ('77', '88', '901', '333', '555'
 -- Remove main defendant accounts
 DELETE FROM defendant_accounts WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999);
 
+-- Remove from debtor_detail before removing parties
+DELETE FROM debtor_detail WHERE party_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999);
+
 -- Remove inserted parties
 DELETE FROM parties WHERE party_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999);
 

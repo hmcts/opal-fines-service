@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Creditor Account Type Reference",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string",
+      "enum": [
+        "Minor Creditor",
+        "Major Creditor",
+        "Central Fund"
+      ]
+    }
+  },
+  "required": [
+    "type"
+  ]
+}

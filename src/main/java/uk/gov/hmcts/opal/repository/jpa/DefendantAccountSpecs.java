@@ -4,7 +4,6 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
@@ -13,13 +12,13 @@ import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantDto;
 import uk.gov.hmcts.opal.entity.AliasEntity_;
-import uk.gov.hmcts.opal.entity.PartyEntity_;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity_;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity_;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.PartyEntity_;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity_;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,8 +27,8 @@ import java.util.Optional;
 
 import static uk.gov.hmcts.opal.repository.jpa.CourtSpecs.equalsCourtIdPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.DefendantAccountPartySpecs.joinPartyOnAssociationType;
-import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeAnyAddressLinesPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.equalsDateOfBirthPredicate;
+import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeAnyAddressLinesPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeForenamesPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeNiNumberPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeOrganisationNamePredicate;
@@ -224,7 +223,7 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
                     var party = joinDefendantParty(root, cb);
                     Expression<String> dobStr = cb.function(
                         "to_char", String.class,
-                        party.get(PartyEntity_.dateOfBirth),
+                        party.get(PartyEntity_.birthDate),
                         cb.literal("YYYY-MM-DD"));
                     return cb.like(dobStr, dob.toString() + "%");
                 })
@@ -249,7 +248,6 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
                     return cb.conjunction();
                 }
 
-                // Always guard by party being an organisation
                 Predicate matchOnParty = cb.and(
                     cb.isTrue(party.get(PartyEntity_.organisation)),
                     Boolean.TRUE.equals(def.getExactMatchOrganisationName())
@@ -257,28 +255,32 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
                         : likeStartsWithNormalized(cb, party.get(PartyEntity_.organisationName), orgName)
                 );
 
-                // If aliases are requested, LEFT JOIN so we don't exclude orgs with no aliases
                 Predicate matchOnAlias = cb.disjunction();
                 if (Boolean.TRUE.equals(def.getIncludeAliases())) {
-                    var alias = party.join(PartyEntity_.aliasEntities, JoinType.LEFT);
+                    Root<uk.gov.hmcts.opal.entity.AliasEntity> alias =
+                        query.from(uk.gov.hmcts.opal.entity.AliasEntity.class);
+                    Predicate aliasJoin = cb.equal(alias.get(AliasEntity_.party)
+                        .get(PartyEntity_.partyId), party.get(PartyEntity_.partyId));
 
                     Predicate aliasName = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
                         ? equalsNormalized(cb, alias.get(AliasEntity_.organisationName), orgName)
                         : likeStartsWithNormalized(cb, alias.get(AliasEntity_.organisationName), orgName);
 
-                    // Only allow alias matches for organisation parties
-                    matchOnAlias = cb.and(cb.isTrue(party.get(PartyEntity_.organisation)), aliasName);
+                    // Only allow alias matches for organisation parties, and include aliasJoin
+                    matchOnAlias = cb.and(aliasJoin, cb.isTrue(party.get(PartyEntity_.organisation)), aliasName);
                 }
 
                 return cb.or(matchOnParty, matchOnAlias);
             }
 
-            // --- (unchanged) person-name path ---
+            // --- person-name path ---
             if (!Boolean.TRUE.equals(def.getIncludeAliases())) {
                 return cb.conjunction();
             }
 
-            var alias = party.join(PartyEntity_.aliasEntities, JoinType.LEFT); // also LEFT here is safer
+            Root<uk.gov.hmcts.opal.entity.AliasEntity> alias = query.from(uk.gov.hmcts.opal.entity.AliasEntity.class);
+            Predicate aliasJoin = cb.equal(alias.get(AliasEntity_.party)
+                .get(PartyEntity_.partyId), party.get(PartyEntity_.partyId));
             Predicate finalPredicate = cb.disjunction();
 
             String surname = def.getSurname();
@@ -298,9 +300,11 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
                 finalPredicate = cb.or(finalPredicate, forenamesMatch);
             }
 
-            return finalPredicate.getExpressions().isEmpty() ? cb.conjunction() : finalPredicate;
+            Predicate combined = cb.and(aliasJoin, finalPredicate);
+            return finalPredicate.getExpressions().isEmpty() ? cb.conjunction() : combined;
         };
     }
+
 
 
     public Specification<DefendantAccountEntity> filterByDefendantName(AccountSearchDto dto) {

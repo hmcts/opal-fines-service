@@ -86,11 +86,11 @@ public class DefendantAccountEntity {
     private LocalDate completedDate;
 
     @ManyToOne
-    @JoinColumn(name = "enforcing_court_id", referencedColumnName = "court_id", nullable = false)
+    @JoinColumn(name = "enforcing_court_id", referencedColumnName = "court_id")
     private CourtEntity enforcingCourt;
 
     @ManyToOne
-    @JoinColumn(name = "last_hearing_court_id", referencedColumnName = "court_id", nullable = false)
+    @JoinColumn(name = "last_hearing_court_id", referencedColumnName = "court_id")
     private CourtEntity lastHearingCourt;
 
     @Column(name = "last_hearing_date")
@@ -196,4 +196,10 @@ public class DefendantAccountEntity {
     @Column(name = "account_type", length = 30, nullable = false)
     @Convert(converter = DefendantAccountTypeConverter.class)
     private DefendantAccountType accountType;
+
+    @Column(name = "suspended_committal_date")
+    @Temporal(TemporalType.DATE)
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
+    private LocalDate suspendedCommittalDate;
+
 }

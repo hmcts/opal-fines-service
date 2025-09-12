@@ -8,4 +8,5 @@ import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 @Repository
 public interface DebtorDetailRepository extends JpaRepository<DebtorDetailEntity, Long>,
     JpaSpecificationExecutor<DebtorDetailEntity> {
+    DebtorDetailEntity findByPartyId(Long partyId);
 }

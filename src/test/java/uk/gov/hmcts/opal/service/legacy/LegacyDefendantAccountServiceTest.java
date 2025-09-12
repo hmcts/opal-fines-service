@@ -14,12 +14,16 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.InstalmentPeriod;
+import uk.gov.hmcts.opal.dto.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 
@@ -27,6 +31,7 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -424,6 +429,162 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // Assert: minimal baseline + check organisation alias details flowed through
         assertEquals("SAMPLE", published.getAccountNumber());
         assertEquals("Fine", published.getAccountType());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getPaymentTerms_success_spyGatewayAndRestClientStub() throws Exception {
+
+        LegacyGetDefendantAccountPaymentTermsResponse responseBody =
+            LegacyGetDefendantAccountPaymentTermsResponse.builder()
+                .version(2L)
+                .paymentTerms(
+                    uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms.builder()
+                        .daysInDefault(120)
+                        .paymentTermsType(new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
+                            uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode.B))
+                        .instalmentPeriod(new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
+                            uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.W))
+                        .build()
+                )
+                .postedDetails(new uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails(
+                    java.time.LocalDate.of(2023, 11, 3), "01000000A", ""))
+                .paymentCardLastRequested(java.time.LocalDate.of(2024, 1, 1))
+                .dateLastAmended(java.time.LocalDate.of(2024, 1, 3))
+                .extension(false)
+                .lastEnforcement("REM")
+                .build();
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+
+        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(99L);
+
+        assertNotNull(out);
+        assertEquals(2, out.getVersion());
+        assertEquals(120, out.getPaymentTerms().getDaysInDefault());
+        assertEquals(
+            InstalmentPeriod.InstalmentPeriodCode.W,
+            out.getPaymentTerms().getInstalmentPeriod().getInstalmentPeriodCode());
+        assertEquals(
+            PaymentTermsType.PaymentTermsTypeCode.B,
+            out.getPaymentTerms().getPaymentTermsType().getPaymentTermsTypeCode());
+        assertEquals("REM", out.getLastEnforcement());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getPaymentTerms_legacyFailure5xx_withEntity_mapsAnyway() throws Exception {
+
+        LegacyGetDefendantAccountPaymentTermsResponse responseBody =
+            LegacyGetDefendantAccountPaymentTermsResponse.builder()
+                .version(3L)
+                .paymentTerms(
+                    uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms.builder()
+                        .daysInDefault(5)
+                        .paymentTermsType(new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
+                            uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode.P))
+                        .instalmentPeriod(new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
+                            uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.M))
+                        .build()
+                )
+                .build();
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+
+        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(1L);
+
+        assertNotNull(out);
+        assertEquals(3, out.getVersion());
+        assertEquals(5, out.getPaymentTerms().getDaysInDefault());
+        assertEquals(PaymentTermsType.PaymentTermsTypeCode.P,
+                     out.getPaymentTerms().getPaymentTermsType().getPaymentTermsTypeCode());
+        assertEquals(InstalmentPeriod.InstalmentPeriodCode.M,
+                     out.getPaymentTerms().getInstalmentPeriod().getInstalmentPeriodCode());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getPaymentTerms_error5xx_returnsNull() throws Exception {
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
+
+        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(42L);
+
+        assertNull(out);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getPaymentTerms_success_withNullEntity_returnsEmptyDto() throws Exception {
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>("<response/>", HttpStatus.OK));
+
+        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(3L);
+
+        assertNotNull(out);
+        assertNull(out.getVersion());
+        assertNull(out.getPaymentTerms());
+        assertNull(out.getPostedDetails());
+        assertNull(out.getPaymentCardLastRequested());
+        assertNull(out.getDateLastAmended());
+        assertNull(out.getExtension());
+        assertNull(out.getLastEnforcement());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getPaymentTerms_mapsNullNestedObjects_toNulls() throws Exception {
+
+        uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms legacyTerms =
+            uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms.builder()
+                .daysInDefault(0)
+                .dateDaysInDefaultImposed(null)
+                .reasonForExtension(null)
+                .paymentTermsType(null) // toPaymentTermsType → null
+                .effectiveDate(null)
+                .instalmentPeriod(null) // toInstalmentPeriod → null
+                .lumpSumAmount(null)
+                .instalmentAmount(null)
+                .build();
+
+        LegacyGetDefendantAccountPaymentTermsResponse responseBody =
+            LegacyGetDefendantAccountPaymentTermsResponse.builder()
+                .version(4L)
+                .paymentTerms(legacyTerms)
+                .postedDetails(null) // toPostedDetails → null
+                .build();
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+
+        GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(4L);
+
+        assertNotNull(out);
+        assertNotNull(out.getPaymentTerms());
+        assertNull(out.getPaymentTerms().getPaymentTermsType());
+        assertNull(out.getPaymentTerms().getInstalmentPeriod());
+        assertNull(out.getPostedDetails());
     }
 
 
