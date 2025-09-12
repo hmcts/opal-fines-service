@@ -3,14 +3,11 @@ package uk.gov.hmcts.opal.entity;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -27,7 +24,6 @@ import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Data
@@ -86,7 +82,7 @@ public class PartyEntity implements FullNameBuilder {
     @Column(name = "birth_date")
     @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
-    private LocalDate dateOfBirth;
+    private LocalDate birthDate;
 
     @Column(name = "age")
     private Short age;
@@ -94,13 +90,22 @@ public class PartyEntity implements FullNameBuilder {
     @Column(name = "national_insurance_number", length = 20)
     private String niNumber;
 
+    @Column(name = "telephone_home")
+    private String homeTelephoneNumber;
+
+    @Column(name = "telephone_business")
+    private String workTelephoneNumber;
+
+    @Column(name = "telephone_mobile")
+    private String mobileTelephoneNumber;
+
+    @Column(name = "email_1")
+    private String primaryEmailAddress;
+
+    @Column(name = "email_2")
+    private String secondaryEmailAddress;
+
     @Column(name = "last_changed_date")
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime lastChangedDate;
-
-    @OneToMany(mappedBy = "party", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<DefendantAccountPartiesEntity> defendantAccounts;
-
-    @OneToMany(mappedBy = "party", fetch = FetchType.LAZY)
-    private List<AliasEntity> aliasEntities;
 }

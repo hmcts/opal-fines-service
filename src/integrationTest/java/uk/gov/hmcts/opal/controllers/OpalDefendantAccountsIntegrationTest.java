@@ -243,8 +243,40 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch(log);
     }
 
+    @Test
+    void testGetPaymentTermsLatest_Success() throws Exception {
+        super.testGetPaymentTerms(log);
+    }
+
+    @Test
+    void testGetPaymentTermsLatest_NoPaymentTermFoundForId() throws Exception {
+        super.testGetPaymentTermsLatest_NoPaymentTermFoundForId(log);
+    }
+
     @Override
     String getHeaderSummaryResponseSchemaLocation() {
         return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountHeaderSummaryResponse.json";
     }
+
+    @Override
+    String getPaymentTermsResponseSchemaLocation() {
+        return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountPaymentTermsResponse.json";
+    }
+
+
+    @Test
+    void opal_getDefendantAccountParty_happy() throws Exception {
+        super.opalGetDefendantAccountParty_Happy(log);
+    }
+
+    @Test
+    void opal_getDefendantAccountParty_organisation() throws Exception {
+        super.opalGetDefendantAccountParty_Organisation(log);
+    }
+
+    @Test
+    void opal_getDefendantAccountParty_nullFields() throws Exception {
+        super.opalGetDefendantAccountParty_NullFields(log);
+    }
+
 }
