@@ -12,6 +12,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This is a support class used to combine multiple OpenAPI YAML files into a single bundled file.
+ * It rewrites $ref references to ensure they point correctly within the bundled file.
+ * This is not part of the main application code and is intended to be run as a standalone utility.
+ */
 public class OpenApiBundler {
 
     private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
