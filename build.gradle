@@ -1,7 +1,4 @@
 import org.flywaydb.gradle.task.FlywayMigrateTask
-import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
-
-import static groovy.io.FileType.FILES
 
 buildscript {
   dependencies {
@@ -26,72 +23,6 @@ plugins {
 //Defaults to true if env is not present
 var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
 
-
-//here we are going to store swagger files
-def swaggerList = []
-
-//iteration by swagger file root folder and save into swaggerList variable
-def dir = new File("$rootDir/src/main/resources/openapi/".toString())
-
-dir.eachFileRecurse(FILES) { file ->
-  if (file.getName().endsWith(".yaml") && file.getName() != "problem.yaml")
-    swaggerList << file
-}
-
-def openApiGenerateTaskList = []
-
-// Iterate on all swagger files and generate a task for each one with the nomenclature openApiGenerate + swagger name
-swaggerList.each {
-  def apiName = it.getName().replace(".yaml", "");
-  def taskName = "openApiGenerate" + apiName.capitalize()
-  openApiGenerateTaskList << taskName
-  tasks.register(taskName, GenerateTask, {
-    generatorName = "spring"
-    inputSpec = "$rootDir/src/main/resources/openapi/".toString() + "${apiName}.yaml"
-    outputDir = "$buildDir/generated/openapi".toString()
-    apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "${apiName}" + ".http.api"
-    modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "${apiName}" + ".model"
-    //    https://openapi-generator.tech/docs/generators/java/#config-options
-    skipOperationExample = true
-    openapiNormalizer = [
-      REF_AS_PARENT_IN_ALLOF: "true"
-    ]
-    configOptions = [
-      dateLibrary                         : "java8",
-      interfaceOnly                       : "true",
-      useTags                             : "true",
-      useSpringBoot3                      : "true",
-      containerDefaultToNull              : "true",
-      generatedConstructorWithRequiredArgs: "false",
-      additionalModelTypeAnnotations      : "@lombok.AllArgsConstructor;@lombok.NoArgsConstructor"
-    ]
-
-  })
-}
-openApiGenerate {
-  generatorName = "spring"                  // or "spring", "kotlin", etc.
-  inputSpec = "$buildDir/openapi-bundled.yaml".toString()
-  outputDir = "$buildDir/generated/openapi".toString()
-  apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
-  modelPackage = "uk.gov.hmcts.opal.generated.".toString()  + "model"
-  generateApiTests = false
-  generateModelTests = false
-  skipOperationExample = true
-  openapiNormalizer = [
-    REF_AS_PARENT_IN_ALLOF: "true"
-  ]
-  configOptions = [
-    dateLibrary                         : "java8",
-    interfaceOnly                       : "true",
-    useTags                             : "true",
-    useSpringBoot3                      : "true",
-    containerDefaultToNull              : "true",
-    generatedConstructorWithRequiredArgs: "false",
-    additionalModelTypeAnnotations      : "@lombok.AllArgsConstructor;@lombok.NoArgsConstructor"
-  ]
-}
-
-
 group = 'uk.gov.hmcts'
 version = '0.0.1'
 
@@ -109,7 +40,7 @@ sourceSets {
   }
   main {
     java {
-      srcDirs files("$buildDir/generated/openapi/src/main/java").builtBy(openApiGenerateTaskList)
+      srcDir "$buildDir/generated/openapi/src/main/java"
     }
   }
 
@@ -138,6 +69,28 @@ tasks.register("bundleOpenApi", JavaExec) {
   classpath = sourceSets.openapi.runtimeClasspath
   mainClass = 'com.example.openapi.OpenApiBundler'
   args = ["$rootDir/src/main/resources/openapi", "$buildDir/openapi-bundled.yaml"]
+}
+openApiGenerate {
+  generatorName = "spring"                  // or "spring", "kotlin", etc.
+  inputSpec = "$buildDir/openapi-bundled.yaml".toString()
+  outputDir = "$buildDir/generated/openapi".toString()
+  apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
+  modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "model"
+  generateApiTests = false
+  generateModelTests = false
+  skipOperationExample = true
+  openapiNormalizer = [
+    REF_AS_PARENT_IN_ALLOF: "true"
+  ]
+  configOptions = [
+    dateLibrary                         : "java8",
+    interfaceOnly                       : "true",
+    useTags                             : "true",
+    useSpringBoot3                      : "true",
+    containerDefaultToNull              : "true",
+    generatedConstructorWithRequiredArgs: "false",
+    additionalModelTypeAnnotations      : "@lombok.AllArgsConstructor;@lombok.NoArgsConstructor"
+  ]
 }
 // (Temp?) Fix to solve the issue:
 // Toolchain from `executable` property does not match toolchain from `javaLauncher` property.
@@ -283,10 +236,10 @@ tasks.register('smoke') {
 }
 
 def coverageExclusions = [
-    '**/uk/gov/hmcts/opal/**/model/**',
-    '**/uk/gov/hmcts/opal/**/config/**',
-    '**/uk/gov/hmcts/opal/authentication/client/**',
-    '**/uk/gov/hmcts/opal/**/exception/**'
+  '**/uk/gov/hmcts/opal/**/model/**',
+  '**/uk/gov/hmcts/opal/**/config/**',
+  '**/uk/gov/hmcts/opal/authentication/client/**',
+  '**/uk/gov/hmcts/opal/**/exception/**'
 ]
 
 jacocoTestReport {
@@ -532,4 +485,9 @@ tasks.register('runAllStyleChecks') {
   dependsOn 'checkstyleIntegrationTest'
   dependsOn 'checkstyleFunctionalTest'
 }
-compileJava.dependsOn = openApiGenerateTaskList
+tasks.named("openApiGenerate") {
+  dependsOn(tasks.named("bundleOpenApi"))
+}
+tasks.named("compileJava") {
+  dependsOn("openApiGenerate")
+}
