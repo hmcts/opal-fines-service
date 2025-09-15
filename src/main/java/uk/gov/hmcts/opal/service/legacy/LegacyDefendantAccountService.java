@@ -19,6 +19,15 @@ import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
+import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
+import uk.gov.hmcts.opal.dto.legacy.EmployerDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
+import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
@@ -28,6 +37,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
@@ -43,6 +54,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_HEADER_SUMMARY = "LIBRA.get_header_summary";
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
     public static final String GET_PAYMENT_TERMS = "LIBRA.get_payment_terms";
+
+    public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
@@ -124,7 +137,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private DefendantAccountHeaderSummary toHeaderSumaryDto(
         LegacyGetDefendantAccountHeaderSummaryResponse response) {
 
-        // ----- Legacy -> Opal Party Details -----
         uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails legacyParty = response.getPartyDetails();
         PartyDetails opalPartyDetails = null;
 
@@ -132,7 +144,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails legacyOrg = legacyParty.getOrganisationDetails();
             uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails legacyInd = legacyParty.getIndividualDetails();
 
-            // organisation aliases
             java.util.List<OrganisationAlias> orgAliases = null;
             if (legacyOrg != null && legacyOrg.getOrganisationAliases() != null) {
                 orgAliases = java.util.Arrays.stream(legacyOrg.getOrganisationAliases())
@@ -150,7 +161,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                     .organisationAliases(orgAliases)
                     .build();
 
-            // individual aliases
             java.util.List<IndividualAlias> indAliases = null;
             if (legacyInd != null && legacyInd.getIndividualAliases() != null) {
                 indAliases = java.util.Arrays.stream(legacyInd.getIndividualAliases())
@@ -166,12 +176,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             IndividualDetails opalInd = legacyInd == null ? null
                 : IndividualDetails.builder()
                     .title(legacyInd.getTitle())
-                    .forenames(legacyInd.getFirstNames()) // legacy accessor is getFirstNames()
+                    .forenames(legacyInd.getFirstNames())
                     .surname(legacyInd.getSurname())
                     .dateOfBirth(legacyInd.getDateOfBirth() != null ? legacyInd.getDateOfBirth().toString() : null)
                     .age(legacyInd.getAge())
                     .nationalInsuranceNumber(legacyInd.getNationalInsuranceNumber())
-                    .individualAliases(indAliases) // keep key present (can be empty list)
+                    .individualAliases(indAliases)
                     .build();
 
             opalPartyDetails = PartyDetails.builder()
@@ -182,22 +192,19 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .build();
         }
 
-        // ----- Business Unit -----
         BusinessUnitSummary bu = response.getBusinessUnitSummary() == null ? null
             : BusinessUnitSummary.builder()
                 .businessUnitId(response.getBusinessUnitSummary().getBusinessUnitId())
                 .businessUnitName(response.getBusinessUnitSummary().getBusinessUnitName())
-                .welshSpeaking("N") // default; legacy schema doesn’t provide it
+                .welshSpeaking("N")
                 .build();
 
-        // ----- Account Status -----
         AccountStatusReference status = response.getAccountStatusReference() == null ? null
             : AccountStatusReference.builder()
                 .accountStatusCode(response.getAccountStatusReference().getAccountStatusCode())
                 .accountStatusDisplayName(response.getAccountStatusReference().getAccountStatusDisplayName())
                 .build();
 
-        // ----- Payment State Summary (never null numbers) -----
         PaymentStateSummary pay = response.getPaymentStateSummary() == null ? null
             : PaymentStateSummary.builder()
                 .imposedAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getImposedAmount()))
@@ -206,7 +213,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .accountBalance(toBigDecimalOrZero(response.getPaymentStateSummary().getAccountBalance()))
                 .build();
 
-        // ----- Build Opal DTO (note: NO defendant_account_id in Opal body) -----
         return DefendantAccountHeaderSummary.builder()
             .accountNumber(response.getAccountNumber())
             .defendantPartyId(response.getDefendantPartyId())
@@ -330,8 +336,147 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     @Override
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
                                                                      Long defendantAccountPartyId) {
-        throw new UnsupportedOperationException("getDefendantAccountParty is not implemented in"
-                                                    + " LegacyDefendantAccountService");
+        log.debug(":getDefendantAccountParty: Legacy call for accountId={}, partyId={}",
+            defendantAccountId, defendantAccountPartyId);
+
+        GetDefendantAccountPartyLegacyRequest req = GetDefendantAccountPartyLegacyRequest.builder()
+            .defendantAccountId(String.valueOf(defendantAccountId))
+            .defendantAccountPartyId(String.valueOf(defendantAccountPartyId))
+            .build();
+
+        Response<GetDefendantAccountPartyLegacyResponse> response = gatewayService.postToGateway(
+            GET_DEFENDANT_ACCOUNT_PARTY,
+            GetDefendantAccountPartyLegacyResponse.class,
+            req,
+            null
+        );
+
+        if (response.isError()) {
+            log.error(":getDefendantAccountParty: Legacy error HTTP {}", response.code);
+            if (response.isException()) {
+                log.error(":getDefendantAccountParty: exception:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":getDefendantAccountParty: legacy failure body:\n{}", response.body);
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":getDefendantAccountParty: Legacy success.");
+        }
+
+        return toDefendantAccountPartyResponse(response.responseEntity);
     }
+
+    private GetDefendantAccountPartyResponse toDefendantAccountPartyResponse(
+        GetDefendantAccountPartyLegacyResponse legacy) {
+
+        if (legacy == null || legacy.getDefendantAccountParty() == null) {
+            return GetDefendantAccountPartyResponse.builder().build();
+        }
+
+        DefendantAccountPartyLegacy src = legacy.getDefendantAccountParty();
+
+        PartyDetailsLegacy pd = src.getPartyDetails();
+        uk.gov.hmcts.opal.dto.common.PartyDetails apiPartyDetails = uk.gov.hmcts.opal.dto.common.PartyDetails.builder()
+            .partyId(s(pd, PartyDetailsLegacy::getPartyId))
+            .organisationFlag(Boolean.TRUE.equals(s(pd, PartyDetailsLegacy::getOrganisationFlag)))
+            .organisationDetails(Boolean.TRUE.equals(s(pd, PartyDetailsLegacy::getOrganisationFlag))
+                ? uk.gov.hmcts.opal.dto.common.OrganisationDetails.builder()
+                .organisationName(s(pd.getOrganisationDetails(), OrganisationDetailsLegacy::getOrganisationName))
+                .build()
+                : null)
+            .individualDetails(Boolean.TRUE.equals(s(pd, PartyDetailsLegacy::getOrganisationFlag)) ? null
+                : uk.gov.hmcts.opal.dto.common.IndividualDetails.builder()
+                    .title(s(pd.getIndividualDetails(), IndividualDetailsLegacy::getTitle))
+                    .forenames(s(pd.getIndividualDetails(), IndividualDetailsLegacy::getForenames))
+                    .surname(s(pd.getIndividualDetails(), IndividualDetailsLegacy::getSurname))
+                    .dateOfBirth(s(pd.getIndividualDetails(), IndividualDetailsLegacy::getDateOfBirth))
+                    .age(s(pd.getIndividualDetails(), IndividualDetailsLegacy::getAge))
+                    .nationalInsuranceNumber(s(pd.getIndividualDetails(), IndividualDetailsLegacy::getNationalInsuranceNumber))
+                    .build())
+            .build();
+
+        AddressDetailsLegacy a = src.getAddress();
+        uk.gov.hmcts.opal.dto.common.AddressDetails apiAddress = uk.gov.hmcts.opal.dto.common.AddressDetails.builder()
+            .addressLine1(s(a, AddressDetailsLegacy::getAddressLine1))
+            .addressLine2(s(a, AddressDetailsLegacy::getAddressLine2))
+            .addressLine3(s(a, AddressDetailsLegacy::getAddressLine3))
+            .addressLine4(s(a, AddressDetailsLegacy::getAddressLine4))
+            .addressLine5(s(a, AddressDetailsLegacy::getAddressLine5))
+            .postcode(s(a, AddressDetailsLegacy::getPostcode))
+            .build();
+
+        ContactDetailsLegacy c = src.getContactDetails();
+        uk.gov.hmcts.opal.dto.common.ContactDetails apiContact = uk.gov.hmcts.opal.dto.common.ContactDetails.builder()
+            .primaryEmailAddress(s(c, ContactDetailsLegacy::getPrimaryEmailAddress))
+            .secondaryEmailAddress(s(c, ContactDetailsLegacy::getSecondaryEmailAddress))
+            .mobileTelephoneNumber(s(c, ContactDetailsLegacy::getMobileTelephoneNumber))
+            .homeTelephoneNumber(s(c, ContactDetailsLegacy::getHomeTelephoneNumber))
+            .workTelephoneNumber(s(c, ContactDetailsLegacy::getWorkTelephoneNumber))
+            .build();
+
+        VehicleDetailsLegacy v = src.getVehicleDetails();
+        uk.gov.hmcts.opal.dto.common.VehicleDetails apiVehicle = uk.gov.hmcts.opal.dto.common.VehicleDetails.builder()
+            .vehicleMakeAndModel(s(v, VehicleDetailsLegacy::getVehicleMakeAndModel))
+            .vehicleRegistration(s(v, VehicleDetailsLegacy::getVehicleRegistration))
+            .build();
+
+        EmployerDetailsLegacy e = src.getEmployerDetails();
+        AddressDetailsLegacy ea = e != null ? e.getEmployerAddress() : null;
+        uk.gov.hmcts.opal.dto.common.AddressDetails apiEmpAddress = uk.gov.hmcts.opal.dto.common.AddressDetails.builder()
+            .addressLine1(s(ea, AddressDetailsLegacy::getAddressLine1))
+            .addressLine2(s(ea, AddressDetailsLegacy::getAddressLine2))
+            .addressLine3(s(ea, AddressDetailsLegacy::getAddressLine3))
+            .addressLine4(s(ea, AddressDetailsLegacy::getAddressLine4))
+            .addressLine5(s(ea, AddressDetailsLegacy::getAddressLine5))
+            .postcode(s(ea, AddressDetailsLegacy::getPostcode))
+            .build();
+
+        uk.gov.hmcts.opal.dto.common.EmployerDetails apiEmployer = uk.gov.hmcts.opal.dto.common.EmployerDetails.builder()
+            .employerName(s(e, EmployerDetailsLegacy::getEmployerName))
+            .employerReference(s(e, EmployerDetailsLegacy::getEmployerReference))
+            .employerEmailAddress(s(e, EmployerDetailsLegacy::getEmployerEmailAddress))
+            .employerTelephoneNumber(s(e, EmployerDetailsLegacy::getEmployerTelephoneNumber))
+            .employerAddress(apiEmpAddress)
+            .build();
+
+        LanguagePreferencesLegacy lp = src.getLanguagePreferences();
+        LanguagePreferencesLegacy.LanguagePreference doc = lp != null ? lp.getDocumentLanguagePreference() : null;
+        LanguagePreferencesLegacy.LanguagePreference hear = lp != null ? lp.getHearingLanguagePreference() : null;
+
+        uk.gov.hmcts.opal.dto.common.LanguagePreferences apiLangs =
+            uk.gov.hmcts.opal.dto.common.LanguagePreferences.builder()
+                .documentLanguagePreference(
+                    uk.gov.hmcts.opal.dto.common.LanguagePreferences.LanguagePreference.builder()
+                        .languageCode(s(doc, LanguagePreferencesLegacy.LanguagePreference::getLanguageCode))
+                        .languageDisplayName(s(doc, LanguagePreferencesLegacy.LanguagePreference::getLanguageDisplayName))
+                        .build())
+                .hearingLanguagePreference(
+                    uk.gov.hmcts.opal.dto.common.LanguagePreferences.LanguagePreference.builder()
+                        .languageCode(s(hear, LanguagePreferencesLegacy.LanguagePreference::getLanguageCode))
+                        .languageDisplayName(s(hear, LanguagePreferencesLegacy.LanguagePreference::getLanguageDisplayName))
+                        .build())
+                .build();
+
+        uk.gov.hmcts.opal.dto.common.DefendantAccountParty apiParty =
+            uk.gov.hmcts.opal.dto.common.DefendantAccountParty.builder()
+                .defendantAccountPartyType(src.getDefendantAccountPartyType())
+                .isDebtor(src.getIsDebtor())
+                .partyDetails(apiPartyDetails)
+                .address(apiAddress)
+                .contactDetails(apiContact)
+                .vehicleDetails(apiVehicle)
+                .employerDetails(apiEmployer)
+                .languagePreferences(apiLangs)
+                .build();
+
+        return uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse.builder()
+            .defendantAccountParty(apiParty)
+            .build();
+    }
+
+    private static <T, R> R s(T obj, java.util.function.Function<T, R> f) {
+        return obj == null ? null : f.apply(obj);
+    }
+
+}
 
 }
