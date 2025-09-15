@@ -2003,4 +2003,71 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").doesNotExist());
     }
 
+    @DisplayName("LEGACY: Get Defendant Account Party - Happy Path [@PO-1973]")
+    void legacyGetDefendantAccountParty_Happy(org.slf4j.Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions actions = mockMvc.perform(
+            get(URL_BASE + "/77/defendant-account-parties/77")
+                .header("authorization", "Bearer some_value")
+        );
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":legacy_getDefendantAccountParty_Happy: body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"))
+            .andExpect(jsonPath("$.defendant_account_party.is_debtor").value(true))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.party_id").value("77"))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value("Graham"))
+            .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"));
+
+        jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
+    }
+
+    @DisplayName("LEGACY: Get Defendant Account Party - Organisation Only [@PO-1973]")
+    void legacyGetDefendantAccountParty_Organisation(org.slf4j.Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions actions = mockMvc.perform(
+            get(URL_BASE + "/555/defendant-account-parties/555")
+                .header("authorization", "Bearer some_value")
+        );
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":legacy_getDefendantAccountParty_Organisation: body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name")
+                .value("TechCorp Solutions Ltd"))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist());
+
+        jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
+    }
+
+    @DisplayName("LEGACY: Get Defendant Account Party - 500 Error [@PO-1973]")
+    void legacyGetDefendantAccountParty_500Error(org.slf4j.Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Using accountId=500 to trigger stubbed 500 (matches your payment-terms pattern)
+        ResultActions actions = mockMvc.perform(
+            get(URL_BASE + "/500/defendant-account-parties/500")
+                .header("authorization", "Bearer some_value")
+        );
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":legacy_getDefendantAccountParty_500Error: body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().is5xxServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    String getDefendantAccountPartyResponseSchemaLocation() {
+        return "opal/defendant-account/getDefendantAccountPartyResponse.json";
+    }
+
+
 }

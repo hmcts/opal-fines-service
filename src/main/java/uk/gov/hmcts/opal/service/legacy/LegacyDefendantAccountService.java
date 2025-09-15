@@ -26,8 +26,6 @@ import uk.gov.hmcts.opal.dto.legacy.EmployerDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
-import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
@@ -37,6 +35,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -365,97 +364,190 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return toDefendantAccountPartyResponse(response.responseEntity);
     }
 
-    private GetDefendantAccountPartyResponse toDefendantAccountPartyResponse(
+    private uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse toDefendantAccountPartyResponse(
         GetDefendantAccountPartyLegacyResponse legacy) {
 
-        if (legacy == null || legacy.getDefendantAccountParty() == null) {
-            return GetDefendantAccountPartyResponse.builder().build();
+        // Always return the legacy JSON wrapper so top-level "version" exists for schema validation
+        if (legacy == null) {
+            return uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson.of(null, null);
+        }
+        if (legacy.getDefendantAccountParty() == null) {
+            return uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson.of(legacy.getVersion(),
+                null);
         }
 
         DefendantAccountPartyLegacy src = legacy.getDefendantAccountParty();
 
+        // ----- Party details -----
         PartyDetailsLegacy pd = src.getPartyDetails();
-        uk.gov.hmcts.opal.dto.common.PartyDetails apiPartyDetails = uk.gov.hmcts.opal.dto.common.PartyDetails.builder()
-            .partyId(s(pd, PartyDetailsLegacy::getPartyId))
-            .organisationFlag(Boolean.TRUE.equals(s(pd, PartyDetailsLegacy::getOrganisationFlag)))
-            .organisationDetails(Boolean.TRUE.equals(s(pd, PartyDetailsLegacy::getOrganisationFlag))
-                ? uk.gov.hmcts.opal.dto.common.OrganisationDetails.builder()
-                .organisationName(s(pd.getOrganisationDetails(), OrganisationDetailsLegacy::getOrganisationName))
-                .build()
-                : null)
-            .individualDetails(Boolean.TRUE.equals(s(pd, PartyDetailsLegacy::getOrganisationFlag)) ? null
-                : uk.gov.hmcts.opal.dto.common.IndividualDetails.builder()
-                    .title(s(pd.getIndividualDetails(), IndividualDetailsLegacy::getTitle))
-                    .forenames(s(pd.getIndividualDetails(), IndividualDetailsLegacy::getForenames))
-                    .surname(s(pd.getIndividualDetails(), IndividualDetailsLegacy::getSurname))
-                    .dateOfBirth(s(pd.getIndividualDetails(), IndividualDetailsLegacy::getDateOfBirth))
-                    .age(s(pd.getIndividualDetails(), IndividualDetailsLegacy::getAge))
-                    .nationalInsuranceNumber(s(pd.getIndividualDetails(), IndividualDetailsLegacy::getNationalInsuranceNumber))
-                    .build())
-            .build();
+        boolean isOrg = Boolean.TRUE.equals(mapSafe(pd, PartyDetailsLegacy::getOrganisationFlag));
 
-        AddressDetailsLegacy a = src.getAddress();
-        uk.gov.hmcts.opal.dto.common.AddressDetails apiAddress = uk.gov.hmcts.opal.dto.common.AddressDetails.builder()
-            .addressLine1(s(a, AddressDetailsLegacy::getAddressLine1))
-            .addressLine2(s(a, AddressDetailsLegacy::getAddressLine2))
-            .addressLine3(s(a, AddressDetailsLegacy::getAddressLine3))
-            .addressLine4(s(a, AddressDetailsLegacy::getAddressLine4))
-            .addressLine5(s(a, AddressDetailsLegacy::getAddressLine5))
-            .postcode(s(a, AddressDetailsLegacy::getPostcode))
-            .build();
+        uk.gov.hmcts.opal.dto.common.OrganisationDetails opalOrg = null;
+        if (isOrg) {
+            opalOrg = uk.gov.hmcts.opal.dto.common.OrganisationDetails.builder()
+                .organisationName(mapSafe(pd != null ? pd.getOrganisationDetails() : null,
+                    OrganisationDetailsLegacy::getOrganisationName))
+                // arrays must not be null (schema expects an array)
+                .organisationAliases(java.util.Collections.emptyList())
+                .build();
+        }
 
-        ContactDetailsLegacy c = src.getContactDetails();
-        uk.gov.hmcts.opal.dto.common.ContactDetails apiContact = uk.gov.hmcts.opal.dto.common.ContactDetails.builder()
-            .primaryEmailAddress(s(c, ContactDetailsLegacy::getPrimaryEmailAddress))
-            .secondaryEmailAddress(s(c, ContactDetailsLegacy::getSecondaryEmailAddress))
-            .mobileTelephoneNumber(s(c, ContactDetailsLegacy::getMobileTelephoneNumber))
-            .homeTelephoneNumber(s(c, ContactDetailsLegacy::getHomeTelephoneNumber))
-            .workTelephoneNumber(s(c, ContactDetailsLegacy::getWorkTelephoneNumber))
-            .build();
+        uk.gov.hmcts.opal.dto.common.IndividualDetails opalInd = null;
+        if (!isOrg) {
+            opalInd = uk.gov.hmcts.opal.dto.common.IndividualDetails.builder()
+                .title(mapSafe(pd != null ? pd.getIndividualDetails()
+                    : null, uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy::getTitle))
+                .forenames(mapSafe(pd != null ? pd.getIndividualDetails()
+                    : null, uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy::getForenames))
+                .surname(mapSafe(pd != null ? pd.getIndividualDetails()
+                    : null, uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy::getSurname))
+                .dateOfBirth(mapSafe(pd != null ? pd.getIndividualDetails()
+                    : null, uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy::getDateOfBirth))
+                .age(mapSafe(pd != null ? pd.getIndividualDetails()
+                    : null, uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy::getAge))
+                .nationalInsuranceNumber(mapSafe(pd != null ? pd.getIndividualDetails()
+                    : null, uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy::getNationalInsuranceNumber))
+                // arrays must not be null (schema expects an array)
+                .individualAliases(java.util.Collections.emptyList())
+                .build();
+        }
 
-        VehicleDetailsLegacy v = src.getVehicleDetails();
-        uk.gov.hmcts.opal.dto.common.VehicleDetails apiVehicle = uk.gov.hmcts.opal.dto.common.VehicleDetails.builder()
-            .vehicleMakeAndModel(s(v, VehicleDetailsLegacy::getVehicleMakeAndModel))
-            .vehicleRegistration(s(v, VehicleDetailsLegacy::getVehicleRegistration))
-            .build();
-
-        EmployerDetailsLegacy e = src.getEmployerDetails();
-        AddressDetailsLegacy ea = e != null ? e.getEmployerAddress() : null;
-        uk.gov.hmcts.opal.dto.common.AddressDetails apiEmpAddress = uk.gov.hmcts.opal.dto.common.AddressDetails.builder()
-            .addressLine1(s(ea, AddressDetailsLegacy::getAddressLine1))
-            .addressLine2(s(ea, AddressDetailsLegacy::getAddressLine2))
-            .addressLine3(s(ea, AddressDetailsLegacy::getAddressLine3))
-            .addressLine4(s(ea, AddressDetailsLegacy::getAddressLine4))
-            .addressLine5(s(ea, AddressDetailsLegacy::getAddressLine5))
-            .postcode(s(ea, AddressDetailsLegacy::getPostcode))
-            .build();
-
-        uk.gov.hmcts.opal.dto.common.EmployerDetails apiEmployer = uk.gov.hmcts.opal.dto.common.EmployerDetails.builder()
-            .employerName(s(e, EmployerDetailsLegacy::getEmployerName))
-            .employerReference(s(e, EmployerDetailsLegacy::getEmployerReference))
-            .employerEmailAddress(s(e, EmployerDetailsLegacy::getEmployerEmailAddress))
-            .employerTelephoneNumber(s(e, EmployerDetailsLegacy::getEmployerTelephoneNumber))
-            .employerAddress(apiEmpAddress)
-            .build();
-
-        LanguagePreferencesLegacy lp = src.getLanguagePreferences();
-        LanguagePreferencesLegacy.LanguagePreference doc = lp != null ? lp.getDocumentLanguagePreference() : null;
-        LanguagePreferencesLegacy.LanguagePreference hear = lp != null ? lp.getHearingLanguagePreference() : null;
-
-        uk.gov.hmcts.opal.dto.common.LanguagePreferences apiLangs =
-            uk.gov.hmcts.opal.dto.common.LanguagePreferences.builder()
-                .documentLanguagePreference(
-                    uk.gov.hmcts.opal.dto.common.LanguagePreferences.LanguagePreference.builder()
-                        .languageCode(s(doc, LanguagePreferencesLegacy.LanguagePreference::getLanguageCode))
-                        .languageDisplayName(s(doc, LanguagePreferencesLegacy.LanguagePreference::getLanguageDisplayName))
-                        .build())
-                .hearingLanguagePreference(
-                    uk.gov.hmcts.opal.dto.common.LanguagePreferences.LanguagePreference.builder()
-                        .languageCode(s(hear, LanguagePreferencesLegacy.LanguagePreference::getLanguageCode))
-                        .languageDisplayName(s(hear, LanguagePreferencesLegacy.LanguagePreference::getLanguageDisplayName))
-                        .build())
+        final uk.gov.hmcts.opal.dto.common.PartyDetails apiPartyDetails =
+            uk.gov.hmcts.opal.dto.common.PartyDetails.builder()
+                .partyId(mapSafe(pd, PartyDetailsLegacy::getPartyId))
+                .organisationFlag(isOrg)
+                .organisationDetails(opalOrg)
+                .individualDetails(opalInd)
                 .build();
 
+        // ----- Address -----
+        AddressDetailsLegacy a = src.getAddress();
+        final uk.gov.hmcts.opal.dto.common.AddressDetails apiAddress =
+            (a == null) ? null
+                : uk.gov.hmcts.opal.dto.common.AddressDetails.builder()
+                    .addressLine1(mapSafe(a, AddressDetailsLegacy::getAddressLine1))
+                    .addressLine2(mapSafe(a, AddressDetailsLegacy::getAddressLine2))
+                    .addressLine3(mapSafe(a, AddressDetailsLegacy::getAddressLine3))
+                    .addressLine4(mapSafe(a, AddressDetailsLegacy::getAddressLine4))
+                    .addressLine5(mapSafe(a, AddressDetailsLegacy::getAddressLine5))
+                    .postcode(mapSafe(a, AddressDetailsLegacy::getPostcode))
+                    .build();
+
+        // ----- Contact -----
+        ContactDetailsLegacy c = src.getContactDetails();
+        uk.gov.hmcts.opal.dto.common.ContactDetails apiContact =
+            (c == null) ? null
+                : uk.gov.hmcts.opal.dto.common.ContactDetails.builder()
+                    .primaryEmailAddress(mapSafe(c, ContactDetailsLegacy::getPrimaryEmailAddress))
+                    .secondaryEmailAddress(mapSafe(c, ContactDetailsLegacy::getSecondaryEmailAddress))
+                    .mobileTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getMobileTelephoneNumber))
+                    .homeTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getHomeTelephoneNumber))
+                    .workTelephoneNumber(mapSafe(c, ContactDetailsLegacy::getWorkTelephoneNumber))
+                    .build();
+        // Drop empty {} contact_details
+        if (apiContact != null
+            && apiContact.getPrimaryEmailAddress() == null
+            && apiContact.getSecondaryEmailAddress() == null
+            && apiContact.getMobileTelephoneNumber() == null
+            && apiContact.getHomeTelephoneNumber() == null
+            && apiContact.getWorkTelephoneNumber() == null) {
+            apiContact = null;
+        }
+
+        // ----- Vehicle -----
+        VehicleDetailsLegacy v = src.getVehicleDetails();
+        uk.gov.hmcts.opal.dto.common.VehicleDetails apiVehicle =
+            (v == null) ? null
+                : uk.gov.hmcts.opal.dto.common.VehicleDetails.builder()
+                    .vehicleMakeAndModel(mapSafe(v, VehicleDetailsLegacy::getVehicleMakeAndModel))
+                    .vehicleRegistration(mapSafe(v, VehicleDetailsLegacy::getVehicleRegistration))
+                    .build();
+        // Drop empty {} vehicle_details
+        if (apiVehicle != null
+            && apiVehicle.getVehicleMakeAndModel() == null
+            && apiVehicle.getVehicleRegistration() == null) {
+            apiVehicle = null;
+        }
+
+        // ----- Employer -----
+        EmployerDetailsLegacy e = src.getEmployerDetails();
+        AddressDetailsLegacy ea = e != null ? e.getEmployerAddress() : null;
+
+        // Build employer address but ONLY keep it if address_line_1 exists (schema requires it)
+        uk.gov.hmcts.opal.dto.common.AddressDetails apiEmpAddress = null;
+        if (ea != null) {
+            String empLine1 = mapSafe(ea, AddressDetailsLegacy::getAddressLine1);
+            if (empLine1 != null && !empLine1.isBlank()) {
+                apiEmpAddress = uk.gov.hmcts.opal.dto.common.AddressDetails.builder()
+                    .addressLine1(empLine1)
+                    .addressLine2(mapSafe(ea, AddressDetailsLegacy::getAddressLine2))
+                    .addressLine3(mapSafe(ea, AddressDetailsLegacy::getAddressLine3))
+                    .addressLine4(mapSafe(ea, AddressDetailsLegacy::getAddressLine4))
+                    .addressLine5(mapSafe(ea, AddressDetailsLegacy::getAddressLine5))
+                    .postcode(mapSafe(ea, AddressDetailsLegacy::getPostcode))
+                    .build();
+            }
+        }
+
+        uk.gov.hmcts.opal.dto.common.EmployerDetails apiEmployer = null;
+        if (e != null) {
+            uk.gov.hmcts.opal.dto.common.EmployerDetails tmp =
+                uk.gov.hmcts.opal.dto.common.EmployerDetails.builder()
+                    .employerName(mapSafe(e, EmployerDetailsLegacy::getEmployerName))
+                    .employerReference(mapSafe(e, EmployerDetailsLegacy::getEmployerReference))
+                    .employerEmailAddress(mapSafe(e, EmployerDetailsLegacy::getEmployerEmailAddress))
+                    .employerTelephoneNumber(mapSafe(e, EmployerDetailsLegacy::getEmployerTelephoneNumber))
+                    .employerAddress(apiEmpAddress) // may be null if address_line_1 absent
+                    .build();
+
+            // Drop entire employer_details if all fields (including address) are null
+            if (tmp.getEmployerName() != null
+                || tmp.getEmployerReference() != null
+                || tmp.getEmployerEmailAddress() != null
+                || tmp.getEmployerTelephoneNumber() != null
+                || tmp.getEmployerAddress() != null) {
+                apiEmployer = tmp;
+            }
+        }
+
+        // ----- Language Preferences -----
+        LanguagePreferencesLegacy lp = src.getLanguagePreferences();
+        uk.gov.hmcts.opal.dto.common.LanguagePreferences apiLangs = null;
+        if (lp != null) {
+            uk.gov.hmcts.opal.dto.common.LanguagePreferences.LanguagePreference docPref = null;
+            uk.gov.hmcts.opal.dto.common.LanguagePreferences.LanguagePreference hearPref = null;
+
+            LanguagePreferencesLegacy.LanguagePreference doc = lp.getDocumentLanguagePreference();
+            LanguagePreferencesLegacy.LanguagePreference hear = lp.getHearingLanguagePreference();
+
+            String docCode = mapSafe(doc, LanguagePreferencesLegacy.LanguagePreference::getLanguageCode);
+            if (docCode != null && !docCode.isBlank()) {
+                docPref = uk.gov.hmcts.opal.dto.common.LanguagePreferences.LanguagePreference.builder()
+                    .languageCode(docCode)
+                    .languageDisplayName(mapSafe(doc, LanguagePreferencesLegacy
+                        .LanguagePreference::getLanguageDisplayName))
+                    .build();
+            }
+
+            String hearCode = mapSafe(hear, LanguagePreferencesLegacy.LanguagePreference::getLanguageCode);
+            if (hearCode != null && !hearCode.isBlank()) {
+                hearPref = uk.gov.hmcts.opal.dto.common.LanguagePreferences.LanguagePreference.builder()
+                    .languageCode(hearCode)
+                    .languageDisplayName(mapSafe(hear, LanguagePreferencesLegacy
+                        .LanguagePreference::getLanguageDisplayName))
+                    .build();
+            }
+
+            // Only build the container if at least one child exists (avoid {} which fails schema)
+            if (docPref != null || hearPref != null) {
+                apiLangs = uk.gov.hmcts.opal.dto.common.LanguagePreferences.builder()
+                    .documentLanguagePreference(docPref)
+                    .hearingLanguagePreference(hearPref)
+                    .build();
+            }
+        }
+
+        // ----- Assemble inner Opal body -----
         uk.gov.hmcts.opal.dto.common.DefendantAccountParty apiParty =
             uk.gov.hmcts.opal.dto.common.DefendantAccountParty.builder()
                 .defendantAccountPartyType(src.getDefendantAccountPartyType())
@@ -468,12 +560,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .languagePreferences(apiLangs)
                 .build();
 
-        return uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse.builder()
-            .defendantAccountParty(apiParty)
-            .build();
+        // Wrap with legacy JSON envelope (adds top-level "version")
+        return uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson.of(
+            legacy.getVersion(), apiParty);
     }
 
-    private static <T, R> R s(T obj, java.util.function.Function<T, R> f) {
+    private static <T, R> R mapSafe(T obj, java.util.function.Function<T, R> f) {
         return obj == null ? null : f.apply(obj);
     }
 
