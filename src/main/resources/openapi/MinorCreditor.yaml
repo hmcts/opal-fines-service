@@ -36,6 +36,11 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - creditor_account_id
+                  - party_details
+                  - address
+                  - payment
                 properties:
                   creditor_account_id:
                     $ref: "./types.yaml/#/components/schemas/BigInt"
