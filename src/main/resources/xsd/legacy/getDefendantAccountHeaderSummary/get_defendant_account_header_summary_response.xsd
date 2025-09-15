@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="../common-objects/error_response.xsd"/>
+  <xsd:include schemaLocation="../common-objects/account_status_reference.xsd"/>
+  <xsd:include schemaLocation="../common-objects/business_unit_summary.xsd"/>
+  <xsd:include schemaLocation="../common-objects/payment_state_summary.xsd"/>
+  <xsd:include schemaLocation="../common-objects/party_details.xsd"/>
+  <xsd:include schemaLocation="../common-objects/simple_type.xsd"/>
+
+  <xsd:element name="response">
+    <xsd:complexType>
+      <xsd:choice>
+        <xsd:sequence>
+          <xsd:element name="version" type="xsd:integer" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="defendant_account_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="account_number" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="defendant_party_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="parent_guardian_party_id" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="debtor_type" type="debtor_type" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="is_youth" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="account_status_reference" type="account_status_reference" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="account_type" type="account_type" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="prosecutor_case_reference" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="fixed_penalty_ticket_number" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="business_unit_summary" type="business_unit_summary" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="payment_state_summary" type="payment_state_summary" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="party_details" type="party_details" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:sequence>
+          <xsd:element name="error_response" type="error_response" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:choice>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>
