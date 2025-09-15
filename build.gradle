@@ -68,6 +68,29 @@ swaggerList.each {
 
   })
 }
+openApiGenerate {
+  generatorName = "spring"                  // or "spring", "kotlin", etc.
+  inputSpec = "$buildDir/openapi-bundled.yaml".toString()
+  outputDir = "$buildDir/generated/openapi".toString()
+  apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
+  modelPackage = "uk.gov.hmcts.opal.generated.".toString()  + "model"
+  generateApiTests = false
+  generateModelTests = false
+  skipOperationExample = true
+  openapiNormalizer = [
+    REF_AS_PARENT_IN_ALLOF: "true"
+  ]
+  configOptions = [
+    dateLibrary                         : "java8",
+    interfaceOnly                       : "true",
+    useTags                             : "true",
+    useSpringBoot3                      : "true",
+    containerDefaultToNull              : "true",
+    generatedConstructorWithRequiredArgs: "false",
+    additionalModelTypeAnnotations      : "@lombok.AllArgsConstructor;@lombok.NoArgsConstructor"
+  ]
+}
+
 
 group = 'uk.gov.hmcts'
 version = '0.0.1'
@@ -79,6 +102,11 @@ java {
 }
 
 sourceSets {
+  openapi {
+    java {
+      srcDir 'src/openapi/java'
+    }
+  }
   main {
     java {
       srcDirs files("$buildDir/generated/openapi/src/main/java").builtBy(openApiGenerateTaskList)
@@ -104,6 +132,13 @@ sourceSets {
   }
 }
 
+tasks.register("bundleOpenApi", JavaExec) {
+  group = "openapi"
+  description = "Bundle multiple OpenAPI YAML files into one"
+  classpath = sourceSets.openapi.runtimeClasspath
+  mainClass = 'com.example.openapi.OpenApiBundler'
+  args = ["$rootDir/src/main/resources/openapi", "$buildDir/openapi-bundled.yaml"]
+}
 // (Temp?) Fix to solve the issue:
 // Toolchain from `executable` property does not match toolchain from `javaLauncher` property.
 gradle.taskGraph.whenReady { taskGraph ->
@@ -114,6 +149,8 @@ gradle.taskGraph.whenReady { taskGraph ->
 }
 
 configurations {
+  openapiImplementation
+  openapiRuntimeOnly
   functionalTestImplementation.extendsFrom testImplementation
   functionalTestRuntimeOnly.extendsFrom runtimeOnly
 
@@ -345,6 +382,11 @@ ext['tomcat.version'] = '10.1.42'
 
 
 dependencies {
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.16"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.22"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.22"
+  openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.17.2"
+
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
