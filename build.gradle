@@ -35,8 +35,9 @@ java {
 sourceSets {
   openapi {
     java {
-      srcDir 'src/openapi/java'
+      srcDir file('src/openApi/java')
     }
+    resources.srcDir file('src/openApi/resources')
   }
   main {
     java {
@@ -62,14 +63,29 @@ sourceSets {
     resources.srcDir file('src/integrationTest/resources')
   }
 }
+configurations {
+  openapiImplementation.extendsFrom implementation
+  openapiRuntimeOnly.extendsFrom runtimeOnly
+
+  functionalTestImplementation.extendsFrom testImplementation
+  functionalTestRuntimeOnly.extendsFrom runtimeOnly
+
+  integrationTestImplementation.extendsFrom testImplementation
+  integrationTestRuntimeOnly.extendsFrom runtimeOnly
+
+  smokeTestImplementation.extendsFrom testImplementation
+  smokeTestRuntimeOnly.extendsFrom runtimeOnly
+}
 
 tasks.register("bundleOpenApi", JavaExec) {
+  dependsOn 'compileOpenapiJava'
+  classpath = sourceSets.openapi.runtimeClasspath
   group = "openapi"
   description = "Bundle multiple OpenAPI YAML files into one"
-  classpath = sourceSets.openapi.runtimeClasspath
-  mainClass = 'com.example.openapi.OpenApiBundler'
+  mainClass = 'uk.gov.hmcts.opal.openapi.OpenApiBundler'
   args = ["$rootDir/src/main/resources/openapi", "$buildDir/openapi-bundled.yaml"]
 }
+
 openApiGenerate {
   generatorName = "spring"                  // or "spring", "kotlin", etc.
   inputSpec = "$buildDir/openapi-bundled.yaml".toString()
@@ -85,7 +101,6 @@ openApiGenerate {
     REF_AS_PARENT_IN_ALLOF: "true"
   ]
   configOptions = [
-
     dateLibrary                           : "java8",
     interfaceOnly                         : "true",
     useTags                               : "true",
@@ -104,18 +119,6 @@ gradle.taskGraph.whenReady { taskGraph ->
   }
 }
 
-configurations {
-  openapiImplementation
-  openapiRuntimeOnly
-  functionalTestImplementation.extendsFrom testImplementation
-  functionalTestRuntimeOnly.extendsFrom runtimeOnly
-
-  integrationTestImplementation.extendsFrom testImplementation
-  integrationTestRuntimeOnly.extendsFrom runtimeOnly
-
-  smokeTestImplementation.extendsFrom testImplementation
-  smokeTestRuntimeOnly.extendsFrom runtimeOnly
-}
 
 tasks.withType(JavaCompile).configureEach {
   options.compilerArgs << "-Xlint:unchecked"
@@ -489,8 +492,8 @@ tasks.register('runAllStyleChecks') {
   dependsOn 'checkstyleFunctionalTest'
 }
 tasks.named("openApiGenerate") {
-  dependsOn(tasks.named("bundleOpenApi"))
+  dependsOn 'bundleOpenApi'
 }
 tasks.named("compileJava") {
-  dependsOn("openApiGenerate")
+  dependsOn 'openApiGenerate'
 }

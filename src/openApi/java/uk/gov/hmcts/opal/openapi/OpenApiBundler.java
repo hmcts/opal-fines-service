@@ -1,4 +1,4 @@
-package com.example.openapi;
+package uk.gov.hmcts.opal.openapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -13,9 +13,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This is a support class used to combine multiple OpenAPI YAML files into a single bundled file.
- * It rewrites $ref references to ensure they point correctly within the bundled file.
- * This is not part of the main application code and is intended to be run as a standalone utility.
+ * This is a support class used to combine multiple OpenAPI YAML files into a single bundled file. It rewrites $ref
+ * references to ensure they point correctly within the bundled file. This is not part of the main application code and
+ * is intended to be run as a standalone utility.
  */
 public class OpenApiBundler {
 
@@ -28,8 +28,8 @@ public class OpenApiBundler {
             System.exit(1);
         }
 
-        Path inputDir = Paths.get(args[0]);
-        Path outputFile = Paths.get(args[1]);
+        final Path inputDir = Paths.get(args[0]);
+        final Path outputFile = Paths.get(args[1]);
 
         Map<String, Object> bundled = new LinkedHashMap<>();
         bundled.put("openapi", "3.1.1");
@@ -87,10 +87,8 @@ public class OpenApiBundler {
                         String componentPath = fileAndPath[1].replace("/components/", "");
                         map.put("$ref", "#/components/" + addSuffix(componentPath, suffix));
                     }
-                }
-
-                // Case 2: local reference
-                else if (ref.startsWith("#/components/")) {
+                } else if (ref.startsWith("#/components/")) {
+                    // Case 2: local reference
                     String componentPath = ref.replace("#/components/", "");
                     String suffix = capitalize(currentSuffix);
                     map.put("$ref", "#/components/" + addSuffix(componentPath, suffix));
