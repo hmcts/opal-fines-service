@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
 import uk.gov.hmcts.opal.service.opal.CourtService;
-import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.opal.UserStateService;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;

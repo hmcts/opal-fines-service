@@ -7,6 +7,10 @@ import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.InstalmentPeriod;
+import uk.gov.hmcts.opal.dto.PaymentTerms;
+import uk.gov.hmcts.opal.dto.PaymentTermsType;
+import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
@@ -18,7 +22,12 @@ import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
+import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
+import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
+import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
@@ -33,6 +42,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     public static final String GET_HEADER_SUMMARY = "LIBRA.get_header_summary";
     public static final String SEARCH_DEFENDANT_ACCOUNTS = "searchDefendantAccounts";
+    public static final String GET_PAYMENT_TERMS = "LIBRA.get_payment_terms";
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
@@ -82,9 +92,25 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     @Override
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
-        log.info(":getPaymentTerms: Legacy Gateway response: NOT YET IMPLEMENTED.");
 
-        return null;
+        Response<LegacyGetDefendantAccountPaymentTermsResponse> response = gatewayService.postToGateway(
+            GET_PAYMENT_TERMS, LegacyGetDefendantAccountPaymentTermsResponse.class,
+            createGetDefendantAccountRequest(defendantAccountId.toString()), null);
+
+        if (response.isError()) {
+            log.error(":getPaymentTerms: Legacy Gateway response: HTTP Response Code: {}", response.code);
+            if (response.isException()) {
+                log.error(":getPaymentTerms:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":getPaymentTerms: Legacy Gateway: body: \n{}", response.body);
+                LegacyGetDefendantAccountPaymentTermsResponse responseEntity = response.responseEntity;
+                log.error(":getPaymentTerms: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":getPaymentTerms: Legacy Gateway response: Success.");
+        }
+
+        return toPaymentTermsResponse(response.responseEntity);
     }
 
     /* This is probably common code that will be needed across multiple Legacy requests to get
@@ -221,11 +247,91 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return BigDecimal.ZERO;
     }
 
+    private GetDefendantAccountPaymentTermsResponse toPaymentTermsResponse(
+        LegacyGetDefendantAccountPaymentTermsResponse legacy) {
+
+        if (legacy == null) {
+            return null;
+        }
+
+        return GetDefendantAccountPaymentTermsResponse.builder()
+            .version(legacy.getVersion())
+            .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
+            .postedDetails(toPostedDetails(legacy.getPostedDetails()))
+            .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
+            .dateLastAmended(legacy.getDateLastAmended())
+            .extension(legacy.getExtension())
+            .lastEnforcement(legacy.getLastEnforcement())
+            .build();
+    }
+
+    private static PaymentTerms toPaymentTerms(LegacyPaymentTerms legacy) {
+        if (legacy == null) {
+            return null;
+        }
+        return PaymentTerms.builder()
+            .daysInDefault(legacy.getDaysInDefault())
+            .dateDaysInDefaultImposed(legacy.getDateDaysInDefaultImposed())
+            .reasonForExtension(legacy.getReasonForExtension())
+            .paymentTermsType(toPaymentTermsType(legacy.getPaymentTermsType()))
+            .effectiveDate(legacy.getEffectiveDate())
+            .instalmentPeriod(toInstalmentPeriod(legacy.getInstalmentPeriod()))
+            .lumpSumAmount(legacy.getLumpSumAmount())
+            .instalmentAmount(legacy.getInstalmentAmount())
+            .build();
+    }
+
+    private static PaymentTermsType toPaymentTermsType(LegacyPaymentTermsType legacy) {
+        if (legacy == null) {
+            return null;
+        }
+
+        PaymentTermsType.PaymentTermsTypeCode code = null;
+        if (legacy.getPaymentTermsTypeCode() != null) {
+            code = PaymentTermsType.PaymentTermsTypeCode.fromValue(
+                legacy.getPaymentTermsTypeCode().name()
+            );
+        }
+
+        return PaymentTermsType.builder()
+            .paymentTermsTypeCode(code)
+            .build();
+    }
+
+    private static InstalmentPeriod toInstalmentPeriod(LegacyInstalmentPeriod legacy) {
+        if (legacy == null) {
+            return null;
+        }
+
+        InstalmentPeriod.InstalmentPeriodCode code = null;
+        if (legacy.getInstalmentPeriodCode() != null) {
+            code = InstalmentPeriod.InstalmentPeriodCode.fromValue(
+                legacy.getInstalmentPeriodCode().name()
+            );
+        }
+
+        return InstalmentPeriod.builder()
+            .instalmentPeriodCode(code)
+            .build();
+    }
+
+    private static PostedDetails toPostedDetails(LegacyPostedDetails legacy) {
+        if (legacy == null) {
+            return null;
+        }
+
+        return PostedDetails.builder()
+            .postedDate(legacy.getPostedDate())
+            .postedBy(legacy.getPostedBy())
+            .postedByName(legacy.getPostedByName())
+            .build();
+    }
+
     @Override
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
                                                                      Long defendantAccountPartyId) {
         throw new UnsupportedOperationException("getDefendantAccountParty is not implemented in"
-            + " LegacyDefendantAccountService");
+                                                    + " LegacyDefendantAccountService");
     }
-}
 
+}

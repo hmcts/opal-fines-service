@@ -5,7 +5,6 @@ java:
   environment:
     OPAL_FRONTEND_URL: https://opal-frontend-staging.demo.platform.hmcts.net
     OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.demo.platform.hmcts.net
-    OPAL_USER_SERVICE_API_URL: https://opal-user-service.demo.platform.hmcts.net
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
     OPAL_SFTP_INBOUND_CREATE_SUB_LOCATIONS: true
     OPAL_SFTP_OUTBOUND_CREATE_SUB_LOCATIONS: true
