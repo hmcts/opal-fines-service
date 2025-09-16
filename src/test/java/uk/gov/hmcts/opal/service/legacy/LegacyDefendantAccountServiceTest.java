@@ -1077,5 +1077,69 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         );
     }
 
+    @Test
+    void toBigDecimalOrZero_coversNumberAndUnsupportedType() throws Exception {
+        // reflect the private static method
+        var m = uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.class
+            .getDeclaredMethod("toBigDecimalOrZero", Object.class);
+        m.setAccessible(true);
+
+        // Number branch
+        var outNum = (java.math.BigDecimal) m.invoke(null, Integer.valueOf(42));
+        org.junit.jupiter.api.Assertions.assertEquals(0, outNum.compareTo(java.math.BigDecimal.valueOf(42.0)));
+
+        // Unsupported type branch → logs warn, returns ZERO
+        var outUnsupported = (java.math.BigDecimal) m.invoke(null, new Object());
+        org.junit.jupiter.api.Assertions.assertEquals(java.math.BigDecimal.ZERO, outUnsupported);
+    }
+
+    @Test
+    void getDefendantAccountParty_languagePreferences_buildsContainer_whenCodesPresent() {
+        var doc = uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy.LanguagePreference.builder()
+            .languageCode("EN").languageDisplayName("English").build();
+        var hear = uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy.LanguagePreference.builder()
+            .languageCode("CY").languageDisplayName("Welsh").build();
+
+        var langs = uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy.builder()
+            .documentLanguagePreference(doc)
+            .hearingLanguagePreference(hear)
+            .build();
+
+        var pd = uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy.builder()
+            .partyId("77").organisationFlag(false)
+            .individualDetails(uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy.builder()
+                .forenames("Sam").surname("Graham").build())
+            .build();
+
+        var party = uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy.builder()
+            .partyDetails(pd)
+            .languagePreferences(langs)
+            .build();
+
+        var legacy = uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse.builder()
+            .version(1L).defendantAccountParty(party).build();
+
+        var resp = new uk.gov.hmcts.opal.service.legacy.GatewayService.Response<>(
+            org.springframework.http.HttpStatus.OK, legacy, null, null);
+
+        Class<uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse> respType =
+            uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse.class;
+
+        org.mockito.Mockito.doReturn(resp).when(gatewayService).postToGateway(
+            org.mockito.ArgumentMatchers.eq(uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService
+                .GET_DEFENDANT_ACCOUNT_PARTY),
+            org.mockito.ArgumentMatchers.eq(respType),
+            org.mockito.ArgumentMatchers.any(uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyRequest
+                .class),
+            org.mockito.Mockito.nullable(String.class)
+        );
+
+        var out = legacyDefendantAccountService.getDefendantAccountParty(77L, 77L);
+        var prefs = out.getDefendantAccountParty().getLanguagePreferences();
+
+        org.junit.jupiter.api.Assertions.assertNotNull(prefs);
+        org.junit.jupiter.api.Assertions.assertEquals("EN", prefs.getDocumentLanguagePreference().getLanguageCode());
+        org.junit.jupiter.api.Assertions.assertEquals("CY", prefs.getHearingLanguagePreference().getLanguageCode());
+    }
 
 }
