@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="enforcement_override_result_reference.xsd"/>
+  <xsd:include schemaLocation="enforcer_reference.xsd"/>
+  <xsd:include schemaLocation="lja_reference.xsd"/>
+
+  <xsd:complexType name="enforcement_override">
+    <xsd:sequence>
+      <xsd:element name="enforcement_override_result" type="enforcement_override_result_reference" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="enforcer" type="enforcer_reference" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="lja" type="lja_reference" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

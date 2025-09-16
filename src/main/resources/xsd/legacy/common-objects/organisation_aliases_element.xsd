@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:complexType name="organisation_aliases_element">
+    <xsd:all>
+      <xsd:element name="alias_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="sequence_number" minOccurs="1" maxOccurs="1">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:integer">
+            <xsd:minInclusive value="1"/>
+            <xsd:maxInclusive value="5"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="organisation_name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    </xsd:all>
+  </xsd:complexType>
+</xsd:schema>
