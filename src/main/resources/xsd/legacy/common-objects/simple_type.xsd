@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:simpleType name="payment_terms_type_code">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="B"/>
+      <xsd:enumeration value="P"/>
+      <xsd:enumeration value="I"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="instalment_period_code">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="W"/>
+      <xsd:enumeration value="M"/>
+      <xsd:enumeration value="F"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="instalment_period_display_name">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="Weekly"/>
+      <xsd:enumeration value="Monthly"/>
+      <xsd:enumeration value="Fortnightly"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="note_type">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="AC"/>
+      <xsd:enumeration value="AA"/>
+      <xsd:enumeration value="AN"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="debtor_type">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="Defendant"/>
+      <xsd:enumeration value="Parent/Guardian"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="language_code">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="CY"/>
+      <xsd:enumeration value="EN"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="hearing_language_display_name">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="Welsh and English"/>
+      <xsd:enumeration value="English only"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <!-- Enums Used In account_status_reference.xsd -->
+  <xsd:simpleType name="account_status_code">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="L"/>
+      <xsd:enumeration value="C"/>
+      <xsd:enumeration value="TO"/>
+      <xsd:enumeration value="TS"/>
+      <xsd:enumeration value="TA"/>
+      <xsd:enumeration value="CS"/>
+      <xsd:enumeration value="WO"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="account_status_display_name">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="Live"/>
+      <xsd:enumeration value="Completed"/>
+      <xsd:enumeration value="TFO to be acknowledged"/>
+      <xsd:enumeration value="TFO to NI/Scotland to be acknowledged"/>
+      <xsd:enumeration value="TFO acknowledged"/>
+      <xsd:enumeration value="Account consolidated"/>
+      <xsd:enumeration value="Account written off"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <!-- Enums Used In account_type.xsd -->
+  <xsd:simpleType name="account_type">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="Fine"/>
+      <xsd:enumeration value="Conditional Caution"/>
+      <xsd:enumeration value="Confiscation"/>
+      <xsd:enumeration value="Fixed Penalty"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="Money2Decimal">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:fractionDigits value="2"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>
