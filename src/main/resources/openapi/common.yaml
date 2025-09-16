@@ -41,9 +41,7 @@ components:
 
     ljaReference:
       title: LJA Reference
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       properties:
         lja_id:
@@ -61,115 +59,64 @@ components:
         payment_terms_type:
           $ref: '#/components/schemas/paymentTermsType'
         effective_date:
-          type:
-            - string
-            - 'null'
+          type: string
           format: date
         instalment_period:
           $ref: '#/components/schemas/instalmentPeriod'
         lump_sum_amount:
-          type:
-            - number
-            - 'null'
+          type: number
           multipleOf: 0.01
         instalment_amount:
-          type:
-            - number
-            - 'null'
+          type: number
           multipleOf: 0.01
       required:
         - payment_terms_type
-        - effective_date
-        - instalment_period
-        - lump_sum_amount
     languagePreferences:
       title: Language Preferences
-      type:
-        - object
-        - 'null'
+      type: object
       properties:
         document_language_preference:
           $ref: '#/components/schemas/languagePreference'
         hearing_language_preference:
           $ref: '#/components/schemas/languagePreference'
-      required:
-        - document_language_preference
-        - hearing_language_preference
     contactDetails:
       title: Contact Details
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       properties:
         primary_email_address:
-          type:
-            - string
-            - 'null'
+          type: string
           format: email
         secondary_email_address:
-          type:
-            - string
-            - 'null'
+          type: string
           format: email
         mobile_telephone_number:
-          type:
-            - string
-            - 'null'
+          type: string
         home_telephone_number:
-          type:
-            - string
-            - 'null'
+          type: string
         work_telephone_number:
-          type:
-            - string
-            - 'null'
-      required:
-        - primary_email_address
-        - secondary_email_address
-        - mobile_telephone_number
-        - home_telephone_number
-        - work_telephone_number
+          type: string
     commentsAndNotes:
       title: Comment and Notes
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       properties:
         account_comment:
-          type:
-            - string
-            - 'null'
+          type: string
         free_text_note_1:
-          type:
-            - string
-            - 'null'
+          type: string
         free_text_note_2:
-          type:
-            - string
-            - 'null'
+          type: string
         free_text_note_3:
-          type:
-            - string
-            - 'null'
-      required:
-        - account_comment
-        - free_text_note_1
-        - free_text_note_2
-        - free_text_note_3
+          type: string
     organisationDetails:
       title: Organisation Details
-      type:
-        - object
-        - 'null'
+      type: object
       properties:
         organisation_name:
           type: string
         organisation_aliases:
-          type:
-            - array
-            - 'null'
+          type: array
           items:
             $ref: '#/components/schemas/organisationAlias'
       required:
@@ -180,27 +127,14 @@ components:
       additionalProperties: false
       properties:
         fp_registration_number:
-          type:
-            - string
-            - 'null'
+          type: string
         fp_driving_license:
-          type:
-            - string
-            - 'null'
+          type: string
         notice_to_owner_or_hirer_number:
-          type:
-            - string
-            - 'null'
+          type: string
         date_notice_to_owner_was_issued:
-          type:
-            - string
-            - 'null'
+          type: string
           format: date
-      required:
-        - fp_registration_number
-        - fp_driving_license
-        - notice_to_owner_or_hirer_number
-        - date_notice_to_owner_was_issued
     enforcementOverrideResultReference:
       title: Enforcement Override Result Reference
       type: object
@@ -277,14 +211,11 @@ components:
         surname:
           type: string
         forenames:
-          type:
-            - string
-            - 'null'
+          type: string
       required:
         - alias_id
         - sequence_number
         - surname
-        - forenames
     accountStatusReference:
       title: Account Status Reference
       type: object
@@ -339,51 +270,29 @@ components:
         - note_type
     individualDetails:
       title: Individual Details
-      type:
-        - object
-        - 'null'
+      type: object
       properties:
         title:
-          type:
-            - string
-            - 'null'
+          type: string
         forenames:
-          type:
-            - string
-            - 'null'
+          type: string
         surname:
           type: string
         date_of_birth:
-          type:
-            - string
-            - 'null'
+          type: string
         age:
-          type:
-            - string
-            - 'null'
+          type: string
         national_insurance_number:
-          type:
-            - string
-            - 'null'
+          type: string
         individual_aliases:
-          type:
-            - array
-            - 'null'
+          type: array
           items:
             $ref: '#/components/schemas/individualAlias'
       required:
-        - title
-        - forenames
         - surname
-        - date_of_birth
-        - age
-        - national_insurance_number
-        - individual_aliases
     courtReference:
       title: Court Reference
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       properties:
         court_id:
@@ -395,35 +304,21 @@ components:
         - court_name
     employerDetails:
       title: Employer Details
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       properties:
         employer_name:
-          type:
-            - string
-            - 'null'
+          type: string
         employer_reference:
-          type:
-            - string
-            - 'null'
+          type: string
         employer_email_address:
-          type:
-            - string
-            - 'null'
+          type: string
           format: email
         employer_telephone_number:
-          type:
-            - string
-            - 'null'
+          type: string
         employer_address:
           $ref: '#/components/schemas/addressDetails'
       required:
-        - employer_name
-        - employer_reference
-        - employer_email_address
-        - employer_telephone_number
         - employer_address
     fixedPenaltyTicketDetails:
       title: Fixed Penalty Ticket Details
@@ -481,15 +376,9 @@ components:
         - is_debtor
         - party_details
         - address
-        - contact_details
-        - vehicle_details
-        - employer_details
-        - language_preferences
     enforcementOverride:
       title: Enforcement Override
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       properties:
         enforcement_override_result:
@@ -500,8 +389,6 @@ components:
           $ref: '#/components/schemas/ljaReference'
       required:
         - enforcement_override_result
-        - enforcer
-        - lja
     resultResponses:
       title: Result Responses
       type: object
@@ -516,9 +403,7 @@ components:
         - response
     lastEnforcementAction:
       title: Last Enforcement Action
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       properties:
         last_enforcement_action_id:
@@ -530,9 +415,7 @@ components:
         - last_enforcement_action_title
     instalmentPeriod:
       title: Instalment Period
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       properties:
         instalment_period_code:
@@ -552,64 +435,38 @@ components:
           type: string
           format: date
         posted_by:
-          type:
-            - string
-            - 'null'
+          type: string
         posted_by_name:
-          type:
-            - string
-            - 'null'
+          type: string
       required:
         - posted_date
-        - posted_by
-        - posted_by_name
     paymentTerms:
       title: Payment Terms
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       properties:
         days_in_default:
-          type:
-            - integer
-            - 'null'
+          type: integer
         date_days_in_default_imposed:
-          type:
-            - string
-            - 'null'
+          type: string
           format: date
         reason_for_extension:
-          type:
-            - string
-            - 'null'
+          type: string
         payment_terms_type:
           $ref: '#/components/schemas/paymentTermsType'
         effective_date:
-          type:
-            - string
-            - 'null'
+          type: string
           format: date
         instalment_period:
           $ref: '#/components/schemas/instalmentPeriod'
         lump_sum_amount:
-          type:
-            - number
-            - 'null'
+          type: number
           multipleOf: 0.01
         instalment_amount:
-          type:
-            - number
-            - 'null'
+          type: number
           multipleOf: 0.01
       required:
-        - days_in_default
-        - date_days_in_default_imposed
-        - reason_for_extension
         - payment_terms_type
-        - effective_date
-        - lump_sum_amount
-        - instalment_amount
     enforcementStatusSummary:
       title: Enforcement Status Summary
       type: object
@@ -620,45 +477,26 @@ components:
         collection_order_made:
           type: boolean
         default_days_in_jail:
-          type:
-            - integer
-            - 'null'
+          type: integer
         enforcement_override:
           $ref: '#/components/schemas/enforcementOverride'
         last_movement_date:
-          type:
-            - string
-            - 'null'
+          type: string
           format: date
       required:
-        - last_enforcement_action
         - collection_order_made
-        - default_days_in_jail
-        - enforcement_override
-        - last_movement_date
     vehicleDetails:
       title: Vehicle Details
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       properties:
         vehicle_make_and_model:
-          type:
-            - string
-            - 'null'
+          type: string
         vehicle_registration:
-          type:
-            - string
-            - 'null'
-      required:
-        - vehicle_make_and_model
-        - vehicle_registration
+          type: string
     collectionOrder:
       title: Collection Order
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       properties:
         collection_order_flag:
@@ -673,9 +511,7 @@ components:
         - collection_order_date
     enforcerReference:
       title: Enforcer Reference
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       properties:
         enforcer_id:
@@ -701,8 +537,6 @@ components:
       required:
         - party_id
         - organisation_flag
-        - organisation_details
-        - individual_details
     businessUnitSummary:
       title: Business Unit Summary
       type: object
@@ -720,9 +554,7 @@ components:
         - welsh_speaking
     languagePreference:
       title: Language Preference
-      type:
-        - object
-        - 'null'
+      type: object
       additionalProperties: false
       properties:
         language_code:
@@ -740,32 +572,15 @@ components:
         address_line_1:
           type: string
         address_line_2:
-          type:
-            - string
-            - 'null'
+          type: string
         address_line_3:
-          type:
-            - string
-            - 'null'
+          type: string
         address_line_4:
-          type:
-            - string
-            - 'null'
+          type: string
         address_line_5:
-          type:
-            - string
-            - 'null'
+          type: string
         postcode:
-          type:
-            - string
-            - 'null'
-      required:
-        - address_line_1
-        - address_line_2
-        - address_line_3
-        - address_line_4
-        - address_line_5
-        - postcode
+          type: string
     creditorAccountPaymentDetails:
       type: object
       additionalProperties: false
