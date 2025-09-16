@@ -731,8 +731,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void getDefendantAccountParty_success_org_keepsEmployerAddressWhenLine1Present() {
         var legacy = legacyPartyOrganisation(true);
-        ParameterizedTypeReference<GetDefendantAccountPartyLegacyResponse> typeRef = new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(legacy);
+
+        when(restClient.responseSpec.body(
+            org.mockito.Mockito.<ParameterizedTypeReference<GetDefendantAccountPartyLegacyResponse>>any()
+        )).thenReturn(legacy);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<response/>", HttpStatus.OK));
 
