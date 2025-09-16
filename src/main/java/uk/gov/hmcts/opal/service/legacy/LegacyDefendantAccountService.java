@@ -258,7 +258,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return toDefendantAccountPartyResponse(response.responseEntity);
     }
 
-    private uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse toDefendantAccountPartyResponse(
+    private GetDefendantAccountPartyResponse toDefendantAccountPartyResponse(
         GetDefendantAccountPartyLegacyResponse legacy) {
 
         // Always return the legacy JSON wrapper so top-level "version" exists for schema validation
