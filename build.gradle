@@ -85,13 +85,14 @@ openApiGenerate {
     REF_AS_PARENT_IN_ALLOF: "true"
   ]
   configOptions = [
-    dateLibrary                         : "java8",
-    interfaceOnly                       : "true",
-    useTags                             : "true",
-    useSpringBoot3                      : "true",
-    containerDefaultToNull              : "true",
-    generatedConstructorWithRequiredArgs: "false",
-    additionalModelTypeAnnotations      : "@lombok.AllArgsConstructor;@lombok.NoArgsConstructor"
+
+    dateLibrary                           : "java8",
+    interfaceOnly                         : "true",
+    useTags                               : "true",
+    useSpringBoot3                        : "true",
+    containerDefaultToNull                : "true",
+    generatedConstructorWithRequiredArgs  : "false",
+    additionalModelTypeAnnotations        : "@lombok.Data;",
   ]
 }
 // (Temp?) Fix to solve the issue:
