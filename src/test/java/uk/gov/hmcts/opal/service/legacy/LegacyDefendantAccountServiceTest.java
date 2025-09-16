@@ -42,6 +42,7 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -920,6 +921,160 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         GetDefendantAccountPartyLegacyRequest captured = requestCaptor.getValue();
         assertEquals(defendantAccountId.toString(), captured.getDefendantAccountId());
         assertEquals(defendantAccountPartyId.toString(), captured.getDefendantAccountPartyId());
+    }
+
+    @Test
+    void getDefendantAccountParty_contact_kept_whenPrimaryEmailPresent() {
+        ContactDetailsLegacy contact = ContactDetailsLegacy.builder()
+            .primaryEmailAddress("sam@example.com")
+            .build();
+
+        PartyDetailsLegacy pd = PartyDetailsLegacy.builder()
+            .partyId("77").organisationFlag(false)
+            .individualDetails(IndividualDetailsLegacy.builder().forenames("Sam").surname("Graham").build())
+            .build();
+
+        DefendantAccountPartyLegacy party = DefendantAccountPartyLegacy.builder()
+            .partyDetails(pd)
+            .contactDetails(contact)
+            .build();
+
+        GetDefendantAccountPartyLegacyResponse legacy =
+            GetDefendantAccountPartyLegacyResponse.builder().version(1L).defendantAccountParty(party).build();
+
+        GatewayService.Response<GetDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacy, null, null);
+
+        Class<GetDefendantAccountPartyLegacyResponse> respType = GetDefendantAccountPartyLegacyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(GetDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        GetDefendantAccountPartyResponse out =
+            legacyDefendantAccountService.getDefendantAccountParty(77L, 77L);
+
+        assertNotNull(out.getDefendantAccountParty().getContactDetails());
+        assertEquals("sam@example.com",
+            out.getDefendantAccountParty().getContactDetails().getPrimaryEmailAddress());
+    }
+
+    @Test
+    void getDefendantAccountParty_employer_dropped_whenAllFieldsNull() {
+        PartyDetailsLegacy pd = PartyDetailsLegacy.builder()
+            .partyId("555").organisationFlag(true)
+            .organisationDetails(OrganisationDetailsLegacy.builder().organisationName("TechCorp").build())
+            .build();
+
+        EmployerDetailsLegacy emptyEmp = EmployerDetailsLegacy.builder().build();
+
+        DefendantAccountPartyLegacy party = DefendantAccountPartyLegacy.builder()
+            .partyDetails(pd)
+            .employerDetails(emptyEmp)
+            .build();
+
+        GetDefendantAccountPartyLegacyResponse legacy =
+            GetDefendantAccountPartyLegacyResponse.builder().version(2L).defendantAccountParty(party).build();
+
+        GatewayService.Response<GetDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacy, null, null);
+
+        Class<GetDefendantAccountPartyLegacyResponse> respType = GetDefendantAccountPartyLegacyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(GetDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        GetDefendantAccountPartyResponse out =
+            legacyDefendantAccountService.getDefendantAccountParty(555L, 555L);
+
+        assertNull(out.getDefendantAccountParty().getEmployerDetails());
+    }
+
+    @Test
+    void getDefendantAccountParty_address_maps_all_present_lines() {
+        AddressDetailsLegacy addr = AddressDetailsLegacy.builder()
+            .addressLine1("1 High St")
+            .addressLine2("Suite 5")
+            .addressLine3("District")
+            .addressLine4("County")
+            .addressLine5("Country")
+            .postcode("AB1 2CD")
+            .build();
+
+        PartyDetailsLegacy pd = PartyDetailsLegacy.builder()
+            .partyId("77").organisationFlag(false)
+            .individualDetails(IndividualDetailsLegacy.builder().forenames("Sam").surname("Graham").build())
+            .build();
+
+        DefendantAccountPartyLegacy party = DefendantAccountPartyLegacy.builder()
+            .partyDetails(pd)
+            .address(addr)
+            .build();
+
+        GetDefendantAccountPartyLegacyResponse legacy =
+            GetDefendantAccountPartyLegacyResponse.builder().version(1L).defendantAccountParty(party).build();
+
+        GatewayService.Response<GetDefendantAccountPartyLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacy, null, null);
+
+        Class<GetDefendantAccountPartyLegacyResponse> respType = GetDefendantAccountPartyLegacyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(GetDefendantAccountPartyLegacyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        GetDefendantAccountPartyResponse out =
+            legacyDefendantAccountService.getDefendantAccountParty(77L, 77L);
+
+        var mapped = out.getDefendantAccountParty().getAddress();
+        assertNotNull(mapped);
+        assertEquals("1 High St", mapped.getAddressLine1());
+        assertEquals("Suite 5",  mapped.getAddressLine2());
+        assertEquals("District", mapped.getAddressLine3());
+        assertEquals("County",   mapped.getAddressLine4());
+        assertEquals("Country",  mapped.getAddressLine5());
+        assertEquals("AB1 2CD",  mapped.getPostcode());
+    }
+
+    @Test
+    void getHeaderSummary_legacyFailure5xx_doesNotThrow_and_invokesGateway() {
+        uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse legacy =
+            uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+                .version(1)
+                .build();
+
+        // Response: 503 + entity + body triggers isError() and isLegacyFailure()
+        GatewayService.Response<uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse> resp =
+            new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacy, "<legacy-failure/>", null);
+
+        Class<uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse> respType =
+            uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.GET_HEADER_SUMMARY),
+            eq(respType),
+            any(uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        assertDoesNotThrow(() -> legacyDefendantAccountService.getHeaderSummary(999L));
+
+        verify(gatewayService, times(1)).postToGateway(
+            eq(LegacyDefendantAccountService.GET_HEADER_SUMMARY),
+            eq(respType),
+            any(uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest.class),
+            Mockito.nullable(String.class)
+        );
     }
 
 
