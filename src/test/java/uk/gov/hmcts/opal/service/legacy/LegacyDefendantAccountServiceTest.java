@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.PaymentTermsType;
@@ -21,9 +22,18 @@ import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
+import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
+import uk.gov.hmcts.opal.dto.legacy.EmployerDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 
@@ -587,5 +597,147 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNull(out.getPostedDetails());
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    void getDefendantAccountParty_success_individual_dropsEmptySections() {
+        GetDefendantAccountPartyLegacyResponse legacy = legacyPartyIndividual();
+
+        ParameterizedTypeReference<GetDefendantAccountPartyLegacyResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(legacy);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>("<response/>", HttpStatus.OK));
+
+        GetDefendantAccountPartyResponse out =
+            legacyDefendantAccountService.getDefendantAccountParty(77L, 77L);
+
+        assertNotNull(out);
+        assertEquals(1L, ((uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson) out).getVersion());
+        assertNotNull(out.getDefendantAccountParty());
+        // kept individual, dropped organisation
+        assertNotNull(out.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
+        assertNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
+        // empty contact/vehicle dropped
+        assertNull(out.getDefendantAccountParty().getContactDetails());
+        assertNull(out.getDefendantAccountParty().getVehicleDetails());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getDefendantAccountParty_success_org_employerAddressOnlyWhenLine1Present() {
+        GetDefendantAccountPartyLegacyResponse legacy = legacyPartyOrganisation(/*empLine1=*/false);
+
+        ParameterizedTypeReference<GetDefendantAccountPartyLegacyResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(legacy);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>("<response/>", HttpStatus.OK));
+
+        GetDefendantAccountPartyResponse out =
+            legacyDefendantAccountService.getDefendantAccountParty(555L, 555L);
+
+        assertNotNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
+        assertNull(out.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
+        // employer present but address_line_1 missing -> omit address
+        if (out.getDefendantAccountParty().getEmployerDetails() != null) {
+            assertNull(out.getDefendantAccountParty().getEmployerDetails().getEmployerAddress());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getDefendantAccountParty_error5xx_withEntityVersion_partyNull() {
+        // simulate legacy failure (HTTP 5xx) but with a body that only has version
+        GetDefendantAccountPartyLegacyResponse legacy =
+            GetDefendantAccountPartyLegacyResponse.builder().version(99L).build();
+
+        ParameterizedTypeReference<GetDefendantAccountPartyLegacyResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(legacy);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.SERVICE_UNAVAILABLE));
+
+        GetDefendantAccountPartyResponse out =
+            legacyDefendantAccountService.getDefendantAccountParty(1L, 2L);
+
+        assertNotNull(out);
+        assertEquals(99L, ((uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson) out).getVersion());
+        assertNull(out.getDefendantAccountParty());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void getDefendantAccountParty_error5xx_noEntity_returnsWrapperNulls() {
+        ParameterizedTypeReference<GetDefendantAccountPartyLegacyResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
+
+        GetDefendantAccountPartyResponse out =
+            legacyDefendantAccountService.getDefendantAccountParty(9L, 9L);
+
+        assertNotNull(out);
+        assertNull(((uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson) out).getVersion());
+        assertNull(out.getDefendantAccountParty());
+    }
+
+    private GetDefendantAccountPartyLegacyResponse legacyPartyIndividual() {
+        IndividualDetailsLegacy ind = IndividualDetailsLegacy.builder()
+            .title("Ms").forenames("Sam").surname("Graham").build();
+        PartyDetailsLegacy pd = PartyDetailsLegacy.builder()
+            .partyId("77").organisationFlag(false).individualDetails(ind).build();
+
+        DefendantAccountPartyLegacy party = DefendantAccountPartyLegacy.builder()
+            .defendantAccountPartyType("Defendant")
+            .isDebtor(true)
+            .partyDetails(pd)
+            .address(AddressDetailsLegacy.builder().addressLine1("Lumber House").build())
+            .contactDetails(ContactDetailsLegacy.builder().build())
+            .vehicleDetails(VehicleDetailsLegacy.builder().build())
+            .build();
+
+        return GetDefendantAccountPartyLegacyResponse.builder()
+            .version(1L).defendantAccountParty(party).build();
+    }
+
+    private GetDefendantAccountPartyLegacyResponse legacyPartyOrganisation(boolean empLine1) {
+        OrganisationDetailsLegacy org = OrganisationDetailsLegacy.builder()
+            .organisationName("TechCorp Solutions Ltd").build();
+        PartyDetailsLegacy pd = PartyDetailsLegacy.builder()
+            .partyId("555").organisationFlag(true).organisationDetails(org).build();
+
+        AddressDetailsLegacy empAddr = empLine1
+            ? AddressDetailsLegacy.builder().addressLine1("1 High St").postcode("AB1 2CD").build()
+            : AddressDetailsLegacy.builder().postcode("AB1 2CD").build();
+
+        EmployerDetailsLegacy emp = EmployerDetailsLegacy.builder()
+            .employerName("Widgets Ltd")
+            .employerAddress(empAddr)
+            .build();
+
+        DefendantAccountPartyLegacy party = DefendantAccountPartyLegacy.builder()
+            .defendantAccountPartyType("Defendant")
+            .isDebtor(true)
+            .partyDetails(pd)
+            .address(AddressDetailsLegacy.builder().addressLine1("Somewhere").build())
+            .employerDetails(emp)
+            .build();
+
+        return GetDefendantAccountPartyLegacyResponse.builder()
+            .version(2L).defendantAccountParty(party).build();
+    }
+
+    @Test
+    void getDefendantAccountParty_success_org_keepsEmployerAddressWhenLine1Present() {
+        var legacy = legacyPartyOrganisation(true);
+        ParameterizedTypeReference<GetDefendantAccountPartyLegacyResponse> typeRef = new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(legacy);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>("<response/>", HttpStatus.OK));
+
+        var out = legacyDefendantAccountService.getDefendantAccountParty(555L, 555L);
+        assertNotNull(out.getDefendantAccountParty().getEmployerDetails().getEmployerAddress());
+    }
 
 }
