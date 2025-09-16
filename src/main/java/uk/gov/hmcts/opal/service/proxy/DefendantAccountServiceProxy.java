@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.service.proxy;
 
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;

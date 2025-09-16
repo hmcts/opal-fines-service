@@ -478,5 +478,3 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
 }
-
-}
