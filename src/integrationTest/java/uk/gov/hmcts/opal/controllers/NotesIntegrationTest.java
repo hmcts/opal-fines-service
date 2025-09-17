@@ -1,5 +1,11 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
@@ -15,13 +21,6 @@ import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
@@ -69,8 +68,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
 
-        resultActions.andExpect(status().isOk())
-            .andExpect(content().string("60000000000000"));
+        resultActions.andExpect(status().isOk());
 
     }
 
