@@ -37,7 +37,6 @@
     "employer_flag": {
       "type": "boolean"
     }
-
   },
   "required": [
     "version",
@@ -59,7 +58,10 @@
           "$ref": "./common-objects/collectionOrderLegacy.json"
         }
       },
-      "required": ["enforcement_status"]
+      "required": [
+        "collection_order",
+        "enforcement_court"
+      ]
     },
     "enforcement_action": {
       "type": "object",
@@ -71,7 +73,7 @@
           "type": "string"
         },
         "enforcer": {
-         "$ref": "./common-objects/enforcerReferenceLegacy.json"
+          "$ref": "./common-objects/enforcerReferenceLegacy.json"
         },
         "warrant_number": {
           "type": "string"
@@ -87,7 +89,10 @@
           }
         }
       },
-      "required": ["result_reference", "date_added"]
+      "required": [
+        "result_reference",
+        "date_added"
+      ]
     }
   }
 }
