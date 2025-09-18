@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
-class NotesIntegrationTest extends AbstractIntegrationTest {
+abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/notes";
 
