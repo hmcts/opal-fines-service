@@ -15,6 +15,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.UserStateService;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -36,6 +37,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     abstract String getHeaderSummaryResponseSchemaLocation();
 
     abstract String getPaymentTermsResponseSchemaLocation();
+
+    abstract String getDefendantAccountPartyResponseSchemaLocation();
 
     @MockitoBean
     UserStateService userStateService;
@@ -1924,35 +1927,109 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     public void opalGetDefendantAccountParty_Happy(Logger log) throws Exception {
         ResultActions actions = mockMvc.perform(get("/defendant-accounts/77/defendant-account-parties/77")
             .header("Authorization", "Bearer test-token"));
-        log.info("Opal happy path response:\n" + actions.andReturn().getResponse().getContentAsString());
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info("Opal happy path response:\n" + ToJsonString.toPrettyJson(body));
+
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"))
             .andExpect(jsonPath("$.defendant_account_party.is_debtor").value(true))
             .andExpect(jsonPath("$.defendant_account_party.party_details.party_id").value("77"))
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value("Graham"))
-            .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"));
+            .andExpect(jsonPath("$.defendant_account_party.address.address_line_1")
+                .value("Lumber House"))
+            // optional sections: present as null when empty
+            .andExpect(jsonPath("$.defendant_account_party.contact_details").value(nullValue()))
+            // seeded debtor_detail → vehicle/employer/language present
+            .andExpect(jsonPath("$.defendant_account_party.vehicle_details.vehicle_make_and_model")
+                .value("Toyota Prius"))
+            .andExpect(jsonPath("$.defendant_account_party.vehicle_details.vehicle_registration")
+                .value("AB77CDE"))
+            .andExpect(jsonPath("$.defendant_account_party.employer_details.employer_name")
+                .value("Tesco Ltd"))
+            .andExpect(jsonPath("$.defendant_account_party.employer_details.employer_reference")
+                .value("EMPREF77"))
+            .andExpect(jsonPath("$.defendant_account_party.employer_details.employer_email_address")
+                .value("employer77@company.com"))
+            .andExpect(jsonPath("$.defendant_account_party.employer_details.employer_telephone_number")
+                .value("02079997777"))
+            .andExpect(jsonPath("$.defendant_account_party.employer_details.employer_address.address_line_1")
+                .value("123 Employer Road"))
+            .andExpect(jsonPath("$.defendant_account_party.employer_details.employer_address.postcode")
+                .value("EMP1 2AA"))
+            .andExpect(jsonPath("$.defendant_account_party.language_preferences.document_language_preference"
+                + ".language_code")
+                .value("EN"))
+            .andExpect(jsonPath("$.defendant_account_party.language_preferences.hearing_language_preference"
+                + ".language_code")
+                .value("EN"));
+
+        jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
     }
+
 
     @DisplayName("OPAL: Get Defendant Account Party - Organisation Only [@PO-1588]")
     public void opalGetDefendantAccountParty_Organisation(Logger log) throws Exception {
         ResultActions actions = mockMvc.perform(get("/defendant-accounts/555/defendant-account-parties/555")
             .header("Authorization", "Bearer test-token"));
-        log.info("Organisation response:\n" + actions.andReturn().getResponse().getContentAsString());
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info("Organisation response:\n" + ToJsonString.toPrettyJson(body));
+
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name")
                 .value("TechCorp Solutions Ltd"))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist());
+
+            // individual_details object exists (schema-required); required string fields are empty
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.title").value(""))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.forenames").value(""))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value(""))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.date_of_birth").value(""))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.age").value(""))
+
+            // optional fields are null
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.national_insurance_number")
+                .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.individual_aliases")
+                .value(org.hamcrest.Matchers.nullValue()))
+
+            // other optional top-level blocks are null
+            .andExpect(jsonPath("$.defendant_account_party.contact_details").value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.vehicle_details")
+                .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.employer_details").value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.language_preferences")
+                .value(org.hamcrest.Matchers.nullValue()))
+
+            // address is present; line_5 may be an empty string per schema
+            .andExpect(jsonPath("$.defendant_account_party.address.address_line_5").value(""));
+
+        jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
     }
+
 
     @DisplayName("OPAL: Get Defendant Account Party - Null/Optional Fields [@PO-1588]")
     public void opalGetDefendantAccountParty_NullFields(Logger log) throws Exception {
         ResultActions actions = mockMvc.perform(get("/defendant-accounts/88/defendant-account-parties/88")
             .header("Authorization", "Bearer test-token"));
-        log.info("Null fields response:\n" + actions.andReturn().getResponse().getContentAsString());
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info("Null fields response:\n" + ToJsonString.toPrettyJson(body));
+
         actions.andExpect(status().isOk())
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").doesNotExist())
-            .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").doesNotExist());
+            // Required fields must exist (schema) → defaulted to empty strings:
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value(""))
+            .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value(""))
+            // Optional blocks should be null when empty:
+            .andExpect(jsonPath("$.defendant_account_party.contact_details").value(nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.vehicle_details").value(nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.employer_details").value(nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.language_preferences").value(nullValue()));
+
+        jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
     }
+
+
 
 }

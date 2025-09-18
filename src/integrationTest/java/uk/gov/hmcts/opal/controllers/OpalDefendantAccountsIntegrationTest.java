@@ -279,4 +279,9 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.opalGetDefendantAccountParty_NullFields(log);
     }
 
+    @Override
+    String getDefendantAccountPartyResponseSchemaLocation() {
+        return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountPartyResponse.json";
+    }
+
 }

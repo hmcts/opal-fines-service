@@ -26,15 +26,19 @@ public class DefendantAccountParty {
     @JsonProperty("address")
     private AddressDetails address;
 
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     @JsonProperty("contact_details")
     private ContactDetails contactDetails;
 
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     @JsonProperty("vehicle_details")
     private VehicleDetails vehicleDetails;
 
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     @JsonProperty("employer_details")
     private EmployerDetails employerDetails;
 
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     @JsonProperty("language_preferences")
     private LanguagePreferences languagePreferences;
 
