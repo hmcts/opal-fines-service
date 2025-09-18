@@ -13,7 +13,8 @@ public class TestContainerConfig {
         POSTGRES_CONTAINER = new PostgreSQLContainer<>(DockerImageName.parse("postgres:17.5"))
             .withDatabaseName("testdb")
             .withUsername("test")
-            .withPassword("test");
+            .withPassword("test")
+            .withCommand("postgres -c max_connections=200 -c log_connections=on -c log_disconnections=on");
 
         POSTGRES_CONTAINER.start();
     }
