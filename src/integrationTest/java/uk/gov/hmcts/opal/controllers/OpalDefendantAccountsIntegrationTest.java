@@ -276,7 +276,7 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
 
     @Test
     void opal_getDefendantAccountParty_nullFields() throws Exception {
-        super.opalGetDefendantAccountParty_NullFields(log);
+        super.opalGetDefendantAccountParty_NullFields();
     }
 
     @Override

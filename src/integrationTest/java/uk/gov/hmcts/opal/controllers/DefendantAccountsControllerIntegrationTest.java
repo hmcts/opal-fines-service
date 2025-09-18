@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -33,6 +34,9 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUse
 abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
+
+    private static final Logger log = LoggerFactory.getLogger(DefendantAccountsControllerIntegrationTest.class);
+
 
     abstract String getHeaderSummaryResponseSchemaLocation();
 
@@ -1997,33 +2001,40 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     }
 
     @DisplayName("OPAL: Get Defendant Account Party - Null/Optional Fields [@PO-1588]")
-    public void opalGetDefendantAccountParty_NullFields(Logger log) throws Exception {
-        ResultActions actions = mockMvc.perform(get("/defendant-accounts/88/defendant-account-parties/88")
-            .header("Authorization", "Bearer test-token"));
+    void opalGetDefendantAccountParty_NullFields() throws Exception {
+        // Arrange
+        Long defendantAccountId = 88L;
+        Long defendantAccountPartyId = 88L;
 
-        String body = actions.andReturn().getResponse().getContentAsString();
-        log.info("Null fields response:\n" + ToJsonString.toPrettyJson(body));
+        // Act
+        ResultActions actions = mockMvc.perform(
+            get("/defendant-accounts/" + defendantAccountId + "/defendant-account-parties/" + defendantAccountPartyId)
+                .header("Authorization", "Bearer test-token")
+        );
 
+        String responseBody = actions.andReturn().getResponse().getContentAsString();
+        log.info("Response:\n{}", ToJsonString.toPrettyJson(responseBody));
+
+        // Assert
         actions.andExpect(status().isOk())
-            // person, not organisation
+            .andExpect(jsonPath("$.defendant_account_party.party_details.party_id").value("88"))
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details")
                 .value(org.hamcrest.Matchers.nullValue()))
 
-            // individual_details present with all required keys; empty strings where data missing
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.title").value(""))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.forenames").value(""))
+            // Individual details: surname is "", other optional keys are omitted
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value(""))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.date_of_birth").value(""))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.age").value(""))
-
-            // optional individual fields as null
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.title").doesNotExist())
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.forenames").doesNotExist())
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.date_of_birth")
+                .doesNotExist())
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.age").doesNotExist())
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.national_insurance_number")
                 .value(org.hamcrest.Matchers.nullValue()))
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.individual_aliases")
                 .value(org.hamcrest.Matchers.nullValue()))
 
-            // address: line_1 defaulted to "", others null in this fixture
+            // Address: line_1 defaulted to "", others null in this fixture
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value(""))
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_2")
                 .value(org.hamcrest.Matchers.nullValue()))
@@ -2033,16 +2044,18 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 .value(org.hamcrest.Matchers.nullValue()))
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_5")
                 .value(org.hamcrest.Matchers.nullValue()))
-            .andExpect(jsonPath("$.defendant_account_party.address.postcode").value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.address.postcode")
+                .value(org.hamcrest.Matchers.nullValue()))
 
-            // other optional top-level blocks are null
+            // Optional top-level blocks are null
             .andExpect(jsonPath("$.defendant_account_party.contact_details").value(org.hamcrest.Matchers.nullValue()))
             .andExpect(jsonPath("$.defendant_account_party.vehicle_details").value(org.hamcrest.Matchers.nullValue()))
-            .andExpect(jsonPath("$.defendant_account_party.employer_details").value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.employer_details")
+                .value(org.hamcrest.Matchers.nullValue()))
             .andExpect(jsonPath("$.defendant_account_party.language_preferences")
                 .value(org.hamcrest.Matchers.nullValue()));
 
-        jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
+        jsonSchemaValidationService.validateOrError(responseBody, getDefendantAccountPartyResponseSchemaLocation());
     }
 
 }

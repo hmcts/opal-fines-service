@@ -302,36 +302,45 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String defendantAccountPartyType = partyEntity.getAssociationType();
         Boolean isDebtor = partyEntity.getDebtor();
 
-        // OPAL schema requires both organisation_details and individual_details to exist.
+        // ----- Individual details (person) -----
+        IndividualDetails individualDetails = null;
+        if (!party.isOrganisation()) {
+            // 'surname' is required (string, non-null) by the OPAL schema
+            String surname = party.getSurname();
+            if (surname == null || surname.isBlank()) {
+                log.warn("Missing 'surname' for party_id {}", party.getPartyId());
+                surname = ""; // Default to an empty string
+            }
+
+            individualDetails = IndividualDetails.builder()
+                // nullable-by-schema → pass through as-is
+                .title(party.getTitle())
+                .forenames(party.getForenames())
+                .surname(surname) // required, non-null
+                .dateOfBirth(party.getBirthDate() != null ? party.getBirthDate().toString() : null)
+                .age(party.getAge() != null ? String.valueOf(party.getAge()) : null)
+                .nationalInsuranceNumber(party.getNiNumber())
+                .individualAliases(null)
+                .build();
+        }
+
+        // ----- Organisation details (organisation) -----
+        OrganisationDetails organisationDetails = party.isOrganisation()
+            ? OrganisationDetails.builder()
+            .organisationName(party.getOrganisationName())
+            .organisationAliases(null)
+            .build()
+            : null;
+
+        // ----- Party details -----
         PartyDetails partyDetails = PartyDetails.builder()
             .partyId(String.valueOf(party.getPartyId()))
             .organisationFlag(party.isOrganisation())
-            .organisationDetails(
-                party.isOrganisation()
-                    ? OrganisationDetails.builder()
-                    .organisationName(party.getOrganisationName())
-                    .organisationAliases(null)
-                    .build()
-                    : null
-            )
-
-            .individualDetails(
-                party.isOrganisation()
-                    ? null
-                    : IndividualDetails.builder()
-                        // these are required in the schema, so always emit them
-                        .title(party.getTitle() != null ? party.getTitle() : "")
-                        .forenames(party.getForenames() != null ? party.getForenames() : "")
-                        .surname(party.getSurname() != null ? party.getSurname() : "")
-                        .dateOfBirth(party.getBirthDate() != null ? party.getBirthDate().toString() : "")
-                        .age(party.getAge() != null ? String.valueOf(party.getAge()) : "")
-                        .nationalInsuranceNumber(party.getNiNumber())
-                        .individualAliases(null)
-                        .build()
-            )
+            .organisationDetails(organisationDetails)
+            .individualDetails(individualDetails)
             .build();
 
-        // Address: all required lines + postcode must exist; default to "" if null.
+        // ----- Address: line_1 must be a non-null string; others may be null per schema -----
         AddressDetails address = AddressDetails.builder()
             .addressLine1(party.getAddressLine1() != null ? party.getAddressLine1() : "")
             .addressLine2(party.getAddressLine2())
@@ -341,14 +350,13 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .postcode(party.getPostcode())
             .build();
 
-        // Contact details: null if all fields are blank/missing.
+        // ----- Contact details: null if all fields are blank/missing -----
         boolean hasContact =
             (party.getPrimaryEmailAddress() != null && !party.getPrimaryEmailAddress().isBlank())
                 || (party.getSecondaryEmailAddress() != null && !party.getSecondaryEmailAddress().isBlank())
                 || (party.getMobileTelephoneNumber() != null && !party.getMobileTelephoneNumber().isBlank())
                 || (party.getHomeTelephoneNumber() != null && !party.getHomeTelephoneNumber().isBlank())
                 || (party.getWorkTelephoneNumber() != null && !party.getWorkTelephoneNumber().isBlank());
-
 
         ContactDetails contactDetails = hasContact
             ? ContactDetails.builder()
@@ -360,7 +368,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build()
             : null;
 
-        // Vehicle details: null if both fields are empty.
+        // ----- Vehicle details: null if both fields are empty -----
         String vehicleMake = debtorDetail != null ? debtorDetail.getVehicleMake() : null;
         String vehicleReg  = debtorDetail != null ? debtorDetail.getVehicleRegistration() : null;
         VehicleDetails vehicleDetails = (vehicleMake != null || vehicleReg != null)
@@ -370,7 +378,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build()
             : null;
 
-        // Employer details: null if entirely empty; if present, employer_address lines default to "" as required.
+        //-- Employer details: null if entirely empty; if present, employer_address line_1 must be non-null string -----
         String empName  = debtorDetail != null ? debtorDetail.getEmployerName() : null;
         String empRef   = debtorDetail != null ? debtorDetail.getEmployeeReference() : null;
         String empEmail = debtorDetail != null ? debtorDetail.getEmployerEmail() : null;
@@ -413,7 +421,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build()
             : null;
 
-        // Language preferences: null if both codes are empty.
+        // ----- Language preferences: null if both codes are empty -----
         String docLang  = debtorDetail != null ? debtorDetail.getDocumentLanguage() : null;
         String hearLang = debtorDetail != null ? debtorDetail.getHearingLanguage() : null;
         LanguagePreferences languagePreferences =
