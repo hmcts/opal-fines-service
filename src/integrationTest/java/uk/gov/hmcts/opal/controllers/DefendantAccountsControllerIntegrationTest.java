@@ -1980,34 +1980,21 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name")
                 .value("TechCorp Solutions Ltd"))
-
-            // individual_details object exists (schema-required); required string fields are empty
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.title").value(""))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.forenames").value(""))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value(""))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.date_of_birth").value(""))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.age").value(""))
-
-            // optional fields are null
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.national_insurance_number")
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details")
                 .value(org.hamcrest.Matchers.nullValue()))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.individual_aliases")
+            .andExpect(jsonPath("$.defendant_account_party.contact_details")
                 .value(org.hamcrest.Matchers.nullValue()))
-
-            // other optional top-level blocks are null
-            .andExpect(jsonPath("$.defendant_account_party.contact_details").value(org.hamcrest.Matchers.nullValue()))
             .andExpect(jsonPath("$.defendant_account_party.vehicle_details")
                 .value(org.hamcrest.Matchers.nullValue()))
-            .andExpect(jsonPath("$.defendant_account_party.employer_details").value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.employer_details")
+                .value(org.hamcrest.Matchers.nullValue()))
             .andExpect(jsonPath("$.defendant_account_party.language_preferences")
                 .value(org.hamcrest.Matchers.nullValue()))
-
-            // address is present; line_5 may be an empty string per schema
-            .andExpect(jsonPath("$.defendant_account_party.address.address_line_5").value(""));
+            .andExpect(jsonPath("$.defendant_account_party.address.address_line_5")
+                .value(org.hamcrest.Matchers.nullValue()));
 
         jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
     }
-
 
     @DisplayName("OPAL: Get Defendant Account Party - Null/Optional Fields [@PO-1588]")
     public void opalGetDefendantAccountParty_NullFields(Logger log) throws Exception {
@@ -2018,18 +2005,44 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         log.info("Null fields response:\n" + ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
-            // Required fields must exist (schema) → defaulted to empty strings:
+            // person, not organisation
+            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_flag").value(false))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details")
+                .value(org.hamcrest.Matchers.nullValue()))
+
+            // individual_details present with all required keys; empty strings where data missing
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.title").value(""))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.forenames").value(""))
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value(""))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.date_of_birth").value(""))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.age").value(""))
+
+            // optional individual fields as null
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.national_insurance_number")
+                .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.individual_aliases")
+                .value(org.hamcrest.Matchers.nullValue()))
+
+            // address: line_1 defaulted to "", others null in this fixture
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value(""))
-            // Optional blocks should be null when empty:
-            .andExpect(jsonPath("$.defendant_account_party.contact_details").value(nullValue()))
-            .andExpect(jsonPath("$.defendant_account_party.vehicle_details").value(nullValue()))
-            .andExpect(jsonPath("$.defendant_account_party.employer_details").value(nullValue()))
-            .andExpect(jsonPath("$.defendant_account_party.language_preferences").value(nullValue()));
+            .andExpect(jsonPath("$.defendant_account_party.address.address_line_2")
+                .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.address.address_line_3")
+                .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.address.address_line_4")
+                .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.address.address_line_5")
+                .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.address.postcode").value(org.hamcrest.Matchers.nullValue()))
+
+            // other optional top-level blocks are null
+            .andExpect(jsonPath("$.defendant_account_party.contact_details").value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.vehicle_details").value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.employer_details").value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.defendant_account_party.language_preferences")
+                .value(org.hamcrest.Matchers.nullValue()));
 
         jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
     }
-
-
 
 }
