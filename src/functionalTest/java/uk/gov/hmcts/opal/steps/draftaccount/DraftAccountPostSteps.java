@@ -27,12 +27,8 @@ public class DraftAccountPostSteps extends BaseStepDef {
         JSONObject postBody = new JSONObject();
 
         addLongToJsonObject(postBody, dataToPost, "business_unit_id");
-        addToJsonObject(postBody, dataToPost, "submitted_by");
-        addToJsonObject(postBody, dataToPost, "submitted_by_name");
-        addToJsonObject(postBody, dataToPost, "account_type");
+        addAllToJsonObject(postBody, dataToPost, "submitted_by", "submitted_by_name", "account_type");
         addToJsonObjectOrNull(postBody, dataToPost, "account_status");
-
-
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
             + dataToPost.get(

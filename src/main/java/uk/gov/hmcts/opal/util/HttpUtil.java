@@ -9,6 +9,8 @@ import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import java.util.List;
 import java.util.Optional;
 
+import static uk.gov.hmcts.opal.util.VersionUtils.createETag;
+
 @SuppressWarnings("unchecked")
 public class HttpUtil {
 
@@ -28,22 +30,29 @@ public class HttpUtil {
         return ResponseEntity.ok(contents);
     }
 
+    /* Create a 'default' response with a HTTP Status of 'OK'. */
     public static <T> ResponseEntity<T> buildResponse(T contents) {
-        if (contents == null) {
-            contents = (T) NOT_FOUND_MESSAGE;
-            return new ResponseEntity<>(contents, HEADERS, HttpStatus.NOT_FOUND);
-        }
-
-        return ResponseEntity.ok(contents);
+        return buildResponse(contents, HttpStatus.OK);
     }
 
-    public static <T> ResponseEntity<T> buildCreatedResponse(T contents) {
+    public static <T> ResponseEntity<T> buildResponse(T contents, HttpStatus status) {
         if (contents == null) {
             contents = (T) NOT_FOUND_MESSAGE;
             return new ResponseEntity<>(contents, HEADERS, HttpStatus.NOT_FOUND);
         }
 
-        return new ResponseEntity<>(contents, HttpStatus.CREATED);
+        ResponseEntity.BodyBuilder builder = ResponseEntity.status(status);
+
+        if (contents instanceof Versioned versioned) {
+            builder.eTag(createETag(versioned));
+        }
+
+        return builder.body(contents);
+    }
+
+    /* Create a response with a HTTP Status of 'CREATED'. */
+    public static <T> ResponseEntity<T> buildCreatedResponse(T contents) {
+        return buildResponse(contents, HttpStatus.CREATED);
     }
 
     public static String extractPreferredUsername(String authorization, AccessTokenService tokenService) {

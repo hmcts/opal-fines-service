@@ -21,10 +21,9 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         Map<String, String> dataToPatch = data.asMap(String.class, String.class);
         JSONObject patchBody = new JSONObject();
 
-        addLongToJsonObject(patchBody, dataToPatch, "business_unit_id");
+        addIntToJsonObject(patchBody, dataToPatch, "business_unit_id");
         addToJsonObjectOrNull(patchBody, dataToPatch, "account_status");
         addToJsonObjectOrNull(patchBody, dataToPatch, "validated_by");
-        addIntToJsonObject(patchBody, dataToPatch, "version");
 
         // Create timeline data array with one entry
         JSONObject timelineEntry = new JSONObject();
@@ -55,6 +54,7 @@ public class DraftAccountPatchSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .body(patchBody.toString())
+            .header(createQuotedLongHeader("If-Match", dataToPatch))
             .when()
             .patch(getTestUrl() + "/draft-accounts/" + draftAccountId);
     }
@@ -64,10 +64,9 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         Map<String, String> dataToPatch = data.asMap(String.class, String.class);
         JSONObject patchBody = new JSONObject();
 
-        addLongToJsonObject(patchBody, dataToPatch, "business_unit_id");
+        addIntToJsonObject(patchBody, dataToPatch, "business_unit_id");
         addToJsonObjectOrNull(patchBody, dataToPatch, "account_status");
         addToJsonObjectOrNull(patchBody, dataToPatch, "validated_by");
-        addIntToJsonObject(patchBody, dataToPatch, "version");
 
         // Create timeline data array with one entry
         JSONObject timelineEntry = new JSONObject();
@@ -96,6 +95,7 @@ public class DraftAccountPatchSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .body(patchBody.toString())
+            .header(createQuotedLongHeader("If-Match", dataToPatch))
             .when()
             .patch(getTestUrl() + "/draft-accounts/" + draftAccountId);
     }
