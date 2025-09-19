@@ -3,7 +3,7 @@ appVersion: "1.0"
 description: A Helm chart for opal-fines-service app
 name: opal-fines-service
 home: https://github.com/hmcts/opal-fines-service
-version: 0.0.58
+version: 0.0.59
 maintainers:
   - name: HMCTS Opal Team
 dependencies:
