@@ -5,7 +5,8 @@
   "additionalProperties": false,
   "properties": {
     "defendant_account_party_type": {
-      "type": "string"
+      "type": "string",
+      "enum": ["Defendant", "Parent/Guardian"]
     },
     "is_debtor": {
       "type": "boolean"
