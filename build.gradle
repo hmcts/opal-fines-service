@@ -252,6 +252,12 @@ dependencyUpdates {
   }
 }
 
+ext {
+  log4JVersion = "2.25.1"
+  serenityVersion = "4.2.34"
+  nettyVersion = "4.1.127.Final"
+}
+
 dependencyManagement {
   imports {
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.0.0'
@@ -263,6 +269,13 @@ dependencyManagement {
 
   dependencies {
     dependency group: 'com.google.guava', name: 'guava', version: '33.4.8-jre'
+    dependency group: 'io.netty', name: 'netty-codec', version: nettyVersion
+    dependency group: 'io.netty', name: 'netty-buffer', version: nettyVersion
+    dependency group: 'io.netty', name: 'netty-common', version: nettyVersion
+    dependency group: 'io.netty', name: 'netty-handler', version: nettyVersion
+    dependency group: 'io.netty', name: 'netty-resolver', version: nettyVersion
+    dependency group: 'io.netty', name: 'netty-transport', version: nettyVersion
+    dependency group: 'io.netty', name: 'netty-transport-native-unix-common', version: nettyVersion
   }
 }
 
@@ -281,10 +294,6 @@ repositories {
   }
 }
 
-ext {
-  log4JVersion = "2.25.1"
-  serenityVersion = "4.2.34"
-}
 
 ext['snakeyaml.version'] = '2.0'
 ext['jackson.version'] = '2.19.1'
@@ -324,7 +333,6 @@ dependencies {
 
   implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.9');
   implementation(group: 'com.jayway.jsonpath', name: 'json-path', version: '2.9.0');
-
 
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
