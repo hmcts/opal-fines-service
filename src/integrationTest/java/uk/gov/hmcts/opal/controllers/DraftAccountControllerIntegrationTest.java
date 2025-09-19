@@ -63,7 +63,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
-    @DisplayName("Get Draft Account by ID [@PO-973, @PO-559]")
+    @DisplayName("Get Draft Account by ID [@PO-973, @PO-559, @PO-2117]")
     void testGetDraftAccountById_success() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -366,7 +366,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Delete draft accounts [@PO-973, @PO-591]")
+    @DisplayName("Delete draft accounts [@PO-973, @PO-591, @PO-2117]")
     void testDeleteDraftAccountById_success() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(delete(URL_BASE + "/4")
@@ -382,7 +382,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Replace draft account - Should return updated draft account [@PO-973, @PO-746]")
+    @DisplayName("Replace draft account - Should return updated draft account [@PO-973, @PO-746, @PO-2117]")
     void testReplaceDraftAccount_success() throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -541,7 +541,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
 
     @Test
-    @DisplayName("Update draft account - Should return updated account details [@PO-973, @PO-745]")
+    @DisplayName("Update draft account - Should return updated account details [@PO-973, @PO-745, @PO-2117]")
     void testUpdateDraftAccount_success() throws Exception {
         Long draftAccountId = 8L; // not touched by any other PATCH/PUT test
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -579,7 +579,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .content(validUpdateRequestBody("65", "Publishing Pending","A")));
 
         String response = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testUpdateDraftAccount_success: Response body:\n{}", ToJsonString.toPrettyJson(response));
+        log.info(":testUpdateDraftAccount_conflict: Response body:\n{}", ToJsonString.toPrettyJson(response));
 
         resultActions.andExpect(status().isConflict())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
@@ -589,7 +589,33 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch draft account - user with CHECK_VALIDATE permission should succeed [@PO-1820]")
+    @DisplayName("Replace draft account - If-Match Conflict [@PO-2117]")
+    void testReplaceDraftAccountPut_conflict() throws Exception {
+        // Use an id that exists
+        Long draftAccountId = 6L;
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + draftAccountId)
+                                                          .header("authorization", "Bearer some_value")
+                                                          // Deliberately stale/incorrect ETag
+                                                          .header("If-Match", "\"9999999\"")
+                                                          .contentType(MediaType.APPLICATION_JSON)
+                                                          .content(validReplaceRequestBody(0L)));
+
+        String response = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testReplaceDraftAccount_conflict: Response body:\n{}", ToJsonString.toPrettyJson(response));
+
+        resultActions
+            .andExpect(status().isConflict())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.resourceType").value("uk.gov.hmcts.opal.entity.draft.DraftAccountEntity"))
+            .andExpect(jsonPath("$.resourceId").value(draftAccountId.toString()))
+            .andExpect(jsonPath("$.title").value("Conflict"));
+    }
+
+    @Test
+    @DisplayName("Patch draft account - user with CHECK_VALIDATE permission should succeed [@PO-1820, @PO-2117]")
     void testPatchDraftAccount_withCheckValidatePermission_shouldSucceed() throws Exception {
         Long draftAccountId = 7L; // not touched by any other PATCH/PUT test
         UserState user = permissionUser((short)78, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS);
@@ -614,7 +640,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Patch draft account - user with Publish Pending permission should succeed [@PO-991]")
+    @DisplayName("Patch draft account - user with Publish Pending permission should succeed [@PO-991, @PO-2117]")
     void testPatchDraftAccount_withPublishPending_shouldSucceed() throws Exception {
         Long draftAccountId = 9L; // not touched by any other PATCH/PUT test
         UserState user = permissionUser((short)65, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS);
@@ -640,7 +666,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
 
     @Test
-    @DisplayName("Patch draft account - user with CREATE_MANAGE permission should be forbidden [@PO-1820]")
+    @DisplayName("Patch draft account - user with CREATE_MANAGE permission should be forbidden [@PO-1820, @PO-2117]")
     void testPatchDraftAccount_withCreateManagePermission_shouldFail403() throws Exception {
         Long draftAccountId = 6L;
         UserState user = permissionUser((short)78, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
@@ -779,7 +805,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Replace draft account - user with no permission [@PO-973, @PO-830]")
+    @DisplayName("Replace draft account - user with no permission [@PO-973, @PO-830, @PO-2117]")
     void testReplaceDraftAccount_trap403Response_noPermission() throws Exception {
         Long draftAccountId = 241L;
 
@@ -795,7 +821,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Update draft account - user with no permission [@PO-973, @PO-831]")
+    @DisplayName("Update draft account - user with no permission [@PO-973, @PO-831, @PO-2117]")
     void testUpdateDraftAccount_trap403Response_noPermission() throws Exception {
         Long draftAccountId = 241L;
         String requestBody = "            {\n"
@@ -845,7 +871,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Create draft account - user with no permission [@PO-973, @PO-827]")
+    @DisplayName("Create draft account - user with no permission [@PO-973, @PO-827, @PO-2117]")
     void testPostDraftAccount_trap403Response_noPermission() throws Exception {
 
         String validRequestBody = validCreateRequestBody();
@@ -871,7 +897,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Create draft account - user with wrong permission [@PO-973, @PO-827]")
+    @DisplayName("Create draft account - user with wrong permission [@PO-973, @PO-827, @PO-2117]")
     void testPostDraftAccount_trap403Response_wrongPermission() throws Exception {
 
         String validRequestBody = validCreateRequestBody();

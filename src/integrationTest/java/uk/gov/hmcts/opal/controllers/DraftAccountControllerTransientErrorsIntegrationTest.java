@@ -58,6 +58,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     }
 
     @Test
+    @DisplayName("Update draft account - Should return 408 [@PO-2117] ")
     void testUpdateDraftAccount_trap408Response() throws Exception {
         shouldReturn408WhenTimeout(
             patch(URL_BASE + "/1")
@@ -69,6 +70,7 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     }
 
     @Test
+    @DisplayName("Update draft account - Should return 503 [@PO-2117] ")
     void testUpdateDraftAccount_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(
             patch(URL_BASE + "/1")
