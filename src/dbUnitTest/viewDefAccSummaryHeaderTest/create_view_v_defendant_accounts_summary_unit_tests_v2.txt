@@ -1,0 +1,19 @@
+opal-fines-db-# \pset pager off
+Pager usage is off.
+opal-fines-db-# 
+opal-fines-db-# \i /Users/piersbrumby/Documents/opal-fines-project/PO-2138/create_view_v_defendant_accounts_summary_unit_tests.sql
+Timing is on.
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2138/create_view_v_defendant_accounts_summary_unit_tests.sql:454: NOTICE:  === Setting up test data for v_defendant_accounts_summary tests ===
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2138/create_view_v_defendant_accounts_summary_unit_tests.sql:454: NOTICE:  Test data setup completed: defendant_account_id = 999901
+DO
+Time: 15.408 ms
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2138/create_view_v_defendant_accounts_summary_unit_tests.sql:678: NOTICE:  === TEST 1: Comprehensive test for account with all details ===
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2138/create_view_v_defendant_accounts_summary_unit_tests.sql:678: NOTICE:  TEST 1 PASSED: All information retrieved and validated successfully for account with all details
+DO
+Time: 115.686 ms
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2138/create_view_v_defendant_accounts_summary_unit_tests.sql:701: NOTICE:  === Cleaning up test data ===
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2138/create_view_v_defendant_accounts_summary_unit_tests.sql:701: NOTICE:  Test data cleanup completed
+DO
+Time: 29.761 ms
+Timing is off.
+opal-fines-db-#
