@@ -305,18 +305,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         // ----- Individual details (person) -----
         IndividualDetails individualDetails = null;
         if (!party.isOrganisation()) {
-            // 'surname' is required (string, non-null) by the OPAL schema
-            String surname = party.getSurname();
-            if (surname == null || surname.isBlank()) {
-                log.warn("Missing 'surname' for party_id {}", party.getPartyId());
-                surname = ""; // Default to an empty string
-            }
-
             individualDetails = IndividualDetails.builder()
-                // nullable-by-schema → pass through as-is
                 .title(party.getTitle())
                 .forenames(party.getForenames())
-                .surname(surname) // required, non-null
+                .surname(party.getSurname())
                 .dateOfBirth(party.getBirthDate() != null ? party.getBirthDate().toString() : null)
                 .age(party.getAge() != null ? String.valueOf(party.getAge()) : null)
                 .nationalInsuranceNumber(party.getNiNumber())
@@ -340,15 +332,32 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .individualDetails(individualDetails)
             .build();
 
-        // ----- Address: line_1 must be a non-null string; others may be null per schema -----
-        AddressDetails address = AddressDetails.builder()
-            .addressLine1(party.getAddressLine1() != null ? party.getAddressLine1() : "")
-            .addressLine2(party.getAddressLine2())
-            .addressLine3(party.getAddressLine3())
-            .addressLine4(party.getAddressLine4())
-            .addressLine5(party.getAddressLine5())
-            .postcode(party.getPostcode())
-            .build();
+        // ----- Address: build only if at least one field is present -----
+        String a1 = party.getAddressLine1();
+        String a2 = party.getAddressLine2();
+        String a3 = party.getAddressLine3();
+        String a4 = party.getAddressLine4();
+        String a5 = party.getAddressLine5();
+        String pc = party.getPostcode();
+
+        boolean hasAddress =
+            (a1 != null && !a1.isBlank())
+                || (a2 != null && !a2.isBlank())
+                || (a3 != null && !a3.isBlank())
+                || (a4 != null && !a4.isBlank())
+                || (a5 != null && !a5.isBlank())
+                || (pc != null && !pc.isBlank());
+
+        AddressDetails address = hasAddress
+            ? AddressDetails.builder()
+            .addressLine1(a1)
+            .addressLine2(a2)
+            .addressLine3(a3)
+            .addressLine4(a4)
+            .addressLine5(a5)
+            .postcode(pc)
+            .build()
+            : null;
 
         // ----- Contact details: null if all fields are blank/missing -----
         boolean hasContact =
@@ -378,7 +387,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build()
             : null;
 
-        //-- Employer details: null if entirely empty; if present, employer_address line_1 must be non-null string -----
+        // --- Employer details: null if entirely empty; if present, employer_address line_1 must be non-null string ---
         String empName  = debtorDetail != null ? debtorDetail.getEmployerName() : null;
         String empRef   = debtorDetail != null ? debtorDetail.getEmployeeReference() : null;
         String empEmail = debtorDetail != null ? debtorDetail.getEmployerEmail() : null;
@@ -410,7 +419,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .employerTelephoneNumber(empPhone)
             .employerAddress(
                 AddressDetails.builder()
-                    .addressLine1(empA1 != null ? empA1 : "")
+                    .addressLine1(empA1)
                     .addressLine2(empA2)
                     .addressLine3(empA3)
                     .addressLine4(empA4)

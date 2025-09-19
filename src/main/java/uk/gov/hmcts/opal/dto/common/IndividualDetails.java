@@ -11,7 +11,6 @@ import java.util.List;
 @Builder
 @JsonInclude(JsonInclude.Include.ALWAYS)
 public class IndividualDetails {
-
     @JsonProperty("title")
     private String title;
 
