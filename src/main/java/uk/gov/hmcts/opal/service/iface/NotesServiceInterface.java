@@ -4,6 +4,6 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 
 public interface NotesServiceInterface {
 
-    String addNote(AddNoteRequest request, Long version);
+    String addNote(AddNoteRequest request, Long version, String username);
 
 }

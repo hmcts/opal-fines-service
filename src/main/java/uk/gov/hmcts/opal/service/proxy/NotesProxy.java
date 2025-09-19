@@ -23,8 +23,8 @@ public class NotesProxy implements NotesServiceInterface, ProxyInterface {
     }
 
     @Override
-    public String addNote(AddNoteRequest request, Long version) {
-        return getCurrentModeService().addNote(request, version);
+    public String addNote(AddNoteRequest request, Long version, String username) {
+        return getCurrentModeService().addNote(request, version, username);
     }
 
 }

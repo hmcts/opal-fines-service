@@ -14,7 +14,7 @@ public class TestContainerConfig {
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")
-            .withCommand("postgres -c max_connections=200 -c log_connections=on -c log_disconnections=on");
+            .withCommand("postgres -c max_connections=150 -c log_connections=on -c log_disconnections=on");
 
         POSTGRES_CONTAINER.start();
     }

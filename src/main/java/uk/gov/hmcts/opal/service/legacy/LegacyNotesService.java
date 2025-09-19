@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 public class LegacyNotesService implements NotesServiceInterface {
 
     @Override
-    public String addNote(AddNoteRequest request, Long version) {
+    public String addNote(AddNoteRequest request, Long version, String username) {
         log.info(":LegacyAddNote is not being implemented yet.");
 
         return null;

@@ -27,6 +27,6 @@ public class NotesService {
             throw new PermissionNotAllowedException(Permissions.ACCOUNT_MAINTENANCE);
         }
 
-        return notesProxy.addNote(request, version);
+        return notesProxy.addNote(request, version, userState.getUserName());
     }
 }

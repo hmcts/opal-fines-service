@@ -1,7 +1,19 @@
 package uk.gov.hmcts.opal.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,22 +28,10 @@ import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.opal.OpalNotesService;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class NotesServiceTest {
@@ -66,6 +66,7 @@ public class NotesServiceTest {
         account = new DefendantAccountEntity();
         account.setDefendantAccountId(42L);
         account.setVersion(5L);
+        account.setBusinessUnit(BusinessUnitEntity.builder().businessUnitId((short) 1).build());
     }
 
     @Test
@@ -79,7 +80,7 @@ public class NotesServiceTest {
         when(repository.save(any(NoteEntity.class))).thenReturn(persisted);
 
         // When
-        String id = service.addNote(addNoteRequest, /*If-Match version*/ 5L);
+        String id = service.addNote(addNoteRequest, /*If-Match version*/ 5L, "USER1");
 
         // Then: return value
         assertEquals("60000000000000", id);
@@ -108,7 +109,7 @@ public class NotesServiceTest {
         // When
         ResponseStatusException ex =
             assertThrows(ResponseStatusException.class,
-                         () -> service.addNote(addNoteRequest, 5L));
+                         () -> service.addNote(addNoteRequest, 5L, "USER1"));
 
         // Then
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
@@ -126,7 +127,7 @@ public class NotesServiceTest {
         // When
         ResponseStatusException ex =
             assertThrows(ResponseStatusException.class,
-                         () -> service.addNote(addNoteRequest, 6L));
+                         () -> service.addNote(addNoteRequest, 6L, "USER1"));
 
         // Then
         assertEquals(HttpStatus.PRECONDITION_FAILED, ex.getStatusCode());

@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ public class OpalNotesService implements NotesServiceInterface {
 
     @Override
     @Transactional
-    public String addNote(AddNoteRequest req, Long version) {
+    public String addNote(AddNoteRequest req, Long version, String username) {
         Note requestNote = req.getActivityNote();
 
         DefendantAccountEntity account =
@@ -50,6 +51,9 @@ public class OpalNotesService implements NotesServiceInterface {
         note.setNoteType(requestNote.getNoteType());
         note.setAssociatedRecordId(requestNote.getRecordId());
         note.setAssociatedRecordType(requestNote.getRecordType().toString());
+        note.setBusinessUnitUserId(account.getBusinessUnit().getBusinessUnitId().toString());
+        note.setPostedDate(LocalDateTime.now());
+        note.setPostedByUsername(username);
 
         NoteEntity entity = repository.save(note);
 
