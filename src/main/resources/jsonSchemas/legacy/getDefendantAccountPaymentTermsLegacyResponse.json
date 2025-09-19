@@ -17,10 +17,6 @@
       "type": "string",
       "format": "date"
     },
-    "date_last_amended": {
-      "type": "string",
-      "format": "date"
-    },
     "extension": {
       "type": "boolean"
     },
