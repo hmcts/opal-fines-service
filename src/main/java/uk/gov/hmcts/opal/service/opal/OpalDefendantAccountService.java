@@ -46,6 +46,7 @@ import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -297,15 +298,72 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private DefendantAccountParty mapDefendantAccountParty(DefendantAccountPartiesEntity partyEntity) {
         PartyEntity party = partyEntity.getParty();
-        DebtorDetailEntity debtorDetail = debtorDetailRepository.findByPartyId(party.getPartyId());
+        DebtorDetailEntity debtor = debtorDetailRepository.findByPartyId(party.getPartyId());
 
-        String defendantAccountPartyType = partyEntity.getAssociationType();
-        Boolean isDebtor = partyEntity.getDebtor();
+        PartyDetails partyDetails = PartyDetails.builder()
+            .partyId(String.valueOf(party.getPartyId()))
+            .organisationFlag(party.isOrganisation())
+            .organisationDetails(buildOrganisation(party))
+            .individualDetails(buildIndividual(party))
+            .build();
 
-        // ----- Individual details (person) -----
-        IndividualDetails individualDetails = null;
-        if (!party.isOrganisation()) {
-            individualDetails = IndividualDetails.builder()
+        AddressDetails address = addrIfAny(
+            party.getAddressLine1(),
+            party.getAddressLine2(),
+            party.getAddressLine3(),
+            party.getAddressLine4(),
+            party.getAddressLine5(),
+            party.getPostcode()
+        );
+
+        ContactDetails contacts = when(
+            anyNonBlank(
+                party.getPrimaryEmailAddress(),
+                party.getSecondaryEmailAddress(),
+                party.getMobileTelephoneNumber(),
+                party.getHomeTelephoneNumber(),
+                party.getWorkTelephoneNumber()
+            ),
+            () -> ContactDetails.builder()
+                .primaryEmailAddress(party.getPrimaryEmailAddress())
+                .secondaryEmailAddress(party.getSecondaryEmailAddress())
+                .mobileTelephoneNumber(party.getMobileTelephoneNumber())
+                .homeTelephoneNumber(party.getHomeTelephoneNumber())
+                .workTelephoneNumber(party.getWorkTelephoneNumber())
+                .build()
+        );
+
+        VehicleDetails vehicle = buildVehicle(debtor);
+        EmployerDetails employer = buildEmployer(debtor);
+        LanguagePreferences language = buildLanguage(debtor);
+
+        return DefendantAccountParty.builder()
+            .defendantAccountPartyType(partyEntity.getAssociationType())
+            .isDebtor(partyEntity.getDebtor())
+            .partyDetails(partyDetails)
+            .address(address)
+            .contactDetails(contacts)
+            .vehicleDetails(vehicle)
+            .employerDetails(employer)
+            .languagePreferences(language)
+            .build();
+    }
+
+    /* -------------------- helpers -------------------- */
+
+    private static OrganisationDetails buildOrganisation(PartyEntity party) {
+        return party.isOrganisation()
+            ? OrganisationDetails.builder()
+            .organisationName(party.getOrganisationName())
+            .organisationAliases(null)
+            .build()
+            : null;
+    }
+
+    private static IndividualDetails buildIndividual(PartyEntity party) {
+        return party.isOrganisation()
+            ? null
+            : IndividualDetails.builder()
                 .title(party.getTitle())
                 .forenames(party.getForenames())
                 .surname(party.getSurname())
@@ -314,157 +372,114 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 .nationalInsuranceNumber(party.getNiNumber())
                 .individualAliases(null)
                 .build();
+    }
+
+    private static VehicleDetails buildVehicle(DebtorDetailEntity debtor) {
+        String make = getOrNull(debtor, DebtorDetailEntity::getVehicleMake);
+        String reg  = getOrNull(debtor, DebtorDetailEntity::getVehicleRegistration);
+
+        return when(
+            anyNonBlank(make, reg),
+            () -> VehicleDetails.builder()
+                .vehicleMakeAndModel(make)
+                .vehicleRegistration(reg)
+                .build()
+        );
+    }
+
+    private static EmployerDetails buildEmployer(DebtorDetailEntity debtor) {
+        if (debtor == null) {
+            return null;
         }
 
-        // ----- Organisation details (organisation) -----
-        OrganisationDetails organisationDetails = party.isOrganisation()
-            ? OrganisationDetails.builder()
-            .organisationName(party.getOrganisationName())
-            .organisationAliases(null)
-            .build()
-            : null;
+        String name  = debtor.getEmployerName();
+        String ref   = debtor.getEmployeeReference();
+        String email = debtor.getEmployerEmail();
+        String phone = debtor.getEmployerTelephone();
 
-        // ----- Party details -----
-        PartyDetails partyDetails = PartyDetails.builder()
-            .partyId(String.valueOf(party.getPartyId()))
-            .organisationFlag(party.isOrganisation())
-            .organisationDetails(organisationDetails)
-            .individualDetails(individualDetails)
-            .build();
+        AddressDetails addr = addrIfAny(
+            debtor.getEmployerAddressLine1(),
+            debtor.getEmployerAddressLine2(),
+            debtor.getEmployerAddressLine3(),
+            debtor.getEmployerAddressLine4(),
+            debtor.getEmployerAddressLine5(),
+            debtor.getEmployerPostcode()
+        );
 
-        // ----- Address: build only if at least one field is present -----
-        String a1 = party.getAddressLine1();
-        String a2 = party.getAddressLine2();
-        String a3 = party.getAddressLine3();
-        String a4 = party.getAddressLine4();
-        String a5 = party.getAddressLine5();
-        String pc = party.getPostcode();
+        boolean hasEmployer = anyNonBlank(
+            name, ref, email, phone,
+            debtor.getEmployerAddressLine1(),
+            debtor.getEmployerAddressLine2(),
+            debtor.getEmployerAddressLine3(),
+            debtor.getEmployerAddressLine4(),
+            debtor.getEmployerAddressLine5(),
+            debtor.getEmployerPostcode()
+        );
 
-        boolean hasAddress =
-            (a1 != null && !a1.isBlank())
-                || (a2 != null && !a2.isBlank())
-                || (a3 != null && !a3.isBlank())
-                || (a4 != null && !a4.isBlank())
-                || (a5 != null && !a5.isBlank())
-                || (pc != null && !pc.isBlank());
+        return when(
+            hasEmployer,
+            () -> EmployerDetails.builder()
+                .employerName(name)
+                .employerReference(ref)
+                .employerEmailAddress(email)
+                .employerTelephoneNumber(phone)
+                .employerAddress(addr)
+                .build()
+        );
+    }
 
-        AddressDetails address = hasAddress
-            ? AddressDetails.builder()
-            .addressLine1(a1)
-            .addressLine2(a2)
-            .addressLine3(a3)
-            .addressLine4(a4)
-            .addressLine5(a5)
-            .postcode(pc)
-            .build()
-            : null;
+    private static LanguagePreferences buildLanguage(DebtorDetailEntity debtor) {
+        String doc = getOrNull(debtor, DebtorDetailEntity::getDocumentLanguage);
+        String hear = getOrNull(debtor, DebtorDetailEntity::getHearingLanguage);
 
-        // ----- Contact details: null if all fields are blank/missing -----
-        boolean hasContact =
-            (party.getPrimaryEmailAddress() != null && !party.getPrimaryEmailAddress().isBlank())
-                || (party.getSecondaryEmailAddress() != null && !party.getSecondaryEmailAddress().isBlank())
-                || (party.getMobileTelephoneNumber() != null && !party.getMobileTelephoneNumber().isBlank())
-                || (party.getHomeTelephoneNumber() != null && !party.getHomeTelephoneNumber().isBlank())
-                || (party.getWorkTelephoneNumber() != null && !party.getWorkTelephoneNumber().isBlank());
-
-        ContactDetails contactDetails = hasContact
-            ? ContactDetails.builder()
-            .primaryEmailAddress(party.getPrimaryEmailAddress())
-            .secondaryEmailAddress(party.getSecondaryEmailAddress())
-            .mobileTelephoneNumber(party.getMobileTelephoneNumber())
-            .homeTelephoneNumber(party.getHomeTelephoneNumber())
-            .workTelephoneNumber(party.getWorkTelephoneNumber())
-            .build()
-            : null;
-
-        // ----- Vehicle details: null if both fields are empty -----
-        String vehicleMake = debtorDetail != null ? debtorDetail.getVehicleMake() : null;
-        String vehicleReg  = debtorDetail != null ? debtorDetail.getVehicleRegistration() : null;
-        VehicleDetails vehicleDetails = (vehicleMake != null || vehicleReg != null)
-            ? VehicleDetails.builder()
-            .vehicleMakeAndModel(vehicleMake)
-            .vehicleRegistration(vehicleReg)
-            .build()
-            : null;
-
-        // --- Employer details: null if entirely empty; if present, employer_address line_1 must be non-null string ---
-        String empName  = debtorDetail != null ? debtorDetail.getEmployerName() : null;
-        String empRef   = debtorDetail != null ? debtorDetail.getEmployeeReference() : null;
-        String empEmail = debtorDetail != null ? debtorDetail.getEmployerEmail() : null;
-        String empPhone = debtorDetail != null ? debtorDetail.getEmployerTelephone() : null;
-        String empA1    = debtorDetail != null ? debtorDetail.getEmployerAddressLine1() : null;
-        String empA2    = debtorDetail != null ? debtorDetail.getEmployerAddressLine2() : null;
-        String empA3    = debtorDetail != null ? debtorDetail.getEmployerAddressLine3() : null;
-        String empA4    = debtorDetail != null ? debtorDetail.getEmployerAddressLine4() : null;
-        String empA5    = debtorDetail != null ? debtorDetail.getEmployerAddressLine5() : null;
-        String empPost  = debtorDetail != null ? debtorDetail.getEmployerPostcode() : null;
-
-        boolean hasEmployer =
-            (empName != null && !empName.isBlank())
-                || (empRef != null && !empRef.isBlank())
-                || (empEmail != null && !empEmail.isBlank())
-                || (empPhone != null && !empPhone.isBlank())
-                || (empA1 != null && !empA1.isBlank())
-                || (empA2 != null && !empA2.isBlank())
-                || (empA3 != null && !empA3.isBlank())
-                || (empA4 != null && !empA4.isBlank())
-                || (empA5 != null && !empA5.isBlank())
-                || (empPost != null && !empPost.isBlank());
-
-        EmployerDetails employerDetails = hasEmployer
-            ? EmployerDetails.builder()
-            .employerName(empName)
-            .employerReference(empRef)
-            .employerEmailAddress(empEmail)
-            .employerTelephoneNumber(empPhone)
-            .employerAddress(
-                AddressDetails.builder()
-                    .addressLine1(empA1)
-                    .addressLine2(empA2)
-                    .addressLine3(empA3)
-                    .addressLine4(empA4)
-                    .addressLine5(empA5)
-                    .postcode(empPost)
-                    .build()
-            )
-            .build()
-            : null;
-
-        // ----- Language preferences: null if both codes are empty -----
-        String docLang  = debtorDetail != null ? debtorDetail.getDocumentLanguage() : null;
-        String hearLang = debtorDetail != null ? debtorDetail.getHearingLanguage() : null;
-        LanguagePreferences languagePreferences =
-            (docLang != null || hearLang != null)
-                ? LanguagePreferences.builder()
+        return when(
+            anyNonBlank(doc, hear),
+            () -> LanguagePreferences.builder()
                 .documentLanguagePreference(
-                    docLang != null
+                    doc != null
                         ? LanguagePreferences.LanguagePreference.builder()
-                        .languageCode(docLang)
+                        .languageCode(doc)
                         .languageDisplayName(null)
                         .build()
                         : null
                 )
                 .hearingLanguagePreference(
-                    hearLang != null
+                    hear != null
                         ? LanguagePreferences.LanguagePreference.builder()
-                        .languageCode(hearLang)
+                        .languageCode(hear)
                         .languageDisplayName(null)
                         .build()
                         : null
                 )
                 .build()
-                : null;
+        );
+    }
 
-        return DefendantAccountParty.builder()
-            .defendantAccountPartyType(defendantAccountPartyType)
-            .isDebtor(isDebtor)
-            .partyDetails(partyDetails)
-            .address(address)
-            .contactDetails(contactDetails)
-            .vehicleDetails(vehicleDetails)
-            .employerDetails(employerDetails)
-            .languagePreferences(languagePreferences)
-            .build();
+    private static AddressDetails addrIfAny(
+        String line1, String line2, String line3, String line4, String line5, String postcode
+    ) {
+        return anyNonBlank(line1, line2, line3, line4, line5, postcode)
+            ? AddressDetails.builder()
+            .addressLine1(line1)
+            .addressLine2(line2)
+            .addressLine3(line3)
+            .addressLine4(line4)
+            .addressLine5(line5)
+            .postcode(postcode)
+            .build()
+            : null;
+    }
+
+    private static boolean anyNonBlank(String... values) {
+        return Arrays.stream(values).anyMatch(v -> v != null && !v.isBlank());
+    }
+
+    private static <T,R> R getOrNull(T source, java.util.function.Function<T,R> getter) {
+        return source != null ? getter.apply(source) : null;
+    }
+
+    private static <T> T when(boolean condition, java.util.function.Supplier<T> supplier) {
+        return condition ? supplier.get() : null;
     }
 
 
