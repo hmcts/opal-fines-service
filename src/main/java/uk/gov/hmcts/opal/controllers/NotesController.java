@@ -25,7 +25,7 @@ public class NotesController {
 
     private final NotesService notesService;
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "adds a note to an entity")
     public ResponseEntity<String> addNote(
         @RequestBody
