@@ -19,7 +19,7 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
@@ -55,15 +55,17 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         request.setActivityNote(note);
 
+        log.info(":testPostNotes:{}", objectMapper.writeValueAsString(request));
+
         ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/add")
                                                           .contentType(MediaType.APPLICATION_JSON)
                                                           .content(objectMapper.writeValueAsString(request))
                                                           .header("authorization", "Bearer some_value")
-                                                          .header("If-Match", "1")); // Add this line
+                                                          .header("If-Match", "1"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
 
-        log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testPostNotes: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk());
 
