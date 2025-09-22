@@ -1,7 +1,7 @@
 @Opal @cleanUpData
 Feature: Draft account deletion by API
 
-  Scenario: Delete the just-created draft account with concurrency control
+ Scenario: Delete the just-created draft account with concurrency control
     Given I am testing as the "opal-test@hmcts.net" user
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
@@ -12,8 +12,7 @@ Feature: Draft account deletion by API
       | submitted_by_name | Laura Clerk                                 |
     And I store the created draft account ID
 
-    When I delete the last created draft account using concurrency control
-    Then I delete the created draft accounts
+    Then I delete the last created draft account using concurrency control
 
   @Opal @cleanUpData
   Scenario: Cleanup should not fail if the account is already gone
