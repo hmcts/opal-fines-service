@@ -54,3 +54,6 @@ opal-frontend:
   enabled: false
 redis:
   enabled: false
+global:
+  security:
+    allowInsecureImages: true

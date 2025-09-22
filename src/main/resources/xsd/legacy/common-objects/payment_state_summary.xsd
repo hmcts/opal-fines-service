@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="simple_type.xsd"/>
+  <xsd:complexType name="payment_state_summary">
+    <xsd:sequence>
+      <xsd:element name="imposed_amount"   type="Money2Decimal" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="arrears_amount"   type="Money2Decimal" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="paid_amount"      type="Money2Decimal" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="account_balance"  type="Money2Decimal" minOccurs="1" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>
