@@ -35,12 +35,14 @@ import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
+import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 
 import java.math.BigDecimal;
@@ -48,7 +50,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j(topic = "opal.OpalDefendantAccountService")
@@ -58,7 +59,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final DefendantAccountHeaderViewRepository repository;
 
     private final DefendantAccountRepository defendantAccountRepository;
-    private final DefendantAccountSpecs defendantAccountSpecs;
+    private final SearchDefendantAccountRepository searchDefendantAccountRepository;
+    private final SearchDefendantAccountSpecs searchDefendantAccountSpecs;
     private final DefendantAccountPaymentTermsRepository defendantAccountPaymentTermsRepository;
 
     @Autowired
@@ -176,27 +178,27 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts (Opal): criteria: {}", accountSearchDto);
 
-        Specification<DefendantAccountEntity> spec =
-            defendantAccountSpecs.filterByBusinessUnits(accountSearchDto.getBusinessUnitIds())
-                .and(defendantAccountSpecs.filterByActiveOnly(accountSearchDto.getActiveAccountsOnly()))
-                .and(defendantAccountSpecs.filterByAccountNumberStartsWithWithCheckLetter(accountSearchDto))
-                .and(defendantAccountSpecs.filterByPcrExact(accountSearchDto))
+        Specification<SearchDefendantAccountEntity> spec =
+            searchDefendantAccountSpecs.filterByBusinessUnits(accountSearchDto.getBusinessUnitIds())
+                .and(searchDefendantAccountSpecs.filterByActiveOnly(accountSearchDto.getActiveAccountsOnly()))
+                .and(searchDefendantAccountSpecs.filterByAccountNumberStartsWithWithCheckLetter(accountSearchDto))
+                .and(searchDefendantAccountSpecs.filterByPcrExact(accountSearchDto))
                 .and(
                     accountSearchDto.getDefendant() != null
                         && Boolean.TRUE.equals(accountSearchDto.getDefendant().getOrganisation())
-                        ? defendantAccountSpecs.filterByAliasesIfRequested(accountSearchDto)
-                        : defendantAccountSpecs.filterByNameIncludingAliases(accountSearchDto)
+                        ? searchDefendantAccountSpecs.filterByAliasesIfRequested(accountSearchDto)
+                        : searchDefendantAccountSpecs.filterByNameIncludingAliases(accountSearchDto)
                 )
-                .and(defendantAccountSpecs.filterByDobStartsWith(accountSearchDto))
-                .and(defendantAccountSpecs.filterByNiStartsWith(accountSearchDto))
-                .and(defendantAccountSpecs.filterByAddress1StartsWith(accountSearchDto))
-                .and(defendantAccountSpecs.filterByPostcodeStartsWith(accountSearchDto));
+                .and(searchDefendantAccountSpecs.filterByDobStartsWith(accountSearchDto))
+                .and(searchDefendantAccountSpecs.filterByNiStartsWith(accountSearchDto))
+                .and(searchDefendantAccountSpecs.filterByAddress1StartsWith(accountSearchDto))
+                .and(searchDefendantAccountSpecs.filterByPostcodeStartsWith(accountSearchDto));
 
 
-        List<DefendantAccountEntity> rows = defendantAccountRepository.findAll(spec);
+        List<SearchDefendantAccountEntity> rows = searchDefendantAccountRepository.findAll(spec);
 
         List<DefendantAccountSummaryDto> summaries = new ArrayList<>(rows.size());
-        for (DefendantAccountEntity e : rows) {
+        for (SearchDefendantAccountEntity e : rows) {
             summaries.add(toSummaryDto(e));
         }
 
@@ -219,49 +221,36 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return toPaymentTermsResponse(entity);
     }
 
-    private DefendantAccountSummaryDto toSummaryDto(DefendantAccountEntity e) {
-        PartyEntity party = Optional.ofNullable(e.getParties())
-            .flatMap(list -> list.stream()
-                .map(DefendantAccountPartiesEntity::getParty)
-                .findFirst())
-            .orElse(null);
+    private DefendantAccountSummaryDto toSummaryDto(SearchDefendantAccountEntity e) {
+        boolean isOrganisation = e.getOrganisation();
 
-        boolean isOrganisation = party != null && party.isOrganisation();
-        String organisationName = party != null ? party.getOrganisationName() : null;
-        String title = party != null ? party.getTitle() : null;
-        String forenames = party != null ? party.getForenames() : null;
-        String surname = party != null ? party.getSurname() : null;
-
-        List<AliasDto> aliases = party != null
-            ? aliasRepository.findByParty_PartyId(party.getPartyId()).stream()
+        //TODO: fetch aliases from DB SearchDefendantAccountEntity view
+        List<AliasDto> aliases = aliasRepository.findAllByDefendantAccountId(e.getDefendantAccountId())
+            .stream()
             .map(a -> AliasDto.builder()
                 .aliasNumber(a.getSequenceNumber())
                 .organisationName(a.getOrganisationName())
-                .surname(a.getSurname())
                 .forenames(a.getForenames())
-                .build())
-            .toList()
-            : List.of();
+                .surname(a.getSurname())
+                .build()
+            ).toList();
 
         return DefendantAccountSummaryDto.builder()
             .defendantAccountId(String.valueOf(e.getDefendantAccountId()))
             .accountNumber(e.getAccountNumber())
             .organisation(isOrganisation)
-            .organisationName(organisationName)
-            .defendantTitle(!isOrganisation ? title : null)
-            .defendantFirstnames(!isOrganisation ? forenames : null)
-            .defendantSurname(!isOrganisation ? surname : null)
-            .addressLine1(party != null ? party.getAddressLine1() : null)
-            .postcode(party != null ? party.getPostcode() : null)
-            .businessUnitName(e.getBusinessUnit() != null ? e.getBusinessUnit().getBusinessUnitName() : null)
-            .businessUnitId(e.getBusinessUnit() != null
-                                ? String.valueOf(e.getBusinessUnit().getBusinessUnitId()) : null)
+            .organisationName(e.getOrganisationName())
+            .defendantTitle(!isOrganisation ? e.getTitle() : null)
+            .defendantFirstnames(!isOrganisation ? e.getForenames() : null)
+            .defendantSurname(!isOrganisation ? e.getSurname() : null)
+            .addressLine1(e.getAddressLine1())
+            .postcode(e.getPostcode())
+            .businessUnitName(e.getBusinessUnitName())
+            .businessUnitId(String.valueOf(e.getBusinessUnitId()))
             .prosecutorCaseReference(e.getProsecutorCaseReference())
-            .lastEnforcementAction(e.getLastEnforcement())
-            .accountBalance(e.getAccountBalance())
-            .birthDate(party != null && !isOrganisation
-                           ? uk.gov.hmcts.opal.util.DateTimeUtils.toString(party.getBirthDate())
-                           : null)
+            .lastEnforcementAction(String.valueOf(e.getLastEnforcement()))
+            .accountBalance(e.getDefendantAccountBalance())
+            .birthDate(String.valueOf(e.getBirthDate()))
             .aliases(aliases)
             .build();
     }

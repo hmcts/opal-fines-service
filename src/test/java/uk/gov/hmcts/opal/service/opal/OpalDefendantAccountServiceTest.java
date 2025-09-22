@@ -19,7 +19,8 @@ class OpalDefendantAccountServiceTest {
 
     // If you need to create the service, mock the repos as needed.
     private final OpalDefendantAccountService service =
-        new OpalDefendantAccountService(null, null, null, null);
+        new OpalDefendantAccountService(null, null, null,
+                                        null, null);
 
     @Test
     void testNzHelper() {
