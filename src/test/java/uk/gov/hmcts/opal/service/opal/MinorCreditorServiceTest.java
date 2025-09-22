@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.SearchMinorCreditorEntity;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 
 import java.math.BigDecimal;
@@ -42,14 +42,14 @@ class MinorCreditorServiceTest {
     private OpalMinorCreditorService service;
 
     @Captor
-    private ArgumentCaptor<Specification<MinorCreditorEntity>> specCaptor;
+    private ArgumentCaptor<Specification<SearchMinorCreditorEntity>> specCaptor;
 
-    private MinorCreditorEntity entityOrgFalseWithDefendant;
-    private MinorCreditorEntity entityOrgTrueNoDefendant;
+    private SearchMinorCreditorEntity entityOrgFalseWithDefendant;
+    private SearchMinorCreditorEntity entityOrgTrueNoDefendant;
 
     @BeforeEach
     void setUp() {
-        entityOrgFalseWithDefendant = MinorCreditorEntity.builder()
+        entityOrgFalseWithDefendant = SearchMinorCreditorEntity.builder()
             .creditorId(104L)
             .accountNumber("12345678A")
             .businessUnitId((short) 10)
@@ -67,7 +67,7 @@ class MinorCreditorServiceTest {
             .creditorAccountBalance(150)
             .build();
 
-        entityOrgTrueNoDefendant = MinorCreditorEntity.builder()
+        entityOrgTrueNoDefendant = SearchMinorCreditorEntity.builder()
             .creditorId(105L)
             .accountNumber("12345678")
             .businessUnitId((short) 10)
@@ -94,13 +94,13 @@ class MinorCreditorServiceTest {
             .activeAccountsOnly(false)
             .build();
 
-        when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
+        when(minorCreditorRepository.findAll(Mockito.<Specification<SearchMinorCreditorEntity>>any()))
             .thenReturn(List.of(entityOrgFalseWithDefendant, entityOrgTrueNoDefendant));
 
         PostMinorCreditorAccountsSearchResponse response = service.searchMinorCreditors(criteria);
 
         verify(minorCreditorRepository, times(1)).findAll(specCaptor.capture());
-        Specification<MinorCreditorEntity> passedSpec = specCaptor.getValue();
+        Specification<SearchMinorCreditorEntity> passedSpec = specCaptor.getValue();
         assertNotNull(passedSpec);
 
         assertNotNull(response);
@@ -156,13 +156,13 @@ class MinorCreditorServiceTest {
             .businessUnitIds(List.of(10))
             .build();
 
-        when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
+        when(minorCreditorRepository.findAll(Mockito.<Specification<SearchMinorCreditorEntity>>any()))
             .thenReturn(Collections.emptyList());
 
         PostMinorCreditorAccountsSearchResponse response = service.searchMinorCreditors(criteria);
 
         verify(minorCreditorRepository, times(1))
-            .findAll(Mockito.<Specification<MinorCreditorEntity>>any());
+            .findAll(Mockito.<Specification<SearchMinorCreditorEntity>>any());
         assertEquals(0, response.getCount());
         assertNull(response.getCreditorAccounts());
     }
@@ -175,7 +175,7 @@ class MinorCreditorServiceTest {
             .build();
 
         RuntimeException failure = new RuntimeException("DB failure");
-        when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
+        when(minorCreditorRepository.findAll(Mockito.<Specification<SearchMinorCreditorEntity>>any()))
             .thenThrow(failure);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -189,13 +189,13 @@ class MinorCreditorServiceTest {
             .businessUnitIds(List.of(10))
             .build();
 
-        when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
+        when(minorCreditorRepository.findAll(Mockito.<Specification<SearchMinorCreditorEntity>>any()))
             .thenReturn(List.of(entityOrgFalseWithDefendant));
 
         PostMinorCreditorAccountsSearchResponse response = service.searchMinorCreditors(criteria);
 
         verify(minorCreditorRepository).findAll(specCaptor.capture());
-        Specification<MinorCreditorEntity> spec = specCaptor.getValue();
+        Specification<SearchMinorCreditorEntity> spec = specCaptor.getValue();
         assertNotNull(spec);
 
         assertEquals(1, response.getCount());

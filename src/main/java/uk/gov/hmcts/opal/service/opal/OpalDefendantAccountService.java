@@ -206,6 +206,40 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+
+    public DefendantAccountSearchResultsDto searchDefendantAccountsView(AccountSearchDto accountSearchDto) {
+        log.debug(":searchDefendantAccounts (Opal): criteria: {}", accountSearchDto);
+
+        Specification<DefendantAccountEntity> spec =
+            defendantAccountSpecs.filterByBusinessUnits(accountSearchDto.getBusinessUnitIds())
+                .and(defendantAccountSpecs.filterByActiveOnly(accountSearchDto.getActiveAccountsOnly()))
+                .and(defendantAccountSpecs.filterByAccountNumberStartsWithWithCheckLetter(accountSearchDto))
+                .and(defendantAccountSpecs.filterByPcrExact(accountSearchDto))
+                .and(
+                    accountSearchDto.getDefendant() != null
+                        && Boolean.TRUE.equals(accountSearchDto.getDefendant().getOrganisation())
+                        ? defendantAccountSpecs.filterByAliasesIfRequested(accountSearchDto)
+                        : defendantAccountSpecs.filterByNameIncludingAliases(accountSearchDto)
+                )
+                .and(defendantAccountSpecs.filterByDobStartsWith(accountSearchDto))
+                .and(defendantAccountSpecs.filterByNiStartsWith(accountSearchDto))
+                .and(defendantAccountSpecs.filterByAddress1StartsWith(accountSearchDto))
+                .and(defendantAccountSpecs.filterByPostcodeStartsWith(accountSearchDto));
+
+
+        List<DefendantAccountEntity> rows = defendantAccountRepository.findAll(spec);
+
+        List<DefendantAccountSummaryDto> summaries = new ArrayList<>(rows.size());
+        for (DefendantAccountEntity e : rows) {
+            summaries.add(toSummaryDto(e));
+        }
+
+        return DefendantAccountSearchResultsDto.builder()
+            .defendantAccounts(summaries)
+            .count(summaries.size())
+            .build();
+    }
+
     @Override
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
         log.debug(":getPaymentTerms (Opal): criteria: {}", defendantAccountId);

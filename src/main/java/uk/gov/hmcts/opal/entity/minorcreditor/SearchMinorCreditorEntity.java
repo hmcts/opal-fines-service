@@ -15,7 +15,7 @@ import org.hibernate.annotations.Immutable;
 @Immutable
 @SuperBuilder
 @NoArgsConstructor
-public class MinorCreditorEntity {
+public class SearchMinorCreditorEntity {
 
     @Id
     @Column(name = "creditor_account_id")

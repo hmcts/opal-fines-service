@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.SearchMinorCreditorEntity;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 import uk.gov.hmcts.opal.repository.jpa.MinorCreditorSpecs;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
@@ -27,17 +27,17 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch criteria) {
-        Specification<MinorCreditorEntity> spec =
+        Specification<SearchMinorCreditorEntity> spec =
             specs.findBySearchCriteria(criteria);
 
-        List<MinorCreditorEntity> results =
+        List<SearchMinorCreditorEntity> results =
             minorCreditorRepository.findAll(spec);
 
         return toResponse(results);
 
     }
 
-    private CreditorAccountDto toCreditorAccountDto(MinorCreditorEntity entity) {
+    private CreditorAccountDto toCreditorAccountDto(SearchMinorCreditorEntity entity) {
         return CreditorAccountDto.builder()
             .creditorAccountId(String.valueOf(entity.getCreditorId()))
             .accountNumber(entity.getAccountNumber())
@@ -56,7 +56,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             .build();
     }
 
-    private DefendantDto toDefendantDto(MinorCreditorEntity entity) {
+    private DefendantDto toDefendantDto(SearchMinorCreditorEntity entity) {
         return DefendantDto.builder()
             .defendantAccountId(entity.getDefendantAccountId() != null
                                     ? String.valueOf(entity.getDefendantAccountId()) : null)
@@ -67,7 +67,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             .build();
     }
 
-    private PostMinorCreditorAccountsSearchResponse toResponse(List<MinorCreditorEntity> entities) {
+    private PostMinorCreditorAccountsSearchResponse toResponse(List<SearchMinorCreditorEntity> entities) {
         List<CreditorAccountDto> accounts = entities.stream()
             .map(this::toCreditorAccountDto)
             .toList();

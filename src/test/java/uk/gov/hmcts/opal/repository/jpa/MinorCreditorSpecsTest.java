@@ -12,7 +12,7 @@ import org.mockito.MockedStatic;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.SearchMinorCreditorEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity_;
 
 import java.util.Arrays;
@@ -64,10 +64,10 @@ class MinorCreditorSpecsTest {
         when(criteria.getAccountNumber()).thenReturn(null);
         when(criteria.getCreditor()).thenReturn(null);
 
-        Specification<MinorCreditorEntity> spec = specs.findBySearchCriteria(criteria);
+        Specification<SearchMinorCreditorEntity> spec = specs.findBySearchCriteria(criteria);
 
-        Root<MinorCreditorEntity> root = mock(Root.class);
-        CriteriaQuery<MinorCreditorEntity> query = mock(CriteriaQuery.class);
+        Root<SearchMinorCreditorEntity> root = mock(Root.class);
+        CriteriaQuery<SearchMinorCreditorEntity> query = mock(CriteriaQuery.class);
         CriteriaBuilder cb = mock(CriteriaBuilder.class);
         Path<Short> buPath = mock(Path.class);
         Predicate inPredicate = mock(Predicate.class);
@@ -95,8 +95,8 @@ class MinorCreditorSpecsTest {
         when(criteria.getAccountNumber()).thenReturn("12345678A"); // should become "12345678"
         when(criteria.getCreditor()).thenReturn(null);
 
-        Root<MinorCreditorEntity> root = mock(Root.class);
-        CriteriaQuery<MinorCreditorEntity> query = mock(CriteriaQuery.class);
+        Root<SearchMinorCreditorEntity> root = mock(Root.class);
+        CriteriaQuery<SearchMinorCreditorEntity> query = mock(CriteriaQuery.class);
         CriteriaBuilder cb = mock(CriteriaBuilder.class);
         Predicate likePredicate = mock(Predicate.class);
 
@@ -108,7 +108,7 @@ class MinorCreditorSpecsTest {
             utils.when(() -> SpecificationUtils.stripCheckLetter("12345678A")).thenReturn("12345678");
 
 
-            Specification<MinorCreditorEntity> spec = new MinorCreditorSpecs().findBySearchCriteria(criteria);
+            Specification<SearchMinorCreditorEntity> spec = new MinorCreditorSpecs().findBySearchCriteria(criteria);
 
             utils.when(() -> SpecificationUtils.likeStartsWithNormalized(
                     root, cb, MinorCreditorEntity_.ACCOUNT_NUMBER, "12345678"))

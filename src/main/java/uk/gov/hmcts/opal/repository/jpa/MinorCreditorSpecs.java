@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.SearchMinorCreditorEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity_;
 
 import java.util.ArrayList;
@@ -20,12 +20,12 @@ import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.equalNormalize
 @Component
 public class MinorCreditorSpecs {
 
-    public Specification<MinorCreditorEntity> findBySearchCriteria(MinorCreditorSearch criteria) {
+    public Specification<SearchMinorCreditorEntity> findBySearchCriteria(MinorCreditorSearch criteria) {
         if (criteria == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Search criteria must be provided");
         }
 
-        List<Specification<MinorCreditorEntity>> parts = new ArrayList<>();
+        List<Specification<SearchMinorCreditorEntity>> parts = new ArrayList<>();
 
         byBusinessUnitIds(criteria).ifPresent(parts::add);
         byCreditorAccountNumber(criteria).ifPresent(parts::add);
@@ -34,7 +34,7 @@ public class MinorCreditorSpecs {
         return combineAnd(parts);
     }
 
-    private Optional<Specification<MinorCreditorEntity>> byBusinessUnitIds(MinorCreditorSearch c) {
+    private Optional<Specification<SearchMinorCreditorEntity>> byBusinessUnitIds(MinorCreditorSearch c) {
         return Optional.ofNullable(c.getBusinessUnitIds())
             .map(list -> list.stream()
                 .filter(Objects::nonNull)
@@ -44,18 +44,18 @@ public class MinorCreditorSpecs {
             .map(ids -> (root, q, cb) -> root.get(MinorCreditorEntity_.BUSINESS_UNIT_ID).in(ids));
     }
 
-    private Optional<Specification<MinorCreditorEntity>> byCreditorAccountNumber(MinorCreditorSearch c) {
+    private Optional<Specification<SearchMinorCreditorEntity>> byCreditorAccountNumber(MinorCreditorSearch c) {
         return Optional.ofNullable(c.getAccountNumber())
             .filter(SpecificationUtils::hasText)
             .map(SpecificationUtils::stripCheckLetter)
-            .map(prefix -> (Specification<MinorCreditorEntity>)
+            .map(prefix -> (Specification<SearchMinorCreditorEntity>)
                 (root, q, cb) -> likeStartsWithNormalized(root, cb, MinorCreditorEntity_.ACCOUNT_NUMBER, prefix));
     }
 
-    private List<Specification<MinorCreditorEntity>> byCreditorTextFields(MinorCreditorSearch c) {
+    private List<Specification<SearchMinorCreditorEntity>> byCreditorTextFields(MinorCreditorSearch c) {
         return Optional.ofNullable(c.getCreditor())
             .map(cred -> {
-                List<Specification<MinorCreditorEntity>> out = new ArrayList<>();
+                List<Specification<SearchMinorCreditorEntity>> out = new ArrayList<>();
 
                 // Organisation name
                 addTextFilterIfPresent(
@@ -90,7 +90,7 @@ public class MinorCreditorSpecs {
             .orElseGet(List::of);
     }
 
-    private void addTextFilterIfPresent(List<Specification<MinorCreditorEntity>> acc,
+    private void addTextFilterIfPresent(List<Specification<SearchMinorCreditorEntity>> acc,
                                         String attribute,
                                         String value,
                                         boolean exactMatch) {
@@ -105,7 +105,7 @@ public class MinorCreditorSpecs {
         }
     }
 
-    private void addStartsWithIfPresent(List<Specification<MinorCreditorEntity>> acc,
+    private void addStartsWithIfPresent(List<Specification<SearchMinorCreditorEntity>> acc,
                                         String attribute,
                                         String value) {
         if (hasText(value)) {
@@ -114,7 +114,7 @@ public class MinorCreditorSpecs {
     }
 
     /** AND all parts; require at least one filter to avoid full scans. */
-    private Specification<MinorCreditorEntity> combineAnd(List<Specification<MinorCreditorEntity>> parts) {
+    private Specification<SearchMinorCreditorEntity> combineAnd(List<Specification<SearchMinorCreditorEntity>> parts) {
         if (parts == null || parts.isEmpty()) {
             throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
