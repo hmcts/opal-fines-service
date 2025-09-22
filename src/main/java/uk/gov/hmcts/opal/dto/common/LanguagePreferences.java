@@ -15,15 +15,15 @@ import lombok.NoArgsConstructor;
 public class LanguagePreferences {
 
     @JsonProperty("document_language_preference")
-    private LanguagePreferenceDTO documentLanguagePreference;
+    private LanguagePreference documentLanguagePreference;
 
     @JsonProperty("hearing_language_preference")
-    private LanguagePreferenceDTO hearingLanguagePreference;
+    private LanguagePreference hearingLanguagePreference;
 
     public static LanguagePreferences ofCodes(String documentCode, String hearingCode) {
         return new LanguagePreferences(
-            LanguagePreferenceDTO.ofCode(documentCode),
-            LanguagePreferenceDTO.ofCode(hearingCode)
+            LanguagePreference.fromCode(documentCode),
+            LanguagePreference.fromCode(hearingCode)
         );
     }
 }

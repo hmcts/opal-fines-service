@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 public class Enforcer implements ToJsonString {
 
     @JsonProperty("enforcer_id")
-    private Integer enforcerId;
+    private Long enforcerId;
 
     @JsonProperty("enforcer_name")
     private String enforcerName;

@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 @Builder
 public class LastEnforcementAction implements ToJsonString {
 
-    @JsonProperty("last_enforcement_action")
+    @JsonProperty("last_enforcement_action_id")
     private String lastEnforcementActionId;
 
     @JsonProperty("last_enforcement_action_title")
