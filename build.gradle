@@ -269,6 +269,7 @@ dependencyManagement {
 
   dependencies {
     dependency group: 'com.google.guava', name: 'guava', version: '33.4.8-jre'
+    //Added to override dependency version to resolve vulnerability
     dependency group: 'io.netty', name: 'netty-codec', version: nettyVersion
     dependency group: 'io.netty', name: 'netty-buffer', version: nettyVersion
     dependency group: 'io.netty', name: 'netty-common', version: nettyVersion
@@ -276,6 +277,7 @@ dependencyManagement {
     dependency group: 'io.netty', name: 'netty-resolver', version: nettyVersion
     dependency group: 'io.netty', name: 'netty-transport', version: nettyVersion
     dependency group: 'io.netty', name: 'netty-transport-native-unix-common', version: nettyVersion
+    //END
   }
 }
 

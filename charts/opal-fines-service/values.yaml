@@ -49,8 +49,6 @@ java:
   postgresql:
     enabled: false
     image:
-      registry: hmctspublic.azurecr.io
-      repository: imported/bitnami/postgresql
       tag: '17.5.0'
 opal-frontend:
   enabled: false

@@ -14,7 +14,7 @@
       "$ref": "./common-objects/enforcementOverrideLegacy.json"
     },
     "last_enforcement_action": {
-      "$ref": "#/$defs/enforcementOverview"
+      "$ref": "#/$defs/enforcement_action"
     },
     "next_enforcement_action_data": {
       "oneOf": [
