@@ -8,6 +8,8 @@ Feature: Draft account deletion by API
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fines                                       |
       | account_status    | Submitted                                   |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
     And I store the created draft account ID
 
     When I delete the last created draft account using concurrency control
@@ -19,7 +21,10 @@ Feature: Draft account deletion by API
     When I create a draft account with the following details
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
+      | account_type      | Fines                                       |
       | account_status    | Submitted                                   |
+      | submitted_by      | BUUID                                       |
+      | submitted_by_name | Laura Clerk                                 |
     And I store the created draft account ID
 
     # Delete it once (should remove it)

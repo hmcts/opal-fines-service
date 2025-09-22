@@ -51,6 +51,7 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
         if (status == 404) return null;
 
         String etag = resp.getHeader("ETag");
+        log.info("eTag is {}", etag);
         if (etag == null) return null;
 
         assertThat("ETag must be quoted", etag, matchesPattern("^\".+\"$"));
@@ -67,7 +68,7 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
     /** Delete with If-Match; retry once on 409; assert success; verify GET=404. */
     private void deleteWithConcurrency(String id, boolean ignoreMissingResource) {
         String etag = this.fetchStrongEtag(id);
-
+        log.info("eTag {} ", etag);
         if (etag == null && !ignoreMissingResource) {
             log.warn("No ETag for {}. Falling back to ignore_missing=true.", id);
             ignoreMissingResource = true;
