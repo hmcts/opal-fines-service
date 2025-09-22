@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Note {
+public class Note implements ToJsonString {
 
     @JsonProperty("record_type")
     private RecordType recordType;

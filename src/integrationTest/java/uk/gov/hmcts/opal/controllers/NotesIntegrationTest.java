@@ -58,7 +58,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         request.setActivityNote(note);
 
-        ResultActions resultActions = mockMvc.perform(post(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/add")
                                                           .contentType(MediaType.APPLICATION_JSON)
                                                           .content(objectMapper.writeValueAsString(request))
                                                           .header("authorization", "Bearer some_value")
@@ -87,7 +87,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         request.setActivityNote(note);
 
-        ResultActions resultActions = mockMvc.perform(post(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/add")
                                                           .contentType(MediaType.APPLICATION_JSON)
                                                           .content(objectMapper.writeValueAsString(request))
                                                           .header("authorization", "Bearer some_value")
