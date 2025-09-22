@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
@@ -20,7 +19,7 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
@@ -29,9 +28,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @MockitoBean
     UserStateService userStateService;
 
-    // Suppressed until @MockBean is replaced with new approach (Spring Boot 3.3+)
-    @SuppressWarnings("removal")
-    @MockBean
+    @MockitoBean
     private UserState userState;
 
     @BeforeEach
@@ -58,15 +55,17 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         request.setActivityNote(note);
 
-        ResultActions resultActions = mockMvc.perform(post(URL_BASE)
+        log.info(":testPostNotes:{}", objectMapper.writeValueAsString(request));
+
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/add")
                                                           .contentType(MediaType.APPLICATION_JSON)
                                                           .content(objectMapper.writeValueAsString(request))
                                                           .header("authorization", "Bearer some_value")
-                                                          .header("If-Match", "1")); // Add this line
+                                                          .header("If-Match", "1"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
 
-        log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testPostNotes: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk());
 
@@ -87,7 +86,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         request.setActivityNote(note);
 
-        ResultActions resultActions = mockMvc.perform(post(URL_BASE)
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE + "/add")
                                                           .contentType(MediaType.APPLICATION_JSON)
                                                           .content(objectMapper.writeValueAsString(request))
                                                           .header("authorization", "Bearer some_value")
