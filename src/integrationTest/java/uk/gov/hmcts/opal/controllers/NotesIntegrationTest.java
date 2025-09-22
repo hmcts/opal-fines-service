@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
@@ -29,9 +28,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @MockitoBean
     UserStateService userStateService;
 
-    // Suppressed until @MockBean is replaced with new approach (Spring Boot 3.3+)
-    @SuppressWarnings("removal")
-    @MockBean
+    @MockitoBean
     private UserState userState;
 
     @BeforeEach
