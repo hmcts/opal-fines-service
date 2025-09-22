@@ -13,7 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.entity.minorcreditor.SearchMinorCreditorEntity;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity_;
+import uk.gov.hmcts.opal.entity.minorcreditor.SearchMinorCreditorEntity_;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -72,7 +72,7 @@ class MinorCreditorSpecsTest {
         Path<Short> buPath = mock(Path.class);
         Predicate inPredicate = mock(Predicate.class);
 
-        doReturn(buPath).when(root).get(MinorCreditorEntity_.BUSINESS_UNIT_ID);
+        doReturn(buPath).when(root).get(SearchMinorCreditorEntity_.BUSINESS_UNIT_ID);
         when(buPath.in(any(Collection.class))).thenReturn(inPredicate);
         when(cb.and(any(), any())).thenAnswer(inv -> inv.getArgument(1));
 
@@ -111,7 +111,7 @@ class MinorCreditorSpecsTest {
             Specification<SearchMinorCreditorEntity> spec = new MinorCreditorSpecs().findBySearchCriteria(criteria);
 
             utils.when(() -> SpecificationUtils.likeStartsWithNormalized(
-                    root, cb, MinorCreditorEntity_.ACCOUNT_NUMBER, "12345678"))
+                    root, cb, SearchMinorCreditorEntity_.ACCOUNT_NUMBER, "12345678"))
                 .thenReturn(likePredicate);
 
             Predicate out = spec.toPredicate(root, query, cb);
@@ -120,7 +120,7 @@ class MinorCreditorSpecsTest {
             utils.verify(() -> SpecificationUtils.hasText("12345678A"));
             utils.verify(() -> SpecificationUtils.stripCheckLetter("12345678A"));
             utils.verify(() -> SpecificationUtils.likeStartsWithNormalized(
-                root, cb, MinorCreditorEntity_.ACCOUNT_NUMBER, "12345678"));
+                root, cb, SearchMinorCreditorEntity_.ACCOUNT_NUMBER, "12345678"));
             utils.verifyNoMoreInteractions();
         }
     }

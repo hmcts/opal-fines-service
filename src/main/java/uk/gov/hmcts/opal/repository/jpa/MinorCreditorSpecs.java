@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.entity.minorcreditor.SearchMinorCreditorEntity;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity_;
+import uk.gov.hmcts.opal.entity.minorcreditor.SearchMinorCreditorEntity_;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ public class MinorCreditorSpecs {
                 .map(i -> (short) i.intValue())
                 .toList())
             .filter(ids -> !ids.isEmpty())
-            .map(ids -> (root, q, cb) -> root.get(MinorCreditorEntity_.BUSINESS_UNIT_ID).in(ids));
+            .map(ids -> (root, q, cb) -> root.get(SearchMinorCreditorEntity_.BUSINESS_UNIT_ID).in(ids));
     }
 
     private Optional<Specification<SearchMinorCreditorEntity>> byCreditorAccountNumber(MinorCreditorSearch c) {
@@ -49,7 +49,7 @@ public class MinorCreditorSpecs {
             .filter(SpecificationUtils::hasText)
             .map(SpecificationUtils::stripCheckLetter)
             .map(prefix -> (Specification<SearchMinorCreditorEntity>)
-                (root, q, cb) -> likeStartsWithNormalized(root, cb, MinorCreditorEntity_.ACCOUNT_NUMBER, prefix));
+                (root, q, cb) -> likeStartsWithNormalized(root, cb, SearchMinorCreditorEntity_.ACCOUNT_NUMBER, prefix));
     }
 
     private List<Specification<SearchMinorCreditorEntity>> byCreditorTextFields(MinorCreditorSearch c) {
@@ -60,7 +60,7 @@ public class MinorCreditorSpecs {
                 // Organisation name
                 addTextFilterIfPresent(
                     out,
-                    MinorCreditorEntity_.ORGANISATION_NAME,
+                    SearchMinorCreditorEntity_.ORGANISATION_NAME,
                     cred.getOrganisationName(),
                     Boolean.TRUE.equals(cred.getExactMatchOrganisationName())
                 );
@@ -68,7 +68,7 @@ public class MinorCreditorSpecs {
                 // Forenames
                 addTextFilterIfPresent(
                     out,
-                    MinorCreditorEntity_.FORENAMES,
+                    SearchMinorCreditorEntity_.FORENAMES,
                     cred.getForenames(),
                     Boolean.TRUE.equals(cred.getExactMatchForenames())
                 );
@@ -76,14 +76,14 @@ public class MinorCreditorSpecs {
                 // Surname
                 addTextFilterIfPresent(
                     out,
-                    MinorCreditorEntity_.SURNAME,
+                    SearchMinorCreditorEntity_.SURNAME,
                     cred.getSurname(),
                     Boolean.TRUE.equals(cred.getExactMatchSurname())
                 );
 
                 // Address & Postcode (no exact flags; keep starts-with)
-                addStartsWithIfPresent(out, MinorCreditorEntity_.ADDRESS_LINE1, cred.getAddressLine1());
-                addStartsWithIfPresent(out, MinorCreditorEntity_.POST_CODE,     cred.getPostcode());
+                addStartsWithIfPresent(out, SearchMinorCreditorEntity_.ADDRESS_LINE1, cred.getAddressLine1());
+                addStartsWithIfPresent(out, SearchMinorCreditorEntity_.POST_CODE,     cred.getPostcode());
 
                 return out;
             })
