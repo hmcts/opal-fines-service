@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
 import uk.gov.hmcts.opal.dto.common.Enforcer;
 import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
-import uk.gov.hmcts.opal.dto.common.InstalmentPeriodDTO;
+import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.LanguagePreference;
 import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.LastEnforcementAction;
@@ -22,18 +22,15 @@ import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
-import uk.gov.hmcts.opal.dto.common.LanguagePreferenceDTO;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
-import uk.gov.hmcts.opal.dto.common.PaymentTermsTypeDTO;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
-import uk.gov.hmcts.opal.dto.PaymentTermsType;
+import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.common.ContactDetails;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
@@ -394,8 +391,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             LanguagePreference.fromCode(debtorDetail != null ? debtorDetail.getHearingLanguage() : null);
 
         LanguagePreferences languagePreferences = LanguagePreferences.builder()
-            .documentLanguagePreference(new LanguagePreferenceDTO(documentLanguagePref))
-            .hearingLanguagePreference(new LanguagePreferenceDTO(hearingLanguagePref))
+            .documentLanguagePreference(documentLanguagePref)
+            .hearingLanguagePreference(hearingLanguagePref)
             .build();
 
         return DefendantAccountParty.builder()
@@ -431,9 +428,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .effectiveDate(entity.getEffectiveDate())
             .instalmentPeriod(
                 InstalmentPeriod.builder()
-                    .instalmentPeriodCode(
-                        safeInstalmentPeriodCode(entity.getInstalmentPeriod())
-                    )
+                    .instalmentPeriodCode(safeInstalmentPeriodCode(entity.getInstalmentPeriod())
+                )
                     .build()
             )
             .lumpSumAmount(entity.getInstalmentLumpSum())
@@ -477,7 +473,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             return null;
         }
     }
-
 
     public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         log.debug(":getAtAGlance (Opal): id: {}.", defendantAccountId);
@@ -543,21 +538,22 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             LanguagePreference.fromCode(entity.getHearingLanguage());
 
         LanguagePreferences languagePreferences = LanguagePreferences.builder()
-            .documentLanguagePreference(new LanguagePreferenceDTO(documentLanguagePref))
-            .hearingLanguagePreference(new LanguagePreferenceDTO(hearingLanguagePref))
+            .documentLanguagePreference(documentLanguagePref)
+            .hearingLanguagePreference(hearingLanguagePref)
             .build();
 
         PaymentTermsSummary paymentTerms = PaymentTermsSummary.builder()
             .paymentTermsType(
-                new PaymentTermsTypeDTO(
-                    uk.gov.hmcts.opal.dto.common.PaymentTermsType.fromCode(entity.getTermsTypeCode())
-                )
+                PaymentTermsType.builder()
+                    .paymentTermsTypeCode(safePaymentTermsTypeCode(entity.getTermsTypeCode()))
+                    .build()
             )
             .effectiveDate(entity.getEffectiveDate().toLocalDate())
             .instalmentPeriod(
-                new InstalmentPeriodDTO(
-                    uk.gov.hmcts.opal.dto.common.InstalmentPeriod.fromCode(entity.getInstalmentPeriod())
-                )
+                InstalmentPeriod.builder()
+                    .instalmentPeriodCode(safeInstalmentPeriodCode(entity.getInstalmentPeriod())
+                    )
+                    .build()
             )
             .lumpSumAmount(entity.getInstalmentLumpSum())
             .instalmentAmount(entity.getInstalmentAmount())

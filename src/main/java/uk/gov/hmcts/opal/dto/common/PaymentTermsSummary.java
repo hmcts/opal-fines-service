@@ -17,13 +17,13 @@ import java.time.LocalDate;
 public class PaymentTermsSummary implements ToJsonString {
 
     @JsonProperty("payment_terms_type")
-    private PaymentTermsTypeDTO paymentTermsType;
+    private PaymentTermsType paymentTermsType;
 
     @JsonProperty("effective_date")
     private LocalDate effectiveDate;
 
     @JsonProperty("instalment_period")
-    private InstalmentPeriodDTO instalmentPeriod;
+    private InstalmentPeriod instalmentPeriod;
 
     @JsonProperty("lump_sum_amount")
     private BigDecimal lumpSumAmount;

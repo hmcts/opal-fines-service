@@ -1,49 +1,74 @@
 package uk.gov.hmcts.opal.dto.common;
 
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Builder;
 
-/**
- * Instalment Period reference object.
- * <p>
- * Mapping:
- *   - W - "Weekly"
- *   - M - "Monthly"
- *   - F - "Fortnightly"
- * </p>
- */
-@Getter
-public enum InstalmentPeriod {
+@Builder
+public class InstalmentPeriod {
+    // instalment period codes
+    public enum InstalmentPeriodCode {
+        W("Weekly"),   // Weekly
+        M("Monthly"),   // Monthly
+        F("Fortnightly");   // Fortnightly
 
-    W("Weekly"),
-    M("Monthly"),
-    F("Fortnightly"),;
+        // UI-friendly display name derived from InstalmentPeriodCode
+        private final String instalmentPeriodDisplayName;
 
-    /**
-     * -- GETTER --
-     * UI-friendly display name.
-     */
-    // Derived from Instalment Period Code
-    private final String instalmentPeriodDisplayName;
-
-    InstalmentPeriod(String instalmentPeriodDisplayName) {
-        this.instalmentPeriodDisplayName = instalmentPeriodDisplayName;
-    }
-
-    /** Code (W / M / F) — what’s stored in DB or JSON. */
-    public String getInstalmentPeriodCode() {
-        return name();
-    }
-
-    /** Factory method from raw string (case-insensitive). */
-    public static InstalmentPeriod fromCode(String instalmentPeriodCode) {
-        if (instalmentPeriodCode == null) {
-            return null;
+        InstalmentPeriodCode(String instalmentPeriodDisplayName) {
+            this.instalmentPeriodDisplayName = instalmentPeriodDisplayName;
         }
-        return InstalmentPeriod.valueOf(instalmentPeriodCode.trim().toUpperCase());
+
+        @JsonValue
+        public String getInstalmentPeriodDisplayName() {
+            return instalmentPeriodDisplayName;
+        }
+
+        // Lookup by short code string
+        @JsonCreator
+        public static InstalmentPeriodCode fromValue(String code) {
+            if (code == null) {
+                return null;
+            }
+
+            for (InstalmentPeriodCode value : values()) {
+                if (value.name().equalsIgnoreCase(code.trim())) {
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("Invalid instalment period code: " + code);
+        }
+    }
+
+    // Static factory method from string
+    public static InstalmentPeriod fromCode(String code) {
+        return new InstalmentPeriod(InstalmentPeriodCode.fromValue(code));
+    }
+
+    @JsonIgnore
+    private final InstalmentPeriodCode instalmentPeriodCode;
+
+    // Constructor
+    public InstalmentPeriod(
+        @JsonProperty("instalment_period_code") InstalmentPeriodCode code) {
+        this.instalmentPeriodCode = code;
+    }
+
+    // Getter for short code (W, M, F)
+    @JsonProperty("instalment_period_code")
+    public String getInstalmentPeriodCode() {
+        return instalmentPeriodCode == null ? null : instalmentPeriodCode.toString();
+    }
+
+    @JsonProperty("instalment_period_display_name")
+    public String getInstalmentPeriodDisplayName() {
+        return instalmentPeriodCode == null ? null : instalmentPeriodCode.getInstalmentPeriodDisplayName();
     }
 
     @Override
     public String toString() {
-        return name() + " (" + instalmentPeriodDisplayName + ")";
+        return getInstalmentPeriodCode() + " (" + getInstalmentPeriodDisplayName() + ")";
     }
 }

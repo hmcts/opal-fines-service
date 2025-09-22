@@ -1,5 +1,9 @@
 package uk.gov.hmcts.opal.dto.common;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.Getter;
 
 /**
@@ -11,37 +15,64 @@ import lombok.Getter;
  * </p>
  */
 @Getter
-public enum LanguagePreference {
+@Builder
+public class LanguagePreference {
 
-    CY("Welsh and English"),
-    EN("English only");
+    @Getter
+    public enum LanguageCode {
+        CY("Welsh and English"),
+        EN("English only");
 
-    /**
-     * -- GETTER --
-     * UI-friendly display name.
-     */
-    // Derived from languageCode
-    private final String languageDisplayName;
+        // UI-friendly display name derived from languageCode
+        private final String languageDisplayName;
 
-    LanguagePreference(String languageDisplayName) {
-        this.languageDisplayName = languageDisplayName;
-    }
-
-    /** Code (CY / EN) — what’s stored in DB or JSON. */
-    public String getLanguageCode() {
-        return name();
-    }
-
-    /** Factory method from raw string (case-insensitive). */
-    public static LanguagePreference fromCode(String languageCode) {
-        if (languageCode == null) {
-            return null;
+        LanguageCode(String languageDisplayName) {
+            this.languageDisplayName = languageDisplayName;
         }
-        return LanguagePreference.valueOf(languageCode.trim().toUpperCase());
+
+        // Lookup by short code string
+        @JsonCreator
+        public static LanguageCode fromValue(String code) {
+            if (code == null) {
+                return null;
+            }
+
+            for (LanguageCode value : values()) {
+                if (value.name().equalsIgnoreCase(code.trim())) {
+                    return value;
+                }
+            }
+            throw new IllegalArgumentException("Invalid LanguageCode: " + code);
+        }
+    }
+
+    // Static factory method from string
+    public static LanguagePreference fromCode(String code) {
+        return new LanguagePreference(LanguageCode.fromValue(code));
+    }
+
+    @JsonIgnore
+    private final LanguageCode languageCode;
+
+    // Constructor
+    public LanguagePreference(
+        @JsonProperty("language_code") LanguageCode code) {
+        this.languageCode = code;
+    }
+
+    // Code (CY / EN) — what’s stored in DB or JSON.
+    @JsonProperty("language_code")
+    public String getLanguageCode() {
+        return languageCode == null ? null : languageCode.toString();
+    }
+
+    @JsonProperty("language_display_name")
+    public String getLanguageDisplayName() {
+        return languageCode == null ? null : languageCode.getLanguageDisplayName();
     }
 
     @Override
     public String toString() {
-        return name() + " (" + languageDisplayName + ")";
+        return getLanguageCode() + " (" + getLanguageDisplayName() + ")";
     }
 }

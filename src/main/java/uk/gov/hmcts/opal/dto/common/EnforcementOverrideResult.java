@@ -13,9 +13,9 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 @AllArgsConstructor
 public class EnforcementOverrideResult  implements ToJsonString {
 
-    @JsonProperty("enforcement_override_id")
+    @JsonProperty("enforcement_override_result_id")
     private String enforcementOverrideId;
 
-    @JsonProperty("enforcement_override_title")
+    @JsonProperty("enforcement_override_result_name")
     private String enforcementOverrideTitle;
 }
