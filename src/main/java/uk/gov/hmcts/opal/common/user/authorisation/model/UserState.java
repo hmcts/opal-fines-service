@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.authorisation.model;
+package uk.gov.hmcts.opal.common.user.authorisation.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser.DeveloperBusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser.DeveloperBusinessUnitUser;
 
 import java.util.Collections;
 import java.util.List;

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.authorisation.model;
+package uk.gov.hmcts.opal.common.user.authorisation.model;
 
 public enum Permissions {
     CREATE_MANAGE_DRAFT_ACCOUNTS(1, "Create and Manage Draft Accounts"),

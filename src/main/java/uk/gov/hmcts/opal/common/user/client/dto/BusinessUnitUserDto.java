@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.client.user.dto;
+package uk.gov.hmcts.opal.common.user.client.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

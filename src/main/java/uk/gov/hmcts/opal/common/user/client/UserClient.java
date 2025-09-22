@@ -1,11 +1,11 @@
-package uk.gov.hmcts.opal.client.user;
+package uk.gov.hmcts.opal.common.user.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
-import uk.gov.hmcts.opal.client.user.dto.UserStateDto;
+import uk.gov.hmcts.opal.common.user.client.dto.UserStateDto;
 import uk.gov.hmcts.opal.config.FeignClientConfig;
 
 @FeignClient(

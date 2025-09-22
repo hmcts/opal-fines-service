@@ -10,10 +10,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.client.user.UserClient;
-import uk.gov.hmcts.opal.client.user.dto.UserStateDto;
-import uk.gov.hmcts.opal.client.user.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.client.UserClient;
+import uk.gov.hmcts.opal.common.user.client.dto.UserStateDto;
+import uk.gov.hmcts.opal.common.user.client.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.client.service.UserStateClientService;
 
 import java.util.Optional;
 

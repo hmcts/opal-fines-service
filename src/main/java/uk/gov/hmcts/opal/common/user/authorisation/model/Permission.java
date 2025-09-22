@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.authorisation.model;
+package uk.gov.hmcts.opal.common.user.authorisation.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

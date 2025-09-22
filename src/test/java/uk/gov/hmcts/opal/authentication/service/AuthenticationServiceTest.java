@@ -19,8 +19,8 @@ import uk.gov.hmcts.opal.authentication.exception.AzureDaoException;
 import uk.gov.hmcts.opal.authentication.model.JwtValidationResult;
 import uk.gov.hmcts.opal.authentication.model.OAuthProviderRawResponse;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
-import uk.gov.hmcts.opal.authorisation.model.LogActions;
-import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.LogActions;
+import uk.gov.hmcts.opal.common.user.authorisation.service.AuthorisationService;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 
 import java.lang.reflect.Method;
