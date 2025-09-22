@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:complexType name="error_response">
+    <xsd:all>
+      <xsd:element name="error_code" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="error_message" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    </xsd:all>
+  </xsd:complexType>
+</xsd:schema>

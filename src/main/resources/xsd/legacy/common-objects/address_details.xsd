@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:complexType name="address_details">
+    <xsd:sequence>
+      <xsd:element name="address_line_1" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="address_line_2" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="address_line_3" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="address_line_4" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="address_line_5" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="postcode" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

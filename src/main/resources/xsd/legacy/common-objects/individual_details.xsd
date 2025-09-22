@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="individual_aliases.xsd"/>
+
+  <xsd:complexType name="individual_details">
+    <xsd:sequence>
+      <xsd:element name="title" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="forenames" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="surname" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="date_of_birth" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="age" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="national_insurance_number" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="individual_aliases" type="individual_aliases" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

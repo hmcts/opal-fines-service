@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="../common-objects/payment_terms_summary.xsd"/>
+  <xsd:include schemaLocation="../common-objects/enforcement_status_summary.xsd"/>
+  <xsd:include schemaLocation="../common-objects/comments_and_notes.xsd"/>
+  <xsd:include schemaLocation="../common-objects/party_details.xsd"/>
+  <xsd:include schemaLocation="../common-objects/language_preferences.xsd"/>
+  <xsd:include schemaLocation="../common-objects/address_details.xsd"/>
+  <xsd:include schemaLocation="../common-objects/error_response.xsd"/>
+  <xsd:element name="response">
+    <xsd:complexType>
+      <xsd:choice>
+        <xsd:sequence>
+          <xsd:element name="version" type="xsd:integer" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="defendant_account_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="account_number" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="debtor_type" type="debtor_type" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="is_youth" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="party_details" type="party_details" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="address" type="address_details" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="language_preferences" type="language_preferences" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="payment_terms_summary" type="payment_terms_summary" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="enforcement_status_summary" type="enforcement_status_summary" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="comments_and_notes" type="comments_and_notes" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:sequence>
+          <xsd:element name="error_response" type="error_response" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:choice>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

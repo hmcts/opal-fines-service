@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="simple_type.xsd"/>
+  <xsd:include schemaLocation="organisation_details.xsd"/>
+  <xsd:include schemaLocation="individual_details.xsd"/>
+
+  <xsd:complexType name="party_details">
+    <xsd:sequence>
+      <xsd:element name="party_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="organisation_flag" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+      <xsd:choice>
+          <!-- Present if organisation_flag == true -->
+          <xsd:element name="organisation_details" type="organisation_details"/>
+          <!-- Present if organisation_flag == false -->
+          <xsd:element name="individual_details" type="individual_details"/>
+      </xsd:choice>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>
