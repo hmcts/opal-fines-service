@@ -2053,4 +2053,45 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         log.info("Schema validation failed as expected: {}", ex.getMessage());
     }
 
+    @DisplayName("OPAL: Get Defendant Account Party - Parent/Guardian happy path [@PO-1588]")
+    public void opalGetDefendantAccountParty_ParentGuardian(Logger log) throws Exception {
+        // Seed: account 77 has a Parent/Guardian link row id 77444 -> party 444
+        Long defendantAccountId = 77L;
+        Long parentGuardianLinkId = 77444L; // defendant_account_parties.defendant_account_party_id
+
+        ResultActions actions = mockMvc.perform(
+            get("/defendant-accounts/{accId}/defendant-account-parties/{pgId}", defendantAccountId,
+                parentGuardianLinkId)
+                .header("Authorization", "Bearer test-token")
+        );
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info("Parent/Guardian response:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Parent/Guardian"))
+            .andExpect(jsonPath("$.defendant_account_party.is_debtor").value(false))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.party_id").value("444"))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_flag").value(false))
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value("Graham"))
+            .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("High Street"));
+
+        jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL:Get Defendant Account Party -Parent/Guardian link id required (404 if party_id used) [@PO-1588]")
+    public void opalGetDefendantAccountParty_ParentGuardian_WrongId(Logger log) throws Exception {
+        // Using party_id (444) instead of the link id (77444) should NOT be found
+        Long defendantAccountId = 77L;
+        Long wrongId = 444L;
+
+        mockMvc.perform(
+                get("/defendant-accounts/{accId}/defendant-account-parties/{id}", defendantAccountId, wrongId)
+                    .header("Authorization", "Bearer test-token")
+            )
+            .andExpect(status().isNotFound());
+    }
+
+
 }

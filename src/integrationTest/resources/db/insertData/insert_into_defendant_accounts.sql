@@ -335,6 +335,11 @@ INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_acc
 VALUES (444, 444, 444,
         'Defendant', 'Y');
 
+-- Link party 444 as Parent/Guardian on account 77
+INSERT INTO defendant_account_parties
+(defendant_account_party_id, defendant_account_id, party_id, association_type, debtor)
+VALUES (77444, 77, 444, 'Parent/Guardian', 'N');
+
 -- Company aliases for AC9d/AC9di testing (inserted after all parties exist)
 INSERT INTO aliases (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
 VALUES

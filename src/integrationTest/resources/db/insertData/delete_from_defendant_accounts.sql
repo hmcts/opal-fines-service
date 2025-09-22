@@ -7,6 +7,9 @@ DELETE FROM aliases WHERE party_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999
 -- Remove defendant_account_parties links
 DELETE FROM defendant_account_parties WHERE defendant_account_party_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999);
 
+-- Remove Parent/Guardian test link (party 444 on account 77)
+DELETE FROM defendant_account_parties WHERE defendant_account_party_id = 77444;
+
 -- Remove from fixed_penalty_offences
 DELETE FROM fixed_penalty_offences WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999);
 

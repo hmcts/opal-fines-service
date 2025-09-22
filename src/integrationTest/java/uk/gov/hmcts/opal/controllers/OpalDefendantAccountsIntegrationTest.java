@@ -284,4 +284,14 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountPartyResponse.json";
     }
 
+    @Test
+    void opal_getDefendantAccountParty_parentGuardian() throws Exception {
+        super.opalGetDefendantAccountParty_ParentGuardian(log);
+    }
+
+    @Test
+    void opal_getDefendantAccountParty_parentGuardian_wrongId() throws Exception {
+        super.opalGetDefendantAccountParty_ParentGuardian_WrongId(log);
+    }
+
 }
