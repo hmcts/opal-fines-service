@@ -14,7 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.empty;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
@@ -26,7 +29,7 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
 
     // ─────────────── helpers ───────────────
 
-    /** Strong, quoted ETag */
+    /** Strong, quoted ETag. */
     private @Nullable String fetchStrongEtag(String id) {
         Response r = SerenityRest.given()
             .header("Authorization", "Bearer " + getToken())
@@ -50,9 +53,9 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
     }
 
     // Delete /draft-accounts/{id} with optional If-Match and ignore_missing.
-// - Only sends If-Match when an ETag is provided (non-null/non-blank)
-// - Returns the raw Response (no assertions here)
-// - Logs request URL, If-Match value, and response details for easy debugging
+    // - Only sends If-Match when an ETag is provided (non-null/non-blank)
+    // - Returns the raw Response (no assertions here)
+    // - Logs request URL, If-Match value, and response details for easy debugging
     private io.restassured.response.Response deleteWithIfMatch(String id, String etag, boolean ignoreMissingResource) {
         final String url = getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + id + "?ignore_missing=" + ignoreMissingResource;
 
@@ -151,13 +154,13 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
         this.deleteWithConcurrency(draftAccountId, true);
     }
 
-    /** Same as above, but for the last created account */
+    /** Same as above, but for the last created account. */
     @When("I delete the last created draft account using concurrency control")
     public void deleteLastCreatedWithIfMatch() {
         this.deleteWithConcurrency(this.lastCreatedIdOrFail(), false);
     }
 
-    /** Last created; ignore missing resource */
+    /** Last created; ignore missing resource. */
     @When("I delete the last created draft account ignoring missing resource")
     public void deleteLastCreatedIgnoringMissingResource() {
         this.deleteWithConcurrency(this.lastCreatedIdOrFail(), true);
@@ -169,7 +172,7 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
         this.actualDeleteAllCreatedDraftAccounts(false);
     }
 
-    /** Exposed so hooks can call it */
+    /** Exposed so hooks can call it. */
     public void actualDeleteAllCreatedDraftAccounts(boolean ignoreMissingResource) {
         List<String> accounts = new ArrayList<>(DraftAccountUtils.getAllDraftAccountIds());
         if (accounts.isEmpty()) {
