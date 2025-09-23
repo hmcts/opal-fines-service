@@ -41,11 +41,11 @@ java:
           alias: OPAL_SFTP_OUTBOUND_PASSWORD
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true
-    OPAL_FRONTEND_URL: https://opal-frontend.{{ .Values.global.environment }}.platform.hmcts.net
+    OPAL_FRONTEND_URL: https://opal-frontend.staging.platform.hmcts.net
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
     LAUNCH_DARKLY_ENABLED: true
-    OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.{{ .Values.global.environment }}.platform.hmcts.net
-    OPAL_USER_SERVICE_API_URL: https://opal-user-service.{{ .Values.global.environment }}.platform.hmcts.net
+    OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.staging.platform.hmcts.net
+    OPAL_USER_SERVICE_API_URL: https://opal-user-service.staging.platform.hmcts.net
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs
   postgresql:
     enabled: false
