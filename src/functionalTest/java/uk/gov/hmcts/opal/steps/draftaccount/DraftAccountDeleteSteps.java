@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.steps.draftaccount; // ← change if needed
+package uk.gov.hmcts.opal.steps.draftaccount;
 
 import org.jetbrains.annotations.Nullable;
 import io.cucumber.java.en.Then;
