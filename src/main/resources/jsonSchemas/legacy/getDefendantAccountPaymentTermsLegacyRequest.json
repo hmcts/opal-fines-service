@@ -4,11 +4,11 @@
   "title": "Get Defendant Account Payment Terms Legacy Request",
   "additionalProperties": false,
   "properties": {
-    "draft_account_id": {
+    "defendant_account_id": {
       "type": "string",
       "minLength": 1
     }
   },
-  "required": ["draft_account_id"]
+  "required": ["defendant_account_id"]
 }
 

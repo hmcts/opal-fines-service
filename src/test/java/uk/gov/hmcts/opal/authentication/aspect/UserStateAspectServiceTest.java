@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.authorisation.aspect.AuthorizationAspectService;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.util.Optional;
 import java.util.Set;
@@ -87,7 +87,7 @@ class UserStateAspectServiceTest {
             when(authorizationAspectService.getUserState(args)).thenReturn(Optional.empty());
             when(authorizationAspectService.getAccessTokenParam(any())).thenReturn(Optional.of(authHeaderValue));
             when(authorizationAspectService.getAuthorization(authHeaderValue)).thenReturn(Optional.of(bearerToken));
-            when(userStateService.getUserStateUsingAuthToken(bearerToken)).thenReturn(expectedUserState);
+            when(userStateService.checkForAuthorisedUser(bearerToken)).thenReturn(expectedUserState);
 
             UserState actualUserState = userStateAspectService.getUserState(joinPoint);
 
@@ -95,7 +95,7 @@ class UserStateAspectServiceTest {
             verify(authorizationAspectService).getUserState(args);
             verify(authorizationAspectService).getAccessTokenParam(joinPoint);
             verify(authorizationAspectService).getAuthorization(authHeaderValue);
-            verify(userStateService).getUserStateUsingAuthToken(bearerToken);
+            verify(userStateService).checkForAuthorisedUser(bearerToken);
         }
 
     }
@@ -124,7 +124,7 @@ class UserStateAspectServiceTest {
 
             when(authorizationAspectService.getAccessTokenParam(joinPoint)).thenReturn(Optional.of(authHeaderValue));
             when(authorizationAspectService.getAuthorization(authHeaderValue)).thenReturn(Optional.of(bearerToken));
-            when(userStateService.getUserStateUsingAuthToken(bearerToken)).thenReturn(expectedUserState);
+            when(userStateService.checkForAuthorisedUser(bearerToken)).thenReturn(expectedUserState);
 
             Supplier<UserState> userStateSupplier = userStateAspectService.getUserStateSupplier(joinPoint);
 
@@ -133,7 +133,7 @@ class UserStateAspectServiceTest {
             assertEquals(expectedUserState, actualUserState);
             verify(authorizationAspectService).getAccessTokenParam(joinPoint);
             verify(authorizationAspectService).getAuthorization(authHeaderValue);
-            verify(userStateService).getUserStateUsingAuthToken(bearerToken);
+            verify(userStateService).checkForAuthorisedUser(bearerToken);
         }
     }
 
