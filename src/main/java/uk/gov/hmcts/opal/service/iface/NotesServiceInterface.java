@@ -1,9 +1,10 @@
 package uk.gov.hmcts.opal.service.iface;
 
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 
 public interface NotesServiceInterface {
 
-    String addNote(AddNoteRequest request, Long version, String username);
+    String addNote(AddNoteRequest request, Long version, UserState user);
 
 }

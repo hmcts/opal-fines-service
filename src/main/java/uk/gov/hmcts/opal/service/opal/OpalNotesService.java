@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
@@ -28,7 +29,7 @@ public class OpalNotesService implements NotesServiceInterface {
 
     @Override
     @Transactional
-    public String addNote(AddNoteRequest req, Long version, String username) {
+    public String addNote(AddNoteRequest req, Long version, UserState user) {
         Note requestNote = req.getActivityNote();
 
         DefendantAccountEntity account =
@@ -53,7 +54,7 @@ public class OpalNotesService implements NotesServiceInterface {
         note.setAssociatedRecordType(requestNote.getRecordType().toString());
         note.setBusinessUnitUserId(account.getBusinessUnit().getBusinessUnitId().toString());
         note.setPostedDate(LocalDateTime.now());
-        note.setPostedByUsername(username);
+        note.setPostedByUsername(user.getUserName());
 
         NoteEntity entity = repository.save(note);
 
