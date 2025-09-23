@@ -22,10 +22,8 @@ import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
 import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
-import uk.gov.hmcts.opal.service.DraftAccountService;
 
 import java.time.LocalDateTime;
 import java.util.List;

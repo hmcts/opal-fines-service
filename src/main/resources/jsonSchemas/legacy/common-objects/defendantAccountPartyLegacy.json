@@ -4,8 +4,13 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "defendant_account_party_id": {
+      "type": "string",
+      "minLength": 1
+    },
     "defendant_account_party_type": {
-      "type": "string"
+      "type": "string",
+      "enum": ["Defendant", "Parent/Guardian"]
     },
     "is_debtor": {
       "type": "boolean"
@@ -30,6 +35,7 @@
     }
   },
   "required": [
+    "defendant_account_party_id",
     "defendant_account_party_type",
     "is_debtor",
     "party_details",
