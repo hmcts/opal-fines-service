@@ -115,12 +115,13 @@ public class DraftAccountController {
         @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
 
         // Note: This endpoint is used for testing only, so the 'If-Match' check is not actually used.
-        boolean checkExists = !(ignoreMissing.orElse(false));
-        log.debug(":DELETE:deleteDraftAccountById: Delete Draft Account: {}{}", draftAccountId,
-                 checkExists ? "" : ", ignore if missing");
+        boolean checkExisted = !(ignoreMissing.orElse(false));
 
-        return buildResponse(draftAccountService
-                                 .deleteDraftAccount((draftAccountId), checkExists, authHeaderValue));
+        log.debug(":DELETE:deleteDraftAccountById: Delete Draft Account: {}{}", draftAccountId,
+                  checkExisted ? "" : ", ignore if missing");
+
+        return buildResponse(draftAccountService.deleteDraftAccount((draftAccountId), checkExisted, authHeaderValue));
+
     }
 
     @PutMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)

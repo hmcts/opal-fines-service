@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -175,7 +174,7 @@ class DraftAccountServiceTest {
     @Test
     void testDeleteDraftAccount_fail1() {
         // Arrange
-        when(draftAccountTransactions.deleteDraftAccount(anyLong(), anyBoolean(), any())).thenThrow(
+        when(draftAccountTransactions.deleteDraftAccount(anyLong(), any())).thenThrow(
             new EntityNotFoundException("Draft Account not found with id: 1"));
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
