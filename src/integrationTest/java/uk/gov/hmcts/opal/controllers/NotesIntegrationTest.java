@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
@@ -20,9 +19,6 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 
 abstract class NotesIntegrationTest extends AbstractIntegrationTest {
@@ -32,9 +28,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
   @MockitoBean UserStateService userStateService;
 
   @MockitoBean private UserState userState;
-
-  @MockitoBean
-  private DefendantAccountRepository defendantAccountRepository;
 
   @BeforeEach
   void setupUserState() {
@@ -109,16 +102,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
       when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-      BusinessUnitEntity bu = new BusinessUnitEntity();
-      short businessUnitId = 1;
-      bu.setBusinessUnitId(businessUnitId);
-
-      DefendantAccountEntity account = new DefendantAccountEntity();
-      account.setBusinessUnit(bu);
-
-      when(defendantAccountRepository.findById(77L))
-          .thenReturn(Optional.of(account));
-
       Note note = new Note();
     note.setNoteText("test");
     note.setRecordId("77");
@@ -147,16 +130,6 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
   void LegacyTestAddNote500Error(Logger log) throws Exception {
 
       when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
-      BusinessUnitEntity bu = new BusinessUnitEntity();
-      short businessUnitId = 1;
-      bu.setBusinessUnitId(businessUnitId);
-
-      DefendantAccountEntity account = new DefendantAccountEntity();
-      account.setBusinessUnit(bu);
-
-      when(defendantAccountRepository.findById(77L))
-          .thenReturn(Optional.of(account));
 
       Note note = new Note();
       note.setNoteText("FAIL");

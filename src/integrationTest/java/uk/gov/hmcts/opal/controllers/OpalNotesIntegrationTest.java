@@ -10,7 +10,7 @@ import org.springframework.test.context.jdbc.Sql;
 
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
-@Sql(scripts = "classpath:db/insertData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
+@Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.OpalNotesIntegrationTest")
 public class OpalNotesIntegrationTest extends NotesIntegrationTest {
 

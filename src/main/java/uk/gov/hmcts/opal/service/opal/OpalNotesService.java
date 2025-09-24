@@ -28,28 +28,38 @@ public class OpalNotesService implements NotesServiceInterface {
     @Override
     @Transactional
     public String addNote(AddNoteRequest req, Long version, UserState user, DefendantAccountEntity account) {
-        Note requestNote = req.getActivityNote();
+        // Reattach / ensure managed
+        Long accountId = account.getDefendantAccountId(); // use your actual ID getter
+        DefendantAccountEntity managed = em.find(DefendantAccountEntity.class, accountId);
 
-        if (!account.getVersion().equals(version)) {
-            throw new ResponseStatusException(
-            HttpStatus.PRECONDITION_FAILED,
-            "Version mismatch. Expected " + account.getVersion() + " but got " + version);
+        if (managed == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                              "Account %s not found".formatted(accountId));
         }
 
-        NoteEntity note = new NoteEntity();
+        // Use the MANAGED entity for all reads
+        if (!managed.getVersion().equals(version)) {
+            throw new ResponseStatusException(HttpStatus.PRECONDITION_FAILED,
+                                              "Version mismatch. Expected " + managed.getVersion() + " but got " + version);
+        }
 
+        Note requestNote = req.getActivityNote();
+
+        NoteEntity note = new NoteEntity();
         note.setNoteText(requestNote.getNoteText());
         note.setNoteType(requestNote.getNoteType());
         note.setAssociatedRecordId(requestNote.getRecordId());
         note.setAssociatedRecordType(requestNote.getRecordType().toString());
-        note.setBusinessUnitUserId(account.getBusinessUnit().getBusinessUnitId().toString());
+        note.setBusinessUnitUserId(managed.getBusinessUnit().getBusinessUnitId().toString());
         note.setPostedDate(LocalDateTime.now());
         note.setPostedByUsername(user.getUserName());
 
         NoteEntity entity = repository.save(note);
 
-        em.lock(account, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        // IMPORTANT: lock the MANAGED instance, not the detached parameter
+        em.lock(managed, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
 
         return entity.getNoteId().toString();
     }
+
 }
