@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.dto.reference.OffenceReferenceData;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
-import uk.gov.hmcts.opal.entity.offence.OffenceEntityFull;
+import uk.gov.hmcts.opal.entity.offence.OffenceFullEntity;
 import uk.gov.hmcts.opal.mapper.OffenceMapper;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepositoryFull;
@@ -51,10 +51,10 @@ class OffenceServiceTest {
     @Test
     void testGetOffence() {
         // Arrange
-        OffenceEntityFull offenceEntity = OffenceEntityFull.builder().build();
+        OffenceFullEntity offenceEntity = OffenceFullEntity.builder().build();
         when(offenceRepositoryFull.findById(any())).thenReturn(Optional.of(offenceEntity));
         // Act
-        OffenceEntityFull result = offenceService.getOffence((short) 1);
+        OffenceFullEntity result = offenceService.getOffence((short) 1);
         // Assert
         assertNotNull(result);
     }
@@ -67,7 +67,7 @@ class OffenceServiceTest {
         when(sfq.sortBy(any())).thenReturn(sfq);
         when(sfq.limit(anyInt())).thenReturn(sfq);
 
-        OffenceEntity offenceEntity = OffenceEntity.builder().build();
+        OffenceEntity offenceEntity = OffenceEntity.Lite.builder().build();
         Page<OffenceEntity> mockPage = new PageImpl<>(List.of(offenceEntity), Pageable.unpaged(), 999L);
         when(offenceRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
@@ -90,7 +90,7 @@ class OffenceServiceTest {
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        OffenceEntity offenceEntity = OffenceEntity.builder()
+        OffenceEntity offenceEntity = OffenceEntity.Lite.builder()
             .offenceId(1L)
             .cjsCode("NINE")
             .offenceTitle("Theft from a Palace")

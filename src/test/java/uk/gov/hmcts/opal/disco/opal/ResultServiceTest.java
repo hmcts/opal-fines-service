@@ -14,11 +14,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
-import uk.gov.hmcts.opal.entity.result.ResultEntityFull;
-import uk.gov.hmcts.opal.entity.result.ResultEntityLite;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity.Lite;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
-import uk.gov.hmcts.opal.repository.ResultFullRepository;
 import uk.gov.hmcts.opal.repository.ResultLiteRepository;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
@@ -37,9 +36,6 @@ class ResultServiceTest {
     @Mock
     private ResultLiteRepository resultLiteRepository;
 
-    @Mock
-    private ResultFullRepository resultFullRepository;
-
     @Spy
     private ResultMapper resultMapper;
 
@@ -50,11 +46,11 @@ class ResultServiceTest {
     void testGetResult() {
         // Arrange
 
-        ResultEntityLite resultEntity = ResultEntityLite.builder().build();
+        ResultEntity.Lite resultEntity = Lite.builder().build();
         when(resultLiteRepository.findById(any())).thenReturn(Optional.of(resultEntity));
 
         // Act
-        ResultEntityLite result = resultService.getLiteResultById("ABC");
+        ResultEntity.Lite result = resultService.getLiteResultById("ABC");
 
         // Assert
         assertNotNull(result);
@@ -65,7 +61,7 @@ class ResultServiceTest {
     void testGetResultReferenceData() {
         // Arrange
 
-        ResultEntityLite resultEntity = ResultEntityLite.builder().resultId("ABC").build();
+        ResultEntity.Lite resultEntity = ResultEntity.Lite.builder().resultId("ABC").build();
         ResultReferenceData expectedRefData = new ResultReferenceData(
             "ABC", null, null, false, null, null, null
         );
@@ -84,15 +80,15 @@ class ResultServiceTest {
     @Test
     void testGetResultsByIds() {
         // Arrange
-        ResultEntityLite resultEntity = ResultEntityLite.builder().resultId("ABC").build();
-        List<ResultEntityLite> resultEntities = List.of(resultEntity);
+        Lite resultEntity = Lite.builder().resultId("ABC").build();
+        List<ResultEntity.Lite> resultEntities = List.of(resultEntity);
         ResultReferenceData dto = new ResultReferenceData(
             "ABC", null, null, false, null, null, null);
 
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        Page<ResultEntityLite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
+        Page<Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
         when(resultLiteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
@@ -118,15 +114,15 @@ class ResultServiceTest {
         // Arrange
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
 
-        ResultEntityFull resultEntity = ResultEntityFull.builder().build();
-        Page<ResultEntityFull> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
-        when(resultFullRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+        ResultEntity.Lite resultEntity = ResultEntity.Lite.builder().build();
+        Page<ResultEntity.Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
+        when(resultLiteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
         // Act
-        List<ResultEntityFull> result = resultService.searchResults(ResultSearchDto.builder().build());
+        List<ResultEntity.Lite> result = resultService.searchResults(ResultSearchDto.builder().build());
 
         // Assert
         assertEquals(List.of(resultEntity), result);
@@ -139,14 +135,14 @@ class ResultServiceTest {
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        ResultEntityFull entity = ResultEntityFull.builder().build();
+        ResultEntity.Lite entity = ResultEntity.Lite.builder().build();
         ResultReferenceData expectedRefData = new ResultReferenceData(
             null, null, null, false, null, null, null
         );
-        when(resultMapper.toRefDataFromFull(entity)).thenReturn(expectedRefData);
+        when(resultMapper.toRefData(entity)).thenReturn(expectedRefData);
 
-        Page<ResultEntityFull> mockPage = new PageImpl<>(List.of(entity), Pageable.unpaged(), 999L);
-        when(resultFullRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+        Page<ResultEntity.Lite> mockPage = new PageImpl<>(List.of(entity), Pageable.unpaged(), 999L);
+        when(resultLiteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });

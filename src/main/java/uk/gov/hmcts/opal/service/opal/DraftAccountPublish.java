@@ -27,6 +27,7 @@ public class DraftAccountPublish implements DraftAccountPublishInterface {
 
     @Override
     public DraftAccountEntity publishDefendantAccount(DraftAccountEntity publishEntity, BusinessUnitUser unitUser) {
+        log.debug(":publishDefendantAccount: entity {}", publishEntity);
         log.debug(":publishDefendantAccount: About to call Out to Opal PostgreSQL Stored Procedure");
 
         try {

@@ -12,10 +12,10 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.disco.BusinessUnitServiceInterface;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntityLite;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntityLite_;
-import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntityLite;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitLiteEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitLiteEntity_;
+import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.repository.BusinessUnitLiteRepository;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.jpa.BusinessUnitLiteSpecs;
@@ -38,15 +38,15 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
     private final BusinessUnitLiteSpecs liteSpecs = new BusinessUnitLiteSpecs();
 
     @Override
-    public BusinessUnitEntity getBusinessUnit(short businessUnitId) {
+    public BusinessUnitFullEntity getBusinessUnit(short businessUnitId) {
         return businessUnitRepository.findById(businessUnitId)
             .orElseThrow(() -> new EntityNotFoundException("Business Unit not found with id: " + businessUnitId));
     }
 
     @Override
-    public List<BusinessUnitEntity> searchBusinessUnits(BusinessUnitSearchDto criteria) {
+    public List<BusinessUnitFullEntity> searchBusinessUnits(BusinessUnitSearchDto criteria) {
 
-        Page<BusinessUnitEntity> page = businessUnitRepository
+        Page<BusinessUnitFullEntity> page = businessUnitRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq.page(Pageable.unpaged()));
 
@@ -56,9 +56,9 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
     @Cacheable(cacheNames = "businessUnitReferenceDataCache", key = "#filter.orElse('noFilter')")
     public List<BusinessUnitReferenceData> getReferenceData(Optional<String> filter) {
 
-        Sort nameSort = Sort.by(Sort.Direction.ASC, BusinessUnitEntityLite_.BUSINESS_UNIT_NAME);
+        Sort nameSort = Sort.by(Sort.Direction.ASC, BusinessUnitLiteEntity_.BUSINESS_UNIT_NAME);
 
-        Page<BusinessUnitEntityLite> page = businessUnitLiteRepository
+        Page<BusinessUnitLiteEntity> page = businessUnitLiteRepository
             .findBy(liteSpecs.referenceDataFilter(filter),
                     ffq -> ffq
                         .sortBy(nameSort)
@@ -67,7 +67,7 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
         return page.getContent().stream().map(this::toRefData).toList();
     }
 
-    private BusinessUnitReferenceData toRefData(BusinessUnitEntityLite entity) {
+    private BusinessUnitReferenceData toRefData(BusinessUnitLiteEntity entity) {
         return new BusinessUnitReferenceData(
             entity.getBusinessUnitId(),
             entity.getBusinessUnitName(),
@@ -80,11 +80,11 @@ public class BusinessUnitService implements BusinessUnitServiceInterface {
         );
     }
 
-    private List<BusinessUnitReferenceData.ConfigItemRefData> toRefData(List<ConfigurationItemEntityLite> list) {
+    private List<BusinessUnitReferenceData.ConfigItemRefData> toRefData(List<ConfigurationItemEntity.Lite> list) {
         return Optional.ofNullable(list).map(items -> items.stream().map(this::toRefData).toList()).orElse(null);
     }
 
-    private BusinessUnitReferenceData.ConfigItemRefData toRefData(ConfigurationItemEntityLite entity) {
+    private BusinessUnitReferenceData.ConfigItemRefData toRefData(ConfigurationItemEntity.Lite entity) {
         return new BusinessUnitReferenceData.ConfigItemRefData(
             entity.getItemName(),
             entity.getItemValue(),

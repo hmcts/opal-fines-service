@@ -31,7 +31,7 @@ import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.opal.OpalNotesService;
@@ -155,8 +155,8 @@ class NotesServiceTest {
 
     // ---------- helpers ----------
 
-    private static BusinessUnitEntity bu(short id) {
-        BusinessUnitEntity bu = new BusinessUnitEntity();
+    private static BusinessUnitFullEntity bu(short id) {
+        BusinessUnitFullEntity bu = new BusinessUnitFullEntity();
         bu.setBusinessUnitId(id);
         return bu;
     }

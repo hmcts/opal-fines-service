@@ -43,21 +43,21 @@ public class CourtController {
 
     @GetMapping(value = "/{courtId}")
     @Operation(summary = "Returns the court for the given courtId.")
-    public ResponseEntity<CourtEntity> getCourtById(@PathVariable Long courtId,
-              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+    public ResponseEntity<CourtEntity.Lite> getCourtById(
+        @PathVariable Long courtId, @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         log.debug(":GET:getCourtById: courtId: {}", courtId);
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        CourtEntity response = courtService.getCourtById(courtId);
+        CourtEntity.Lite response = courtService.getCourtById(courtId);
 
         return buildResponse(response);
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches courts based upon criteria in request body")
-    public ResponseEntity<SearchDataResponse<CourtEntity>> postCourtsSearch(
+    public ResponseEntity<SearchDataResponse<CourtEntity.Lite>> postCourtsSearch(
         @RequestBody CourtSearchDto criteria,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
@@ -65,9 +65,9 @@ public class CourtController {
 
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        List<CourtEntity> results = courtService.searchCourts(criteria);
+        List<CourtEntity.Lite> results = courtService.searchCourts(criteria);
 
-        return ResponseEntity.ok(SearchDataResponse.<CourtEntity>builder()
+        return ResponseEntity.ok(SearchDataResponse.<CourtEntity.Lite>builder()
             .searchData(results)
             .build());
     }

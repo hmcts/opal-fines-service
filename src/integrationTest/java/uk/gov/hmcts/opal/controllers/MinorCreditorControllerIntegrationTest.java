@@ -32,7 +32,7 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUse
  */
 abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String URL_BASE = "/minor-creditor-accounts";
+    protected static final String URL_BASE = "/minor-creditor-accounts";
 
     private static final String MINOR_CREDITOR_RESPONSE =
         "opal/minor-creditor/postMinorCreditorAccountSearchResponse.json";
@@ -637,7 +637,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThanOrEqualTo(2)))
             .andExpect(jsonPath("$.creditor_accounts[*].address_line_1")
-                           .value(hasItems("Tech House", "Tech Building"))); 
+                           .value(hasItems("Tech House", "Tech Building")));
     }
 
     // AC3b: Test "starts with" behavior for Company Postcode

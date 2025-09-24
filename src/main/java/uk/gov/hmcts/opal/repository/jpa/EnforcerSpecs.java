@@ -4,7 +4,7 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity_;
 
@@ -60,7 +60,7 @@ public class EnforcerSpecs extends AddressCySpecs<EnforcerEntity> {
         );
     }
 
-    public static Join<EnforcerEntity, BusinessUnitEntity> joinBusinessUnit(From<?, EnforcerEntity> from) {
+    public static Join<EnforcerEntity, BusinessUnitFullEntity> joinBusinessUnit(From<?, EnforcerEntity> from) {
         return from.join(EnforcerEntity_.businessUnit);
     }
 }
