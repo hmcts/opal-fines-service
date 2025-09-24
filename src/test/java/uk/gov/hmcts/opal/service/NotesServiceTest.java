@@ -136,4 +136,5 @@ public class NotesServiceTest {
         verify(repository, never()).save(any());
         verify(em, never()).lock(any(), any());
     }
+
 }

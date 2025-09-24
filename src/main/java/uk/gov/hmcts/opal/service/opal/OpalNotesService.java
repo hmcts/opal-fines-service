@@ -14,7 +14,6 @@ import uk.gov.hmcts.opal.dto.AddNoteRequest;
 import uk.gov.hmcts.opal.dto.Note;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 
@@ -24,21 +23,12 @@ import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 public class OpalNotesService implements NotesServiceInterface {
 
     private final NoteRepository repository;
-    private final DefendantAccountRepository defendantAccountRepository;
     private final EntityManager em;
 
     @Override
     @Transactional
-    public String addNote(AddNoteRequest req, Long version, UserState user) {
+    public String addNote(AddNoteRequest req, Long version, UserState user, DefendantAccountEntity account) {
         Note requestNote = req.getActivityNote();
-
-        DefendantAccountEntity account =
-
-            defendantAccountRepository
-                .findById(Long.valueOf(requestNote.getRecordId()))
-                .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Account %s not found".formatted(requestNote.getRecordId())
-                ));
 
         if (!account.getVersion().equals(version)) {
             throw new ResponseStatusException(

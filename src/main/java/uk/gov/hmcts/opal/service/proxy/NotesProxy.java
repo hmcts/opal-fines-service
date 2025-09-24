@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddNoteRequest;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyNotesService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -24,8 +25,8 @@ public class NotesProxy implements NotesServiceInterface, ProxyInterface {
     }
 
     @Override
-    public String addNote(AddNoteRequest request, Long version, UserState user) {
-        return getCurrentModeService().addNote(request, version, user);
+    public String addNote(AddNoteRequest request, Long version, UserState user, DefendantAccountEntity account) {
+        return getCurrentModeService().addNote(request, version, user, account);
     }
 
 }

@@ -1,35 +1,33 @@
 package uk.gov.hmcts.opal.dto.legacy.search;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import uk.gov.hmcts.opal.dto.ToXmlString;
 
-@Data
-@XmlRootElement
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@ToString
 @XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "response")
 @Builder
-public class LegacyAddNoteRequest {
-
-    @NotBlank
-    @XmlElement(name = "business_unit_id", required = true)
-    private String businessUnitId;
-
-    @NotBlank
-    @XmlElement(name = "business_unit_user_id", required = true)
-    private String businessUnitUserId;
+public class LegacyAddNoteResponse implements ToXmlString {
 
     @NotNull
     @XmlElement(name = "version", required = true)
-    private Long version;
+    private Integer version;
 
-    @NotNull
-    @Valid
     @XmlElement(name = "activity_note", required = true)
-    private LegacyNote activityNote;
+    private LegacyNote note;
+
 }
