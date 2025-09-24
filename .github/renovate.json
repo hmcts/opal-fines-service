@@ -15,6 +15,11 @@
       "enabled": false
     },
     {
+      "matchManagers": ["helm"],
+      "matchPackageNames": ["postgresql"],
+      "enabled": false
+    },
+    {
       "matchManagers": ["gradle-wrapper"],
       "matchUpdateTypes": ["minor", "patch"]
     },
@@ -23,6 +28,7 @@
       "matchPackageNames": ["org.hibernate.orm:hibernate-jpamodelgen"],
       "matchUpdateTypes": ["minor", "patch"]
     }
+
   ],
   "description": "Schedule for Wednesdays only.",
   "schedule": [ "* * * * 3" ]
