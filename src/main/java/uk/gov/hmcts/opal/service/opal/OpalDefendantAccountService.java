@@ -12,11 +12,13 @@ import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
 import uk.gov.hmcts.opal.dto.common.Enforcer;
 import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
+import uk.gov.hmcts.opal.dto.common.IndividualAlias;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.LanguagePreference;
 import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.LastEnforcementAction;
 import uk.gov.hmcts.opal.dto.common.LJA;
+import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
@@ -167,7 +169,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
-    int calculateAge(LocalDate birthDate) {
+    static int calculateAge(LocalDate birthDate) {
         return birthDate != null
             ? java.time.Period.between(birthDate, java.time.LocalDate.now()).getYears()
             : 0;
@@ -486,7 +488,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return convertEntityToAtAGlanceResponse(entity);
     }
 
-    DefendantAccountAtAGlanceResponse
+    static DefendantAccountAtAGlanceResponse
         convertEntityToAtAGlanceResponse(DefendantAccountSummaryViewEntity entity) {
         if (null == entity) {
             return null;
@@ -502,7 +504,14 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 entity.getOrganisation()
                     ? OrganisationDetails.builder()
                     .organisationName(entity.getOrganisationName())
-                    .organisationAliases(null) // Not available in the view
+                    .organisationAliases(
+                        entity.getAliasId() != null
+                            ? List.of(OrganisationAlias.builder().aliasId(entity.getAliasId())
+                                          .sequenceNumber(entity.getSequenceNumber())
+                                          .organisationName(entity.getOrganisationName())
+                                          .build())
+                            : Collections.emptyList()
+                    )
                     .build()
                     : null
             )
@@ -515,7 +524,14 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     .dateOfBirth(entity.getBirthDate() != null ? entity.getBirthDate().toLocalDate().toString() : null)
                     .age(entity.getBirthDate() != null ? String.valueOf(
                         calculateAge(entity.getBirthDate().toLocalDate())) : null)
-                    .individualAliases(null) // Not available in the view
+                    .individualAliases(
+                        entity.getAliasId() != null
+                            ? List.of(IndividualAlias.builder().aliasId(entity.getAliasId())
+                                          .sequenceNumber(entity.getSequenceNumber())
+                                          .forenames(entity.getAliasForenames())
+                                          .surname(entity.getAliasSurname())
+                                          .build())
+                            : Collections.emptyList())
                     .nationalInsuranceNumber(entity.getNationalInsuranceNumber())
                     .build()
                     : null
@@ -548,11 +564,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     .paymentTermsTypeCode(safePaymentTermsTypeCode(entity.getTermsTypeCode()))
                     .build()
             )
-            .effectiveDate(entity.getEffectiveDate().toLocalDate())
+            .effectiveDate(null == entity.getEffectiveDate() ? null : entity.getEffectiveDate().toLocalDate())
             .instalmentPeriod(
                 InstalmentPeriod.builder()
-                    .instalmentPeriodCode(safeInstalmentPeriodCode(entity.getInstalmentPeriod())
-                    )
+                    .instalmentPeriodCode(safeInstalmentPeriodCode(entity.getInstalmentPeriod()))
                     .build()
             )
             .lumpSumAmount(entity.getInstalmentLumpSum())
@@ -575,7 +590,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
 
         LJA lja = LJA.builder()
-            .ljaId(Integer.parseInt(entity.getLjaId()))
+            .ljaId(null == entity.getLjaId() ? null : Integer.parseInt(entity.getLjaId()))
             .ljaName(entity.getLjaName())
             .build();
 
@@ -626,7 +641,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
      * @param age Age of the individual.
      * @return True if the individual is under 18, false otherwise.
      */
-    private Boolean isYouth(LocalDateTime birthDate, Integer age) {
+    private static Boolean isYouth(LocalDateTime birthDate, Integer age) {
         if (birthDate != null) {
             return calculateAge(birthDate.toLocalDate()) < 18;
         } else if (age != null) {
