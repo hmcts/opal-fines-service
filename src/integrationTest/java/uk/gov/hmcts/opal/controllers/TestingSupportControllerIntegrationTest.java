@@ -8,6 +8,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.ResultActions;
+
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
@@ -16,6 +18,7 @@ import uk.gov.hmcts.opal.authorisation.model.Permission;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.client.user.UserClient;
 import uk.gov.hmcts.opal.dto.AppMode;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 
@@ -228,8 +231,12 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         ).isGreaterThan(0);
 
         // When: call the deletion endpoint
-        mockMvc.perform(delete("/testing-support/defendant-accounts/1001"))
-            .andExpect(status().isNoContent());
+        ResultActions actions = mockMvc.perform(delete("/testing-support/defendant-accounts/1001"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":shouldDeleteDefendantAccountAndAssociatedData: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isNoContent());
 
         // Post-check that all related data is gone
         assertThat(count("defendant_accounts", "defendant_account_id = 1001")).isZero();

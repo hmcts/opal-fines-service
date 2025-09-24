@@ -15,15 +15,20 @@
 
 -- Delete test creditor transactions first (FK references creditor_accounts)
 DELETE FROM public.creditor_transactions
-WHERE creditor_transaction_id = 90001;
+WHERE creditor_account_id IN (104, 606);
+
+-- Delete test impositions first (FK references creditor_accounts, defendant_accounts)
+DELETE FROM public.impositions
+WHERE creditor_account_id = 606;
 
 -- Delete test creditor accounts
 DELETE FROM public.creditor_accounts
-WHERE creditor_account_id IN (104, 105, 999950, 999951, 999952, 999953, 999954, 999955);
+WHERE creditor_account_id IN (104, 105, 999950, 999951, 999952, 999953, 999954, 999955, 606);
 
 -- Delete test creditor parties
 DELETE FROM public.parties
-WHERE party_id IN (9000, 9001, 9002, 9003, 9004, 9005, 9006);
+WHERE party_id IN (9000, 9001, 9002, 9003, 9004, 9005, 9006, 9007);
 
-
-
+-- Delete test defendant accounts
+DELETE FROM public.defendant_accounts
+WHERE defendant_account_id = 70000000000000;

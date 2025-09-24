@@ -79,7 +79,7 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
     }
 
     @Transactional
-    public boolean deleteDraftAccount(long draftAccountId, boolean checkExists, DraftAccountTransactionsProxy proxy) {
+    public boolean deleteDraftAccount(long draftAccountId, DraftAccountTransactionsProxy proxy) {
         draftAccountRepository.delete(proxy.getDraftAccount(draftAccountId));
         return true;
     }

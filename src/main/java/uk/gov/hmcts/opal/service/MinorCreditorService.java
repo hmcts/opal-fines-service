@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
@@ -21,7 +22,6 @@ public class MinorCreditorService {
 
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch entity,
                                                                         String authHeaderValue) {
-
         log.debug(":searchMinorCreditor:");
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
@@ -32,5 +32,7 @@ public class MinorCreditorService {
             throw new PermissionNotAllowedException(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
         }
     }
+
+
 
 }

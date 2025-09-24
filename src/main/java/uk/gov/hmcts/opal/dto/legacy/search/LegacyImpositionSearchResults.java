@@ -6,7 +6,7 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.Builder;
 import lombok.Data;
-import uk.gov.hmcts.opal.entity.ImpositionEntity;
+import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 
 import java.util.List;
 

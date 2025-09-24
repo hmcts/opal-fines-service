@@ -11,11 +11,16 @@ import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.Creditor;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
+import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,6 +32,9 @@ class MinorCreditorControllerTest {
 
     @Mock
     MinorCreditorService minorCreditorService;
+
+    @Mock
+    OpalCreditorAccountService opalCreditorAccountService;
 
     @InjectMocks
     private MinorCreditorController minorCreditorController;
@@ -53,6 +61,20 @@ class MinorCreditorControllerTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(mockResponse, responseEntity.getBody());
         verify(minorCreditorService, times(1)).searchMinorCreditors(any(), any());
+    }
+
+    @Test
+    void testDeleteMinorCreditor_Success() {
+        // Arrange
+        when(opalCreditorAccountService.deleteCreditorAccount(anyLong(), anyBoolean(), anyString())).thenReturn("OK");
+
+        // Act
+        ResponseEntity<String> responseEntity = minorCreditorController
+            .deleteMinorCreditorById(444L, "auth", "if-match", Optional.of(false));
+
+        // Assert
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals("OK", responseEntity.getBody());
     }
 
 }

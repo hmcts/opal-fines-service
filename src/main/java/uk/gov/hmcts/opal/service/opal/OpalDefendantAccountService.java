@@ -235,7 +235,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         PaymentTermsEntity entity = defendantAccountPaymentTermsRepository
             .findTopByDefendantAccount_DefendantAccountIdOrderByPostedDateDescPaymentTermsIdDesc(
                 defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException("payment terms not found for id: "
+            .orElseThrow(() -> new EntityNotFoundException("Payment Terms not found for Defendant Account Id: "
                                                                + defendantAccountId));
 
         return toPaymentTermsResponse(entity);

@@ -148,8 +148,7 @@ class DraftAccountTransactionsTest {
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
         // Act
-        boolean deleted = draftAccountTransactions
-            .deleteDraftAccount(1, true, draftAccountTransactions);
+        boolean deleted = draftAccountTransactions.deleteDraftAccount(1, draftAccountTransactions);
         assertTrue(deleted);
     }
 
@@ -161,7 +160,7 @@ class DraftAccountTransactionsTest {
         // Act
         EntityNotFoundException enfe = assertThrows(
             EntityNotFoundException.class, () -> draftAccountTransactions
-                .deleteDraftAccount(1, true, draftAccountTransactions)
+                .deleteDraftAccount(1, draftAccountTransactions)
         );
 
         // Assert
