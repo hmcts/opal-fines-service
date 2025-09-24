@@ -10,8 +10,8 @@ plugins {
   id 'application'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.5.5'
-  id 'com.github.ben-manes.versions' version '0.52.0'
+  id 'org.springframework.boot' version '3.5.6'
+  id 'com.github.ben-manes.versions' version '0.53.0'
   id 'org.sonarqube' version '6.2.0.5505'
   id 'uk.gov.hmcts.java' version '0.12.67'
   id 'org.flywaydb.flyway' version '11.13.0'
@@ -255,7 +255,6 @@ dependencyUpdates {
 ext {
   log4JVersion = "2.25.2"
   serenityVersion = "4.2.34"
-  nettyVersion = "4.1.127.Final"
 }
 
 dependencyManagement {
@@ -268,16 +267,7 @@ dependencyManagement {
   }
 
   dependencies {
-    dependency group: 'com.google.guava', name: 'guava', version: '33.4.8-jre'
-    //Added to override dependency version to resolve vulnerability
-    dependency group: 'io.netty', name: 'netty-codec', version: nettyVersion
-    dependency group: 'io.netty', name: 'netty-buffer', version: nettyVersion
-    dependency group: 'io.netty', name: 'netty-common', version: nettyVersion
-    dependency group: 'io.netty', name: 'netty-handler', version: nettyVersion
-    dependency group: 'io.netty', name: 'netty-resolver', version: nettyVersion
-    dependency group: 'io.netty', name: 'netty-transport', version: nettyVersion
-    dependency group: 'io.netty', name: 'netty-transport-native-unix-common', version: nettyVersion
-    //END
+    dependency group: 'com.google.guava', name: 'guava', version: '33.5.0-jre'
   }
 }
 
@@ -333,7 +323,7 @@ dependencies {
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
-  implementation group: 'com.google.guava', name: 'guava', version: '33.4.8-jre'
+  implementation group: 'com.google.guava', name: 'guava', version: '33.5.0-jre'
 
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.10.2'
 
