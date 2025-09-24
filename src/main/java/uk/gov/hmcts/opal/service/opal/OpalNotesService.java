@@ -33,14 +33,19 @@ public class OpalNotesService implements NotesServiceInterface {
         DefendantAccountEntity managed = em.find(DefendantAccountEntity.class, accountId);
 
         if (managed == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                              "Account %s not found".formatted(accountId));
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Account %s not found".formatted(accountId)
+            );
         }
 
         // Use the MANAGED entity for all reads
         if (!managed.getVersion().equals(version)) {
-            throw new ResponseStatusException(HttpStatus.PRECONDITION_FAILED,
-                                              "Version mismatch. Expected " + managed.getVersion() + " but got " + version);
+            throw new ResponseStatusException(
+                HttpStatus.PRECONDITION_FAILED,
+                "Version mismatch. Expected "
+                    + managed.getVersion() + " but got " + version
+            );
         }
 
         Note requestNote = req.getActivityNote();

@@ -18,13 +18,13 @@ public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testPostAddNotesSuccess() throws Exception {
-        super.LegacyTestAddNoteSuccess(log);
+        super.legacyTestAddNoteSuccess(log);
     }
 
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testSearchDefendantAccount_NoAccountsFound() throws Exception {
-        super.LegacyTestAddNote500Error(log);
+        super.legacyTestAddNote500Error(log);
     }
 
 }

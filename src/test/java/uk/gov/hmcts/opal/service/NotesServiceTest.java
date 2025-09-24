@@ -31,6 +31,7 @@ import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.opal.OpalNotesService;
+
 @ExtendWith(MockitoExtension.class)
 class NotesServiceTest {
 

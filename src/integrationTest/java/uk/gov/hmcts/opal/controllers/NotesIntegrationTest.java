@@ -23,137 +23,139 @@ import uk.gov.hmcts.opal.service.UserStateService;
 
 abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
-  private static final String URL_BASE = "/notes";
+    private static final String URL_BASE = "/notes";
 
-  @MockitoBean UserStateService userStateService;
+    @MockitoBean
+    UserStateService userStateService;
 
-  @MockitoBean private UserState userState;
+    @MockitoBean
+    private UserState userState;
 
-  @BeforeEach
-  void setupUserState() {
-    Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
+    @BeforeEach
+    void setupUserState() {
+        Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
 
-    Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
-}
+        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
+    }
 
-  @DisplayName("post notes defendant accounts [PO-1566]")
-  void postNotesImpl(Logger log) throws Exception {
+    @DisplayName("post notes defendant accounts [PO-1566]")
+    void postNotesImpl(Logger log) throws Exception {
 
-      when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-      Note note = new Note();
-    note.setNoteText("test");
-    note.setRecordId("77");
-    note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-    note.setNoteType("AA");
+        Note note = new Note();
+        note.setNoteText("test");
+        note.setRecordId("77");
+        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
+        note.setNoteType("AA");
 
-    AddNoteRequest request = new AddNoteRequest();
+        AddNoteRequest request = new AddNoteRequest();
 
-    request.setActivityNote(note);
+        request.setActivityNote(note);
 
-    log.info(":testPostNotes:{}", objectMapper.writeValueAsString(request));
+        log.info(":testPostNotes:{}", objectMapper.writeValueAsString(request));
 
-    ResultActions resultActions =
-        mockMvc.perform(
-            post(URL_BASE + "/add")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                .header("authorization", "Bearer some_value")
-                .header("If-Match", "1"));
+        ResultActions resultActions =
+            mockMvc.perform(
+                post(URL_BASE + "/add")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .header("authorization", "Bearer some_value")
+                    .header("If-Match", "1"));
 
-    String body = resultActions.andReturn().getResponse().getContentAsString();
+        String body = resultActions.andReturn().getResponse().getContentAsString();
 
-    log.info(":testPostNotes: Response body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":testPostNotes: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
-    resultActions.andExpect(status().isOk());
-  }
+        resultActions.andExpect(status().isOk());
+    }
 
-  @DisplayName("post notes for a defendant account ID that does not exist [PO-1566]")
-  void postNotes_IDNotFoundError(Logger log) throws Exception {
+    @DisplayName("post notes for a defendant account ID that does not exist [PO-1566]")
+    void postNotes_IDNotFoundError(Logger log) throws Exception {
 
-      when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-      Note note = new Note();
-    note.setNoteText("test");
-    note.setRecordId("122");
-    note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-    note.setNoteType("AA");
+        Note note = new Note();
+        note.setNoteText("test");
+        note.setRecordId("122");
+        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
+        note.setNoteType("AA");
 
-    AddNoteRequest request = new AddNoteRequest();
+        AddNoteRequest request = new AddNoteRequest();
 
-    request.setActivityNote(note);
+        request.setActivityNote(note);
 
-    ResultActions resultActions =
-        mockMvc.perform(
-            post(URL_BASE + "/add")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                .header("authorization", "Bearer some_value")
-                .header("If-Match", "1")); // Add this line
+        ResultActions resultActions =
+            mockMvc.perform(
+                post(URL_BASE + "/add")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .header("authorization", "Bearer some_value")
+                    .header("If-Match", "1")); // Add this line
 
-    String body = resultActions.andReturn().getResponse().getContentAsString();
+        String body = resultActions.andReturn().getResponse().getContentAsString();
 
-    log.info(":testPostNotes: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testPostNotes: Response body:\n" + ToJsonString.toPrettyJson(body));
 
-    resultActions.andExpect(status().isNotFound());
-  }
+        resultActions.andExpect(status().isNotFound());
+    }
 
-  void LegacyTestAddNoteSuccess(Logger log) throws Exception {
+    void legacyTestAddNoteSuccess(Logger log) throws Exception {
 
-      when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-      Note note = new Note();
-    note.setNoteText("test");
-    note.setRecordId("77");
-    note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-    note.setNoteType("AA");
+        Note note = new Note();
+        note.setNoteText("test");
+        note.setRecordId("77");
+        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
+        note.setNoteType("AA");
 
-    AddNoteRequest request = new AddNoteRequest();
+        AddNoteRequest request = new AddNoteRequest();
 
-    request.setActivityNote(note);
+        request.setActivityNote(note);
 
-    ResultActions resultActions =
-        mockMvc.perform(
-            post(URL_BASE + "/add")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-                .header("authorization", "Bearer some_value")
-                .header("If-Match", "1"));
+        ResultActions resultActions =
+            mockMvc.perform(
+                post(URL_BASE + "/add")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .header("authorization", "Bearer some_value")
+                    .header("If-Match", "1"));
 
-    String body = resultActions.andReturn().getResponse().getContentAsString();
+        String body = resultActions.andReturn().getResponse().getContentAsString();
 
-    log.info(":testPostNotes: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testPostNotes: Response body:\n" + ToJsonString.toPrettyJson(body));
 
-    resultActions.andExpect(status().isOk());
-  }
+        resultActions.andExpect(status().isOk());
+    }
 
-  void LegacyTestAddNote500Error(Logger log) throws Exception {
+    void legacyTestAddNote500Error(Logger log) throws Exception {
 
-      when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-      Note note = new Note();
-      note.setNoteText("FAIL");
-      note.setRecordId("77");
-      note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-      note.setNoteType("AA");
+        Note note = new Note();
+        note.setNoteText("FAIL");
+        note.setRecordId("77");
+        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
+        note.setNoteType("AA");
 
-      AddNoteRequest request = new AddNoteRequest();
+        AddNoteRequest request = new AddNoteRequest();
 
-      request.setActivityNote(note);
+        request.setActivityNote(note);
 
-      ResultActions resultActions =
-          mockMvc.perform(
-              post(URL_BASE + "/add")
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .content(objectMapper.writeValueAsString(request))
-                  .header("authorization", "Bearer some_value")
-                  .header("If-Match", "5"));
+        ResultActions resultActions =
+            mockMvc.perform(
+                post(URL_BASE + "/add")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+                    .header("authorization", "Bearer some_value")
+                    .header("If-Match", "5"));
 
-      String body = resultActions.andReturn().getResponse().getContentAsString();
+        String body = resultActions.andReturn().getResponse().getContentAsString();
 
-      log.info(":testPostNotes: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testPostNotes: Response body:\n" + ToJsonString.toPrettyJson(body));
 
-      resultActions.andExpect(status().is5xxServerError());
+        resultActions.andExpect(status().is5xxServerError());
 
-  }
+    }
 }
