@@ -42,12 +42,12 @@ class CourtControllerTest {
     @Test
     void testGetCourt_Success() {
         // Arrange
-        CourtEntity entity = CourtEntity.builder().build();
+        CourtEntity.Lite entity = CourtEntity.Lite.builder().build();
 
         when(courtService.getCourtById(any(Long.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<CourtEntity> response = courtController.getCourtById(1L, BEARER_TOKEN);
+        ResponseEntity<CourtEntity.Lite> response = courtController.getCourtById(1L, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -58,20 +58,20 @@ class CourtControllerTest {
     @Test
     void testSearchCourts_Success() {
         // Arrange
-        CourtEntity entity = CourtEntity.builder().build();
-        List<CourtEntity> courtList = List.of(entity);
+        CourtEntity.Lite entity = CourtEntity.Lite.builder().build();
+        List<CourtEntity.Lite> courtList = List.of(entity);
 
         when(courtService.searchCourts(any())).thenReturn(courtList);
 
         // Act
         CourtSearchDto searchDto = CourtSearchDto.builder().build();
-        ResponseEntity<SearchDataResponse<CourtEntity>> response =
+        ResponseEntity<SearchDataResponse<CourtEntity.Lite>> response =
             courtController.postCourtsSearch(searchDto, BEARER_TOKEN);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        SearchDataResponse<CourtEntity> responseBody = response.getBody();
+        SearchDataResponse<CourtEntity.Lite> responseBody = response.getBody();
         assertNotNull(responseBody);
         assertEquals(1, responseBody.getCount());
         assertEquals(courtList, responseBody.getSearchData());

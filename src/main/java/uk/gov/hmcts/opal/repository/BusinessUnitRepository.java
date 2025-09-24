@@ -3,9 +3,9 @@ package uk.gov.hmcts.opal.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 
 @Repository
-public interface BusinessUnitRepository extends JpaRepository<BusinessUnitEntity, Short>,
-    JpaSpecificationExecutor<BusinessUnitEntity> {
+public interface BusinessUnitRepository extends JpaRepository<BusinessUnitFullEntity, Short>,
+    JpaSpecificationExecutor<BusinessUnitFullEntity> {
 }

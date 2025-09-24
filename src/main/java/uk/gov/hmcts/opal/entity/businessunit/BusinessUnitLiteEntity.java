@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntityLite;
+import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 
 import java.util.List;
 
@@ -25,9 +25,9 @@ import java.util.List;
 @ToString(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class BusinessUnitEntityLite extends AbstractBusinessUnitEntity {
+public class BusinessUnitLiteEntity extends BusinessUnitEntity {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "business_unit_id")
-    private List<ConfigurationItemEntityLite> configurationItems;
+    private List<ConfigurationItemEntity.Lite> configurationItems;
 }

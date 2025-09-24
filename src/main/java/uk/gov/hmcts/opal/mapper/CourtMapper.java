@@ -6,5 +6,5 @@ import uk.gov.hmcts.opal.entity.court.CourtEntity;
 
 @Mapper(componentModel = "spring")
 public interface CourtMapper {
-    CourtReferenceData toRefData(CourtEntity entity);
+    CourtReferenceData toRefData(CourtEntity.Lite entity);
 }

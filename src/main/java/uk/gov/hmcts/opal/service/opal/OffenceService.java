@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.dto.reference.OffenceReferenceData;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
-import uk.gov.hmcts.opal.entity.offence.OffenceEntityFull;
+import uk.gov.hmcts.opal.entity.offence.OffenceFullEntity;
 import uk.gov.hmcts.opal.entity.offence.OffenceEntity_;
 import uk.gov.hmcts.opal.mapper.OffenceMapper;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
@@ -39,7 +39,7 @@ public class OffenceService {
 
     private final OffenceSpecs specs = new OffenceSpecs();
 
-    public OffenceEntityFull getOffence(long offenceId) {
+    public OffenceFullEntity getOffence(long offenceId) {
         return offenceRepositoryFull.findById(offenceId).orElse(null);
     }
 
@@ -48,7 +48,7 @@ public class OffenceService {
         Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceEntity_.CJS_CODE);
         int limit = Optional.ofNullable(criteria.getMaxResults()).orElse(NO_REQUESTED_LIMIT);
 
-        Page<OffenceEntity> page = offenceRepository
+        Page<OffenceEntity.Lite> page = offenceRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq
                         .sortBy(codeSort)
@@ -73,7 +73,7 @@ public class OffenceService {
 
         Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceEntity_.CJS_CODE);
 
-        Page<OffenceEntity> page = offenceRepository
+        Page<OffenceEntity.Lite> page = offenceRepository
             .findBy(specs.referenceDataFilter(filter, businessUnitId, cjsCode),
                     ffq -> ffq
                         .sortBy(codeSort)

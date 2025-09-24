@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MinorCreditorServiceTest {
+class OpalMinorCreditorServiceTest {
 
     @Mock
     private MinorCreditorRepository minorCreditorRepository;
@@ -201,4 +201,5 @@ class MinorCreditorServiceTest {
         assertEquals(1, response.getCount());
         assertEquals("104", response.getCreditorAccounts().getFirst().getCreditorAccountId());
     }
+
 }
