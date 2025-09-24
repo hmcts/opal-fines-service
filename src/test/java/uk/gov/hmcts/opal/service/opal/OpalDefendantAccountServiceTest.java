@@ -1,25 +1,51 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.dto.CollectionOrderDto;
+import uk.gov.hmcts.opal.dto.CommentAndNotesDto;
+import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.EnforcementOverride;
+import uk.gov.hmcts.opal.dto.EnforcementOverrideResultReference;
+import uk.gov.hmcts.opal.dto.EnforcerReference;
+import uk.gov.hmcts.opal.dto.LjaReference;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.repository.CourtRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 class OpalDefendantAccountServiceTest {
 
     // If you need to create the service, mock the repos as needed.
     private final OpalDefendantAccountService service =
-        new OpalDefendantAccountService(null, null, null, null);
+        new OpalDefendantAccountService(null, null, null, null, null);
 
     @Test
     void testNzHelper() {
@@ -100,7 +126,7 @@ class OpalDefendantAccountServiceTest {
             .prosecutorCaseReference("PCR1")
             .fixedPenaltyTicketNumber("FPT1")
             .accountStatus("L")
-            .businessUnitId((short)77)
+            .businessUnitId((short) 77)
             .businessUnitName("BUName")
             .imposed(BigDecimal.valueOf(11))
             .arrears(BigDecimal.valueOf(22))
@@ -117,5 +143,236 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
         assertEquals("ACCT100", dto.getAccountNumber());
         assertNotNull(dto.getPartyDetails());
+    }
+
+    @Test
+    void updateDefendantAccount_happyPath_updatesAllGroups_andReturnsRepresentation() {
+        // Arrange local mocks & service
+        DefendantAccountHeaderViewRepository headerViewRepo = mock(DefendantAccountHeaderViewRepository.class);
+        DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
+        DefendantAccountSpecs specs = mock(DefendantAccountSpecs.class);
+        DefendantAccountPaymentTermsRepository paymentTermsRepo = mock(DefendantAccountPaymentTermsRepository.class);
+        CourtRepository courtRepo = mock(CourtRepository.class);
+
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            headerViewRepo, accountRepo, specs, paymentTermsRepo, courtRepo);
+
+        Long id = 1L;
+        String buHeader = "10";
+
+        BusinessUnitEntity bu = BusinessUnitEntity.builder()
+            .businessUnitId(Short.valueOf(buHeader))
+            .build();
+
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .defendantAccountId(id)
+            .businessUnit(bu)
+            .build();
+
+        when(accountRepo.findById(id)).thenReturn(Optional.of(entity));
+
+        CourtEntity court = CourtEntity.builder()
+            .courtId(100L)
+            .name("Central Magistrates")
+            .build();
+        when(courtRepo.findById(100L)).thenReturn(Optional.of(court));
+
+        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
+            .defendantAccountId(id)
+            .businessUnitId(buHeader)
+            .businessUnitUserId("user-123")
+            .commentAndNotes(CommentAndNotesDto.builder()
+                .accountComment("acc comment")
+                .freeTextNote1("n1")
+                .freeTextNote2("n2")
+                .freeTextNote3("n3")
+                .build())
+            .enforcementCourt(CourtReferenceDto.builder()
+                .courtId(100)
+                .courtName("Central Magistrates")
+                .build())
+            .collectionOrder(CollectionOrderDto.builder()
+                .collectionOrderFlag(true)
+                .collectionOrderDate("2025-01-01")
+                .build())
+            .enforcementOverrides(EnforcementOverride.builder()
+                .enforcementOverrideResult(EnforcementOverrideResultReference.builder()
+                    .enforcementOverrideResultId("EO-1")
+                    .enforcementOverrideResultTitle("Result Title")
+                    .build())
+                .enforcer(EnforcerReference.builder()
+                    .enforcerId(22)
+                    .enforcerName("Enforcer A")
+                    .build())
+                .lja(LjaReference.builder()
+                    .ljaId(33)
+                    .ljaName("LJA Name")
+                    .build())
+                .build())
+            .build();
+
+        // Act
+        DefendantAccountResponse resp = svc.updateDefendantAccount(id, buHeader, req);
+
+        // Assert: repo interaction
+        verify(accountRepo).save(entity);
+
+        // Assert: response shape + values (nested objects)
+        assertEquals(id, resp.getId());
+
+        assertNotNull(resp.getCommentAndNotes());
+        assertEquals("acc comment", resp.getCommentAndNotes().getAccountComment());
+        assertEquals("n1", resp.getCommentAndNotes().getFreeTextNote1());
+        assertEquals("n2", resp.getCommentAndNotes().getFreeTextNote2());
+        assertEquals("n3", resp.getCommentAndNotes().getFreeTextNote3());
+
+        assertNotNull(resp.getEnforcementCourt());
+        assertEquals(100, resp.getEnforcementCourt().getCourtId());
+        assertEquals("Central Magistrates", resp.getEnforcementCourt().getCourtName());
+
+        assertNotNull(resp.getCollectionOrder());
+        assertEquals(Boolean.TRUE, resp.getCollectionOrder().getCollectionOrderFlag());
+        assertEquals("2025-01-01", resp.getCollectionOrder().getCollectionOrderDate());
+
+        assertNotNull(resp.getEnforcementOverrides());
+        assertNotNull(resp.getEnforcementOverrides().getEnforcementOverrideResult());
+        assertEquals("EO-1", resp.getEnforcementOverrides().getEnforcementOverrideResult()
+            .getEnforcementOverrideResultId());
+        assertNotNull(resp.getEnforcementOverrides().getEnforcer());
+        assertEquals(22, resp.getEnforcementOverrides().getEnforcer().getEnforcerId());
+        assertNotNull(resp.getEnforcementOverrides().getLja());
+        assertEquals(33, resp.getEnforcementOverrides().getLja().getLjaId());
+
+        // Assert: entity state actually updated as expected
+        assertEquals(court, entity.getEnforcingCourt());
+        assertTrue(entity.isCollectionOrder());
+        assertEquals(LocalDate.parse("2025-01-01"), entity.getCollectionOrderEffectiveDate());
+        assertEquals("EO-1", entity.getEnforcementOverrideResultId());
+        assertEquals(Long.valueOf(22), entity.getEnforcementOverrideEnforcerId());
+        assertEquals(Short.valueOf((short) 33), entity.getEnforcementOverrideTfoLjaId());
+    }
+
+    @Test
+    void updateDefendantAccount_throwsWhenBodyPathMismatch() {
+        DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            null, accountRepo, null, null, null);
+
+        Long id = 1L;
+        String buHeader = "10";
+
+        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
+            .defendantAccountId(2L) // mismatch!
+            .businessUnitId(buHeader)
+            .commentAndNotes(CommentAndNotesDto.builder().accountComment("x").build())
+            .build();
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+            svc.updateDefendantAccount(id, buHeader, req)
+        );
+        assertTrue(ex.getMessage().contains("defendant_account_id"));
+        verifyNoInteractions(accountRepo);
+    }
+
+    @Test
+    void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
+        DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            null, accountRepo, null, null, null);
+
+        Long id = 1L;
+        String buHeader = "10";
+
+        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
+            .defendantAccountId(id)
+            .businessUnitId(buHeader)
+            .build(); // all groups null
+
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+            svc.updateDefendantAccount(id, buHeader, req)
+        );
+        assertTrue(ex.getMessage().contains("At least one update group"));
+        verifyNoInteractions(accountRepo);
+    }
+
+    @Test
+    void updateDefendantAccount_throwsWhenBusinessUnitMismatch() {
+        DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            null, accountRepo, null, null, null);
+
+        Long id = 1L;
+        String buHeader = "10";
+
+        BusinessUnitEntity bu = BusinessUnitEntity.builder().businessUnitId((short) 77).build(); // mismatch
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .defendantAccountId(id)
+            .businessUnit(bu)
+            .build();
+
+        when(accountRepo.findById(id)).thenReturn(Optional.of(entity));
+
+        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
+            .defendantAccountId(id)
+            .businessUnitId(buHeader)
+            .commentAndNotes(CommentAndNotesDto.builder().accountComment("x").build())
+            .build();
+
+        assertThrows(EntityNotFoundException.class, () ->
+            svc.updateDefendantAccount(id, buHeader, req)
+        );
+        verify(accountRepo, never()).save(any());
+    }
+
+    @Test
+    void updateDefendantAccount_throwsWhenCollectionOrderDateInvalid() {
+        DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            null, accountRepo, null, null, null);
+
+        Long id = 1L;
+        String buHeader = "10";
+
+        BusinessUnitEntity bu = BusinessUnitEntity.builder().businessUnitId(Short.valueOf(buHeader)).build();
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .defendantAccountId(id)
+            .businessUnit(bu)
+            .build();
+
+        when(accountRepo.findById(id)).thenReturn(Optional.of(entity));
+
+        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
+            .defendantAccountId(id)
+            .businessUnitId(buHeader)
+            .collectionOrder(CollectionOrderDto.builder()
+                .collectionOrderFlag(true)
+                .collectionOrderDate("not-a-date") // invalid
+                .build())
+            .build();
+
+        assertThrows(IllegalArgumentException.class, () ->
+            svc.updateDefendantAccount(id, buHeader, req)
+        );
+        verify(accountRepo, never()).save(any());
+    }
+
+    @Test
+    void updateDefendantAccount_throwsWhenEntityNotFound() {
+        DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            null, accountRepo, null, null, null);
+
+        when(accountRepo.findById(99L)).thenReturn(Optional.empty());
+
+        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
+            .defendantAccountId(99L)
+            .businessUnitId("10")
+            .commentAndNotes(CommentAndNotesDto.builder().accountComment("x").build())
+            .build();
+
+        assertThrows(EntityNotFoundException.class, () ->
+            svc.updateDefendantAccount(99L, "10", req)
+        );
+        verify(accountRepo, never()).save(any());
     }
 }

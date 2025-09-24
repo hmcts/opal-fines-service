@@ -5,12 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.PostedDetails;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
@@ -332,6 +334,17 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                                                                      Long defendantAccountPartyId) {
         throw new UnsupportedOperationException("getDefendantAccountParty is not implemented in"
                                                     + " LegacyDefendantAccountService");
+    }
+
+    @Override
+    public DefendantAccountResponse updateDefendantAccount(
+        Long defendantAccountId,
+        String businessUnitId,
+        UpdateDefendantAccountRequest request
+    ) {
+        log.debug(":updateDefendantAccount (Legacy): id={}, bu={}", defendantAccountId, businessUnitId);
+        // TODO(PO-1908): Implement legacy behaviour for Update Defendant Account
+        throw new UnsupportedOperationException("Update Defendant Account is not supported in Legacy mode.");
     }
 
 }

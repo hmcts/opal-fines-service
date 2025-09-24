@@ -26,6 +26,10 @@ public class SchemaPaths {
     public static final String POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST = DEFENDANT_ACCOUNT
         + "/postDefendantAccountsSearchRequest.json";
 
+    public static final String PATCH_UPDATE_DEFENDANT_ACCOUNT_REQUEST = DEFENDANT_ACCOUNT
+        + "/updateDefendantAccountRequest.json";
+
+
     private SchemaPaths() {
         // Utility class — prevent instantiation
     }
