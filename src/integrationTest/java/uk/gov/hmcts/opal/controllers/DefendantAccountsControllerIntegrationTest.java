@@ -2006,8 +2006,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     }
 
 
-    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564]")
-    public void opalGetAtAGlance(Logger log) throws Exception {
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an individual")
+    public void opalGetAtAGlance_Individual(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -2015,16 +2015,42 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                                                           .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetAtAGlance: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetAtAGlance: Party is an individual. Response body:\n" + ToJsonString.toPrettyJson(body));
 
         // TODO: Add more detailed checks here
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_id").value(77))
             .andExpect(jsonPath("$.account_number").value("177A"))
-            .andExpect(jsonPath("$.debtor_type").value("Defendant"));
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value("false"))
+            .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
+            .andExpect(jsonPath("$.party_details.individual_details.age").value("45"));
 
-        // TODO: enable schema validation when missing fields have been added.
+        jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an organisation")
+    public void opalGetAtAGlance_Organisation(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10001/at-a-glance")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetAtAGlance: Party is an organisation. Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value(10001))
+            .andExpect(jsonPath("$.account_number").value("10001A"))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value("true"))
+            .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
+                           .value("Kings Arms"));
+
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
 }

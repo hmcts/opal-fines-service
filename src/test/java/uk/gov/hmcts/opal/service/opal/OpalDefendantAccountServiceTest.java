@@ -123,12 +123,13 @@ class OpalDefendantAccountServiceTest {
     }
 
     @Test
-    void convertEntityToAtAGlanceResponse_mapsAllFieldsCorrectly() {
+    void convertEntityToAtAGlanceResponse_mapsAllFields_Individual() {
         DefendantAccountSummaryViewEntity entity = DefendantAccountSummaryViewEntity.builder()
             .defendantAccountId(1L)
             .accountNumber("ACC123")
-            .debtorType("Individual")
+            .debtorType("Defendant")
             .birthDate(LocalDateTime.now().minusYears(17))
+            .organisation(false)
             .forenames("John")
             .surname("Doe")
             .addressLine1("123 Main St")
@@ -149,9 +150,44 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountAtAGlanceResponse response = service.convertEntityToAtAGlanceResponse(entity);
 
         assertNotNull(response);
-        assertEquals(1L, response.getDefendantAccountId());
+        assertEquals("1", response.getDefendantAccountId());
         assertEquals("ACC123", response.getAccountNumber());
-        assertEquals("Individual", response.getDebtorType());
+        assertEquals("Defendant", response.getDebtorType());
+        assertTrue(response.getIsYouth());
+        assertNotNull(response.getPartyDetails());
+    }
+
+    @Test
+    void convertEntityToAtAGlanceResponse_mapsAllFields_Organisation() {
+        DefendantAccountSummaryViewEntity entity = DefendantAccountSummaryViewEntity.builder()
+            .defendantAccountId(1L)
+            .accountNumber("ACC123")
+            .debtorType("Defendant")
+            .birthDate(LocalDateTime.now().minusYears(17))
+            .organisation(true)
+            .forenames("John")
+            .surname("Doe")
+            .addressLine1("123 Main St")
+            .addressLine2("Apt 4B")
+            .addressLine3("City Center")
+            .addressLine4("Region")
+            .addressLine5("Country")
+            .postcode("12345")
+            .collectionOrder(true)
+            .jailDays(10)
+            .lastMovementDate(LocalDateTime.now().minusDays(5))
+            .accountComments("Comment")
+            .accountNote1("Note1")
+            .accountNote2("Note2")
+            .accountNote3("Note3")
+            .build();
+
+        DefendantAccountAtAGlanceResponse response = service.convertEntityToAtAGlanceResponse(entity);
+
+        assertNotNull(response);
+        assertEquals("1", response.getDefendantAccountId());
+        assertEquals("ACC123", response.getAccountNumber());
+        assertEquals("Defendant", response.getDebtorType());
         assertTrue(response.getIsYouth());
         assertNotNull(response.getPartyDetails());
     }
