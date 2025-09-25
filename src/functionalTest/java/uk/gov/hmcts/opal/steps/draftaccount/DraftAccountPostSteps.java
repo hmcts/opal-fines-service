@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.steps.draftaccount;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -9,6 +11,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.utils.DraftAccountUtils;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.text.IsBlankString.blankOrNullString;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,6 +26,8 @@ import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class DraftAccountPostSteps extends BaseStepDef {
+    private static final Logger log = LoggerFactory.getLogger(DraftAccountPostSteps.class);
+
     @When("I create a draft account with the following details")
     public void postDraftAccount(DataTable accountData) throws JSONException, IOException {
         Map<String, String> dataToPost = accountData.asMap(String.class, String.class);
@@ -54,7 +61,7 @@ public class DraftAccountPostSteps extends BaseStepDef {
         postBody.put("timeline_data", timelineArray);
 
         SerenityRest
-            .given()
+            .given().log().all()
             .header("Authorization", "Bearer " + getToken())
             .accept("*/*")
             .contentType("application/json")
@@ -64,9 +71,41 @@ public class DraftAccountPostSteps extends BaseStepDef {
     }
 
     @Then("I store the created draft account ID")
-    public void storeDraftAccountId() {
-        String draftAccountId = then().extract().body().jsonPath().getString("draft_account_id");
-        DraftAccountUtils.addDraftAccountId(draftAccountId);
+    public void storeCreatedDraftAccountId() {
+        var resp = SerenityRest.lastResponse();
+
+        log.info("CREATE status={}", resp.getStatusCode());
+        log.info("CREATE headers={}", resp.getHeaders());
+        log.info("CREATE body={}", resp.asString());
+
+        String id = null;
+
+        try {
+            Object idObj = resp.jsonPath().get("draft_account_id");
+            if (idObj != null) {
+                id = String.valueOf(idObj);
+            }
+        } catch (Exception ignored) {
+            // No JSON or no field; fall through to Location
+        }
+
+        // 2) Fallback to Location header’s last path segment
+        if (id == null || id.isBlank()) {
+            String location = resp.getHeader("Location");
+            if (location != null && !location.isBlank()) {
+                id = location.substring(location.lastIndexOf('/') + 1);
+            }
+        }
+
+        // 3) Fail fast if still missing to avoid /null deletes later
+        assertThat(
+            "Create must include draft_account_id in body or a Location header with the ID",
+            id,
+            not(blankOrNullString())
+        );
+
+        DraftAccountUtils.addDraftAccountId(id);
+        log.info("Stored draft account id={}", id);
     }
 
     @Then("I store the created draft account created_at time")
