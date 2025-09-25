@@ -37,11 +37,10 @@ public class DraftAccountPutSteps extends BaseStepDef {
 
         JSONObject postBody = new JSONObject();
 
-        addLongToJsonObject(postBody, dataToPost, "business_unit_id");
+        addIntToJsonObject(postBody, dataToPost, "business_unit_id");
         addToJsonObjectOrNull(postBody, dataToPost, "submitted_by");
         addToJsonObject(postBody, dataToPost, "submitted_by_name");
         addToJsonObject(postBody, dataToPost, "account_type");
-        addToJsonObjectOrNull(postBody, dataToPost, "version");
         addToJsonObjectOrNull(postBody, dataToPost, "account_status");
 
         String accountFilePath = "build/resources/functionalTest/features/opalMode/manualAccountCreation/"
@@ -65,6 +64,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .body(postBody.toString())
+            .header(createQuotedLongHeader("If-Match", dataToPost))
             .when()
             .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + draftAccountId);
     }
@@ -223,6 +223,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
             .accept("*/*")
             .contentType("application/json")
             .body(postBody.toString())
+            .header(createQuotedLongHeader("If-Match", dataToPost))
             .when()
             .put(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + "999999");
     }

@@ -27,9 +27,8 @@ public class VersionUtilsTest {
 
         assertEquals("uk.gov.hmcts.opal.entity.draft.DraftAccountEntity", rte.getPersistentClassName());
         assertEquals("test id", rte.getIdentifier());
-        assertEquals("Object of class [uk.gov.hmcts.opal.entity.draft.DraftAccountEntity] with identifier "
-                         + "[test id]: optimistic locking failed",
-                     rte.getMessage());
+        assertEquals(":testVerifyVersions_fail: Versions do not match for: UtilVersioned 'test id'; "
+                         + "DB version: 1, supplied update version: 2", rte.getMessage());
     }
 
     @Test

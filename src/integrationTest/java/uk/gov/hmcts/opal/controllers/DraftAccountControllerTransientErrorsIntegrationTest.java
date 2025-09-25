@@ -51,25 +51,33 @@ class DraftAccountControllerTransientErrorsIntegrationTest extends AbstractInteg
     @DisplayName("Update draft account - Should return 406 Not Acceptable [@PO-973, @PO-747]")
     void testUpdateDraftAccount_trap406Response() throws Exception {
         DraftAccountResponseDto dto = DraftAccountService.toGetResponseDto(createDraftAccountEntity("Test", BU_ID));
-        when(draftAccountService.updateDraftAccount(any(), any(), any())).thenReturn(dto);
+        when(draftAccountService.updateDraftAccount(any(), any(), any(), any())).thenReturn(dto);
         shouldReturn406WhenResponseContentTypeNotSupported(
             patch(URL_BASE + "/1").contentType(MediaType.APPLICATION_JSON).content(validUpdateRequestBody())
         );
     }
 
     @Test
+    @DisplayName("Update draft account - Should return 408 [@PO-2117] ")
     void testUpdateDraftAccount_trap408Response() throws Exception {
         shouldReturn408WhenTimeout(
-            patch(URL_BASE + "/1").contentType(MediaType.APPLICATION_JSON).content(validUpdateRequestBody()),
-            when(draftAccountService.updateDraftAccount(any(), any(), any()))
+            patch(URL_BASE + "/1")
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validUpdateRequestBody()),
+            when(draftAccountService.updateDraftAccount(any(), any(), any(), any()))
         );
     }
 
     @Test
+    @DisplayName("Update draft account - Should return 503 [@PO-2117] ")
     void testUpdateDraftAccount_trap503Response() throws Exception {
         shouldReturn503WhenDownstreamServiceIsUnavailable(
-            patch(URL_BASE + "/1").contentType(MediaType.APPLICATION_JSON).content(validUpdateRequestBody()),
-            when(draftAccountService.updateDraftAccount(any(), any(), any()))
+            patch(URL_BASE + "/1")
+                .header("If-Match", "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(validUpdateRequestBody()),
+            when(draftAccountService.updateDraftAccount(any(), any(), any(), any()))
         );
     }
 
