@@ -13,7 +13,7 @@
     "collection_order": {
       "$ref": "../common-objects/collectionOrder.json"
     },
-    "enforcement_overrides": {
+    "enforcement_override": {
       "$ref": "../common-objects/enforcementOverride.json"
     }
   },
@@ -24,7 +24,7 @@
     "comment_and_notes",
     "enforcement_court",
     "collection_order",
-    "enforcement_overrides"
+    "enforcement_override"
   ]
 }
 
