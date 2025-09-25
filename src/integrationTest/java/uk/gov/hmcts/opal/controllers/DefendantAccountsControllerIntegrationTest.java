@@ -2017,7 +2017,6 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetAtAGlance: Party is an individual. Response body:\n" + ToJsonString.toPrettyJson(body));
 
-        // TODO: Add more detailed checks here
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_id").value(77))
