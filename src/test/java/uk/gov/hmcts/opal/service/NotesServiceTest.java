@@ -1,18 +1,18 @@
 package uk.gov.hmcts.opal.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,64 +41,93 @@ class NotesServiceTest {
 
     @InjectMocks private OpalNotesService service;
 
-    private DefendantAccountEntity account;
-    private AddNoteRequest addNoteRequest;
+    private AddNoteRequest request;
+    private DefendantAccountEntity detachedParam;
+    private DefendantAccountEntity managedInEm;
 
     @BeforeEach
     void setUp() {
         // Build request
-        Note requestNote = new Note();
-        requestNote.setRecordId("42");
-        requestNote.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        requestNote.setNoteText("hello");
-        requestNote.setNoteType("AA");
+        Note n = new Note();
+        n.setRecordId("77");
+        n.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
+        n.setNoteText("hello world");
+        n.setNoteType("AA");
 
-        addNoteRequest = new AddNoteRequest();
-        addNoteRequest.setActivityNote(requestNote);
+        request = new AddNoteRequest();
+        request.setActivityNote(n);
 
-        // Build account (passed directly to service)
-        account = new DefendantAccountEntity();
-        account.setDefendantAccountId(42L);
-        account.setVersion(5L);
-        account.setBusinessUnit(BusinessUnitEntity.builder().businessUnitId((short) 1).build());
+        // Detached param
+        detachedParam = new DefendantAccountEntity();
+        detachedParam.setDefendantAccountId(77L);
+        detachedParam.setVersion(1L);
+        detachedParam.setBusinessUnit(bu());
+
+        // Managed entity returned by em.find(...)
+        managedInEm = new DefendantAccountEntity();
+        managedInEm.setDefendantAccountId(77L);
+        managedInEm.setVersion(1L);
+        managedInEm.setBusinessUnit(bu());
     }
 
     @Test
-    void addNote_success_savesFields_returnsId_andLocksAccount() {
-        // Stubs used by this test only
-        when(user.getUserName()).thenReturn("USER1");
-
+    void addNote_success_savesFields_returnsId_andLocksManagedEntity() {
+        when(em.find(DefendantAccountEntity.class, 77L)).thenReturn(managedInEm);
+        when(user.getUserName()).thenReturn("USER1");                  // <-- stub ONLY here
         NoteEntity persisted = new NoteEntity();
-        persisted.setNoteId(60000000000000L);
-        when(repository.save(any(NoteEntity.class))).thenReturn(persisted);
+        persisted.setNoteId(123456789L);
+        when(repository.save(any(NoteEntity.class))).thenReturn(persisted); // <-- stub ONLY here
 
-        String id = service.addNote(addNoteRequest, 5L, user, account);
-
-        assertEquals("60000000000000", id);
+        String id = service.addNote(request, 1L, user, detachedParam);
+        assertEquals("123456789", id);
 
         var captor = ArgumentCaptor.forClass(NoteEntity.class);
         verify(repository).save(captor.capture());
         NoteEntity toSave = captor.getValue();
-        assertEquals("hello", toSave.getNoteText());
+        assertEquals("hello world", toSave.getNoteText());
         assertEquals("AA", toSave.getNoteType());
-        assertEquals("42", toSave.getAssociatedRecordId());
+        assertEquals("77", toSave.getAssociatedRecordId());
         assertEquals(RecordType.DEFENDANT_ACCOUNTS.toString(), toSave.getAssociatedRecordType());
         assertEquals("1", toSave.getBusinessUnitUserId());
+        assertEquals("USER1", toSave.getPostedByUsername());
+        assertNotNull(toSave.getPostedDate());
 
-        verify(em).lock(eq(account), eq(LockModeType.OPTIMISTIC_FORCE_INCREMENT));
+        verify(em).lock(eq(managedInEm), eq(LockModeType.OPTIMISTIC_FORCE_INCREMENT));
         verifyNoMoreInteractions(repository, em);
     }
 
     @Test
-    void addNote_versionMismatch_throws412_andDoesNotSaveOrLock() {
+    void addNote_accountNotFound_throws404_andDoesNotSaveOrLock() {
+        when(em.find(DefendantAccountEntity.class, 77L)).thenReturn(null);
+
         ResponseStatusException ex =
             assertThrows(ResponseStatusException.class,
-                         () -> service.addNote(addNoteRequest, 6L, user, account));
+                         () -> service.addNote(request, 1L, user, detachedParam));
+
+        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+        verify(repository, never()).save(any());
+        verify(em, never()).lock(any(), any());
+    }
+
+    @Test
+    void addNote_versionMismatch_throws412_andDoesNotSaveOrLock() {
+        managedInEm.setVersion(2L);
+        when(em.find(DefendantAccountEntity.class, 77L)).thenReturn(managedInEm);
+
+        ResponseStatusException ex =
+            assertThrows(ResponseStatusException.class,
+                         () -> service.addNote(request, 1L, user, detachedParam));
 
         assertEquals(HttpStatus.PRECONDITION_FAILED, ex.getStatusCode());
-        Assertions.assertNotNull(ex.getReason());
-        assertTrue(ex.getReason().contains("Expected 5 but got 6"));
+        assertNotNull(ex.getReason());
+        assertTrue(ex.getReason().contains("Expected 2 but got 1"));
+        verify(repository, never()).save(any());
+        verify(em, never()).lock(any(), any());
+    }
 
-        verifyNoInteractions(repository, em);  // nothing saved/locked
+    private static BusinessUnitEntity bu() {
+        BusinessUnitEntity bu = new BusinessUnitEntity();
+        bu.setBusinessUnitId((short) 1);
+        return bu;
     }
 }
