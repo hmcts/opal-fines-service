@@ -20,6 +20,7 @@ Feature: PO-747 patch draft account error handling
       | account_status     | Rejected             |
       | validated_by       | BUUID_REVIEWER       |
       | reason_text        | Reason for rejection |
+      | If-Match           | 0                    |
     Then The draft account response returns 400
 
     @PO-747 @cleanUpData
@@ -42,6 +43,7 @@ Feature: PO-747 patch draft account error handling
           | account_status   | Rejected             |
           | validated_by     | BUUID_REVIEWER       |
           | reason_text      | Reason for rejection |
+          | If-Match         | 0                    |
         Then The draft account response returns 401
 
       Then I am testing as the "opal-test@hmcts.net" user
@@ -54,7 +56,7 @@ Feature: PO-747 patch draft account error handling
           | account_status   | Rejected             |
           | validated_by     | BUUID_REVIEWER       |
           | reason_text      | Reason for rejection |
-          | version          | 0                    |
+          | If-Match         | 0                    |
 
         Then The draft account response returns 404
 

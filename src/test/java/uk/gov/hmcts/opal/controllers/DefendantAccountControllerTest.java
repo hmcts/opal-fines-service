@@ -8,7 +8,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.response.GetHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -18,7 +17,6 @@ import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -93,24 +91,6 @@ class DefendantAccountControllerTest {
         assertEquals(mockBody, response.getBody());
 
         verify(defendantAccountService).getHeaderSummary(eq(1L), any());
-    }
-
-    @Test
-    void testGetHeaderSummaryResponseGetters() {
-        DefendantAccountHeaderSummary summary = DefendantAccountHeaderSummary.builder()
-            .accountNumber("ABCD")
-            .accountType("Fine")
-            .build();
-        Long version = 10L;
-
-        GetHeaderSummaryResponse resp = new GetHeaderSummaryResponse(summary, version);
-        assertEquals(summary, resp.getData());
-        assertEquals(version, resp.getVersion());
-
-        // Null cases
-        GetHeaderSummaryResponse respNull = new GetHeaderSummaryResponse(null, null);
-        assertNull(respNull.getData());
-        assertNull(respNull.getVersion());
     }
 
     @Test

@@ -411,7 +411,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.CONFLICT,
             "Conflict",
-            "Conflict updating record. Please try again.",
+            Optional.ofNullable(e.getMessage()).orElse("Conflict updating record. Please try again."),
             "optimistic-locking",
             e
         );
