@@ -80,6 +80,7 @@ Feature: PO-749 put draft account error handling
       | submitted_by      | BUUID                                  |
       | submitted_by_name | Laura Clerk                            |
       | timeline_data     | draftAccounts/timelineJson/default.json|
+      | If-Match          | 0                                      |
 
     Then The draft account response returns 404
     Then I delete the created draft accounts

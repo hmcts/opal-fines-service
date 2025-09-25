@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:complexType name="vehicle_fixed_penalty_ticket_details">
+    <xsd:sequence>
+      <xsd:element name="fp_registration_number" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="fp_driving_license" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="notice_to_owner_or_hirer_number" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="date_notice_to_owner_was_issued" type="xsd:date" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>
