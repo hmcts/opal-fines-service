@@ -25,8 +25,8 @@ public class NotesProxy implements NotesServiceInterface, ProxyInterface {
     }
 
     @Override
-    public String addNote(AddNoteRequest request, Long version, UserState user, DefendantAccountEntity account) {
-        return getCurrentModeService().addNote(request, version, user, account);
+    public String addNote(AddNoteRequest request, String ifMatch, UserState user, DefendantAccountEntity account) {
+        return getCurrentModeService().addNote(request, ifMatch, user, account);
     }
 
 }

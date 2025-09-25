@@ -35,6 +35,7 @@ import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import uk.gov.hmcts.opal.util.Versioned;
 
 @Entity
 @Data
@@ -46,7 +47,7 @@ import java.util.List;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "defendantAccountId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class DefendantAccountEntity {
+public class DefendantAccountEntity implements Versioned {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "defendant_account_id_seq")

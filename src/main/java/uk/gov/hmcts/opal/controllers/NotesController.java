@@ -31,15 +31,12 @@ public class NotesController {
         @RequestBody
         AddNoteRequest request,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
-        @RequestHeader("If-Match") String ifMatchHeader) {
+        @RequestHeader("If-Match") String ifMatch) {
 
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", request.toPrettyJson());
 
-        String trimmed = ifMatchHeader.replace("\"", "");
-        Long expectedVersion = Long.valueOf(trimmed);
-
         String response =
-            notesService.addNote(request, expectedVersion, authHeaderValue);
+            notesService.addNote(request, ifMatch, authHeaderValue);
 
         return buildResponse(response);
     }

@@ -20,13 +20,13 @@ public class LegacyNotesService implements NotesServiceInterface {
     private final GatewayService gatewayService;
 
     @Override
-    public String addNote(AddNoteRequest request, Long version, UserState user, DefendantAccountEntity account) {
+    public String addNote(AddNoteRequest request, String ifMatch, UserState user, DefendantAccountEntity account) {
         log.info(":LegacyAddNote");
 
         GatewayService.Response<LegacyAddNoteResponse> response = gatewayService.postToGateway(
             ADD_NOTE,
             LegacyAddNoteResponse.class,
-            createRequest(request, version, user, account.getBusinessUnit().getBusinessUnitId().toString()),
+            createRequest(request, ifMatch, user, account.getBusinessUnit().getBusinessUnitId().toString()),
             null
         );
 
@@ -47,7 +47,7 @@ public class LegacyNotesService implements NotesServiceInterface {
         return response.responseEntity.getNote().getRecordId();
     }
 
-    private LegacyAddNoteRequest createRequest(AddNoteRequest request, Long version, UserState user,
+    private LegacyAddNoteRequest createRequest(AddNoteRequest request, String version, UserState user,
                                                String defendantBusinessUnitId) {
 
         LegacyNote note = LegacyNote.builder().noteText(request.getActivityNote().getNoteText())
@@ -55,6 +55,6 @@ public class LegacyNotesService implements NotesServiceInterface {
             .recordId(request.getActivityNote().getRecordId()).build();
 
         return LegacyAddNoteRequest.builder().businessUnitId(defendantBusinessUnitId)
-            .businessUnitUserId(user.getUserId().toString()).version(version).activityNote(note).build();
+            .businessUnitUserId(user.getUserId().toString()).version(Long.valueOf(version)).activityNote(note).build();
     }
 }

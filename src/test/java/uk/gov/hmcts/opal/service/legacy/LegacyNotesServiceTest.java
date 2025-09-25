@@ -62,7 +62,7 @@ class LegacyNotesServiceTest {
         DefendantAccountEntity account = accountWithBu((short) 1);
         when(user.getUserId()).thenReturn(999L);
 
-        String id = service.addNote(req, 1L, user, account);
+        String id = service.addNote(req, "1", user, account);
         assertEquals("77", id);
 
         LegacyAddNoteRequest sent = reqCap.getValue();
@@ -109,7 +109,7 @@ class LegacyNotesServiceTest {
         DefendantAccountEntity account = accountWithBu((short) 5);
         when(user.getUserId()).thenReturn(1L);
 
-        String id = service.addNote(req, 9L, user, account);
+        String id = service.addNote(req, "1", user, account);
         assertEquals("77", id);
 
         verify(gatewayService).postToGateway(
@@ -145,7 +145,7 @@ class LegacyNotesServiceTest {
         DefendantAccountEntity account = accountWithBu((short) 9);
         when(user.getUserId()).thenReturn(42L);
 
-        String id = service.addNote(req, 99L, user, account);
+        String id = service.addNote(req, "1", user, account);
         assertEquals("77", id);
 
         verify(gatewayService).postToGateway(
@@ -181,7 +181,7 @@ class LegacyNotesServiceTest {
         DefendantAccountEntity account = accountWithBu((short) 3);
         when(user.getUserId()).thenReturn(5L);
 
-        String id = service.addNote(req, 7L, user, account);
+        String id = service.addNote(req, "7", user, account);
         assertEquals("77", id);
 
         verify(gatewayService).postToGateway(

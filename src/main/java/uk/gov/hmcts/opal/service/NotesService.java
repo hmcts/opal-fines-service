@@ -23,7 +23,7 @@ public class NotesService {
     private final DefendantAccountRepository defendantAccountRepository;
 
 
-    public String addNote(AddNoteRequest request, Long version, String authHeaderValue) {
+    public String addNote(AddNoteRequest request, String ifMatch, String authHeaderValue) {
         log.debug(":addNote:");
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
@@ -40,6 +40,6 @@ public class NotesService {
             throw new PermissionNotAllowedException(Permissions.ACCOUNT_MAINTENANCE);
         }
 
-        return notesProxy.addNote(request, version, userState, account);
+        return notesProxy.addNote(request, ifMatch, userState, account);
     }
 }

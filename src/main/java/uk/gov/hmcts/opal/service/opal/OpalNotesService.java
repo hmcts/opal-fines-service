@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
@@ -27,7 +29,7 @@ public class OpalNotesService implements NotesServiceInterface {
 
     @Override
     @Transactional
-    public String addNote(AddNoteRequest req, Long version, UserState user, DefendantAccountEntity account) {
+    public String addNote(AddNoteRequest req, String ifMatch, UserState user, DefendantAccountEntity account) {
         // Reattach / ensure managed
         Long accountId = account.getDefendantAccountId(); // use your actual ID getter
         DefendantAccountEntity managed = em.find(DefendantAccountEntity.class, accountId);
@@ -39,14 +41,7 @@ public class OpalNotesService implements NotesServiceInterface {
             );
         }
 
-        // Use the MANAGED entity for all reads
-        if (!managed.getVersion().equals(version)) {
-            throw new ResponseStatusException(
-                HttpStatus.PRECONDITION_FAILED,
-                "Version mismatch. Expected "
-                    + managed.getVersion() + " but got " + version
-            );
-        }
+        verifyIfMatch(managed, ifMatch, managed.getVersion(), "addNote");
 
         Note requestNote = req.getActivityNote();
 
