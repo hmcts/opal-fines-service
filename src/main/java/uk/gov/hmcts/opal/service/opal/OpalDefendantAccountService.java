@@ -476,14 +476,17 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
     }
 
+    public DefendantAccountSummaryViewEntity getDefendantAccountSummaryViewById(long defendantAccountId) {
+        return defendantAccountSummaryViewRepository.findById(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account Summary View not found with id: " + defendantAccountId));
+    }
+
     public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         log.debug(":getAtAGlance (Opal): id: {}.", defendantAccountId);
 
-        // Query to fetch DefendantAccountAtAGlance data from the view.
-        DefendantAccountSummaryViewEntity entity =
-            defendantAccountSummaryViewRepository.findById(defendantAccountId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                    "Defendant Account not found with id: " + defendantAccountId));
+        // fetch DefendantAccountAtAGlance data from the view.
+        DefendantAccountSummaryViewEntity entity = getDefendantAccountSummaryViewById(defendantAccountId);
 
         return convertEntityToAtAGlanceResponse(entity);
     }
