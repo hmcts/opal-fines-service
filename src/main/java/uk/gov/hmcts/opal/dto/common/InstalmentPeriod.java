@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.dto.common;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Builder;
 
 @Builder
@@ -21,7 +20,6 @@ public class InstalmentPeriod {
             this.instalmentPeriodDisplayName = instalmentPeriodDisplayName;
         }
 
-        @JsonValue
         public String getInstalmentPeriodDisplayName() {
             return instalmentPeriodDisplayName;
         }
@@ -58,8 +56,8 @@ public class InstalmentPeriod {
 
     // Getter for short code (W, M, F)
     @JsonProperty("instalment_period_code")
-    public String getInstalmentPeriodCode() {
-        return instalmentPeriodCode == null ? null : instalmentPeriodCode.toString();
+    public InstalmentPeriodCode getInstalmentPeriodCode() {
+        return instalmentPeriodCode;
     }
 
     @JsonProperty("instalment_period_display_name")
