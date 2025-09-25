@@ -1,8 +1,15 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,12 +37,8 @@ class LegacyNotesServiceTest {
 
     @InjectMocks private LegacyNotesService service;
 
-    /** ✅ success path: only isSuccessful() is consulted (isError defaults to false) */
     @Test
     void addNote_success_returnsRecordId_andBuildsRequest() {
-        AddNoteRequest req = addReq("77", "hello");
-        DefendantAccountEntity account = accountWithBu((short) 1);
-        when(user.getUserId()).thenReturn(999L);
 
         LegacyAddNoteResponse entity = legacyRespWithNote("77", "hello");
 
@@ -54,6 +57,10 @@ class LegacyNotesServiceTest {
             reqCap.capture(),
             isNull(String.class)
         )).thenReturn(resp);
+
+        AddNoteRequest req = addReq("77", "hello");
+        DefendantAccountEntity account = accountWithBu((short) 1);
+        when(user.getUserId()).thenReturn(999L);
 
         String id = service.addNote(req, 1L, user, account);
         assertEquals("77", id);
@@ -79,12 +86,8 @@ class LegacyNotesServiceTest {
         verifyNoMoreInteractions(gatewayService);
     }
 
-    /** ❌ error + exception: only isError() + isException() are consulted */
     @Test
     void addNote_errorWithException_stillReturnsRecordId() {
-        AddNoteRequest req = addReq("77", "boom");
-        DefendantAccountEntity account = accountWithBu((short) 5);
-        when(user.getUserId()).thenReturn(1L);
 
         LegacyAddNoteResponse entity = legacyRespWithNote("77", "boom");
 
@@ -102,6 +105,10 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         )).thenReturn(resp);
 
+        AddNoteRequest req = addReq("77", "boom");
+        DefendantAccountEntity account = accountWithBu((short) 5);
+        when(user.getUserId()).thenReturn(1L);
+
         String id = service.addNote(req, 9L, user, account);
         assertEquals("77", id);
 
@@ -114,12 +121,8 @@ class LegacyNotesServiceTest {
         verifyNoMoreInteractions(gatewayService);
     }
 
-    /** ❌ error + legacy failure: isError() true, isException() false, then isLegacyFailure() true */
     @Test
     void addNote_errorLegacyFailure_stillReturnsRecordId() {
-        AddNoteRequest req = addReq("77", "world");
-        DefendantAccountEntity account = accountWithBu((short) 9);
-        when(user.getUserId()).thenReturn(42L);
 
         LegacyAddNoteResponse entity = legacyRespWithNote("77", "world");
 
@@ -138,6 +141,10 @@ class LegacyNotesServiceTest {
             isNull(String.class)
         )).thenReturn(resp);
 
+        AddNoteRequest req = addReq("77", "world");
+        DefendantAccountEntity account = accountWithBu((short) 9);
+        when(user.getUserId()).thenReturn(42L);
+
         String id = service.addNote(req, 99L, user, account);
         assertEquals("77", id);
 
@@ -150,12 +157,8 @@ class LegacyNotesServiceTest {
         verifyNoMoreInteractions(gatewayService);
     }
 
-    /** ❌ generic error: isError() true, isException() false, isLegacyFailure() false */
     @Test
     void addNote_errorGeneric_stillReturnsRecordId() {
-        AddNoteRequest req = addReq("77", "meh");
-        DefendantAccountEntity account = accountWithBu((short) 3);
-        when(user.getUserId()).thenReturn(5L);
 
         LegacyAddNoteResponse entity = legacyRespWithNote("77", "meh");
 
@@ -173,6 +176,10 @@ class LegacyNotesServiceTest {
             any(LegacyAddNoteRequest.class),
             isNull(String.class)
         )).thenReturn(resp);
+
+        AddNoteRequest req = addReq("77", "meh");
+        DefendantAccountEntity account = accountWithBu((short) 3);
+        when(user.getUserId()).thenReturn(5L);
 
         String id = service.addNote(req, 7L, user, account);
         assertEquals("77", id);
