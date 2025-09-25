@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 class OpalDefendantAccountServiceTest {
 
@@ -121,6 +122,18 @@ class OpalDefendantAccountServiceTest {
         assertEquals("ACCT100", dto.getAccountNumber());
         assertNotNull(dto.getPartyDetails());
     }
+
+    @Test
+    void testGetDefendantAccountSummaryViewById() {
+        long testId = 1L;
+
+        DefendantAccountSummaryViewEntity viewEntity = DefendantAccountSummaryViewEntity.builder().build();
+        when(service.getDefendantAccountSummaryViewById(testId)).thenReturn(viewEntity);
+
+        DefendantAccountSummaryViewEntity result = service.getDefendantAccountSummaryViewById(testId);
+        assertNotNull(result);
+    }
+
 
     @Test
     void convertEntityToAtAGlanceResponse_mapsAllFields_Individual() {
