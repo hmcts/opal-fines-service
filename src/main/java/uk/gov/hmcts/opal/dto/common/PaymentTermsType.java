@@ -11,6 +11,7 @@ import lombok.Getter;
 public class PaymentTermsType {
 
     // Payment terms type codes
+    @Getter
     public enum PaymentTermsTypeCode {
         B("By date"),
         P("Paid"),
@@ -23,23 +24,16 @@ public class PaymentTermsType {
             this.paymentTermsTypeDisplayName = paymentTermsTypeDisplayName;
         }
 
-        public String getPaymentTermsTypeDisplayName() {
-            return paymentTermsTypeDisplayName;
-        }
-
         // Lookup by short code string
         @JsonCreator
         public static PaymentTermsTypeCode fromValue(String code) {
             if (code == null) {
                 return null;
             }
-
-            for (PaymentTermsTypeCode value : values()) {
-                if (value.name().equalsIgnoreCase(code.trim())) {
-                    return value;
-                }
-            }
-            throw new IllegalArgumentException("Invalid Payment Terms Type code: " + code);
+            return java.util.Arrays.stream(values())
+                .filter(value -> value.name().equalsIgnoreCase(code.trim()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid instalment period code: " + code));
         }
     }
 
