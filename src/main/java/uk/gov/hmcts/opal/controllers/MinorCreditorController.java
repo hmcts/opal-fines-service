@@ -1,20 +1,27 @@
 package uk.gov.hmcts.opal.controllers;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/minor-creditor-accounts")
@@ -41,4 +48,22 @@ public class MinorCreditorController {
         return buildResponse(response);
     }
 
+    @Hidden
+    @DeleteMapping(value = "/{minorCreditorId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Deletes the Minor Creditor for the given minorCreditorId.")
+    @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
+    public ResponseEntity<String> deleteMinorCreditorById(
+        @PathVariable Long minorCreditorId,
+        @RequestHeader(value = "Authorization", required = false)  String authHeaderValue,
+        @RequestHeader(value = "If-Match") String ifMatch,
+        @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
+
+        // Note: This endpoint is used for testing only, so the 'If-Match' check is not actually used.
+        boolean checkExisted = !(ignoreMissing.orElse(false));
+        log.debug(":DELETE:deleteMinorCreditorById: Delete Draft Account: {}{}", minorCreditorId,
+                  checkExisted ? "" : ", ignore if missing");
+
+        return buildResponse(minorCreditorService
+                                 .deleteMinorCreditor((minorCreditorId), checkExisted, authHeaderValue));
+    }
 }

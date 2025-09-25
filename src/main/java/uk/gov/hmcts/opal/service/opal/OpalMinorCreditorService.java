@@ -1,9 +1,12 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
@@ -19,11 +22,17 @@ import java.util.List;
 @Service
 @Slf4j(topic = "opal.OpalMinorCreditorService")
 @RequiredArgsConstructor
-public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
+public class OpalMinorCreditorService implements MinorCreditorServiceInterface, OpalMinorCreditorServiceProxy {
 
     private final MinorCreditorRepository minorCreditorRepository;
 
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
+
+
+    public MinorCreditorEntity getMinorCreditorById(long minorCreditorId) {
+        return minorCreditorRepository.findById(minorCreditorId)
+            .orElseThrow(() -> new EntityNotFoundException("Minor Creditor not found with id: " + minorCreditorId));
+    }
 
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch criteria) {
@@ -34,7 +43,12 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             minorCreditorRepository.findAll(spec);
 
         return toResponse(results);
+    }
 
+    @Transactional
+    public boolean deleteMinorCreditor(long draftAccountId, OpalMinorCreditorServiceProxy proxy) {
+        minorCreditorRepository.delete(proxy.getMinorCreditorById(draftAccountId));
+        return true;
     }
 
     private CreditorAccountDto toCreditorAccountDto(MinorCreditorEntity entity) {

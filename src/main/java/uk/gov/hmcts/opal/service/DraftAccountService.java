@@ -130,8 +130,7 @@ public class DraftAccountService {
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
         try {
-            boolean deleted =  draftAccountTransactions.deleteDraftAccount(draftAccountId, checkExisted,
-                                                                           draftAccountTransactions);
+            boolean deleted =  draftAccountTransactions.deleteDraftAccount(draftAccountId, draftAccountTransactions);
             if (deleted) {
                 log.debug(":deleteDraftAccount: Deleted Draft Account: {}", draftAccountId);
             }
