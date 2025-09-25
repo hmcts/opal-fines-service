@@ -35,21 +35,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required:
-                  - creditor_account_id
-                  - party_details
-                  - address
-                  - payment
-                properties:
-                  creditor_account_id:
-                    $ref: "./types.yaml#/components/schemas/BigInt"
-                  party_details:
-                    $ref: './common.yaml#/components/schemas/partyDetails'
-                  address:
-                    $ref: './common.yaml#/components/schemas/addressDetails'
-                  payment:
-                    $ref: './common.yaml#/components/schemas/creditorAccountPaymentDetails'
+                $ref: "#/components/schemas/minorCreditorAccountResponse"
         400:
           description: Bad request
           content:
@@ -116,8 +102,17 @@ paths:
                 payment:
                   $ref: './common.yaml#/components/schemas/creditorAccountPaymentDetails'
       responses:
-        204:
-          description: No Content
+        '201':
+          description: CREATED
+          headers:
+            ETag:
+              description: Version of the minor creditor account. DB Mapping - creditor_accounts.version
+              schema:
+                $ref: "./types.yaml#/components/schemas/BigInt"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/minorCreditorAccountResponse"
         400:
           description: Bad request
           content:
@@ -148,4 +143,21 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-
+components:
+    schemas:
+        minorCreditorAccountResponse:
+          type: object
+          required:
+            - creditor_account_id
+            - party_details
+            - address
+            - payment
+          properties:
+            creditor_account_id:
+              $ref: "./types.yaml#/components/schemas/BigInt"
+            party_details:
+              $ref: './common.yaml#/components/schemas/partyDetails'
+            address:
+              $ref: './common.yaml#/components/schemas/addressDetails'
+            payment:
+              $ref: './common.yaml#/components/schemas/creditorAccountPaymentDetails'
