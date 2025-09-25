@@ -14,7 +14,7 @@ import java.time.ZoneOffset;
 @Mapper(componentModel = "spring")
 public interface DraftAccountMapper {
 
-    @Mapping(source = "version", target = "versionNumber")
+    @Mapping(source = "version", target = "version")
     @Mapping(source = "createdDate", target = "createdDate", qualifiedByName = "toOffsetDateTime")
     @Mapping(source = "validatedDate", target = "validatedDate", qualifiedByName = "toOffsetDateTime")
     @Mapping(source = "accountStatusDate", target = "accountStatusDate", qualifiedByName = "toLocalDate")
