@@ -502,41 +502,15 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .organisationFlag(entity.getOrganisation())
             // Only one of organisationDetails or individualDetails will be populated
             // if organisationFlag is true, then organisationDetails is populated
-            // if organisationFlag is false, then individualDetails is populated
             .organisationDetails(
                 entity.getOrganisation()
-                    ? OrganisationDetails.builder()
-                    .organisationName(entity.getOrganisationName())
-                    .organisationAliases(
-                        entity.getAliasId() != null
-                            ? List.of(OrganisationAlias.builder().aliasId(entity.getAliasId())
-                                          .sequenceNumber(entity.getSequenceNumber())
-                                          .organisationName(entity.getOrganisationName())
-                                          .build())
-                            : Collections.emptyList()
-                    )
-                    .build()
+                    ? buildOrganisationDetails(entity)
                     : null
             )
+            // if organisationFlag is false, then individualDetails is populated
             .individualDetails(
                 !entity.getOrganisation()
-                    ? IndividualDetails.builder()
-                    .title(entity.getTitle())
-                    .forenames(entity.getForenames())
-                    .surname(entity.getSurname())
-                    .dateOfBirth(entity.getBirthDate() != null ? entity.getBirthDate().toLocalDate().toString() : null)
-                    .age(entity.getBirthDate() != null ? String.valueOf(
-                        calculateAge(entity.getBirthDate().toLocalDate())) : null)
-                    .individualAliases(
-                        entity.getAliasId() != null
-                            ? List.of(IndividualAlias.builder().aliasId(entity.getAliasId())
-                                          .sequenceNumber(entity.getSequenceNumber())
-                                          .forenames(entity.getAliasForenames())
-                                          .surname(entity.getAliasSurname())
-                                          .build())
-                            : Collections.emptyList())
-                    .nationalInsuranceNumber(entity.getNationalInsuranceNumber())
-                    .build()
+                    ? buildIndividualDetails(entity)
                     : null
             )
             .build();
@@ -550,33 +524,65 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .postcode(entity.getPostcode())
             .build();
 
-        LanguagePreference documentLanguagePref =
-            LanguagePreference.fromCode(entity.getDocumentLanguage());
-
-        LanguagePreference hearingLanguagePref =
-            LanguagePreference.fromCode(entity.getHearingLanguage());
-
-        LanguagePreferences languagePreferences = LanguagePreferences.builder()
-            .documentLanguagePreference(documentLanguagePref)
-            .hearingLanguagePreference(hearingLanguagePref)
+        CommentsAndNotes commentsAndNotes = CommentsAndNotes.builder()
+            .accountNotesAccountComments(entity.getAccountComments())
+            .accountNotesFreeTextNote1(entity.getAccountNote1())
+            .accountNotesFreeTextNote2(entity.getAccountNote2())
+            .accountNotesFreeTextNote3(entity.getAccountNote3())
             .build();
 
-        PaymentTermsSummary paymentTerms = PaymentTermsSummary.builder()
-            .paymentTermsType(
-                PaymentTermsType.builder()
-                    .paymentTermsTypeCode(safePaymentTermsTypeCode(entity.getTermsTypeCode()))
-                    .build()
-            )
-            .effectiveDate(null == entity.getEffectiveDate() ? null : entity.getEffectiveDate().toLocalDate())
-            .instalmentPeriod(
-                InstalmentPeriod.builder()
-                    .instalmentPeriodCode(safeInstalmentPeriodCode(entity.getInstalmentPeriod()))
-                    .build()
-            )
-            .lumpSumAmount(entity.getInstalmentLumpSum())
-            .instalmentAmount(entity.getInstalmentAmount())
+        return DefendantAccountAtAGlanceResponse.builder()
+            .defendantAccountId(entity.getDefendantAccountId().toString())
+            .accountNumber(entity.getAccountNumber())
+            .debtorType(entity.getDebtorType())
+            .isYouth(isYouth(entity.getBirthDate(), entity.getAge()))
+            .partyDetails(partyDetails)
+            .addressDetails(addressDetails)
+            .languagePreferences(buildLanguagePreferences(entity))
+            .paymentTermsSummary(buildPaymentTerms(entity))
+            .enforcementStatus(buildEnforcementStatusSummary(entity))
+            .commentsAndNotes(commentsAndNotes)
             .build();
+    }
 
+    /**
+     * Build OrganisationDetails from the DefendantAccountSummaryViewEntity.
+     */
+    private static OrganisationDetails buildOrganisationDetails(DefendantAccountSummaryViewEntity entity) {
+        return OrganisationDetails.builder()
+            .organisationName(entity.getOrganisationName())
+            .organisationAliases(
+                entity.getAliasId() != null
+                    ? List.of(OrganisationAlias.builder().aliasId(entity.getAliasId())
+                                  .sequenceNumber(entity.getSequenceNumber())
+                                  .organisationName(entity.getOrganisationName())
+                                  .build())
+                    : Collections.emptyList()
+            )
+            .build();
+    }
+
+    private static IndividualDetails buildIndividualDetails(DefendantAccountSummaryViewEntity entity) {
+        return IndividualDetails.builder()
+            .title(entity.getTitle())
+            .forenames(entity.getForenames())
+            .surname(entity.getSurname())
+            .dateOfBirth(entity.getBirthDate() != null ? entity.getBirthDate().toLocalDate().toString() : null)
+            .age(entity.getBirthDate() != null ? String.valueOf(
+                calculateAge(entity.getBirthDate().toLocalDate())) : null)
+            .individualAliases(
+                entity.getAliasId() != null
+                    ? List.of(IndividualAlias.builder().aliasId(entity.getAliasId())
+                                  .sequenceNumber(entity.getSequenceNumber())
+                                  .forenames(entity.getAliasForenames())
+                                  .surname(entity.getAliasSurname())
+                                  .build())
+                    : Collections.emptyList())
+            .nationalInsuranceNumber(entity.getNationalInsuranceNumber())
+            .build();
+    }
+
+    private static EnforcementStatusSummary buildEnforcementStatusSummary(DefendantAccountSummaryViewEntity entity) {
         LastEnforcementAction lastEnforcementAction = LastEnforcementAction.builder()
             .lastEnforcementActionId(entity.getLastEnforcement())
             .lastEnforcementActionTitle(entity.getLastEnforcementTitle())
@@ -603,32 +609,43 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .lja(lja)
             .build();
 
-        EnforcementStatusSummary enforcementStatus = EnforcementStatusSummary.builder()
+        return EnforcementStatusSummary.builder()
             .lastEnforcementAction(lastEnforcementAction)
             .collectionOrderMade(entity.getCollectionOrder())
             .defaultDaysInJail(entity.getJailDays())
             .enforcementOverride(enforcementOverride)
             .lastMovementDate(entity.getLastMovementDate())
             .build();
+    }
 
-        CommentsAndNotes commentsAndNotes = CommentsAndNotes.builder()
-            .accountNotesAccountComments(entity.getAccountComments())
-            .accountNotesFreeTextNote1(entity.getAccountNote1())
-            .accountNotesFreeTextNote2(entity.getAccountNote2())
-            .accountNotesFreeTextNote3(entity.getAccountNote3())
+    private static PaymentTermsSummary buildPaymentTerms(DefendantAccountSummaryViewEntity entity) {
+        return PaymentTermsSummary.builder()
+            .paymentTermsType(
+                PaymentTermsType.builder()
+                    .paymentTermsTypeCode(safePaymentTermsTypeCode(entity.getTermsTypeCode()))
+                    .build()
+            )
+            .effectiveDate(null == entity.getEffectiveDate() ? null : entity.getEffectiveDate().toLocalDate())
+            .instalmentPeriod(
+                InstalmentPeriod.builder()
+                    .instalmentPeriodCode(safeInstalmentPeriodCode(entity.getInstalmentPeriod()))
+                    .build()
+            )
+            .lumpSumAmount(entity.getInstalmentLumpSum())
+            .instalmentAmount(entity.getInstalmentAmount())
             .build();
+    }
 
-        return DefendantAccountAtAGlanceResponse.builder()
-            .defendantAccountId(entity.getDefendantAccountId().toString())
-            .accountNumber(entity.getAccountNumber())
-            .debtorType(entity.getDebtorType())
-            .isYouth(isYouth(entity.getBirthDate(), entity.getAge()))
-            .partyDetails(partyDetails)
-            .addressDetails(addressDetails)
-            .languagePreferences(languagePreferences)
-            .paymentTermsSummary(paymentTerms)
-            .enforcementStatus(enforcementStatus)
-            .commentsAndNotes(commentsAndNotes)
+    private static LanguagePreferences buildLanguagePreferences(DefendantAccountSummaryViewEntity entity) {
+        LanguagePreference documentLanguagePref =
+            LanguagePreference.fromCode(entity.getDocumentLanguage());
+
+        LanguagePreference hearingLanguagePref =
+            LanguagePreference.fromCode(entity.getHearingLanguage());
+
+        return LanguagePreferences.builder()
+            .documentLanguagePreference(documentLanguagePref)
+            .hearingLanguagePreference(hearingLanguagePref)
             .build();
     }
 
