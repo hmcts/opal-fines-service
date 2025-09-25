@@ -13,17 +13,22 @@ import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 class OpalDefendantAccountServiceTest {
 
+    private final DefendantAccountSummaryViewRepository dasvRepository =
+        mock(DefendantAccountSummaryViewRepository.class);
+
     // If you need to create the service, mock the repos as needed.
     private final OpalDefendantAccountService service =
-        new OpalDefendantAccountService(null, null, null, null, null);
+        new OpalDefendantAccountService(null, null, null, null, dasvRepository);
 
     @Test
     void testNzHelper() {
@@ -128,7 +133,7 @@ class OpalDefendantAccountServiceTest {
         long testId = 1L;
 
         DefendantAccountSummaryViewEntity viewEntity = DefendantAccountSummaryViewEntity.builder().build();
-        when(service.getDefendantAccountSummaryViewById(testId)).thenReturn(viewEntity);
+        when(dasvRepository.findById(testId)).thenReturn(java.util.Optional.of(viewEntity));
 
         DefendantAccountSummaryViewEntity result = service.getDefendantAccountSummaryViewById(testId);
         assertNotNull(result);
