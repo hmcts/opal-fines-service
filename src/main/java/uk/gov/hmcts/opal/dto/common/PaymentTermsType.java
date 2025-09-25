@@ -59,8 +59,8 @@ public class PaymentTermsType {
 
     // Getter for short code (B, P, I)
     @JsonProperty("payment_terms_type_code")
-    public String getPaymentTermsTypeCode() {
-        return paymentTermsTypeCode == null ? null : paymentTermsTypeCode.toString();
+    public PaymentTermsTypeCode getPaymentTermsTypeCode() {
+        return paymentTermsTypeCode;
     }
 
     @JsonProperty("payment_terms_type_display_name")
