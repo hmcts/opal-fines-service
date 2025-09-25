@@ -30,8 +30,11 @@ public class OpalNotesService implements NotesServiceInterface {
     @Override
     @Transactional
     public String addNote(AddNoteRequest req, String ifMatch, UserState user, DefendantAccountEntity account) {
-        // Reattach / ensure managed
-        Long accountId = account.getDefendantAccountId(); // use your actual ID getter
+        // TODO - waiting for PO-1564 to call DefendantAccountService to get the account
+
+        log.info(":OpalAddNote");
+
+        Long accountId = account.getDefendantAccountId();
         DefendantAccountEntity managed = em.find(DefendantAccountEntity.class, accountId);
 
         if (managed == null) {
