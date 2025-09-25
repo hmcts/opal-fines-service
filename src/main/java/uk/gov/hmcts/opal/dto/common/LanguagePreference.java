@@ -36,13 +36,10 @@ public class LanguagePreference {
             if (code == null) {
                 return null;
             }
-
-            for (LanguageCode value : values()) {
-                if (value.name().equalsIgnoreCase(code.trim())) {
-                    return value;
-                }
-            }
-            throw new IllegalArgumentException("Invalid LanguageCode: " + code);
+            return java.util.Arrays.stream(values())
+                .filter(value -> value.name().equalsIgnoreCase(code.trim()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid instalment period code: " + code));
         }
     }
 
