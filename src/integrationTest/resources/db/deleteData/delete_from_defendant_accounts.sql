@@ -77,5 +77,7 @@ DELETE FROM results WHERE result_id IN ('TSTRES');
 -- Remove from major_creditors referencing test BU
 DELETE FROM major_creditors WHERE business_unit_id = 9999;
 
+DELETE FROM amendments WHERE amendment_id > 60000000000000;
+
 -- Remove the test business unit
 DELETE FROM business_units WHERE business_unit_id = 9999;
