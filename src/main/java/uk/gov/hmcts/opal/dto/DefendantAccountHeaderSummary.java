@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -10,16 +11,20 @@ import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
+import uk.gov.hmcts.opal.util.Versioned;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DefendantAccountHeaderSummary implements ToJsonString {
+public class DefendantAccountHeaderSummary implements ToJsonString, Versioned {
 
     @JsonProperty("account_number")
     private String accountNumber;
+
+    @JsonIgnore
+    private Long version;
 
     @JsonProperty("defendant_party_id")
     private String defendantPartyId;

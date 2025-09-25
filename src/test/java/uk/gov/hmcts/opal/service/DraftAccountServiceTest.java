@@ -137,7 +137,8 @@ class DraftAccountServiceTest {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
         // Act
-        DraftAccountResponseDto result = draftAccountService.submitDraftAccount(addDraftAccountDto, "authHeaderValue");
+        DraftAccountResponseDto result = draftAccountService
+            .submitDraftAccount(addDraftAccountDto, "authHeaderValue");
 
         // Assert
         assertEquals(draftAccountEntity.getAccount(), result.getAccount());
@@ -180,7 +181,8 @@ class DraftAccountServiceTest {
 
         // Act
         EntityNotFoundException enfe = assertThrows(
-            EntityNotFoundException.class, () -> draftAccountService.deleteDraftAccount(1, true, "authHeaderValue")
+            EntityNotFoundException.class, () -> draftAccountService
+                .deleteDraftAccount(1, true, "authHeaderValue")
         );
 
         // Assert
@@ -211,12 +213,12 @@ class DraftAccountServiceTest {
             .version(1L)
             .build();
 
-        when(draftAccountTransactions.replaceDraftAccount(any(), any(), any())).thenReturn(updatedAccount);
+        when(draftAccountTransactions.replaceDraftAccount(any(), any(), any(), any())).thenReturn(updatedAccount);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
         // Act
-        DraftAccountResponseDto result = draftAccountService.replaceDraftAccount(draftAccountId, replaceDto,
-                                                                                 "authHeaderValue");
+        DraftAccountResponseDto result = draftAccountService
+            .replaceDraftAccount(draftAccountId, replaceDto, "authHeaderValue", "");
 
         // Assert
         assertNotNull(result);
@@ -245,13 +247,13 @@ class DraftAccountServiceTest {
             .version(0L)
             .build();
 
-        when(draftAccountTransactions.replaceDraftAccount(any(), any(), any())).thenThrow(
+        when(draftAccountTransactions.replaceDraftAccount(any(), any(), any(), any())).thenThrow(
             new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () ->
-            draftAccountService.replaceDraftAccount(draftAccountId, replaceDto, "authHeaderValue")
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> draftAccountService
+            .replaceDraftAccount(draftAccountId, replaceDto, "authHeaderValue", "")
         );
         assertEquals("Draft Account not found with id: 1", exception.getMessage());
     }
@@ -276,12 +278,12 @@ class DraftAccountServiceTest {
             .version(0L)
             .build();
 
-        when(draftAccountTransactions.replaceDraftAccount(any(), any(), any())).thenReturn(existingAccount);
+        when(draftAccountTransactions.replaceDraftAccount(any(), any(), any(), any())).thenReturn(existingAccount);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
         // Act & Assert
-        assertThrows(ResourceConflictException.class, () ->
-            draftAccountService.replaceDraftAccount(draftAccountId, dto, "authHeaderValue")
+        assertThrows(ResourceConflictException.class, () -> draftAccountService
+            .replaceDraftAccount(draftAccountId, dto, "authHeaderValue", "")
         );
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
@@ -303,12 +305,12 @@ class DraftAccountServiceTest {
             .version(0L)
             .build();
 
-        when(draftAccountTransactions.updateDraftAccount(any(), any(), any())).thenReturn(existingAccount);
+        when(draftAccountTransactions.updateDraftAccount(any(), any(), any(), any())).thenReturn(existingAccount);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
         // Act & Assert
-        assertThrows(ResourceConflictException.class, () ->
-            draftAccountService.updateDraftAccount(draftAccountId, updateDto, "authHeaderValue")
+        assertThrows(ResourceConflictException.class, () -> draftAccountService
+            .updateDraftAccount(draftAccountId, updateDto, "authHeaderValue", "")
         );
     }
 
@@ -335,13 +337,13 @@ class DraftAccountServiceTest {
             .version(1L)
             .build();
 
-        when(draftAccountTransactions.updateDraftAccount(any(), any(), any())).thenReturn(updatedAccount);
+        when(draftAccountTransactions.updateDraftAccount(any(), any(), any(), any())).thenReturn(updatedAccount);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
         when(draftAccountPublishProxy.publishDefendantAccount(any(), any())).thenReturn(updatedAccount);
 
         // Act
-        DraftAccountResponseDto result = draftAccountService.updateDraftAccount(draftAccountId,
-                                                                           updateDto, "authHeaderValue");
+        DraftAccountResponseDto result = draftAccountService
+            .updateDraftAccount(draftAccountId, updateDto, "authHeaderValue", "");
 
         // Assert
         assertNotNull(result);

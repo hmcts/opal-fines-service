@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
@@ -51,7 +52,6 @@ public class ReplaceDraftAccountRequestDto implements ToJsonString, DraftAccount
     @JsonRawValue
     private String timelineData;
 
-    @NotNull
-    @JsonProperty(value = "version")
+    @JsonIgnore
     private Long version;
 }

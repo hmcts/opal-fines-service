@@ -70,11 +70,3 @@ Feature: PO-829 Authorization for Get Draft Accounts
     When I get the draft accounts filtering on the Business unit ""
     Then The draft account filtered response does not contain accounts in the "73" business unit
     Then The draft account filtered response does not contain accounts in the "26" business unit
-
-
-    Given I am testing as the "opal-test@hmcts.net" user
-    Then I delete the created draft accounts
-
-
-
-
