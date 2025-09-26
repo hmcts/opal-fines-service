@@ -13,8 +13,9 @@
     "comment_and_notes": {
       "$ref": "./common-objects/commentsAndNotesLegacy.json"
     },
-    "enforcement_court": {
-      "$ref": "./common-objects/courtReferenceLegacy.json"
+    "enforcement_court_id": {
+      "type": "string",
+      "minLength": 1
     },
     "collection_order": {
       "$ref": "./common-objects/collectionOrderLegacy.json"
