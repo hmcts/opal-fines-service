@@ -28,7 +28,7 @@
           "minLength": 8,
           "maxLength": 9
         },
-        "id": {
+        "account_id": {
           "$ref": "../../types/bigint_value.json",
           "type": [
             "number",
@@ -37,7 +37,7 @@
         },
         "required": [
           "account_number",
-          "id"
+          "account_id"
         ]
       }
     },
