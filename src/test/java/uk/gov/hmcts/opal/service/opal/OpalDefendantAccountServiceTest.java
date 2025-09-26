@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
@@ -13,6 +14,7 @@ import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,12 +25,25 @@ import static org.mockito.Mockito.mock;
 
 class OpalDefendantAccountServiceTest {
 
+    private final DefendantAccountRepository defendantAccountRepository =
+        mock(DefendantAccountRepository.class);
     private final DefendantAccountSummaryViewRepository dasvRepository =
         mock(DefendantAccountSummaryViewRepository.class);
 
     // If you need to create the service, mock the repos as needed.
     private final OpalDefendantAccountService service =
-        new OpalDefendantAccountService(null, null, null, null, dasvRepository);
+        new OpalDefendantAccountService(null, defendantAccountRepository, null, null, dasvRepository);
+
+    @Test
+    void testDefendantAccountById() {
+        long testId = 1L;
+
+        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+        when(defendantAccountRepository.findById(testId)).thenReturn(java.util.Optional.of(entity));
+
+        DefendantAccountEntity result = service.getDefendantAccountById(testId);
+        assertNotNull(result);
+    }
 
     @Test
     void testNzHelper() {
