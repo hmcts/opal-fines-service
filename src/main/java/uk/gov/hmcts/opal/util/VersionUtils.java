@@ -1,9 +1,12 @@
 package uk.gov.hmcts.opal.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+
+import java.util.Optional;
 
 @Slf4j(topic = "opal.VersionUtils")
 public class VersionUtils {
@@ -23,9 +26,14 @@ public class VersionUtils {
      */
     public static void verifyVersions(Versioned existingFromDB, Versioned dto, Object id, String method) {
         if (versionsAreNotEqual(existingFromDB, dto)) {
-            log.warn(":{}: Versions Do Not Match! Entity: {} {}, DB version: {}, Update version: {}", method,
-                     existingFromDB.getClass().getSimpleName(), id, existingFromDB.getVersion(), dto.getVersion());
-            throw new ObjectOptimisticLockingFailureException(DraftAccountEntity.class, id);
+            String msg = MessageFormatter.arrayFormat(
+                ":{}: Versions do not match for: {} '{}'; DB version: {}, supplied update version: {}",
+                new Object[] { method, existingFromDB.getClass().getSimpleName(),
+                    id, existingFromDB.getVersion(), dto.getVersion()
+                })
+                .getMessage();
+            log.warn(msg);
+            throw new ObjectOptimisticLockingFailureException(DraftAccountEntity.class, id, msg, null);
         }
     }
 
@@ -47,4 +55,17 @@ public class VersionUtils {
     public static boolean versionsAreNotEqual(Versioned fromDB, Versioned other) {
         return !versionsAreEqual(fromDB, other);
     }
+
+    public static String createETag(Versioned versioned) {
+        return "\"" + versioned.getVersion() + "\"";
+    }
+
+    public static void verifyIfMatch(Versioned existingFromDB, String ifMatch, Object id, String method) {
+        verifyVersions(existingFromDB, () -> Optional.ofNullable(ifMatch)
+            .map(s -> s.replace("\"", ""))
+            .map(Long::parseLong)
+            .orElseThrow(() -> new ResourceConflictException(existingFromDB.getClass().getSimpleName(), id,
+                  "Could not parse 'ifMatch': " + ifMatch + " in method: " + method)), id, method);
+    }
+
 }

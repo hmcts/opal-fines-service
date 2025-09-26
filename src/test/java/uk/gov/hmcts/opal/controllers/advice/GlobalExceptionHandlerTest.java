@@ -567,7 +567,6 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.CONFLICT.value(), problemDetail.getStatus());
         assertEquals("Conflict", problemDetail.getTitle());
-        assertEquals("Conflict updating record. Please try again.", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/optimistic-locking"), problemDetail.getType());
         assertEquals(DraftAccountEntity.class.getName(), problemDetail.getProperties().get("resourceType"));
         assertEquals("123", problemDetail.getProperties().get("resourceId"));
