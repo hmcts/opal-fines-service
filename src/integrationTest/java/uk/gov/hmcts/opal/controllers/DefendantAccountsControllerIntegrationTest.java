@@ -1,12 +1,14 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
@@ -2004,7 +2006,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     }
 
     @DisplayName("LEGACY: Get Defendant Account Party - Happy Path [@PO-1973]")
-    void legacyGetDefendantAccountParty_Happy(org.slf4j.Logger log) throws Exception {
+    public void legacyGetDefendantAccountParty_Happy(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions actions = mockMvc.perform(
@@ -2013,7 +2015,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         );
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":legacy_getDefendantAccountParty_Happy: body:\n" + ToJsonString.toPrettyJson(body));
+        String etag = actions.andReturn().getResponse().getHeader("ETag");
+
+        log.info(":legacy_getDefendantAccountParty_Happy body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":legacy_getDefendantAccountParty_Happy ETag: {}", etag);
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -2021,13 +2026,19 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_account_party.is_debtor").value(true))
             .andExpect(jsonPath("$.defendant_account_party.party_details.party_id").value("77"))
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value("Graham"))
-            .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"));
+            .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"))
+            .andExpect(header().exists("ETag"));
+
+        long version = objectMapper.readTree(body).path("version").asLong();
+        assertEquals("\"" + version + "\"", etag);
 
         jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
     }
 
+
+
     @DisplayName("LEGACY: Get Defendant Account Party - Organisation Only [@PO-1973]")
-    void legacyGetDefendantAccountParty_Organisation(org.slf4j.Logger log) throws Exception {
+    void legacyGetDefendantAccountParty_Organisation(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions actions = mockMvc.perform(
@@ -2036,38 +2047,45 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         );
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":legacy_getDefendantAccountParty_Organisation: body:\n" + ToJsonString.toPrettyJson(body));
+        String etag = actions.andReturn().getResponse().getHeader("ETag");
+        final Long version = objectMapper.readTree(body).path("version").asLong();
+
+        log.info(":legacy_getDefendantAccountParty_Organisation body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":legacy_getDefendantAccountParty_Organisation ETag: {}", etag);
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name")
                 .value("TechCorp Solutions Ltd"))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist());
+            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist())
+            .andExpect(header().exists("ETag"));
+
+        assertEquals("\"" + version + "\"", etag);
 
         jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
     }
 
+
     @DisplayName("LEGACY: Get Defendant Account Party - 500 Error [@PO-1973]")
-    void legacyGetDefendantAccountParty_500Error(org.slf4j.Logger log) throws Exception {
+    void legacyGetDefendantAccountParty_500Error(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        // Using accountId=500 to trigger stubbed 500 (matches your payment-terms pattern)
         ResultActions actions = mockMvc.perform(
             get(URL_BASE + "/500/defendant-account-parties/500")
                 .header("authorization", "Bearer some_value")
         );
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":legacy_getDefendantAccountParty_500Error: body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":legacy_getDefendantAccountParty_500Error body:\n{}", ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().is5xxServerError())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(header().doesNotExist("ETag")); // no ETag on error payloads
     }
+
 
     String getDefendantAccountPartyResponseSchemaLocation() {
         return "opal/defendant-account/getDefendantAccountPartyResponse.json";
     }
-
-
 }
