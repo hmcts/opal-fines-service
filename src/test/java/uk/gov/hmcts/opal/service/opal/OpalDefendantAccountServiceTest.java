@@ -13,12 +13,12 @@ import uk.gov.hmcts.opal.dto.EnforcementOverrideResultReference;
 import uk.gov.hmcts.opal.dto.EnforcerReference;
 import uk.gov.hmcts.opal.dto.LjaReference;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
+import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
+import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.repository.CourtRepository;
@@ -32,8 +32,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -41,7 +39,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class OpalDefendantAccountServiceTest {
 
@@ -349,4 +349,47 @@ class OpalDefendantAccountServiceTest {
         );
         verify(accountRepo, never()).save(any());
     }
+
+    @Test
+    void updateDefendantAccount_missingIfMatch_throwsPrecondition() {
+        // minimal setup
+        DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
+        AmendmentService amendmentService = mock(AmendmentService.class);
+        EntityManager em = mock(EntityManager.class);
+        NoteRepository noteRepository = mock(NoteRepository.class);
+
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            /*headerViewRepo*/ null,
+            accountRepo,
+            /*specs*/ null,
+            /*paymentTermsRepo*/ null,
+            /*courtRepo*/ null,
+            amendmentService,
+            em,
+            noteRepository
+        );
+
+        Long id = 77L;
+        String bu = "10";
+
+        BusinessUnitEntity buEnt = BusinessUnitEntity.builder().businessUnitId((short)10).build();
+        DefendantAccountEntity entity = DefendantAccountEntity.builder()
+            .defendantAccountId(id)
+            .businessUnit(buEnt)
+            .version(1L)
+            .build();
+        when(accountRepo.findById(id)).thenReturn(Optional.of(entity));
+
+        UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
+            .commentAndNotes(CommentAndNotesDto.builder().accountComment("x").build())
+            .build();
+
+        // Expect whatever your VersionUtils throws on missing/invalid If-Match
+        assertThrows(
+            uk.gov.hmcts.opal.exception.ResourceConflictException.class,
+            () -> svc.updateDefendantAccount(id, bu, req, /*ifMatch*/ null, "UNIT_TEST")
+        );
+    }
+
+
 }

@@ -337,16 +337,14 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
-    public DefendantAccountResponse updateDefendantAccount(
-        Long defendantAccountId,
-        String businessUnitId,
-        UpdateDefendantAccountRequest request,
-        String authHeaderValue,
-        String ifMatch
-    ) {
-        log.debug(":updateDefendantAccount (Legacy): id={}, bu={}", defendantAccountId, businessUnitId);
-        // TODO(PO-1908): Implement legacy behaviour for Update Defendant Account
-        throw new UnsupportedOperationException("Update Defendant Account is not supported in Legacy mode.");
+    public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+                                                           String businessUnitId,
+                                                           UpdateDefendantAccountRequest request,
+                                                           String ifMatch,
+                                                           String postedBy) {
+        throw new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
+            "Update Defendant Account is not implemented in legacy mode");
     }
 
 }

@@ -654,7 +654,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         note.setPostedByUsername(postedBy);
 
         noteRepository.save(note);
-        em.lock(managed, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         log.debug(":applyCommentAndNotes: saved note for account {}", managed.getDefendantAccountId());
     }
 
