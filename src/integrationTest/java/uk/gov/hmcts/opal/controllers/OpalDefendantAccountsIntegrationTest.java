@@ -279,4 +279,18 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.opalGetDefendantAccountParty_NullFields(log);
     }
 
+    @Override
+    String getAtAGlanceResponseSchemaLocation() {
+        return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountAtAGlanceResponse.json";
+    }
+
+    @Test
+    void testGetAtAGlance_Individual() throws Exception {
+        super.opalGetAtAGlance_Individual(log);
+    }
+
+    @Test
+    void testGetAtAGlance_Organisation() throws Exception {
+        super.opalGetAtAGlance_Organisation(log);
+    }
 }

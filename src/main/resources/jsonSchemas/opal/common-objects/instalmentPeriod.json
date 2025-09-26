@@ -7,7 +7,11 @@
     "instalment_period_code": {
       "type": "string",
       "enum": ["W", "M", "F"]
+    },
+    "instalment_period_display_name": {
+      "type": "string",
+      "enum": ["Weekly", "Monthly", "Fortnightly"]
     }
   },
-  "required": ["instalment_period_code"]
+  "required": ["instalment_period_code", "instalment_period_display_name"]
 }
