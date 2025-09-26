@@ -11,8 +11,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import org.hibernate.annotations.Immutable;
 
 @Entity
+@Immutable
 @Table(name = "v_defendant_accounts_summary")
 @Data
 @Builder
