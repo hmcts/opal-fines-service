@@ -21,8 +21,9 @@
     "comment_and_notes": {
       "$ref": "./common-objects/commentsAndNotesLegacy.json"
     },
-    "enforcement_court": {
-      "$ref": "./common-objects/courtReferenceLegacy.json"
+    "enforcement_court_id": {
+      "type": "string",
+      "minLength": 1
     },
     "collection_order": {
       "$ref": "./common-objects/collectionOrderLegacy.json"
@@ -42,14 +43,14 @@
       "required": ["comment_and_notes"],
       "not": {
         "anyOf": [
-          { "required": ["enforcement_court"] },
+          { "required": ["enforcement_court_id"] },
           { "required": ["collection_order"] },
           { "required": ["enforcement_overrides"] }
         ]
       }
     },
     {
-      "required": ["enforcement_court"],
+      "required": ["enforcement_court_id"],
       "not": {
         "anyOf": [
           { "required": ["comment_and_notes"] },
@@ -63,7 +64,7 @@
       "not": {
         "anyOf": [
           { "required": ["comment_and_notes"] },
-          { "required": ["enforcement_court"] },
+          { "required": ["enforcement_court_id"] },
           { "required": ["enforcement_overrides"] }
         ]
       }
@@ -73,7 +74,7 @@
       "not": {
         "anyOf": [
           { "required": ["comment_and_notes"] },
-          { "required": ["enforcement_court"] },
+          { "required": ["enforcement_court_id"] },
           { "required": ["collection_order"] }
         ]
       }
