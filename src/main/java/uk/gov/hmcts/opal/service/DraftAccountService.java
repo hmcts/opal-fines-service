@@ -13,7 +13,6 @@ import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
@@ -127,17 +126,17 @@ public class DraftAccountService {
         }
     }
 
-    public String deleteDraftAccount(long draftAccountId, boolean checkExists, String authHeaderValue) {
+    public String deleteDraftAccount(long draftAccountId, boolean checkExisted, String authHeaderValue) {
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
         try {
-            boolean deleted =  draftAccountTransactions.deleteDraftAccount(draftAccountId, checkExists,
+            boolean deleted =  draftAccountTransactions.deleteDraftAccount(draftAccountId, checkExisted,
                                                                            draftAccountTransactions);
             if (deleted) {
                 log.debug(":deleteDraftAccount: Deleted Draft Account: {}", draftAccountId);
             }
         } catch (UnexpectedRollbackException | EntityNotFoundException ure) {
-            if (checkExists) {
+            if (checkExisted) {
                 throw ure;
             }
         }
@@ -173,15 +172,15 @@ public class DraftAccountService {
     }
 
     public DraftAccountResponseDto replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto,
-                                                       String authHeaderValue) {
+                                                       String authHeaderValue, String ifMatch) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
-            DraftAccountEntity replacedEntity = draftAccountTransactions.replaceDraftAccount(draftAccountId, dto,
-                                                                                             draftAccountTransactions);
+            DraftAccountEntity replacedEntity = draftAccountTransactions
+                .replaceDraftAccount(draftAccountId, dto, draftAccountTransactions, ifMatch);
             verifyUpdated(replacedEntity, dto, draftAccountId, "replaceDraftAccount");
             log.debug(":replaceDraftAccount: replaced with version: {}", replacedEntity.getVersion());
 
@@ -192,7 +191,7 @@ public class DraftAccountService {
     }
 
     public DraftAccountResponseDto updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
-                                                       String authHeaderValue) {
+                                                       String authHeaderValue, String ifMatch) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
         jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
@@ -201,8 +200,8 @@ public class DraftAccountService {
 
         if (UserState.userHasPermission(unitUser, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
 
-            DraftAccountEntity updatedEntity = draftAccountTransactions.updateDraftAccount(draftAccountId, dto,
-                                                                                           draftAccountTransactions);
+            DraftAccountEntity updatedEntity = draftAccountTransactions
+                .updateDraftAccount(draftAccountId, dto, draftAccountTransactions, ifMatch);
             verifyUpdated(updatedEntity, dto, draftAccountId, "updateDraftAccount");
 
             if (updatedEntity.getAccountStatus().isPublishingPending()) {

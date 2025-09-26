@@ -37,7 +37,6 @@ import java.util.Optional;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-
 @RestController
 @RequestMapping("/draft-accounts")
 @Slf4j(topic = "opal.DraftAccountController")
@@ -112,13 +111,16 @@ public class DraftAccountController {
     public ResponseEntity<String> deleteDraftAccountById(
         @PathVariable Long draftAccountId,
         @RequestHeader(value = "Authorization", required = false)  String authHeaderValue,
+        @RequestHeader(value = "If-Match") String ifMatch,
         @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
 
+        // Note: This endpoint is used for testing only, so the 'If-Match' check is not actually used.
         boolean checkExists = !(ignoreMissing.orElse(false));
         log.debug(":DELETE:deleteDraftAccountById: Delete Draft Account: {}{}", draftAccountId,
                  checkExists ? "" : ", ignore if missing");
 
-        return buildResponse(draftAccountService.deleteDraftAccount((draftAccountId), checkExists, authHeaderValue));
+        return buildResponse(draftAccountService
+                                 .deleteDraftAccount((draftAccountId), checkExists, authHeaderValue));
     }
 
     @PutMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -128,11 +130,12 @@ public class DraftAccountController {
         @PathVariable Long draftAccountId,
         @JsonSchemaValidated(schemaPath = SchemaPaths.DRAFT_ACCOUNT + "/replaceDraftAccountRequest.json")
         @RequestBody ReplaceDraftAccountRequestDto dto,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
+        @RequestHeader(value = "If-Match") String ifMatch) {
 
         log.debug(":PUT:putDraftAccount: replacing draft account '{}' with: \n{}", draftAccountId, dto.toPrettyJson());
 
-        return buildResponse(draftAccountService.replaceDraftAccount(draftAccountId, dto, authHeaderValue));
+        return buildResponse(draftAccountService.replaceDraftAccount(draftAccountId, dto, authHeaderValue, ifMatch));
     }
 
     @PatchMapping(value = "/{draftAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -142,10 +145,11 @@ public class DraftAccountController {
         @PathVariable Long draftAccountId,
         @JsonSchemaValidated(schemaPath = SchemaPaths.DRAFT_ACCOUNT + "/updateDraftAccountRequest.json")
         @RequestBody UpdateDraftAccountRequestDto dto,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
+        @RequestHeader(value = "If-Match") String ifMatch) {
 
         log.debug(":PATCH:patchDraftAccount: updating draft account entity: {}", draftAccountId);
 
-        return buildResponse(draftAccountService.updateDraftAccount(draftAccountId, dto, authHeaderValue));
+        return buildResponse(draftAccountService.updateDraftAccount(draftAccountId, dto, authHeaderValue, ifMatch));
     }
 }
