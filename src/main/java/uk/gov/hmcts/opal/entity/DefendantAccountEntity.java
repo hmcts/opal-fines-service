@@ -18,6 +18,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Version;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -34,6 +35,7 @@ import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import uk.gov.hmcts.opal.util.Versioned;
 
 @Entity
 @Data
@@ -45,7 +47,7 @@ import java.util.List;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "defendantAccountId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class DefendantAccountEntity {
+public class DefendantAccountEntity implements Versioned {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "defendant_account_id_seq")
@@ -201,5 +203,9 @@ public class DefendantAccountEntity {
     @Temporal(TemporalType.DATE)
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate suspendedCommittalDate;
+
+    @Column(name = "version_number")
+    @Version
+    private Long version;
 
 }
