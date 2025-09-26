@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,8 +45,10 @@ import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
@@ -52,16 +56,22 @@ import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.util.VersionUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j(topic = "opal.OpalDefendantAccountService")
@@ -76,6 +86,13 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final DefendantAccountPaymentTermsRepository defendantAccountPaymentTermsRepository;
 
     private final CourtRepository courtRepository;
+
+    private final AmendmentService amendmentService;
+
+    private final EntityManager em;
+
+    private final NoteRepository noteRepository;
+
 
     @Autowired
     private DebtorDetailRepository debtorDetailRepository;
@@ -487,18 +504,13 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public DefendantAccountResponse updateDefendantAccount(
         Long defendantAccountId,
         String businessUnitId,
-        UpdateDefendantAccountRequest request
+        UpdateDefendantAccountRequest request,
+        String ifMatch,
+        String postedBy
     ) {
-        log.debug(":updateDefendantAccount (Opal): accountId={}, bu={}", defendantAccountId,
-            businessUnitId);
+        log.debug(":updateDefendantAccount (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        // Body ↔ path/header checks (schema requires these)
-        if (request.getDefendantAccountId() != null && !request.getDefendantAccountId().equals(defendantAccountId)) {
-            throw new IllegalArgumentException("defendant_account_id in body must match path id");
-        }
-        if (request.getBusinessUnitId() != null && !request.getBusinessUnitId().equals(businessUnitId)) {
-            throw new IllegalArgumentException("business_unit_id in body must match Business-Unit-Id header");
-        }
+        // Require at least one update group
         if (request.getCommentAndNotes() == null
             && request.getEnforcementCourt() == null
             && request.getCollectionOrder() == null
@@ -506,21 +518,28 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             throw new IllegalArgumentException("At least one update group must be provided");
         }
 
+        // Load & guard BU
         DefendantAccountEntity entity = defendantAccountRepository.findById(defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: "
                 + defendantAccountId));
-
-        // Business Unit guard
         if (entity.getBusinessUnit() == null
             || entity.getBusinessUnit().getBusinessUnitId() == null
             || !String.valueOf(entity.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
             throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
         }
 
-        // TODO(PO-1590): p_audit_initialise(defendantAccountId, "defendant_accounts") BEFORE applying changes (same tx)
+        // ---- ETag / If-Match check against entity @Version --------------------------------------------
+        VersionUtils.verifyIfMatch(entity, ifMatch, defendantAccountId, "updateDefendantAccount");
+        // -----------------------------------------------------------------------------------------------
 
+        // ---- Audit: initialise (same TX) --------------------------------------------------------------
+        amendmentService.auditInitialiseStoredProc(defendantAccountId,
+            uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS);
+        // -----------------------------------------------------------------------------------------------
+
+        // Apply requested changes
         if (request.getCommentAndNotes() != null) {
-            applyCommentAndNotes(defendantAccountId, request.getCommentAndNotes());
+            applyCommentAndNotes(entity, request.getCommentAndNotes(), postedBy);
         }
         if (request.getEnforcementCourt() != null) {
             applyEnforcementCourt(entity, request.getEnforcementCourt());
@@ -534,11 +553,24 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         defendantAccountRepository.save(entity);
 
-        // TODO(PO-1590): p_audit_finalise(defendantAccountId, "defendant_accounts",
-        //                businessUnitId, request.getBusinessUnitUserId(),
-        //                entity.getProsecutorCaseReference(), "ACCOUNT_ENQUIRY") AFTER save (same tx)
+        // Force optimistic version increment and get the new version
+        em.lock(entity, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        em.flush(); // ensure increment happens within this tx
+        Long newVersion = entity.getVersion();
 
-        // Build response from saved state (notes echoed until notes persistence is wired)
+        // ---- Audit: finalise (same TX) ----------------------------------------------------------------
+        Short buId = entity.getBusinessUnit().getBusinessUnitId();
+        amendmentService.auditFinaliseStoredProc(
+            defendantAccountId,
+            uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS,
+            buId,
+            postedBy,
+            entity.getProsecutorCaseReference(),
+            "ACCOUNT_ENQUIRY"
+        );
+        // -----------------------------------------------------------------------------------------------
+
+        // Build response
         var court = entity.getEnforcingCourt();
         var notes = request.getCommentAndNotes();
 
@@ -554,8 +586,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .collectionOrderDate(
                 entity.getCollectionOrderEffectiveDate() != null
                     ? entity.getCollectionOrderEffectiveDate().toString()
-                    : null
-            )
+                    : null)
             .build();
 
         EnforcementOverride enforcementOverridesDto = EnforcementOverride.builder()
@@ -565,24 +596,21 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     .enforcementOverrideResultId(entity.getEnforcementOverrideResultId())
                     .enforcementOverrideResultTitle(null)
                     .build()
-                    : null
-            )
+                    : null)
             .enforcer(
                 entity.getEnforcementOverrideEnforcerId() != null
                     ? EnforcerReference.builder()
                     .enforcerId(entity.getEnforcementOverrideEnforcerId().intValue())
                     .enforcerName(null)
                     .build()
-                    : null
-            )
+                    : null)
             .lja(
                 entity.getEnforcementOverrideTfoLjaId() != null
                     ? LjaReference.builder()
                     .ljaId(Integer.valueOf(entity.getEnforcementOverrideTfoLjaId()))
                     .ljaName(null)
                     .build()
-                    : null
-            )
+                    : null)
             .build();
 
         return DefendantAccountResponse.builder()
@@ -591,15 +619,46 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .enforcementCourt(courtDto)
             .collectionOrder(collectionOrderDto)
             .enforcementOverrides(enforcementOverridesDto)
+            .version(newVersion)
             .build();
     }
 
-    private void applyCommentAndNotes(Long defendantAccountId, CommentAndNotesDto notes) {
-        // In Opal these are typically stored in a related table, not on DefendantAccountEntity itself.
-        // TODO: inject & call your Notes service/repository to upsert:
-        // notesService.update(defendantAccountId, notes.getAccountComment(), notes.getFreeTextNote1(), ...)
-        log.debug(":applyCommentAndNotes: accountId={}, hasNotes={}", defendantAccountId, true);
+
+    private void applyCommentAndNotes(DefendantAccountEntity managed,
+                                      CommentAndNotesDto notes,
+                                      String postedBy) {
+
+        String combined = Stream.of(
+                notes.getAccountComment(),
+                notes.getFreeTextNote1(),
+                notes.getFreeTextNote2(),
+                notes.getFreeTextNote3()
+            )
+            .filter(Objects::nonNull)
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .collect(Collectors.joining("\n"));
+
+        if (combined.isEmpty()) {
+            log.debug(":applyCommentAndNotes: nothing to add");
+            return;
+        }
+
+        NoteEntity note = new NoteEntity();
+        note.setNoteText(combined);
+        note.setNoteType("AA");
+        note.setAssociatedRecordId(String.valueOf(managed.getDefendantAccountId()));
+        note.setAssociatedRecordType(RecordType.DEFENDANT_ACCOUNTS.toString());
+        note.setBusinessUnitUserId(String.valueOf(managed.getBusinessUnit().getBusinessUnitId()));
+        note.setPostedDate(LocalDateTime.now());
+        note.setPostedByUsername(postedBy);
+
+        noteRepository.save(note);
+        em.lock(managed, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
+        log.debug(":applyCommentAndNotes: saved note for account {}", managed.getDefendantAccountId());
     }
+
+
 
     private void applyEnforcementCourt(DefendantAccountEntity entity, CourtReferenceDto courtRef) {
         Integer courtId = courtRef.getCourtId();
@@ -646,3 +705,4 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             override.getLja() != null ? override.getLja().getLjaId() : null);
     }
 }
+

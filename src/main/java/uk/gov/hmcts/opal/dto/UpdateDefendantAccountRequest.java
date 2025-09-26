@@ -8,7 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request payload for PATCH /defendant-accounts/{id}.
+ * Request payload for PATCH /defendant-accounts/{id} (Opal mode).
+ * Exactly one update group must be present. No IDs in the body.
  */
 @Data
 @NoArgsConstructor
@@ -16,15 +17,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UpdateDefendantAccountRequest implements ToJsonString {
-
-    @JsonProperty("defendant_account_id")
-    private Long defendantAccountId;
-
-    @JsonProperty("business_unit_id")
-    private String businessUnitId;
-
-    @JsonProperty("business_unit_user_id")
-    private String businessUnitUserId;
 
     @JsonProperty("comment_and_notes")
     private CommentAndNotesDto commentAndNotes;

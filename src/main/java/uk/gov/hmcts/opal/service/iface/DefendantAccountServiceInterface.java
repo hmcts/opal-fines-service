@@ -20,5 +20,6 @@ public interface DefendantAccountServiceInterface {
 
     DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                     String businessUnitId,
-                                                    UpdateDefendantAccountRequest request);
+                                                    UpdateDefendantAccountRequest request,String ifMatch,
+                                                    String postedBy);
 }

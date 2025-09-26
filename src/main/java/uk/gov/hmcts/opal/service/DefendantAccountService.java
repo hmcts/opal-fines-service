@@ -85,14 +85,23 @@ public class DefendantAccountService {
     public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                            String businessUnitId,
                                                            UpdateDefendantAccountRequest request,
-                                                           String authHeaderValue) {
+                                                           String authHeaderValue,
+                                                           String ifMatch) {
         log.debug(":updateDefendantAccount:");
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
         if (userState.anyBusinessUnitUserHasPermission(Permissions.ACCOUNT_MAINTENANCE)) {
+            short buId = Short.parseShort(businessUnitId);
+
+            String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
+                .map(uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+                .filter(id -> !id.isBlank())
+                .orElse(userState.getUserName());
+
             return defendantAccountServiceProxy.updateDefendantAccount(
-                defendantAccountId, businessUnitId, request);
+                defendantAccountId, businessUnitId, request, ifMatch, postedBy
+            );
         } else {
             throw new PermissionNotAllowedException(Permissions.ACCOUNT_MAINTENANCE);
         }

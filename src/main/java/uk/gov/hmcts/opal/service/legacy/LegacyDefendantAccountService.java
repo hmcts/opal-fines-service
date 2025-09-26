@@ -340,7 +340,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public DefendantAccountResponse updateDefendantAccount(
         Long defendantAccountId,
         String businessUnitId,
-        UpdateDefendantAccountRequest request
+        UpdateDefendantAccountRequest request,
+        String authHeaderValue,
+        String ifMatch
     ) {
         log.debug(":updateDefendantAccount (Legacy): id={}, bu={}", defendantAccountId, businessUnitId);
         // TODO(PO-1908): Implement legacy behaviour for Update Defendant Account

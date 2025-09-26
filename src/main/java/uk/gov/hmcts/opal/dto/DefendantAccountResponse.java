@@ -1,11 +1,13 @@
 package uk.gov.hmcts.opal.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.util.Versioned;
 
 /**
  * Response returned after updating a defendant account.
@@ -15,8 +17,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class DefendantAccountResponse implements ToJsonString {
+@JsonInclude(JsonInclude.Include.ALWAYS)
+public class DefendantAccountResponse implements ToJsonString, Versioned {
 
     @JsonProperty("id")
     private Long id;
@@ -32,5 +34,8 @@ public class DefendantAccountResponse implements ToJsonString {
 
     @JsonProperty("enforcement_overrides")
     private EnforcementOverride enforcementOverrides;
+
+    @JsonIgnore
+    private Long version;
 
 }
