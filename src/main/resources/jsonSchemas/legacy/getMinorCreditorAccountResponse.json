@@ -24,7 +24,22 @@
       "$ref": "./common-objects/addressDetailsLegacy.json"
     },
     "payment": {
-      "$ref": "./common-objects/creditorAccountPaymentDetailsLegacy.json"
+      "allOf": [
+        {
+          "$ref": "./common-objects/creditorAccountPaymentDetailsLegacy.json"
+        },
+        {
+          "properties": {
+            "hold_payment": {
+              "type": "boolean",
+              "description": "DB Mapping - creditor_accounts.hold_payout"
+            }
+          },
+          "required": [
+            "hold_payment"
+          ]
+        }
+      ]
     }
   },
   "additionalProperties": false

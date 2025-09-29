@@ -89,6 +89,7 @@ paths:
         content:
           application/json:
             schema:
+              additionalProperties: false
               type: object
               required:
                 - party_details
@@ -144,20 +145,28 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 components:
-    schemas:
-        minorCreditorAccountResponse:
-          type: object
-          required:
-            - creditor_account_id
-            - party_details
-            - address
-            - payment
-          properties:
-            creditor_account_id:
-              $ref: "./types.yaml#/components/schemas/BigInt"
-            party_details:
-              $ref: './common.yaml#/components/schemas/partyDetails'
-            address:
-              $ref: './common.yaml#/components/schemas/addressDetails'
-            payment:
-              $ref: './common.yaml#/components/schemas/creditorAccountPaymentDetails'
+  schemas:
+    minorCreditorAccountResponse:
+      additionalProperties: false
+      type: object
+      required:
+        - creditor_account_id
+        - party_details
+        - address
+        - payment
+      properties:
+        creditor_account_id:
+          $ref: "./types.yaml#/components/schemas/BigInt"
+        party_details:
+          $ref: './common.yaml#/components/schemas/partyDetails'
+        address:
+          $ref: './common.yaml#/components/schemas/addressDetails'
+        payment:
+          allOf:
+            - $ref: './common.yaml#/components/schemas/creditorAccountPaymentDetails'
+            - properties:
+                hold_payment:
+                  type: boolean
+                  description: DB Mapping - creditor_accounts.hold_payout
+              required:
+                - hold_payment
