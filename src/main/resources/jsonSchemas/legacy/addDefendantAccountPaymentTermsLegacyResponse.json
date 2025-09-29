@@ -11,7 +11,7 @@
     "version": {
       "type": "integer"
     },
-    "payment_terms" : {
+    "payment_terms": {
       "$ref": "./common-objects/paymentTermsLegacy.json"
     },
     "posted_details": {
