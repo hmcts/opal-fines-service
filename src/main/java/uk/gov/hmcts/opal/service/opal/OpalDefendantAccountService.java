@@ -620,7 +620,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .collectionOrderMade(entity.getCollectionOrder())
             .defaultDaysInJail(entity.getJailDays())
             .enforcementOverride(enforcementOverride)
-            .lastMovementDate(entity.getLastMovementDate())
+            .lastMovementDate(entity.getLastMovementDate().toLocalDate())
             .build();
     }
 

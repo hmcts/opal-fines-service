@@ -1,13 +1,12 @@
 package uk.gov.hmcts.opal.dto.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -28,5 +27,5 @@ public class EnforcementStatusSummary implements ToJsonString {
     private EnforcementOverride enforcementOverride;
 
     @JsonProperty("last_movement_date")
-    private LocalDateTime lastMovementDate;
+    private LocalDate lastMovementDate;
 }
