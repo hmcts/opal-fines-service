@@ -2028,9 +2028,13 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_account_id").value("77"))
             .andExpect(jsonPath("$.account_number").value("177A"))
             .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.is_youth").exists())
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
-            .andExpect(jsonPath("$.party_details.individual_details.age").value("45"));
+            .andExpect(jsonPath("$.party_details.individual_details.age").value("45"))
+            .andExpect(jsonPath("$.address").exists())
+            .andExpect(jsonPath("$.payment_terms").exists())
+            .andExpect(jsonPath("$.enforcement_status").exists());;
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -2055,10 +2059,85 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_account_id").value("10001"))
             .andExpect(jsonPath("$.account_number").value("10001A"))
             .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.is_youth").value(false))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
-                           .value("Kings Arms"));
+                           .value("Kings Arms"))
+            .andExpect(jsonPath("$.address").exists())
+            .andExpect(jsonPath("$.language_preferences").exists())
+            // verify both language preferences are populated
+            .andExpect(jsonPath("$.language_preferences.hearing_language_preference.language_display_name")
+                           .value("English only"))
+            .andExpect(jsonPath("$.language_preferences.document_language_preference.language_display_name")
+                           .value("English only"))
+            .andExpect(jsonPath("$.payment_terms").exists())
+            .andExpect(jsonPath("$.enforcement_status").exists());
+
+        jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an organisation. \n"
+        + "No language preferences set (as these are optional) \n"
+        + "No account comments or notes set (as these are optional)")
+    public void opalGetAtAGlance_Organisation_NoLanguagePrefs(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10002/at-a-glance")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
+        log.info(":testGetAtAGlance: Party is an individual. etag header: \n" + headers);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetAtAGlance: Party is an organisation. Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // verify the header contains an ETag value
+            .andExpect(header().string("etag", "\"1\""))
+            .andExpect(jsonPath("$.defendant_account_id").value("10002"))
+            .andExpect(jsonPath("$.account_number").value("10002A"))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
+                           .value("Kings Arms"))
+            // verify language preferences node is null
+            .andExpect(jsonPath("$.language_preferences").doesNotExist());
+
+        jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an organisation. "
+        + "One language preference not set (as this is optional)")
+    public void opalGetAtAGlance_Organisation_NoHearingLanguagePref(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10003/at-a-glance")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
+        log.info(":testGetAtAGlance: Party is an individual. etag header: \n" + headers);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetAtAGlance: Party is an organisation. Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // verify the header contains an ETag value
+            .andExpect(header().string("etag", "\"1\""))
+            .andExpect(jsonPath("$.defendant_account_id").value("10003"))
+            .andExpect(jsonPath("$.account_number").value("10003A"))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
+                           .value("Kings Arms"))
+            .andExpect(jsonPath("$.language_preferences.document_language_preference.language_display_name")
+                           .value("English only"))
+            // verify hearing_language_preference node is null (optional)
+            .andExpect(jsonPath("$.language_preferences.hearing_language_preference").doesNotExist());
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }

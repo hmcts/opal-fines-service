@@ -293,4 +293,14 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     void testGetAtAGlance_Organisation() throws Exception {
         super.opalGetAtAGlance_Organisation(log);
     }
+
+    @Test
+    void testGetAtAGlance_Organisation_NoLanguagePrefs() throws Exception {
+        super.opalGetAtAGlance_Organisation_NoLanguagePrefs(log);
+    }
+
+    @Test
+    void testGetAtAGlance_Organisation_NoHearingLanguagePrefs() throws Exception {
+        super.opalGetAtAGlance_Organisation_NoHearingLanguagePref(log);
+    }
 }

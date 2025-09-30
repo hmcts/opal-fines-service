@@ -530,13 +530,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .postcode(entity.getPostcode())
             .build();
 
-        CommentsAndNotes commentsAndNotes = CommentsAndNotes.builder()
-            .accountNotesAccountComments(entity.getAccountComments())
-            .accountNotesFreeTextNote1(entity.getAccountNote1())
-            .accountNotesFreeTextNote2(entity.getAccountNote2())
-            .accountNotesFreeTextNote3(entity.getAccountNote3())
-            .build();
-
         return DefendantAccountAtAGlanceResponse.builder()
             .defendantAccountId(entity.getDefendantAccountId().toString())
             .accountNumber(entity.getAccountNumber())
@@ -547,7 +540,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .languagePreferences(buildLanguagePreferences(entity))
             .paymentTermsSummary(buildPaymentTerms(entity))
             .enforcementStatus(buildEnforcementStatusSummary(entity))
-            .commentsAndNotes(commentsAndNotes)
+            .commentsAndNotes(buildCommentsAndNotes(entity))
             .version(entity.getVersion())
             .build();
     }
@@ -644,15 +637,35 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     private static LanguagePreferences buildLanguagePreferences(DefendantAccountSummaryViewEntity entity) {
+        // if both language preferences are not set, as they are optional objects.
+        if ((null == entity.getDocumentLanguage()) && (null == entity.getHearingLanguage())) {
+            return null;
+        }
+
         LanguagePreference documentLanguagePref =
-            LanguagePreference.fromCode(entity.getDocumentLanguage());
+            null == entity.getDocumentLanguage() ? null : LanguagePreference.fromCode(entity.getDocumentLanguage());
 
         LanguagePreference hearingLanguagePref =
-            LanguagePreference.fromCode(entity.getHearingLanguage());
+            null == entity.getHearingLanguage() ? null : LanguagePreference.fromCode(entity.getHearingLanguage());
 
         return LanguagePreferences.builder()
             .documentLanguagePreference(documentLanguagePref)
             .hearingLanguagePreference(hearingLanguagePref)
+            .build();
+    }
+
+    private static CommentsAndNotes buildCommentsAndNotes(DefendantAccountSummaryViewEntity entity) {
+        // Return null if all fields don't have values, as they are optional objects.
+        if ((null == entity.getAccountComments()) && (null == entity.getAccountNote1())
+            && (null == entity.getAccountNote2()) && (null == entity.getAccountNote3())) {
+            return null;
+        }
+
+        return CommentsAndNotes.builder()
+            .accountNotesAccountComments(entity.getAccountComments())
+            .accountNotesFreeTextNote1(entity.getAccountNote1())
+            .accountNotesFreeTextNote2(entity.getAccountNote2())
+            .accountNotesFreeTextNote3(entity.getAccountNote3())
             .build();
     }
 
