@@ -37,7 +37,8 @@ INSERT INTO defendant_accounts
 , further_steps_notice_date, confiscation_order_date, fine_registration_date, suspended_committal_date
 , consolidated_account_type, payment_card_requested, payment_card_requested_date, payment_card_requested_by
 , prosecutor_case_reference, enforcement_case_status, account_type
-, account_comments, account_note_1, account_note_2, account_note_3)
+, account_comments, account_note_1, account_note_2, account_note_3
+, version_number)
 VALUES ( 0077, 078, '177A'
        , '2023-11-03 16:05:10', 780000000185, 700.58
        , 200.00, 500.58, 'L', NULL
@@ -50,7 +51,8 @@ VALUES ( 0077, 078, '177A'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
        , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
        , '090A', NULL, 'Fine'
-       , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3');
+       , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
+       , 1);
 
 INSERT INTO parties
 ( party_id, organisation, organisation_name
@@ -364,7 +366,8 @@ INSERT INTO defendant_accounts
 , further_steps_notice_date, confiscation_order_date, fine_registration_date, suspended_committal_date
 , consolidated_account_type, payment_card_requested, payment_card_requested_date, payment_card_requested_by
 , prosecutor_case_reference, enforcement_case_status, account_type
-, account_comments, account_note_1, account_note_2, account_note_3)
+, account_comments, account_note_1, account_note_2, account_note_3
+, version_number)
 VALUES ( 10001, 078, '10001A'
        , '2023-11-03 16:05:10', 780000000185, 700.58
        , 200.00, 500.58, 'L', NULL
@@ -377,7 +380,8 @@ VALUES ( 10001, 078, '10001A'
        , '2023-12-19 00:00:00', NULL, NULL, NULL
        , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
        , 'REF100001', NULL, 'Fine'
-       , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3');
+       , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
+       , 1);
 
 INSERT INTO parties
 ( party_id, organisation, organisation_name

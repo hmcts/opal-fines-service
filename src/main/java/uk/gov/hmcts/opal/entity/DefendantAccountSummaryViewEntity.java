@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import org.hibernate.annotations.Immutable;
+import uk.gov.hmcts.opal.util.Versioned;
 
 @Entity
 @Immutable
@@ -20,14 +22,15 @@ import org.hibernate.annotations.Immutable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DefendantAccountSummaryViewEntity {
+public class DefendantAccountSummaryViewEntity implements Versioned {
 
     @Id
     @Column(name = "defendant_account_id", nullable = false)
     private Long defendantAccountId;
 
-    @Column(name = "version_number", nullable = false)
-    private Long versionNumber;
+    @Version
+    @Column(name = "version_number")
+    private Long version;
 
     @Column(name = "account_number", nullable = false)
     private String accountNumber;

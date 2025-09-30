@@ -7,8 +7,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.testcontainers.shaded.org.hamcrest.Matchers.notNullValue;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -2014,11 +2016,15 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/at-a-glance")
                                                           .header("authorization", "Bearer some_value"));
 
+        String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
+        log.info(":testGetAtAGlance: Party is an individual. etag header: \n" + headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetAtAGlance: Party is an individual. Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // verify the header contains an ETag value
+            .andExpect(header().string("etag", "\"1\""))
             .andExpect(jsonPath("$.defendant_account_id").value("77"))
             .andExpect(jsonPath("$.account_number").value("177A"))
             .andExpect(jsonPath("$.debtor_type").value("Defendant"))
@@ -2037,11 +2043,15 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10001/at-a-glance")
                                                           .header("authorization", "Bearer some_value"));
 
+        String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
+        log.info(":testGetAtAGlance: Party is an individual. etag header: \n" + headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetAtAGlance: Party is an organisation. Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // verify the header contains an ETag value
+            .andExpect(header().string("etag", "\"1\""))
             .andExpect(jsonPath("$.defendant_account_id").value("10001"))
             .andExpect(jsonPath("$.account_number").value("10001A"))
             .andExpect(jsonPath("$.debtor_type").value("Defendant"))

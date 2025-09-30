@@ -548,6 +548,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .paymentTermsSummary(buildPaymentTerms(entity))
             .enforcementStatus(buildEnforcementStatusSummary(entity))
             .commentsAndNotes(commentsAndNotes)
+            .version(entity.getVersion())
             .build();
     }
 

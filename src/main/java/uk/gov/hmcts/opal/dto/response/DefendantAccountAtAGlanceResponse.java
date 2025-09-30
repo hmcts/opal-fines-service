@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
 import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
+import uk.gov.hmcts.opal.util.Versioned;
 
 /**
  * Defendant Account At A Glance Response.
@@ -25,7 +27,7 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.ALWAYS)
-public class DefendantAccountAtAGlanceResponse implements ToJsonString {
+public class DefendantAccountAtAGlanceResponse implements ToJsonString, Versioned {
 
     @JsonProperty("defendant_account_id")
     private String defendantAccountId;
@@ -56,4 +58,7 @@ public class DefendantAccountAtAGlanceResponse implements ToJsonString {
 
     @JsonProperty("comments_and_notes")
     private CommentsAndNotes commentsAndNotes;
+
+    @JsonIgnore
+    private Long version;
 }
