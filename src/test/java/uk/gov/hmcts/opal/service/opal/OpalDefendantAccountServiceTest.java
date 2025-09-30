@@ -47,7 +47,7 @@ class OpalDefendantAccountServiceTest {
 
     // If you need to create the service, mock the repos as needed.
     private final OpalDefendantAccountService service =
-        new OpalDefendantAccountService(null, null, null, null, null, null, null, null);
+        new OpalDefendantAccountService(null, null, null, null, null, null, null, null,null,null,null);
 
     @Test
     void testNzHelper() {
@@ -218,7 +218,10 @@ class OpalDefendantAccountServiceTest {
         final NoteRepository noteRepository = mock(NoteRepository.class);
 
         final OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            headerViewRepo, accountRepo, specs, paymentTermsRepo, courtRepo, amendmentService, em, noteRepository
+            headerViewRepo, accountRepo, specs, paymentTermsRepo, courtRepo, amendmentService, em, noteRepository,
+            /* enforcementOverrideResultRepository */ null,
+            /* localJusticeAreaRepository        */ null,
+            /* enforcerRepository                */ null
         );
 
         // Act
@@ -262,7 +265,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -280,7 +283,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenBusinessUnitMismatch() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -307,7 +310,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenCollectionOrderDateInvalid() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -336,7 +339,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenEntityNotFound() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null);
 
         when(accountRepo.findById(99L)).thenReturn(Optional.empty());
 
@@ -366,7 +369,10 @@ class OpalDefendantAccountServiceTest {
             /*courtRepo*/ null,
             amendmentService,
             em,
-            noteRepository
+            noteRepository,
+            /* enforcementOverrideResultRepository */ null,
+            /* localJusticeAreaRepository        */ null,
+            /* enforcerRepository                */ null
         );
 
         Long id = 77L;

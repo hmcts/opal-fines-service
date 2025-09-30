@@ -56,6 +56,9 @@ import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.EnforcementOverrideResultRepository;
+import uk.gov.hmcts.opal.repository.EnforcerRepository;
+import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
@@ -93,6 +96,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final NoteRepository noteRepository;
 
+    private final EnforcementOverrideResultRepository enforcementOverrideResultRepository;
+
+    private final LocalJusticeAreaRepository localJusticeAreaRepository;
+
+    private final EnforcerRepository enforcerRepository;
 
     @Autowired
     private DebtorDetailRepository debtorDetailRepository;
@@ -418,7 +426,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .hearingLanguagePreference(hearingLanguagePref)
             .build();
 
-
         return DefendantAccountParty.builder()
             .defendantAccountPartyType(defendantAccountPartyType)
             .isDebtor(isDebtor)
@@ -510,7 +517,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     ) {
         log.debug(":updateDefendantAccount (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        // Require at least one update group
         if (request.getCommentAndNotes() == null
             && request.getEnforcementCourt() == null
             && request.getCollectionOrder() == null
@@ -518,26 +524,21 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             throw new IllegalArgumentException("At least one update group must be provided");
         }
 
-        // Load & guard BU
         DefendantAccountEntity entity = defendantAccountRepository.findById(defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: "
                 + defendantAccountId));
+
         if (entity.getBusinessUnit() == null
             || entity.getBusinessUnit().getBusinessUnitId() == null
             || !String.valueOf(entity.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
-            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
+            throw new EntityNotFoundException("Defendant Account not found in business unit "
+                + businessUnitId);
         }
 
-        // ---- ETag / If-Match check against entity @Version --------------------------------------------
         VersionUtils.verifyIfMatch(entity, ifMatch, defendantAccountId, "updateDefendantAccount");
-        // -----------------------------------------------------------------------------------------------
 
-        // ---- Audit: initialise (same TX) --------------------------------------------------------------
-        amendmentService.auditInitialiseStoredProc(defendantAccountId,
-            uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS);
-        // -----------------------------------------------------------------------------------------------
+        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
-        // Apply requested changes
         if (request.getCommentAndNotes() != null) {
             applyCommentAndNotes(entity, request.getCommentAndNotes(), postedBy);
         }
@@ -553,69 +554,84 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         defendantAccountRepository.save(entity);
 
-        // Force optimistic version increment and get the new version
         em.lock(entity, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
-        em.flush(); // ensure increment happens within this tx
+        em.flush();
         Long newVersion = entity.getVersion();
 
-        // ---- Audit: finalise (same TX) ----------------------------------------------------------------
         Short buId = entity.getBusinessUnit().getBusinessUnitId();
         amendmentService.auditFinaliseStoredProc(
             defendantAccountId,
-            uk.gov.hmcts.opal.entity.amendment.RecordType.DEFENDANT_ACCOUNTS,
+            RecordType.DEFENDANT_ACCOUNTS,
             buId,
             postedBy,
             entity.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"
         );
-        // -----------------------------------------------------------------------------------------------
 
-        // Build response
-        var court = entity.getEnforcingCourt();
-        var notes = request.getCommentAndNotes();
-
-        CourtReferenceDto courtDto = (court != null)
-            ? CourtReferenceDto.builder()
-            .courtId(court.getCourtId() != null ? court.getCourtId().intValue() : null)
-            .courtName(court.getName())
-            .build()
-            : null;
+        // ---- Build response ----
+        CourtReferenceDto courtDto = Optional.ofNullable(entity.getEnforcingCourt())
+            .map(c -> CourtReferenceDto.builder()
+                .courtId(c.getCourtId() != null ? c.getCourtId().intValue() : null)
+                .courtName(Optional.ofNullable(c.getName()).orElse(null))
+                .build())
+            .orElse(null);
 
         CollectionOrderDto collectionOrderDto = CollectionOrderDto.builder()
             .collectionOrderFlag(entity.isCollectionOrder())
-            .collectionOrderDate(
-                entity.getCollectionOrderEffectiveDate() != null
-                    ? entity.getCollectionOrderEffectiveDate().toString()
-                    : null)
+            .collectionOrderDate(entity.getCollectionOrderEffectiveDate() != null
+                ? entity.getCollectionOrderEffectiveDate().toString()
+                : null)
             .build();
 
-        EnforcementOverride enforcementOverridesDto = EnforcementOverride.builder()
-            .enforcementOverrideResult(
-                entity.getEnforcementOverrideResultId() != null
-                    ? EnforcementOverrideResultReference.builder()
-                    .enforcementOverrideResultId(entity.getEnforcementOverrideResultId())
-                    .enforcementOverrideResultTitle(null)
-                    .build()
-                    : null)
-            .enforcer(
-                entity.getEnforcementOverrideEnforcerId() != null
-                    ? EnforcerReference.builder()
-                    .enforcerId(entity.getEnforcementOverrideEnforcerId().intValue())
-                    .enforcerName(null)
-                    .build()
-                    : null)
-            .lja(
-                entity.getEnforcementOverrideTfoLjaId() != null
-                    ? LjaReference.builder()
-                    .ljaId(Integer.valueOf(entity.getEnforcementOverrideTfoLjaId()))
-                    .ljaName(null)
-                    .build()
-                    : null)
-            .build();
+        EnforcementOverride enforcementOverridesDto = null;
+        if (entity.getEnforcementOverrideResultId() != null
+            || entity.getEnforcementOverrideEnforcerId() != null
+            || entity.getEnforcementOverrideTfoLjaId() != null) {
+
+            enforcementOverridesDto = EnforcementOverride.builder()
+                .enforcementOverrideResult(
+                    Optional.ofNullable(entity.getEnforcementOverrideResultId())
+                        .flatMap(enforcementOverrideResultRepository::findById) // Optional-friendly
+                        .map(r -> EnforcementOverrideResultReference.builder()
+                            .enforcementOverrideResultId(r.getEnforcementOverrideResultId())
+                            .enforcementOverrideResultTitle(r.getEnforcementOverrideResultName())
+                            .build())
+                        .orElse(null)
+                )
+                .enforcer(
+                    Optional.ofNullable(entity.getEnforcementOverrideEnforcerId())
+                        .flatMap(enforcerRepository::findById)
+                        .map(enf -> EnforcerReference.builder()
+                            .enforcerId(enf.getEnforcerId().intValue())
+                            .enforcerName(enf.getName())
+                            .build())
+                        .orElse(null)
+                )
+                .lja(
+                    Optional.ofNullable(entity.getEnforcementOverrideTfoLjaId())
+                        .flatMap(localJusticeAreaRepository::findById)
+                        .map(lja -> LjaReference.builder()
+                            .ljaId(lja.getLocalJusticeAreaId().intValue())
+                            .ljaName(Optional.ofNullable(lja.getName()).orElse(lja.getLjaCode()))
+                            .build())
+                        .orElse(null)
+                )
+
+                .build();
+        }
+
+        CommentAndNotesDto notesOut = Optional.ofNullable(request.getCommentAndNotes())
+            .map(in -> CommentAndNotesDto.builder()
+                .accountComment(orEmpty(in.getAccountComment()))
+                .freeTextNote1(orEmpty(in.getFreeTextNote1()))
+                .freeTextNote2(orEmpty(in.getFreeTextNote2()))
+                .freeTextNote3(orEmpty(in.getFreeTextNote3()))
+                .build())
+            .orElse(null);
 
         return DefendantAccountResponse.builder()
             .id(entity.getDefendantAccountId())
-            .commentAndNotes(notes)
+            .commentAndNotes(notesOut)
             .enforcementCourt(courtDto)
             .collectionOrder(collectionOrderDto)
             .enforcementOverrides(enforcementOverridesDto)
@@ -623,6 +639,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+    private static String orEmpty(String s) {
+        return (s == null) ? "" : s;
+    }
 
     private void applyCommentAndNotes(DefendantAccountEntity managed,
                                       CommentAndNotesDto notes,

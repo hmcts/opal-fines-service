@@ -29,6 +29,8 @@ public class SchemaPaths {
     public static final String PATCH_UPDATE_DEFENDANT_ACCOUNT_REQUEST = DEFENDANT_ACCOUNT
         + "/updateDefendantAccountRequest.json";
 
+    public static final String PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE =
+        DEFENDANT_ACCOUNT + "/updateDefendantAccountResponse.json";
 
     private SchemaPaths() {
         // Utility class — prevent instantiation

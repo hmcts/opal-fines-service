@@ -109,7 +109,7 @@ public class DefendantAccountController {
         log.debug(":PATCH:updateDefendantAccount: id={}", defendantAccountId);
 
         DefendantAccountResponse response = defendantAccountService.updateDefendantAccount(
-            defendantAccountId, businessUnitId, request, authHeaderValue, ifMatch
+            defendantAccountId, businessUnitId, request, ifMatch, authHeaderValue
         );
 
         return buildResponse(response);
