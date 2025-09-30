@@ -4,7 +4,8 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "pay_by_bacs"
+    "pay_by_bacs",
+    "hold_payment"
   ],
   "properties": {
     "account_name": {
@@ -34,6 +35,10 @@
     "pay_by_bacs": {
       "type": "boolean",
       "description": "DB Mapping - creditor_accounts.pay_by_bacs"
+    },
+    "hold_payment": {
+      "type": "boolean",
+      "description": "DB Mapping - creditor_accounts.hold_payout"
     }
   }
 }
