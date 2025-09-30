@@ -2019,10 +2019,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendant_account_id").value(77))
+            .andExpect(jsonPath("$.defendant_account_id").value("77"))
             .andExpect(jsonPath("$.account_number").value("177A"))
             .andExpect(jsonPath("$.debtor_type").value("Defendant"))
-            .andExpect(jsonPath("$.party_details.organisation_flag").value("false"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
             .andExpect(jsonPath("$.party_details.individual_details.age").value("45"));
 
@@ -2042,10 +2042,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendant_account_id").value(10001))
+            .andExpect(jsonPath("$.defendant_account_id").value("10001"))
             .andExpect(jsonPath("$.account_number").value("10001A"))
             .andExpect(jsonPath("$.debtor_type").value("Defendant"))
-            .andExpect(jsonPath("$.party_details.organisation_flag").value("true"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
                            .value("Kings Arms"));
