@@ -1,0 +1,172 @@
+openapi: 3.1.1
+
+servers:
+  - url: http://localhost:4550/
+
+info:
+  description: Opal Fines Service - Minor Creditor
+  version: v0.0.1
+  title: Opal Fines Service
+
+paths:
+  /minor-creditor-accounts/{id}:
+    get:
+      tags:
+        - Minor Creditor
+      summary: Get Minor Creditor Account
+      description: The Get Minor Creditor Account will be used to return the low level data associated to the minor creditor account - such as personal details for the minor creditor, and payment details.
+      operationId: getMinorCreditorAccount
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - creditor_accounts.creditor_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              description: Version of the minor creditor account. DB Mapping - creditor_accounts.version
+              schema:
+                $ref: "./types.yaml#/components/schemas/BigInt"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/minorCreditorAccountResponse"
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+    patch:
+      tags:
+        - Minor Creditor
+      summary: Update Minor Creditor Account
+      description: The Update Minor Creditor Account will be used to update individual attributes of a Minor Creditor Account.
+      operationId: patchMinorCreditorAccount
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - creditor_accounts.creditor_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+        - in: header
+          name: ETag
+          description: Version of the minor creditor account. DB Mapping - creditor_accounts.version
+          schema:
+            $ref: "./types.yaml#/components/schemas/BigInt"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: false
+              type: object
+              required:
+                - party_details
+                - address
+                - payment
+              properties:
+                party_details:
+                  $ref: './common.yaml#/components/schemas/partyDetails'
+                address:
+                  $ref: './common.yaml#/components/schemas/addressDetails'
+                payment:
+                  $ref: './common.yaml#/components/schemas/creditorAccountPaymentDetails'
+      responses:
+        '201':
+          description: CREATED
+          headers:
+            ETag:
+              description: Version of the minor creditor account. DB Mapping - creditor_accounts.version
+              schema:
+                $ref: "./types.yaml#/components/schemas/BigInt"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/minorCreditorAccountResponse"
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+components:
+  schemas:
+    minorCreditorAccountResponse:
+      additionalProperties: false
+      type: object
+      required:
+        - creditor_account_id
+        - party_details
+        - address
+        - payment
+      properties:
+        creditor_account_id:
+          $ref: "./types.yaml#/components/schemas/BigInt"
+        party_details:
+          $ref: './common.yaml#/components/schemas/partyDetails'
+        address:
+          $ref: './common.yaml#/components/schemas/addressDetails'
+        payment:
+          allOf:
+            - $ref: './common.yaml#/components/schemas/creditorAccountPaymentDetails'
+            - properties:
+                hold_payment:
+                  type: boolean
+                  description: DB Mapping - creditor_accounts.hold_payout
+              required:
+                - hold_payment

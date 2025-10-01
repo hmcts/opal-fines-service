@@ -69,7 +69,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         log.info(":testPostNotes: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
-        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(status().isCreated());
     }
 
     @DisplayName("post notes for a defendant account ID that does not exist [PO-1566]")
@@ -159,7 +159,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         log.info(":testPostNotes: Response body:\n" + ToJsonString.toPrettyJson(body));
 
-        resultActions.andExpect(status().isOk());
+        resultActions.andExpect(status().isCreated());
     }
 
     @DisplayName("post notes for a defendant account ID that does not exist in legacy [PO-1975]")

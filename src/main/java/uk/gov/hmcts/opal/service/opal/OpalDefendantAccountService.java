@@ -6,42 +6,56 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.common.AddressDetails;
+import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
+import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
+import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
+import uk.gov.hmcts.opal.dto.common.Enforcer;
+import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
+import uk.gov.hmcts.opal.dto.common.IndividualAlias;
+import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
+import uk.gov.hmcts.opal.dto.common.LanguagePreference;
+import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
+import uk.gov.hmcts.opal.dto.common.LastEnforcementAction;
+import uk.gov.hmcts.opal.dto.common.LJA;
+import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
+import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
+import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
+import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
+import uk.gov.hmcts.opal.dto.common.IndividualDetails;
+import uk.gov.hmcts.opal.dto.common.PartyDetails;
+import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
-import uk.gov.hmcts.opal.dto.PaymentTermsType;
+import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.PostedDetails;
-import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
-import uk.gov.hmcts.opal.dto.common.AddressDetails;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.ContactDetails;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails;
-import uk.gov.hmcts.opal.dto.common.IndividualDetails;
-import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
-import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
+import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
+import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
-import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -49,6 +63,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
+import java.time.LocalDateTime;
 
 @Service
 @Slf4j(topic = "opal.OpalDefendantAccountService")
@@ -61,12 +77,19 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final DefendantAccountSpecs defendantAccountSpecs;
     private final DefendantAccountPaymentTermsRepository defendantAccountPaymentTermsRepository;
+    private final DefendantAccountSummaryViewRepository defendantAccountSummaryViewRepository;
 
     @Autowired
     private DebtorDetailRepository debtorDetailRepository;
 
     @Autowired
     private AliasRepository aliasRepository;
+
+    public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
+        return defendantAccountRepository.findById(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account not found with id: " + defendantAccountId));
+    }
 
     @Override
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
@@ -152,7 +175,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
-    int calculateAge(LocalDate birthDate) {
+    static int calculateAge(LocalDate birthDate) {
         return birthDate != null
             ? java.time.Period.between(birthDate, java.time.LocalDate.now()).getYears()
             : 0;
@@ -369,23 +392,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .employerAddress(employerAddress)
             .build();
 
-        LanguagePreferences.LanguagePreference documentLanguagePref =
-            LanguagePreferences.LanguagePreference.builder()
-                .languageCode(debtorDetail != null ? debtorDetail.getDocumentLanguage() : null)
-                .languageDisplayName(null)
-                .build();
+        LanguagePreference documentLanguagePref =
+            LanguagePreference.fromCode(debtorDetail != null ? debtorDetail.getDocumentLanguage() : null);
 
-        LanguagePreferences.LanguagePreference hearingLanguagePref =
-            LanguagePreferences.LanguagePreference.builder()
-                .languageCode(debtorDetail != null ? debtorDetail.getHearingLanguage() : null)
-                .languageDisplayName(null)
-                .build();
+        LanguagePreference hearingLanguagePref =
+            LanguagePreference.fromCode(debtorDetail != null ? debtorDetail.getHearingLanguage() : null);
 
         LanguagePreferences languagePreferences = LanguagePreferences.builder()
             .documentLanguagePreference(documentLanguagePref)
             .hearingLanguagePreference(hearingLanguagePref)
             .build();
-
 
         return DefendantAccountParty.builder()
             .defendantAccountPartyType(defendantAccountPartyType)
@@ -420,9 +436,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .effectiveDate(entity.getEffectiveDate())
             .instalmentPeriod(
                 InstalmentPeriod.builder()
-                    .instalmentPeriodCode(
-                        safeInstalmentPeriodCode(entity.getInstalmentPeriod())
-                    )
+                    .instalmentPeriodCode(safeInstalmentPeriodCode(entity.getInstalmentPeriod())
+                )
                     .build()
             )
             .lumpSumAmount(entity.getInstalmentLumpSum())
@@ -467,5 +482,213 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
     }
 
+    public DefendantAccountSummaryViewEntity getDefendantAccountSummaryViewById(long defendantAccountId) {
+        return defendantAccountSummaryViewRepository.findById(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account Summary View not found with id: " + defendantAccountId));
+    }
 
+    public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
+        log.debug(":getAtAGlance (Opal): id: {}.", defendantAccountId);
+
+        // fetch DefendantAccountAtAGlance data from the view.
+        DefendantAccountSummaryViewEntity entity = getDefendantAccountSummaryViewById(defendantAccountId);
+
+        return convertEntityToAtAGlanceResponse(entity);
+    }
+
+    static DefendantAccountAtAGlanceResponse
+        convertEntityToAtAGlanceResponse(DefendantAccountSummaryViewEntity entity) {
+        if (null == entity) {
+            return null;
+        }
+
+        PartyDetails partyDetails = PartyDetails.builder()
+            .partyId(entity.getPartyId() != null ? entity.getPartyId().toString() : null)
+            .organisationFlag(entity.getOrganisation())
+            // Only one of organisationDetails or individualDetails will be populated
+            // if organisationFlag is true, then organisationDetails is populated
+            .organisationDetails(
+                entity.getOrganisation()
+                    ? buildOrganisationDetails(entity)
+                    : null
+            )
+            // if organisationFlag is false, then individualDetails is populated
+            .individualDetails(
+                !entity.getOrganisation()
+                    ? buildIndividualDetails(entity)
+                    : null
+            )
+            .build();
+
+        AddressDetails addressDetails = AddressDetails.builder()
+            .addressLine1(entity.getAddressLine1())
+            .addressLine2(entity.getAddressLine2())
+            .addressLine3(entity.getAddressLine3())
+            .addressLine4(entity.getAddressLine4())
+            .addressLine5(entity.getAddressLine5())
+            .postcode(entity.getPostcode())
+            .build();
+
+        return DefendantAccountAtAGlanceResponse.builder()
+            .defendantAccountId(entity.getDefendantAccountId().toString())
+            .accountNumber(entity.getAccountNumber())
+            .debtorType(entity.getDebtorType())
+            .isYouth(isYouth(entity.getBirthDate(), entity.getAge()))
+            .partyDetails(partyDetails)
+            .addressDetails(addressDetails)
+            .languagePreferences(buildLanguagePreferences(entity))
+            .paymentTermsSummary(buildPaymentTerms(entity))
+            .enforcementStatus(buildEnforcementStatusSummary(entity))
+            .commentsAndNotes(buildCommentsAndNotes(entity))
+            .version(entity.getVersion())
+            .build();
+    }
+
+    /**
+     * Build OrganisationDetails from the DefendantAccountSummaryViewEntity.
+     */
+    private static OrganisationDetails buildOrganisationDetails(DefendantAccountSummaryViewEntity entity) {
+        return OrganisationDetails.builder()
+            .organisationName(entity.getOrganisationName())
+            .organisationAliases(
+                entity.getAliasId() != null
+                    ? List.of(OrganisationAlias.builder().aliasId(entity.getAliasId())
+                                  .sequenceNumber(entity.getSequenceNumber())
+                                  .organisationName(entity.getOrganisationName())
+                                  .build())
+                    : Collections.emptyList()
+            )
+            .build();
+    }
+
+    private static IndividualDetails buildIndividualDetails(DefendantAccountSummaryViewEntity entity) {
+        return IndividualDetails.builder()
+            .title(entity.getTitle())
+            .forenames(entity.getForenames())
+            .surname(entity.getSurname())
+            .dateOfBirth(entity.getBirthDate() != null ? entity.getBirthDate().toLocalDate().toString() : null)
+            .age(entity.getBirthDate() != null ? String.valueOf(
+                calculateAge(entity.getBirthDate().toLocalDate())) : null)
+            .individualAliases(
+                entity.getAliasId() != null
+                    ? List.of(IndividualAlias.builder().aliasId(entity.getAliasId())
+                                  .sequenceNumber(entity.getSequenceNumber())
+                                  .forenames(entity.getAliasForenames())
+                                  .surname(entity.getAliasSurname())
+                                  .build())
+                    : Collections.emptyList())
+            .nationalInsuranceNumber(entity.getNationalInsuranceNumber())
+            .build();
+    }
+
+    private static EnforcementStatusSummary buildEnforcementStatusSummary(DefendantAccountSummaryViewEntity entity) {
+        LastEnforcementAction lastEnforcementAction = LastEnforcementAction.builder()
+            .lastEnforcementActionId(entity.getLastEnforcement())
+            .lastEnforcementActionTitle(entity.getLastEnforcementTitle())
+            .build();
+
+        EnforcementOverrideResult enforcementOverrideResult = EnforcementOverrideResult.builder()
+            .enforcementOverrideId(entity.getEnforcementOverrideResultId())
+            .enforcementOverrideTitle(entity.getEnforcementOverrideTitle())
+            .build();
+
+        Enforcer enforcer = Enforcer.builder()
+            .enforcerId(entity.getEnforcerId())
+            .enforcerName(entity.getEnforcerName())
+            .build();
+
+        LJA lja = LJA.builder()
+            .ljaId(null == entity.getLjaId() ? null : Integer.parseInt(entity.getLjaId()))
+            .ljaName(entity.getLjaName())
+            .build();
+
+        EnforcementOverride enforcementOverride = EnforcementOverride.builder()
+            .enforcementOverrideResult(enforcementOverrideResult)
+            .enforcer(enforcer)
+            .lja(lja)
+            .build();
+
+        return EnforcementStatusSummary.builder()
+            .lastEnforcementAction(lastEnforcementAction)
+            .collectionOrderMade(entity.getCollectionOrder())
+            .defaultDaysInJail(entity.getJailDays())
+            .enforcementOverride(enforcementOverride)
+            .lastMovementDate(entity.getLastMovementDate().toLocalDate())
+            .build();
+    }
+
+    private static PaymentTermsSummary buildPaymentTerms(DefendantAccountSummaryViewEntity entity) {
+        return PaymentTermsSummary.builder()
+            .paymentTermsType(
+                PaymentTermsType.builder()
+                    .paymentTermsTypeCode(safePaymentTermsTypeCode(entity.getTermsTypeCode()))
+                    .build()
+            )
+            .effectiveDate(null == entity.getEffectiveDate() ? null : entity.getEffectiveDate().toLocalDate())
+            .instalmentPeriod(
+                InstalmentPeriod.builder()
+                    .instalmentPeriodCode(safeInstalmentPeriodCode(entity.getInstalmentPeriod()))
+                    .build()
+            )
+            .lumpSumAmount(entity.getInstalmentLumpSum())
+            .instalmentAmount(entity.getInstalmentAmount())
+            .build();
+    }
+
+    private static LanguagePreferences buildLanguagePreferences(DefendantAccountSummaryViewEntity entity) {
+        // if both language preferences are not set, as they are optional objects.
+        if ((null == entity.getDocumentLanguage()) && (null == entity.getHearingLanguage())) {
+            return null;
+        }
+
+        LanguagePreference documentLanguagePref =
+            null == entity.getDocumentLanguage() ? null : LanguagePreference.fromCode(entity.getDocumentLanguage());
+
+        LanguagePreference hearingLanguagePref =
+            null == entity.getHearingLanguage() ? null : LanguagePreference.fromCode(entity.getHearingLanguage());
+
+        return LanguagePreferences.builder()
+            .documentLanguagePreference(documentLanguagePref)
+            .hearingLanguagePreference(hearingLanguagePref)
+            .build();
+    }
+
+    private static CommentsAndNotes buildCommentsAndNotes(DefendantAccountSummaryViewEntity entity) {
+        // Return null if all fields don't have values, as they are optional objects.
+        if ((null == entity.getAccountComments()) && (null == entity.getAccountNote1())
+            && (null == entity.getAccountNote2()) && (null == entity.getAccountNote3())) {
+            return null;
+        }
+
+        return CommentsAndNotes.builder()
+            .accountNotesAccountComments(entity.getAccountComments())
+            .accountNotesFreeTextNote1(entity.getAccountNote1())
+            .accountNotesFreeTextNote2(entity.getAccountNote2())
+            .accountNotesFreeTextNote3(entity.getAccountNote3())
+            .build();
+    }
+
+    /**
+     * Determines if the individual is considered a youth (under 18 years old).
+     *
+     * <p>
+     *     If the birth date is provided, it calculates the age based on the current date.
+     *     If the birth date is not provided, the age parameter is used if available.
+     *     If neither is available, it returns null.
+     * </p>
+     * @param birthDate The birth date of the individual.
+     * @param age Age of the individual.
+     * @return True if the individual is under 18, false otherwise.
+     */
+    private static Boolean isYouth(LocalDateTime birthDate, Integer age) {
+        if (birthDate != null) {
+            return calculateAge(birthDate.toLocalDate()) < 18;
+        } else if (age != null) {
+            return age < 18;
+        } else {
+            return Boolean.FALSE; // return FALSE if both are null
+        }
+
+    }
 }
