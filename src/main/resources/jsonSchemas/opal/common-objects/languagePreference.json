@@ -7,7 +7,11 @@
     "language_code": {
       "type": "string",
       "enum": ["CY", "EN"]
+    },
+    "language_display_name": {
+      "type": "string",
+      "enum": ["Welsh and English", "English only"]
     }
   },
-    "required": ["language_code"]
+    "required": ["language_code", "language_display_name"]
 }

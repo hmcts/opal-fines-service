@@ -1,31 +1,20 @@
-package uk.gov.hmcts.opal.dto;
+package uk.gov.hmcts.opal.dto.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
-import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
-
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaymentTerms {
-
-    @JsonProperty("days_in_default")
-    private Integer daysInDefault;
-
-    @JsonProperty("date_days_in_default_imposed")
-    private LocalDate dateDaysInDefaultImposed;
-
-    @JsonProperty("reason_for_extension")
-    private String reasonForExtension;
+@Builder
+public class PaymentTermsSummary implements ToJsonString {
 
     @JsonProperty("payment_terms_type")
     private PaymentTermsType paymentTermsType;
