@@ -2039,6 +2039,38 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
 
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an individual (Parent/Guardian)")
+    public void opalGetAtAGlance_Individual_ParentGuardian(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10004/at-a-glance")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
+        log.info(":testGetAtAGlance: Party is an individual (Parent/Guardian). etag header: \n" + headers);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetAtAGlance: Party is an individual (Parent/Guardian). Response body:\n"
+                     + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // verify the header contains an ETag value
+            .andExpect(header().string("etag", "\"1\""))
+            .andExpect(jsonPath("$.defendant_account_id").value("10004"))
+            .andExpect(jsonPath("$.account_number").value("10004A"))
+            .andExpect(jsonPath("$.debtor_type").value("Parent/Guardian"))
+            .andExpect(jsonPath("$.is_youth").exists())
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
+            .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
+            .andExpect(jsonPath("$.party_details.individual_details.age").value("45"))
+            .andExpect(jsonPath("$.address").exists())
+            .andExpect(jsonPath("$.payment_terms").exists())
+            .andExpect(jsonPath("$.enforcement_status").exists());;
+
+        jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
+    }
+
     @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an organisation")
     public void opalGetAtAGlance_Organisation(Logger log) throws Exception {
 

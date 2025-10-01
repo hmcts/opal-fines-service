@@ -290,6 +290,11 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
+    void testGetAtAGlance_Individual_ParentGuardian() throws Exception {
+        super.opalGetAtAGlance_Individual_ParentGuardian(log);
+    }
+
+    @Test
     void testGetAtAGlance_Organisation() throws Exception {
         super.opalGetAtAGlance_Organisation(log);
     }
