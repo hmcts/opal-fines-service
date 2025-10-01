@@ -3,11 +3,11 @@ package uk.gov.hmcts.opal.service.opal;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CommentAndNotesDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.EnforcementOverrideResultReference;
 import uk.gov.hmcts.opal.dto.EnforcerReference;
@@ -19,12 +19,19 @@ import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
+import uk.gov.hmcts.opal.entity.EnforcementOverrideResultEntity;
+import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.EnforcementOverrideResultRepository;
+import uk.gov.hmcts.opal.repository.EnforcerRepository;
+import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 
@@ -37,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -149,24 +157,39 @@ class OpalDefendantAccountServiceTest {
 
     @Test
     void updateDefendantAccount_happyPath_updatesAllGroups_andReturnsRepresentation() {
-        // Arrange - data first
+        // ---------- Arrange ----------
         Long id = 1L;
-        String buHeader = "10";
 
         BusinessUnitEntity bu = BusinessUnitEntity.builder()
-            .businessUnitId(Short.valueOf(buHeader))
+            .businessUnitId((short) 10)
             .build();
 
         DefendantAccountEntity entity = DefendantAccountEntity.builder()
             .defendantAccountId(id)
             .businessUnit(bu)
             .build();
+        // If-Match must match this (@Version)
+        entity.setVersion(1L);
 
-        // Arrange - only the mocks we need *now* for stubbing
+        // Core repos & deps
+        final DefendantAccountHeaderViewRepository headerViewRepo = mock(DefendantAccountHeaderViewRepository.class);
         final DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
+        final DefendantAccountSpecs specs = mock(DefendantAccountSpecs.class);
+        final DefendantAccountPaymentTermsRepository paymentTermsRepo = mock(DefendantAccountPaymentTermsRepository.class);
         final CourtRepository courtRepo = mock(CourtRepository.class);
+        final AmendmentService amendmentService = mock(AmendmentService.class);
+        final EntityManager em = mock(EntityManager.class);
+        final NoteRepository noteRepository = mock(NoteRepository.class);
 
+        // Repos needed for enforcementOverrides
+        final EnforcementOverrideResultRepository eorRepo = mock(EnforcementOverrideResultRepository.class);
+        final LocalJusticeAreaRepository ljaRepo = mock(LocalJusticeAreaRepository.class);
+        final EnforcerRepository enforcerRepo = mock(EnforcerRepository.class);
+
+        // Stubs
         when(accountRepo.findById(id)).thenReturn(Optional.of(entity));
+        // Echo the saved entity (so assertions see updated values)
+        when(accountRepo.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
         CourtEntity court = CourtEntity.builder()
             .courtId(100L)
@@ -174,6 +197,28 @@ class OpalDefendantAccountServiceTest {
             .build();
         when(courtRepo.findById(100L)).thenReturn(Optional.of(court));
 
+        // Reference entities: stub getters so the service can copy IDs onto the account
+        EnforcementOverrideResultEntity eor = mock(EnforcementOverrideResultEntity.class);
+        // NOTE: use your entity's actual getter for the @Id field:
+        when(eor.getEnforcementOverrideResultId()).thenReturn("EO-1");
+        when(eorRepo.findById("EO-1")).thenReturn(Optional.of(eor));
+
+        EnforcerEntity enforcer = mock(EnforcerEntity.class);
+        when(enforcer.getEnforcerId()).thenReturn(22L);
+        when(enforcerRepo.findById(22L)).thenReturn(Optional.of(enforcer));
+
+        LocalJusticeAreaEntity lja = mock(LocalJusticeAreaEntity.class);
+        when(lja.getLocalJusticeAreaId()).thenReturn((short) 33);
+        when(ljaRepo.findById((short) 33)).thenReturn(Optional.of(lja));
+
+        // Service under test
+        final OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            headerViewRepo, accountRepo, specs, paymentTermsRepo, courtRepo,
+            amendmentService, em, noteRepository,
+            eorRepo, ljaRepo, enforcerRepo
+        );
+
+        // Request DTO
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
             .commentAndNotes(CommentAndNotesDto.builder()
                 .accountComment("acc comment")
@@ -205,29 +250,12 @@ class OpalDefendantAccountServiceTest {
                 .build())
             .build();
 
-        // If-Match must match current @Version on the entity for verifyIfMatch(...)
-        entity.setVersion(1L);
+        // ---------- Act ----------
+        final String buHeader = "10"; // near first use for Checkstyle
+        // If-Match = "1" to match entity.setVersion(1L)
+        var resp = svc.updateDefendantAccount(id, buHeader, req, "1", "UNIT_TEST");
 
-        // Arrange - remaining mocks declared immediately before service construction
-        final DefendantAccountHeaderViewRepository headerViewRepo = mock(DefendantAccountHeaderViewRepository.class);
-        final DefendantAccountSpecs specs = mock(DefendantAccountSpecs.class);
-        final DefendantAccountPaymentTermsRepository paymentTermsRepo = mock(DefendantAccountPaymentTermsRepository
-            .class);
-        final AmendmentService amendmentService = mock(AmendmentService.class);
-        final EntityManager em = mock(EntityManager.class);
-        final NoteRepository noteRepository = mock(NoteRepository.class);
-
-        final OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            headerViewRepo, accountRepo, specs, paymentTermsRepo, courtRepo, amendmentService, em, noteRepository,
-            /* enforcementOverrideResultRepository */ null,
-            /* localJusticeAreaRepository        */ null,
-            /* enforcerRepository                */ null
-        );
-
-        // Act
-        DefendantAccountResponse resp = svc.updateDefendantAccount(id, buHeader, req, "1", "UNIT_TEST");
-
-        // Assert
+        // ---------- Assert ----------
         verify(accountRepo).save(entity);
         assertEquals(id, resp.getId());
 
@@ -251,15 +279,14 @@ class OpalDefendantAccountServiceTest {
         assertEquals(22, resp.getEnforcementOverrides().getEnforcer().getEnforcerId());
         assertEquals(33, resp.getEnforcementOverrides().getLja().getLjaId());
 
+        // Verify entity was updated as expected
         assertEquals(court, entity.getEnforcingCourt());
         assertTrue(entity.isCollectionOrder());
-        assertEquals(LocalDate.parse("2025-01-01"), entity.getCollectionOrderEffectiveDate());
+        assertEquals(java.time.LocalDate.parse("2025-01-01"), entity.getCollectionOrderEffectiveDate());
         assertEquals("EO-1", entity.getEnforcementOverrideResultId());
         assertEquals(Long.valueOf(22), entity.getEnforcementOverrideEnforcerId());
         assertEquals(Short.valueOf((short) 33), entity.getEnforcementOverrideTfoLjaId());
     }
-
-
 
     @Test
     void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
@@ -397,5 +424,76 @@ class OpalDefendantAccountServiceTest {
         );
     }
 
+    @Test
+    void updateDefendantAccount_versionMismatch_throwsResourceConflict() {
+        var repo = mock(DefendantAccountRepository.class);
+        var svc = new OpalDefendantAccountService(
+            null, repo, null, null, null, mock(AmendmentService.class), mock(EntityManager.class),
+            mock(NoteRepository.class), null, null, null);
 
+        var bu = BusinessUnitEntity.builder().businessUnitId((short)78).build();
+        var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu).version(5L).build();
+        when(repo.findById(77L)).thenReturn(Optional.of(entity));
+
+        var req = UpdateDefendantAccountRequest.builder()
+            .commentAndNotes(CommentAndNotesDto.builder().accountComment("x").build()).build();
+
+        assertThrows(ObjectOptimisticLockingFailureException.class,
+            () -> svc.updateDefendantAccount(77L, "78", req, "\"0\"", "tester"));
+        verify(repo, never()).save(any());
+    }
+
+    @Test
+    void updateDefendantAccount_callsAuditProcs() {
+        var accountRepo = mock(DefendantAccountRepository.class);
+        var amend = mock(AmendmentService.class);
+        var em = mock(EntityManager.class);
+        var noteRepo = mock(NoteRepository.class);
+
+        var bu = BusinessUnitEntity.builder().businessUnitId((short)78).build();
+        var entity = DefendantAccountEntity.builder()
+            .defendantAccountId(77L).businessUnit(bu).version(0L).build();
+        when(accountRepo.findById(77L)).thenReturn(Optional.of(entity));
+
+        var svc = new OpalDefendantAccountService(
+            null, accountRepo, null, null, null, amend, em, noteRepo, null, null, null);
+
+        var req = UpdateDefendantAccountRequest.builder()
+            .commentAndNotes(CommentAndNotesDto.builder().accountComment("hello").build()).build();
+
+        svc.updateDefendantAccount(77L, "78", req, "0", "11111111A");
+
+        verify(amend).auditInitialiseStoredProc(77L, RecordType.DEFENDANT_ACCOUNTS);
+        verify(amend).auditFinaliseStoredProc(
+            eq(77L), eq(RecordType.DEFENDANT_ACCOUNTS), eq((short)78),
+            eq("11111111A"), any(), eq("ACCOUNT_ENQUIRY"));
+    }
+
+    @Test
+    void updateDefendantAccount_enforcementOverrideLookupsMissing_areNull() {
+        var accountRepo = mock(DefendantAccountRepository.class);
+        var svc = new OpalDefendantAccountService(
+            null, accountRepo, null, null, null, mock(AmendmentService.class),
+            mock(EntityManager.class), mock(NoteRepository.class),
+            mock(EnforcementOverrideResultRepository.class),
+            mock(LocalJusticeAreaRepository.class),
+            mock(EnforcerRepository.class)
+        );
+
+        var bu = BusinessUnitEntity.builder().businessUnitId((short)78).build();
+        var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu).version(0L).build();
+        when(accountRepo.findById(77L)).thenReturn(Optional.of(entity));
+
+        var req = UpdateDefendantAccountRequest.builder()
+            .enforcementOverrides(EnforcementOverride.builder()
+                .enforcementOverrideResult(EnforcementOverrideResultReference.builder()
+                    .enforcementOverrideResultId("NOPE").build())
+                .enforcer(EnforcerReference.builder().enforcerId(999999).build())
+                .lja(LjaReference.builder().ljaId(9999).build())
+                .build())
+            .build();
+
+        var resp = svc.updateDefendantAccount(77L, "78", req, "0", "tester");
+        assertNotNull(resp.getEnforcementOverrides());
+    }
 }

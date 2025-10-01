@@ -279,4 +279,58 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.opalGetDefendantAccountParty_NullFields(log);
     }
 
+    @Test
+    void opal_updateDefendantAccount_Happy() throws Exception {
+        super.opalUpdateDefendantAccount_Happy(log);
+    }
+
+    @Test
+    void opal_updateDefendantAccount_mismatch() throws Exception {
+        super.patch_conflict_whenIfMatchDoesNotMatch(log);
+    }
+
+    @Test
+    void opal_updateDefendantAccount_missingIfMatch() throws Exception {
+        super.patch_conflict_whenIfMatchMissing(log);
+    }
+
+    @Test
+    void opal_updateDefendantAccount_unauthorised() throws Exception {
+        super.patch_forbidden_whenUserLacksAccountMaintenance(log);
+    }
+
+    @Test
+    void opal_updateDefendantAccount_noperms() throws Exception {
+        super.patch_notFound_whenAccountNotInHeaderBU(log);
+    }
+
+    @Test
+    void opal_updateDefendantAccount_wrongBu() throws Exception {
+        super.patch_badRequest_whenMultipleGroupsProvided(log);
+    }
+
+    @Test
+    void opal_updateDefendantAccount_InvalidTypes() throws Exception {
+        super.patch_badRequest_whenTypesInvalid(log);
+    }
+
+    @Test
+    void opal_updateDefendantAccount_updateEnforcementCourt() throws Exception {
+        super.patch_updatesEnforcementCourt_andValidatesResponseSchema(log);
+    }
+
+    @Test
+    void opal_updateDefendantAccount_updateCollectionOrder() throws Exception {
+        super.patch_updatesCollectionOrder(log);
+    }
+
+    @Test
+    void opal_updateDefendantAccount_updatesEnforcementOverrides() throws Exception {
+        super.patch_updatesEnforcementOverrides(log);
+    }
+
+    @Test
+    void opal_updateDefendantAccount_returnsEtag() throws Exception {
+        super.patch_returnsETag_andResponseConformsToSchema(log);
+    }
 }

@@ -102,7 +102,7 @@ public class DefendantAccountController {
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
-        @RequestHeader("If-Match") String ifMatch,
+        @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @JsonSchemaValidated(schemaPath = SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_REQUEST)
         @RequestBody UpdateDefendantAccountRequest request
     ) {

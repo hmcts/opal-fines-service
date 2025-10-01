@@ -1,26 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
-import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.amendment.RecordType;
-import uk.gov.hmcts.opal.service.opal.AmendmentService;
-import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
-
-import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +12,25 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.entity.amendment.RecordType;
+import uk.gov.hmcts.opal.service.opal.AmendmentService;
+import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
+
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.AmendmentControllerIntegrationTest")
@@ -122,9 +120,8 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
 
         DefendantAccountSearchResultsDto searchResults =
             opalDefendantAccountService.searchDefendantAccounts(AccountSearchDto.builder().build());
-        DefendantAccountSummaryDto dto = searchResults.getDefendantAccounts().getFirst();
-        Long defAccId = Long.parseLong(dto.getDefendantAccountId());
-        Short busUnitId = Short.parseShort(dto.getBusinessUnitId());
+        Long defAccId = 77L;
+        Short busUnitId = 78;
 
         log.info(":testAuditStoredProcedures: found defendant:{} in business unit: {}", defAccId, busUnitId);
 
@@ -135,8 +132,8 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
         log.info(":testAuditStoredProcedures: defendant account: {}", rowData);
 
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
-                                                     .contentType(MediaType.APPLICATION_JSON)
-                                                     .content("{\"associated_record_id\": \"" + defAccId + "\"}"));
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"associated_record_id\": \"" + defAccId + "\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testAuditStoredProcedures: Response body:\n" + ToJsonString.toPrettyJson(body));

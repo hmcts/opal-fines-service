@@ -85,8 +85,8 @@ public class DefendantAccountService {
     public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                            String businessUnitId,
                                                            UpdateDefendantAccountRequest request,
-                                                           String authHeaderValue,
-                                                           String ifMatch) {
+                                                           String ifMatch,
+                                                           String authHeaderValue) {
         log.debug(":updateDefendantAccount:");
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);

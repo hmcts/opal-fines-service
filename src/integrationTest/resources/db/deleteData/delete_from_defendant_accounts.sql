@@ -79,3 +79,26 @@ DELETE FROM major_creditors WHERE business_unit_id = 9999;
 
 -- Remove the test business unit
 DELETE FROM business_units WHERE business_unit_id = 9999;
+
+-- Ensure the table exists so the delete is a no-op if it wasn't created in this env
+CREATE TABLE IF NOT EXISTS public.enforcement_override_results (
+    enforcement_override_result_id   varchar(50) PRIMARY KEY,
+    enforcement_override_result_name varchar(200) NOT NULL
+);
+
+-- Remove test enforcement-override result used by ITs
+DELETE FROM public.enforcement_override_results
+WHERE enforcement_override_result_id IN ('FWEC');
+
+-- Remove test Local Justice Area used by ITs
+DELETE FROM local_justice_areas
+WHERE local_justice_area_id IN (240);
+
+-- Remove test Enforcers used by ITs
+DELETE FROM enforcers
+WHERE enforcer_id IN (780000000021, 21)
+   OR (business_unit_id = 78 AND (enforcer_code = 21 OR name = 'North East Enforcement'));
+
+-- Remove test Court used by ITs
+DELETE FROM courts
+WHERE court_id IN (780000000185, 100);
