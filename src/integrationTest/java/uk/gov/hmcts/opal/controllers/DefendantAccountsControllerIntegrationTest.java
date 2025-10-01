@@ -2209,6 +2209,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(status().isForbidden())
             .andExpect(content().string(""));
     }
+
     @DisplayName("LEGACY: Get Defendant Account Party - Happy Path [@PO-1973]")
     public void legacyGetDefendantAccountParty_Happy(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());

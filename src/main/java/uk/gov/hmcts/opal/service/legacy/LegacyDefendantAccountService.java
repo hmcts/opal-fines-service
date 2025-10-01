@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
+import uk.gov.hmcts.opal.dto.common.LanguagePreference;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -519,27 +520,23 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         LanguagePreferencesLegacy lp = src.getLanguagePreferences();
         LanguagePreferences apiLangs = null;
         if (lp != null) {
-            LanguagePreferences.LanguagePreference docPref = null;
-            LanguagePreferences.LanguagePreference hearPref = null;
+            LanguagePreference docPref = null;
+            LanguagePreference hearPref = null;
 
             LanguagePreferencesLegacy.LanguagePreference doc = lp.getDocumentLanguagePreference();
             LanguagePreferencesLegacy.LanguagePreference hear = lp.getHearingLanguagePreference();
 
             String docCode = mapSafe(doc, LanguagePreferencesLegacy.LanguagePreference::getLanguageCode);
             if (docCode != null && !docCode.isBlank()) {
-                docPref = LanguagePreferences.LanguagePreference.builder()
-                    .languageCode(docCode)
-                    .languageDisplayName(mapSafe(doc,
-                        LanguagePreferencesLegacy.LanguagePreference::getLanguageDisplayName))
+                docPref = LanguagePreference.builder()
+                        .languageCode(LanguagePreference.LanguageCode.fromValue(docCode))
                     .build();
             }
 
             String hearCode = mapSafe(hear, LanguagePreferencesLegacy.LanguagePreference::getLanguageCode);
             if (hearCode != null && !hearCode.isBlank()) {
-                hearPref = LanguagePreferences.LanguagePreference.builder()
-                    .languageCode(hearCode)
-                    .languageDisplayName(mapSafe(hear,
-                        LanguagePreferencesLegacy.LanguagePreference::getLanguageDisplayName))
+                hearPref = LanguagePreference.builder()
+                        .languageCode(LanguagePreference.LanguageCode.fromValue(hearCode))
                     .build();
             }
 
