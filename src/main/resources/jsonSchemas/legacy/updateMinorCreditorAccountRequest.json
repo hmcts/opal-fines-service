@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/updateMinorCreditorAccountRequest.json",
+  "type": "object",
+  "required": [
+    "creditor_account_id",
+    "account_version",
+    "party_details",
+    "address",
+    "payment"
+  ],
+  "properties": {
+    "creditor_account_id": {
+      "type": "string",
+      "description": "The unique identifier for the creditor account."
+    },
+    "account_version": {
+      "type": "integer",
+      "description": "The version number of the creditor account."
+    },
+    "party_details": {
+      "$ref": "./common-objects/partyDetailsLegacy.json"
+    },
+    "address": {
+      "$ref": "./common-objects/addressDetailsLegacy.json"
+    },
+    "payment": {
+      "$ref": "./common-objects/creditorAccountPaymentDetailsLegacy.json"
+    }
+  }
+}

@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -93,6 +95,14 @@ public class DefendantAccountController {
 
         return buildResponse(
             defendantAccountService.getPaymentTerms(defendantAccountId, authHeaderValue));
+    }
+
+    @GetMapping(value = "/{defendantAccountId}/at-a-glance")
+    @Operation(summary = "Get At A Glance details for a given defendant account")
+    public ResponseEntity<DefendantAccountAtAGlanceResponse> getAtAGlance(@PathVariable Long defendantAccountId,
+              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        return buildResponse(defendantAccountService.getAtAGlance(defendantAccountId, authHeaderValue));
     }
 
     @PatchMapping(value = "/{defendantAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE,

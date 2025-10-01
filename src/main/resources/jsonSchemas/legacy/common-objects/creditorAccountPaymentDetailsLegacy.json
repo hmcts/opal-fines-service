@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://opal-fines-service/creditorAccountPaymentDetailsLegacy.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "pay_by_bacs",
+    "hold_payment"
+  ],
+  "properties": {
+    "account_name": {
+      "type": "string",
+      "description": "DB Mapping - creditor_accounts.bank_account_name",
+      "minLength": 1,
+      "maxLength": 18
+    },
+    "sort_code": {
+      "type": "string",
+      "description": "DB Mapping - creditor_accounts.bank_sort_code",
+      "minLength": 1,
+      "maxLength": 6
+    },
+    "account_number": {
+      "type": "string",
+      "description": "DB Mapping - creditor_accounts.bank_account_number",
+      "minLength": 1,
+      "maxLength": 10
+    },
+    "account_reference": {
+      "type": "string",
+      "description": "DB Mapping - creditor_accounts.bank_account_reference",
+      "minLength": 1,
+      "maxLength": 18
+    },
+    "pay_by_bacs": {
+      "type": "boolean",
+      "description": "DB Mapping - creditor_accounts.pay_by_bacs"
+    },
+    "hold_payment": {
+      "type": "boolean",
+      "description": "DB Mapping - creditor_accounts.hold_payout"
+    }
+  }
+}

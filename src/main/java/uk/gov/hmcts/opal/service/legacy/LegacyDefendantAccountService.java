@@ -4,13 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
+import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
-import uk.gov.hmcts.opal.dto.PaymentTermsType;
+import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
@@ -26,7 +28,6 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
@@ -333,6 +334,13 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
                                                                      Long defendantAccountPartyId) {
         throw new UnsupportedOperationException("getDefendantAccountParty is not implemented in"
+                                                    + " LegacyDefendantAccountService");
+    }
+
+    @Override
+    public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
+        log.info(":getAtAGlance: Legacy Gateway response: NOT YET IMPLEMENTED.");
+        throw new UnsupportedOperationException("getAtAGlance is not implemented in"
                                                     + " LegacyDefendantAccountService");
     }
 
