@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+import static uk.gov.hmcts.opal.util.HttpUtil.buildCreatedResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,7 +38,7 @@ public class NotesController {
         String response =
             notesService.addNote(request, ifMatch, authHeaderValue);
 
-        return buildResponse(response);
+        return buildCreatedResponse(response);
     }
 
 }
