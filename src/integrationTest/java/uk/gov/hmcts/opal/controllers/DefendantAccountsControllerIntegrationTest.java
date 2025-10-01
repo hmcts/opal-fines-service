@@ -2036,7 +2036,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.party_details.individual_details.age").value("45"))
             .andExpect(jsonPath("$.address").exists())
             .andExpect(jsonPath("$.payment_terms").exists())
-            .andExpect(jsonPath("$.enforcement_status").exists());;
+            .andExpect(jsonPath("$.enforcement_status").exists())
+            // verify comments_and_notes node is present (test data included for these optional fields)
+            .andExpect(jsonPath("$.comments_and_notes").exists());;
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -2068,7 +2070,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.party_details.individual_details.age").value("45"))
             .andExpect(jsonPath("$.address").exists())
             .andExpect(jsonPath("$.payment_terms").exists())
-            .andExpect(jsonPath("$.enforcement_status").exists());;
+            .andExpect(jsonPath("$.enforcement_status").exists())
+            // verify comments_and_notes node is not present (no test data added as these are optional)
+            .andExpect(jsonPath("$.comments_and_notes").doesNotExist());;
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -2082,7 +2086,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                                                           .header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
-        log.info(":testGetAtAGlance: Party is an individual. etag header: \n" + headers);
+        log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetAtAGlance: Party is an organisation. Response body:\n" + ToJsonString.toPrettyJson(body));
 
@@ -2106,7 +2110,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.language_preferences.document_language_preference.language_display_name")
                            .value("English only"))
             .andExpect(jsonPath("$.payment_terms").exists())
-            .andExpect(jsonPath("$.enforcement_status").exists());
+            .andExpect(jsonPath("$.enforcement_status").exists())
+            .andExpect(jsonPath("$.enforcement_status.collection_order_made").exists())
+            // verify comments_and_notes node is present (test data included for these optional fields)
+            .andExpect(jsonPath("$.comments_and_notes").exists());;
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -2122,7 +2129,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                                                           .header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
-        log.info(":testGetAtAGlance: Party is an individual. etag header: \n" + headers);
+        log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetAtAGlance: Party is an organisation. Response body:\n" + ToJsonString.toPrettyJson(body));
 
@@ -2138,7 +2145,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
                            .value("Kings Arms"))
             // verify language preferences node is null
-            .andExpect(jsonPath("$.language_preferences").doesNotExist());
+            .andExpect(jsonPath("$.language_preferences").doesNotExist())
+            // verify comments_and_notes node is absent (no data included for these optional fields)
+            .andExpect(jsonPath("$.comments_and_notes").doesNotExist());
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -2153,7 +2162,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                                                           .header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
-        log.info(":testGetAtAGlance: Party is an individual. etag header: \n" + headers);
+        log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetAtAGlance: Party is an organisation. Response body:\n" + ToJsonString.toPrettyJson(body));
 
@@ -2188,7 +2197,6 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(content().string(""));
     }
 
-    //
     @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - 403 Forbidden\n"
         + "No auth header provided \n")
     void opalGetAtAGlance_authenticatedWithoutPermission_returns403(Logger log) throws Exception {
