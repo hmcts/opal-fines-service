@@ -93,7 +93,7 @@ openApiGenerate {
   apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
   modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "model"
   // Point to your customized mustache templates
-  templateDir = "$rootDir/src/openApi/resources/templates".toString()
+  templateDir = "$rootDir/openapi/templates".toString()
   generateApiTests = false
   generateModelTests = false
   skipOperationExample = true
