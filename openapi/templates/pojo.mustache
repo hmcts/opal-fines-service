@@ -3,6 +3,7 @@
  * @deprecated{{/isDeprecated}}
  */
 {{>additionalModelTypeAnnotations}}
+{{#parent}}@lombok.EqualsAndHashCode(callSuper = true){{/parent}}
 {{#isDeprecated}}
 @Deprecated
 {{/isDeprecated}}
