@@ -318,7 +318,7 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     void testGetAtAGlance_authenticatedWithoutPermission_returns403() throws Exception {
         super.opalGetAtAGlance_authenticatedWithoutPermission_returns403(log);
     }
-}
+
     @Test
     void opal_updateDefendantAccount_Happy() throws Exception {
         super.opalUpdateDefendantAccount_Happy(log);

@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
+import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
 
 /**
  * Request payload for PATCH /defendant-accounts/{id} (Opal mode).
@@ -19,7 +21,7 @@ import lombok.NoArgsConstructor;
 public class UpdateDefendantAccountRequest implements ToJsonString {
 
     @JsonProperty("comment_and_notes")
-    private CommentAndNotesDto commentAndNotes;
+    private CommentsAndNotes commentsAndNotes;
 
     @JsonProperty("enforcement_court")
     private CourtReferenceDto enforcementCourt;

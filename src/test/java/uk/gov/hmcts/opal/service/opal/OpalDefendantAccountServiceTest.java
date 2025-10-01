@@ -1,28 +1,26 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import java.time.LocalDateTime;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
-import uk.gov.hmcts.opal.dto.CommentAndNotesDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
-import uk.gov.hmcts.opal.dto.EnforcementOverride;
-import uk.gov.hmcts.opal.dto.EnforcementOverrideResultReference;
-import uk.gov.hmcts.opal.dto.EnforcerReference;
-import uk.gov.hmcts.opal.dto.LjaReference;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
+import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
+import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
+import uk.gov.hmcts.opal.dto.common.Enforcer;
+import uk.gov.hmcts.opal.dto.common.LJA;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
+import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.EnforcementOverrideResultEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
@@ -33,6 +31,7 @@ import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.repository.EnforcementOverrideResultRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
@@ -41,17 +40,13 @@ import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -69,7 +64,8 @@ class OpalDefendantAccountServiceTest {
 
     // If you need to create the service, mock the repos as needed.
     private final OpalDefendantAccountService service =
-        new OpalDefendantAccountService(null, defendantAccountRepository, null, null, dasvRepository);
+        new OpalDefendantAccountService(null, defendantAccountRepository, null, null, dasvRepository,null,null,null,
+            null,null,null,null);
 
     @Test
     void testDefendantAccountById() {
@@ -81,7 +77,6 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountEntity result = service.getDefendantAccountById(testId);
         assertNotNull(result);
     }
-        new OpalDefendantAccountService(null, null, null, null, null, null, null, null,null,null,null);
 
     @Test
     void testNzHelper() {
@@ -283,11 +278,13 @@ class OpalDefendantAccountServiceTest {
         final DefendantAccountHeaderViewRepository headerViewRepo = mock(DefendantAccountHeaderViewRepository.class);
         final DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         final DefendantAccountSpecs specs = mock(DefendantAccountSpecs.class);
-        final DefendantAccountPaymentTermsRepository paymentTermsRepo = mock(DefendantAccountPaymentTermsRepository.class);
+        final DefendantAccountPaymentTermsRepository paymentTermsRepo = mock(DefendantAccountPaymentTermsRepository
+            .class);
         final CourtRepository courtRepo = mock(CourtRepository.class);
         final AmendmentService amendmentService = mock(AmendmentService.class);
         final EntityManager em = mock(EntityManager.class);
-        final NoteRepository noteRepository = mock(NoteRepository.class);
+        final NoteRepository noteRepository = mock(NoteRepository
+            .class);
 
         // Repos needed for enforcementOverrides
         final EnforcementOverrideResultRepository eorRepo = mock(EnforcementOverrideResultRepository.class);
@@ -321,18 +318,18 @@ class OpalDefendantAccountServiceTest {
 
         // Service under test
         final OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            headerViewRepo, accountRepo, specs, paymentTermsRepo, courtRepo,
+            headerViewRepo, accountRepo, specs, paymentTermsRepo, /* summary */ null, courtRepo,
             amendmentService, em, noteRepository,
             eorRepo, ljaRepo, enforcerRepo
         );
 
         // Request DTO
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
-            .commentAndNotes(CommentAndNotesDto.builder()
-                .accountComment("acc comment")
-                .freeTextNote1("n1")
-                .freeTextNote2("n2")
-                .freeTextNote3("n3")
+            .commentsAndNotes(CommentsAndNotes.builder()
+                .accountNotesAccountComments("acc comment")
+                .accountNotesFreeTextNote1("n1")
+                .accountNotesFreeTextNote2("n2")
+                .accountNotesFreeTextNote3("n3")
                 .build())
             .enforcementCourt(CourtReferenceDto.builder()
                 .courtId(100)
@@ -343,15 +340,15 @@ class OpalDefendantAccountServiceTest {
                 .collectionOrderDate("2025-01-01")
                 .build())
             .enforcementOverrides(EnforcementOverride.builder()
-                .enforcementOverrideResult(EnforcementOverrideResultReference.builder()
-                    .enforcementOverrideResultId("EO-1")
-                    .enforcementOverrideResultTitle("Result Title")
+                .enforcementOverrideResult(EnforcementOverrideResult.builder()
+                    .enforcementOverrideId("EO-1")
+                    .enforcementOverrideTitle("Result Title")
                     .build())
-                .enforcer(EnforcerReference.builder()
-                    .enforcerId(22)
+                .enforcer(Enforcer.builder()
+                    .enforcerId(22L)
                     .enforcerName("Enforcer A")
                     .build())
-                .lja(LjaReference.builder()
+                .lja(LJA.builder()
                     .ljaId(33)
                     .ljaName("LJA Name")
                     .build())
@@ -367,11 +364,11 @@ class OpalDefendantAccountServiceTest {
         verify(accountRepo).save(entity);
         assertEquals(id, resp.getId());
 
-        assertNotNull(resp.getCommentAndNotes());
-        assertEquals("acc comment", resp.getCommentAndNotes().getAccountComment());
-        assertEquals("n1", resp.getCommentAndNotes().getFreeTextNote1());
-        assertEquals("n2", resp.getCommentAndNotes().getFreeTextNote2());
-        assertEquals("n3", resp.getCommentAndNotes().getFreeTextNote3());
+        assertNotNull(resp.getCommentsAndNotes());
+        assertEquals("acc comment", resp.getCommentsAndNotes().getAccountNotesAccountComments());
+        assertEquals("n1", resp.getCommentsAndNotes().getAccountNotesFreeTextNote1());
+        assertEquals("n2", resp.getCommentsAndNotes().getAccountNotesFreeTextNote2());
+        assertEquals("n3", resp.getCommentsAndNotes().getAccountNotesFreeTextNote3());
 
         assertNotNull(resp.getEnforcementCourt());
         assertEquals(100, resp.getEnforcementCourt().getCourtId());
@@ -383,7 +380,7 @@ class OpalDefendantAccountServiceTest {
 
         assertNotNull(resp.getEnforcementOverrides());
         assertEquals("EO-1", resp.getEnforcementOverrides().getEnforcementOverrideResult()
-            .getEnforcementOverrideResultId());
+            .getEnforcementOverrideId());
         assertEquals(22, resp.getEnforcementOverrides().getEnforcer().getEnforcerId());
         assertEquals(33, resp.getEnforcementOverrides().getLja().getLjaId());
 
@@ -400,7 +397,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -418,7 +415,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenBusinessUnitMismatch() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -432,7 +429,7 @@ class OpalDefendantAccountServiceTest {
         when(accountRepo.findById(id)).thenReturn(Optional.of(entity));
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
-            .commentAndNotes(CommentAndNotesDto.builder().accountComment("x").build())
+            .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("x").build())
             .build();
 
         assertThrows(EntityNotFoundException.class, () ->
@@ -445,7 +442,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenCollectionOrderDateInvalid() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -474,12 +471,12 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenEntityNotFound() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null);
 
         when(accountRepo.findById(99L)).thenReturn(Optional.empty());
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
-            .commentAndNotes(CommentAndNotesDto.builder().accountComment("x").build())
+            .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("x").build())
             .build();
 
         assertThrows(EntityNotFoundException.class, () ->
@@ -501,6 +498,7 @@ class OpalDefendantAccountServiceTest {
             accountRepo,
             /*specs*/ null,
             /*paymentTermsRepo*/ null,
+            /* summary */ null,
             /*courtRepo*/ null,
             amendmentService,
             em,
@@ -522,7 +520,7 @@ class OpalDefendantAccountServiceTest {
         when(accountRepo.findById(id)).thenReturn(Optional.of(entity));
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
-            .commentAndNotes(CommentAndNotesDto.builder().accountComment("x").build())
+            .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("x").build())
             .build();
 
         // Expect whatever your VersionUtils throws on missing/invalid If-Match
@@ -536,15 +534,17 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_versionMismatch_throwsResourceConflict() {
         var repo = mock(DefendantAccountRepository.class);
         var svc = new OpalDefendantAccountService(
-            null, repo, null, null, null, mock(AmendmentService.class), mock(EntityManager.class),
-            mock(NoteRepository.class), null, null, null);
+            null, repo, null, null, null, mock(CourtRepository.class),
+            mock(AmendmentService.class), mock(EntityManager.class),
+            mock(NoteRepository.class), null, null, null
+        );
 
         var bu = BusinessUnitEntity.builder().businessUnitId((short)78).build();
         var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu).version(5L).build();
         when(repo.findById(77L)).thenReturn(Optional.of(entity));
 
         var req = UpdateDefendantAccountRequest.builder()
-            .commentAndNotes(CommentAndNotesDto.builder().accountComment("x").build()).build();
+            .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("x").build()).build();
 
         assertThrows(ObjectOptimisticLockingFailureException.class,
             () -> svc.updateDefendantAccount(77L, "78", req, "\"0\"", "tester"));
@@ -564,10 +564,10 @@ class OpalDefendantAccountServiceTest {
         when(accountRepo.findById(77L)).thenReturn(Optional.of(entity));
 
         var svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, amend, em, noteRepo, null, null, null);
+            null, accountRepo, null, null,/* summary */ null, null, amend, em, noteRepo, null, null, null);
 
         var req = UpdateDefendantAccountRequest.builder()
-            .commentAndNotes(CommentAndNotesDto.builder().accountComment("hello").build()).build();
+            .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("hello").build()).build();
 
         svc.updateDefendantAccount(77L, "78", req, "0", "11111111A");
 
@@ -580,13 +580,13 @@ class OpalDefendantAccountServiceTest {
     @Test
     void updateDefendantAccount_enforcementOverrideLookupsMissing_areNull() {
         var accountRepo = mock(DefendantAccountRepository.class);
-        var svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, mock(AmendmentService.class),
-            mock(EntityManager.class), mock(NoteRepository.class),
+        var svc = new OpalDefendantAccountService(null, accountRepo, null,
+            null, null, null,
+            mock(AmendmentService.class), mock(EntityManager.class), mock(NoteRepository.class),
             mock(EnforcementOverrideResultRepository.class),
             mock(LocalJusticeAreaRepository.class),
-            mock(EnforcerRepository.class)
-        );
+            mock(EnforcerRepository.class));
+
 
         var bu = BusinessUnitEntity.builder().businessUnitId((short)78).build();
         var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu).version(0L).build();
@@ -594,10 +594,10 @@ class OpalDefendantAccountServiceTest {
 
         var req = UpdateDefendantAccountRequest.builder()
             .enforcementOverrides(EnforcementOverride.builder()
-                .enforcementOverrideResult(EnforcementOverrideResultReference.builder()
-                    .enforcementOverrideResultId("NOPE").build())
-                .enforcer(EnforcerReference.builder().enforcerId(999999).build())
-                .lja(LjaReference.builder().ljaId(9999).build())
+                .enforcementOverrideResult(EnforcementOverrideResult.builder()
+                    .enforcementOverrideId("NOPE").build())
+                .enforcer(Enforcer.builder().enforcerId(999999L).build())
+                .lja(LJA.builder().ljaId(9999).build())
                 .build())
             .build();
 

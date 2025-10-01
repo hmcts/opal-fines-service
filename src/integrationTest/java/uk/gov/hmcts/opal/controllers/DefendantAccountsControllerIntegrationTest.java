@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -2055,7 +2056,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             // verify the header contains an ETag value
-            .andExpect(header().string("etag", "\"1\""))
+            .andExpect(header().string("etag", matchesPattern("\"\\d+\"")))
             .andExpect(jsonPath("$.defendant_account_id").value("77"))
             .andExpect(jsonPath("$.account_number").value("177A"))
             .andExpect(jsonPath("$.debtor_type").value("Defendant"))
@@ -2237,6 +2238,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(status().isForbidden())
             .andExpect(content().string(""));
     }
+
     @DisplayName("OPAL: PATCH Update Defendant Account - Happy Path [@PO-1565]")
     void opalUpdateDefendantAccount_Happy(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());

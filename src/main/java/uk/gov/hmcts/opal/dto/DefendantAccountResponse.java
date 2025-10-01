@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
+import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.util.Versioned;
 
 /**
@@ -24,7 +26,7 @@ public class DefendantAccountResponse implements ToJsonString, Versioned {
     private Long id;
 
     @JsonProperty("comment_and_notes")
-    private CommentAndNotesDto commentAndNotes;
+    private CommentsAndNotes commentsAndNotes;
 
     @JsonProperty("enforcement_court")
     private CourtReferenceDto enforcementCourt;

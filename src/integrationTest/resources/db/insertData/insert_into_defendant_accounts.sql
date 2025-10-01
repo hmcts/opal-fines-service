@@ -101,7 +101,7 @@ INSERT INTO defendant_accounts
 , prosecutor_case_reference, enforcement_case_status, account_type
 , account_comments, account_note_1, account_note_2, account_note_3
 )
-VALUES ( 0077, 1, 078, '177A'
+VALUES ( 0077, 0, 078, '177A'
        , '2023-11-03 16:05:10', 780000000185, 700.58
        , 200.00, 500.58, 'L', NULL
        , 780000000185, 780000000185, '2024-01-04 18:06:11'
@@ -114,7 +114,7 @@ VALUES ( 0077, 1, 078, '177A'
        , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
        , '090A', NULL, 'Fine'
        , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
-       , 1);
+       );
 
 INSERT INTO parties
 ( party_id, organisation, organisation_name
