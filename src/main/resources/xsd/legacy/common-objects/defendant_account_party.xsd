@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <xsd:include schemaLocation="./party_details.xsd"/>
+  <xsd:include schemaLocation="./address_details.xsd"/>
+  <xsd:include schemaLocation="./contact_details.xsd"/>
+  <xsd:include schemaLocation="./vehicle_details.xsd"/>
+  <xsd:include schemaLocation="./employer_details.xsd"/>
+  <xsd:include schemaLocation="./language_preferences.xsd"/>
+
+  <xsd:complexType name="defendant_account_party">
+    <xsd:sequence>
+      <xsd:element name="defendant_account_party_type" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="is_debtor" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="party_details" type="party_details" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="address" type="address_details" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="contact_details" type="contact_details" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="vehicle_details" type="vehicle_details" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="employer_details" type="employer_details" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="language_preferences" type="language_preferences" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+</xsd:schema>
