@@ -308,4 +308,14 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     void testGetAtAGlance_Organisation_NoHearingLanguagePrefs() throws Exception {
         super.opalGetAtAGlance_Organisation_NoHearingLanguagePref(log);
     }
+
+    @Test
+    void testGetAtAGlance_missingAuthHeader_returns401() throws Exception {
+        super.opalGetAtAGlance_missingAuthHeader_returns401(log);
+    }
+
+    @Test
+    void testGetAtAGlance_authenticatedWithoutPermission_returns403() throws Exception {
+        super.opalGetAtAGlance_authenticatedWithoutPermission_returns403(log);
+    }
 }

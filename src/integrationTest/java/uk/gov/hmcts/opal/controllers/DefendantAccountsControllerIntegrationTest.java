@@ -3,14 +3,15 @@ package uk.gov.hmcts.opal.controllers;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.testcontainers.shaded.org.hamcrest.Matchers.notNullValue;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -2172,5 +2174,30 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.language_preferences.hearing_language_preference").doesNotExist());
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - 401 Unauthorized \n"
+        + "when no auth header provided \n")
+    void opalGetAtAGlance_missingAuthHeader_returns401(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        mockMvc.perform(get(URL_BASE + "/10003/at-a-glance")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
+
+    //
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - 403 Forbidden\n"
+        + "No auth header provided \n")
+    void opalGetAtAGlance_authenticatedWithoutPermission_returns403(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Forbidden"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        mockMvc.perform(get(URL_BASE + "/10003/at-a-glance")
+                            .accept(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(status().isForbidden())
+            .andExpect(content().string(""));
     }
 }
