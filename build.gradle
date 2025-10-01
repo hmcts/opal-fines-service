@@ -16,6 +16,7 @@ plugins {
   id 'uk.gov.hmcts.java' version '0.12.67'
   id 'org.flywaydb.flyway' version '11.13.0'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.34'
+  id "org.openapi.generator" version "7.13.0"
 }
 //Should we fail fast on test failures?
 
@@ -32,6 +33,18 @@ java {
 }
 
 sourceSets {
+  openapi {
+    java {
+      srcDir file('src/openApi/java')
+    }
+    resources.srcDir file('src/openApi/resources')
+  }
+  main {
+    java {
+      srcDir "$buildDir/generated/openapi/src/main/java"
+    }
+  }
+
   functionalTest {
     java {
       compileClasspath += main.output
@@ -50,17 +63,10 @@ sourceSets {
     resources.srcDir file('src/integrationTest/resources')
   }
 }
-
-// (Temp?) Fix to solve the issue:
-// Toolchain from `executable` property does not match toolchain from `javaLauncher` property.
-gradle.taskGraph.whenReady { taskGraph ->
-  def task = taskGraph.allTasks.find { it.name.endsWith(".main()") }
-  if (task instanceof JavaExec) {
-    task.executable = task.javaLauncher.get().executablePath.asFile.absolutePath
-  }
-}
-
 configurations {
+  openapiImplementation.extendsFrom implementation
+  openapiRuntimeOnly.extendsFrom runtimeOnly
+
   functionalTestImplementation.extendsFrom testImplementation
   functionalTestRuntimeOnly.extendsFrom runtimeOnly
 
@@ -70,6 +76,49 @@ configurations {
   smokeTestImplementation.extendsFrom testImplementation
   smokeTestRuntimeOnly.extendsFrom runtimeOnly
 }
+
+tasks.register("bundleOpenApi", JavaExec) {
+  dependsOn 'compileOpenapiJava'
+  classpath = sourceSets.openapi.runtimeClasspath
+  group = "openapi"
+  description = "Bundle multiple OpenAPI YAML files into one"
+  mainClass = 'uk.gov.hmcts.opal.openapi.OpenApiBundler'
+  args = ["$rootDir/src/main/resources/openapi", "$buildDir/openapi-bundled.yaml"]
+}
+
+openApiGenerate {
+  generatorName = "spring"                  // or "spring", "kotlin", etc.
+  inputSpec = "$buildDir/openapi-bundled.yaml".toString()
+  outputDir = "$buildDir/generated/openapi".toString()
+  apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
+  modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "model"
+  // Point to your customized mustache templates
+  templateDir = "$rootDir/openapi/templates".toString()
+  generateApiTests = false
+  generateModelTests = false
+  skipOperationExample = true
+  openapiNormalizer = [
+    REF_AS_PARENT_IN_ALLOF: "true"
+  ]
+  configOptions = [
+    dateLibrary                           : "java8",
+    interfaceOnly                         : "true",
+    useTags                               : "true",
+    useSpringBoot3                        : "true",
+    containerDefaultToNull                : "true",
+    generatedConstructorWithRequiredArgs  : "false",
+    additionalModelTypeAnnotations        : "@lombok.Data;",
+  ]
+}
+// (Temp?) Fix to solve the issue:
+// Toolchain from `executable` property does not match toolchain from `javaLauncher` property.
+gradle.taskGraph.whenReady { taskGraph ->
+  def task = taskGraph.allTasks.find { it.name.endsWith(".main()") }
+  if (task instanceof JavaExec) {
+    task.executable = task.javaLauncher.get().executablePath.asFile.absolutePath
+  }
+}
+
 
 tasks.withType(JavaCompile).configureEach {
   options.compilerArgs << "-Xlint:unchecked"
@@ -193,10 +242,10 @@ tasks.register('smoke') {
 }
 
 def coverageExclusions = [
-    '**/uk/gov/hmcts/opal/**/model/**',
-    '**/uk/gov/hmcts/opal/**/config/**',
-    '**/uk/gov/hmcts/opal/authentication/client/**',
-    '**/uk/gov/hmcts/opal/**/exception/**'
+  '**/uk/gov/hmcts/opal/**/model/**',
+  '**/uk/gov/hmcts/opal/**/config/**',
+  '**/uk/gov/hmcts/opal/authentication/client/**',
+  '**/uk/gov/hmcts/opal/**/exception/**'
 ]
 
 jacocoTestReport {
@@ -291,7 +340,13 @@ ext['snakeyaml.version'] = '2.0'
 ext['jackson.version'] = '2.19.1'
 ext['tomcat.version'] = '10.1.42'
 
+
 dependencies {
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.16"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.22"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.22"
+  openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.17.2"
+
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
@@ -307,7 +362,6 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-integration'
   implementation group: 'org.springframework.integration', name: 'spring-integration-sftp'
   implementation group: 'org.springframework.integration', name: 'spring-integration-file'
-
 
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-authorization-server', version: '1.5.2'
 
@@ -330,6 +384,7 @@ dependencies {
   implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.9');
   implementation(group: 'com.jayway.jsonpath', name: 'json-path', version: '2.9.0');
 
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
   runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.13.0'
@@ -424,7 +479,9 @@ flyway {
   baselineOnMigrate = true
   baselineVersion = '000'
 }
-
+checkstyle {
+  checkstyleMain.exclude '**uk/gov/hmcts/opal/generated/**'
+}
 tasks.register('migratePostgresDatabase', FlywayMigrateTask) {
   baselineOnMigrate = true
   if (project.hasProperty("dburl")) {
@@ -438,4 +495,10 @@ tasks.register('runAllStyleChecks') {
   dependsOn 'checkstyleTest'
   dependsOn 'checkstyleIntegrationTest'
   dependsOn 'checkstyleFunctionalTest'
+}
+tasks.named("openApiGenerate") {
+  dependsOn 'bundleOpenApi'
+}
+tasks.named("compileJava") {
+  dependsOn 'openApiGenerate'
 }
