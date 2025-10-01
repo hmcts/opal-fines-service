@@ -56,6 +56,11 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
         return "legacy/getDefendantAccountPaymentTermsLegacyResponse.json";
     }
 
+    @Override
+    String getAtAGlanceResponseSchemaLocation() {
+        return "legacy/getDefendantAccountAtAGlanceResponse.json";
+    }
+
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetDefendantAccountParty_Success() throws Exception {

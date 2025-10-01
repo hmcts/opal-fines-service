@@ -1,0 +1,30 @@
+opal-fines-db=# 
+opal-fines-db=# \i /Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql
+Timing is on.
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:36: NOTICE:  === Cleanup data before tests ===
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:36: NOTICE:  === Data cleanup before tests completed ===
+DO
+Time: 9.649 ms
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:332: NOTICE:  === Setting up test data for v_search_defendant_accounts tests ===
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:332: NOTICE:  Test data setup completed: defendant_account_ids are 1 to 10
+DO
+Time: 6.815 ms
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:862: NOTICE:  --- Running test Scenario 1 ---
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:862: NOTICE:  --- Running test Scenario 2 ---
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:862: NOTICE:  --- Running test Scenario 3 ---
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:862: NOTICE:  --- Running test Scenario 4 ---
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:862: NOTICE:  --- Running test Scenario 5 ---
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:862: NOTICE:  --- Running test Scenario 6 ---
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:862: NOTICE:  --- Running test Scenario 7 ---
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:862: NOTICE:  --- Running test Scenario 8 ---
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:862: NOTICE:  --- Running test Scenario 9 ---
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:862: NOTICE:  --- Running test Scenario 10 ---
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:862: NOTICE:  ALL TESTS COMPLETED AND PASSED: All information retrieved and validated successfully for defendant accounts with all details
+DO
+Time: 15.534 ms
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:879: NOTICE:  === Cleaning up test data ===
+psql:/Users/piersbrumby/Documents/opal-fines-project/PO-2236/create_view_v_search_defendant_accounts_unit_tests.sql:879: NOTICE:  Test data cleanup completed
+DO
+Time: 11.381 ms
+Timing is off.
+opal-fines-db=# 
