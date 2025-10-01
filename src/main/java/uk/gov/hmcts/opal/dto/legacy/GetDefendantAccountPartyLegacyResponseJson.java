@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
@@ -17,10 +18,10 @@ import uk.gov.hmcts.opal.util.Versioned;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class GetDefendantAccountPartyLegacyResponseJson extends GetDefendantAccountPartyResponse implements Versioned {
 
-    @JsonProperty("version")
     private Long version;
 
     @Override
+    @JsonIgnore
     public Long getVersion() {
         return version;
     }

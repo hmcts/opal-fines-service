@@ -2027,7 +2027,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_account_party.party_details.party_id").value("77"))
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value("Graham"))
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"))
-            .andExpect(header().exists("ETag"));
+            .andExpect(header().string("ETag", "\"0\""));
 
         long version = objectMapper.readTree(body).path("version").asLong();
         assertEquals("\"" + version + "\"", etag);
@@ -2059,9 +2059,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name")
                 .value("TechCorp Solutions Ltd"))
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist())
-            .andExpect(header().exists("ETag"));
-
-        assertEquals("\"" + version + "\"", etag);
+            .andExpect(header().string("ETag", "\"0\""));
 
         jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
     }
