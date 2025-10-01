@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.proxy;
 
+import uk.gov.hmcts.opal.dto.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,11 +43,14 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
         return getCurrentModeService().getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
     }
 
-
     @Override
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
         return getCurrentModeService().getPaymentTerms(defendantAccountId);
     }
 
+    @Override
+    public String addPaymentTerms(Long defendantAccountId,  short businessUnitId, String ifMatch, AddDefendantAccountPaymentTermsRequest request) {
+        return getCurrentModeService().addPaymentTerms(defendantAccountId, businessUnitId, ifMatch, request);
+    }
 
 }

@@ -1,11 +1,19 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
@@ -42,13 +50,6 @@ import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j(topic = "opal.OpalDefendantAccountService")
@@ -216,6 +217,60 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                                                                + defendantAccountId));
 
         return toPaymentTermsResponse(entity);
+    }
+
+    @Override
+    @Transactional
+    public String addPaymentTerms(Long defendantAccountId,
+                                  short businessUnitId,
+                                  String ifMatchVersion,
+                                  AddDefendantAccountPaymentTermsRequest request) {
+
+        DefendantAccountEntity account = defendantAccountRepository.findById(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found: " + defendantAccountId));
+
+        account.setSuspendedCommittalDate(request.getPaymentTerms().getDateDaysInDefaultImposed());
+
+        if (true) {
+            account.setLastEnforcement(null);
+        }
+
+        // Map DTO -> entity (only fields belonging to payment_terms)
+        PaymentTermsEntity e = mapToEntity(request.getPaymentTerms());
+        e.setDefendantAccount(account);
+
+        // Default effective date to today if not provided
+        if (e.getEffectiveDate() == null) {
+            e.setEffectiveDate(LocalDate.now());
+        }
+
+        // Persist and return id
+        PaymentTermsEntity saved = defendantAccountPaymentTermsRepository.save(e);
+        defendantAccountRepository.save(account);
+
+        return String.valueOf(saved.getPaymentTermsId()); // adjust getter if your PK name differs
+    }
+
+    private PaymentTermsEntity mapToEntity(PaymentTerms dto) {
+        PaymentTermsEntity e = new PaymentTermsEntity();
+        e.setJailDays(dto.getDaysInDefault());
+        e.setReasonForExtension(dto.getReasonForExtension());
+
+        if (dto.getPaymentTermsType() != null && dto.getPaymentTermsType().getPaymentTermsTypeCode() != null) {
+            PaymentTermsType.PaymentTermsTypeCode code = dto.getPaymentTermsType().getPaymentTermsTypeCode();
+            e.setTermsTypeCode(code.getValue());
+        }
+
+        e.setEffectiveDate(dto.getEffectiveDate());
+
+        if (dto.getInstalmentPeriod() != null && dto.getInstalmentPeriod().getInstalmentPeriodCode() != null) {
+            InstalmentPeriod.InstalmentPeriodCode code = dto.getInstalmentPeriod().getInstalmentPeriodCode();
+            e.setInstalmentPeriod(code.getValue());
+        }
+
+        e.setInstalmentLumpSum(dto.getLumpSumAmount());
+        e.setInstalmentAmount(dto.getInstalmentAmount());
+        return e;
     }
 
     private DefendantAccountSummaryDto toSummaryDto(DefendantAccountEntity e) {

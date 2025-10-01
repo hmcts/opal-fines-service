@@ -13,15 +13,14 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "payment_terms")
@@ -41,7 +40,6 @@ public class PaymentTermsEntity {
     @ManyToOne
     @JoinColumn(name = "defendant_account_id", referencedColumnName = "defendant_account_id", nullable = false)
     private DefendantAccountEntity defendantAccount;
-
 
     @Column(name = "posted_date", nullable = false)
     @Temporal(TemporalType.DATE)

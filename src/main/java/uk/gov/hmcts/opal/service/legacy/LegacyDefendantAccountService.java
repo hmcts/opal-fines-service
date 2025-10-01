@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -111,6 +112,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
 
         return toPaymentTermsResponse(response.responseEntity);
+    }
+
+    @Override
+    public String addPaymentTerms(Long defendantAccountId, short businessUnitId, String ifMatch, AddDefendantAccountPaymentTermsRequest request) {
+        throw new UnsupportedOperationException("addPaymentTerms is not implemented in"
+                                                    + " LegacyDefendantAccountService");
     }
 
     /* This is probably common code that will be needed across multiple Legacy requests to get

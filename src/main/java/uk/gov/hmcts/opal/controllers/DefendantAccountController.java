@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -14,15 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
+import uk.gov.hmcts.opal.dto.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-
-
-import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 @RestController
 @RequestMapping("/defendant-accounts")
@@ -91,4 +91,24 @@ public class DefendantAccountController {
         return buildResponse(
             defendantAccountService.getPaymentTerms(defendantAccountId, authHeaderValue));
     }
+
+    @PostMapping(value = "/{defendantAccountId}/payment-terms", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "add a payment term to a defendant account")
+    public ResponseEntity<String> postPaymentTerms(
+        @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
+        @RequestBody
+        AddDefendantAccountPaymentTermsRequest paymentTermsRequest,
+        @PathVariable Long defendantAccountId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
+        @RequestHeader(value = "BusinessUnitId") short businessUnitId,
+        @RequestHeader(value = "If-Match") String ifMatch) {
+
+        log.debug(":POST:postDefendantPaymentTerms: query: \n{}", paymentTermsRequest.toPrettyJson());
+
+        String response =
+            defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, ifMatch, paymentTermsRequest, authHeaderValue);
+
+        return buildResponse(response);
+    }
+
 }

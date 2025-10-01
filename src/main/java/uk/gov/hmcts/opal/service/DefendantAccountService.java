@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import uk.gov.hmcts.opal.dto.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,6 @@ public class DefendantAccountService {
 
         return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
     }
-
 
 
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto,
@@ -80,5 +80,19 @@ public class DefendantAccountService {
         }
     }
 
+    public String addPaymentTerms(Long defendantAccountId, short businessUnitId, String ifMatch,
+                                  AddDefendantAccountPaymentTermsRequest request, String authHeaderValue) {
+
+        log.debug(":addPaymentTerms:");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.hasBusinessUnitUserWithPermission(businessUnitId, Permissions.AMEND_PAYMENT_TERMS)) {
+            return defendantAccountServiceProxy.addPaymentTerms(defendantAccountId, businessUnitId, ifMatch, request);
+        } else {
+            throw new PermissionNotAllowedException(Permissions.AMEND_PAYMENT_TERMS);
+        }
+
+    }
 
 }
