@@ -279,4 +279,43 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.opalGetDefendantAccountParty_NullFields(log);
     }
 
+    @Override
+    String getAtAGlanceResponseSchemaLocation() {
+        return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountAtAGlanceResponse.json";
+    }
+
+    @Test
+    void testGetAtAGlance_Individual() throws Exception {
+        super.opalGetAtAGlance_Individual(log);
+    }
+
+    @Test
+    void testGetAtAGlance_Individual_ParentGuardian() throws Exception {
+        super.opalGetAtAGlance_Individual_ParentGuardian(log);
+    }
+
+    @Test
+    void testGetAtAGlance_Organisation() throws Exception {
+        super.opalGetAtAGlance_Organisation(log);
+    }
+
+    @Test
+    void testGetAtAGlance_Organisation_NoLanguagePrefs() throws Exception {
+        super.opalGetAtAGlance_Organisation_NoLanguagePrefs(log);
+    }
+
+    @Test
+    void testGetAtAGlance_Organisation_NoHearingLanguagePrefs() throws Exception {
+        super.opalGetAtAGlance_Organisation_NoHearingLanguagePref(log);
+    }
+
+    @Test
+    void testGetAtAGlance_missingAuthHeader_returns401() throws Exception {
+        super.opalGetAtAGlance_missingAuthHeader_returns401(log);
+    }
+
+    @Test
+    void testGetAtAGlance_authenticatedWithoutPermission_returns403() throws Exception {
+        super.opalGetAtAGlance_authenticatedWithoutPermission_returns403(log);
+    }
 }
