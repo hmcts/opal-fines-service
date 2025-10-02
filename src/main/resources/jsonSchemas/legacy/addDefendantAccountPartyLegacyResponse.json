@@ -4,18 +4,6 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "defendant_account_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "business_unit_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "business_unit_user_id": {
-      "type": "string",
-      "minLength": 1
-    },
     "version": {
       "type": "integer"
     },
@@ -24,9 +12,6 @@
     }
   },
   "required": [
-    "defendant_account_id",
-    "business_unit_id",
-    "business_unit_user_id",
     "version",
     "defendant_account_party"
   ]
