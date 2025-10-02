@@ -54,7 +54,7 @@ INSERT INTO defendant_accounts (
   unit_fine_detail, unit_fine_value, collection_order, collection_order_date,
   further_steps_notice_date, confiscation_order_date, fine_registration_date, suspended_committal_date,
   consolidated_account_type, payment_card_requested, payment_card_requested_date, payment_card_requested_by,
-  prosecutor_case_reference, enforcement_case_status, account_type
+  prosecutor_case_reference, enforcement_case_status, account_type, version_number
 )
 VALUES (
   1001, 78, '100B',
@@ -68,7 +68,7 @@ VALUES (
   'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00',
   '2023-12-19 00:00:00', NULL, NULL, NULL,
   'Y', 'Y', '2024-01-01 00:00:00', '11111111A',
-  '090A', NULL, 'Fine'
+  '090A', NULL, 'Fine', 1
 );
 
 --  Ensure the version is initialized so deletes include a bound value

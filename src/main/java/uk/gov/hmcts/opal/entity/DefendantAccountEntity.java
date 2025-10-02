@@ -36,6 +36,7 @@ import uk.gov.hmcts.opal.util.Versioned;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import uk.gov.hmcts.opal.util.Versioned;
 
 @Entity
 @Data
@@ -204,7 +205,8 @@ public class DefendantAccountEntity implements Versioned {
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate suspendedCommittalDate;
 
-    @Version
     @Column(name = "version_number")
+    @Version
     private Long version;
+
 }
