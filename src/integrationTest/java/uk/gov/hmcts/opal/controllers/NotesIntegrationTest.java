@@ -8,7 +8,10 @@ import static org.mockito.ArgumentMatchers.any;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.when;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -33,6 +36,10 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @MockitoBean
     private UserState userState;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+
     @BeforeEach
     void setupUserState() {
         Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
@@ -40,11 +47,11 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
         Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
     }
 
-    @DisplayName("post notes defendant accounts [PO-1566]")
+    @DisplayName("OPAL: POST /notes/add creates note for defendant account [PO-1566]")
     void postNotesImpl(Logger log) throws Exception {
-
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
+        // Arrange
         Note note = new Note();
         note.setNoteText("test");
         note.setRecordId("77");
@@ -52,24 +59,31 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
         note.setNoteType("AA");
 
         AddNoteRequest request = new AddNoteRequest();
-
         request.setActivityNote(note);
 
-        log.info(":testPostNotes:{}", objectMapper.writeValueAsString(request));
+        final String payload = objectMapper.writeValueAsString(request);
+        log.info(":testPostNotes payload: {}", payload);
 
-        ResultActions resultActions =
+        // Read the current version immediately before use (avoids distance warning & stale reads)
+        final Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class, 77L
+        );
+
+        // Act
+        ResultActions result =
             mockMvc.perform(
                 post(URL_BASE + "/add")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
+                    .content(payload)
                     .header("authorization", "Bearer some_value")
-                    .header("If-Match", "1"));
+                    .header(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"")
+            );
 
-        String body = resultActions.andReturn().getResponse().getContentAsString();
-
-        log.info(":testPostNotes: Response body:\n{}", ToJsonString.toPrettyJson(body));
-
-        resultActions.andExpect(status().isCreated());
+        // Assert
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":testPostNotes response:\n{}", ToJsonString.toPrettyJson(body));
+        result.andExpect(status().isCreated());
     }
 
     @DisplayName("post notes for a defendant account ID that does not exist [PO-1566]")
@@ -110,7 +124,7 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
             .userName("restricted-user")
             .businessUnitUser(Set.of())
             .build();
-        
+
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(restrictedUser);
 
         Note note = new Note();

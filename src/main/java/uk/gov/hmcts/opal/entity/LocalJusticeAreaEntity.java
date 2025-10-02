@@ -61,4 +61,6 @@ public class LocalJusticeAreaEntity extends AddressEntity {
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime endDate;
 
+    @Column(name = "name")
+    private String name;
 }

@@ -53,4 +53,7 @@ public class EnforcerEntity extends AddressCyEntity {
 
     @Column(name = "warrant_register_sequence")
     private Integer warrantRegisterSequence;
+
+    @Column(name = "name")
+    private String name;
 }

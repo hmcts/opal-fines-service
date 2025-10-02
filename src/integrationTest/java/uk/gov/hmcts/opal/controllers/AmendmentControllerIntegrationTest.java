@@ -127,8 +127,8 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
         log.info(":testAuditStoredProcedures: defendant account: {}", rowData);
 
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
-                                                     .contentType(MediaType.APPLICATION_JSON)
-                                                     .content("{\"associated_record_id\": \"" + defAccId + "\"}"));
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"associated_record_id\": \"" + defAccId + "\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testAuditStoredProcedures: Response body:\n" + ToJsonString.toPrettyJson(body));

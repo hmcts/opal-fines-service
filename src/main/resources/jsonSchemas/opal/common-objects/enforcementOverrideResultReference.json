@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "properties": {
     "enforcement_override_result_id": {"type": "string" },
-    "enforcement_override_result_name": { "type": "string" }
+    "enforcement_override_result_title": { "type": "string" }
   },
-  "required": ["enforcement_override_result_id", "enforcement_override_result_name"]
+  "required": ["enforcement_override_result_id", "enforcement_override_result_title"]
 }
