@@ -345,7 +345,7 @@ class OpalDefendantAccountServiceTest {
                     .enforcementOverrideTitle("Result Title")
                     .build())
                 .enforcer(Enforcer.builder()
-                    .enforcerId(22L)
+                    .enforcerId(Math.toIntExact(22L))
                     .enforcerName("Enforcer A")
                     .build())
                 .lja(LJA.builder()
@@ -596,7 +596,7 @@ class OpalDefendantAccountServiceTest {
             .enforcementOverrides(EnforcementOverride.builder()
                 .enforcementOverrideResult(EnforcementOverrideResult.builder()
                     .enforcementOverrideId("NOPE").build())
-                .enforcer(Enforcer.builder().enforcerId(999999L).build())
+                .enforcer(Enforcer.builder().enforcerId(Math.toIntExact(999999L)).build())
                 .lja(LJA.builder().ljaId(9999).build())
                 .build())
             .build();

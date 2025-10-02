@@ -169,6 +169,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return v != null ? v : BigDecimal.ZERO;
     }
 
+    private static Integer safeInt(Long v) {
+        if (v == null) {
+            return null;
+        }
+        if (v > Integer.MAX_VALUE || v < Integer.MIN_VALUE) {
+            // Optional: log a warning here if you want visibility
+            return null; // drop it rather than overflow
+        }
+        return v.intValue();
+    }
 
     PartyDetails buildPartyDetails(DefendantAccountHeaderViewEntity e) {
         return PartyDetails.builder()
@@ -628,10 +638,13 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .enforcementOverrideTitle(entity.getEnforcementOverrideTitle())
             .build();
 
-        Enforcer enforcer = Enforcer.builder()
-            .enforcerId(entity.getEnforcerId())
+        Integer enforcerId = safeInt(entity.getEnforcerId());
+        Enforcer enforcer = (enforcerId != null)
+            ? Enforcer.builder()
+            .enforcerId(enforcerId)
             .enforcerName(entity.getEnforcerName())
-            .build();
+            .build()
+            : null;
 
         LJA lja = LJA.builder()
             .ljaId(null == entity.getLjaId() ? null : Integer.parseInt(entity.getLjaId()))
@@ -768,9 +781,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         // ---- Build response ----
         CourtReferenceDto courtDto = Optional.ofNullable(entity.getEnforcingCourt())
+            .filter(c -> safeInt(c.getCourtId()) != null)
             .map(c -> CourtReferenceDto.builder()
-                .courtId(c.getCourtId() != null ? c.getCourtId().intValue() : null)
-                .courtName(Optional.ofNullable(c.getName()).orElse(null))
+                .courtId(safeInt(c.getCourtId()))
+                .courtName(c.getName())
                 .build())
             .orElse(null);
 
@@ -799,8 +813,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 .enforcer(
                     Optional.ofNullable(entity.getEnforcementOverrideEnforcerId())
                         .flatMap(enforcerRepository::findById)
+                        .filter(enf -> safeInt(enf.getEnforcerId()) != null)
                         .map(enf -> Enforcer.builder()
-                            .enforcerId((long) enf.getEnforcerId().intValue())
+                            .enforcerId(safeInt(enf.getEnforcerId()))
                             .enforcerName(enf.getName())
                             .build())
                         .orElse(null)
@@ -809,7 +824,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     Optional.ofNullable(entity.getEnforcementOverrideTfoLjaId())
                         .flatMap(localJusticeAreaRepository::findById)
                         .map(lja -> LJA.builder()
-                            .ljaId(lja.getLocalJusticeAreaId().intValue())
+                            .ljaId(
+                                lja.getLocalJusticeAreaId() != null
+                                    ? lja.getLocalJusticeAreaId().intValue()
+                                    : null
+                            )
                             .ljaName(Optional.ofNullable(lja.getName()).orElse(lja.getLjaCode()))
                             .build())
                         .orElse(null)

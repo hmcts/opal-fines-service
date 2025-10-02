@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -75,10 +74,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         DefendantAccountHeaderSummary headerSummary = createHeaderSummaryDto();
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {
-            };
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.valueOf(200));
@@ -101,10 +100,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         LegacyDefendantAccountsSearchResults legacyResponse =
             LegacyDefendantAccountsSearchResults.builder().build();
 
-        ParameterizedTypeReference<LegacyDefendantAccountsSearchResults> typeRef =
-            new ParameterizedTypeReference<>() {
-            };
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(legacyResponse);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyDefendantAccountsSearchResults>>any()
+        )).thenReturn(legacyResponse);
 
         DefendantAccountSearchResultsDto result =
             legacyDefendantAccountService.searchDefendantAccounts(searchDto);
@@ -249,9 +247,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -301,9 +300,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -346,9 +346,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             createHeaderSummaryResponse();
         responseBody.setPartyDetails(party);
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -370,9 +371,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -416,9 +418,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             createHeaderSummaryResponse();
         responseBody.setPartyDetails(party);
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -454,9 +457,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .lastEnforcement("REM")
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -492,9 +496,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 )
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(responseBody);
 
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
@@ -514,9 +518,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void getPaymentTerms_error5xx_returnsNull() throws Exception {
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(null);
 
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
@@ -530,9 +534,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void getPaymentTerms_success_withNullEntity_returnsEmptyDto() throws Exception {
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(null);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<response/>", HttpStatus.OK));
 
@@ -571,9 +576,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .postedDetails(null) // toPostedDetails → null
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -592,9 +598,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     void testGetHeaderSummary_legacyFailure5xx_logsAndMaps() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
 
@@ -609,9 +616,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     void testGetHeaderSummary_exceptionBranch_rethrows() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenThrow(new RuntimeException("boom"));
 
@@ -642,9 +650,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .build()
         );
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(resp);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(resp);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
 
@@ -671,9 +680,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         var resp = createHeaderSummaryResponse();
         resp.setPaymentStateSummary(pay);
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(resp);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(resp);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
 
@@ -699,9 +709,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         var resp = createHeaderSummaryResponse();
         resp.setPartyDetails(party);
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(resp);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(resp);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
 
