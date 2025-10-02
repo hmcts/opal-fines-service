@@ -2254,16 +2254,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\""); // use actual version
 
-        String requestJson = """
-    {
-      "comment_and_notes": {
-        "account_comment": "hello",
-        "free_text_note_1": null,
-        "free_text_note_2": null,
-        "free_text_note_3": null
-      }
-    }
-            """;
+        String requestJson = commentAndNotesPayload("hello");
 
         ResultActions a = mockMvc.perform(
             org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -2306,16 +2297,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 .patch(URL_BASE + "/77")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-              {
-                "comment_and_notes": {
-                  "account_comment": "no change",
-                  "free_text_note_1": null,
-                  "free_text_note_2": null,
-                  "free_text_note_3": null
-                }
-              }
-            """)
+                .content(commentAndNotesPayload("no change"))
         );
 
         String body = a.andReturn().getResponse().getContentAsString();
@@ -2342,16 +2324,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 .patch(URL_BASE + "/77")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-              {
-                "comment_and_notes": {
-                  "account_comment": "hello",
-                  "free_text_note_1": null,
-                  "free_text_note_2": null,
-                  "free_text_note_3": null
-                }
-              }
-            """)
+                .content(commentAndNotesPayload("hello"))
         );
 
         String body = a.andReturn().getResponse().getContentAsString();
@@ -2383,17 +2356,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"0\"");
 
-        // Schema-valid payload (all required fields present)
-        String body = """
-      {
-        "comment_and_notes": {
-          "account_comment": "hello",
-          "free_text_note_1": null,
-          "free_text_note_2": null,
-          "free_text_note_3": null
-        }
-      }
-            """;
+        String body = commentAndNotesPayload("hello");
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                 .patch(URL_BASE + "/77")
@@ -2415,16 +2378,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         headers.add("Business-Unit-Id", "99");
         headers.add(HttpHeaders.IF_MATCH, "\"0\"");
 
-        String requestJson = """
-    {
-      "comment_and_notes": {
-        "account_comment": "hello",
-        "free_text_note_1": null,
-        "free_text_note_2": null,
-        "free_text_note_3": null
-      }
-    }
-            """;
+        String requestJson = commentAndNotesPayload("hello");
 
         var result = mockMvc.perform(
             org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -2618,16 +2572,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
-        String requestJson = """
-    {
-      "comment_and_notes": {
-        "account_comment": "etag test",
-        "free_text_note_1": null,
-        "free_text_note_2": null,
-        "free_text_note_3": null
-      }
-    }
-            """;
+        String requestJson = commentAndNotesPayload("etag test");
 
         ResultActions result = mockMvc.perform(
             org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -2651,6 +2596,42 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         assertTrue(etag.matches("^\"\\d+\"$"), "ETag should be a quoted number");
 
         jsonSchemaValidationService.validateOrError(body, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
+    }
+
+    // -- test helpers ------
+
+    private static String commentAndNotesPayload(String accountComment) {
+        return commentAndNotesPayload(accountComment, null, null, null);
+    }
+
+    private static String commentAndNotesPayload(String accountComment,
+                                                 String note1,
+                                                 String note2,
+                                                 String note3) {
+        return """
+        {
+          "comment_and_notes": {
+            "account_comment": %s,
+            "free_text_note_1": %s,
+            "free_text_note_2": %s,
+            "free_text_note_3": %s
+          }
+        }
+        """.formatted(
+            jsonValue(accountComment),
+            jsonValue(note1),
+            jsonValue(note2),
+            jsonValue(note3)
+        );
+    }
+
+    /** Renders a JSON value: quoted string if not null, otherwise JSON null. */
+    private static String jsonValue(String s) {
+        if (s == null) {
+            return "null";
+        }
+        // basic escape for quotes; good enough for tests
+        return "\"" + s.replace("\"", "\\\"") + "\"";
     }
 
 }

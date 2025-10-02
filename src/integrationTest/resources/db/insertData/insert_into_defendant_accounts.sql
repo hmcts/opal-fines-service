@@ -261,6 +261,29 @@ INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_acc
 VALUES (999, 999, 999,
         'Defendant', 'Y');
 
+-- Debug/inspection row: dedicated account+party with distinctive link id (77444)
+-- Placed under BU 9999 to avoid influencing BU=78 count-based tests
+INSERT INTO defendant_accounts (defendant_account_id, version_number, business_unit_id, account_number,
+                                amount_paid, account_balance, amount_imposed, account_status,
+                                prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+                                collection_order, payment_card_requested)
+VALUES (77444, 0, 9999, '77444A',
+        0.00, 0.00, 0.00, 'L',
+        '77444PCR', 'N', 'N', 'Fine',
+        'N', 'N')
+ON CONFLICT (defendant_account_id) DO NOTHING;
+
+INSERT INTO parties (party_id, organisation, organisation_name,
+                     surname, forenames, title)
+VALUES (77444, 'N', NULL,
+        'Debug', 'SevenSevenFourFour', 'Mr')
+ON CONFLICT (party_id) DO NOTHING;
+
+INSERT INTO defendant_account_parties (defendant_account_party_id, defendant_account_id, party_id,
+                                       association_type, debtor)
+VALUES (77444, 77444, 77444, 'Defendant', 'Y')
+ON CONFLICT (defendant_account_party_id) DO NOTHING;
+
 -- Organisation party for Sainsco (used in organisation-only search tests)
 INSERT INTO parties (party_id, organisation, organisation_name)
 VALUES (333, 'Y', 'Sainsco');
