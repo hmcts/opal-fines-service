@@ -15,6 +15,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
@@ -2291,4 +2294,28 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     String getDefendantAccountPartyResponseSchemaLocation() {
         return "opal/defendant-account/getDefendantAccountPartyResponse.json";
     }
+
+    // --- JSON helpers (keep tests readable & DRY) ---
+
+    private String searchJson(Consumer<ObjectNode> customizer) throws Exception {
+        // Baseline payload used by most tests
+        ObjectNode root = objectMapper.createObjectNode();
+        root.put("active_accounts_only", true);
+        root.set("business_unit_ids", objectMapper.createArrayNode()); // default: empty
+        root.putNull("reference_number");
+        root.set("defendant", objectMapper.createObjectNode());        // default: {}
+        customizer.accept(root);
+        return objectMapper.writeValueAsString(root);
+    }
+
+    private ArrayNode ints(int... values) {
+        ArrayNode arr = objectMapper.createArrayNode();
+        for (int v : values) arr.add(v);
+        return arr;
+    }
+
+    private ObjectNode def(ObjectNode root) {
+        return (ObjectNode) root.get("defendant");
+    }
+
 }
