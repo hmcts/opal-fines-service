@@ -7,30 +7,9 @@
         <option name="TAB_SIZE" value="2" />
       </value>
     </option>
-    <option name="INSERT_INNER_CLASS_IMPORTS" value="false" />
-    <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="5" />
-    <option name="NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" value="3" />
-    <option name="PACKAGES_TO_USE_IMPORT_ON_DEMAND">
-      <value>
-        <package name="java.awt" withSubpackages="false" static="false" />
-        <package name="javax.swing" withSubpackages="false" static="false" />
-      </value>
-    </option>
-    <option name="IMPORT_LAYOUT_TABLE">
-      <value>
-        <package name="" withSubpackages="true" static="false" />
-        <emptyLine />
-        <package name="javax" withSubpackages="true" static="false" />
-        <package name="java" withSubpackages="true" static="false" />
-        <emptyLine />
-        <package name="" withSubpackages="true" static="true" />
-      </value>
-    </option>
     <option name="RIGHT_MARGIN" value="100" />
-    <option name="KEEP_BLANK_LINES_IN_CODE" value="2" />
     <option name="KEEP_CONTROL_STATEMENT_IN_ONE_LINE" value="false" />
     <option name="KEEP_BLANK_LINES_BEFORE_RBRACE" value="0" />
-    <option name="BLANK_LINES_AFTER_CLASS_HEADER" value="0" />
     <option name="ALIGN_MULTILINE_PARAMETERS" value="false" />
     <option name="ALIGN_MULTILINE_FOR" value="false" />
     <option name="SPACE_BEFORE_ARRAY_INITIALIZER_LBRACE" value="true" />
@@ -128,6 +107,9 @@
     <XML>
       <option name="XML_ALIGN_ATTRIBUTES" value="false" />
     </XML>
+    <editorconfig>
+      <option name="ENABLED" value="false" />
+    </editorconfig>
     <codeStyleSettings language="CSS">
       <indentOptions>
         <option name="INDENT_SIZE" value="2" />

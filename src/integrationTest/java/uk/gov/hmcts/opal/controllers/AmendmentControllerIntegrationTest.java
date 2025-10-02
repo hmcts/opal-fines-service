@@ -10,17 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
-import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.amendment.RecordType;
-import uk.gov.hmcts.opal.service.opal.AmendmentService;
-import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
-
 import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +23,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.entity.amendment.RecordType;
+import uk.gov.hmcts.opal.service.opal.AmendmentService;
+import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.AmendmentControllerIntegrationTest")
@@ -188,7 +186,6 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
                 "Tester_A", "Case_Ref", "Func_Code");
         }
     }
-
 
 
 }

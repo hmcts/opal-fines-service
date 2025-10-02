@@ -60,4 +60,27 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
     String getAtAGlanceResponseSchemaLocation() {
         return "legacy/getDefendantAccountAtAGlanceResponse.json";
     }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetDefendantAccountParty_Success() throws Exception {
+        super.legacyGetDefendantAccountParty_Happy(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetDefendantAccountParty_Organisation() throws Exception {
+        super.legacyGetDefendantAccountParty_Organisation(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetDefendantAccountParty_500Error() throws Exception {
+        super.legacyGetDefendantAccountParty_500Error(log);
+    }
+
+    @Override
+    String getDefendantAccountPartyResponseSchemaLocation() {
+        return "legacy/getDefendantAccountPartyLegacyResponse.json";
+    }
 }
