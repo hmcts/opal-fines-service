@@ -15,9 +15,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
@@ -31,8 +28,8 @@ import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
@@ -1883,7 +1880,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/payment-terms/latest")
-                                                          .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetPaymentTerms: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -1916,14 +1913,14 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/79/payment-terms/latest")
-                                                          .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetPaymentTerms: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isNotFound()) // 404 HTTP status
             .andExpect(jsonPath("$.type")
-                           .value("https://hmcts.gov.uk/problems/entity-not-found"))
+                .value("https://hmcts.gov.uk/problems/entity-not-found"))
             .andExpect(jsonPath("$.title").value("Entity Not Found"))
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.detail").value("The requested entity could not be found"));
@@ -1935,7 +1932,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/500/payment-terms/latest")
-                                                          .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -1949,7 +1946,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/payment-terms/latest")
-                                                          .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetPaymentTerms: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -2020,7 +2017,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/at-a-glance")
-                                                          .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Party is an individual. etag header: \n" + headers);
@@ -2042,7 +2039,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
             // verify comments_and_notes node is present (test data included for these optional fields)
-            .andExpect(jsonPath("$.comments_and_notes").exists());;
+            .andExpect(jsonPath("$.comments_and_notes").exists());
+        ;
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -2053,13 +2051,13 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10004/at-a-glance")
-                                                          .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Party is an individual (Parent/Guardian). etag header: \n" + headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetAtAGlance: Party is an individual (Parent/Guardian). Response body:\n"
-                     + ToJsonString.toPrettyJson(body));
+            + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -2076,7 +2074,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
             // verify comments_and_notes node is not present (no test data added as these are optional)
-            .andExpect(jsonPath("$.comments_and_notes").doesNotExist());;
+            .andExpect(jsonPath("$.comments_and_notes").doesNotExist());
+        ;
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -2087,7 +2086,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10001/at-a-glance")
-                                                          .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
@@ -2105,19 +2104,20 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
-                           .value("Kings Arms"))
+                .value("Kings Arms"))
             .andExpect(jsonPath("$.address").exists())
             .andExpect(jsonPath("$.language_preferences").exists())
             // verify both language preferences are populated
             .andExpect(jsonPath("$.language_preferences.hearing_language_preference.language_display_name")
-                           .value("English only"))
+                .value("English only"))
             .andExpect(jsonPath("$.language_preferences.document_language_preference.language_display_name")
-                           .value("English only"))
+                .value("English only"))
             .andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
             .andExpect(jsonPath("$.enforcement_status.collection_order_made").exists())
             // verify comments_and_notes node is present (test data included for these optional fields)
-            .andExpect(jsonPath("$.comments_and_notes").exists());;
+            .andExpect(jsonPath("$.comments_and_notes").exists());
+        ;
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -2130,7 +2130,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10002/at-a-glance")
-                                                          .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
@@ -2147,7 +2147,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
-                           .value("Kings Arms"))
+                .value("Kings Arms"))
             // verify language preferences node is null
             .andExpect(jsonPath("$.language_preferences").doesNotExist())
             // verify comments_and_notes node is absent (no data included for these optional fields)
@@ -2163,7 +2163,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10003/at-a-glance")
-                                                          .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
         log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
@@ -2180,9 +2180,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
-                           .value("Kings Arms"))
+                .value("Kings Arms"))
             .andExpect(jsonPath("$.language_preferences.document_language_preference.language_display_name")
-                           .value("English only"))
+                .value("English only"))
             // verify hearing_language_preference node is null (optional)
             .andExpect(jsonPath("$.language_preferences.hearing_language_preference").doesNotExist());
 
@@ -2196,7 +2196,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .when(userStateService).checkForAuthorisedUser(any());
 
         mockMvc.perform(get(URL_BASE + "/10003/at-a-glance")
-            .accept(MediaType.APPLICATION_PROBLEM_JSON))
+                .accept(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(status().isUnauthorized())
             .andExpect(content().string(""));
     }
@@ -2208,7 +2208,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .when(userStateService).checkForAuthorisedUser(any());
 
         mockMvc.perform(get(URL_BASE + "/10003/at-a-glance")
-                            .accept(MediaType.APPLICATION_PROBLEM_JSON))
+                .accept(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(status().isForbidden())
             .andExpect(content().string(""));
     }
@@ -2242,7 +2242,6 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
     }
-
 
 
     @DisplayName("LEGACY: Get Defendant Account Party - Organisation Only [@PO-1973]")
@@ -2293,29 +2292,6 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
     String getDefendantAccountPartyResponseSchemaLocation() {
         return "opal/defendant-account/getDefendantAccountPartyResponse.json";
-    }
-
-    // --- JSON helpers (keep tests readable & DRY) ---
-
-    private String searchJson(Consumer<ObjectNode> customizer) throws Exception {
-        // Baseline payload used by most tests
-        ObjectNode root = objectMapper.createObjectNode();
-        root.put("active_accounts_only", true);
-        root.set("business_unit_ids", objectMapper.createArrayNode()); // default: empty
-        root.putNull("reference_number");
-        root.set("defendant", objectMapper.createObjectNode());        // default: {}
-        customizer.accept(root);
-        return objectMapper.writeValueAsString(root);
-    }
-
-    private ArrayNode ints(int... values) {
-        ArrayNode arr = objectMapper.createArrayNode();
-        for (int v : values) arr.add(v);
-        return arr;
-    }
-
-    private ObjectNode def(ObjectNode root) {
-        return (ObjectNode) root.get("defendant");
     }
 
 }
