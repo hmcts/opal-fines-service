@@ -18,6 +18,9 @@ import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+import uk.gov.hmcts.opal.repository.jpa.AllocationSpecs;
+import uk.gov.hmcts.opal.repository.jpa.BacsPaymentSpecs;
+import uk.gov.hmcts.opal.repository.jpa.ChequeSpecs;
 
 import java.util.List;
 
@@ -61,27 +64,26 @@ public class DefendantAccountDeletionService {
 
     private void validateAccountExists(long defendantAccountId) {
         if (!defendantAccountRepository.existsById(defendantAccountId)) {
-            throw new EntityNotFoundException("DefendantAccount not found: " + defendantAccountId);
+            throw new EntityNotFoundException("Defendant Account not found: " + defendantAccountId);
         }
     }
 
     private void deleteLevel3Data(long defendantAccountId) {
         log.debug("Deleting Level 3 dependencies for defendant account {}", defendantAccountId);
 
+        long count = 0;
         // Delete allocataions  @ManyToOne relationships
-        allocationsRepository.deleteByDefendantTransaction_DefendantAccount_DefendantAccountId(defendantAccountId);
-        allocationsRepository.deleteByImposition_DefendantAccount_DefendantAccountId(defendantAccountId);
+        count += allocationsRepository.delete(AllocationSpecs.equalsDefendantTransactionAccountId(defendantAccountId));
+        count += allocationsRepository.delete(AllocationSpecs.equalsImpositionDefendantAccountId(defendantAccountId));
 
         // Delete entities with many to one transaction relationship via defendantTransactionId field
         List<Long> defendantTransactionIds =
             defendantTransactionRepository.findDefendantAccountTransactionIdsByDefendantAccountId(defendantAccountId);
 
-        for (Long transactionId : defendantTransactionIds) {
-            chequeRepository.deleteByDefendantTransactionId(transactionId);
-            bacsPaymentsRepository.deleteByDefendantTransactionId(transactionId);
-        }
+        count += chequeRepository.delete(ChequeSpecs.hasDefendantTransactionIdIn(defendantTransactionIds));
+        count += bacsPaymentsRepository.delete(BacsPaymentSpecs.hasDefendantTransactionIdIn(defendantTransactionIds));
 
-        log.debug("Completed Level 3 deletion for defendant account {}", defendantAccountId);
+        log.debug("Completed Level 3 deletion of {} rows for defendant account {}", count, defendantAccountId);
     }
 
     private void deleteLevel2Data(long defendantAccountId) {
@@ -91,9 +93,9 @@ public class DefendantAccountDeletionService {
         accountTransferRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         defendantAccountPartiesRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         enforcementRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
-        impositionRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
+        impositionRepository.deleteByDefendantAccountId(defendantAccountId);
         paymentTermsRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
-        defendantTransactionRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
+        defendantTransactionRepository.deleteByDefendantAccountId(defendantAccountId);
 
         // Entities with simple Long defendantAccountId fields
         committalWarrantProgressRepository.deleteByDefendantAccountId(defendantAccountId);

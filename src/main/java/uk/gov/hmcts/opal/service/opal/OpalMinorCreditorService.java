@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
@@ -34,7 +35,6 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             minorCreditorRepository.findAll(spec);
 
         return toResponse(results);
-
     }
 
     private CreditorAccountDto toCreditorAccountDto(MinorCreditorEntity entity) {

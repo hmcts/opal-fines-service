@@ -1,18 +1,56 @@
 package uk.gov.hmcts.opal.controllers;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+
+import java.util.List;
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.CreditorTransactionEntity;
+import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
+import uk.gov.hmcts.opal.repository.CreditorTransactionRepository;
+import uk.gov.hmcts.opal.repository.ImpositionRepository;
+import uk.gov.hmcts.opal.repository.PartyRepository;
+import uk.gov.hmcts.opal.repository.jpa.CreditorTransactionSpecs;
+import uk.gov.hmcts.opal.repository.jpa.ImpositionSpecs;
 
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")
 public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
+
+    @MockitoSpyBean
+    private ImpositionRepository impositionRepository;
+
+    @MockitoSpyBean
+    private CreditorTransactionRepository creditorTransactionRepository;
+
+    @MockitoSpyBean
+    private PartyRepository partyRepository;
+
+    @MockitoSpyBean
+    private CreditorAccountRepository creditorAccountRepository;
 
     @Test
     void testPostSearchMinorCreditor_Success() throws Exception {
@@ -149,5 +187,53 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         super.testAC3b_CompanyAddressAndPostcodeCombined(log);
     }
 
-}
+    @Test
+    void deleteMinorCreditorAccount() throws Exception {
+        // Arrange
+        final Long creditorAccountId = 606L;
+        final Long partyId = 9007L;
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
+        Specification<ImpositionEntity.Lite> impositionSpec = ImpositionSpecs
+            .equalsCreditorAccountId(creditorAccountId);
+        Specification<CreditorTransactionEntity> creditorTransSpec = CreditorTransactionSpecs
+            .equalsCreditorAccountId(creditorAccountId);
+
+        // Check the number of rows in the DB before we Act.
+        List<ImpositionEntity.Lite> impositions = impositionRepository.findAll(impositionSpec);
+        log.info(":deleteMinorCreditorAccount: impositions: {}", impositions);
+        assertEquals(2, impositions.size());
+
+        List<CreditorTransactionEntity> creditorTrans = creditorTransactionRepository.findAll(creditorTransSpec);
+        log.info(":deleteMinorCreditorAccount: creditor transactions: {}", creditorTrans);
+        assertEquals(2, creditorTrans.size());
+
+        Optional<PartyEntity> party = partyRepository.findById(partyId);
+        log.info(":deleteMinorCreditorAccount: party: {}", party);
+        assertTrue(party.isPresent());
+
+        Optional<CreditorAccountEntity.Lite> creditAccount = creditorAccountRepository.findById(creditorAccountId);
+        log.info(":deleteMinorCreditorAccount: creditAccount: {}", creditAccount);
+        assertTrue(creditAccount.isPresent());
+
+        // Act
+        ResultActions actions = mockMvc.perform(delete(URL_BASE + "/" + creditorAccountId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("If-Match", "0")
+                            .param("ignore_missing", "false"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":deleteMinorCreditorAccount: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(jsonPath("$.message").value("Creditor Account '" + creditorAccountId + "' deleted"));
+
+        // Assert
+        assertEquals(0, impositionRepository.findAll(impositionSpec).size());
+        assertEquals(0, creditorTransactionRepository.findAll(creditorTransSpec).size());
+        assertFalse(partyRepository.findById(partyId).isPresent());
+        assertFalse(creditorAccountRepository.findById(creditorAccountId).isPresent());
+
+    }
+
+}
