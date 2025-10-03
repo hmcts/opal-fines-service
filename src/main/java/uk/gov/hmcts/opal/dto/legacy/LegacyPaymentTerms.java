@@ -31,6 +31,9 @@ public class LegacyPaymentTerms {
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate dateDaysInDefaultImposed;
 
+    @XmlElement(name = "extension")
+    private boolean extension;
+
     @XmlElement(name = "reason_for_extension")
     private String reasonForExtension;
 
@@ -49,4 +52,7 @@ public class LegacyPaymentTerms {
 
     @XmlElement(name = "installment_amount")
     private BigDecimal instalmentAmount;
+
+    @XmlElement(name = "posted_details")
+    private LegacyPostedDetails postedDetails;
 }

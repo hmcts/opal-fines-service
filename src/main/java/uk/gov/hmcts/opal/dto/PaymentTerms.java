@@ -5,12 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
+import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-
-import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
-import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 
 @Data
 @Builder
@@ -23,6 +22,9 @@ public class PaymentTerms {
 
     @JsonProperty("date_days_in_default_imposed")
     private LocalDate dateDaysInDefaultImposed;
+
+    @JsonProperty("extension")
+    private boolean extension;
 
     @JsonProperty("reason_for_extension")
     private String reasonForExtension;
@@ -41,4 +43,7 @@ public class PaymentTerms {
 
     @JsonProperty("instalment_amount")
     private BigDecimal instalmentAmount;
+
+    @JsonProperty("posted_details")
+    private PostedDetails postedDetails;
 }
