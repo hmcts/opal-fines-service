@@ -11,6 +11,9 @@
       "type": "string",
       "format": "date"
     },
+    "extension": {
+      "type": "boolean"
+    },
     "reason_for_extension": {
       "type": "string"
     },
@@ -31,6 +34,9 @@
     "instalment_amount": {
       "type": "number",
       "multipleOf": 0.01
+    },
+    "posted_details": {
+      "$ref": "./postedDetailsLegacy.json"
     }
   },
   "required": ["payment_terms_type"]

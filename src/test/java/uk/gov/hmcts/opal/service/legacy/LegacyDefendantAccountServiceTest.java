@@ -441,17 +441,16 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .paymentTerms(
                     uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms.builder()
                         .daysInDefault(120)
+                        .extension(false)
                         .paymentTermsType(new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
                             uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode.B))
                         .instalmentPeriod(new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
                             uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.W))
+                        .postedDetails(new uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails(
+                            java.time.LocalDate.of(2023, 11, 3), "01000000A", ""))
                         .build()
                 )
-                .postedDetails(new uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails(
-                    java.time.LocalDate.of(2023, 11, 3), "01000000A", ""))
                 .paymentCardLastRequested(java.time.LocalDate.of(2024, 1, 1))
-                .dateLastAmended(java.time.LocalDate.of(2024, 1, 3))
-                .extension(false)
                 .lastEnforcement("REM")
                 .build();
 
@@ -542,10 +541,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNotNull(out);
         assertNull(out.getVersion());
         assertNull(out.getPaymentTerms());
-        assertNull(out.getPostedDetails());
         assertNull(out.getPaymentCardLastRequested());
-        assertNull(out.getDateLastAmended());
-        assertNull(out.getExtension());
         assertNull(out.getLastEnforcement());
     }
 
@@ -563,13 +559,13 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .instalmentPeriod(null) // toInstalmentPeriod → null
                 .lumpSumAmount(null)
                 .instalmentAmount(null)
+                .postedDetails(null) // toPostedDetails → null
                 .build();
 
         LegacyGetDefendantAccountPaymentTermsResponse responseBody =
             LegacyGetDefendantAccountPaymentTermsResponse.builder()
                 .version(4L)
                 .paymentTerms(legacyTerms)
-                .postedDetails(null) // toPostedDetails → null
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
@@ -584,7 +580,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNotNull(out.getPaymentTerms());
         assertNull(out.getPaymentTerms().getPaymentTermsType());
         assertNull(out.getPaymentTerms().getInstalmentPeriod());
-        assertNull(out.getPostedDetails());
+        assertNull(out.getPaymentTerms().getPostedDetails());
     }
 
 
