@@ -1,0 +1,17 @@
+Timing is on.
+psql:create_view_v_minor_creditor_accounts_summary_unit_tests.sql:35: NOTICE:  === Cleanup data before tests ===
+psql:create_view_v_minor_creditor_accounts_summary_unit_tests.sql:35: NOTICE:  === Data cleanup before tests completed ===
+DO
+Time: 9.237 ms
+psql:create_view_v_minor_creditor_accounts_summary_unit_tests.sql:1003: NOTICE:  === Setting up test data for v_minor_creditor_accounts_summary tests ===
+psql:create_view_v_minor_creditor_accounts_summary_unit_tests.sql:1003: NOTICE:  === Setting up test data for v_minor_creditor_accounts_summary tests complete ===
+psql:create_view_v_minor_creditor_accounts_summary_unit_tests.sql:1003: NOTICE:  --- Running test scenario 1 ---
+psql:create_view_v_minor_creditor_accounts_summary_unit_tests.sql:1003: NOTICE:  --- Running test scenario 2 ---
+psql:create_view_v_minor_creditor_accounts_summary_unit_tests.sql:1003: NOTICE:  --- Running test scenario 3 ---
+psql:create_view_v_minor_creditor_accounts_summary_unit_tests.sql:1003: NOTICE:  --- Running test scenario 4 ---
+psql:create_view_v_minor_creditor_accounts_summary_unit_tests.sql:1003: NOTICE:  --- Running test scenario 5 ---
+psql:create_view_v_minor_creditor_accounts_summary_unit_tests.sql:1003: NOTICE:  --- Running test scenario 6 ---
+psql:create_view_v_minor_creditor_accounts_summary_unit_tests.sql:1003: NOTICE:  === All tests completed and passed for v_minor_creditor_accounts_summary view ===
+DO
+Time: 15.259 ms
+Timing is off.
