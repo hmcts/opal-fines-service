@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.config;
+package uk.gov.hmcts.opal.common.user.client.config;
 
 import feign.RequestInterceptor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,7 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 @Slf4j(topic = "opal.FeignClientConfig")
-public class FeignClientConfig {
+public class UserTokenRelayConfig {
 
     @Bean
     public RequestInterceptor requestInterceptor() {

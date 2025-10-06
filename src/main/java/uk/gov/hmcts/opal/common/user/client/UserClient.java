@@ -6,12 +6,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.common.user.client.dto.UserStateDto;
-import uk.gov.hmcts.opal.config.FeignClientConfig;
+import uk.gov.hmcts.opal.common.user.client.config.UserTokenRelayConfig;
 
 @FeignClient(
     name = "userService",
     url = "${user.service.url}",
-    configuration = FeignClientConfig.class
+    configuration = UserTokenRelayConfig.class
 )
 public interface UserClient {
 

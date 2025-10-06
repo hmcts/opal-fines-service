@@ -10,9 +10,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.authorisation.aspect.AuthorizationAspectService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.util.Optional;

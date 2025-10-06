@@ -2,9 +2,9 @@ package uk.gov.hmcts.opal.common.user.client.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.client.dto.UserStateDto;
 import uk.gov.hmcts.opal.common.user.client.dto.BusinessUnitUserDto;
 import uk.gov.hmcts.opal.common.user.client.dto.PermissionDto;

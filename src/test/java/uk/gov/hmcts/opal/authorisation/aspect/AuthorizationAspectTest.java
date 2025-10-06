@@ -13,10 +13,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.authentication.aspect.UserStateAspectService;
 import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.common.user.authorisation.model.Permissions;
+import uk.gov.hmcts.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.util.Optional;

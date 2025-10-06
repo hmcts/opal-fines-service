@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.client.UserClient;
 import uk.gov.hmcts.opal.common.user.client.dto.UserStateDto;
 import uk.gov.hmcts.opal.common.user.client.mapper.UserStateMapper;

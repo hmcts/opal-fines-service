@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.jackson.Jacksonized;
-import uk.gov.hmcts.opal.common.user.authorisation.model.LogActions;
+import uk.gov.hmcts.opal.authorisation.model.LogActions;
 
 @Data
 @Builder

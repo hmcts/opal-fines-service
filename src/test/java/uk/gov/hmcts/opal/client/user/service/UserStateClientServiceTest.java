@@ -10,7 +10,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.client.UserClient;
 import uk.gov.hmcts.opal.common.user.client.dto.UserStateDto;
 import uk.gov.hmcts.opal.common.user.client.mapper.UserStateMapper;
