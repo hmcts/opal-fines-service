@@ -11,6 +11,9 @@
       "type": ["string", "null"],
       "format": "date"
     },
+    "extension": {
+      "type": ["boolean"]
+    },
     "reason_for_extension": {
       "type": ["string", "null"]
     },
@@ -31,8 +34,11 @@
     "instalment_amount": {
       "type": ["number", "null"],
       "multipleOf": 0.01
+    },
+    "posted_details": {
+      "$ref": "./postedDetails.json"
     }
   },
-  "required": ["days_in_default", "date_days_in_default_imposed", "reason_for_extension", "payment_terms_type", "effective_date",
-               "lump_sum_amount", "instalment_amount"]
+  "required": ["days_in_default", "date_days_in_default_imposed", "extension", "reason_for_extension", "payment_terms_type", "effective_date",
+               "lump_sum_amount", "instalment_amount", "posted_details"]
 }
