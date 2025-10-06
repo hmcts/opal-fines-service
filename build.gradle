@@ -384,7 +384,7 @@ dependencies {
   implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.9');
   implementation(group: 'com.jayway.jsonpath', name: 'json-path', version: '2.9.0');
 
-  implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.7'
   implementation group: 'io.rest-assured', name: 'rest-assured'
   implementation 'org.flywaydb:flyway-core'
   runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.13.0'
@@ -393,7 +393,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
   compileOnly 'org.projectlombok:lombok:1.18.42'
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.29.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.31.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
