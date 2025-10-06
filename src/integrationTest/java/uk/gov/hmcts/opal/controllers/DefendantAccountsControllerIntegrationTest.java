@@ -2208,4 +2208,54 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(status().isForbidden())
             .andExpect(content().string(""));
     }
+
+    void getDefendantAccountAtAGlance_500Error(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/500/at-a-glance")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().is5xxServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    }
+
+    void testLegacyGetDefendantAtAGlance(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/at-a-glance")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetPaymentTerms: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+
+            .andExpect(jsonPath("$.payment_terms.days_in_default").value(120))
+            .andExpect(jsonPath("$.payment_terms.date_days_in_default_imposed").value("2025-10-12"))
+            .andExpect(jsonPath("$.payment_terms.reason_for_extension").value(""))
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
+            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12"))
+            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
+            .andExpect(jsonPath("$.payment_terms.lump_sum_amount").value(0.00))
+            .andExpect(jsonPath("$.payment_terms.instalment_amount").value(0.00))
+
+            .andExpect(jsonPath("$.posted_details.posted_date").value("2023-11-03"))
+            .andExpect(jsonPath("$.posted_details.posted_by").value("01000000A"))
+            .andExpect(jsonPath("$.posted_details.posted_by_name").value(""))
+
+            .andExpect(jsonPath("$.payment_card_last_requested").value("2024-01-01"))
+            .andExpect(jsonPath("$.date_last_amended").value("2024-01-03"))
+            .andExpect(jsonPath("$.extension").value(false))
+            .andExpect(jsonPath("$.last_enforcement").value("REM"));
+
+    }
+
+
+
 }
