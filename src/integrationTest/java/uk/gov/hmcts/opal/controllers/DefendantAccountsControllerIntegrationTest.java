@@ -1,5 +1,19 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.htmlunit.util.MimeType.APPLICATION_JSON;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
@@ -16,43 +30,26 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
-import static org.htmlunit.util.MimeType.APPLICATION_JSON;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
-
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
  */
 abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
+    @MockitoBean
+    UserStateService userStateService;
+    @MockitoSpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
+    // Suppressed until @MockBean is replaced with new approach (Spring Boot 3.3+)
+    @SuppressWarnings("removal")
+    @MockBean
+    private UserState userState;
 
     abstract String getHeaderSummaryResponseSchemaLocation();
 
     abstract String getPaymentTermsResponseSchemaLocation();
 
     abstract String getAtAGlanceResponseSchemaLocation();
-
-    @MockitoBean
-    UserStateService userStateService;
-
-    @MockitoSpyBean
-    private JsonSchemaValidationService jsonSchemaValidationService;
-
-    // Suppressed until @MockBean is replaced with new approach (Spring Boot 3.3+)
-    @SuppressWarnings("removal")
-    @MockBean
-    private UserState userState;
 
     @BeforeEach
     void setupUserState() {
@@ -69,7 +66,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/header-summary")
-            .header("authorization", "Bearer some_value"));
+                                                          .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -96,7 +93,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/500/header-summary")
-            .header("authorization", "Bearer some_value"));
+                                                          .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -111,28 +108,28 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                   "active_accounts_only": true,
-                   "business_unit_ids": [101, 102, 78],
-                   "reference_number": null,
-                   "defendant": {
-                       "include_aliases": true,
-                       "organisation": false,
-                       "address_line_1": null,
-                       "postcode": "AB1 2CD",
-                       "organisation_name": null,
-                       "exact_match_organisation_name": null,
-                       "surname": "Smith",
-                       "exact_match_surname": true,
-                       "forenames": "John",
-                       "exact_match_forenames": false,
-                       "birth_date": "1985-06-15",
-                       "national_insurance_number": "QQ123456C"
-                       }
-                }"""));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                    "active_accounts_only": true,
+                                                                    "business_unit_ids": [101, 102, 78],
+                                                                    "reference_number": null,
+                                                                    "defendant": {
+                                                                        "include_aliases": true,
+                                                                        "organisation": false,
+                                                                        "address_line_1": null,
+                                                                        "postcode": "AB1 2CD",
+                                                                        "organisation_name": null,
+                                                                        "exact_match_organisation_name": null,
+                                                                        "surname": "Smith",
+                                                                        "exact_match_surname": true,
+                                                                        "forenames": "John",
+                                                                        "exact_match_forenames": false,
+                                                                        "birth_date": "1985-06-15",
+                                                                        "national_insurance_number": "QQ123456C"
+                                                                        }
+                                                                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -151,32 +148,34 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                   "active_accounts_only": true,
-                   "business_unit_ids": [101],
-                   "reference_number": null,
-                   "defendant": {
-                       "include_aliases": true,
-                       "organisation": false,
-                       "address_line_1": null,
-                       "postcode": "AB1 2CD",
-                       "organisation_name": null,
-                       "exact_match_organisation_name": null,
-                       "surname": "ShouldNotMatchAnythingXYZ",
-                       "exact_match_surname": true,
-                       "forenames": "John",
-                       "exact_match_forenames": false,
-                       "birth_date": "1985-06-15",
-                       "national_insurance_number": "QQ123456C"
-                       }
-                }"""));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                    "active_accounts_only": true,
+                                                                    "business_unit_ids": [101],
+                                                                    "reference_number": null,
+                                                                    "defendant": {
+                                                                        "include_aliases": true,
+                                                                        "organisation": false,
+                                                                        "address_line_1": null,
+                                                                        "postcode": "AB1 2CD",
+                                                                        "organisation_name": null,
+                                                                        "exact_match_organisation_name": null,
+                                                                        "surname": "ShouldNotMatchAnythingXYZ",
+                                                                        "exact_match_surname": true,
+                                                                        "forenames": "John",
+                                                                        "exact_match_forenames": false,
+                                                                        "birth_date": "1985-06-15",
+                                                                        "national_insurance_number": "QQ123456C"
+                                                                        }
+                                                                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_WhenNoDefendantAccountsFound: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -189,28 +188,28 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": true,
-                    "organisation": false,
-                    "address_line_1": "Lumber",
-                    "postcode": "MA4 1AL",
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": "Anna",
-                    "exact_match_forenames": true,
-                    "birth_date": "1980-02-03",
-                    "national_insurance_number": "A11111A"
-                  }
-                }"""));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": true,
+                                                                     "organisation": false,
+                                                                     "address_line_1": "Lumber",
+                                                                     "postcode": "MA4 1AL",
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": "Anna",
+                                                                     "exact_match_forenames": true,
+                                                                     "birth_date": "1980-02-03",
+                                                                     "national_insurance_number": "A11111A"
+                                                                   }
+                                                                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -229,32 +228,34 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                      "active_accounts_only": true,
-                      "business_unit_ids": [101],
-                      "reference_number": null,
-                      "defendant": {
-                        "include_aliases": true,
-                        "organisation": false,
-                        "organisation_name": null,
-                        "exact_match_organisation_name": null,
-                        "address_line_1": "Lumber House",
-                        "postcode": "MA4 1AL",
-                        "surname": "Graham",
-                        "exact_match_surname": true,
-                        "forenames": "Anna",
-                        "exact_match_forenames": true,
-                        "birth_date": "1980-02-03",
-                        "national_insurance_number": "A11111A"
-                      }
-                }"""));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                       "active_accounts_only": true,
+                                                                       "business_unit_ids": [101],
+                                                                       "reference_number": null,
+                                                                       "defendant": {
+                                                                         "include_aliases": true,
+                                                                         "organisation": false,
+                                                                         "organisation_name": null,
+                                                                         "exact_match_organisation_name": null,
+                                                                         "address_line_1": "Lumber House",
+                                                                         "postcode": "MA4 1AL",
+                                                                         "surname": "Graham",
+                                                                         "exact_match_surname": true,
+                                                                         "forenames": "Anna",
+                                                                         "exact_match_forenames": true,
+                                                                         "birth_date": "1980-02-03",
+                                                                         "national_insurance_number": "A11111A"
+                                                                       }
+                                                                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_NoResults: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_NoResults: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -267,34 +268,36 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                         {
-                                  "active_accounts_only": true,
-                                  "business_unit_ids": [78],
-                                  "reference_number": null,
-                                  "defendant": {
-                                    "include_aliases": true,
-                                    "organisation": false,
-                                    "organisation_name": null,
-                                    "exact_match_organisation_name": null,
-                                    "address_line_1": "Lumber House",
-                                    "postcode": "MA4 1AL",
-                                    "surname": "Graham",
-                                    "exact_match_surname": true,
-                                    "forenames": "Anna",
-                                    "exact_match_forenames": true,
-                                    "birth_date": "1980-02-03",
-                                    "national_insurance_number": "A11111A"
-                                  }
-                                }
-                }"""));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                          {
+                                                                             "active_accounts_only": true,
+                                                                             "business_unit_ids": [78],
+                                                                             "reference_number": null,
+                                                                             "defendant": {
+                                                                               "include_aliases": true,
+                                                                               "organisation": false,
+                                                                               "organisation_name": null,
+                                                                               "exact_match_organisation_name": null,
+                                                                               "address_line_1": "Lumber House",
+                                                                                 "postcode": "MA4 1AL",
+                                                                                 "surname": "Graham",
+                                                                                 "exact_match_surname": true,
+                                                                                 "forenames": "Anna",
+                                                                                 "exact_match_forenames": true,
+                                                                                 "birth_date": "1980-02-03",
+                                                                                 "national_insurance_number": "A11111A"
+                                                                               }
+                                                                             }
+                                                                 }"""));
 
         String body = actions.andReturn().getResponse()
             .getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_ByNameAndBU: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_ByNameAndBU: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -310,32 +313,34 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                        {
-                                  "active_accounts_only": true,
-                                  "business_unit_ids": [78],
-                                  "reference_number": null,
-                                  "defendant": {
-                                    "include_aliases": true,
-                                    "organisation": false,
-                                    "address_line_1": "Lumber House",
-                                    "postcode": "MA41AL",
-                                    "organisation_name": null,
-                                    "exact_match_organisation_name": null,
-                                    "surname": "Graham",
-                                    "exact_match_surname": true,
-                                    "forenames": "Anna",
-                                    "exact_match_forenames": true,
-                                    "birth_date": "1980-02-03",
-                                    "national_insurance_number": "A11111A"
-                                  }
-                }"""));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                         {
+                                                                              "active_accounts_only": true,
+                                                                              "business_unit_ids": [78],
+                                                                              "reference_number": null,
+                                                                                 "defendant": {
+                                                                                 "include_aliases": true,
+                                                                                 "organisation": false,
+                                                                                 "address_line_1": "Lumber House",
+                                                                                 "postcode": "MA41AL",
+                                                                                 "organisation_name": null,
+                                                                                 "exact_match_organisation_name": null,
+                                                                                 "surname": "Graham",
+                                                                                 "exact_match_surname": true,
+                                                                                 "forenames": "Anna",
+                                                                                 "exact_match_forenames": true,
+                                                                                 "birth_date": "1980-02-03",
+                                                                                 "national_insurance_number": "A11111A"
+                                                                                  }
+                                                                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_Postcode_IgnoresSpaces: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -349,24 +354,26 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                        {
-                                  "active_accounts_only": true,
-                                  "business_unit_ids": [78],
-                                  "reference_number": {
-                                    "account_number": "177",
-                                    "prosecutor_case_reference": null,
-                                    "organisation": false
-                                  },
-                                  "defendant": null
-                                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                         {
+                                                                                   "active_accounts_only": true,
+                                                                                   "business_unit_ids": [78],
+                                                                                   "reference_number": {
+                                                                                     "account_number": "177",
+                                                                                     "prosecutor_case_reference": null,
+                                                                                     "organisation": false
+                                                                                   },
+                                                                                   "defendant": null
+                                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -383,24 +390,26 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": {
-                    "account_number": null,
-                    "prosecutor_case_reference": "090A",
-                    "organisation": false
-                  },
-                  "defendant": null
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": {
+                                                                     "account_number": null,
+                                                                     "prosecutor_case_reference": "090A",
+                                                                     "organisation": false
+                                                                   },
+                                                                   "defendant": null
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_PcrExact: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_PcrExact: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -417,24 +426,26 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": {
-                    "account_number": null,
-                    "prosecutor_case_reference": "ZZZ999",
-                    "organisation": false
-                  },
-                  "defendant": null
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": {
+                                                                     "account_number": null,
+                                                                     "prosecutor_case_reference": "ZZZ999",
+                                                                     "organisation": false
+                                                                   },
+                                                                   "defendant": null
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_PcrNoMatch: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_PcrNoMatch: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -447,33 +458,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": true,
-                    "organisation": false,
-                    "address_line_1": "Lumber House",
-                    "postcode": "MA4 1AL",
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": "Anna",
-                    "exact_match_forenames": true,
-                    "birth_date": "1980-02-03",
-                    "national_insurance_number": "A111"
-                  }
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": true,
+                                                                     "organisation": false,
+                                                                     "address_line_1": "Lumber House",
+                                                                     "postcode": "MA4 1AL",
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": "Anna",
+                                                                     "exact_match_forenames": true,
+                                                                     "birth_date": "1980-02-03",
+                                                                     "national_insurance_number": "A111"
+                                                                   }
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_NiStartsWith: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_NiStartsWith: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -489,33 +502,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": true,
-                    "organisation": false,
-                    "address_line_1": "Lumber",
-                    "postcode": "MA4 1AL",
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": "Anna",
-                    "exact_match_forenames": true,
-                    "birth_date": "1980-02-03",
-                    "national_insurance_number": "A11111A"
-                  }
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": true,
+                                                                     "organisation": false,
+                                                                     "address_line_1": "Lumber",
+                                                                     "postcode": "MA4 1AL",
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": "Anna",
+                                                                     "exact_match_forenames": true,
+                                                                     "birth_date": "1980-02-03",
+                                                                     "national_insurance_number": "A11111A"
+                                                                   }
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_AddressStartsWith: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_AddressStartsWith: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -534,29 +549,29 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": true,
-                    "organisation": false,
-                    "address_line_1": "Lumber House",
-                    "postcode": "MA4 1AL",
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": "Anna",
-                    "exact_match_forenames": true,
-                    "birth_date": "1980-02-03",
-                    "national_insurance_number": "A11111A"
-                  }
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": true,
+                                                                     "organisation": false,
+                                                                     "address_line_1": "Lumber House",
+                                                                     "postcode": "MA4 1AL",
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": "Anna",
+                                                                     "exact_match_forenames": true,
+                                                                     "birth_date": "1980-02-03",
+                                                                     "national_insurance_number": "A11111A"
+                                                                   }
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_DobExact: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -579,33 +594,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": true,
-                    "organisation": false,
-                    "address_line_1": "Lumber House",
-                    "postcode": "MA4 1AL",
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": "Anna",
-                    "exact_match_forenames": true,
-                    "birth_date": "1980-02-03",
-                    "national_insurance_number": "A11111A"
-                  }
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": true,
+                                                                     "organisation": false,
+                                                                     "address_line_1": "Lumber House",
+                                                                     "postcode": "MA4 1AL",
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": "Anna",
+                                                                     "exact_match_forenames": true,
+                                                                     "birth_date": "1980-02-03",
+                                                                     "national_insurance_number": "A11111A"
+                                                                   }
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_AliasFlag_UsesMainName: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -620,33 +637,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": false,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": true,
-                    "organisation": false,
-                    "address_line_1": "Lumber House",
-                    "postcode": "MA4 1AL",
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": "Anna",
-                    "exact_match_forenames": true,
-                    "birth_date": "1980-02-03",
-                    "national_insurance_number": "A11111A"
-                  }
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": false,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": true,
+                                                                     "organisation": false,
+                                                                     "address_line_1": "Lumber House",
+                                                                     "postcode": "MA4 1AL",
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": "Anna",
+                                                                     "exact_match_forenames": true,
+                                                                     "birth_date": "1980-02-03",
+                                                                     "national_insurance_number": "A11111A"
+                                                                   }
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -662,24 +681,26 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": {
-                    "account_number": "177A",
-                    "prosecutor_case_reference": null,
-                    "organisation": false
-                  },
-                  "defendant": null
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": {
+                                                                     "account_number": "177A",
+                                                                     "prosecutor_case_reference": null,
+                                                                     "organisation": false
+                                                                   },
+                                                                   "defendant": null
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -695,24 +716,26 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": {
-                    "account_number": "177A",
-                    "prosecutor_case_reference": null,
-                    "organisation": false
-                  },
-                  "defendant": null
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": {
+                                                                     "account_number": "177A",
+                                                                     "prosecutor_case_reference": null,
+                                                                     "organisation": false
+                                                                   },
+                                                                   "defendant": null
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_NoDefendantObject_StillResolvesParty: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -728,24 +751,26 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [],
-                  "reference_number": {
-                    "account_number": "177A",
-                    "prosecutor_case_reference": null,
-                    "organisation": false
-                  },
-                  "defendant": null
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [],
+                                                                   "reference_number": {
+                                                                     "account_number": "177A",
+                                                                     "prosecutor_case_reference": null,
+                                                                     "organisation": false
+                                                                   },
+                                                                   "defendant": null
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_WithoutBusinessUnitFilter: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -760,33 +785,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": false,
-                    "organisation": false,
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": "Anna",
-                    "exact_match_forenames": true,
-                    "address_line_1": "Lumber House",
-                    "postcode": "MA4 1AL",
-                    "birth_date": "1980-02-03",
-                    "national_insurance_number": "A11111A"
-                  }
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": false,
+                                                                     "organisation": false,
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": "Anna",
+                                                                     "exact_match_forenames": true,
+                                                                     "address_line_1": "Lumber House",
+                                                                     "postcode": "MA4 1AL",
+                                                                     "birth_date": "1980-02-03",
+                                                                     "national_insurance_number": "A11111A"
+                                                                   }
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_AnnaGraham_FullDetails: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_AnnaGraham_FullDetails: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -802,33 +829,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": true,
-                    "organisation": true,
-                    "organisation_name": "Sainsco",
-                    "exact_match_organisation_name": true,
-                    "address_line_1": null,
-                    "postcode": null,
-                    "surname": null,
-                    "exact_match_surname": null,
-                    "forenames": null,
-                    "exact_match_forenames": null,
-                    "birth_date": null,
-                    "national_insurance_number": null
-                  }
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": true,
+                                                                     "organisation": true,
+                                                                     "organisation_name": "Sainsco",
+                                                                     "exact_match_organisation_name": true,
+                                                                     "address_line_1": null,
+                                                                     "postcode": null,
+                                                                     "surname": null,
+                                                                     "exact_match_surname": null,
+                                                                     "forenames": null,
+                                                                     "exact_match_forenames": null,
+                                                                     "birth_date": null,
+                                                                     "national_insurance_number": null
+                                                                   }
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_OrganisationWithNoPersonalNames: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_OrganisationWithNoPersonalNames: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -848,33 +877,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": true,
-                    "organisation": false,
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": "Anna",
-                    "exact_match_forenames": true,
-                    "address_line_1": "Lumber House",
-                    "postcode": "MA4 1AL",
-                    "birth_date": "1980-02-03",
-                    "national_insurance_number": "A11111A"
-                  }
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": true,
+                                                                     "organisation": false,
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": "Anna",
+                                                                     "exact_match_forenames": true,
+                                                                     "address_line_1": "Lumber House",
+                                                                     "postcode": "MA4 1AL",
+                                                                     "birth_date": "1980-02-03",
+                                                                     "national_insurance_number": "A11111A"
+                                                                   }
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_AliasFallbackToMainName: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_AliasFallbackToMainName: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -889,33 +920,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": false,
-                    "organisation": false,
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": "Anna",
-                    "exact_match_forenames": true,
-                    "address_line_1": "Lumber House",
-                    "postcode": "MA4 1AL",
-                    "birth_date": "1980-02-03",
-                    "national_insurance_number": "A11111A"
-                  }
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": false,
+                                                                     "organisation": false,
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": "Anna",
+                                                                     "exact_match_forenames": true,
+                                                                     "address_line_1": "Lumber House",
+                                                                     "postcode": "MA4 1AL",
+                                                                     "birth_date": "1980-02-03",
+                                                                     "national_insurance_number": "A11111A"
+                                                                   }
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -931,7 +964,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get("/defendant-accounts/999777/header-summary")
-            .header("authorization", "Bearer some_value"));
+                                                          .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetHeaderSummary_ThrowsNotFound: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -945,24 +978,26 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": {
-                    "account_number": "188A",
-                    "prosecutor_case_reference": null,
-                    "organisation": false
-                  },
-                  "defendant": null
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": {
+                                                                     "account_number": "188A",
+                                                                     "prosecutor_case_reference": null,
+                                                                     "organisation": false
+                                                                   },
+                                                                   "defendant": null
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_AliasFieldsMapped: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_AliasFieldsMapped: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -979,20 +1014,20 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         mockMvc.perform(post("/defendant-accounts/search")
-                .header("authorization", "Bearer some_value")
-                .contentType(APPLICATION_JSON)
-                .content("""
-                    {
-                      "active_accounts_only": true,
-                      "business_unit_ids": [9999],
-                      "reference_number": {
-                        "account_number": "199A",
-                        "prosecutor_case_reference": null,
-                        "organisation": false
-                      },
-                      "defendant": null
-                    }
-                    """))
+                            .header("authorization", "Bearer some_value")
+                            .contentType(APPLICATION_JSON)
+                            .content("""
+                                         {
+                                           "active_accounts_only": true,
+                                           "business_unit_ids": [9999],
+                                           "reference_number": {
+                                             "account_number": "199A",
+                                             "prosecutor_case_reference": null,
+                                             "organisation": false
+                                           },
+                                           "defendant": null
+                                         }
+                                         """))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_name").value(""))
@@ -1005,34 +1040,36 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                       "active_accounts_only": true,
-                       "business_unit_ids": [78],
-                       "reference_number": null,
-                       "defendant": {
-                         "include_aliases": false,
-                         "organisation": false,
-                         "organisation_name": null,
-                         "exact_match_organisation_name": null,
-                         "surname": "Grah",
-                         "exact_match_surname": false,
-                         "forenames": "Anna",
-                         "exact_match_forenames": true,
-                         "address_line_1": "Lumber House",
-                         "postcode": "MA4 1AL",
-                         "birth_date": "1980-02-03",
-                         "national_insurance_number": "A11111A"
-                       }
-                     }
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                        "active_accounts_only": true,
+                                                                        "business_unit_ids": [78],
+                                                                        "reference_number": null,
+                                                                        "defendant": {
+                                                                          "include_aliases": false,
+                                                                          "organisation": false,
+                                                                          "organisation_name": null,
+                                                                          "exact_match_organisation_name": null,
+                                                                          "surname": "Grah",
+                                                                          "exact_match_surname": false,
+                                                                          "forenames": "Anna",
+                                                                          "exact_match_forenames": true,
+                                                                          "address_line_1": "Lumber House",
+                                                                          "postcode": "MA4 1AL",
+                                                                          "birth_date": "1980-02-03",
+                                                                          "national_insurance_number": "A11111A"
+                                                                        }
+                                                                      }
 
-                """));
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_SurnamePartialMatch: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_SurnamePartialMatch: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1045,33 +1082,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                      "active_accounts_only": true,
-                      "business_unit_ids": [78],
-                      "reference_number": null,
-                      "defendant": {
-                        "include_aliases": true,
-                        "organisation": false,
-                        "surname": "AliasSurname",
-                        "exact_match_surname": true,
-                        "forenames": "AliasForenames",
-                        "exact_match_forenames": true,
-                        "address_line_1": "Alias Street",
-                        "postcode": "AL1 1AS",
-                        "organisation_name": null,
-                        "exact_match_organisation_name": null,
-                        "birth_date": "1980-01-01",
-                        "national_insurance_number": "XX999999X"
-                      }
-                    }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                       "active_accounts_only": true,
+                                                                       "business_unit_ids": [78],
+                                                                       "reference_number": null,
+                                                                       "defendant": {
+                                                                         "include_aliases": true,
+                                                                         "organisation": false,
+                                                                         "surname": "AliasSurname",
+                                                                         "exact_match_surname": true,
+                                                                         "forenames": "AliasForenames",
+                                                                         "exact_match_forenames": true,
+                                                                         "address_line_1": "Alias Street",
+                                                                         "postcode": "AL1 1AS",
+                                                                         "organisation_name": null,
+                                                                         "exact_match_organisation_name": null,
+                                                                         "birth_date": "1980-01-01",
+                                                                         "national_insurance_number": "XX999999X"
+                                                                       }
+                                                                     }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_Opal_MatchOnAlias_WhenMainPresent: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1087,33 +1126,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Search with surname "Graham" AND postcode "MA4 1AL" - should match account 77
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": false,
-                    "organisation": false,
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "address_line_1": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": null,
-                    "exact_match_forenames": null,
-                    "birth_date": null,
-                    "national_insurance_number": null,
-                    "postcode": "MA4 1AL"
-                  }
-                }
-                }"""));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": false,
+                                                                     "organisation": false,
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "address_line_1": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": null,
+                                                                     "exact_match_forenames": null,
+                                                                     "birth_date": null,
+                                                                     "national_insurance_number": null,
+                                                                     "postcode": "MA4 1AL"
+                                                                   }
+                                                                 }
+                                                                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC1_SurnameAndPostcode: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC1_SurnameAndPostcode: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1127,33 +1168,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Search with surname "Graham" AND wrong postcode - should return 0 results
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": false,
-                    "organisation": false,
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "address_line_1": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": null,
-                    "exact_match_forenames": null,
-                    "birth_date": null,
-                    "national_insurance_number": null,
-                    "postcode": "XX99 9XX"
-                  }
-                }
-                }"""));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": false,
+                                                                     "organisation": false,
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "address_line_1": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": null,
+                                                                     "exact_match_forenames": null,
+                                                                     "birth_date": null,
+                                                                     "national_insurance_number": null,
+                                                                     "postcode": "XX99 9XX"
+                                                                   }
+                                                                 }
+                                                                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC1_SurnameAndWrongPostcode: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(0));
@@ -1165,33 +1208,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": false,
-                    "organisation": false,
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "address_line_1": null,
-                    "postcode": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": "Anna",
-                    "exact_match_forenames": true,
-                    "birth_date": "1980-02-03",
-                    "national_insurance_number": "A11111A"
-                  }
-                }
-                }"""));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": false,
+                                                                     "organisation": false,
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "address_line_1": null,
+                                                                     "postcode": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": "Anna",
+                                                                     "exact_match_forenames": true,
+                                                                     "birth_date": "1980-02-03",
+                                                                     "national_insurance_number": "A11111A"
+                                                                   }
+                                                                 }
+                                                                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC1_CompletePersonalDetails: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC1_CompletePersonalDetails: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1205,33 +1250,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Search with address line 1 starting "Lumber" AND NI starting "A111" - should match account 77
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": false,
-                    "organisation": false,
-                    "address_line_1": "Lumber",
-                    "postcode": "MA4 1AL",
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": "Anna",
-                    "exact_match_forenames": true,
-                    "birth_date": "1980-02-03",
-                    "national_insurance_number": "A111"
-                  }
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": false,
+                                                                     "organisation": false,
+                                                                     "address_line_1": "Lumber",
+                                                                     "postcode": "MA4 1AL",
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": "Anna",
+                                                                     "exact_match_forenames": true,
+                                                                     "birth_date": "1980-02-03",
+                                                                     "national_insurance_number": "A111"
+                                                                   }
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC1_AddressAndNI: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC1_AddressAndNI: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1245,33 +1292,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Search with correct surname but wrong business unit - should return 0 results
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [999],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": false,
-                    "organisation": false,
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "address_line_1": null,
-                    "postcode": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": null,
-                    "exact_match_forenames": null,
-                    "birth_date": null,
-                    "national_insurance_number": null
-                  }
-                }
-                }"""));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [999],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": false,
+                                                                     "organisation": false,
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "address_line_1": null,
+                                                                     "postcode": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": null,
+                                                                     "exact_match_forenames": null,
+                                                                     "birth_date": null,
+                                                                     "national_insurance_number": null
+                                                                   }
+                                                                 }
+                                                                 }"""));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC1_WrongBusinessUnitExcludes: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(0));
@@ -1286,33 +1335,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Should find accounts 77, 88, 901, 333 but filter to only return those in business unit 78
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": true,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": true,
-                    "organisation": false,
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": null,
-                    "exact_match_forenames": null,
-                    "address_line_1": null,
-                    "postcode": null,
-                    "birth_date": null,
-                    "national_insurance_number": null
-                  }
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [78],
+                                                                   "reference_number": null,
+                                                                   "defendant": {
+                                                                     "include_aliases": true,
+                                                                     "organisation": false,
+                                                                     "organisation_name": null,
+                                                                     "exact_match_organisation_name": null,
+                                                                     "surname": "Graham",
+                                                                     "exact_match_surname": true,
+                                                                     "forenames": null,
+                                                                     "exact_match_forenames": null,
+                                                                     "address_line_1": null,
+                                                                     "postcode": null,
+                                                                     "birth_date": null,
+                                                                     "national_insurance_number": null
+                                                                   }
+                                                                 }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC2_BusinessUnitFiltering: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1330,40 +1381,42 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Test AC3a: active_accounts_only = false should include both active and completed accounts
         ResultActions allAccountsActions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": false,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": true,
-                    "organisation": false,
-                    "address_line_1": null,
-                    "postcode": null,
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": null,
-                    "exact_match_forenames": null,
-                    "birth_date": null,
-                    "national_insurance_number": null
-                  }
-                }
-                """));
+                                                               .header("authorization", "Bearer some_value")
+                                                               .contentType(MediaType.APPLICATION_JSON)
+                                                               .content("""
+                                                                            {
+                                                                              "active_accounts_only": false,
+                                                                              "business_unit_ids": [78],
+                                                                              "reference_number": null,
+                                                                              "defendant": {
+                                                                                "include_aliases": true,
+                                                                                "organisation": false,
+                                                                                "address_line_1": null,
+                                                                                "postcode": null,
+                                                                                "organisation_name": null,
+                                                                                "exact_match_organisation_name": null,
+                                                                                "surname": "Graham",
+                                                                                "exact_match_surname": true,
+                                                                                "forenames": null,
+                                                                                "exact_match_forenames": null,
+                                                                                "birth_date": null,
+                                                                                "national_insurance_number": null
+                                                                              }
+                                                                            }
+                                                                            """));
 
         String body = allAccountsActions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC3a_ActiveAccountsOnlyFalse: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         allAccountsActions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(2))
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists())
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')]").exists())
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')].account_number")
-                .value("444C"));
+                           .value("444C"));
     }
 
     // AC5a: Forenames match filtering tests
@@ -1374,34 +1427,36 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                       "active_accounts_only": true,
-                       "business_unit_ids": [78],
-                       "reference_number": null,
-                       "defendant": {
-                         "include_aliases": false,
-                         "organisation": false,
-                         "organisation_name": null,
-                         "exact_match_organisation_name": null,
-                         "surname": "Graham",
-                         "exact_match_surname": true,
-                         "forenames": "An",
-                         "exact_match_forenames": false,
-                         "address_line_1": null,
-                         "postcode": null,
-                         "birth_date": null,
-                         "national_insurance_number": null
-                       }
-                     }
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                        "active_accounts_only": true,
+                                                                        "business_unit_ids": [78],
+                                                                        "reference_number": null,
+                                                                        "defendant": {
+                                                                          "include_aliases": false,
+                                                                          "organisation": false,
+                                                                          "organisation_name": null,
+                                                                          "exact_match_organisation_name": null,
+                                                                          "surname": "Graham",
+                                                                          "exact_match_surname": true,
+                                                                          "forenames": "An",
+                                                                          "exact_match_forenames": false,
+                                                                          "address_line_1": null,
+                                                                          "postcode": null,
+                                                                          "birth_date": null,
+                                                                          "national_insurance_number": null
+                                                                        }
+                                                                      }
 
-                """));
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC5a_ForenamesPartialMatch: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC5a_ForenamesPartialMatch: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1418,33 +1473,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Search with company name "TechCorp Solutions Ltd" AND address "Business Park" - should match account 555
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                      "active_accounts_only": true,
-                      "business_unit_ids": [78],
-                      "reference_number": null,
-                      "defendant": {
-                        "include_aliases": false,
-                        "organisation": true,
-                        "organisation_name": "TechCorp Solutions Ltd",
-                        "exact_match_organisation_name": true,
-                        "address_line_1": "Business Park",
-                        "postcode": null,
-                        "surname": null,
-                        "exact_match_surname": null,
-                        "forenames": null,
-                        "exact_match_forenames": null,
-                        "birth_date": null,
-                        "national_insurance_number": null
-                      }
-                    }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                       "active_accounts_only": true,
+                                                                       "business_unit_ids": [78],
+                                                                       "reference_number": null,
+                                                                       "defendant": {
+                                                                         "include_aliases": false,
+                                                                         "organisation": true,
+                                                                         "organisation_name": "TechCorp Solutions Ltd",
+                                                                         "exact_match_organisation_name": true,
+                                                                         "address_line_1": "Business Park",
+                                                                         "postcode": null,
+                                                                         "surname": null,
+                                                                         "exact_match_surname": null,
+                                                                         "forenames": null,
+                                                                         "exact_match_forenames": null,
+                                                                         "birth_date": null,
+                                                                         "national_insurance_number": null
+                                                                       }
+                                                                     }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC9_CompanyNameAndAddress: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC9_CompanyNameAndAddress: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1461,33 +1518,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Search with company name "TechCorp Solutions Ltd" AND postcode "B15 3TG" - should match account 555
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                      "active_accounts_only": true,
-                      "business_unit_ids": [78],
-                      "reference_number": null,
-                      "defendant": {
-                        "include_aliases": false,
-                        "organisation": true,
-                        "organisation_name": "TechCorp Solutions Ltd",
-                        "exact_match_organisation_name": true,
-                        "address_line_1": null,
-                        "postcode": "B15 3TG",
-                        "surname": null,
-                        "exact_match_surname": null,
-                        "forenames": null,
-                        "exact_match_forenames": null,
-                        "birth_date": null,
-                        "national_insurance_number": null
-                      }
-                    }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                       "active_accounts_only": true,
+                                                                       "business_unit_ids": [78],
+                                                                       "reference_number": null,
+                                                                       "defendant": {
+                                                                         "include_aliases": false,
+                                                                         "organisation": true,
+                                                                         "organisation_name": "TechCorp Solutions Ltd",
+                                                                         "exact_match_organisation_name": true,
+                                                                         "address_line_1": null,
+                                                                         "postcode": "B15 3TG",
+                                                                         "surname": null,
+                                                                         "exact_match_surname": null,
+                                                                         "forenames": null,
+                                                                         "exact_match_forenames": null,
+                                                                         "birth_date": null,
+                                                                         "national_insurance_number": null
+                                                                       }
+                                                                     }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC9_CompanyNameAndPostcode: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC9_CompanyNameAndPostcode: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1503,33 +1562,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Search with partial company name "TechCorp" AND address "Business Park" - should match account 555
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                      "active_accounts_only": true,
-                      "business_unit_ids": [78],
-                      "reference_number": null,
-                      "defendant": {
-                        "include_aliases": false,
-                        "organisation": true,
-                        "organisation_name": "TechCorp",
-                        "exact_match_organisation_name": false,
-                        "address_line_1": "Business Park",
-                        "postcode": null,
-                        "surname": null,
-                        "exact_match_surname": null,
-                        "forenames": null,
-                        "exact_match_forenames": null,
-                        "birth_date": null,
-                        "national_insurance_number": null
-                      }
-                    }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                       "active_accounts_only": true,
+                                                                       "business_unit_ids": [78],
+                                                                       "reference_number": null,
+                                                                       "defendant": {
+                                                                         "include_aliases": false,
+                                                                         "organisation": true,
+                                                                         "organisation_name": "TechCorp",
+                                                                         "exact_match_organisation_name": false,
+                                                                         "address_line_1": "Business Park",
+                                                                         "postcode": null,
+                                                                         "surname": null,
+                                                                         "exact_match_surname": null,
+                                                                         "forenames": null,
+                                                                         "exact_match_forenames": null,
+                                                                         "birth_date": null,
+                                                                         "national_insurance_number": null
+                                                                       }
+                                                                     }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC9_CompanyPartialNameAndAddress: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC9_CompanyPartialNameAndAddress: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1544,33 +1605,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Search with correct company name "TechCorp Solutions Ltd" BUT wrong address "Office Tower"
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                      "active_accounts_only": true,
-                      "business_unit_ids": [78],
-                      "reference_number": null,
-                      "defendant": {
-                        "include_aliases": false,
-                        "organisation": true,
-                        "organisation_name": "TechCorp Solutions Ltd",
-                        "exact_match_organisation_name": true,
-                        "address_line_1": "Office Tower",
-                        "postcode": null,
-                        "surname": null,
-                        "exact_match_surname": null,
-                        "forenames": null,
-                        "exact_match_forenames": null,
-                        "birth_date": null,
-                        "national_insurance_number": null
-                      }
-                    }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                       "active_accounts_only": true,
+                                                                       "business_unit_ids": [78],
+                                                                       "reference_number": null,
+                                                                       "defendant": {
+                                                                         "include_aliases": false,
+                                                                         "organisation": true,
+                                                                         "organisation_name": "TechCorp Solutions Ltd",
+                                                                         "exact_match_organisation_name": true,
+                                                                         "address_line_1": "Office Tower",
+                                                                         "postcode": null,
+                                                                         "surname": null,
+                                                                         "exact_match_surname": null,
+                                                                         "forenames": null,
+                                                                         "exact_match_forenames": null,
+                                                                         "birth_date": null,
+                                                                         "national_insurance_number": null
+                                                                       }
+                                                                     }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC9_CompanyNameAndWrongAddress: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC9_CompanyNameAndWrongAddress: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(0));
@@ -1583,33 +1646,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Search with company name AND multiple address fields - all must match
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                      "active_accounts_only": true,
-                      "business_unit_ids": [78],
-                      "reference_number": null,
-                      "defendant": {
-                        "include_aliases": false,
-                        "organisation": true,
-                        "organisation_name": "TechCorp Solutions Ltd",
-                        "exact_match_organisation_name": true,
-                        "address_line_1": "Business Park",
-                        "postcode": "B15 3TG",
-                        "surname": null,
-                        "exact_match_surname": null,
-                        "forenames": null,
-                        "exact_match_forenames": null,
-                        "birth_date": null,
-                        "national_insurance_number": null
-                      }
-                    }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                       "active_accounts_only": true,
+                                                                       "business_unit_ids": [78],
+                                                                       "reference_number": null,
+                                                                       "defendant": {
+                                                                         "include_aliases": false,
+                                                                         "organisation": true,
+                                                                         "organisation_name": "TechCorp Solutions Ltd",
+                                                                         "exact_match_organisation_name": true,
+                                                                         "address_line_1": "Business Park",
+                                                                         "postcode": "B15 3TG",
+                                                                         "surname": null,
+                                                                         "exact_match_surname": null,
+                                                                         "forenames": null,
+                                                                         "exact_match_forenames": null,
+                                                                         "birth_date": null,
+                                                                         "national_insurance_number": null
+                                                                       }
+                                                                     }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC9_CompanyMultipleAddressFields: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC9_CompanyMultipleAddressFields: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1628,33 +1693,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Apply business unit filter to only BU 78 - should return only TechCorp Solutions Ltd
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                      "active_accounts_only": true,
-                      "business_unit_ids": [78],
-                      "reference_number": null,
-                      "defendant": {
-                        "include_aliases": false,
-                        "organisation": true,
-                        "organisation_name": "TechCorp",
-                        "exact_match_organisation_name": false,
-                        "address_line_1": null,
-                        "postcode": null,
-                        "surname": null,
-                        "exact_match_surname": null,
-                        "forenames": null,
-                        "exact_match_forenames": null,
-                        "birth_date": null,
-                        "national_insurance_number": null
-                      }
-                    }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                       "active_accounts_only": true,
+                                                                       "business_unit_ids": [78],
+                                                                       "reference_number": null,
+                                                                       "defendant": {
+                                                                         "include_aliases": false,
+                                                                         "organisation": true,
+                                                                         "organisation_name": "TechCorp",
+                                                                         "exact_match_organisation_name": false,
+                                                                         "address_line_1": null,
+                                                                         "postcode": null,
+                                                                         "surname": null,
+                                                                         "exact_match_surname": null,
+                                                                         "forenames": null,
+                                                                         "exact_match_forenames": null,
+                                                                         "birth_date": null,
+                                                                         "national_insurance_number": null
+                                                                       }
+                                                                     }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC9a_CompanyBusinessUnitFiltering: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC9a_CompanyBusinessUnitFiltering: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1672,33 +1739,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // active_accounts_only = false should include both active and completed company accounts
         ResultActions allAccountsActions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                      "active_accounts_only": false,
-                      "business_unit_ids": [78],
-                      "reference_number": null,
-                      "defendant": {
-                        "include_aliases": false,
-                        "organisation": true,
-                        "organisation_name": "TechCorp",
-                        "exact_match_organisation_name": false,
-                        "address_line_1": null,
-                        "postcode": null,
-                        "surname": null,
-                        "exact_match_surname": null,
-                        "forenames": null,
-                        "exact_match_forenames": null,
-                        "birth_date": null,
-                        "national_insurance_number": null
-                      }
-                    }
-                """));
+                                                               .header("authorization", "Bearer some_value")
+                                                               .contentType(MediaType.APPLICATION_JSON)
+                                                               .content("""
+                                                                           {
+                                                                              "active_accounts_only": false,
+                                                                              "business_unit_ids": [78],
+                                                                              "reference_number": null,
+                                                                                "defendant": {
+                                                                                "include_aliases": false,
+                                                                                "organisation": true,
+                                                                                "organisation_name": "TechCorp",
+                                                                                "exact_match_organisation_name": false,
+                                                                                "address_line_1": null,
+                                                                                "postcode": null,
+                                                                                "surname": null,
+                                                                                  "exact_match_surname": null,
+                                                                                  "forenames": null,
+                                                                                  "exact_match_forenames": null,
+                                                                                  "birth_date": null,
+                                                                                  "national_insurance_number": null
+                                                                                }
+                                                                              }
+                                                                            """));
 
         String allBody = allAccountsActions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly): Response body:\n{}",
-            ToJsonString.toPrettyJson(allBody));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC9b_CompanyActiveAccountsOnly): Response body:\n{}",
+            ToJsonString.toPrettyJson(allBody)
+        );
 
         allAccountsActions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(2))
@@ -1713,33 +1782,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Search with partial alias "TC Global" - should match "TC Global Ltd" alias (starts with)
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                      "active_accounts_only": true,
-                      "business_unit_ids": [9999],
-                      "reference_number": null,
-                      "defendant": {
-                        "include_aliases": true,
-                        "organisation": true,
-                        "organisation_name": "TC Global",
-                        "exact_match_organisation_name": false,
-                        "address_line_1": null,
-                        "postcode": null,
-                        "surname": null,
-                        "exact_match_surname": null,
-                        "forenames": null,
-                        "exact_match_forenames": null,
-                        "birth_date": null,
-                        "national_insurance_number": null
-                      }
-                    }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                       "active_accounts_only": true,
+                                                                       "business_unit_ids": [9999],
+                                                                       "reference_number": null,
+                                                                       "defendant": {
+                                                                         "include_aliases": true,
+                                                                         "organisation": true,
+                                                                         "organisation_name": "TC Global",
+                                                                         "exact_match_organisation_name": false,
+                                                                         "address_line_1": null,
+                                                                         "postcode": null,
+                                                                         "surname": null,
+                                                                         "exact_match_surname": null,
+                                                                         "forenames": null,
+                                                                         "exact_match_forenames": null,
+                                                                         "birth_date": null,
+                                                                         "national_insurance_number": null
+                                                                       }
+                                                                     }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC9d_CompanyAliasExactMatch: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC9d_CompanyAliasExactMatch: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1755,33 +1826,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Search with exact alias "TechCorp Ltd" - should match exactly
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                      "active_accounts_only": true,
-                      "business_unit_ids": [78],
-                      "reference_number": null,
-                      "defendant": {
-                        "include_aliases": true,
-                        "organisation": true,
-                        "organisation_name": "TechCorp Ltd",
-                        "exact_match_organisation_name": true,
-                        "address_line_1": null,
-                        "postcode": null,
-                        "surname": null,
-                        "exact_match_surname": null,
-                        "forenames": null,
-                        "exact_match_forenames": null,
-                        "birth_date": null,
-                        "national_insurance_number": null
-                      }
-                    }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                       "active_accounts_only": true,
+                                                                       "business_unit_ids": [78],
+                                                                       "reference_number": null,
+                                                                       "defendant": {
+                                                                         "include_aliases": true,
+                                                                         "organisation": true,
+                                                                         "organisation_name": "TechCorp Ltd",
+                                                                         "exact_match_organisation_name": true,
+                                                                         "address_line_1": null,
+                                                                         "postcode": null,
+                                                                         "surname": null,
+                                                                         "exact_match_surname": null,
+                                                                         "forenames": null,
+                                                                         "exact_match_forenames": null,
+                                                                         "birth_date": null,
+                                                                         "national_insurance_number": null
+                                                                       }
+                                                                     }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC9di_CompanyAliasPartialMatch: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC9di_CompanyAliasPartialMatch: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1797,33 +1870,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Search with partial address "Business" - should match "Business Park"
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                      "active_accounts_only": true,
-                      "business_unit_ids": [78],
-                      "reference_number": null,
-                      "defendant": {
-                        "include_aliases": false,
-                        "organisation": true,
-                        "organisation_name": "TechCorp",
-                        "exact_match_organisation_name": false,
-                        "address_line_1": "Business",
-                        "postcode": null,
-                        "surname": null,
-                        "exact_match_surname": null,
-                        "forenames": null,
-                        "exact_match_forenames": null,
-                        "birth_date": null,
-                        "national_insurance_number": null
-                      }
-                    }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                       "active_accounts_only": true,
+                                                                       "business_unit_ids": [78],
+                                                                       "reference_number": null,
+                                                                       "defendant": {
+                                                                         "include_aliases": false,
+                                                                         "organisation": true,
+                                                                         "organisation_name": "TechCorp",
+                                                                         "exact_match_organisation_name": false,
+                                                                         "address_line_1": "Business",
+                                                                         "postcode": null,
+                                                                         "surname": null,
+                                                                         "exact_match_surname": null,
+                                                                         "forenames": null,
+                                                                         "exact_match_forenames": null,
+                                                                         "birth_date": null,
+                                                                         "national_insurance_number": null
+                                                                       }
+                                                                     }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC9e_CompanyAddressPartialMatch: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC9e_CompanyAddressPartialMatch: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1839,33 +1914,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         // Search with partial postcode "B15" - should match "B15 3TG"
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                    {
-                      "active_accounts_only": true,
-                      "business_unit_ids": [78],
-                      "reference_number": null,
-                      "defendant": {
-                        "include_aliases": false,
-                        "organisation": true,
-                        "organisation_name": "TechCorp",
-                        "exact_match_organisation_name": false,
-                        "address_line_1": null,
-                        "postcode": "B15",
-                        "surname": null,
-                        "exact_match_surname": null,
-                        "forenames": null,
-                        "exact_match_forenames": null,
-                        "birth_date": null,
-                        "national_insurance_number": null
-                      }
-                    }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+                                                                     {
+                                                                       "active_accounts_only": true,
+                                                                       "business_unit_ids": [78],
+                                                                       "reference_number": null,
+                                                                       "defendant": {
+                                                                         "include_aliases": false,
+                                                                         "organisation": true,
+                                                                         "organisation_name": "TechCorp",
+                                                                         "exact_match_organisation_name": false,
+                                                                         "address_line_1": null,
+                                                                         "postcode": "B15",
+                                                                         "surname": null,
+                                                                         "exact_match_surname": null,
+                                                                         "forenames": null,
+                                                                         "exact_match_forenames": null,
+                                                                         "birth_date": null,
+                                                                         "national_insurance_number": null
+                                                                       }
+                                                                     }
+                                                                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+        log.info(
+            ":testPostDefendantAccountsSearch_AC9ei_CompanyPostcodePartialMatch: Response body:\n{}",
+            ToJsonString.toPrettyJson(body)
+        );
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
@@ -1976,7 +2053,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     @DisplayName("OPAL: Get Defendant Account Party - Happy Path [@PO-1588]")
     public void opalGetDefendantAccountParty_Happy(Logger log) throws Exception {
         ResultActions actions = mockMvc.perform(get("/defendant-accounts/77/defendant-account-parties/77")
-            .header("Authorization", "Bearer test-token"));
+                                                    .header("Authorization", "Bearer test-token"));
         log.info("Opal happy path response:\n" + actions.andReturn().getResponse().getContentAsString());
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"))
@@ -1989,19 +2066,19 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     @DisplayName("OPAL: Get Defendant Account Party - Organisation Only [@PO-1588]")
     public void opalGetDefendantAccountParty_Organisation(Logger log) throws Exception {
         ResultActions actions = mockMvc.perform(get("/defendant-accounts/555/defendant-account-parties/555")
-            .header("Authorization", "Bearer test-token"));
+                                                    .header("Authorization", "Bearer test-token"));
         log.info("Organisation response:\n" + actions.andReturn().getResponse().getContentAsString());
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.defendant_account_party.party_details.organisation_details.organisation_name")
-                .value("TechCorp Solutions Ltd"))
+                           .value("TechCorp Solutions Ltd"))
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details").doesNotExist());
     }
 
     @DisplayName("OPAL: Get Defendant Account Party - Null/Optional Fields [@PO-1588]")
     public void opalGetDefendantAccountParty_NullFields(Logger log) throws Exception {
         ResultActions actions = mockMvc.perform(get("/defendant-accounts/88/defendant-account-parties/88")
-            .header("Authorization", "Bearer test-token"));
+                                                    .header("Authorization", "Bearer test-token"));
         log.info("Null fields response:\n" + actions.andReturn().getResponse().getContentAsString());
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").doesNotExist())
@@ -2037,7 +2114,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
             // verify comments_and_notes node is present (test data included for these optional fields)
-            .andExpect(jsonPath("$.comments_and_notes").exists());;
+            .andExpect(jsonPath("$.comments_and_notes").exists());
+        ;
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -2071,7 +2149,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
             // verify comments_and_notes node is not present (no test data added as these are optional)
-            .andExpect(jsonPath("$.comments_and_notes").doesNotExist());;
+            .andExpect(jsonPath("$.comments_and_notes").doesNotExist());
+        ;
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -2112,7 +2191,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.enforcement_status").exists())
             .andExpect(jsonPath("$.enforcement_status.collection_order_made").exists())
             // verify comments_and_notes node is present (test data included for these optional fields)
-            .andExpect(jsonPath("$.comments_and_notes").exists());;
+            .andExpect(jsonPath("$.comments_and_notes").exists());
+        ;
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -2191,7 +2271,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .when(userStateService).checkForAuthorisedUser(any());
 
         mockMvc.perform(get(URL_BASE + "/10003/at-a-glance")
-            .accept(MediaType.APPLICATION_PROBLEM_JSON))
+                            .accept(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(status().isUnauthorized())
             .andExpect(content().string(""));
     }
@@ -2233,28 +2313,88 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         log.info(":testGetPaymentTerms: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value("DEF-ACC-00012345"))
+            .andExpect(jsonPath("$.account_number").value("ACCT-9876543210"))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.is_youth").value(false))
 
-            .andExpect(jsonPath("$.payment_terms.days_in_default").value(120))
-            .andExpect(jsonPath("$.payment_terms.date_days_in_default_imposed").value("2025-10-12"))
-            .andExpect(jsonPath("$.payment_terms.reason_for_extension").value(""))
-            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
-            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12"))
-            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
+            // party_details
+            .andExpect(jsonPath("$.party_details.party_id").value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
+            .andExpect(jsonPath("$.party_details.organisation_details").value(org.hamcrest.Matchers.nullValue()))
+
+            // party_details.individual_details
+            .andExpect(jsonPath("$.party_details.individual_details.title").value("Mr"))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value("Rivers"))
+            .andExpect(jsonPath("$.party_details.individual_details.date_of_birth").value("1989-05-23"))
+            // age is a STRING in your JSON:
+            .andExpect(jsonPath("$.party_details.individual_details.age").value("36"))
+            .andExpect(jsonPath("$.party_details.individual_details.national_insurance_number").value("QQ123456C"))
+            // aliases: array with one empty object {}
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases.length()").value(1))
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[0]").isMap())
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[0].*").isEmpty())
+
+            // address
+            .andExpect(jsonPath("$.address.address_line_1").value("10 Example Street"))
+            .andExpect(jsonPath("$.address.address_line_2").value("Flat 2B"))
+            .andExpect(jsonPath("$.address.address_line_3").value("Sample District"))
+            .andExpect(jsonPath("$.address.address_line_4").value("Sampletown"))
+            .andExpect(jsonPath("$.address.address_line_5").value("Exampleshire"))
+            .andExpect(jsonPath("$.address.postcode").value("AB1 2CD"))
+
+            // language_preferences (all null)
+            .andExpect(jsonPath("$.language_preferences.document_language_preference.language_code")
+                           .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.language_preferences.document_language_preference.language_display_name")
+                           .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.language_preferences.hearing_language_preference.language_code")
+                           .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.language_preferences.hearing_language_preference.language_display_name")
+                           .value(org.hamcrest.Matchers.nullValue()))
+
+            // payment_terms
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code")
+                           .value("P"))
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_display_name")
+                           .value("Paid"))
+            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-01"))
+            .andExpect(jsonPath("$.payment_terms.instalment_period")
+                           .value(org.hamcrest.Matchers.nullValue()))
             .andExpect(jsonPath("$.payment_terms.lump_sum_amount").value(0.00))
-            .andExpect(jsonPath("$.payment_terms.instalment_amount").value(0.00))
+            .andExpect(jsonPath("$.payment_terms.instalment_amount").value(50.00))
 
-            .andExpect(jsonPath("$.posted_details.posted_date").value("2023-11-03"))
-            .andExpect(jsonPath("$.posted_details.posted_by").value("01000000A"))
-            .andExpect(jsonPath("$.posted_details.posted_by_name").value(""))
+            // enforcement_status
+            .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_id")
+                           .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_title")
+                           .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.enforcement_status.collection_order_made").value(false))
+            .andExpect(jsonPath("$.enforcement_status.default_days_in_jail").value(0))
+            // enforcement_override object with nested nulls
+            .andExpect(jsonPath("$.enforcement_status.enforcement_override.enforcement_override_result")
+                           .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.enforcement_status.enforcement_override.enforcer.enforcer_id")
+                           .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.enforcement_status.enforcement_override.enforcer.enforcer_name")
+                           .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.enforcement_status.enforcement_override.lja.lja_id")
+                           .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.enforcement_status.enforcement_override.lja.lja_name")
+                           .value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.enforcement_status.last_movement_date").value("2025-09-30"))
 
-            .andExpect(jsonPath("$.payment_card_last_requested").value("2024-01-01"))
-            .andExpect(jsonPath("$.date_last_amended").value("2024-01-03"))
-            .andExpect(jsonPath("$.extension").value(false))
-            .andExpect(jsonPath("$.last_enforcement").value("REM"));
+            // comments_and_notes
+            .andExpect(jsonPath("$.comments_and_notes.account_comment")
+                           .value("Account imported from legacy system on 2025-09-01."))
+            .andExpect(jsonPath("$.comments_and_notes.free_text_note_1")
+                           .value("Customer agreed to monthly instalments."))
+            .andExpect(jsonPath("$.comments_and_notes.free_text_note_2")
+                           .value("Preferred contact: letter."))
+            .andExpect(jsonPath("$.comments_and_notes.free_text_note_3")
+                           .value("Next review due after three payments."));
 
     }
-
-
 
 }

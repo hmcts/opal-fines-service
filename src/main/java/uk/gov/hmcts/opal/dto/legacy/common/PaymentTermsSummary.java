@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.dto.legacy.common;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
@@ -11,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 @Data
 @NoArgsConstructor
@@ -23,6 +25,7 @@ public class PaymentTermsSummary {
     private LegacyPaymentTermsType paymentTermsType;
 
     @XmlElement(name = "effective_date")
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate effectiveDate;
 
     @XmlElement(name = "instalment_period")

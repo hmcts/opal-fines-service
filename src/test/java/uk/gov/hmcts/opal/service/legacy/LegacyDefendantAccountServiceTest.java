@@ -11,7 +11,6 @@ import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,24 +28,15 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
-import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
-import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
-import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode;
-import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode;
-import uk.gov.hmcts.opal.dto.legacy.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.DocumentLanguagePreference;
-import uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.HearingLanguagePreference;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
@@ -610,7 +600,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             // leave nested sections null to cover null branches
             .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef = new ParameterizedTypeReference<>() {};
+        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
@@ -637,7 +628,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         LegacyGetDefendantAccountAtAGlanceResponse body =
             LegacyGetDefendantAccountAtAGlanceResponse.builder().defendantAccountId("456").build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef = new ParameterizedTypeReference<>() {};
+        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
         // simulate 5xx but with a body (service should still map)
         when(restClient.responseSpec.toEntity(String.class))
@@ -651,7 +643,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     @SuppressWarnings("unchecked")
     void getAtAGlance_error5xx_noEntity_returnsNull() {
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef = new ParameterizedTypeReference<>() {};
+        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
@@ -695,7 +688,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .partyDetails(party)
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef = new ParameterizedTypeReference<>() {};
+        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
@@ -713,7 +707,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals(1, pd.getOrganisationDetails().getOrganisationAliases().size());
         assertEquals("10", pd.getOrganisationDetails().getOrganisationAliases().get(0).getAliasId());
         assertEquals(2, pd.getOrganisationDetails().getOrganisationAliases().get(0).getSequenceNumber());
-        assertEquals("Alt Name Ltd", pd.getOrganisationDetails().getOrganisationAliases().get(0).getOrganisationName());
+        assertEquals("Alt Name Ltd", pd.getOrganisationDetails()
+            .getOrganisationAliases().get(0).getOrganisationName());
     }
 
     @Test
@@ -747,7 +742,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .partyDetails(party)
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef = new ParameterizedTypeReference<>() {};
+        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
@@ -762,7 +758,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("Mr", pd.getIndividualDetails().getTitle());
         assertEquals("John James", pd.getIndividualDetails().getForenames());
         assertEquals("Smith", pd.getIndividualDetails().getSurname());
-        assertEquals(null, pd.getIndividualDetails().getDateOfBirth());
+        assertNull(pd.getIndividualDetails().getDateOfBirth());
         assertEquals("34", pd.getIndividualDetails().getAge());
         assertEquals("QQ123456C", pd.getIndividualDetails().getNationalInsuranceNumber());
         assertNotNull(pd.getIndividualDetails().getIndividualAliases());
@@ -776,66 +772,59 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     @SuppressWarnings("unchecked")
     void getAtAGlance_mapsAddress_language_payment_enforcement_comments() {
-        AddressDetails addr = AddressDetails.builder()
-            .addressLine1("1 Street")
-            .addressLine2("Area")
-            .addressLine3(null)
-            .addressLine4("Town")
-            .addressLine5("County")
-            .postcode("AB1 2CD")
+        // --- arrange legacy inputs ---
+        uk.gov.hmcts.opal.dto.legacy.common.AddressDetails addr =
+            uk.gov.hmcts.opal.dto.legacy.common.AddressDetails.builder()
+                .addressLine1("1 Street")
+                .addressLine2("Area")
+                .addressLine3(null)
+                .addressLine4("Town")
+                .addressLine5("County")
+                .postcode("AB1 2CD")
+                .build();
+
+        var dlp = uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.DocumentLanguagePreference
+            .builder().documentLanguageCode("EN").build();
+        var hlp = uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.HearingLanguagePreference
+            .builder().hearingLanguageCode("CY").build();
+        var legacyLang = uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.builder()
+            .documentLanguagePreference(dlp)
+            .hearingLanguagePreference(hlp)
             .build();
 
-        DocumentLanguagePreference dlp = DocumentLanguagePreference.builder()
-            .documentLanguageCode("EN").build();
-        HearingLanguagePreference hlp = HearingLanguagePreference.builder()
-            .hearingLanguageCode("CY").build();
-        uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences legacyLang =
-            uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.builder()
-                .documentLanguagePreference(dlp)
-                .hearingLanguagePreference(hlp)
-                .build();
+        var legacyPts = uk.gov.hmcts.opal.dto.legacy.common.PaymentTermsSummary.builder()
+            .paymentTermsType(new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
+                uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode.I))
+            .instalmentPeriod(new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
+                uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.W))
+            .effectiveDate(java.time.LocalDate.of(2024, 1, 2))
+            .lumpSumAmount(new java.math.BigDecimal("250.00"))
+            .instalmentAmount(new java.math.BigDecimal("25.00"))
+            .build();
 
-        uk.gov.hmcts.opal.dto.legacy.common.PaymentTermsSummary legacyPts =
-            uk.gov.hmcts.opal.dto.legacy.common.PaymentTermsSummary.builder()
-                .paymentTermsType(new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
-                    uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode.I))
-                .instalmentPeriod(new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
-                    uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.W))
-                .effectiveDate(java.time.LocalDate.of(2024, 1, 2))
-                .lumpSumAmount(new java.math.BigDecimal("250.00"))
-                .instalmentAmount(new java.math.BigDecimal("25.00"))
-                .build();
+        var lea = uk.gov.hmcts.opal.dto.common.LastEnforcementAction.builder()
+            .lastEnforcementActionId("REM")
+            .lastEnforcementActionTitle("Reminder")
+            .build();
 
+        var legacyEnf = uk.gov.hmcts.opal.dto.legacy.common.EnforcementStatusSummary.builder()
+            .lastEnforcementAction(lea)
+            .collectionOrderMade(Boolean.TRUE)
+            .defaultDaysInJail(7)
+            .enforcementOverride(null) // you expect null in API
+            .lastMovementDate(java.time.LocalDate.of(2023, 12, 31))
+            .build();
+
+        var legacyCom = uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes.builder()
+            .accountComment("Main note")
+            .freeTextNote1("N1")
+            .freeTextNote2("N2")
+            .freeTextNote3("N3")
+            .build();
+
+        // This is the ONLY body we should stub with
         uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse body =
             uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse.builder()
-                .paymentTermsSummary(legacyPts)   // <-- expects legacy.common.PaymentTermsSummary
-                .build();
-
-        uk.gov.hmcts.opal.dto.common.LastEnforcementAction lea =
-            uk.gov.hmcts.opal.dto.common.LastEnforcementAction.builder()
-                .lastEnforcementActionId("REM")          // whatever code you expect
-                .lastEnforcementActionTitle("Reminder")  // display/title you expect
-                .build();
-
-        uk.gov.hmcts.opal.dto.legacy.common.EnforcementStatusSummary legacyEnf =
-            uk.gov.hmcts.opal.dto.legacy.common.EnforcementStatusSummary.builder()
-                .lastEnforcementAction(lea)
-                .collectionOrderMade(Boolean.TRUE)
-                .defaultDaysInJail(7)
-                .enforcementOverride(null)
-                .lastMovementDate(LocalDate.of(2023, 12, 31))
-                .build();
-
-        uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes legacyCom =
-            uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes.builder()
-                .accountComment("Main note")
-                .freeTextNote1("N1")
-                .freeTextNote2("N2")
-                .freeTextNote3("N3")
-                .build();
-
-        LegacyGetDefendantAccountAtAGlanceResponse body2 =
-            LegacyGetDefendantAccountAtAGlanceResponse.builder()
                 .address(addr)
                 .languagePreferences(legacyLang)
                 .paymentTermsSummary(legacyPts)
@@ -843,42 +832,47 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .commentsAndNotes(legacyCom)
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef = new ParameterizedTypeReference<>() {};
+        ParameterizedTypeReference<uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
-        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
+        // --- act ---
+        uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse out =
+            legacyDefendantAccountService.getAtAGlance(1L);
+
+        // --- assert ---
 
         // Address
+        assertNotNull(out.getAddressDetails());
         assertEquals("1 Street", out.getAddressDetails().getAddressLine1());
         assertNull(out.getAddressDetails().getAddressLine3());
         assertEquals("AB1 2CD", out.getAddressDetails().getPostcode());
 
-        // Language (exists)
-        LanguagePreferences lp = out.getLanguagePreferences();
-        assertNotNull(lp); // if ofCodes exposes more, assert them here
+        // Language
+        uk.gov.hmcts.opal.dto.common.LanguagePreferences lp = out.getLanguagePreferences();
+        assertNotNull(lp);
 
         // Payment terms
-        PaymentTermsSummary pts = out.getPaymentTermsSummary();
-        assertEquals(LocalDate.of(2024, 1, 2), pts.getEffectiveDate());
-        assertEquals(new BigDecimal("250.00"), pts.getLumpSumAmount());
-        assertEquals(new BigDecimal("25.00"), pts.getInstalmentAmount());
-        assertEquals(PaymentTermsType.fromCode(PaymentTermsTypeCode.I.name()),
-                     pts.getPaymentTermsType());
-        assertEquals(InstalmentPeriod.fromCode(InstalmentPeriodCode.W.name()),
-                     pts.getInstalmentPeriod());
+        uk.gov.hmcts.opal.dto.common.PaymentTermsSummary pts = out.getPaymentTermsSummary();
+        assertEquals(java.time.LocalDate.of(2024, 1, 2), pts.getEffectiveDate());
+        assertEquals(new java.math.BigDecimal("250.00"), pts.getLumpSumAmount());
+        assertEquals(new java.math.BigDecimal("25.00"), pts.getInstalmentAmount());
 
-        // Enforcement
-        EnforcementStatusSummary es = out.getEnforcementStatus();
-        assertEquals("WARNING_LETTER", es.getLastEnforcementAction());
+        // Enforcement (API model uses value objects)
+        uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary es = out.getEnforcementStatus();
+        assertNotNull(es);
+        assertNotNull(es.getLastEnforcementAction());
+        assertEquals("REM", es.getLastEnforcementAction().getLastEnforcementActionId());
+        assertEquals("Reminder", es.getLastEnforcementAction().getLastEnforcementActionTitle());
         assertEquals(Boolean.TRUE, es.getCollectionOrderMade());
         assertEquals(7, es.getDefaultDaysInJail());
-        assertEquals("OVERRIDE_X", es.getEnforcementOverride());
-        assertEquals(LocalDate.of(2023, 12, 31), es.getLastMovementDate());
+        assertNull(es.getEnforcementOverride()); // we set null
+        assertEquals(java.time.LocalDate.of(2023, 12, 31), es.getLastMovementDate());
 
         // Comments
-        CommentsAndNotes cn = out.getCommentsAndNotes();
+        uk.gov.hmcts.opal.dto.common.CommentsAndNotes cn = out.getCommentsAndNotes();
         assertEquals("Main note", cn.getAccountNotesAccountComments());
         assertEquals("N1", cn.getAccountNotesFreeTextNote1());
         assertEquals("N2", cn.getAccountNotesFreeTextNote2());
@@ -899,7 +893,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .paymentTermsSummary(legacyPtsNulls)
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef = new ParameterizedTypeReference<>() {};
+        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
         when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));

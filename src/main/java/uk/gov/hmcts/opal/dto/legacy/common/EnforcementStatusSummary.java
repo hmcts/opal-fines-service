@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.dto.legacy.common;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.common.LastEnforcementAction;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 @Data
 @NoArgsConstructor
@@ -31,5 +33,6 @@ public class EnforcementStatusSummary {
     private EnforcementOverride enforcementOverride;
 
     @XmlElement(name = "last_movement_date")
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate lastMovementDate;
 }
