@@ -889,7 +889,14 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                                       CommentsAndNotes notes,
                                       String postedBy) {
 
-        String combined = Stream.of(
+        // Persist values on the main defendant_accounts table
+        managed.setAccountComments(notes.getAccountNotesAccountComments());
+        managed.setAccountNote1(notes.getAccountNotesFreeTextNote1());
+        managed.setAccountNote2(notes.getAccountNotesFreeTextNote2());
+        managed.setAccountNote3(notes.getAccountNotesFreeTextNote3());
+
+        // Build a combined text block for the NOTES table (audit/history)
+        final String combined = Stream.of(
                 notes.getAccountNotesAccountComments(),
                 notes.getAccountNotesFreeTextNote1(),
                 notes.getAccountNotesFreeTextNote2(),
@@ -917,7 +924,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         noteRepository.save(note);
         log.debug(":applyCommentAndNotes: saved note for account {}", managed.getDefendantAccountId());
     }
-
 
 
     private void applyEnforcementCourt(DefendantAccountEntity entity, CourtReferenceDto courtRef) {

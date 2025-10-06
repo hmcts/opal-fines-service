@@ -205,6 +205,18 @@ public class DefendantAccountEntity implements Versioned {
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate suspendedCommittalDate;
 
+    @Column(name = "account_comments")
+    private String accountComments;
+
+    @Column(name = "account_note_1")
+    private String accountNote1;
+
+    @Column(name = "account_note_2")
+    private String accountNote2;
+
+    @Column(name = "account_note_3")
+    private String accountNote3;
+
     @Column(name = "version_number")
     @Version
     private Long version;
