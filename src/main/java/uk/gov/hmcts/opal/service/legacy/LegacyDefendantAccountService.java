@@ -260,10 +260,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return GetDefendantAccountPaymentTermsResponse.builder()
             .version(legacy.getVersion())
             .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
-            .postedDetails(toPostedDetails(legacy.getPostedDetails()))
             .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
-            .dateLastAmended(legacy.getDateLastAmended())
-            .extension(legacy.getExtension())
             .lastEnforcement(legacy.getLastEnforcement())
             .build();
     }
@@ -275,12 +272,14 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return PaymentTerms.builder()
             .daysInDefault(legacy.getDaysInDefault())
             .dateDaysInDefaultImposed(legacy.getDateDaysInDefaultImposed())
+            .extension(legacy.isExtension())
             .reasonForExtension(legacy.getReasonForExtension())
             .paymentTermsType(toPaymentTermsType(legacy.getPaymentTermsType()))
             .effectiveDate(legacy.getEffectiveDate())
             .instalmentPeriod(toInstalmentPeriod(legacy.getInstalmentPeriod()))
             .lumpSumAmount(legacy.getLumpSumAmount())
             .instalmentAmount(legacy.getInstalmentAmount())
+            .postedDetails(toPostedDetails(legacy.getPostedDetails()))
             .build();
     }
 

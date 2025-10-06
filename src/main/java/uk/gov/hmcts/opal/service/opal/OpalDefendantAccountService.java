@@ -470,6 +470,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         PaymentTerms paymentTerms = PaymentTerms.builder()
             .daysInDefault(entity.getJailDays())
             .dateDaysInDefaultImposed(account.getSuspendedCommittalDate())
+            .extension(entity.getExtension())
             .reasonForExtension(entity.getReasonForExtension())
             .paymentTermsType(
                 PaymentTermsType.builder()
@@ -487,20 +488,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             )
             .lumpSumAmount(entity.getInstalmentLumpSum())
             .instalmentAmount(entity.getInstalmentAmount())
-            .build();
-
-        PostedDetails postedDetails = PostedDetails.builder()
-            .postedDate(entity.getPostedDate())
-            .postedBy(entity.getPostedBy())
-            .postedByName(entity.getPostedByUsername())
+            .postedDetails(PostedDetails.builder()
+                               .postedDate(entity.getPostedDate())
+                               .postedBy(entity.getPostedBy())
+                               .postedByName(entity.getPostedByUsername())
+                               .build())
             .build();
 
         return GetDefendantAccountPaymentTermsResponse.builder()
             .paymentTerms(paymentTerms)
-            .postedDetails(postedDetails)
             .paymentCardLastRequested(account.getPaymentCardRequestedDate())
-            .dateLastAmended(account.getLastChangedDate())
-            .extension(entity.getExtension())
             .lastEnforcement(account.getLastEnforcement())
             .build();
     }

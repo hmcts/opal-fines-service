@@ -36,6 +36,22 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
+import static org.htmlunit.util.MimeType.APPLICATION_JSON;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -1925,13 +1941,12 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.payment_terms.lump_sum_amount").isEmpty())
             .andExpect(jsonPath("$.payment_terms.instalment_amount").isEmpty())
 
-            .andExpect(jsonPath("$.posted_details.posted_date").value("2023-11-03"))
-            .andExpect(jsonPath("$.posted_details.posted_by").value("01000000A"))
-            .andExpect(jsonPath("$.posted_details.posted_by_name").isEmpty())
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_date").value("2023-11-03"))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by").value("01000000A"))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name").isEmpty())
 
             .andExpect(jsonPath("$.payment_card_last_requested").value("2024-01-01"))
-            .andExpect(jsonPath("$.date_last_amended").value("2024-01-03"))
-            .andExpect(jsonPath("$.extension").value(false))
+            .andExpect(jsonPath("$.payment_terms.extension").value(false))
             .andExpect(jsonPath("$.last_enforcement").value("REM"));
 
         jsonSchemaValidationService.validateOrError(body, getPaymentTermsResponseSchemaLocation());
