@@ -31,7 +31,7 @@
         }
       ]
     },
-    "account_status": {
+    "account_status_reference": {
       "$ref": "./common-objects/accountStatusReferenceLegacy.json"
     },
     "employer_flag": {
