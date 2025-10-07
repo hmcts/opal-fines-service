@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.authorisation.aspect;
 
-import uk.gov.hmcts.common.user.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

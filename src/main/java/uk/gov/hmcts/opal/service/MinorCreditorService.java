@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
-import uk.gov.hmcts.common.user.authorisation.model.Permissions;
-import uk.gov.hmcts.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
