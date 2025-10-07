@@ -1,16 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.htmlunit.util.MimeType.APPLICATION_JSON;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
@@ -20,11 +9,26 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+
+import static org.htmlunit.util.MimeType.APPLICATION_JSON;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
@@ -36,6 +40,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     abstract String getHeaderSummaryResponseSchemaLocation();
 
     abstract String getPaymentTermsResponseSchemaLocation();
+
+    abstract String getAtAGlanceResponseSchemaLocation();
 
     @MockitoBean
     UserStateService userStateService;
@@ -1889,13 +1895,12 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.payment_terms.lump_sum_amount").isEmpty())
             .andExpect(jsonPath("$.payment_terms.instalment_amount").isEmpty())
 
-            .andExpect(jsonPath("$.posted_details.posted_date").value("2023-11-03"))
-            .andExpect(jsonPath("$.posted_details.posted_by").value("01000000A"))
-            .andExpect(jsonPath("$.posted_details.posted_by_name").isEmpty())
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_date").value("2023-11-03"))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by").value("01000000A"))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name").isEmpty())
 
             .andExpect(jsonPath("$.payment_card_last_requested").value("2024-01-01"))
-            .andExpect(jsonPath("$.date_last_amended").value("2024-01-03"))
-            .andExpect(jsonPath("$.extension").value(false))
+            .andExpect(jsonPath("$.payment_terms.extension").value(false))
             .andExpect(jsonPath("$.last_enforcement").value("REM"));
 
         jsonSchemaValidationService.validateOrError(body, getPaymentTermsResponseSchemaLocation());
@@ -2003,4 +2008,203 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").doesNotExist());
     }
 
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an individual")
+    public void opalGetAtAGlance_Individual(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/at-a-glance")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
+        log.info(":testGetAtAGlance: Party is an individual. etag header: \n" + headers);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetAtAGlance: Party is an individual. Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // verify the header contains an ETag value
+            .andExpect(header().string("etag", "\"1\""))
+            .andExpect(jsonPath("$.defendant_account_id").value("77"))
+            .andExpect(jsonPath("$.account_number").value("177A"))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.is_youth").exists())
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
+            .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
+            .andExpect(jsonPath("$.party_details.individual_details.age").value("45"))
+            .andExpect(jsonPath("$.address").exists())
+            .andExpect(jsonPath("$.payment_terms").exists())
+            .andExpect(jsonPath("$.enforcement_status").exists())
+            // verify comments_and_notes node is present (test data included for these optional fields)
+            .andExpect(jsonPath("$.comments_and_notes").exists());;
+
+        jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an individual (Parent/Guardian)")
+    public void opalGetAtAGlance_Individual_ParentGuardian(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10004/at-a-glance")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
+        log.info(":testGetAtAGlance: Party is an individual (Parent/Guardian). etag header: \n" + headers);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetAtAGlance: Party is an individual (Parent/Guardian). Response body:\n"
+                     + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // verify the header contains an ETag value
+            .andExpect(header().string("etag", "\"1\""))
+            .andExpect(jsonPath("$.defendant_account_id").value("10004"))
+            .andExpect(jsonPath("$.account_number").value("10004A"))
+            .andExpect(jsonPath("$.debtor_type").value("Parent/Guardian"))
+            .andExpect(jsonPath("$.is_youth").exists())
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
+            .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
+            .andExpect(jsonPath("$.party_details.individual_details.age").value("45"))
+            .andExpect(jsonPath("$.address").exists())
+            .andExpect(jsonPath("$.payment_terms").exists())
+            .andExpect(jsonPath("$.enforcement_status").exists())
+            // verify comments_and_notes node is not present (no test data added as these are optional)
+            .andExpect(jsonPath("$.comments_and_notes").doesNotExist());;
+
+        jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an organisation")
+    public void opalGetAtAGlance_Organisation(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10001/at-a-glance")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
+        log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetAtAGlance: Party is an organisation. Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // verify the header contains an ETag value
+            .andExpect(header().string("etag", "\"1\""))
+            .andExpect(jsonPath("$.defendant_account_id").value("10001"))
+            .andExpect(jsonPath("$.account_number").value("10001A"))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.is_youth").value(false))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
+                           .value("Kings Arms"))
+            .andExpect(jsonPath("$.address").exists())
+            .andExpect(jsonPath("$.language_preferences").exists())
+            // verify both language preferences are populated
+            .andExpect(jsonPath("$.language_preferences.hearing_language_preference.language_display_name")
+                           .value("English only"))
+            .andExpect(jsonPath("$.language_preferences.document_language_preference.language_display_name")
+                           .value("English only"))
+            .andExpect(jsonPath("$.payment_terms").exists())
+            .andExpect(jsonPath("$.enforcement_status").exists())
+            .andExpect(jsonPath("$.enforcement_status.collection_order_made").exists())
+            // verify comments_and_notes node is present (test data included for these optional fields)
+            .andExpect(jsonPath("$.comments_and_notes").exists());;
+
+        jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an organisation. \n"
+        + "No language preferences set (as these are optional) \n"
+        + "No account comments or notes set (as these are optional)")
+    public void opalGetAtAGlance_Organisation_NoLanguagePrefs(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10002/at-a-glance")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
+        log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetAtAGlance: Party is an organisation. Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // verify the header contains an ETag value
+            .andExpect(header().string("etag", "\"1\""))
+            .andExpect(jsonPath("$.defendant_account_id").value("10002"))
+            .andExpect(jsonPath("$.account_number").value("10002A"))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
+                           .value("Kings Arms"))
+            // verify language preferences node is null
+            .andExpect(jsonPath("$.language_preferences").doesNotExist())
+            // verify comments_and_notes node is absent (no data included for these optional fields)
+            .andExpect(jsonPath("$.comments_and_notes").doesNotExist());
+
+        jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - Party is an organisation. "
+        + "One language preference not set (as this is optional)")
+    public void opalGetAtAGlance_Organisation_NoHearingLanguagePref(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10003/at-a-glance")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
+        log.info(":testGetAtAGlance: Party is an organisation. etag header: \n" + headers);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetAtAGlance: Party is an organisation. Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // verify the header contains an ETag value
+            .andExpect(header().string("etag", "\"1\""))
+            .andExpect(jsonPath("$.defendant_account_id").value("10003"))
+            .andExpect(jsonPath("$.account_number").value("10003A"))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name")
+                           .value("Kings Arms"))
+            .andExpect(jsonPath("$.language_preferences.document_language_preference.language_display_name")
+                           .value("English only"))
+            // verify hearing_language_preference node is null (optional)
+            .andExpect(jsonPath("$.language_preferences.hearing_language_preference").doesNotExist());
+
+        jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - 401 Unauthorized \n"
+        + "when no auth header provided \n")
+    void opalGetAtAGlance_missingAuthHeader_returns401(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        mockMvc.perform(get(URL_BASE + "/10003/at-a-glance")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance [@PO-1564] - 403 Forbidden\n"
+        + "No auth header provided \n")
+    void opalGetAtAGlance_authenticatedWithoutPermission_returns403(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Forbidden"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        mockMvc.perform(get(URL_BASE + "/10003/at-a-glance")
+                            .accept(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(status().isForbidden())
+            .andExpect(content().string(""));
+    }
 }

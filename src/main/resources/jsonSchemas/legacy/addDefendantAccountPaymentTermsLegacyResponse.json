@@ -8,26 +8,20 @@
       "type": "string",
       "minLength": 1
     },
-    "business_unit_id": {
-      "type": "string",
-      "minLength": 1
-    },
-    "business_unit_user_id": {
-      "type": "string",
-      "minLength": 1
-    },
     "version": {
       "type": "integer"
     },
     "payment_terms": {
       "$ref": "./common-objects/paymentTermsLegacy.json"
     },
-    "request_payment_card": {
-      "type": "boolean"
+    "payment_card_last_requested": {
+      "type": "string",
+      "format": "date"
     },
-    "generate_payment_terms_change_letter": {
-      "type": "boolean"
+    "last_enforcement": {
+      "type": "string",
+      "minLength": 1
     }
   },
-  "required": ["defendant_account_id", "business_unit_id", "business_unit_user_id", "version", "payment_terms"]
+  "required": ["defendant_account_id", "version", "payment_terms"]
 }

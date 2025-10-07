@@ -7,10 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
-import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
+import uk.gov.hmcts.opal.client.user.UserClient;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
@@ -19,6 +18,7 @@ import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(
@@ -52,10 +52,11 @@ class TestingSupportControllerTest {
     @MockitoBean
     private AccessTokenService accessTokenService;
 
-    @MockitoBean
-    private AuthorisationService authorisationService;
 
     @MockitoBean DefendantAccountDeletionService defendantAccountDeletionService;
+
+    @MockitoBean
+    private UserClient userClient;
 
     @Test
     void getAppMode() {
@@ -91,11 +92,8 @@ class TestingSupportControllerTest {
     @Test
     void getToken_shouldReturnResponse() {
         // Arrange
-        AccessTokenResponse expectedResponse = AccessTokenResponse.builder().accessToken(TEST_TOKEN).build();
-        when(accessTokenService.getTestUserToken())
-            .thenReturn(expectedResponse);
         SecurityToken securityToken = SecurityToken.builder().accessToken(TEST_TOKEN).build();
-        when(authorisationService.getSecurityToken(TEST_TOKEN)).thenReturn(securityToken);
+        when(userClient.getTestUserToken()).thenReturn(securityToken);
 
         // Call the controller method
         ResponseEntity<SecurityToken> responseEntity = controller.getToken();
@@ -108,7 +106,7 @@ class TestingSupportControllerTest {
     @Test
     void getToken_shouldHandleExceptions() {
         // Arrange
-        when(accessTokenService.getTestUserToken())
+        when(userClient.getTestUserToken())
             .thenThrow(new RuntimeException("Error!"));
 
         // Act and Assert
@@ -121,12 +119,8 @@ class TestingSupportControllerTest {
     @Test
     void getTokenForUser_shouldReturnResponse() {
         // Arrange
-        AccessTokenResponse expectedResponse = AccessTokenResponse.builder().accessToken(TEST_TOKEN).build();
-        when(accessTokenService.getTestUserToken(TEST_USER_EMAIL))
-            .thenReturn(expectedResponse);
-
         SecurityToken securityToken = SecurityToken.builder().accessToken(TEST_TOKEN).build();
-        when(authorisationService.getSecurityToken(TEST_TOKEN)).thenReturn(securityToken);
+        when(userClient.getTestUserToken(any())).thenReturn(securityToken);
 
         // Act
         ResponseEntity<SecurityToken> response = controller.getTokenForUser(TEST_USER_EMAIL);
@@ -139,7 +133,7 @@ class TestingSupportControllerTest {
     @Test
     void getTokenForUser_shouldHandleExceptions() {
         // Arrange
-        when(accessTokenService.getTestUserToken(TEST_USER_EMAIL))
+        when(userClient.getTestUserToken(TEST_USER_EMAIL))
             .thenThrow(new RuntimeException("Error!"));
 
         // Act and Assert

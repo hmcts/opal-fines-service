@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
-import uk.gov.hmcts.opal.service.opal.UserStateService;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 import java.util.List;
 import java.util.Optional;
@@ -106,7 +106,7 @@ class BusinessUnitControllerTest {
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
-        when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(true));
 
         // Act
@@ -132,7 +132,7 @@ class BusinessUnitControllerTest {
         List<BusinessUnitReferenceData> businessUnitList = List.of(entity);
 
         when(businessUnitService.getReferenceData(any())).thenReturn(businessUnitList);
-        when(userStateService.getUserStateUsingAuthToken(anyString())).thenReturn(userState);
+        when(userStateService.checkForAuthorisedUser(anyString())).thenReturn(userState);
         when(userState.allBusinessUnitUsersWithPermission(any())).thenReturn(new TestUserBusinessUnits(false));
 
         // Act

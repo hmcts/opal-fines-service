@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <xsd:include schemaLocation="./address_details.xsd"/>
+  <xsd:complexType name="employer_details">
+    <xsd:sequence>
+      <xsd:element name="employer_name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="employer_reference" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="employer_email_address" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="employer_telephone_number" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="employer_address" type="address_details" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

@@ -1,7 +1,10 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
@@ -10,15 +13,37 @@ import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 class OpalDefendantAccountServiceTest {
 
+    private final DefendantAccountRepository defendantAccountRepository =
+        mock(DefendantAccountRepository.class);
+    private final DefendantAccountSummaryViewRepository dasvRepository =
+        mock(DefendantAccountSummaryViewRepository.class);
+
     // If you need to create the service, mock the repos as needed.
     private final OpalDefendantAccountService service =
+        new OpalDefendantAccountService(null, defendantAccountRepository, null, null, dasvRepository);
+
+    @Test
+    void testDefendantAccountById() {
+        long testId = 1L;
+
+        DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
+        when(defendantAccountRepository.findById(testId)).thenReturn(java.util.Optional.of(entity));
+
+        DefendantAccountEntity result = service.getDefendantAccountById(testId);
+        assertNotNull(result);
+    }
         new OpalDefendantAccountService(null, null, null,
                                         null, null);
 
@@ -118,5 +143,87 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
         assertEquals("ACCT100", dto.getAccountNumber());
         assertNotNull(dto.getPartyDetails());
+    }
+
+    @Test
+    void testGetDefendantAccountSummaryViewById() {
+        long testId = 1L;
+
+        DefendantAccountSummaryViewEntity viewEntity = DefendantAccountSummaryViewEntity.builder().build();
+        when(dasvRepository.findById(testId)).thenReturn(java.util.Optional.of(viewEntity));
+
+        DefendantAccountSummaryViewEntity result = service.getDefendantAccountSummaryViewById(testId);
+        assertNotNull(result);
+    }
+
+
+    @Test
+    void convertEntityToAtAGlanceResponse_mapsAllFields_Individual() {
+        DefendantAccountSummaryViewEntity entity = DefendantAccountSummaryViewEntity.builder()
+            .defendantAccountId(1L)
+            .accountNumber("ACC123")
+            .debtorType("Defendant")
+            .birthDate(LocalDateTime.now().minusYears(17))
+            .organisation(false)
+            .forenames("John")
+            .surname("Doe")
+            .addressLine1("123 Main St")
+            .addressLine2("Apt 4B")
+            .addressLine3("City Center")
+            .addressLine4("Region")
+            .addressLine5("Country")
+            .postcode("12345")
+            .collectionOrder(true)
+            .jailDays(10)
+            .lastMovementDate(LocalDateTime.now().minusDays(5))
+            .accountComments("Comment")
+            .accountNote1("Note1")
+            .accountNote2("Note2")
+            .accountNote3("Note3")
+            .build();
+
+        DefendantAccountAtAGlanceResponse response = service.convertEntityToAtAGlanceResponse(entity);
+
+        assertNotNull(response);
+        assertEquals("1", response.getDefendantAccountId());
+        assertEquals("ACC123", response.getAccountNumber());
+        assertEquals("Defendant", response.getDebtorType());
+        assertTrue(response.getIsYouth());
+        assertNotNull(response.getPartyDetails());
+    }
+
+    @Test
+    void convertEntityToAtAGlanceResponse_mapsAllFields_Organisation() {
+        DefendantAccountSummaryViewEntity entity = DefendantAccountSummaryViewEntity.builder()
+            .defendantAccountId(1L)
+            .accountNumber("ACC123")
+            .debtorType("Defendant")
+            .birthDate(LocalDateTime.now().minusYears(17))
+            .organisation(true)
+            .forenames("John")
+            .surname("Doe")
+            .addressLine1("123 Main St")
+            .addressLine2("Apt 4B")
+            .addressLine3("City Center")
+            .addressLine4("Region")
+            .addressLine5("Country")
+            .postcode("12345")
+            .collectionOrder(true)
+            .jailDays(10)
+            .lastMovementDate(LocalDateTime.now().minusDays(5))
+            .accountComments("Comment")
+            .accountNote1("Note1")
+            .accountNote2("Note2")
+            .accountNote3("Note3")
+            .build();
+
+        DefendantAccountAtAGlanceResponse response = service.convertEntityToAtAGlanceResponse(entity);
+
+        assertNotNull(response);
+        assertEquals("1", response.getDefendantAccountId());
+        assertEquals("ACC123", response.getAccountNumber());
+        assertEquals("Defendant", response.getDebtorType());
+        assertTrue(response.getIsYouth());
+        assertNotNull(response.getPartyDetails());
     }
 }
