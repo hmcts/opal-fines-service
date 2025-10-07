@@ -12,7 +12,7 @@ INSERT INTO creditor_accounts (
   creditor_account_id, business_unit_id, account_number, creditor_account_type,
   prosecution_service, from_suspense, hold_payout, pay_by_bacs
 ) VALUES (
-  9200, 78, 'CRED001', 'TC',
+  9200, 78, 'CRED001', 'MN',
   false, false, false, false);
 
 -- Add required court reference

@@ -3,22 +3,20 @@ package uk.gov.hmcts.opal.service.opal;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
 import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.opal.jpa.CreditorAccountTransactions;
+import uk.gov.hmcts.opal.service.opal.jpa.CreditorAccountTransactional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "opal.CreditorAccountService")
-@Qualifier("creditorAccountService")
+@Slf4j(topic = "opal.OpalCreditorAccountService")
 public class OpalCreditorAccountService {
 
     public static final String CREDITOR_ACCOUNT_DELETED_MESSAGE_FORMAT = """
         { "message": "Creditor Account '%s' deleted"}""";
 
-    private final CreditorAccountTransactions creditorAccountTransactions;
+    private final CreditorAccountTransactional creditorAccountTransactional;
 
     private final UserStateService userStateService;
 
@@ -26,8 +24,8 @@ public class OpalCreditorAccountService {
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
         try {
-            boolean deleted =  creditorAccountTransactions
-                .deleteMinorCreditor(minorCreditorId, creditorAccountTransactions);
+            boolean deleted =  creditorAccountTransactional
+                .deleteMinorCreditorAccountAndRelatedData(minorCreditorId, creditorAccountTransactional);
             if (deleted) {
                 log.debug(":deleteMinorCreditor: Deleted Draft Account: {}", minorCreditorId);
             }
