@@ -5,17 +5,18 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Immutable;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Getter
 @Entity
-@Table(name = "v_search_def_account_and_alias")
+@Table(name = "v_search_defendant_accounts")
 @Immutable
 @SuperBuilder
 @NoArgsConstructor
@@ -32,7 +33,7 @@ public class SearchDefendantAccountEntity {
     private String prosecutorCaseReference;
 
     @Column(name = "last_enforcement")
-    private Long lastEnforcement;
+    private String lastEnforcement;
 
     @Column(name = "account_status")
     private String accountStatus;
@@ -41,7 +42,7 @@ public class SearchDefendantAccountEntity {
     private BigDecimal defendantAccountBalance;
 
     @Column(name = "completed_date")
-    private LocalDate completedDate;
+    private LocalDateTime completedDate;
 
     @Column(name = "business_unit_id")
     private Long businessUnitId;
@@ -85,17 +86,20 @@ public class SearchDefendantAccountEntity {
     @Column(name = "parent_guardian_forenames")
     private String parentGuardianForenames;
 
-    // --- Alias columns (LEFT JOIN; may be null) ---
-    @Column(name = "alias_sequence_number")
-    private Integer aliasSequenceNumber;
+    // --- Flattened alias columns from v_search_defendant_accounts (may be null) ---
+    @Column(name = "alias1")
+    private String alias1;
 
-    @Column(name = "alias_organisation_name")
-    private String aliasOrganisationName;
+    @Column(name = "alias2")
+    private String alias2;
 
-    @Column(name = "alias_surname")
-    private String aliasSurname;
+    @Column(name = "alias3")
+    private String alias3;
 
-    @Column(name = "alias_forenames")
-    private String aliasForenames;
+    @Column(name = "alias4")
+    private String alias4;
+
+    @Column(name = "alias5")
+    private String alias5;
 }
 

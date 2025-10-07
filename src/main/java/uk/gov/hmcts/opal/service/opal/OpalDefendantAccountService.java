@@ -1,11 +1,13 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
@@ -27,7 +29,6 @@ import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -52,11 +53,9 @@ import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
-import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
@@ -78,7 +77,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final DefendantAccountRepository defendantAccountRepository;
 
-    private final DefendantAccountSpecs defendantAccountSpecs;
     private final SearchDefendantAccountRepository searchDefendantAccountRepository;
     private final SearchDefendantAccountSpecs searchDefendantAccountSpecs;
     private final DefendantAccountPaymentTermsRepository defendantAccountPaymentTermsRepository;
@@ -87,8 +85,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     @Autowired
     private DebtorDetailRepository debtorDetailRepository;
 
-    @Autowired
-    private AliasRepository aliasRepository;
 
     public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
         return defendantAccountRepository.findById(defendantAccountId)
@@ -247,38 +243,58 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     private DefendantAccountSummaryDto toSummaryDto(SearchDefendantAccountEntity e) {
-        boolean isOrganisation = e.getOrganisation();
+        boolean isOrganisation = Boolean.TRUE.equals(e.getOrganisation());
 
-        //TODO: fetch aliases from DB SearchDefendantAccountEntity view
-        List<AliasDto> aliases = aliasRepository.findAllByDefendantAccountId(e.getDefendantAccountId())
-            .stream()
-            .map(a -> AliasDto.builder()
-                .aliasNumber(a.getSequenceNumber())
-                .organisationName(a.getOrganisationName())
-                .forenames(a.getForenames())
-                .surname(a.getSurname())
-                .build()
-            ).toList();
+        // Build aliases from flattened alias1..alias5 columns on the view
+        List<AliasDto> aliases = new ArrayList<>();
+        String[] aliasValues = { e.getAlias1(), e.getAlias2(), e.getAlias3(), e.getAlias4(), e.getAlias5() };
+
+        for (int i = 0; i < aliasValues.length; i++) {
+            String value = aliasValues[i];
+            if (value == null || value.isBlank()) {
+                continue;
+            }
+            AliasDto.AliasDtoBuilder b = AliasDto.builder().aliasNumber(i + 1);
+
+            if (isOrganisation) {
+                // For organisations the view gives each alias as an organisation name
+                b.organisationName(value);
+            } else {
+                // For individuals the view gives "forenames surname" – split on the last space
+                String trimmed = value.trim();
+                int cut = trimmed.lastIndexOf(' ');
+                if (cut > 0) {
+                    b.forenames(trimmed.substring(0, cut).trim())
+                        .surname(trimmed.substring(cut + 1).trim());
+                } else {
+                    // No space: treat the whole thing as a surname
+                    b.surname(trimmed);
+                }
+            }
+
+            aliases.add(b.build());
+        }
 
         return DefendantAccountSummaryDto.builder()
             .defendantAccountId(String.valueOf(e.getDefendantAccountId()))
             .accountNumber(e.getAccountNumber())
             .organisation(isOrganisation)
             .organisationName(e.getOrganisationName())
-            .defendantTitle(!isOrganisation ? e.getTitle() : null)
-            .defendantFirstnames(!isOrganisation ? e.getForenames() : null)
-            .defendantSurname(!isOrganisation ? e.getSurname() : null)
+            .defendantTitle(isOrganisation ? null : e.getTitle())
+            .defendantFirstnames(isOrganisation ? null : e.getForenames())
+            .defendantSurname(isOrganisation ? null : e.getSurname())
             .addressLine1(e.getAddressLine1())
             .postcode(e.getPostcode())
             .businessUnitName(e.getBusinessUnitName())
             .businessUnitId(String.valueOf(e.getBusinessUnitId()))
             .prosecutorCaseReference(e.getProsecutorCaseReference())
-            .lastEnforcementAction(String.valueOf(e.getLastEnforcement()))
+            .lastEnforcementAction(e.getLastEnforcement()) // entity now maps this as String
             .accountBalance(e.getDefendantAccountBalance())
-            .birthDate(String.valueOf(e.getBirthDate()))
+            .birthDate(e.getBirthDate() != null ? e.getBirthDate().toString() : null)
             .aliases(aliases)
             .build();
     }
+
 
     @Override
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,

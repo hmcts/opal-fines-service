@@ -153,12 +153,21 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                 return cb.conjunction();
             }
 
-            // Organisation search path
+            // Handy handles to the 5 alias columns on the view
+            Expression<String> a1 = root.get("alias1");
+            Expression<String> a2 = root.get("alias2");
+            Expression<String> a3 = root.get("alias3");
+            Expression<String> a4 = root.get("alias4");
+            Expression<String> a5 = root.get("alias5");
+
+            /* ---------------- Organisation path ---------------- */
             if (Boolean.TRUE.equals(def.getOrganisation())) {
                 String orgName = def.getOrganisationName();
                 if (orgName == null || orgName.isBlank()) {
                     return cb.conjunction();
                 }
+
+                Predicate isOrg = cb.isTrue(root.get(SearchDefendantAccountEntity_.organisation));
 
                 Predicate onParty = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
                     ? equalsNormalized(cb, root.get(SearchDefendantAccountEntity_.organisationName), orgName)
@@ -166,38 +175,72 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
 
                 Predicate onAlias = cb.disjunction();
                 if (Boolean.TRUE.equals(def.getIncludeAliases())) {
-                    onAlias = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
-                        ? equalsNormalized(cb, root.get(SearchDefendantAccountEntity_.aliasOrganisationName), orgName)
-                        : likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.aliasOrganisationName),
-                                                   orgName);
+                    Predicate a1p = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
+                        ? equalsNormalized(cb, a1, orgName) : likeStartsWithNormalized(cb, a1, orgName);
+                    Predicate a2p = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
+                        ? equalsNormalized(cb, a2, orgName) : likeStartsWithNormalized(cb, a2, orgName);
+                    Predicate a3p = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
+                        ? equalsNormalized(cb, a3, orgName) : likeStartsWithNormalized(cb, a3, orgName);
+                    Predicate a4p = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
+                        ? equalsNormalized(cb, a4, orgName) : likeStartsWithNormalized(cb, a4, orgName);
+                    Predicate a5p = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
+                        ? equalsNormalized(cb, a5, orgName) : likeStartsWithNormalized(cb, a5, orgName);
+                    onAlias = cb.or(a1p, a2p, a3p, a4p, a5p);
                 }
-                return cb.or(onParty, onAlias);
+
+                return cb.and(isOrg, cb.or(onParty, onAlias));
             }
 
-            // Person-name path
+            /* ---------------- Person path ---------------- */
             if (!Boolean.TRUE.equals(def.getIncludeAliases())) {
                 return cb.conjunction();
             }
 
-            Predicate p = cb.disjunction();
-            String surname = def.getSurname();
+            Predicate isPerson = cb.isFalse(root.get(SearchDefendantAccountEntity_.organisation));
+            Predicate combined = cb.disjunction();
+
+            // Forenames: aliases are "forenames surname" → starts-with covers both exact & partial
             String forenames = def.getForenames();
-
-            if (surname != null && !surname.isBlank()) {
-                Predicate surnameMatch = Boolean.TRUE.equals(def.getExactMatchSurname())
-                    ? equalsNormalized(cb, root.get(SearchDefendantAccountEntity_.aliasSurname), surname)
-                    : likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.aliasSurname), surname);
-                p = cb.or(p, surnameMatch);
-            }
-
             if (forenames != null && !forenames.isBlank()) {
-                Predicate forenamesMatch = Boolean.TRUE.equals(def.getExactMatchForenames())
-                    ? equalsNormalized(cb, root.get(SearchDefendantAccountEntity_.aliasForenames), forenames)
-                    : likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.aliasForenames), forenames);
-                p = cb.or(p, forenamesMatch);
+                Predicate f1 = likeStartsWithNormalized(cb, a1, forenames);
+                Predicate f2 = likeStartsWithNormalized(cb, a2, forenames);
+                Predicate f3 = likeStartsWithNormalized(cb, a3, forenames);
+                Predicate f4 = likeStartsWithNormalized(cb, a4, forenames);
+                Predicate f5 = likeStartsWithNormalized(cb, a5, forenames);
+                combined = cb.or(combined, f1, f2, f3, f4, f5);
             }
 
-            return p.getExpressions().isEmpty() ? cb.conjunction() : p;
+            // Surname: aliases are "forenames surname" → check end/contain using normalized() (no spaces)
+            String surname = def.getSurname();
+            if (surname != null && !surname.isBlank()) {
+                String s = normalizeLiteral(surname);
+
+                // exact = ends-with surname (or alias equals surname when no forenames stored)
+                Predicate s1;
+                Predicate s2;
+                Predicate s3;
+                Predicate s4;
+                Predicate s5;
+
+                if (Boolean.TRUE.equals(def.getExactMatchSurname())) {
+                    s1 = cb.or(equalsNormalized(cb, a1, surname), cb.like(normalized(cb, a1), "%" + s));
+                    s2 = cb.or(equalsNormalized(cb, a2, surname), cb.like(normalized(cb, a2), "%" + s));
+                    s3 = cb.or(equalsNormalized(cb, a3, surname), cb.like(normalized(cb, a3), "%" + s));
+                    s4 = cb.or(equalsNormalized(cb, a4, surname), cb.like(normalized(cb, a4), "%" + s));
+                    s5 = cb.or(equalsNormalized(cb, a5, surname), cb.like(normalized(cb, a5), "%" + s));
+                } else {
+                    // partial = contains surname letters anywhere
+                    s1 = cb.like(normalized(cb, a1), "%" + s + "%");
+                    s2 = cb.like(normalized(cb, a2), "%" + s + "%");
+                    s3 = cb.like(normalized(cb, a3), "%" + s + "%");
+                    s4 = cb.like(normalized(cb, a4), "%" + s + "%");
+                    s5 = cb.like(normalized(cb, a5), "%" + s + "%");
+                }
+
+                combined = cb.or(combined, s1, s2, s3, s4, s5);
+            }
+
+            return combined.getExpressions().isEmpty() ? cb.conjunction() : cb.and(isPerson, combined);
         };
     }
 
