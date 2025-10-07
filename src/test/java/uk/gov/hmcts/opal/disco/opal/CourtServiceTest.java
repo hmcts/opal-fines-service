@@ -42,11 +42,11 @@ class CourtServiceTest {
     @Test
     void testGetCourt() {
         // Arrange
-        CourtEntity courtEntity = CourtEntity.builder().build();
+        CourtEntity.Lite courtEntity = CourtEntity.Lite.builder().build();
         when(courtRepository.findById(any())).thenReturn(Optional.of(courtEntity));
 
         // Act
-        CourtEntity result = courtService.getCourtById(1);
+        CourtEntity.Lite result = courtService.getCourtById(1);
 
         // Assert
         assertNotNull(result);
@@ -59,15 +59,15 @@ class CourtServiceTest {
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        CourtEntity courtEntity = CourtEntity.builder().build();
-        Page<CourtEntity> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 999L);
+        CourtEntity.Lite courtEntity = CourtEntity.Lite.builder().build();
+        Page<CourtEntity.Lite> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 999L);
         when(courtRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
         // Act
-        List<CourtEntity> result = courtService.searchCourts(CourtSearchDto.builder().build());
+        List<CourtEntity.Lite> result = courtService.searchCourts(CourtSearchDto.builder().build());
 
         // Assert
         assertEquals(List.of(courtEntity), result);
@@ -81,7 +81,7 @@ class CourtServiceTest {
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         // Create court entity with direct field values (no relationships)
-        CourtEntity courtEntity = CourtEntity.builder()
+        CourtEntity.Lite courtEntity = CourtEntity.Lite.builder()
             .courtId(1L)
             .businessUnitId((short) 73)
             .courtCode((short) 101)
@@ -92,7 +92,7 @@ class CourtServiceTest {
             .division("01")
             .build();
 
-        Page<CourtEntity> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 1L);
+        Page<CourtEntity.Lite> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 1L);
 
         // Create expected reference data
         CourtReferenceData refData = new CourtReferenceData(
@@ -107,7 +107,7 @@ class CourtServiceTest {
 
         // Set up mocks
         when(courtRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            Function<SpecificationFluentQuery, Page<CourtEntity>> function = iom.getArgument(1);
+            Function<SpecificationFluentQuery, Page<CourtEntity.Lite>> function = iom.getArgument(1);
             return function.apply(sfq);
         }).thenReturn(mockPage);
 

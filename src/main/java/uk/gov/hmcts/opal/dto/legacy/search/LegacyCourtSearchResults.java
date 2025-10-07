@@ -17,6 +17,6 @@ import java.util.List;
 public class LegacyCourtSearchResults {
 
     @XmlElement(name = "courtEntity")
-    private List<CourtEntity> courtEntities;
+    private List<CourtEntity.Lite> courtEntities;
     private int totalCount;
 }

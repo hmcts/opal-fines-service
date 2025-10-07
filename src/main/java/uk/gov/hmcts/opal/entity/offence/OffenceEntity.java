@@ -1,29 +1,83 @@
 package uk.gov.hmcts.opal.entity.offence;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import jakarta.xml.bind.annotation.XmlType;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
-@Entity
-@Getter
-@Setter
+import java.time.LocalDateTime;
+
+@Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-@Table(name = "offences")
-@ToString(callSuper = true)
-@XmlType(name = "Offence")
-public class OffenceEntity extends AbstractOffenceEntity {
+@MappedSuperclass
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "offenceId")
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
+public abstract class OffenceEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "offence_id_seq_generator")
+    @SequenceGenerator(name = "offence_id_seq_generator", sequenceName = "offence_id_seq", allocationSize = 1)
+    @Column(name = "offence_id", nullable = false)
+    private Long offenceId;
 
     @Column(name = "business_unit_id", insertable = false, updatable = false)
     private Short businessUnitId;
+
+    @Column(name = "cjs_code", length = 10, nullable = false)
+    private String cjsCode;
+
+    @Column(name = "offence_title", length = 120)
+    private String offenceTitle;
+
+    @Column(name = "offence_title_cy", length = 120)
+    private String offenceTitleCy;
+
+    @Column(name = "date_used_from")
+    @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+    private LocalDateTime dateUsedFrom;
+
+    @Column(name = "date_used_to")
+    @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+    private LocalDateTime dateUsedTo;
+
+    @Column(name = "offence_oas")
+    private String offenceOas;
+
+    @Column(name = "offence_oas_cy")
+    private String offenceOasCy;
+
+    @Entity
+    @Getter
+    @EqualsAndHashCode(callSuper = true)
+    @Table(name = "offences")
+    @SuperBuilder
+    @NoArgsConstructor
+    public static class Lite extends OffenceEntity {
+    }
 }

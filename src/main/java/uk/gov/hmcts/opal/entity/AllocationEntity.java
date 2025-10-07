@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.entity;
 
+import uk.gov.hmcts.opal.entity.imposition.ImpositionFullEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -28,7 +30,7 @@ public class AllocationEntity {
 
     @ManyToOne
     @JoinColumn(name = "imposition_id", nullable = false)
-    private ImpositionEntity imposition;
+    private ImpositionFullEntity imposition;
 
     @Column(name = "allocated_date", nullable = false)
     private LocalDateTime allocatedDate;

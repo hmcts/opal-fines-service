@@ -18,7 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 
 import java.time.LocalDate;
 
@@ -40,7 +40,7 @@ public class ReportEntryEntity {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id")
-    private BusinessUnitEntity businessUnit;
+    private BusinessUnitFullEntity businessUnit;
 
     @Column(name = "report_id")
     private Long reportId;

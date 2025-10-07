@@ -4,7 +4,7 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
@@ -122,7 +122,7 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
         )));
     }
 
-    public static Join<DraftAccountEntity, BusinessUnitEntity> joinBusinessUnit(From<?, DraftAccountEntity> from) {
+    public static Join<DraftAccountEntity, BusinessUnitFullEntity> joinBusinessUnit(From<?, DraftAccountEntity> from) {
         return from.join(DraftAccountEntity_.businessUnit);
     }
 }

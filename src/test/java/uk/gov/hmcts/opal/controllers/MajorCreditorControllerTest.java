@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorFullEntity;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 
@@ -35,12 +35,12 @@ class MajorCreditorControllerTest {
     @Test
     void testGetMajorCreditor_Success() {
         // Arrange
-        MajorCreditorEntity entity = MajorCreditorEntity.builder().build();
+        MajorCreditorFullEntity entity = MajorCreditorFullEntity.builder().build();
 
         when(majorCreditorService.getMajorCreditorById(any(Long.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<MajorCreditorEntity> response = majorCreditorController.getMajorCreditorById(1L);
+        ResponseEntity<MajorCreditorFullEntity> response = majorCreditorController.getMajorCreditorById(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -51,14 +51,14 @@ class MajorCreditorControllerTest {
     @Test
     void testSearchMajorCreditors_Success() {
         // Arrange
-        MajorCreditorEntity entity = MajorCreditorEntity.builder().build();
-        List<MajorCreditorEntity> majorCreditorList = List.of(entity);
+        MajorCreditorFullEntity entity = MajorCreditorFullEntity.builder().build();
+        List<MajorCreditorFullEntity> majorCreditorList = List.of(entity);
 
         when(majorCreditorService.searchMajorCreditors(any())).thenReturn(majorCreditorList);
 
         // Act
         MajorCreditorSearchDto searchDto = MajorCreditorSearchDto.builder().build();
-        ResponseEntity<List<MajorCreditorEntity>> response = majorCreditorController
+        ResponseEntity<List<MajorCreditorFullEntity>> response = majorCreditorController
             .postMajorCreditorsSearch(searchDto);
 
         // Assert

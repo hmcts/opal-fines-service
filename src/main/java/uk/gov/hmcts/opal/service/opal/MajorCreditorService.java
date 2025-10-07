@@ -11,7 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorFullEntity;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity_;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
@@ -33,16 +33,16 @@ public class MajorCreditorService {
 
     private final MajorCreditorSpecs specs = new MajorCreditorSpecs();
 
-    public MajorCreditorEntity getMajorCreditorById(long majorCreditorId) {
+    public MajorCreditorFullEntity getMajorCreditorById(long majorCreditorId) {
         return majorCreditorRepository.findById(majorCreditorId)
             .orElseThrow(() -> new EntityNotFoundException("Court not found with id: " + majorCreditorId));
     }
 
-    public List<MajorCreditorEntity> searchMajorCreditors(MajorCreditorSearchDto criteria) {
+    public List<MajorCreditorFullEntity> searchMajorCreditors(MajorCreditorSearchDto criteria) {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, MajorCreditorEntity_.NAME);
 
-        Page<MajorCreditorEntity> page = majorCreditorRepository
+        Page<MajorCreditorFullEntity> page = majorCreditorRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq
                         .sortBy(nameSort)
@@ -60,7 +60,7 @@ public class MajorCreditorService {
         log.debug(":getReferenceData: filter: {}, businessUnitId: {}", filter, businessUnitId);
         Sort nameSort = Sort.by(Sort.Direction.ASC, MajorCreditorEntity_.NAME);
 
-        Page<MajorCreditorEntity> page = majorCreditorRepository
+        Page<MajorCreditorFullEntity> page = majorCreditorRepository
             .findBy(specs.referenceDataFilter(filter, businessUnitId),
                     ffq -> ffq
                         .sortBy(nameSort)
