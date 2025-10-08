@@ -58,7 +58,6 @@ import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
-import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

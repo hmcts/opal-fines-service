@@ -20,6 +20,8 @@ import java.util.Optional;
 @Component
 public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAccountEntity> {
 
+    private static final String SQL_REPLACE = "REPLACE";
+
     public Specification<SearchDefendantAccountEntity> findByAccountSearch(AccountSearchDto accountSearchDto) {
         return Specification.allOf(specificationList(
             notNullObject(accountSearchDto.getDefendant()).map(DefendantDto::getSurname)
@@ -56,11 +58,6 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
     public static Specification<SearchDefendantAccountEntity> likeForename(String forename) {
         return (root, query, cb) ->
             likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.forenames), forename);
-    }
-
-    public static Specification<SearchDefendantAccountEntity> likeOrganisationName(String organisationName) {
-        return (root, query, cb) ->
-            likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.organisationName), organisationName);
     }
 
     public static Specification<SearchDefendantAccountEntity> equalsDateOfBirth(LocalDate dob) {
@@ -155,79 +152,84 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                 return cb.conjunction();
             }
 
-            // Handy handles to the 5 alias columns on the view
-            Expression<String> a1 = root.get("alias1");
-            Expression<String> a2 = root.get("alias2");
-            Expression<String> a3 = root.get("alias3");
-            Expression<String> a4 = root.get("alias4");
-            Expression<String> a5 = root.get("alias5");
-
-            /* ---------------- Organisation path ---------------- */
-            if (Boolean.TRUE.equals(def.getOrganisation())) {
-                String orgName = def.getOrganisationName();
-                if (orgName == null || orgName.isBlank()) {
-                    return cb.conjunction();
-                }
-
-                Predicate isOrg = cb.isTrue(root.get(SearchDefendantAccountEntity_.organisation));
-
-                Predicate onParty = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
-                    ? equalsNormalized(cb, root.get(SearchDefendantAccountEntity_.organisationName), orgName)
-                    : likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.organisationName), orgName);
-
-                Predicate onAlias = cb.disjunction();
-                if (Boolean.TRUE.equals(def.getIncludeAliases())) {
-                    Predicate a1p = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
-                        ? equalsNormalized(cb, a1, orgName) : likeStartsWithNormalized(cb, a1, orgName);
-                    Predicate a2p = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
-                        ? equalsNormalized(cb, a2, orgName) : likeStartsWithNormalized(cb, a2, orgName);
-                    Predicate a3p = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
-                        ? equalsNormalized(cb, a3, orgName) : likeStartsWithNormalized(cb, a3, orgName);
-                    Predicate a4p = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
-                        ? equalsNormalized(cb, a4, orgName) : likeStartsWithNormalized(cb, a4, orgName);
-                    Predicate a5p = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
-                        ? equalsNormalized(cb, a5, orgName) : likeStartsWithNormalized(cb, a5, orgName);
-                    onAlias = cb.or(a1p, a2p, a3p, a4p, a5p);
-                }
-
-                return cb.and(isOrg, cb.or(onParty, onAlias));
-            }
-
-            /* ---------------- Person path ---------------- */
-            if (!Boolean.TRUE.equals(def.getIncludeAliases())) {
-                return cb.conjunction();
-            }
-
-            Predicate isPerson = cb.isFalse(root.get(SearchDefendantAccountEntity_.organisation));
-            Predicate combined = cb.disjunction();
-
-            // Forenames: aliases are "forenames surname" → starts-with covers both exact & partial
-            String forenames = def.getForenames();
-            if (forenames != null && !forenames.isBlank()) {
-                Predicate f1 = likeStartsWithNormalized(cb, a1, forenames);
-                Predicate f2 = likeStartsWithNormalized(cb, a2, forenames);
-                Predicate f3 = likeStartsWithNormalized(cb, a3, forenames);
-                Predicate f4 = likeStartsWithNormalized(cb, a4, forenames);
-                Predicate f5 = likeStartsWithNormalized(cb, a5, forenames);
-                combined = cb.or(combined, f1, f2, f3, f4, f5);
-            }
-
-            // Surname: aliases are "forenames surname" → check end/contain using normalized() (no spaces)
-            String surname = def.getSurname();
-            if (surname != null && !surname.isBlank()) {
-                boolean exact = Boolean.TRUE.equals(def.getExactMatchSurname());
-                combined = orAcrossAliases(
-                    cb,
-                    combined,
-                    aliasExpr -> surnamePredicate(cb, aliasExpr, surname, exact),
-                    a1, a2, a3, a4, a5
-                );
-            }
-
-
-            return combined.getExpressions().isEmpty() ? cb.conjunction() : cb.and(isPerson, combined);
+            return Boolean.TRUE.equals(def.getOrganisation())
+                ? orgAliases(def, root, cb)
+                : personAliases(def, root, cb);
         };
     }
+
+    private Predicate orgAliases(DefendantDto def,
+                                 From<?, SearchDefendantAccountEntity> root,
+                                 CriteriaBuilder cb) {
+        String orgName = def.getOrganisationName();
+        if (orgName == null || orgName.isBlank()) {
+            return cb.conjunction();
+        }
+
+        Predicate isOrg = cb.isTrue(root.get(SearchDefendantAccountEntity_.organisation));
+
+        Predicate onParty = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
+            ? equalsNormalized(cb, root.get(SearchDefendantAccountEntity_.organisationName), orgName)
+            : likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.organisationName), orgName);
+
+        Predicate onAlias = cb.disjunction();
+        if (Boolean.TRUE.equals(def.getIncludeAliases())) {
+            boolean exact = Boolean.TRUE.equals(def.getExactMatchOrganisationName());
+            onAlias = orAcrossAliases(
+                cb,
+                cb.disjunction(),
+                alias -> exact ? equalsNormalized(cb, alias, orgName)
+                    : likeStartsWithNormalized(cb, alias, orgName),
+                aliases(root)
+            );
+        }
+
+        return cb.and(isOrg, cb.or(onParty, onAlias));
+    }
+
+    private java.util.List<Expression<String>> aliases(From<?, SearchDefendantAccountEntity> root) {
+        return java.util.List.of(
+            root.get("alias1"),
+            root.get("alias2"),
+            root.get("alias3"),
+            root.get("alias4"),
+            root.get("alias5")
+        );
+    }
+
+    private Predicate personAliases(DefendantDto def,
+                                    From<?, SearchDefendantAccountEntity> root,
+                                    CriteriaBuilder cb) {
+        if (!Boolean.TRUE.equals(def.getIncludeAliases())) {
+            return cb.conjunction();
+        }
+
+        Predicate isPerson = cb.isFalse(root.get(SearchDefendantAccountEntity_.organisation));
+        var aliasExprs = aliases(root);
+
+        Predicate combined = cb.disjunction();
+
+        String forenames = def.getForenames();
+        if (forenames != null && !forenames.isBlank()) {
+            for (Expression<String> a : aliasExprs) {
+                combined = cb.or(combined, likeStartsWithNormalized(cb, a, forenames));
+            }
+        }
+
+        String surname = def.getSurname();
+        if (surname != null && !surname.isBlank()) {
+            boolean exact = Boolean.TRUE.equals(def.getExactMatchSurname());
+            combined = orAcrossAliases(
+                cb, combined,
+                alias -> surnamePredicate(cb, alias, surname, exact),
+                aliasExprs
+            );
+        }
+
+        return combined.getExpressions().isEmpty() ? cb.conjunction() : cb.and(isPerson, combined);
+    }
+
+
 
     public Specification<SearchDefendantAccountEntity> filterByDefendantName(AccountSearchDto dto) {
         return (root, query, cb) -> {
@@ -293,13 +295,11 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
 
     /* ===== normalisation helpers for AC3d/AC3e (case-insensitive, ignore spaces/hyphens/apostrophes) ===== */
     private static Expression<String> normalized(CriteriaBuilder cb, Expression<String> x) {
-        Expression<String> noSpaces = cb.function("REPLACE", String.class, x, cb.literal(" "), cb.literal(""));
-        Expression<String> noHyphens = cb.function("REPLACE", String.class, noSpaces, cb.literal("-"),
-                                                   cb.literal("")
-        );
-        Expression<String> noApos = cb.function("REPLACE", String.class, noHyphens, cb.literal("'"),
-                                                cb.literal("")
-        );
+        Expression<String> noSpaces = cb.function(SQL_REPLACE, String.class, x, cb.literal(" "), cb.literal(""));
+        Expression<String> noHyphens = cb.function(SQL_REPLACE, String.class, noSpaces, cb.literal("-"),
+                                                   cb.literal(""));
+        Expression<String> noApos   = cb.function(SQL_REPLACE, String.class, noHyphens, cb.literal("'"),
+                                                  cb.literal(""));
         return cb.lower(noApos);
     }
 
@@ -328,10 +328,10 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
         return (acc.length() == 9 && Character.isLetter(acc.charAt(8))) ? acc.substring(0, 8) : acc;
     }
 
-    @SafeVarargs
-    private Predicate orAcrossAliases(CriteriaBuilder cb, Predicate seed,
+    private Predicate orAcrossAliases(CriteriaBuilder cb,
+                                      Predicate seed,
                                       java.util.function.Function<Expression<String>, Predicate> fn,
-                                      Expression<String>... aliases) {
+                                      Iterable<Expression<String>> aliases) {
         Predicate acc = seed;
         for (Expression<String> a : aliases) {
             acc = cb.or(acc, fn.apply(a));
