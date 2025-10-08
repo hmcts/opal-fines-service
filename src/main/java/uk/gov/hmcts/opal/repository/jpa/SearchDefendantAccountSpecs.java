@@ -20,7 +20,6 @@ import java.util.Optional;
 @Component
 public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAccountEntity> {
 
-    private static final String SQL_REPLACE = "REPLACE";
 
     public Specification<SearchDefendantAccountEntity> findByAccountSearch(AccountSearchDto accountSearchDto) {
         return Specification.allOf(specificationList(
@@ -111,7 +110,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
             Optional.ofNullable(dto.getReferenceNumberDto())
                 .map(ReferenceNumberDto::getAccountNumber)
                 .filter(acc -> !acc.isBlank())
-                .map(SearchDefendantAccountSpecs::stripCheckLetter)
+                .map(EntitySpecs::stripCheckLetter)
                 .map(stripped -> likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.accountNumber),
                                                           stripped
                 ))
@@ -291,41 +290,6 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                                                           postcode
                 ))
                 .orElse(cb.conjunction());
-    }
-
-    /* ===== normalisation helpers for AC3d/AC3e (case-insensitive, ignore spaces/hyphens/apostrophes) ===== */
-    private static Expression<String> normalized(CriteriaBuilder cb, Expression<String> x) {
-        Expression<String> noSpaces = cb.function(SQL_REPLACE, String.class, x, cb.literal(" "), cb.literal(""));
-        Expression<String> noHyphens = cb.function(SQL_REPLACE, String.class, noSpaces, cb.literal("-"),
-                                                   cb.literal(""));
-        Expression<String> noApos   = cb.function(SQL_REPLACE, String.class, noHyphens, cb.literal("'"),
-                                                  cb.literal(""));
-        return cb.lower(noApos);
-    }
-
-    private static String normalizeLiteral(String s) {
-        if (s == null) {
-            return null;
-        }
-        return s.toLowerCase().replace(" ", "").replace("-", "").replace(
-            "'",
-            ""
-        );
-    }
-
-    private static Predicate likeStartsWithNormalized(CriteriaBuilder cb, Expression<String> field, String value) {
-        return cb.like(normalized(cb, field), normalizeLiteral(value) + "%");
-    }
-
-    private static Predicate equalsNormalized(CriteriaBuilder cb, Expression<String> field, String value) {
-        return cb.equal(normalized(cb, field), normalizeLiteral(value));
-    }
-
-    private static String stripCheckLetter(String acc) {
-        if (acc == null) {
-            return null;
-        }
-        return (acc.length() == 9 && Character.isLetter(acc.charAt(8))) ? acc.substring(0, 8) : acc;
     }
 
     private Predicate orAcrossAliases(CriteriaBuilder cb,
