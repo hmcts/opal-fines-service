@@ -116,7 +116,8 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                 .filter(acc -> !acc.isBlank())
                 .map(SearchDefendantAccountSpecs::stripCheckLetter)
                 .map(stripped -> likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.accountNumber),
-                                                          stripped))
+                                                          stripped
+                ))
                 .orElse(cb.conjunction());
     }
 
@@ -137,7 +138,8 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                     Expression<String> dobStr = cb.function(
                         "to_char", String.class,
                         root.get(SearchDefendantAccountEntity_.birthDate),
-                        cb.literal("YYYY-MM-DD"));
+                        cb.literal("YYYY-MM-DD")
+                    );
                     return cb.like(dobStr, dob.toString() + "%");
                 })
                 .orElse(cb.conjunction());
@@ -213,32 +215,15 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
             // Surname: aliases are "forenames surname" → check end/contain using normalized() (no spaces)
             String surname = def.getSurname();
             if (surname != null && !surname.isBlank()) {
-                String s = normalizeLiteral(surname);
-
-                // exact = ends-with surname (or alias equals surname when no forenames stored)
-                Predicate s1;
-                Predicate s2;
-                Predicate s3;
-                Predicate s4;
-                Predicate s5;
-
-                if (Boolean.TRUE.equals(def.getExactMatchSurname())) {
-                    s1 = cb.or(equalsNormalized(cb, a1, surname), cb.like(normalized(cb, a1), "%" + s));
-                    s2 = cb.or(equalsNormalized(cb, a2, surname), cb.like(normalized(cb, a2), "%" + s));
-                    s3 = cb.or(equalsNormalized(cb, a3, surname), cb.like(normalized(cb, a3), "%" + s));
-                    s4 = cb.or(equalsNormalized(cb, a4, surname), cb.like(normalized(cb, a4), "%" + s));
-                    s5 = cb.or(equalsNormalized(cb, a5, surname), cb.like(normalized(cb, a5), "%" + s));
-                } else {
-                    // partial = contains surname letters anywhere
-                    s1 = cb.like(normalized(cb, a1), "%" + s + "%");
-                    s2 = cb.like(normalized(cb, a2), "%" + s + "%");
-                    s3 = cb.like(normalized(cb, a3), "%" + s + "%");
-                    s4 = cb.like(normalized(cb, a4), "%" + s + "%");
-                    s5 = cb.like(normalized(cb, a5), "%" + s + "%");
-                }
-
-                combined = cb.or(combined, s1, s2, s3, s4, s5);
+                boolean exact = Boolean.TRUE.equals(def.getExactMatchSurname());
+                combined = orAcrossAliases(
+                    cb,
+                    combined,
+                    aliasExpr -> surnamePredicate(cb, aliasExpr, surname, exact),
+                    a1, a2, a3, a4, a5
+                );
             }
+
 
             return combined.getExpressions().isEmpty() ? cb.conjunction() : cb.and(isPerson, combined);
         };
@@ -255,7 +240,8 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                 .map(DefendantDto::getForenames)
                 .filter(forenames -> !forenames.isBlank())
                 .map(forenames -> likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.forenames),
-                                                           forenames));
+                                                           forenames
+                ));
 
             return cb.and(
                 surnamePredicate.orElse(cb.conjunction()),
@@ -300,7 +286,8 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                 .map(DefendantDto::getPostcode)
                 .filter(postcode -> !postcode.isBlank())
                 .map(postcode -> likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.postcode),
-                                                          postcode))
+                                                          postcode
+                ))
                 .orElse(cb.conjunction());
     }
 
@@ -308,9 +295,11 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
     private static Expression<String> normalized(CriteriaBuilder cb, Expression<String> x) {
         Expression<String> noSpaces = cb.function("REPLACE", String.class, x, cb.literal(" "), cb.literal(""));
         Expression<String> noHyphens = cb.function("REPLACE", String.class, noSpaces, cb.literal("-"),
-                                                   cb.literal(""));
-        Expression<String> noApos   = cb.function("REPLACE", String.class, noHyphens, cb.literal("'"),
-                                                  cb.literal(""));
+                                                   cb.literal("")
+        );
+        Expression<String> noApos = cb.function("REPLACE", String.class, noHyphens, cb.literal("'"),
+                                                cb.literal("")
+        );
         return cb.lower(noApos);
     }
 
@@ -318,8 +307,10 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
         if (s == null) {
             return null;
         }
-        return s.toLowerCase().replace(" ", "").replace("-", "").replace("'",
-                                                                         "");
+        return s.toLowerCase().replace(" ", "").replace("-", "").replace(
+            "'",
+            ""
+        );
     }
 
     private static Predicate likeStartsWithNormalized(CriteriaBuilder cb, Expression<String> field, String value) {
@@ -336,4 +327,25 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
         }
         return (acc.length() == 9 && Character.isLetter(acc.charAt(8))) ? acc.substring(0, 8) : acc;
     }
+
+    @SafeVarargs
+    private Predicate orAcrossAliases(CriteriaBuilder cb, Predicate seed,
+                                      java.util.function.Function<Expression<String>, Predicate> fn,
+                                      Expression<String>... aliases) {
+        Predicate acc = seed;
+        for (Expression<String> a : aliases) {
+            acc = cb.or(acc, fn.apply(a));
+        }
+        return acc;
+    }
+
+    private Predicate surnamePredicate(CriteriaBuilder cb, Expression<String> aliasExpr,
+                                       String surname, boolean exact) {
+        String s = normalizeLiteral(surname);
+        return exact
+            ? cb.or(equalsNormalized(cb, aliasExpr, surname),
+                    cb.like(normalized(cb, aliasExpr), "%" + s))
+            : cb.like(normalized(cb, aliasExpr), "%" + s + "%");
+    }
+
 }

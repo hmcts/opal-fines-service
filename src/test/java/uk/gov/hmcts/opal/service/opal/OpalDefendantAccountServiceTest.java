@@ -299,7 +299,7 @@ class OpalDefendantAccountServiceTest {
         assertFalse(dto.getOrganisation());
         assertEquals("ACC1", dto.getAccountNumber());
         assertEquals("LEVY", dto.getLastEnforcementAction());
-        assertEquals(new BigDecimal("12.34"), dto.getAccountBalance());
+        assertEquals(0, dto.getAccountBalance().compareTo(new BigDecimal("12.34")));
 
         // Aliases: alias1, alias2, alias5 should be present
         List<AliasDto> aliases = dto.getAliases();

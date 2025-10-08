@@ -2019,9 +2019,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                                                           .header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
-        log.info(":testGetAtAGlance: Party is an individual. etag header: \n" + headers);
+        log.info(":testGetAtAGlance: Party is an individual. etag header: \n{}", headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetAtAGlance: Party is an individual. Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetAtAGlance: Party is an individual. Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
