@@ -34,6 +34,8 @@ import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeNiNumberPredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeOrganisationNamePredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likePostcodePredicate;
 import static uk.gov.hmcts.opal.repository.jpa.PartySpecs.likeSurnamePredicate;
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.equalNormalized;
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.likeStartsWithNormalized;
 
 @Component
 public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
@@ -166,7 +168,7 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
             Optional.ofNullable(dto.getReferenceNumberDto())
                 .map(ReferenceNumberDto::getAccountNumber)
                 .filter(acc -> !acc.isBlank())
-                .map(EntitySpecs::stripCheckLetter)
+                .map(SpecificationUtils::stripCheckLetter)
                 .map(stripped ->
                     likeStartsWithNormalized(
                         cb,
@@ -182,7 +184,7 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
             Optional.ofNullable(dto.getReferenceNumberDto())
                 .map(ReferenceNumberDto::getProsecutorCaseReference)
                 .filter(pcr -> !pcr.isBlank())
-                .map(pcr -> equalsNormalized(cb, root.get(DefendantAccountEntity_.prosecutorCaseReference), pcr))
+                .map(pcr -> equalNormalized(cb, root.get(DefendantAccountEntity_.prosecutorCaseReference), pcr))
                 .orElse(cb.conjunction());
     }
 
@@ -222,7 +224,7 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
                 Predicate matchOnParty = cb.and(
                     cb.isTrue(party.get(PartyEntity_.organisation)),
                     Boolean.TRUE.equals(def.getExactMatchOrganisationName())
-                        ? equalsNormalized(cb, party.get(PartyEntity_.organisationName), orgName)
+                        ? equalNormalized(cb, party.get(PartyEntity_.organisationName), orgName)
                         : likeStartsWithNormalized(cb, party.get(PartyEntity_.organisationName), orgName)
                 );
 
@@ -234,7 +236,7 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
                         .get(PartyEntity_.partyId), party.get(PartyEntity_.partyId));
 
                     Predicate aliasName = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
-                        ? equalsNormalized(cb, alias.get(AliasEntity_.organisationName), orgName)
+                        ? equalNormalized(cb, alias.get(AliasEntity_.organisationName), orgName)
                         : likeStartsWithNormalized(cb, alias.get(AliasEntity_.organisationName), orgName);
 
                     // Only allow alias matches for organisation parties, and include aliasJoin
@@ -259,14 +261,14 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
 
             if (surname != null && !surname.isBlank()) {
                 Predicate surnameMatch = Boolean.TRUE.equals(def.getExactMatchSurname())
-                    ? equalsNormalized(cb, alias.get(AliasEntity_.surname), surname)
+                    ? equalNormalized(cb, alias.get(AliasEntity_.surname), surname)
                     : likeStartsWithNormalized(cb, alias.get(AliasEntity_.surname), surname);
                 finalPredicate = cb.or(finalPredicate, surnameMatch);
             }
 
             if (forenames != null && !forenames.isBlank()) {
                 Predicate forenamesMatch = Boolean.TRUE.equals(def.getExactMatchForenames())
-                    ? equalsNormalized(cb, alias.get(AliasEntity_.forenames), forenames)
+                    ? equalNormalized(cb, alias.get(AliasEntity_.forenames), forenames)
                     : likeStartsWithNormalized(cb, alias.get(AliasEntity_.forenames), forenames);
                 finalPredicate = cb.or(finalPredicate, forenamesMatch);
             }

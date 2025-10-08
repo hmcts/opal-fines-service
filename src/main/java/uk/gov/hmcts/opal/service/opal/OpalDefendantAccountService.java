@@ -58,6 +58,10 @@ import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
+import uk.gov.hmcts.opal.repository.AliasRepository;
+import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
+import uk.gov.hmcts.opal.entity.AliasEntity;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -83,6 +87,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     @Autowired
     private DebtorDetailRepository debtorDetailRepository;
+
+    @Autowired
+    private AliasRepository aliasRepository;
 
 
     public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
@@ -420,6 +427,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .employerDetails(employerDetails)
             .languagePreferences(languagePreferences)
             .build();
+    }
+
+    private List<AliasEntity> getAliasesForDefendantAccount(Long defendantAccountId) {
+        return aliasRepository.findAll(AliasSpecs.byDefendantAccountId(defendantAccountId));
     }
 
     private static GetDefendantAccountPaymentTermsResponse toPaymentTermsResponse(PaymentTermsEntity entity) {

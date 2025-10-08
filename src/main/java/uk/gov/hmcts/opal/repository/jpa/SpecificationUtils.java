@@ -84,4 +84,6 @@ public class SpecificationUtils {
         return cb.equal(normField, normalized);
     }
 
+
+
 }

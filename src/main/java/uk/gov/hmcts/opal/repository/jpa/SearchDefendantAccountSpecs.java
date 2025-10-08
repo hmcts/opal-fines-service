@@ -12,6 +12,12 @@ import uk.gov.hmcts.opal.dto.search.DefendantDto;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity_;
 
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.likeStartsWithNormalized;
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.equalNormalized;
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.stripCheckLetter;
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.normalize;
+import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.normalizeExpr;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -110,7 +116,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
             Optional.ofNullable(dto.getReferenceNumberDto())
                 .map(ReferenceNumberDto::getAccountNumber)
                 .filter(acc -> !acc.isBlank())
-                .map(EntitySpecs::stripCheckLetter)
+                .map(SpecificationUtils::stripCheckLetter)
                 .map(stripped -> likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.accountNumber),
                                                           stripped
                 ))
@@ -122,7 +128,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
             Optional.ofNullable(dto.getReferenceNumberDto())
                 .map(ReferenceNumberDto::getProsecutorCaseReference)
                 .filter(pcr -> !pcr.isBlank())
-                .map(pcr -> equalsNormalized(cb, root.get(SearchDefendantAccountEntity_.prosecutorCaseReference), pcr))
+                .map(pcr -> equalNormalized(cb, root.get(SearchDefendantAccountEntity_.prosecutorCaseReference), pcr))
                 .orElse(cb.conjunction());
     }
 
@@ -168,7 +174,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
         Predicate isOrg = cb.isTrue(root.get(SearchDefendantAccountEntity_.organisation));
 
         Predicate onParty = Boolean.TRUE.equals(def.getExactMatchOrganisationName())
-            ? equalsNormalized(cb, root.get(SearchDefendantAccountEntity_.organisationName), orgName)
+            ? equalNormalized(cb, root.get(SearchDefendantAccountEntity_.organisationName), orgName)
             : likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.organisationName), orgName);
 
         Predicate onAlias = cb.disjunction();
@@ -177,7 +183,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
             onAlias = orAcrossAliases(
                 cb,
                 cb.disjunction(),
-                alias -> exact ? equalsNormalized(cb, alias, orgName)
+                alias -> exact ? equalNormalized(cb, alias, orgName)
                     : likeStartsWithNormalized(cb, alias, orgName),
                 aliases(root)
             );
@@ -305,11 +311,11 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
 
     private Predicate surnamePredicate(CriteriaBuilder cb, Expression<String> aliasExpr,
                                        String surname, boolean exact) {
-        String s = normalizeLiteral(surname);
+        String s = normalize(surname);
         return exact
-            ? cb.or(equalsNormalized(cb, aliasExpr, surname),
-                    cb.like(normalized(cb, aliasExpr), "%" + s))
-            : cb.like(normalized(cb, aliasExpr), "%" + s + "%");
+            ? cb.or(equalNormalized(cb, aliasExpr, surname),
+                    cb.like(normalizeExpr(cb, aliasExpr), "%" + s))
+            : cb.like(normalizeExpr(cb, aliasExpr), "%" + s + "%");
     }
 
 }
