@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -57,7 +57,7 @@ class DraftAccountTransactionsTest {
     void testGetDraftAccount() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-            BusinessUnitEntity.builder().businessUnitId((short)77).build())
+            BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
@@ -75,7 +75,7 @@ class DraftAccountTransactionsTest {
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-            BusinessUnitEntity.builder().businessUnitId((short)77).build())
+            BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
         Page<DraftAccountEntity> mockPage = new PageImpl<>(List.of(draftAccountEntity), Pageable.unpaged(), 999L);
         when(draftAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
@@ -127,7 +127,7 @@ class DraftAccountTransactionsTest {
             .accountType("Fine")
             .timelineData(createTimelineDataString())
             .build();
-        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+        BusinessUnitFullEntity businessUnit = BusinessUnitFullEntity.builder()
             .businessUnitName("Old Bailey")
             .build();
 
@@ -148,8 +148,7 @@ class DraftAccountTransactionsTest {
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
         // Act
-        boolean deleted = draftAccountTransactions
-            .deleteDraftAccount(1, true, draftAccountTransactions);
+        boolean deleted = draftAccountTransactions.deleteDraftAccount(1, draftAccountTransactions);
         assertTrue(deleted);
     }
 
@@ -161,7 +160,7 @@ class DraftAccountTransactionsTest {
         // Act
         EntityNotFoundException enfe = assertThrows(
             EntityNotFoundException.class, () -> draftAccountTransactions
-                .deleteDraftAccount(1, true, draftAccountTransactions)
+                .deleteDraftAccount(1, draftAccountTransactions)
         );
 
         // Assert
@@ -184,12 +183,12 @@ class DraftAccountTransactionsTest {
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
             .createdDate(LocalDateTime.now())
             .version(0L)
             .build();
 
-        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+        BusinessUnitFullEntity businessUnit = BusinessUnitFullEntity.builder()
             .businessUnitId(((short) 2))
             .businessUnitName("New Bailey")
             .build();
@@ -281,11 +280,11 @@ class DraftAccountTransactionsTest {
         Long draftAccountId = 1L;
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
             .version(0L)
             .build();
 
-        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+        BusinessUnitFullEntity businessUnit = BusinessUnitFullEntity.builder()
             .businessUnitId(((short) 3))
             .build();
 
@@ -320,7 +319,7 @@ class DraftAccountTransactionsTest {
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
             .version(0L)
             .build();
 
@@ -348,7 +347,7 @@ class DraftAccountTransactionsTest {
             .draftAccountId(draftAccountId)
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\"}")
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
             .timelineData(createTimelineDataString())
             .version(0L)
             .build();
@@ -398,7 +397,7 @@ class DraftAccountTransactionsTest {
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .timelineData(createTimelineDataString())
             .version(0L)
@@ -438,7 +437,7 @@ class DraftAccountTransactionsTest {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder()
             .draftAccountId(007L)
-            .businessUnit(BusinessUnitEntity.builder()
+            .businessUnit(BusinessUnitFullEntity.builder()
                               .businessUnitId((short)78)
                               .build())
             .submittedBy("BU001")

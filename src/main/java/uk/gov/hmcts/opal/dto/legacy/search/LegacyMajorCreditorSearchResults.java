@@ -6,7 +6,7 @@ import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.Builder;
 import lombok.Data;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorFullEntity;
 
 import java.util.List;
 
@@ -17,6 +17,6 @@ import java.util.List;
 public class LegacyMajorCreditorSearchResults {
 
     @XmlElement(name = "majorCreditorEntity")
-    private List<MajorCreditorEntity> majorCreditorEntities;
+    private List<MajorCreditorFullEntity> majorCreditorEntities;
     private int totalCount;
 }

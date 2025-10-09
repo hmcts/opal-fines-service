@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorFullEntity;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 
@@ -37,22 +37,22 @@ public class MajorCreditorController {
 
     @GetMapping(value = "/{majorCreditorId}")
     @Operation(summary = "Returns the MajorCreditor for the given majorCreditorId.")
-    public ResponseEntity<MajorCreditorEntity> getMajorCreditorById(@PathVariable Long majorCreditorId) {
+    public ResponseEntity<MajorCreditorFullEntity> getMajorCreditorById(@PathVariable Long majorCreditorId) {
 
         log.debug(":GET:getMajorCreditorById: majorCreditorId: {}", majorCreditorId);
 
-        MajorCreditorEntity response = majorCreditorService.getMajorCreditorById(majorCreditorId);
+        MajorCreditorFullEntity response = majorCreditorService.getMajorCreditorById(majorCreditorId);
 
         return buildResponse(response);
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches MajorCreditors based upon criteria in request body")
-    public ResponseEntity<List<MajorCreditorEntity>> postMajorCreditorsSearch(
+    public ResponseEntity<List<MajorCreditorFullEntity>> postMajorCreditorsSearch(
         @RequestBody MajorCreditorSearchDto criteria) {
         log.debug(":POST:postMajorCreditorsSearch: query: \n{}", criteria);
 
-        List<MajorCreditorEntity> response = majorCreditorService.searchMajorCreditors(criteria);
+        List<MajorCreditorFullEntity> response = majorCreditorService.searchMajorCreditors(criteria);
 
         return buildResponse(response);
     }

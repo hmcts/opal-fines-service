@@ -9,7 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.jpa.JpaSystemException;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
@@ -140,7 +140,7 @@ class DraftAccountPublishTest {
         return DraftAccountEntity.builder()
             .draftAccountId(1L)
             .businessUnit(
-                BusinessUnitEntity.builder()
+                BusinessUnitFullEntity.builder()
                     .businessUnitId((short)6)
                     .build())
             .timelineData(emptyTimelineData())

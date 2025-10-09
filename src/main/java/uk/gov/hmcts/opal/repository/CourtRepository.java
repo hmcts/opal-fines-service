@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 
 @Repository
-public interface CourtRepository extends JpaRepository<CourtEntity, Long>,
-    JpaSpecificationExecutor<CourtEntity> {
+public interface CourtRepository extends JpaRepository<CourtEntity.Lite, Long>,
+    JpaSpecificationExecutor<CourtEntity.Lite> {
 }

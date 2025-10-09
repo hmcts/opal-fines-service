@@ -121,11 +121,12 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
     }
 
 
-    public static Join<DefendantAccountEntity, CourtEntity> joinEnforcingCourt(Root<DefendantAccountEntity> root) {
+    public static Join<DefendantAccountEntity, CourtEntity.Lite> joinEnforcingCourt(Root<DefendantAccountEntity> root) {
         return root.join(DefendantAccountEntity_.enforcingCourt);
     }
 
-    public static Join<DefendantAccountEntity, CourtEntity> joinLastHearingCourt(Root<DefendantAccountEntity> root) {
+    public static Join<DefendantAccountEntity, CourtEntity.Lite> joinLastHearingCourt(
+        Root<DefendantAccountEntity> root) {
         return root.join(DefendantAccountEntity_.lastHearingCourt);
     }
 

@@ -71,7 +71,7 @@
           "result_id": "FO",
           "amount_imposed": 500,
           "amount_paid": 200,
-          "major_creditor_id": null,
+          "major_creditor_id": 650000000021,
           "minor_creditor": null
         }
       ]

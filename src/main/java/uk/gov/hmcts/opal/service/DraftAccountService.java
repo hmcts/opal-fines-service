@@ -20,7 +20,7 @@ import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
@@ -130,8 +130,7 @@ public class DraftAccountService {
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
         try {
-            boolean deleted =  draftAccountTransactions.deleteDraftAccount(draftAccountId, checkExisted,
-                                                                           draftAccountTransactions);
+            boolean deleted =  draftAccountTransactions.deleteDraftAccount(draftAccountId, draftAccountTransactions);
             if (deleted) {
                 log.debug(":deleteDraftAccount: Deleted Draft Account: {}", draftAccountId);
             }
@@ -198,6 +197,8 @@ public class DraftAccountService {
 
         Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
 
+        log.info(":updateDraftAccount: unit user: {}", unitUser);
+
         if (UserState.userHasPermission(unitUser, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
 
             DraftAccountEntity updatedEntity = draftAccountTransactions
@@ -205,6 +206,7 @@ public class DraftAccountService {
             verifyUpdated(updatedEntity, dto, draftAccountId, "updateDraftAccount");
 
             if (updatedEntity.getAccountStatus().isPublishingPending()) {
+                log.info(":updateDraftAccount: publishing: ");
                 return toGetResponseDto(accountPublishProxy.publishDefendantAccount(
                     updatedEntity, unitUser.orElseThrow()));
             }
@@ -219,7 +221,7 @@ public class DraftAccountService {
         return DraftAccountResponseDto.builder()
             .draftAccountId(entity.getDraftAccountId())
             .businessUnitId(Optional.ofNullable(entity.getBusinessUnit())
-                                .map(BusinessUnitEntity::getBusinessUnitId).orElse(null))
+                                .map(BusinessUnitFullEntity::getBusinessUnitId).orElse(null))
             .createdDate(toUtcDateTime(entity.getCreatedDate()))
             .submittedBy(entity.getSubmittedBy())
             .submittedByName(entity.getSubmittedByName())
