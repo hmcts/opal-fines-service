@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorFullEntity;
 
 @Mapper(componentModel = "spring")
 public interface MajorCreditorMapper {
@@ -16,6 +16,6 @@ public interface MajorCreditorMapper {
     @Mapping(source = "creditorAccountEntity.fromSuspense", target = "fromSuspense")
     @Mapping(source = "creditorAccountEntity.holdPayout", target = "holdPayout")
     @Mapping(source = "creditorAccountEntity.lastChangedDate", target = "lastChangedDate")
-    MajorCreditorReferenceData toRefData(MajorCreditorEntity entity);
+    MajorCreditorReferenceData toRefData(MajorCreditorFullEntity entity);
 
 }

@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -67,7 +66,7 @@ class DraftAccountServiceTest {
     void testGetDraftAccount() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-            BusinessUnitEntity.builder().businessUnitId((short)77).build())
+            BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
         when(draftAccountTransactions.getDraftAccount(anyLong())).thenReturn(draftAccountEntity);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
@@ -85,7 +84,7 @@ class DraftAccountServiceTest {
         // Arrange
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-            BusinessUnitEntity.builder().businessUnitId((short)77).build())
+            BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
         when(draftAccountTransactions.getDraftAccounts(any(), any(), any(), any(), any(), any()))
             .thenReturn(List.of(draftAccountEntity));
@@ -175,7 +174,7 @@ class DraftAccountServiceTest {
     @Test
     void testDeleteDraftAccount_fail1() {
         // Arrange
-        when(draftAccountTransactions.deleteDraftAccount(anyLong(), anyBoolean(), any())).thenThrow(
+        when(draftAccountTransactions.deleteDraftAccount(anyLong(), any())).thenThrow(
             new EntityNotFoundException("Draft Account not found with id: 1"));
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
 
@@ -264,7 +263,7 @@ class DraftAccountServiceTest {
         Long draftAccountId = 1L;
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
             .version(0L)
             .build();
 
@@ -301,7 +300,7 @@ class DraftAccountServiceTest {
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
             .version(0L)
             .build();
 

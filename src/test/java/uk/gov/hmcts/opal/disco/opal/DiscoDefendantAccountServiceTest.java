@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
@@ -310,16 +310,16 @@ public class DiscoDefendantAccountServiceTest {
 
     public static DefendantAccountEntity buildDefendantAccountEntity() {
 
-        BusinessUnitEntity businessUnitEntity = BusinessUnitEntity.builder()
+        BusinessUnitFullEntity businessUnitEntity = BusinessUnitFullEntity.builder()
             .businessUnitName("CT")
             .businessUnitId((short) 200)
             .build();
 
-        CourtEntity courtEntity1 = CourtEntity.builder()
+        CourtEntity.Lite courtEntity1 = CourtEntity.Lite.builder()
             .courtCode((short) 1212)
             .build();
 
-        CourtEntity courtEntity2 = CourtEntity.builder()
+        CourtEntity.Lite courtEntity2 = CourtEntity.Lite.builder()
             .courtCode((short) 1)
             .build();
 

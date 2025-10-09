@@ -27,7 +27,7 @@ import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyNotesServiceTest {
@@ -195,8 +195,8 @@ class LegacyNotesServiceTest {
 
     // ---------- helpers ----------
 
-    private static BusinessUnitEntity bu(short id) {
-        return BusinessUnitEntity.builder().businessUnitId(id).build();
+    private static BusinessUnitFullEntity bu(short id) {
+        return BusinessUnitFullEntity.builder().businessUnitId(id).build();
     }
 
     private static DefendantAccountEntity accountWithBu(short buId) {

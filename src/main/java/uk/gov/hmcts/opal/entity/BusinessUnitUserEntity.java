@@ -19,7 +19,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 
 
 @Entity
@@ -41,7 +41,7 @@ public class BusinessUnitUserEntity {
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "business_unit_id", nullable = false)
     @EqualsAndHashCode.Exclude
-    private BusinessUnitEntity businessUnit;
+    private BusinessUnitFullEntity businessUnit;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

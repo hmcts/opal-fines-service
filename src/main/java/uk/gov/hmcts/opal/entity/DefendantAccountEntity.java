@@ -27,7 +27,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountTypeConverter;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
@@ -58,7 +58,7 @@ public class DefendantAccountEntity implements Versioned {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", referencedColumnName = "business_unit_id", nullable = false)
-    private BusinessUnitEntity businessUnit;
+    private BusinessUnitFullEntity businessUnit;
 
     @Column(name = "account_number", length = 20)
     private String accountNumber;
@@ -90,11 +90,11 @@ public class DefendantAccountEntity implements Versioned {
 
     @ManyToOne
     @JoinColumn(name = "enforcing_court_id", referencedColumnName = "court_id")
-    private CourtEntity enforcingCourt;
+    private CourtEntity.Lite enforcingCourt;
 
     @ManyToOne
     @JoinColumn(name = "last_hearing_court_id", referencedColumnName = "court_id")
-    private CourtEntity lastHearingCourt;
+    private CourtEntity.Lite lastHearingCourt;
 
     @Column(name = "last_hearing_date")
     @Temporal(TemporalType.DATE)
@@ -124,10 +124,10 @@ public class DefendantAccountEntity implements Versioned {
     private String originatorType;
 
     @Column(name = "allow_writeoffs")
-    private boolean allowWriteoffs;
+    private Boolean allowWriteoffs;
 
     @Column(name = "allow_cheques")
-    private boolean allowCheques;
+    private Boolean allowCheques;
 
     @Column(name = "cheque_clearance_period")
     private Short chequeClearancePeriod;
@@ -151,7 +151,7 @@ public class DefendantAccountEntity implements Versioned {
     private BigDecimal unitFineValue;
 
     @Column(name = "collection_order")
-    private boolean collectionOrder;
+    private Boolean collectionOrder;
 
     @Column(name = "collection_order_date")
     @Temporal(TemporalType.DATE)
@@ -177,7 +177,7 @@ public class DefendantAccountEntity implements Versioned {
     private String consolidatedAccountType;
 
     @Column(name = "payment_card_requested")
-    private boolean paymentCardRequested;
+    private Boolean paymentCardRequested;
 
     @Column(name = "payment_card_requested_date")
     @Temporal(TemporalType.DATE)

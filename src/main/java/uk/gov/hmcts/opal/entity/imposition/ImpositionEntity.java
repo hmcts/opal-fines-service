@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.imposition;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -8,8 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -19,27 +18,27 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import lombok.experimental.SuperBuilder;
+
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "impositions")
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@MappedSuperclass
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "impositionId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class ImpositionEntity {
+public abstract class ImpositionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "imposition_id_seq_generator")
@@ -47,9 +46,8 @@ public class ImpositionEntity {
     @Column(name = "imposition_id", nullable = false)
     private Long impositionId;
 
-    @ManyToOne
-    @JoinColumn(name = "defendant_account_id", updatable = false)
-    private DefendantAccountEntity defendantAccount;
+    @Column(name = "defendant_account_id", insertable = false, updatable = false, nullable = false)
+    private Long defendantAccountId;
 
     @Column(name = "posted_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -59,7 +57,7 @@ public class ImpositionEntity {
     @Column(name = "posted_by", length = 20)
     private String postedBy;
 
-    @Column(name = "posted_by_name", nullable = false)
+    @Column(name = "posted_by_name")
     private String postedByUsername;
 
     @Column(name = "original_posted_date")
@@ -70,9 +68,8 @@ public class ImpositionEntity {
     @Column(name = "result_id", length = 6, nullable = false)
     private String resultId;
 
-    @ManyToOne
-    @JoinColumn(name = "imposing_court_id", nullable = false)
-    private CourtEntity imposingCourt;
+    @Column(name = "imposing_court_id")
+    private Long imposingCourtId;
 
     @Column(name = "imposed_date")
     @Temporal(TemporalType.TIMESTAMP)
@@ -85,19 +82,27 @@ public class ImpositionEntity {
     @Column(name = "paid_amount", precision = 18, scale = 2, nullable = false)
     private BigDecimal paidAmount;
 
-    @Column(name = "offence_id", nullable = false)
-    private Short offenceId;
+    @Column(name = "offence_id")
+    private Long offenceId;
 
-    @ManyToOne
-    @JoinColumn(name = "creditor_account_id", updatable = false)
-    private CreditorAccountEntity creditorAccount;
+    @Column(name = "creditor_account_id", insertable = false, updatable = false, nullable = false)
+    private Long creditorAccountId;
 
     @Column(name = "unit_fine_adjusted")
-    private boolean unitFineAdjusted;
+    private Boolean unitFineAdjusted;
 
     @Column(name = "unit_fine_units")
     private Short unitFineUnits;
 
     @Column(name = "completed")
-    private boolean completed;
+    private Boolean completed;
+
+    @Entity
+    @Getter
+    @EqualsAndHashCode(callSuper = true)
+    @Table(name = "impositions")
+    @SuperBuilder
+    @NoArgsConstructor
+    public static class Lite extends ImpositionEntity {
+    }
 }

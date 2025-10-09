@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.entity;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 
 import java.math.BigDecimal;
@@ -21,7 +21,7 @@ public class DefendantAccountEntityTest {
 
         // Set values using setters
         defendantAccount.setDefendantAccountId(1L);
-        defendantAccount.setBusinessUnit(new BusinessUnitEntity());
+        defendantAccount.setBusinessUnit(new BusinessUnitFullEntity());
         defendantAccount.setAccountNumber("123456");
         defendantAccount.setImposedHearingDate(now);
         defendantAccount.setImposingCourtId(1L);
@@ -30,8 +30,8 @@ public class DefendantAccountEntityTest {
         defendantAccount.setAccountBalance(BigDecimal.valueOf(1.1));
         defendantAccount.setAccountStatus("status");
         defendantAccount.setCompletedDate(now);
-        defendantAccount.setEnforcingCourt(CourtEntity.builder().build());
-        defendantAccount.setLastHearingCourt(CourtEntity.builder().build());
+        defendantAccount.setEnforcingCourt(CourtEntity.Lite.builder().build());
+        defendantAccount.setLastHearingCourt(CourtEntity.Lite.builder().build());
         defendantAccount.setLastHearingDate(now);
         defendantAccount.setLastMovementDate(now);
         defendantAccount.setLastEnforcement("123456");
@@ -64,7 +64,7 @@ public class DefendantAccountEntityTest {
 
         // Test getters
         assertEquals(Long.valueOf(1L), defendantAccount.getDefendantAccountId());
-        assertEquals(new BusinessUnitEntity(), defendantAccount.getBusinessUnit());
+        assertEquals(new BusinessUnitFullEntity(), defendantAccount.getBusinessUnit());
         assertEquals("123456", defendantAccount.getAccountNumber());
         assertEquals(now, defendantAccount.getImposedHearingDate());
         assertEquals(Long.valueOf(1L), defendantAccount.getImposingCourtId());
@@ -73,8 +73,8 @@ public class DefendantAccountEntityTest {
         assertEquals(new BigDecimal("1.1"), defendantAccount.getAccountBalance());
         assertEquals("status", defendantAccount.getAccountStatus());
         assertEquals(now, defendantAccount.getCompletedDate());
-        assertEquals(CourtEntity.builder().build(), defendantAccount.getEnforcingCourt());
-        assertEquals(CourtEntity.builder().build(), defendantAccount.getLastHearingCourt());
+        assertEquals(CourtEntity.Lite.builder().build(), defendantAccount.getEnforcingCourt());
+        assertEquals(CourtEntity.Lite.builder().build(), defendantAccount.getLastHearingCourt());
         assertEquals(now, defendantAccount.getLastHearingDate());
         assertEquals(now, defendantAccount.getLastMovementDate());
         assertEquals("123456", defendantAccount.getLastEnforcement());
@@ -82,8 +82,8 @@ public class DefendantAccountEntityTest {
         assertEquals("name", defendantAccount.getOriginatorName());
         assertEquals("reference", defendantAccount.getOriginatorId());
         assertEquals("type", defendantAccount.getOriginatorType());
-        assertTrue(defendantAccount.isAllowWriteoffs());
-        assertTrue(defendantAccount.isAllowCheques());
+        assertTrue(defendantAccount.getAllowWriteoffs());
+        assertTrue(defendantAccount.getAllowCheques());
         assertEquals(Short.valueOf((short) 1), defendantAccount.getChequeClearancePeriod());
         assertEquals(Short.valueOf((short) 1), defendantAccount.getCreditTransferClearancePeriod());
         assertEquals("123456", defendantAccount.getEnforcementOverrideResultId());
@@ -91,13 +91,13 @@ public class DefendantAccountEntityTest {
         assertEquals(Short.valueOf((short) 1), defendantAccount.getEnforcementOverrideTfoLjaId());
         assertEquals("detail", defendantAccount.getUnitFineDetail());
         assertEquals(new BigDecimal("1.1"), defendantAccount.getUnitFineValue());
-        assertTrue(defendantAccount.isCollectionOrder());
+        assertTrue(defendantAccount.getCollectionOrder());
         assertEquals(now, defendantAccount.getCollectionOrderEffectiveDate());
         assertEquals(now, defendantAccount.getFurtherStepsNoticeDate());
         assertEquals(now, defendantAccount.getConfiscationOrderDate());
         assertEquals(now, defendantAccount.getFineRegistrationDate());
         assertEquals("type", defendantAccount.getConsolidatedAccountType());
-        assertTrue(defendantAccount.isPaymentCardRequested());
+        assertTrue(defendantAccount.getPaymentCardRequested());
         assertEquals(now, defendantAccount.getPaymentCardRequestedDate());
         assertEquals("requested", defendantAccount.getPaymentCardRequestedBy());
         assertEquals("reference", defendantAccount.getProsecutorCaseReference());

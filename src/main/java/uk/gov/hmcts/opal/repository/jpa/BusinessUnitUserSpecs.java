@@ -6,7 +6,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitUserSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity;
 import uk.gov.hmcts.opal.entity.BusinessUnitUserEntity_;
 import uk.gov.hmcts.opal.entity.UserEntity;
@@ -75,7 +75,7 @@ public class BusinessUnitUserSpecs extends EntitySpecs<BusinessUnitUserEntity> {
         return (root, query, builder) -> likeUserDescriptionPredicate(joinUser(root), builder, description);
     }
 
-    public static Join<BusinessUnitUserEntity, BusinessUnitEntity> joinBusinessUnit(
+    public static Join<BusinessUnitUserEntity, BusinessUnitFullEntity> joinBusinessUnit(
         From<?, BusinessUnitUserEntity> from) {
         return from.join(BusinessUnitUserEntity_.businessUnit);
     }
