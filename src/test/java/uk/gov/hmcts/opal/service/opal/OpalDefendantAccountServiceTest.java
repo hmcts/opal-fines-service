@@ -1,26 +1,38 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
+import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.PartyDetails;
+import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
+import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
-import org.springframework.data.jpa.domain.Specification;
-import org.mockito.ArgumentMatchers;
-import java.util.Collections;
-
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
@@ -29,14 +41,6 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 
 class OpalDefendantAccountServiceTest {
 
@@ -56,16 +60,31 @@ class OpalDefendantAccountServiceTest {
     private final DefendantAccountPaymentTermsRepository paymentTermsRepository =
         mock(DefendantAccountPaymentTermsRepository.class);
 
-    // If you need to create the service, mock the repos as needed.
-    private final OpalDefendantAccountService service =
-        new OpalDefendantAccountService(
+    // make the specs a SPY so we can verify its method call
+    private final SearchDefendantAccountSpecs specs =
+        spy(new SearchDefendantAccountSpecs());
+
+
+    // Service under test (NOT final; we construct it in @BeforeEach)
+    private OpalDefendantAccountService service;
+
+    @BeforeEach
+    void setUp() {
+        // IMPORTANT: inject the SAME 'specs' spy into the service 6-arg ctor
+        service = new OpalDefendantAccountService(
             dahvRepository,
             defendantAccountRepository,
             searchDefAccRepo,
-            searchDefAccSpecs,
+            specs, // <- spy injected here
             paymentTermsRepository,
             dasvRepository
         );
+
+        // Generic matcher to avoid unchecked warnings
+        when(searchDefAccRepo.findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        )).thenReturn(List.of());
+    }
 
     @Test
     void testDefendantAccountById() {
@@ -385,6 +404,82 @@ class OpalDefendantAccountServiceTest {
         assertEquals("John", aliases.get(0).getForenames());
         assertEquals("Doe", aliases.get(0).getSurname());
     }
+
+    @Test
+    void whenAccountNumberPresent_activeOnlyIsIgnored() {
+        // given
+        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        ReferenceNumberDto ref = mock(ReferenceNumberDto.class);
+
+        when(dto.getActiveAccountsOnly()).thenReturn(true); // the user asked for active-only
+        when(dto.getReferenceNumberDto()).thenReturn(ref);
+        when(ref.getAccountNumber()).thenReturn("AAAAAAAAX"); // reference present
+        when(ref.getProsecutorCaseReference()).thenReturn(null);
+
+        // when
+        service.searchDefendantAccounts(dto);
+
+        // then → AC1b requires the service to IGNORE activeOnly (i.e., pass false to the spec)
+        verify(specs, times(1)).filterByActiveOnly(false);
+        verify(searchDefAccRepo, times(1)).findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
+    }
+
+    @Test
+    void whenPcrPresent_activeOnlyIsIgnored() {
+        // given
+        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        ReferenceNumberDto ref = mock(ReferenceNumberDto.class);
+
+        when(dto.getActiveAccountsOnly()).thenReturn(true);
+        when(dto.getReferenceNumberDto()).thenReturn(ref);
+        when(ref.getAccountNumber()).thenReturn(null);
+        when(ref.getProsecutorCaseReference()).thenReturn("PCR/1234/XY"); // PCR present
+
+        // when
+        service.searchDefendantAccounts(dto);
+
+        // then
+        verify(specs, times(1)).filterByActiveOnly(false);
+        verify(searchDefAccRepo, times(1)).findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
+    }
+
+    @Test
+    void whenNoReference_activeOnlyIsRespected() {
+        // given
+        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        when(dto.getActiveAccountsOnly()).thenReturn(true);
+        when(dto.getReferenceNumberDto()).thenReturn(null); // no account number, no PCR
+
+        // when
+        service.searchDefendantAccounts(dto);
+
+        // then → with no reference, activeOnly should be applied as true
+        verify(specs, times(1)).filterByActiveOnly(true);
+        verify(searchDefAccRepo, times(1)).findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
+    }
+
+    @Test
+    void whenActiveOnlyFalse_andReferencePresent_stillIgnoredButFalseIsCorrect() {
+        // given
+        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        ReferenceNumberDto ref = mock(ReferenceNumberDto.class);
+
+        when(dto.getActiveAccountsOnly()).thenReturn(false); // already false
+        when(dto.getReferenceNumberDto()).thenReturn(ref);
+        when(ref.getAccountNumber()).thenReturn("AAAAAAAAX");
+
+        // when
+        service.searchDefendantAccounts(dto);
+
+        // then → should pass false (ignoring or not, final effect is false)
+        verify(specs, times(1)).filterByActiveOnly(false);
+        verify(searchDefAccRepo, times(1)).findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
+    }
+
 
     private AccountSearchDto emptyCriteria() {
         AccountSearchDto c = mock(AccountSearchDto.class);

@@ -205,9 +205,21 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts (Opal): criteria: {}", accountSearchDto);
 
+
+        boolean hasRef =
+            Optional.ofNullable(accountSearchDto.getReferenceNumberDto())
+                .map(r ->
+                         (r.getAccountNumber() != null && !r.getAccountNumber().isBlank())
+                             || (r.getProsecutorCaseReference() != null && !r.getProsecutorCaseReference().isBlank())
+                )
+                .orElse(false);
+
+        boolean applyActiveOnly =
+            Boolean.TRUE.equals(accountSearchDto.getActiveAccountsOnly()) && !hasRef; // ← AC1b: ignore when ref present
+
         Specification<SearchDefendantAccountEntity> spec =
             searchDefendantAccountSpecs.filterByBusinessUnits(accountSearchDto.getBusinessUnitIds())
-                .and(searchDefendantAccountSpecs.filterByActiveOnly(accountSearchDto.getActiveAccountsOnly()))
+                .and(searchDefendantAccountSpecs.filterByActiveOnly(applyActiveOnly))
                 .and(searchDefendantAccountSpecs.filterByAccountNumberStartsWithWithCheckLetter(accountSearchDto))
                 .and(searchDefendantAccountSpecs.filterByPcrExact(accountSearchDto))
                 .and(
@@ -220,7 +232,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 .and(searchDefendantAccountSpecs.filterByNiStartsWith(accountSearchDto))
                 .and(searchDefendantAccountSpecs.filterByAddress1StartsWith(accountSearchDto))
                 .and(searchDefendantAccountSpecs.filterByPostcodeStartsWith(accountSearchDto));
-
 
         List<SearchDefendantAccountEntity> rows = searchDefendantAccountRepository.findAll(spec);
 
