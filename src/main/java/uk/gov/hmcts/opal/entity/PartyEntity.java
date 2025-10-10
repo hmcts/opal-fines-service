@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -16,6 +17,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -108,4 +110,8 @@ public class PartyEntity implements FullNameBuilder {
     @Column(name = "last_changed_date")
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime lastChangedDate;
+
+    @OneToMany(mappedBy = "party")
+    private List<DefendantAccountPartiesEntity> defendantAccountParties;
+
 }
