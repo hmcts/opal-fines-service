@@ -64,12 +64,17 @@ VALUES (
   '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'REM',
   'Kingston-upon-Thames Mags Court', NULL, NULL,
   'N', 'N', 14, 21,
-  'FWEC', 780000000021, 240,
+  NULL, NULL, NULL,
   'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00',
   '2023-12-19 00:00:00', NULL, NULL, NULL,
   'Y', 'Y', '2024-01-01 00:00:00', '11111111A',
   '090A', NULL, 'Fine', 1
 );
+
+--  Ensure the version is initialized so deletes include a bound value
+UPDATE defendant_accounts
+SET version_number = 0
+WHERE defendant_account_id = 1001 AND version_number IS NULL;
 
 -- Insert party
 INSERT INTO parties (
