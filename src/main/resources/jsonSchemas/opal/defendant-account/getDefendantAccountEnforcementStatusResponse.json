@@ -51,7 +51,7 @@
         "youth"
       ]
     },
-    "account_status": {
+    "account_status_reference": {
       "$ref": "../common-objects/accountStatusReference.json"
     },
     "employer_flag": {

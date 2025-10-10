@@ -16,22 +16,7 @@
     "last_enforcement_action": {
       "$ref": "#/$defs/enforcement_action"
     },
-    "next_enforcement_action_data": {
-      "oneOf": [
-        {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9]{1,6}(,[A-Za-z0-9]{1,6})*$"
-        },
-        {
-          "type": "string",
-          "const": "all"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "account_status": {
+    "account_status_reference": {
       "$ref": "./common-objects/accountStatusReferenceLegacy.json"
     },
     "employer_flag": {
