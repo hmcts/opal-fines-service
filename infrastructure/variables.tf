@@ -45,6 +45,10 @@ variable "pgsql_server_configuration" {
     {
       name  = "azure.extensions"
       value = "POSTGRES_FDW"
+    },
+    {
+      name  = "azure.enable_temp_tablespaces_on_local_ssd"
+      value = "off"
     }
   ]
 }
