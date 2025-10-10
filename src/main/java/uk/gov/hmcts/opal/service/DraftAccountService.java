@@ -25,7 +25,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
-import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
+import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
 
 import java.time.LocalDate;
@@ -48,7 +48,7 @@ public class DraftAccountService {
     public static final String ACCOUNT_DELETED_MESSAGE_FORMAT = """
         { "message": "Draft Account '%s' deleted"}""";
 
-    private final DraftAccountTransactions draftAccountTransactions;
+    private final DraftAccountTransactional draftAccountTransactional;
 
     private final UserStateService userStateService;
 
@@ -65,7 +65,7 @@ public class DraftAccountService {
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
         if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
-            DraftAccountEntity response = draftAccountTransactions.getDraftAccount(draftAccountId);
+            DraftAccountEntity response = draftAccountTransactional.getDraftAccount(draftAccountId);
             Short buId = response.getBusinessUnit().getBusinessUnitId();
 
             if (userState.hasBusinessUnitUserWithAnyPermission(buId, Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
@@ -102,7 +102,7 @@ public class DraftAccountService {
             List<DraftAccountStatus> statuses = optionalStatus.orElse(Collections.emptyList());
             log.debug(":getDraftAccounts: status: {}; business ids: {}", statuses, optionalBusinessUnitIds);
 
-            List<DraftAccountEntity> entities = draftAccountTransactions
+            List<DraftAccountEntity> entities = draftAccountTransactional
                 .getDraftAccounts(optionalBusinessUnitIds.orElse(Collections.emptyList()),
                                   statuses, submittedBys, notSubmitted, accountStatusDateFrom, accountStatusDateTo);
 
@@ -130,7 +130,7 @@ public class DraftAccountService {
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
         try {
-            boolean deleted =  draftAccountTransactions.deleteDraftAccount(draftAccountId, draftAccountTransactions);
+            boolean deleted =  draftAccountTransactional.deleteDraftAccount(draftAccountId, draftAccountTransactional);
             if (deleted) {
                 log.debug(":deleteDraftAccount: Deleted Draft Account: {}", draftAccountId);
             }
@@ -145,7 +145,7 @@ public class DraftAccountService {
     public List<DraftAccountResponseDto> searchDraftAccounts(DraftAccountSearchDto criteria, String authHeaderValue) {
         userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        return draftAccountTransactions.searchDraftAccounts(criteria)
+        return draftAccountTransactional.searchDraftAccounts(criteria)
             .stream()
             .map(DraftAccountService::toGetResponseDto)
             .toList();
@@ -159,7 +159,7 @@ public class DraftAccountService {
                                                         Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
-            DraftAccountEntity entity = draftAccountTransactions.submitDraftAccount(dto);
+            DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(dto);
             log.debug(":submitDraftAccount: created in DB: {}", entity);
 
             return toGetResponseDto(entity);
@@ -178,8 +178,8 @@ public class DraftAccountService {
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
-            DraftAccountEntity replacedEntity = draftAccountTransactions
-                .replaceDraftAccount(draftAccountId, dto, draftAccountTransactions, ifMatch);
+            DraftAccountEntity replacedEntity = draftAccountTransactional
+                .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch);
             verifyUpdated(replacedEntity, dto, draftAccountId, "replaceDraftAccount");
             log.debug(":replaceDraftAccount: replaced with version: {}", replacedEntity.getVersion());
 
@@ -201,8 +201,8 @@ public class DraftAccountService {
 
         if (UserState.userHasPermission(unitUser, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
 
-            DraftAccountEntity updatedEntity = draftAccountTransactions
-                .updateDraftAccount(draftAccountId, dto, draftAccountTransactions, ifMatch);
+            DraftAccountEntity updatedEntity = draftAccountTransactional
+                .updateDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch);
             verifyUpdated(updatedEntity, dto, draftAccountId, "updateDraftAccount");
 
             if (updatedEntity.getAccountStatus().isPublishingPending()) {

@@ -10,7 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
  * Transactional method, then that can be problematic.  Direct method calls should be avoided, but instead
  * routed through a proxy object that captures all the JPA Transactional 'overhead'.
  */
-public interface CreditorAccountTransactionsProxy {
+public interface CreditorAccountTransactionalProxy {
     @Transactional(readOnly = true)
     CreditorAccountEntity.Lite getCreditorAccountById(long creditorAccountId);
+
+    @Transactional
+    boolean deleteMinorCreditorAccountAndRelatedData(long creditorAccountId, CreditorAccountTransactionalProxy proxy);
 }

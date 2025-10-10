@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -52,7 +54,8 @@ public abstract class CreditorAccountEntity {
     private String accountNumber;
 
     @Column(name = "creditor_account_type", length = 2, nullable = false)
-    private String creditorAccountType;
+    @Enumerated(EnumType.STRING)
+    private CreditorAccountType creditorAccountType;
 
     @Column(name = "prosecution_service", nullable = false)
     private boolean prosecutionService;
