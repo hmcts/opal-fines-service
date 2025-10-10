@@ -8,11 +8,13 @@ import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.PostedDetails;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
@@ -339,6 +341,17 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         log.info(":getAtAGlance: Legacy Gateway response: NOT YET IMPLEMENTED.");
         throw new UnsupportedOperationException("getAtAGlance is not implemented in"
                                                     + " LegacyDefendantAccountService");
+    }
+
+    @Override
+    public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+                                                           String businessUnitId,
+                                                           UpdateDefendantAccountRequest request,
+                                                           String ifMatch,
+                                                           String postedBy) {
+        throw new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
+            "Update Defendant Account is not implemented in legacy mode");
     }
 
 }
