@@ -342,7 +342,7 @@ ext['tomcat.version'] = '10.1.42'
 
 
 dependencies {
-  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.16"
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.34"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.22"
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.38"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.17.2"
