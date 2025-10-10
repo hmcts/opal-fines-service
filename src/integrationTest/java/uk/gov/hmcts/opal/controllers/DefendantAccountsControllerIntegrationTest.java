@@ -1,5 +1,19 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.htmlunit.util.MimeType.APPLICATION_JSON;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,20 +30,6 @@ import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-
-import static org.htmlunit.util.MimeType.APPLICATION_JSON;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
@@ -64,47 +64,89 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .thenReturn(userState);
     }
 
-    @DisplayName("Get header summary for defendant account [@PO-985]")
-    void getHeaderSummaryImpl(Logger log) throws Exception {
+    @DisplayName("Get header summary for individual defendant account [@PO-2287]")
+    void getHeaderSummary_Individual(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/header-summary")
-            .header("authorization", "Bearer some_value"));
+                                                          .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetHeaderSummary_Individual: Response body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendant_account_id").value(77))
-            .andExpect(jsonPath("$.account_number").value("100A"))
-            .andExpect(jsonPath("$.has_parent_guardian").value(true))
-            .andExpect(jsonPath("$.fixed_penalty_ticket_number").value(888))
-            .andExpect(jsonPath("$.business_unit_id").value(78))
-            .andExpect(jsonPath("$.imposed").value(1000.0f))
-            .andExpect(jsonPath("$.arrears").value(300.0d))
-            .andExpect(jsonPath("$.organisation_name").value("Sainsco"))
-            .andExpect(jsonPath("$.firstnames").value("Keith"))
-            .andExpect(jsonPath("$.surname").value("Thief"));
+            .andExpect(jsonPath("$.defendant_account_id").value("77"))
+            .andExpect(jsonPath("$.account_number").value("177A"))
+            .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("888"))
+            .andExpect(jsonPath("$.business_unit_summary.business_unit_id").value("78"))
+            .andExpect(jsonPath("$.payment_state_summary.imposed_amount").value(700.58))
+            .andExpect(jsonPath("$.payment_state_summary.paid_amount").value(200.00))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
+            .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Anna"))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value("Graham"))
+            .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist());
 
         jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
     }
 
-    @DisplayName("Get header summary for defendant account - 500 Error [@PO-985]")
-    void getHeaderSummaryImpl_500Error(Logger log) throws Exception {
+    @DisplayName("Get header summary for organisation defendant account [@PO-2287]")
+    void getHeaderSummary_Organisation(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/500/header-summary")
-            .header("authorization", "Bearer some_value"));
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10001/header-summary")
+                                                          .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetHeaderSummary_Organisation: Response body:\n" + ToJsonString.toPrettyJson(body));
 
-        resultActions.andExpect(status().is5xxServerError())
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value("10001"))
+            .andExpect(jsonPath("$.account_number").value("10001A"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Kings Arms"))
+            .andExpect(jsonPath("$.party_details.individual_details").doesNotExist());
+
+        jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL: Get header summary for non-existent ID returns 404")
+    void getHeaderSummary_Opal_NotFound(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions ra = mockMvc.perform(
+            get(URL_BASE + "/500/header-summary")
+                .header("authorization", "Bearer some_value")
+        );
+
+        String body = ra.andReturn().getResponse().getContentAsString();
+        log.info(":getHeaderSummary_Opal_NotFound: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        ra.andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
+            .andExpect(jsonPath("$.status").value(404));
+    }
+
+    @DisplayName("LEGACY: Get header summary for non-existent ID returns 500")
+    void getHeaderSummary_Legacy_500(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions ra = mockMvc.perform(
+            get(URL_BASE + "/500/header-summary")
+                .header("authorization", "Bearer some_value")
+        );
+
+        String body = ra.andReturn().getResponse().getContentAsString();
+        log.info(":getHeaderSummary_Legacy_500: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        ra.andExpect(status().is5xxServerError())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
+
 
     @DisplayName("Search defendant accounts - POST with valid criteria [@PO-33, @PO-119]")
     void testPostDefendantAccountsSearch(Logger log) throws Exception {

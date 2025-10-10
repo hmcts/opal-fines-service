@@ -17,10 +17,19 @@
       "$ref": "./individualDetails.json"
     }
   },
-  "required": [
-    "party_id",
-    "organisation_flag",
-    "organisation_details",
-    "individual_details"
+  "required": ["party_id", "organisation_flag"],
+  "oneOf": [
+    {
+      "description": "Organisation party",
+      "properties": { "organisation_flag": { "const": true } },
+      "required": ["organisation_details"],
+      "not": { "required": ["individual_details"] }
+    },
+    {
+      "description": "Individual party",
+      "properties": { "organisation_flag": { "const": false } },
+      "required": ["individual_details"],
+      "not": { "required": ["organisation_details"] }
+    }
   ]
 }
