@@ -3,9 +3,6 @@ package uk.gov.hmcts.opal.repository.jpa;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
-import org.springframework.data.jpa.domain.Specification;
-import uk.gov.hmcts.opal.dto.DateDto;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -15,6 +12,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.data.jpa.domain.Specification;
+import uk.gov.hmcts.opal.dto.DateDto;
+
 
 public abstract class EntitySpecs<E> {
 
@@ -38,7 +38,7 @@ public abstract class EntitySpecs<E> {
     @SafeVarargs
     public final List<Specification<E>> specificationList(List<Optional<Specification<E>>> specsList,
                                                           Specification<E>... specs) {
-        List<Specification<E>> filteredList =  specsList
+        List<Specification<E>> filteredList = specsList
             .stream().filter(Optional::isPresent)
             .map(Optional::get)
             .collect(Collectors.toList());
@@ -98,7 +98,7 @@ public abstract class EntitySpecs<E> {
     }
 
     public static Predicate likeLowerCasePredicate(Path<String> path, CriteriaBuilder builder, String candidate) {
-        return builder.like(builder.lower(path),candidate.toLowerCase());
+        return builder.like(builder.lower(path), candidate.toLowerCase());
     }
 
     public static Optional<LocalDateTime> notNullOffsetDateTime(OffsetDateTime value) {

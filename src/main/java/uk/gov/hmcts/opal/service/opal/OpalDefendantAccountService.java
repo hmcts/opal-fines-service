@@ -1,11 +1,13 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
@@ -27,7 +29,6 @@ import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -51,18 +52,22 @@ import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
-import uk.gov.hmcts.opal.repository.AliasRepository;
+import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
+import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
+import uk.gov.hmcts.opal.repository.AliasRepository;
+import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
+import uk.gov.hmcts.opal.entity.AliasEntity;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import java.time.LocalDateTime;
 
@@ -75,7 +80,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final DefendantAccountRepository defendantAccountRepository;
 
-    private final DefendantAccountSpecs defendantAccountSpecs;
+    private final SearchDefendantAccountRepository searchDefendantAccountRepository;
+    private final SearchDefendantAccountSpecs searchDefendantAccountSpecs;
     private final DefendantAccountPaymentTermsRepository defendantAccountPaymentTermsRepository;
     private final DefendantAccountSummaryViewRepository defendantAccountSummaryViewRepository;
 
@@ -84,6 +90,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     @Autowired
     private AliasRepository aliasRepository;
+
 
     public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
         return defendantAccountRepository.findById(defendantAccountId)
@@ -105,11 +112,24 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     DefendantAccountHeaderSummary mapToDto(DefendantAccountHeaderViewEntity e) {
         return DefendantAccountHeaderSummary.builder()
+            .defendantAccountId(
+                e.getDefendantAccountId() != null ? e.getDefendantAccountId().toString() : null
+            )
+            .debtorType(
+                e.getDebtorType() != null
+                    ? e.getDebtorType()
+                    : (Boolean.TRUE.equals(e.getHasParentGuardian()) ? "Parent/Guardian" : "Defendant")
+            )
+            .isYouth(
+                e.getBirthDate() != null
+                    ? java.time.Period.between(e.getBirthDate(), java.time.LocalDate.now()).getYears() < 18
+                    : Boolean.FALSE
+            )
             .defendantPartyId(Optional.ofNullable(e.getPartyId()).map(Object::toString).orElse(null))
             .parentGuardianPartyId(Optional.ofNullable(e.getParentGuardianAccountPartyId())
                                        .map(Object::toString).orElse(null))
             .accountNumber(e.getAccountNumber())
-            .accountType(e.getAccountType())
+            .accountType(normaliseAccountType(e.getAccountType()))
             .prosecutorCaseReference(e.getProsecutorCaseReference())
             .fixedPenaltyTicketNumber(e.getFixedPenaltyTicketNumber())
             .accountStatusReference(buildAccountStatusReference(e.getAccountStatus()))
@@ -136,26 +156,35 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
 
     PartyDetails buildPartyDetails(DefendantAccountHeaderViewEntity e) {
+        boolean isOrganisation = Boolean.TRUE.equals(e.getOrganisation());
+
         return PartyDetails.builder()
             .partyId(
                 e.getPartyId() != null ? e.getPartyId().toString() : null
             )
             .organisationFlag(e.getOrganisation())
+
             .organisationDetails(
-                OrganisationDetails.builder()
+                isOrganisation
+                    ? OrganisationDetails.builder()
                     .organisationName(e.getOrganisationName())
+                    .organisationAliases(null)
                     .build()
+                    : null
             )
+
             .individualDetails(
-                IndividualDetails.builder()
+                !isOrganisation
+                    ? IndividualDetails.builder()
                     .title(e.getTitle())
                     .forenames(e.getFirstnames())
                     .surname(e.getSurname())
                     .dateOfBirth(e.getBirthDate() != null ? e.getBirthDate().toString() : null)
                     .age(e.getBirthDate() != null ? String.valueOf(calculateAge(e.getBirthDate())) : null)
-                    .individualAliases(Collections.emptyList())
                     .nationalInsuranceNumber(null)
+                    .individualAliases(null)
                     .build()
+                    : null
             )
             .build();
     }
@@ -198,27 +227,27 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts (Opal): criteria: {}", accountSearchDto);
 
-        Specification<DefendantAccountEntity> spec =
-            defendantAccountSpecs.filterByBusinessUnits(accountSearchDto.getBusinessUnitIds())
-                .and(defendantAccountSpecs.filterByActiveOnly(accountSearchDto.getActiveAccountsOnly()))
-                .and(defendantAccountSpecs.filterByAccountNumberStartsWithWithCheckLetter(accountSearchDto))
-                .and(defendantAccountSpecs.filterByPcrExact(accountSearchDto))
+        Specification<SearchDefendantAccountEntity> spec =
+            searchDefendantAccountSpecs.filterByBusinessUnits(accountSearchDto.getBusinessUnitIds())
+                .and(searchDefendantAccountSpecs.filterByActiveOnly(accountSearchDto.getActiveAccountsOnly()))
+                .and(searchDefendantAccountSpecs.filterByAccountNumberStartsWithWithCheckLetter(accountSearchDto))
+                .and(searchDefendantAccountSpecs.filterByPcrExact(accountSearchDto))
                 .and(
                     accountSearchDto.getDefendant() != null
                         && Boolean.TRUE.equals(accountSearchDto.getDefendant().getOrganisation())
-                        ? defendantAccountSpecs.filterByAliasesIfRequested(accountSearchDto)
-                        : defendantAccountSpecs.filterByNameIncludingAliases(accountSearchDto)
+                        ? searchDefendantAccountSpecs.filterByAliasesIfRequested(accountSearchDto)
+                        : searchDefendantAccountSpecs.filterByNameIncludingAliases(accountSearchDto)
                 )
-                .and(defendantAccountSpecs.filterByDobStartsWith(accountSearchDto))
-                .and(defendantAccountSpecs.filterByNiStartsWith(accountSearchDto))
-                .and(defendantAccountSpecs.filterByAddress1StartsWith(accountSearchDto))
-                .and(defendantAccountSpecs.filterByPostcodeStartsWith(accountSearchDto));
+                .and(searchDefendantAccountSpecs.filterByDobStartsWith(accountSearchDto))
+                .and(searchDefendantAccountSpecs.filterByNiStartsWith(accountSearchDto))
+                .and(searchDefendantAccountSpecs.filterByAddress1StartsWith(accountSearchDto))
+                .and(searchDefendantAccountSpecs.filterByPostcodeStartsWith(accountSearchDto));
 
 
-        List<DefendantAccountEntity> rows = defendantAccountRepository.findAll(spec);
+        List<SearchDefendantAccountEntity> rows = searchDefendantAccountRepository.findAll(spec);
 
         List<DefendantAccountSummaryDto> summaries = new ArrayList<>(rows.size());
-        for (DefendantAccountEntity e : rows) {
+        for (SearchDefendantAccountEntity e : rows) {
             summaries.add(toSummaryDto(e));
         }
 
@@ -241,52 +270,59 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return toPaymentTermsResponse(entity);
     }
 
-    private DefendantAccountSummaryDto toSummaryDto(DefendantAccountEntity e) {
-        PartyEntity party = Optional.ofNullable(e.getParties())
-            .flatMap(list -> list.stream()
-                .map(DefendantAccountPartiesEntity::getParty)
-                .findFirst())
-            .orElse(null);
+    private DefendantAccountSummaryDto toSummaryDto(SearchDefendantAccountEntity e) {
+        boolean isOrganisation = Boolean.TRUE.equals(e.getOrganisation());
 
-        boolean isOrganisation = party != null && party.isOrganisation();
-        String organisationName = party != null ? party.getOrganisationName() : null;
-        String title = party != null ? party.getTitle() : null;
-        String forenames = party != null ? party.getForenames() : null;
-        String surname = party != null ? party.getSurname() : null;
+        // Build aliases from flattened alias1..alias5 columns on the view
+        List<AliasDto> aliases = new ArrayList<>();
+        String[] aliasValues = { e.getAlias1(), e.getAlias2(), e.getAlias3(), e.getAlias4(), e.getAlias5() };
 
-        List<AliasDto> aliases = party != null
-            ? aliasRepository.findByParty_PartyId(party.getPartyId()).stream()
-            .map(a -> AliasDto.builder()
-                .aliasNumber(a.getSequenceNumber())
-                .organisationName(a.getOrganisationName())
-                .surname(a.getSurname())
-                .forenames(a.getForenames())
-                .build())
-            .toList()
-            : List.of();
+        for (int i = 0; i < aliasValues.length; i++) {
+            String value = aliasValues[i];
+            if (value == null || value.isBlank()) {
+                continue;
+            }
+            AliasDto.AliasDtoBuilder b = AliasDto.builder().aliasNumber(i + 1);
+
+            if (isOrganisation) {
+                // For organisations the view gives each alias as an organisation name
+                b.organisationName(value);
+            } else {
+                // For individuals the view gives "forenames surname" – split on the last space
+                String trimmed = value.trim();
+                int cut = trimmed.lastIndexOf(' ');
+                if (cut > 0) {
+                    b.forenames(trimmed.substring(0, cut).trim())
+                        .surname(trimmed.substring(cut + 1).trim());
+                } else {
+                    // No space: treat the whole thing as a surname
+                    b.surname(trimmed);
+                }
+            }
+
+            aliases.add(b.build());
+        }
 
         return DefendantAccountSummaryDto.builder()
             .defendantAccountId(String.valueOf(e.getDefendantAccountId()))
             .accountNumber(e.getAccountNumber())
             .organisation(isOrganisation)
-            .organisationName(organisationName)
-            .defendantTitle(!isOrganisation ? title : null)
-            .defendantFirstnames(!isOrganisation ? forenames : null)
-            .defendantSurname(!isOrganisation ? surname : null)
-            .addressLine1(party != null ? party.getAddressLine1() : null)
-            .postcode(party != null ? party.getPostcode() : null)
-            .businessUnitName(e.getBusinessUnit() != null ? e.getBusinessUnit().getBusinessUnitName() : null)
-            .businessUnitId(e.getBusinessUnit() != null
-                                ? String.valueOf(e.getBusinessUnit().getBusinessUnitId()) : null)
+            .organisationName(e.getOrganisationName())
+            .defendantTitle(isOrganisation ? null : e.getTitle())
+            .defendantFirstnames(isOrganisation ? null : e.getForenames())
+            .defendantSurname(isOrganisation ? null : e.getSurname())
+            .addressLine1(e.getAddressLine1())
+            .postcode(e.getPostcode())
+            .businessUnitName(e.getBusinessUnitName())
+            .businessUnitId(String.valueOf(e.getBusinessUnitId()))
             .prosecutorCaseReference(e.getProsecutorCaseReference())
-            .lastEnforcementAction(e.getLastEnforcement())
-            .accountBalance(e.getAccountBalance())
-            .birthDate(party != null && !isOrganisation
-                           ? uk.gov.hmcts.opal.util.DateTimeUtils.toString(party.getBirthDate())
-                           : null)
+            .lastEnforcementAction(e.getLastEnforcement()) // entity now maps this as String
+            .accountBalance(e.getDefendantAccountBalance())
+            .birthDate(e.getBirthDate() != null ? e.getBirthDate().toString() : null)
             .aliases(aliases)
             .build();
     }
+
 
     @Override
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
@@ -413,6 +449,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .employerDetails(employerDetails)
             .languagePreferences(languagePreferences)
             .build();
+    }
+
+    private List<AliasEntity> getAliasesForDefendantAccount(Long defendantAccountId) {
+        return aliasRepository.findAll(AliasSpecs.byDefendantAccountId(defendantAccountId));
     }
 
     private static GetDefendantAccountPaymentTermsResponse toPaymentTermsResponse(PaymentTermsEntity entity) {
@@ -688,4 +728,18 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
     }
+
+    private static String normaliseAccountType(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        return switch (raw.trim()) {
+            case "Fines", "Fine" -> "Fine";
+            case "Conditional Caution" -> "Conditional Caution";
+            case "Confiscation" -> "Confiscation";
+            case "Fixed Penalty", "Fixed Penalty Registration" -> "Fixed Penalty";
+            default -> raw;
+        };
+    }
+
 }

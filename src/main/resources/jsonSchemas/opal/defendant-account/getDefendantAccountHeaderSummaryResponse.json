@@ -4,6 +4,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "defendant_account_id": { "type": "string" },
     "account_number": { "type": "string" },
     "defendant_party_id": { "type": "string" },
     "parent_guardian_party_id": { "type": ["string", "null"] },
@@ -32,6 +33,7 @@
     }
   },
   "required": [
+    "defendant_account_id",
     "account_number",
     "defendant_party_id",
     "parent_guardian_party_id",
