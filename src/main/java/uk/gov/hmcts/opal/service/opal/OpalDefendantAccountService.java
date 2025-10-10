@@ -786,7 +786,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .orElse(null);
 
         CollectionOrderDto collectionOrderDto = CollectionOrderDto.builder()
-            .collectionOrderFlag(entity.isCollectionOrder())
+            .collectionOrderFlag(entity.getCollectionOrder())
             .collectionOrderDate(entity.getCollectionOrderEffectiveDate() != null
                 ? entity.getCollectionOrderEffectiveDate().toString()
                 : null)
@@ -930,9 +930,21 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
         CourtEntity court = courtRepository.findById(courtId.longValue())
             .orElseThrow(() -> new EntityNotFoundException("Court not found: " + courtId));
-        entity.setEnforcingCourt(court);
+        entity.setEnforcingCourt(asLite(court));
         log.debug(":applyEnforcementCourt: accountId={}, courtId={}",
             entity.getDefendantAccountId(), court.getCourtId());
+    }
+
+    private CourtEntity.Lite asLite(CourtEntity court) {
+        return CourtEntity.Lite.builder()
+            .courtId(court.getCourtId())
+            .businessUnitId(court.getBusinessUnitId())
+            .courtCode(court.getCourtCode())
+            .localJusticeAreaId(court.getLocalJusticeAreaId())
+            .courtType(court.getCourtType())
+            .division(court.getDivision())
+            .name(court.getName())
+            .build();
     }
 
     private void applyCollectionOrder(DefendantAccountEntity entity, CollectionOrderDto co) {
@@ -967,5 +979,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             override.getEnforcer() != null ? override.getEnforcer().getEnforcerId() : null,
             override.getLja() != null ? override.getLja().getLjaId() : null);
     }
+
 }
 
