@@ -2,7 +2,7 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 
 buildscript {
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:11.13.0")
+    classpath("org.flywaydb:flyway-database-postgresql:11.13.3")
   }
 }
 
@@ -14,7 +14,7 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.53.0'
   id 'org.sonarqube' version '6.2.0.5505'
   id 'uk.gov.hmcts.java' version '0.12.67'
-  id 'org.flywaydb.flyway' version '11.13.0'
+  id 'org.flywaydb.flyway' version '11.13.3'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.34'
   id "org.openapi.generator" version "7.13.0"
 }
@@ -386,8 +386,10 @@ dependencies {
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.7'
   implementation group: 'io.rest-assured', name: 'rest-assured'
-  implementation 'org.flywaydb:flyway-core'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.13.0'
+  implementation 'org.flywaydb:flyway-core:11.13.3'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.13.3', {
+    exclude group: 'org.flywaydb', module: 'flyway-core'
+  }
   implementation 'org.postgresql:postgresql'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
@@ -440,8 +442,8 @@ dependencies {
 
   //Added to override dependency version to resolve vulnerability
   implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.12'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.11'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.11'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.12'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.12'
   implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.12'
   implementation 'org.apache.commons:commons-lang3:3.19.0'
 
