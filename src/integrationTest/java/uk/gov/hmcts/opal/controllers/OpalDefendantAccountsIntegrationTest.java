@@ -335,6 +335,11 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
+    void testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned() throws Exception {
+        super.testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned(log);
+    }
+
+    @Test
     void opal_updateDefendantAccount_unauthorised() throws Exception {
         super.patch_forbidden_whenUserLacksAccountMaintenance(log);
     }
