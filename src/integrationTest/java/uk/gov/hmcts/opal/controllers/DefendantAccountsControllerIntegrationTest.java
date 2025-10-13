@@ -2210,7 +2210,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(content().string(""));
     }
 
-    @DisplayName("PO-2241 / AC1a+AC1b: With core '177' and one inactive record, both 177A and 177B are returned (active flag ignored)")
+    @DisplayName("PO-2241 / AC1a+AC1b: Search core '177'; 177A and 177B returned (active flag ignored)")
     void testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
@@ -2230,7 +2230,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
               },
               "defendant": null
             }
-        """));
+            """));
 
         String bodyTrue = activeTrue.andReturn().getResponse().getContentAsString();
         log.info(":PO-2241 AC1a+AC1b (active_accounts_only=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
@@ -2256,7 +2256,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
               },
               "defendant": null
             }
-        """));
+            """));
 
         String bodyFalse = activeFalse.andReturn().getResponse().getContentAsString();
         log.info(":PO-2241 AC1a+AC1b (active_accounts_only=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
