@@ -22,7 +22,6 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +47,6 @@ import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
-import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
@@ -312,188 +310,6 @@ class OpalDefendantAccountServiceTest {
     }
 
     @Test
-    void searchDefendantAccounts_mapsAliases_forIndividual() {
-        // ---- Arrange: build a DefendantAccountEntity row the service actually uses ----
-        var party = PartyEntity.builder()
-            .partyId(10L)
-            .organisation(false)
-            .title("Mr")
-            .forenames("Amy")
-            .surname("Pond")
-            .addressLine1("1 Main St")
-            .postcode("AB12CD")
-            .birthDate(LocalDate.of(2000, 1, 1))
-            .build();
-
-        var dap = DefendantAccountPartiesEntity.builder()
-            .defendantAccountPartyId(100L)
-            .party(party)
-            .debtor(true)
-            .associationType("DEF")
-            .build();
-
-        var acc = DefendantAccountEntity.builder()
-            .defendantAccountId(1L)
-            .accountNumber("ACC1")
-            .prosecutorCaseReference("PCR1")
-            .lastEnforcement("LEVY")
-            .accountBalance(new BigDecimal("12.34"))
-            .parties(List.of(dap))
-            .build();
-
-        // The service queries defendantAccountRepository, not searchDefAccRepo
-        when(defendantAccountRepository.findAll(ArgumentMatchers.<Specification<DefendantAccountEntity>>any()))
-            .thenReturn(List.of(acc));
-
-        // Inject and stub aliasRepository (field is @Autowired on the service)
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        ReflectionTestUtils.setField(service, "aliasRepository", aliasRepo);
-
-        // Provide three aliases equivalent to your alias1/2/5 expectations
-        var a1 = AliasEntity.builder().sequenceNumber(1).forenames("Amy").surname("Pond").build();
-        var a2 = AliasEntity.builder().sequenceNumber(2).forenames("Amelia").surname("Pond").build();
-        var a5 = AliasEntity.builder().sequenceNumber(5).forenames(null).surname("Pond").build();
-        when(aliasRepo.findByParty_PartyId(10L)).thenReturn(List.of(a1, a2, a5));
-
-        // ---- Act ----
-        var out = service.searchDefendantAccounts(emptyCriteria());
-
-        // ---- Assert ----
-        assertEquals(1, out.getCount());
-        var dto = out.getDefendantAccounts().getFirst();
-
-        assertFalse(dto.getOrganisation());
-        assertEquals("ACC1", dto.getAccountNumber());
-        assertEquals("LEVY", dto.getLastEnforcementAction());
-        assertEquals(0, dto.getAccountBalance().compareTo(new BigDecimal("12.34")));
-
-        List<AliasDto> aliases = dto.getAliases();
-        assertEquals(3, aliases.size());
-
-        // alias #1
-        var a1Dto = aliases.stream().filter(a -> a.getAliasNumber() == 1).findFirst().orElseThrow();
-        assertEquals("Amy", a1Dto.getForenames());
-        assertEquals("Pond", a1Dto.getSurname());
-        assertNull(a1Dto.getOrganisationName());
-
-        // alias #5 single-token surname
-        var a5Dto = aliases.stream().filter(a -> a.getAliasNumber() == 5).findFirst().orElseThrow();
-        assertNull(a5Dto.getForenames());
-        assertEquals("Pond", a5Dto.getSurname());
-    }
-
-    @Test
-    void searchDefendantAccounts_mapsAliases_forOrganisation() {
-        // ---- Arrange: build the entity shape this service actually uses ----
-        var party = PartyEntity.builder()
-            .partyId(20L)
-            .organisation(true)
-            .organisationName("Wayne Enterprises")
-            .build();
-
-        var dap = DefendantAccountPartiesEntity.builder()
-            .defendantAccountPartyId(200L)
-            .party(party)
-            .debtor(true)
-            .associationType("DEF")
-            .build();
-
-        var acc = DefendantAccountEntity.builder()
-            .defendantAccountId(2L)
-            .accountNumber("ACC2")
-            .prosecutorCaseReference("PCR2")
-            .lastEnforcement("CLAMP")
-            .accountBalance(new BigDecimal("99.00"))
-            .parties(List.of(dap))
-            .build();
-
-        // The service queries defendantAccountRepository, not searchDefAccRepo
-        when(defendantAccountRepository.findAll(ArgumentMatchers.<Specification<DefendantAccountEntity>>any()))
-            .thenReturn(List.of(acc));
-
-        // Inject & stub aliasRepository to return ORG aliases (org name only; no person fields)
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        ReflectionTestUtils.setField(service, "aliasRepository", aliasRepo);
-
-        var orgA1 = AliasEntity.builder().sequenceNumber(1).organisationName("Wayne Ent Ltd").build();
-        var orgA2 = AliasEntity.builder().sequenceNumber(2).organisationName("Wayne Group").build();
-        var orgA5 = AliasEntity.builder().sequenceNumber(5).organisationName("Wayne Holdings").build();
-        when(aliasRepo.findByParty_PartyId(20L)).thenReturn(List.of(orgA1, orgA2, orgA5));
-
-        // ---- Act ----
-        DefendantAccountSearchResultsDto out = service.searchDefendantAccounts(emptyCriteria());
-
-        // ---- Assert ----
-        assertEquals(1, out.getCount());
-        var dto = out.getDefendantAccounts().get(0);
-
-        assertTrue(dto.getOrganisation());
-        assertEquals("Wayne Enterprises", dto.getOrganisationName());
-        // Personal fields must be null for orgs
-        assertNull(dto.getDefendantTitle());
-        assertNull(dto.getDefendantFirstnames());
-        assertNull(dto.getDefendantSurname());
-
-        List<AliasDto> aliases = dto.getAliases();
-        assertEquals(3, aliases.size());
-        assertTrue(aliases.stream().allMatch(a ->
-                                                 a.getOrganisationName() != null
-                                                     && a.getForenames() == null
-                                                     && a.getSurname() == null
-        ));
-
-        // Optional: verify the correct repo was used
-        verify(defendantAccountRepository, times(1))
-            .findAll(ArgumentMatchers.<Specification<DefendantAccountEntity>>any());
-    }
-
-    @Test
-    void searchDefendantAccounts_ignoresBlankAliasSlots() {
-        // ---- Arrange: build the entity shape this service actually uses ----
-        var party = PartyEntity.builder()
-            .partyId(30L)
-            .organisation(false)
-            .forenames("John")
-            .surname("Doe")
-            .build();
-
-        var dap = DefendantAccountPartiesEntity.builder()
-            .defendantAccountPartyId(300L)
-            .party(party)
-            .debtor(true)
-            .associationType("DEF")
-            .build();
-
-        var acc = DefendantAccountEntity.builder()
-            .defendantAccountId(3L)
-            .accountNumber("ACC3")
-            .parties(List.of(dap))
-            .build();
-
-        // Service queries defendantAccountRepository, not searchDefAccRepo
-        when(defendantAccountRepository.findAll(ArgumentMatchers.<Specification<DefendantAccountEntity>>any()))
-            .thenReturn(List.of(acc));
-
-        // Inject & stub aliasRepository so only one non-blank alias comes back
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        ReflectionTestUtils.setField(service, "aliasRepository", aliasRepo);
-
-        // Only alias #1 is real; the "blank slots" (alias2..alias5) are just omitted by the repo
-        var a1 = AliasEntity.builder().sequenceNumber(1).forenames("John").surname("Doe").build();
-        when(aliasRepo.findByParty_PartyId(30L)).thenReturn(List.of(a1));
-
-        // ---- Act ----
-        var out = service.searchDefendantAccounts(emptyCriteria());
-        var aliases = out.getDefendantAccounts().get(0).getAliases();
-
-        // ---- Assert ----
-        assertEquals(1, aliases.size());
-        assertEquals(1, aliases.get(0).getAliasNumber());
-        assertEquals("John", aliases.get(0).getForenames());
-        assertEquals("Doe", aliases.get(0).getSurname());
-    }
-
-    @Test
     void whenAccountNumberPresent_activeOnlyIsIgnored() {
         // given
         AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
@@ -568,15 +384,6 @@ class OpalDefendantAccountServiceTest {
             .findAll(ArgumentMatchers.<Specification<DefendantAccountEntity>>any());
     }
 
-    private AccountSearchDto emptyCriteria() {
-        AccountSearchDto c = mock(AccountSearchDto.class);
-        when(c.getBusinessUnitIds()).thenReturn(null);
-        when(c.getActiveAccountsOnly()).thenReturn(null);
-        when(c.getReferenceNumberDto()).thenReturn(null);
-        when(c.getDefendant()).thenReturn(null);
-        return c;
-    }
-
     @Test
     void updateDefendantAccount_happyPath_updatesAllGroups_andReturnsRepresentation() {
         // ---------- Arrange ----------
@@ -639,10 +446,11 @@ class OpalDefendantAccountServiceTest {
         final OpalDefendantAccountService svc = new OpalDefendantAccountService(
             headerViewRepo,
             accountRepo,
+            defendantAccountSpecs,
             searchDefAccRepo,
-            searchDefAccSpecs,
+            searchSpecsSpy,
             paymentTermsRepo,
-            dasvRepo,
+            dasvRepository,
             courtRepo,
             amendmentService,
             em,
@@ -726,7 +534,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null, null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -744,7 +552,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenBusinessUnitMismatch() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null, null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -774,7 +582,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenCollectionOrderDateInvalid() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null, null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -806,7 +614,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenEntityNotFound() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null, null);
 
         when(accountRepo.findById(99L)).thenReturn(Optional.empty());
 
@@ -831,6 +639,7 @@ class OpalDefendantAccountServiceTest {
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
             null,
             accountRepo,
+            null,
             null,
             null,
             null,
@@ -880,6 +689,7 @@ class OpalDefendantAccountServiceTest {
             null,
             null,
             null,
+            null,
             mock(CourtRepository.class),
             mock(AmendmentService.class),
             mock(EntityManager.class),
@@ -921,6 +731,7 @@ class OpalDefendantAccountServiceTest {
             null,
             null,
             null,
+            null,
             amend,
             em,
             noteRepo,
@@ -946,6 +757,7 @@ class OpalDefendantAccountServiceTest {
         var svc = new OpalDefendantAccountService(
             null,
             accountRepo,
+            null,
             null,
             null,
             null,
@@ -978,39 +790,52 @@ class OpalDefendantAccountServiceTest {
 
     @Test
     void searchDefendantAccounts_mapsAliases_forIndividual() {
-        // Given a person with mixed alias shapes
-        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
-            .defendantAccountId(1L)
-            .accountNumber("ACC1")
+        // --- Arrange: build the data shape this service actually uses ---
+        var party = PartyEntity.builder()
+            .partyId(10L)
             .organisation(false)
-            .organisationName(null)
             .title("Mr")
             .forenames("Amy")
             .surname("Pond")
             .addressLine1("1 Main St")
             .postcode("AB12CD")
-            .businessUnitName("BU")
-            .businessUnitId(99L)
-            .prosecutorCaseReference("PCR1")
-            .lastEnforcement("LEVY")
-            .defendantAccountBalance(new BigDecimal("12.34"))
             .birthDate(LocalDate.of(2000, 1, 1))
-            .alias1("Amy Pond")       // normal "forenames surname"
-            .alias2("Amelia Pond")    // another normal case
-            .alias3("  ")             // blank → ignored
-            .alias4(null)             // null → ignored
-            .alias5("Pond")           // single token → treated as surname
             .build();
 
-        when(searchDefAccRepo.findAll(
-            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
-        )).thenReturn(Collections.singletonList(row));
+        var dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(100L)
+            .party(party)
+            .debtor(true)
+            .associationType("DEF")
+            .build();
 
-        // When
-        DefendantAccountSearchResultsDto out =
-            service.searchDefendantAccounts(emptyCriteria());
+        var acc = DefendantAccountEntity.builder()
+            .defendantAccountId(1L)
+            .accountNumber("ACC1")
+            .prosecutorCaseReference("PCR1")
+            .lastEnforcement("LEVY")
+            .accountBalance(new BigDecimal("12.34"))
+            .parties(List.of(dap))
+            .build();
 
-        // Then
+        // Service calls defendantAccountRepository.findAll(spec) — stub that:
+        when(defendantAccountRepository.findAll(ArgumentMatchers.<Specification<DefendantAccountEntity>>any()))
+            .thenReturn(List.of(acc));
+
+        // Inject and stub aliasRepository (service uses it to load aliases)
+        AliasRepository aliasRepo = mock(AliasRepository.class);
+        ReflectionTestUtils.setField(service, "aliasRepository", aliasRepo);
+
+        // Provide three aliases (equivalent to alias1, alias2, alias5)
+        var a1 = AliasEntity.builder().sequenceNumber(1).forenames("Amy").surname("Pond").build();
+        var a2 = AliasEntity.builder().sequenceNumber(2).forenames("Amelia").surname("Pond").build();
+        var a5 = AliasEntity.builder().sequenceNumber(5).forenames(null).surname("Pond").build();
+        when(aliasRepo.findByParty_PartyId(10L)).thenReturn(List.of(a1, a2, a5));
+
+        // --- Act ---
+        var out = service.searchDefendantAccounts(emptyCriteria());
+
+        // --- Assert ---
         assertEquals(1, out.getCount());
         var dto = out.getDefendantAccounts().get(0);
 
@@ -1019,89 +844,132 @@ class OpalDefendantAccountServiceTest {
         assertEquals("LEVY", dto.getLastEnforcementAction());
         assertEquals(0, dto.getAccountBalance().compareTo(new BigDecimal("12.34")));
 
-        // Aliases: alias1, alias2, alias5 should be present
         List<AliasDto> aliases = dto.getAliases();
         assertEquals(3, aliases.size());
 
-        // Check a “forenames surname” split
-        AliasDto a1 = aliases.stream().filter(a -> a.getAliasNumber() == 1).findFirst().orElseThrow();
-        assertEquals("Amy", a1.getForenames());
-        assertEquals("Pond", a1.getSurname());
-        assertNull(a1.getOrganisationName());
+        var a1Dto = aliases.stream().filter(a -> a.getAliasNumber() == 1).findFirst().orElseThrow();
+        assertEquals("Amy", a1Dto.getForenames());
+        assertEquals("Pond", a1Dto.getSurname());
+        assertNull(a1Dto.getOrganisationName());
 
-        // Single token treated as surname
-        AliasDto a5 = aliases.stream().filter(a -> a.getAliasNumber() == 5).findFirst().orElseThrow();
-        assertNull(a5.getForenames());
-        assertEquals("Pond", a5.getSurname());
+        var a5Dto = aliases.stream().filter(a -> a.getAliasNumber() == 5).findFirst().orElseThrow();
+        assertNull(a5Dto.getForenames());
+        assertEquals("Pond", a5Dto.getSurname());
     }
 
     @Test
     void searchDefendantAccounts_mapsAliases_forOrganisation() {
-        // Given an organisation, alias fields are full org names
-        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
-            .defendantAccountId(2L)
-            .accountNumber("ACC2")
+        // ---- Arrange: build the shape the service actually uses ----
+        var party = PartyEntity.builder()
+            .partyId(20L)
             .organisation(true)
             .organisationName("Wayne Enterprises")
-            .businessUnitName("BU")
-            .businessUnitId(88L)
-            .prosecutorCaseReference("PCR2")
-            .lastEnforcement("CLAMP")
-            .defendantAccountBalance(new BigDecimal("99.00"))
-            .alias1("Wayne Ent Ltd")
-            .alias2("Wayne Group")
-            .alias3(null)
-            .alias4("")
-            .alias5(" Wayne Holdings ")
             .build();
 
-        when(searchDefAccRepo.findAll(
-            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
-        )).thenReturn(Collections.singletonList(row));
+        var dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(200L)
+            .party(party)
+            .debtor(true)
+            .associationType("DEF")
+            .build();
 
-        DefendantAccountSearchResultsDto out = service.searchDefendantAccounts(emptyCriteria());
+        var acc = DefendantAccountEntity.builder()
+            .defendantAccountId(2L)
+            .accountNumber("ACC2")
+            .prosecutorCaseReference("PCR2")
+            .lastEnforcement("CLAMP")
+            .accountBalance(new BigDecimal("99.00"))
+            .parties(List.of(dap))
+            .build();
 
+        // Service uses defendantAccountRepository.findAll(spec)
+        when(defendantAccountRepository.findAll(ArgumentMatchers.<Specification<DefendantAccountEntity>>any()))
+            .thenReturn(List.of(acc));
+
+        // Inject & stub aliasRepository: org aliases have organisationName only
+        AliasRepository aliasRepo = mock(AliasRepository.class);
+        ReflectionTestUtils.setField(service, "aliasRepository", aliasRepo);
+
+        var orgA1 = AliasEntity.builder().sequenceNumber(1).organisationName("Wayne Ent Ltd").build();
+        var orgA2 = AliasEntity.builder().sequenceNumber(2).organisationName("Wayne Group").build();
+        var orgA5 = AliasEntity.builder().sequenceNumber(5).organisationName("Wayne Holdings").build();
+        when(aliasRepo.findByParty_PartyId(20L)).thenReturn(List.of(orgA1, orgA2, orgA5));
+
+        // ---- Act ----
+        var out = service.searchDefendantAccounts(emptyCriteria());
+
+        // ---- Assert ----
+        assertEquals(1, out.getCount());
         var dto = out.getDefendantAccounts().get(0);
 
         assertTrue(dto.getOrganisation());
         assertEquals("Wayne Enterprises", dto.getOrganisationName());
-        // Personal fields must be null for orgs
         assertNull(dto.getDefendantTitle());
         assertNull(dto.getDefendantFirstnames());
         assertNull(dto.getDefendantSurname());
 
-        // Aliases: names go into organisationName; person fields null
-        List<AliasDto> aliases = dto.getAliases();
+        var aliases = dto.getAliases();
         assertEquals(3, aliases.size());
         assertTrue(aliases.stream().allMatch(a ->
                                                  a.getOrganisationName() != null
                                                      && a.getForenames() == null
-                                                     && a.getSurname() == null));
+                                                     && a.getSurname() == null
+        ));
+
+        // Optional sanity check: correct repo called
+        verify(defendantAccountRepository, times(1))
+            .findAll(ArgumentMatchers.<Specification<DefendantAccountEntity>>any());
     }
 
     @Test
     void searchDefendantAccounts_ignoresBlankAliasSlots() {
-        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
-            .defendantAccountId(3L)
-            .accountNumber("ACC3")
+        // ---- Arrange: build the entity shape this service actually uses ----
+        var party = PartyEntity.builder()
+            .partyId(30L)
             .organisation(false)
-            .alias1("John Doe")
-            .alias2("   ")
-            .alias3("")
-            .alias4(null)
-            .alias5(null)
+            .forenames("John")
+            .surname("Doe")
             .build();
 
-        when(searchDefAccRepo.findAll(
-            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
-        )).thenReturn(Collections.singletonList(row));
+        var dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(300L)
+            .party(party)
+            .debtor(true)
+            .associationType("DEF")
+            .build();
 
+        var acc = DefendantAccountEntity.builder()
+            .defendantAccountId(3L)
+            .accountNumber("ACC3")
+            .parties(List.of(dap))
+            .build();
+
+        // Service queries defendantAccountRepository, not searchDefAccRepo
+        when(defendantAccountRepository.findAll(ArgumentMatchers.<Specification<DefendantAccountEntity>>any()))
+            .thenReturn(List.of(acc));
+
+        // Inject & stub aliasRepository so only one non-blank alias is returned
+        AliasRepository aliasRepo = mock(AliasRepository.class);
+        ReflectionTestUtils.setField(service, "aliasRepository", aliasRepo);
+
+        // Only alias #1 exists; “blank slots” simply aren’t returned by the repo
+        var a1 = AliasEntity.builder().sequenceNumber(1).forenames("John").surname("Doe").build();
+        when(aliasRepo.findByParty_PartyId(30L)).thenReturn(List.of(a1));
+
+        // ---- Act ----
         var out = service.searchDefendantAccounts(emptyCriteria());
         var aliases = out.getDefendantAccounts().get(0).getAliases();
+
+        // ---- Assert ----
+        assertEquals(1, out.getCount());
         assertEquals(1, aliases.size());
         assertEquals(1, aliases.get(0).getAliasNumber());
         assertEquals("John", aliases.get(0).getForenames());
         assertEquals("Doe", aliases.get(0).getSurname());
+
+        // (Optional) ensure the correct repo was used
+        verify(defendantAccountRepository, times(1))
+            .findAll(ArgumentMatchers.<Specification<DefendantAccountEntity>>any());
     }
 
     private AccountSearchDto emptyCriteria() {
