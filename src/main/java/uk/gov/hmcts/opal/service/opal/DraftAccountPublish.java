@@ -10,7 +10,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.service.iface.DraftAccountPublishInterface;
-import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
+import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -23,7 +23,7 @@ import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
 @RequiredArgsConstructor
 public class DraftAccountPublish implements DraftAccountPublishInterface {
 
-    private final DraftAccountTransactions draftAccountTransactions;
+    private final DraftAccountTransactional draftAccountTransactional;
 
     @Override
     public DraftAccountEntity publishDefendantAccount(DraftAccountEntity publishEntity, BusinessUnitUser unitUser) {
@@ -31,7 +31,7 @@ public class DraftAccountPublish implements DraftAccountPublishInterface {
         log.debug(":publishDefendantAccount: About to call Out to Opal PostgreSQL Stored Procedure");
 
         try {
-            Map<String, Object> outputs = draftAccountTransactions.publishAccountStoredProc(publishEntity);
+            Map<String, Object> outputs = draftAccountTransactional.publishAccountStoredProc(publishEntity);
 
             String accountNumber = outputs.getOrDefault(DEF_ACC_NO, "<null>").toString();
             Long accountId = Long.parseLong(outputs.getOrDefault(DEF_ACC_ID, "0").toString());
@@ -40,8 +40,9 @@ public class DraftAccountPublish implements DraftAccountPublishInterface {
 
             publishEntity.setAccountId(accountId);
             publishEntity.setAccountNumber(accountNumber);
-            return draftAccountTransactions.updateStatus(publishEntity, DraftAccountStatus.PUBLISHED,
-                                                         draftAccountTransactions);
+            return draftAccountTransactional.updateStatus(publishEntity, DraftAccountStatus.PUBLISHED,
+                                                          draftAccountTransactional
+            );
         } catch (JpaSystemException | InvalidDataAccessApiUsageException e) {
             log.error(":publishDefendantAccount: Error Class: {}", e.getClass().getName());
             log.error(":publishDefendantAccount: ", e);
@@ -52,8 +53,9 @@ public class DraftAccountPublish implements DraftAccountPublishInterface {
             );
             publishEntity.setTimelineData(timelineData.toJson());
             publishEntity.setStatusMessage(e.getMessage());
-            return draftAccountTransactions.updateStatus(publishEntity, DraftAccountStatus.PUBLISHING_FAILED,
-                                                         draftAccountTransactions);
+            return draftAccountTransactional.updateStatus(publishEntity, DraftAccountStatus.PUBLISHING_FAILED,
+                                                          draftAccountTransactional
+            );
         }
     }
 }

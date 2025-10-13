@@ -62,6 +62,7 @@ public class MinorCreditorController {
         @RequestHeader(value = "Authorization", required = false)  String authHeaderValue,
         @RequestHeader(value = "If-Match") String ifMatch,
         @RequestParam("ignore_missing") Optional<Boolean> ignoreMissing) {
+        log.warn("TEST ENDPOINT: Request to delete creditor account {} and all associated data", minorCreditorId);
 
         // Note: This endpoint is used for testing only, so the 'If-Match' check is not actually used.
         boolean checkExisted = !(ignoreMissing.orElse(false));
