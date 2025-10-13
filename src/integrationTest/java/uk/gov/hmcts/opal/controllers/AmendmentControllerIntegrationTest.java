@@ -28,14 +28,6 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.service.opal.AmendmentService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
-import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.amendment.RecordType;
-import uk.gov.hmcts.opal.service.opal.AmendmentService;
-import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.AmendmentControllerIntegrationTest")

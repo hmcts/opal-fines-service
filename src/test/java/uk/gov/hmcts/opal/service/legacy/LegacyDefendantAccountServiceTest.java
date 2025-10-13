@@ -746,28 +746,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals(1, out.getPartyDetails().getIndividualDetails().getIndividualAliases().size());
     }
 
-    // --- NEW: cover the three not-implemented public APIs (no reflection) ---
-    @Test
-    void testGetDefendantAccountParty_notImplemented() {
-        assertThrows(UnsupportedOperationException.class,
-                     () -> legacyDefendantAccountService.getDefendantAccountParty(1L, 2L));
-    }
-
-    @Test
-    void testGetAtAGlance_notImplemented() {
-        assertThrows(UnsupportedOperationException.class,
-                     () -> legacyDefendantAccountService.getAtAGlance(1L));
-    }
-
-    @Test
-    void testUpdateDefendantAccount_notImplemented() {
-        var ex = assertThrows(org.springframework.web.server.ResponseStatusException
-                                  .class,
-                              () -> legacyDefendantAccountService.updateDefendantAccount(1L, "78", null, "\"0\"",
-                                                                                         "tester"));
-        assertEquals(HttpStatus.NOT_IMPLEMENTED, ex.getStatusCode());
-    }
-
     private GetDefendantAccountPartyLegacyResponse legacyPartyIndividual() {
         IndividualDetailsLegacy ind = IndividualDetailsLegacy.builder()
             .title("Ms").forenames("Sam").surname("Graham").build();
