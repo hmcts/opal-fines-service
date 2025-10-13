@@ -309,8 +309,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("SAMPLE", published.getAccountNumber());
         assertEquals("Fine", published.getAccountType());
         assertEquals("L", published.getAccountStatusReference().getAccountStatusCode());
-        assertNull(published.getAccountStatusReference().getAccountStatusDisplayName(),
-                   "Legacy should not populate display name");
+        assertEquals("Live", published.getAccountStatusReference().getAccountStatusDisplayName());
         assertEquals("78", published.getBusinessUnitSummary().getBusinessUnitId());
         assertEquals("Test BU", published.getBusinessUnitSummary().getBusinessUnitName());
         assertEquals(new BigDecimal("700.58"), published.getPaymentStateSummary().getImposedAmount());
