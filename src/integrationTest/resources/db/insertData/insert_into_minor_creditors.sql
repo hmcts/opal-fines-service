@@ -144,7 +144,7 @@ VALUES
 
   -- Minor Creditor to be deleted
   (606, 10, 'DEL12345',
-   'MJ', TRUE, NULL,
+   'MN', TRUE, NULL,
    9007, FALSE, FALSE, TRUE,
    '123456', '12345678', 'Dave Deleted',
    'ACME123REF2', '1', '2025-08-19 09:00:00');
