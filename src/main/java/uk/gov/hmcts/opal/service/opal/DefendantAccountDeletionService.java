@@ -15,12 +15,12 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
-import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.jpa.AllocationSpecs;
 import uk.gov.hmcts.opal.repository.jpa.BacsPaymentSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ChequeSpecs;
+import uk.gov.hmcts.opal.service.opal.jpa.CreditorAccountTransactional;
 
 import java.util.List;
 
@@ -41,7 +41,7 @@ public class DefendantAccountDeletionService {
     private final AccountTransferRepository accountTransferRepository;
     private final EnforcementRepository enforcementRepository;
     private final CommittalWarrantProgressRepository committalWarrantProgressRepository;
-    private final ImpositionRepository impositionRepository;
+    private final CreditorAccountTransactional creditorAccountTransactional;
     private final PaymentCardRequestRepository paymentCardRequestsRepository;
 
     // Level 3 - Grandchildren
@@ -93,7 +93,7 @@ public class DefendantAccountDeletionService {
         accountTransferRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         defendantAccountPartiesRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         enforcementRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
-        impositionRepository.deleteByDefendantAccountId(defendantAccountId);
+        creditorAccountTransactional.deleteAllByDefendantAccountId(defendantAccountId, creditorAccountTransactional);
         paymentTermsRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         defendantTransactionRepository.deleteByDefendantAccountId(defendantAccountId);
 

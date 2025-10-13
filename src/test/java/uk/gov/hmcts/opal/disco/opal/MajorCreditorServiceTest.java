@@ -14,6 +14,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor.Specific
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountFullEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorFullEntity;
 import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
@@ -93,7 +94,7 @@ class MajorCreditorServiceTest {
                 CreditorAccountFullEntity.builder()
                     .creditorAccountId(8L)
                     .accountNumber("AC55K")
-                    .creditorAccountType("TYPE1")
+                    .creditorAccountType(CreditorAccountType.CF)
                     .prosecutionService(true)
                     .minorCreditorPartyId(555L)
                     .fromSuspense(true)
@@ -110,7 +111,7 @@ class MajorCreditorServiceTest {
             .postcode(majorCreditorEntity.getPostcode())
             .creditorAccountId(majorCreditorEntity.getCreditorAccountEntity().getCreditorAccountId())
             .accountNumber(majorCreditorEntity.getCreditorAccountEntity().getAccountNumber())
-            .creditorAccountType(majorCreditorEntity.getCreditorAccountEntity().getCreditorAccountType())
+            .creditorAccountType(majorCreditorEntity.getCreditorAccountEntity().getCreditorAccountType().toString())
             .prosecutionService(majorCreditorEntity.getCreditorAccountEntity().isProsecutionService())
             .minorCreditorPartyId(majorCreditorEntity.getCreditorAccountEntity().getMinorCreditorPartyId())
             .fromSuspense(majorCreditorEntity.getCreditorAccountEntity().isFromSuspense())

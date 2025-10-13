@@ -6,8 +6,12 @@
   ],
   "packageRules": [
     {
-      "matchPackageNames": ["net.serenity-bdd.serenity-gradle-plugin"],
-      "allowedVersions": "4.2.1"
+      "description": "Lock the cucumber dependencies to version 7.23.0 for serenity-bdd gradle plugin 4.2.34",
+      "matchPackageNames": ["cucumber-core", "cucumber-java", "cucumber-junit"],
+      "matchPackagePrefixes": "io.cucumber",
+      "rangeStrategy": "pin",
+      "allowedVersions": "7.23.0",
+      "versioning": "fixed"
     },
     {
       "matchDatasources": ["docker"],

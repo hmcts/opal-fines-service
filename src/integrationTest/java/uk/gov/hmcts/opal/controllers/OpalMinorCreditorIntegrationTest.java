@@ -226,7 +226,8 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         log.info(":deleteMinorCreditorAccount: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").value("Creditor Account '" + creditorAccountId + "' deleted"));
+            .andExpect(jsonPath("$.message")
+                           .value("Creditor Account '" + creditorAccountId + "' deleted"));
 
         // Assert
         assertEquals(0, impositionRepository.findAll(impositionSpec).size());

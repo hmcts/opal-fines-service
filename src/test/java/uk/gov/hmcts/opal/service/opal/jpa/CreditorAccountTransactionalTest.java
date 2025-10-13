@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 
 import java.util.Optional;
@@ -24,7 +25,7 @@ import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 
 @ExtendWith(MockitoExtension.class)
-class CreditorAccountTransactionsTest {
+class CreditorAccountTransactionalTest {
 
     @Mock
     private CreditorAccountRepository creditorAccountRepository;
@@ -39,7 +40,7 @@ class CreditorAccountTransactionsTest {
     private ImpositionRepository impositionRepository;
 
     @InjectMocks
-    private CreditorAccountTransactions creditorAccountTransactions;
+    private CreditorAccountTransactional creditorAccountTransactional;
 
     @Test
     void testGetCreditorAccount() {
@@ -49,7 +50,7 @@ class CreditorAccountTransactionsTest {
         when(creditorAccountRepository.findById(any())).thenReturn(Optional.of(creditorAccountEntity));
 
         // Act
-        CreditorAccountEntity result = creditorAccountTransactions.getCreditorAccountById(1);
+        CreditorAccountEntity result = creditorAccountTransactional.getCreditorAccountById(1);
 
         // Assert
         assertNotNull(result);
@@ -58,11 +59,15 @@ class CreditorAccountTransactionsTest {
     @Test
     void testDeleteCreditorAccount_success() {
         // Arrange
-        CreditorAccountEntity.Lite creditorAccountEntity = CreditorAccountEntity.Lite.builder().build();
+        CreditorAccountEntity.Lite creditorAccountEntity = CreditorAccountEntity.Lite.builder()
+            .creditorAccountType(CreditorAccountType.MN)
+            .build();
         when(creditorAccountRepository.findById(any())).thenReturn(Optional.of(creditorAccountEntity));
 
         // Act
-        boolean deleted = creditorAccountTransactions.deleteMinorCreditor(1, creditorAccountTransactions);
+        boolean deleted = creditorAccountTransactional
+            .deleteMinorCreditorAccountAndRelatedData(1, creditorAccountTransactional
+        );
         assertTrue(deleted);
     }
 
@@ -73,8 +78,8 @@ class CreditorAccountTransactionsTest {
 
         // Act
         EntityNotFoundException enfe = assertThrows(
-            EntityNotFoundException.class, () -> creditorAccountTransactions
-                .deleteMinorCreditor(1, creditorAccountTransactions)
+            EntityNotFoundException.class, () -> creditorAccountTransactional
+                .deleteMinorCreditorAccountAndRelatedData(1, creditorAccountTransactional)
         );
 
         // Assert
