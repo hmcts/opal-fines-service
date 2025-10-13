@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
+import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
@@ -1009,7 +1010,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].alias_number").value(1))
-            .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].organisation_name").value("AliasOrg"))
+            .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].organisation_name").doesNotExist())
             .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].surname").value("AliasSurname"))
             .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].forenames").value("AliasForenames"));
     }

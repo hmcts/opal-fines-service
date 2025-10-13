@@ -68,6 +68,7 @@ import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
+import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.repository.AliasRepository;
@@ -87,6 +88,18 @@ import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j(topic = "opal.OpalDefendantAccountService")
@@ -350,6 +363,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .aliases(aliases)
             .build();
     }
+
 
     @Override
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
