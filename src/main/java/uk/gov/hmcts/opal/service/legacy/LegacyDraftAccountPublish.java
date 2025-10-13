@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.service.iface.DraftAccountPublishInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
-import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
+import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 
 import java.time.LocalDate;
 import java.util.concurrent.CompletableFuture;
@@ -30,7 +30,7 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
     public static final String CREATE_DEFENDANT_ACCOUNT = "createAccount";
 
     private final GatewayService gatewayService;
-    private final DraftAccountTransactions draftAccountTransactions;
+    private final DraftAccountTransactional draftAccountTransactional;
 
     @Override
     public DraftAccountEntity publishDefendantAccount(DraftAccountEntity publishEntity, BusinessUnitUser unitUser) {
@@ -40,8 +40,8 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
             CREATE_DEFENDANT_ACCOUNT, LegacyCreateDefendantAccountResponse.class,
             createDefendantAccountRequest(publishEntity, unitUser), null);
 
-        publishEntity = draftAccountTransactions
-            .updateStatus(publishEntity, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactions);
+        publishEntity = draftAccountTransactional
+            .updateStatus(publishEntity, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional);
 
         try {
             Response<LegacyCreateDefendantAccountResponse> response = future.get();
@@ -67,8 +67,8 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
                     publishEntity.setTimelineData(timelineData.toJson());
                     publishEntity.setStatusMessage(errorResponse.getErrorMessage());
 
-                    publishEntity = draftAccountTransactions
-                        .updateStatus(publishEntity, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactions);
+                    publishEntity = draftAccountTransactional
+                        .updateStatus(publishEntity, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactional);
                 } else {
                     log.warn(":publishDefendantAccount: Unexpected Legacy Gateway response");
                 }
@@ -76,8 +76,8 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
                 log.info(":publishDefendantAccount: Legacy Gateway response: Success.");
                 publishEntity.setAccountId(response.responseEntity.getDefendantAccountId());
                 publishEntity.setAccountNumber(response.responseEntity.getDefendantAccountNumber());
-                publishEntity = draftAccountTransactions
-                    .updateStatus(publishEntity, DraftAccountStatus.PUBLISHED, draftAccountTransactions);
+                publishEntity = draftAccountTransactional
+                    .updateStatus(publishEntity, DraftAccountStatus.PUBLISHED, draftAccountTransactional);
             }
         } catch (InterruptedException e) {
             log.error(":publishDefendantAccount: problem with call to Legacy: {}", e.getMessage());

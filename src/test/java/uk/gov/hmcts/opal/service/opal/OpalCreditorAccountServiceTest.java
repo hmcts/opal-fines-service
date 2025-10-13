@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.opal.jpa.CreditorAccountTransactions;
+import uk.gov.hmcts.opal.service.opal.jpa.CreditorAccountTransactional;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class OpalCreditorAccountServiceTest {
 
     @Mock
-    private CreditorAccountTransactions creditorAccountTransactions;
+    private CreditorAccountTransactional creditorAccountTransactional;
 
     @Mock
     private UserStateService userStateService;
@@ -33,7 +33,7 @@ class OpalCreditorAccountServiceTest {
     @Test
     void testDeleteMinorCreditors_success() {
         // Arrange
-        when(creditorAccountTransactions.deleteMinorCreditor(anyLong(), any())).thenReturn(true);
+        when(creditorAccountTransactional.deleteMinorCreditorAccountAndRelatedData(anyLong(), any())).thenReturn(true);
 
         // Act
         String response = service.deleteCreditorAccount(555L, true, "authHeader");
@@ -45,7 +45,7 @@ class OpalCreditorAccountServiceTest {
     @Test
     void testDeleteMinorCreditor_success_notDeleted() {
         // Arrange
-        when(creditorAccountTransactions.deleteMinorCreditor(anyLong(), any())).thenReturn(false);
+        when(creditorAccountTransactional.deleteMinorCreditorAccountAndRelatedData(anyLong(), any())).thenReturn(false);
 
         // Act
         String result =
@@ -60,7 +60,7 @@ class OpalCreditorAccountServiceTest {
     void testDeleteMinorCreditor_fail_checkExisted() {
         // Arrange
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
-        when(creditorAccountTransactions.deleteMinorCreditor(anyLong(), any()))
+        when(creditorAccountTransactional.deleteMinorCreditorAccountAndRelatedData(anyLong(), any()))
             .thenThrow(new EntityNotFoundException("No Creditor Account!"));
 
         // Act

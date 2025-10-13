@@ -41,6 +41,9 @@ public abstract class CourtEntity extends AddressCyEntity {
     @Column(name = "court_code", nullable = false)
     private Short courtCode;
 
+    @Column(name = "court_name", length = 100)
+    private String name;
+
     @Column(name = "local_justice_area_id", insertable = false, updatable = false)
     private Short localJusticeAreaId;
 
