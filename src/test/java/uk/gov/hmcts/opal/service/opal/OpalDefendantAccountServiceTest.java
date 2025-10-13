@@ -1,7 +1,9 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -17,8 +19,12 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
@@ -34,12 +40,16 @@ import uk.gov.hmcts.opal.dto.common.LJA;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.dto.search.AliasDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.EnforcementOverrideResultEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
@@ -52,7 +62,8 @@ import uk.gov.hmcts.opal.repository.EnforcementOverrideResultRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
-import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
+import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 
 class OpalDefendantAccountServiceTest {
 
@@ -61,10 +72,34 @@ class OpalDefendantAccountServiceTest {
     private final DefendantAccountSummaryViewRepository dasvRepository =
         mock(DefendantAccountSummaryViewRepository.class);
 
+    private final DefendantAccountHeaderViewRepository dahvRepository =
+        mock(DefendantAccountHeaderViewRepository.class);
+
+    private final SearchDefendantAccountRepository searchDefAccRepo =
+        mock(SearchDefendantAccountRepository.class);
+
+    private final SearchDefendantAccountSpecs searchDefAccSpecs = new SearchDefendantAccountSpecs();
+
+    private final DefendantAccountPaymentTermsRepository paymentTermsRepository =
+        mock(DefendantAccountPaymentTermsRepository.class);
+
     // If you need to create the service, mock the repos as needed.
     private final OpalDefendantAccountService service =
-        new OpalDefendantAccountService(null, defendantAccountRepository, null, null, dasvRepository,null,null,null,
-            null,null,null,null);
+        new OpalDefendantAccountService(
+            dahvRepository,
+            defendantAccountRepository,
+            searchDefAccRepo,
+            searchDefAccSpecs,
+            paymentTermsRepository,
+            dasvRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
 
     @Test
     void testDefendantAccountById() {
@@ -277,14 +312,15 @@ class OpalDefendantAccountServiceTest {
         // Core repos & deps
         final DefendantAccountHeaderViewRepository headerViewRepo = mock(DefendantAccountHeaderViewRepository.class);
         final DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
-        final DefendantAccountSpecs specs = mock(DefendantAccountSpecs.class);
+        final SearchDefendantAccountRepository searchDefAccRepo = mock(SearchDefendantAccountRepository.class);
+        final SearchDefendantAccountSpecs searchDefAccSpecs = mock(SearchDefendantAccountSpecs.class);
         final DefendantAccountPaymentTermsRepository paymentTermsRepo = mock(DefendantAccountPaymentTermsRepository
-            .class);
+                                                                                 .class);
+        final DefendantAccountSummaryViewRepository dasvRepo = mock(DefendantAccountSummaryViewRepository.class);
         final CourtRepository courtRepo = mock(CourtRepository.class);
         final AmendmentService amendmentService = mock(AmendmentService.class);
         final EntityManager em = mock(EntityManager.class);
-        final NoteRepository noteRepository = mock(NoteRepository
-            .class);
+        final NoteRepository noteRepository = mock(NoteRepository.class);
 
         // Repos needed for enforcementOverrides
         final EnforcementOverrideResultRepository eorRepo = mock(EnforcementOverrideResultRepository.class);
@@ -319,9 +355,19 @@ class OpalDefendantAccountServiceTest {
 
         // Service under test
         final OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            headerViewRepo, accountRepo, specs, paymentTermsRepo, /* summary */ null, courtRepo,
-            amendmentService, em, noteRepository,
-            eorRepo, ljaRepo, enforcerRepo
+            headerViewRepo,
+            accountRepo,
+            searchDefAccRepo,
+            searchDefAccSpecs,
+            paymentTermsRepo,
+            dasvRepo,
+            courtRepo,
+            amendmentService,
+            em,
+            noteRepository,
+            eorRepo,
+            ljaRepo,
+            enforcerRepo
         );
 
         // Request DTO
@@ -398,7 +444,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -416,7 +462,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenBusinessUnitMismatch() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -446,7 +492,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenCollectionOrderDateInvalid() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -478,7 +524,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenEntityNotFound() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
 
         when(accountRepo.findById(99L)).thenReturn(Optional.empty());
 
@@ -501,18 +547,19 @@ class OpalDefendantAccountServiceTest {
         NoteRepository noteRepository = mock(NoteRepository.class);
 
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            /*headerViewRepo*/ null,
+            null,
             accountRepo,
-            /*specs*/ null,
-            /*paymentTermsRepo*/ null,
-            /* summary */ null,
-            /*courtRepo*/ null,
+            null,
+            null,
+            null,
+            null,
+            null,
             amendmentService,
             em,
             noteRepository,
-            /* enforcementOverrideResultRepository */ null,
-            /* localJusticeAreaRepository        */ null,
-            /* enforcerRepository                */ null
+            null,
+            null,
+            null
         );
 
         Long id = 77L;
@@ -545,9 +592,19 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_versionMismatch_throwsResourceConflict() {
         var repo = mock(DefendantAccountRepository.class);
         var svc = new OpalDefendantAccountService(
-            null, repo, null, null, null, mock(CourtRepository.class),
-            mock(AmendmentService.class), mock(EntityManager.class),
-            mock(NoteRepository.class), null, null, null
+            null,
+            repo,
+            null,
+            null,
+            null,
+            null,
+            mock(CourtRepository.class),
+            mock(AmendmentService.class),
+            mock(EntityManager.class),
+            mock(NoteRepository.class),
+            null,
+            null,
+            null
         );
 
         var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
@@ -575,7 +632,20 @@ class OpalDefendantAccountServiceTest {
         when(accountRepo.findById(77L)).thenReturn(Optional.of(entity));
 
         var svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null,/* summary */ null, null, amend, em, noteRepo, null, null, null);
+            null,
+            accountRepo,
+            null,
+            null,
+            null,
+            null,
+            null,
+            amend,
+            em,
+            noteRepo,
+            null,
+            null,
+            null
+        );
 
         var req = UpdateDefendantAccountRequest.builder()
             .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("hello").build()).build();
@@ -591,13 +661,21 @@ class OpalDefendantAccountServiceTest {
     @Test
     void updateDefendantAccount_enforcementOverrideLookupsMissing_areNull() {
         var accountRepo = mock(DefendantAccountRepository.class);
-        var svc = new OpalDefendantAccountService(null, accountRepo, null,
-            null, null, null,
-            mock(AmendmentService.class), mock(EntityManager.class), mock(NoteRepository.class),
+        var svc = new OpalDefendantAccountService(
+            null,
+            accountRepo,
+            null,
+            null,
+            null,
+            null,
+            null,
+            mock(AmendmentService.class),
+            mock(EntityManager.class),
+            mock(NoteRepository.class),
             mock(EnforcementOverrideResultRepository.class),
             mock(LocalJusticeAreaRepository.class),
-            mock(EnforcerRepository.class));
-
+            mock(EnforcerRepository.class)
+        );
 
         var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
         var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu).version(0L).build();
@@ -615,4 +693,142 @@ class OpalDefendantAccountServiceTest {
         var resp = svc.updateDefendantAccount(77L, "78", req, "0", "tester");
         assertNotNull(resp.getEnforcementOverrides());
     }
+
+    @Test
+    void searchDefendantAccounts_mapsAliases_forIndividual() {
+        // Given a person with mixed alias shapes
+        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
+            .defendantAccountId(1L)
+            .accountNumber("ACC1")
+            .organisation(false)
+            .organisationName(null)
+            .title("Mr")
+            .forenames("Amy")
+            .surname("Pond")
+            .addressLine1("1 Main St")
+            .postcode("AB12CD")
+            .businessUnitName("BU")
+            .businessUnitId(99L)
+            .prosecutorCaseReference("PCR1")
+            .lastEnforcement("LEVY")
+            .defendantAccountBalance(new BigDecimal("12.34"))
+            .birthDate(LocalDate.of(2000, 1, 1))
+            .alias1("Amy Pond")       // normal "forenames surname"
+            .alias2("Amelia Pond")    // another normal case
+            .alias3("  ")             // blank → ignored
+            .alias4(null)             // null → ignored
+            .alias5("Pond")           // single token → treated as surname
+            .build();
+
+        when(searchDefAccRepo.findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        )).thenReturn(Collections.singletonList(row));
+
+        // When
+        DefendantAccountSearchResultsDto out =
+            service.searchDefendantAccounts(emptyCriteria());
+
+        // Then
+        assertEquals(1, out.getCount());
+        var dto = out.getDefendantAccounts().get(0);
+
+        assertFalse(dto.getOrganisation());
+        assertEquals("ACC1", dto.getAccountNumber());
+        assertEquals("LEVY", dto.getLastEnforcementAction());
+        assertEquals(0, dto.getAccountBalance().compareTo(new BigDecimal("12.34")));
+
+        // Aliases: alias1, alias2, alias5 should be present
+        List<AliasDto> aliases = dto.getAliases();
+        assertEquals(3, aliases.size());
+
+        // Check a “forenames surname” split
+        AliasDto a1 = aliases.stream().filter(a -> a.getAliasNumber() == 1).findFirst().orElseThrow();
+        assertEquals("Amy", a1.getForenames());
+        assertEquals("Pond", a1.getSurname());
+        assertNull(a1.getOrganisationName());
+
+        // Single token treated as surname
+        AliasDto a5 = aliases.stream().filter(a -> a.getAliasNumber() == 5).findFirst().orElseThrow();
+        assertNull(a5.getForenames());
+        assertEquals("Pond", a5.getSurname());
+    }
+
+    @Test
+    void searchDefendantAccounts_mapsAliases_forOrganisation() {
+        // Given an organisation, alias fields are full org names
+        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
+            .defendantAccountId(2L)
+            .accountNumber("ACC2")
+            .organisation(true)
+            .organisationName("Wayne Enterprises")
+            .businessUnitName("BU")
+            .businessUnitId(88L)
+            .prosecutorCaseReference("PCR2")
+            .lastEnforcement("CLAMP")
+            .defendantAccountBalance(new BigDecimal("99.00"))
+            .alias1("Wayne Ent Ltd")
+            .alias2("Wayne Group")
+            .alias3(null)
+            .alias4("")
+            .alias5(" Wayne Holdings ")
+            .build();
+
+        when(searchDefAccRepo.findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        )).thenReturn(Collections.singletonList(row));
+
+        DefendantAccountSearchResultsDto out = service.searchDefendantAccounts(emptyCriteria());
+
+        var dto = out.getDefendantAccounts().get(0);
+
+        assertTrue(dto.getOrganisation());
+        assertEquals("Wayne Enterprises", dto.getOrganisationName());
+        // Personal fields must be null for orgs
+        assertNull(dto.getDefendantTitle());
+        assertNull(dto.getDefendantFirstnames());
+        assertNull(dto.getDefendantSurname());
+
+        // Aliases: names go into organisationName; person fields null
+        List<AliasDto> aliases = dto.getAliases();
+        assertEquals(3, aliases.size());
+        assertTrue(aliases.stream().allMatch(a ->
+                                                 a.getOrganisationName() != null
+                                                     && a.getForenames() == null
+                                                     && a.getSurname() == null));
+    }
+
+    @Test
+    void searchDefendantAccounts_ignoresBlankAliasSlots() {
+        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
+            .defendantAccountId(3L)
+            .accountNumber("ACC3")
+            .organisation(false)
+            .alias1("John Doe")
+            .alias2("   ")
+            .alias3("")
+            .alias4(null)
+            .alias5(null)
+            .build();
+
+        when(searchDefAccRepo.findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        )).thenReturn(Collections.singletonList(row));
+
+        var out = service.searchDefendantAccounts(emptyCriteria());
+        var aliases = out.getDefendantAccounts().get(0).getAliases();
+        assertEquals(1, aliases.size());
+        assertEquals(1, aliases.get(0).getAliasNumber());
+        assertEquals("John", aliases.get(0).getForenames());
+        assertEquals("Doe", aliases.get(0).getSurname());
+    }
+
+    private AccountSearchDto emptyCriteria() {
+        AccountSearchDto c = mock(AccountSearchDto.class);
+        when(c.getBusinessUnitIds()).thenReturn(null);
+        when(c.getActiveAccountsOnly()).thenReturn(null);
+        when(c.getReferenceNumberDto()).thenReturn(null);
+        when(c.getDefendant()).thenReturn(null);
+        return c;
+    }
+
 }

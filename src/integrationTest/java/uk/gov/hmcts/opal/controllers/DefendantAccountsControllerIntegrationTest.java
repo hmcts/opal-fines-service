@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
+import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
@@ -1008,7 +1009,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].alias_number").value(1))
-            .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].organisation_name").value("AliasOrg"))
+            .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].organisation_name").doesNotExist())
             .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].surname").value("AliasSurname"))
             .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].forenames").value("AliasForenames"));
     }
@@ -1947,7 +1948,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
             .andExpect(jsonPath("$.payment_card_last_requested").value("2024-01-01"))
             .andExpect(jsonPath("$.payment_terms.extension").value(false))
-            .andExpect(jsonPath("$.last_enforcement").value("REM"));
+            .andExpect(jsonPath("$.last_enforcement").value("10"));
 
         jsonSchemaValidationService.validateOrError(body, getPaymentTermsResponseSchemaLocation());
     }
@@ -2064,9 +2065,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                                                           .header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
-        log.info(":testGetAtAGlance: Party is an individual. etag header: \n" + headers);
+        log.info(":testGetAtAGlance: Party is an individual. etag header: \n{}", headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetAtAGlance: Party is an individual. Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetAtAGlance: Party is an individual. Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -2082,8 +2083,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.address").exists())
             .andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
-            // verify comments_and_notes node is present (test data included for these optional fields)
-            .andExpect(jsonPath("$.comments_and_notes").exists());;
+            .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_id").value("10"))
+            .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_title").value(
+                IsNull.nullValue()))
+            .andExpect(jsonPath("$.comments_and_notes").exists());
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
