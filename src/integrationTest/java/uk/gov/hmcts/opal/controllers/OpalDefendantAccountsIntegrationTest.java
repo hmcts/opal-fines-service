@@ -26,6 +26,11 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
+    void testGetHeaderSummaryFieldMapper() throws Exception {
+        super.getHeaderSummary_FieldMapping(log);
+    }
+
+    @Test
     void testGetHeaderSummary_NotFound() throws Exception {
         super.getHeaderSummary_Opal_NotFound(log);
     }

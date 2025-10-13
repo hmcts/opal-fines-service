@@ -125,7 +125,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     ? java.time.Period.between(e.getBirthDate(), java.time.LocalDate.now()).getYears() < 18
                     : Boolean.FALSE
             )
-            .defendantPartyId(Optional.ofNullable(e.getPartyId()).map(Object::toString).orElse(null))
+            .defendantPartyId(Optional.ofNullable(e.getDefendantAccountPartyId()).map(Object::toString).orElse(null))
             .parentGuardianPartyId(Optional.ofNullable(e.getParentGuardianAccountPartyId())
                                        .map(Object::toString).orElse(null))
             .accountNumber(e.getAccountNumber())

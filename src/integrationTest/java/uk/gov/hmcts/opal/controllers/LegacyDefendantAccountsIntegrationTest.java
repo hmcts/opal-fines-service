@@ -24,6 +24,12 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
 
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
+    void testGetHeaderSummaryFieldMapper() throws Exception {
+        super.getHeaderSummary_FieldMapping(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
     void testGetHeaderSummary_500Error() throws Exception {
         super.getHeaderSummary_Legacy_500(log);
     }

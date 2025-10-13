@@ -32,6 +32,7 @@ import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -174,6 +175,117 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
         assertEquals("ACCT100", dto.getAccountNumber());
         assertNotNull(dto.getPartyDetails());
+    }
+
+    @Test
+    void testMapToDto_DefendantPartyId_ComesFromDefendantAccountPartyId() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .defendantAccountId(77L)
+            .defendantAccountPartyId(77L)
+            .partyId(999L)
+            .accountNumber("177A")
+            .accountStatus("L")
+            .build();
+
+        DefendantAccountHeaderSummary dto = service.mapToDto(e);
+
+        assertNotNull(dto, "DTO should not be null");
+        assertEquals("77", dto.getDefendantPartyId(),
+                     "defendant_party_id should map from defendantAccountPartyId");
+        assertNotEquals("999", dto.getDefendantPartyId(),
+                        "should not map from partyId");
+    }
+
+
+    @Test
+    void testBuildPartyDetails_IndividualMatchesApiSpec() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .partyId(77L)
+            .organisation(false)
+            .title("Ms")
+            .firstnames("Anna")
+            .surname("Graham")
+            .birthDate(LocalDate.of(1980, 2, 3))
+            .build();
+
+        PartyDetails details = service.buildPartyDetails(e);
+
+        assertEquals("77", details.getPartyId());
+        assertFalse(details.getOrganisationFlag());
+        assertNotNull(details.getIndividualDetails());
+        assertEquals("Anna", details.getIndividualDetails().getForenames());
+        assertEquals("Graham", details.getIndividualDetails().getSurname());
+        assertNull(details.getOrganisationDetails());
+    }
+
+    @Test
+    void testBuildPartyDetails_OrganisationMatchesApiSpec() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .partyId(10001L)
+            .organisation(true)
+            .organisationName("Kings Arms")
+            .build();
+
+        PartyDetails details = service.buildPartyDetails(e);
+
+        assertEquals("10001", details.getPartyId());
+        assertTrue(details.getOrganisationFlag());
+        assertNotNull(details.getOrganisationDetails());
+        assertEquals("Kings Arms", details.getOrganisationDetails().getOrganisationName());
+        assertNull(details.getIndividualDetails());
+    }
+
+    @Test
+    void testMapToDto_ComputesIsYouth_FromBirthDate() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .defendantAccountId(77L)
+            .defendantAccountPartyId(77L)
+            .birthDate(LocalDate.now().minusYears(17))
+            .accountStatus("L")
+            .build();
+
+        DefendantAccountHeaderSummary dto = service.mapToDto(e);
+
+        assertTrue(dto.getIsYouth(), "is_youth should be true for under-18 defendants");
+    }
+
+
+    @Test
+    void testMapToDto_NormalisesAccountTypeAndStatusDisplayName() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .defendantAccountId(77L)
+            .defendantAccountPartyId(77L)
+            .accountNumber("177A")
+            .accountType("Fines")
+            .accountStatus("L")
+            .build();
+
+        DefendantAccountHeaderSummary dto = service.mapToDto(e);
+
+        assertEquals("Fine", dto.getAccountType());
+        assertEquals("Live", dto.getAccountStatusReference().getAccountStatusDisplayName());
+    }
+
+    @Test
+    void testMapToDto_SerialisedStructureMatchesApiFields() throws Exception {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .defendantAccountId(77L)
+            .defendantAccountPartyId(77L)
+            .partyId(77L)
+            .accountNumber("177A")
+            .organisation(false)
+            .firstnames("Anna")
+            .surname("Graham")
+            .accountStatus("L")
+            .build();
+
+        DefendantAccountHeaderSummary dto = service.mapToDto(e);
+        String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(dto);
+
+        assertTrue(json.contains("\"defendant_account_id\""));
+        assertTrue(json.contains("\"defendant_party_id\""));
+        assertTrue(json.contains("\"party_details\""));
+        assertTrue(json.contains("\"account_number\""));
     }
 
     @Test

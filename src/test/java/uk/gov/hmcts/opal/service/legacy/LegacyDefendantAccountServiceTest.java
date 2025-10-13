@@ -309,14 +309,31 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("SAMPLE", published.getAccountNumber());
         assertEquals("Fine", published.getAccountType());
         assertEquals("L", published.getAccountStatusReference().getAccountStatusCode());
-        assertNull(published.getAccountStatusReference().getAccountStatusDisplayName(),
-                   "Legacy should not populate display name");
+        assertEquals("Live", published.getAccountStatusReference().getAccountStatusDisplayName());
         assertEquals("78", published.getBusinessUnitSummary().getBusinessUnitId());
         assertEquals("Test BU", published.getBusinessUnitSummary().getBusinessUnitName());
         assertEquals(new BigDecimal("700.58"), published.getPaymentStateSummary().getImposedAmount());
         assertEquals(BigDecimal.ZERO, published.getPaymentStateSummary().getArrearsAmount());
         assertEquals(new BigDecimal("200.00"), published.getPaymentStateSummary().getPaidAmount());
         assertEquals(new BigDecimal("500.58"), published.getPaymentStateSummary().getAccountBalance());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_setsDefendantPartyIdCorrectly() {
+        LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
+        responseBody.setDefendantPartyId("77");
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+
+        DefendantAccountHeaderSummary result = legacyDefendantAccountService.getHeaderSummary(1L);
+
+        assertNotNull(result);
+        assertEquals("77", result.getDefendantPartyId(), "defendant_party_id should map from legacy response");
     }
 
     @Test

@@ -86,7 +86,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Anna"))
             .andExpect(jsonPath("$.party_details.individual_details.surname").value("Graham"))
-            .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist());
+            .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
+            .andExpect(jsonPath("$.defendant_party_id").value("77"))
+            .andExpect(jsonPath("$.party_details.party_id").value("77"));
 
         jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
     }
@@ -108,9 +110,25 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.account_number").value("10001A"))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Kings Arms"))
-            .andExpect(jsonPath("$.party_details.individual_details").doesNotExist());
+            .andExpect(jsonPath("$.party_details.individual_details").doesNotExist())
+            .andExpect(jsonPath("$.defendant_party_id").value("10001"))
+            .andExpect(jsonPath("$.party_details.party_id").value("10001"));
+
 
         jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
+    }
+
+    @DisplayName("Get header summary returns correct defendant_party_id and nested party_id mapping [@PO-XXXX]")
+    void getHeaderSummary_FieldMapping(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get("/defendant-accounts/77/header-summary")
+                                                          .header("authorization", "Bearer some_value"));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(jsonPath("$.defendant_party_id").value("77"))
+            .andExpect(jsonPath("$.party_details.party_id").value("77"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(false));
     }
 
     @DisplayName("OPAL: Get header summary for non-existent ID returns 404")
