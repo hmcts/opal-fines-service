@@ -16,6 +16,6 @@ public class EnforcementOverrideResult  implements ToJsonString {
     @JsonProperty("enforcement_override_result_id")
     private String enforcementOverrideId;
 
-    @JsonProperty("enforcement_override_result_name")
+    @JsonProperty("enforcement_override_result_title")
     private String enforcementOverrideTitle;
 }
