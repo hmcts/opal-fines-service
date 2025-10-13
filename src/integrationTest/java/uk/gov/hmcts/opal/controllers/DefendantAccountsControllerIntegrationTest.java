@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import org.hamcrest.core.IsNull;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,7 +16,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
-import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;

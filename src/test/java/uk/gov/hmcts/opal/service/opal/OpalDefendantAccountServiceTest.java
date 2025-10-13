@@ -21,6 +21,30 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.data.jpa.domain.Specification;
+import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
+import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.PartyDetails;
+import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
+import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
@@ -35,11 +59,6 @@ import uk.gov.hmcts.opal.dto.common.Enforcer;
 import uk.gov.hmcts.opal.dto.common.LJA;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
-import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
-import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
@@ -48,8 +67,6 @@ import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
-import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.entity.EnforcementOverrideResultEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
@@ -98,14 +115,9 @@ class OpalDefendantAccountServiceTest {
     @BeforeEach
     void setUp() {
         // IMPORTANT: inject the SAME 'specs' spy into the service 6-arg ctor
-        service = new OpalDefendantAccountService(
-            dahvRepository,
-            defendantAccountRepository,
-            searchDefAccRepo,
-            specs, // <- spy injected here
-            paymentTermsRepository,
-            dasvRepository
-        );
+         OpalDefendantAccountService service =
+        new OpalDefendantAccountService(null, defendantAccountRepository, null, null, dasvRepository,null,null,null,
+            null,null,null,null);
 
         // Generic matcher to avoid unchecked warnings
         when(searchDefAccRepo.findAll(
@@ -305,6 +317,218 @@ class OpalDefendantAccountServiceTest {
     }
 
     @Test
+    void searchDefendantAccounts_mapsAliases_forIndividual() {
+        // Given a person with mixed alias shapes
+        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
+            .defendantAccountId(1L)
+            .accountNumber("ACC1")
+            .organisation(false)
+            .organisationName(null)
+            .title("Mr")
+            .forenames("Amy")
+            .surname("Pond")
+            .addressLine1("1 Main St")
+            .postcode("AB12CD")
+            .businessUnitName("BU")
+            .businessUnitId(99L)
+            .prosecutorCaseReference("PCR1")
+            .lastEnforcement("LEVY")
+            .defendantAccountBalance(new BigDecimal("12.34"))
+            .birthDate(LocalDate.of(2000, 1, 1))
+            .alias1("Amy Pond")       // normal "forenames surname"
+            .alias2("Amelia Pond")    // another normal case
+            .alias3("  ")             // blank → ignored
+            .alias4(null)             // null → ignored
+            .alias5("Pond")           // single token → treated as surname
+            .build();
+
+        when(searchDefAccRepo.findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        )).thenReturn(Collections.singletonList(row));
+
+        // When
+        DefendantAccountSearchResultsDto out =
+            service.searchDefendantAccounts(emptyCriteria());
+
+        // Then
+        assertEquals(1, out.getCount());
+        var dto = out.getDefendantAccounts().get(0);
+
+        assertFalse(dto.getOrganisation());
+        assertEquals("ACC1", dto.getAccountNumber());
+        assertEquals("LEVY", dto.getLastEnforcementAction());
+        assertEquals(0, dto.getAccountBalance().compareTo(new BigDecimal("12.34")));
+
+        // Aliases: alias1, alias2, alias5 should be present
+        List<AliasDto> aliases = dto.getAliases();
+        assertEquals(3, aliases.size());
+
+        // Check a “forenames surname” split
+        AliasDto a1 = aliases.stream().filter(a -> a.getAliasNumber() == 1).findFirst().orElseThrow();
+        assertEquals("Amy", a1.getForenames());
+        assertEquals("Pond", a1.getSurname());
+        assertNull(a1.getOrganisationName());
+
+        // Single token treated as surname
+        AliasDto a5 = aliases.stream().filter(a -> a.getAliasNumber() == 5).findFirst().orElseThrow();
+        assertNull(a5.getForenames());
+        assertEquals("Pond", a5.getSurname());
+    }
+
+    @Test
+    void searchDefendantAccounts_mapsAliases_forOrganisation() {
+        // Given an organisation, alias fields are full org names
+        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
+            .defendantAccountId(2L)
+            .accountNumber("ACC2")
+            .organisation(true)
+            .organisationName("Wayne Enterprises")
+            .businessUnitName("BU")
+            .businessUnitId(88L)
+            .prosecutorCaseReference("PCR2")
+            .lastEnforcement("CLAMP")
+            .defendantAccountBalance(new BigDecimal("99.00"))
+            .alias1("Wayne Ent Ltd")
+            .alias2("Wayne Group")
+            .alias3(null)
+            .alias4("")
+            .alias5(" Wayne Holdings ")
+            .build();
+
+        when(searchDefAccRepo.findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        )).thenReturn(Collections.singletonList(row));
+
+        DefendantAccountSearchResultsDto out = service.searchDefendantAccounts(emptyCriteria());
+
+        var dto = out.getDefendantAccounts().get(0);
+
+        assertTrue(dto.getOrganisation());
+        assertEquals("Wayne Enterprises", dto.getOrganisationName());
+        // Personal fields must be null for orgs
+        assertNull(dto.getDefendantTitle());
+        assertNull(dto.getDefendantFirstnames());
+        assertNull(dto.getDefendantSurname());
+
+        // Aliases: names go into organisationName; person fields null
+        List<AliasDto> aliases = dto.getAliases();
+        assertEquals(3, aliases.size());
+        assertTrue(aliases.stream().allMatch(a ->
+                                                 a.getOrganisationName() != null
+                                                     && a.getForenames() == null
+                                                     && a.getSurname() == null));
+    }
+
+    @Test
+    void searchDefendantAccounts_ignoresBlankAliasSlots() {
+        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
+            .defendantAccountId(3L)
+            .accountNumber("ACC3")
+            .organisation(false)
+            .alias1("John Doe")
+            .alias2("   ")
+            .alias3("")
+            .alias4(null)
+            .alias5(null)
+            .build();
+
+        when(searchDefAccRepo.findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        )).thenReturn(Collections.singletonList(row));
+
+        var out = service.searchDefendantAccounts(emptyCriteria());
+        var aliases = out.getDefendantAccounts().get(0).getAliases();
+        assertEquals(1, aliases.size());
+        assertEquals(1, aliases.get(0).getAliasNumber());
+        assertEquals("John", aliases.get(0).getForenames());
+        assertEquals("Doe", aliases.get(0).getSurname());
+    }
+
+    @Test
+    void whenAccountNumberPresent_activeOnlyIsIgnored() {
+        // given
+        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        ReferenceNumberDto ref = mock(ReferenceNumberDto.class);
+
+        when(dto.getActiveAccountsOnly()).thenReturn(true); // the user asked for active-only
+        when(dto.getReferenceNumberDto()).thenReturn(ref);
+        when(ref.getAccountNumber()).thenReturn("AAAAAAAAX"); // reference present
+        when(ref.getProsecutorCaseReference()).thenReturn(null);
+
+        // when
+        service.searchDefendantAccounts(dto);
+
+        // then → AC1b requires the service to IGNORE activeOnly (i.e., pass false to the spec)
+        verify(specs, times(1)).filterByActiveOnly(false);
+        verify(searchDefAccRepo, times(1)).findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
+    }
+
+    @Test
+    void whenPcrPresent_activeOnlyIsIgnored() {
+        // given
+        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        ReferenceNumberDto ref = mock(ReferenceNumberDto.class);
+
+        when(dto.getActiveAccountsOnly()).thenReturn(true);
+        when(dto.getReferenceNumberDto()).thenReturn(ref);
+        when(ref.getAccountNumber()).thenReturn(null);
+        when(ref.getProsecutorCaseReference()).thenReturn("PCR/1234/XY"); // PCR present
+
+        // when
+        service.searchDefendantAccounts(dto);
+
+        // then
+        verify(specs, times(1)).filterByActiveOnly(false);
+        verify(searchDefAccRepo, times(1)).findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
+    }
+
+    @Test
+    void whenNoReference_activeOnlyIsRespected() {
+        // given
+        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        when(dto.getActiveAccountsOnly()).thenReturn(true);
+        when(dto.getReferenceNumberDto()).thenReturn(null); // no account number, no PCR
+
+        // when
+        service.searchDefendantAccounts(dto);
+
+        // then → with no reference, activeOnly should be applied as true
+        verify(specs, times(1)).filterByActiveOnly(true);
+        verify(searchDefAccRepo, times(1)).findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
+    }
+
+    @Test
+    void whenActiveOnlyFalse_andReferencePresent_stillIgnoredButFalseIsCorrect() {
+        // given
+        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        ReferenceNumberDto ref = mock(ReferenceNumberDto.class);
+
+        when(dto.getActiveAccountsOnly()).thenReturn(false); // already false
+        when(dto.getReferenceNumberDto()).thenReturn(ref);
+        when(ref.getAccountNumber()).thenReturn("AAAAAAAAX");
+
+        // when
+        service.searchDefendantAccounts(dto);
+
+        // then → should pass false (ignoring or not, final effect is false)
+        verify(specs, times(1)).filterByActiveOnly(false);
+        verify(searchDefAccRepo, times(1)).findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
+    }
+
+
+    private AccountSearchDto emptyCriteria() {
+        AccountSearchDto c = mock(AccountSearchDto.class);
+        when(c.getBusinessUnitIds()).thenReturn(null);
+        when(c.getActiveAccountsOnly()).thenReturn(null);
+        when(c.getReferenceNumberDto()).thenReturn(null);
+        when(c.getDefendant()).thenReturn(null);
+        return c;
+    }
+
     void updateDefendantAccount_happyPath_updatesAllGroups_andReturnsRepresentation() {
         // ---------- Arrange ----------
         Long id = 1L;
@@ -662,218 +886,4 @@ class OpalDefendantAccountServiceTest {
         var resp = svc.updateDefendantAccount(77L, "78", req, "0", "tester");
         assertNotNull(resp.getEnforcementOverrides());
     }
-
-    @Test
-    void searchDefendantAccounts_mapsAliases_forIndividual() {
-        // Given a person with mixed alias shapes
-        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
-            .defendantAccountId(1L)
-            .accountNumber("ACC1")
-            .organisation(false)
-            .organisationName(null)
-            .title("Mr")
-            .forenames("Amy")
-            .surname("Pond")
-            .addressLine1("1 Main St")
-            .postcode("AB12CD")
-            .businessUnitName("BU")
-            .businessUnitId(99L)
-            .prosecutorCaseReference("PCR1")
-            .lastEnforcement("LEVY")
-            .defendantAccountBalance(new BigDecimal("12.34"))
-            .birthDate(LocalDate.of(2000, 1, 1))
-            .alias1("Amy Pond")       // normal "forenames surname"
-            .alias2("Amelia Pond")    // another normal case
-            .alias3("  ")             // blank → ignored
-            .alias4(null)             // null → ignored
-            .alias5("Pond")           // single token → treated as surname
-            .build();
-
-        when(searchDefAccRepo.findAll(
-            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
-        )).thenReturn(Collections.singletonList(row));
-
-        // When
-        DefendantAccountSearchResultsDto out =
-            service.searchDefendantAccounts(emptyCriteria());
-
-        // Then
-        assertEquals(1, out.getCount());
-        var dto = out.getDefendantAccounts().get(0);
-
-        assertFalse(dto.getOrganisation());
-        assertEquals("ACC1", dto.getAccountNumber());
-        assertEquals("LEVY", dto.getLastEnforcementAction());
-        assertEquals(0, dto.getAccountBalance().compareTo(new BigDecimal("12.34")));
-
-        // Aliases: alias1, alias2, alias5 should be present
-        List<AliasDto> aliases = dto.getAliases();
-        assertEquals(3, aliases.size());
-
-        // Check a “forenames surname” split
-        AliasDto a1 = aliases.stream().filter(a -> a.getAliasNumber() == 1).findFirst().orElseThrow();
-        assertEquals("Amy", a1.getForenames());
-        assertEquals("Pond", a1.getSurname());
-        assertNull(a1.getOrganisationName());
-
-        // Single token treated as surname
-        AliasDto a5 = aliases.stream().filter(a -> a.getAliasNumber() == 5).findFirst().orElseThrow();
-        assertNull(a5.getForenames());
-        assertEquals("Pond", a5.getSurname());
-    }
-
-    @Test
-    void searchDefendantAccounts_mapsAliases_forOrganisation() {
-        // Given an organisation, alias fields are full org names
-        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
-            .defendantAccountId(2L)
-            .accountNumber("ACC2")
-            .organisation(true)
-            .organisationName("Wayne Enterprises")
-            .businessUnitName("BU")
-            .businessUnitId(88L)
-            .prosecutorCaseReference("PCR2")
-            .lastEnforcement("CLAMP")
-            .defendantAccountBalance(new BigDecimal("99.00"))
-            .alias1("Wayne Ent Ltd")
-            .alias2("Wayne Group")
-            .alias3(null)
-            .alias4("")
-            .alias5(" Wayne Holdings ")
-            .build();
-
-        when(searchDefAccRepo.findAll(
-            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
-        )).thenReturn(Collections.singletonList(row));
-
-        DefendantAccountSearchResultsDto out = service.searchDefendantAccounts(emptyCriteria());
-
-        var dto = out.getDefendantAccounts().get(0);
-
-        assertTrue(dto.getOrganisation());
-        assertEquals("Wayne Enterprises", dto.getOrganisationName());
-        // Personal fields must be null for orgs
-        assertNull(dto.getDefendantTitle());
-        assertNull(dto.getDefendantFirstnames());
-        assertNull(dto.getDefendantSurname());
-
-        // Aliases: names go into organisationName; person fields null
-        List<AliasDto> aliases = dto.getAliases();
-        assertEquals(3, aliases.size());
-        assertTrue(aliases.stream().allMatch(a ->
-                                                 a.getOrganisationName() != null
-                                                     && a.getForenames() == null
-                                                     && a.getSurname() == null));
-    }
-
-    @Test
-    void searchDefendantAccounts_ignoresBlankAliasSlots() {
-        SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
-            .defendantAccountId(3L)
-            .accountNumber("ACC3")
-            .organisation(false)
-            .alias1("John Doe")
-            .alias2("   ")
-            .alias3("")
-            .alias4(null)
-            .alias5(null)
-            .build();
-
-        when(searchDefAccRepo.findAll(
-            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
-        )).thenReturn(Collections.singletonList(row));
-
-        var out = service.searchDefendantAccounts(emptyCriteria());
-        var aliases = out.getDefendantAccounts().get(0).getAliases();
-        assertEquals(1, aliases.size());
-        assertEquals(1, aliases.get(0).getAliasNumber());
-        assertEquals("John", aliases.get(0).getForenames());
-        assertEquals("Doe", aliases.get(0).getSurname());
-    }
-
-    @Test
-    void whenAccountNumberPresent_activeOnlyIsIgnored() {
-        // given
-        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
-        ReferenceNumberDto ref = mock(ReferenceNumberDto.class);
-
-        when(dto.getActiveAccountsOnly()).thenReturn(true); // the user asked for active-only
-        when(dto.getReferenceNumberDto()).thenReturn(ref);
-        when(ref.getAccountNumber()).thenReturn("AAAAAAAAX"); // reference present
-        when(ref.getProsecutorCaseReference()).thenReturn(null);
-
-        // when
-        service.searchDefendantAccounts(dto);
-
-        // then → AC1b requires the service to IGNORE activeOnly (i.e., pass false to the spec)
-        verify(specs, times(1)).filterByActiveOnly(false);
-        verify(searchDefAccRepo, times(1)).findAll(
-            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
-    }
-
-    @Test
-    void whenPcrPresent_activeOnlyIsIgnored() {
-        // given
-        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
-        ReferenceNumberDto ref = mock(ReferenceNumberDto.class);
-
-        when(dto.getActiveAccountsOnly()).thenReturn(true);
-        when(dto.getReferenceNumberDto()).thenReturn(ref);
-        when(ref.getAccountNumber()).thenReturn(null);
-        when(ref.getProsecutorCaseReference()).thenReturn("PCR/1234/XY"); // PCR present
-
-        // when
-        service.searchDefendantAccounts(dto);
-
-        // then
-        verify(specs, times(1)).filterByActiveOnly(false);
-        verify(searchDefAccRepo, times(1)).findAll(
-            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
-    }
-
-    @Test
-    void whenNoReference_activeOnlyIsRespected() {
-        // given
-        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
-        when(dto.getActiveAccountsOnly()).thenReturn(true);
-        when(dto.getReferenceNumberDto()).thenReturn(null); // no account number, no PCR
-
-        // when
-        service.searchDefendantAccounts(dto);
-
-        // then → with no reference, activeOnly should be applied as true
-        verify(specs, times(1)).filterByActiveOnly(true);
-        verify(searchDefAccRepo, times(1)).findAll(
-            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
-    }
-
-    @Test
-    void whenActiveOnlyFalse_andReferencePresent_stillIgnoredButFalseIsCorrect() {
-        // given
-        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
-        ReferenceNumberDto ref = mock(ReferenceNumberDto.class);
-
-        when(dto.getActiveAccountsOnly()).thenReturn(false); // already false
-        when(dto.getReferenceNumberDto()).thenReturn(ref);
-        when(ref.getAccountNumber()).thenReturn("AAAAAAAAX");
-
-        // when
-        service.searchDefendantAccounts(dto);
-
-        // then → should pass false (ignoring or not, final effect is false)
-        verify(specs, times(1)).filterByActiveOnly(false);
-        verify(searchDefAccRepo, times(1)).findAll(
-            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
-    }
-
-
-    private AccountSearchDto emptyCriteria() {
-        AccountSearchDto c = mock(AccountSearchDto.class);
-        when(c.getBusinessUnitIds()).thenReturn(null);
-        when(c.getActiveAccountsOnly()).thenReturn(null);
-        when(c.getReferenceNumberDto()).thenReturn(null);
-        when(c.getDefendant()).thenReturn(null);
-        return c;
-    }
-
 }

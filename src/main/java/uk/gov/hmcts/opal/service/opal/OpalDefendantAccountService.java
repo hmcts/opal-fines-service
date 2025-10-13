@@ -2,14 +2,15 @@ package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.Optional;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -21,7 +22,6 @@ import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
-import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
@@ -94,12 +94,12 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import java.time.LocalDateTime;
 
 @Service
 @Slf4j(topic = "opal.OpalDefendantAccountService")
@@ -352,18 +352,21 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .defendantAccountId(String.valueOf(e.getDefendantAccountId()))
             .accountNumber(e.getAccountNumber())
             .organisation(isOrganisation)
-            .organisationName(e.getOrganisationName())
-            .defendantTitle(isOrganisation ? null : e.getTitle())
-            .defendantFirstnames(isOrganisation ? null : e.getForenames())
-            .defendantSurname(isOrganisation ? null : e.getSurname())
-            .addressLine1(e.getAddressLine1())
-            .postcode(e.getPostcode())
-            .businessUnitName(e.getBusinessUnitName())
-            .businessUnitId(String.valueOf(e.getBusinessUnitId()))
+            .organisationName(organisationName)
+            .defendantTitle(!isOrganisation ? title : null)
+            .defendantFirstnames(!isOrganisation ? forenames : null)
+            .defendantSurname(!isOrganisation ? surname : null)
+            .addressLine1(party != null ? party.getAddressLine1() : null)
+            .postcode(party != null ? party.getPostcode() : null)
+            .businessUnitName(e.getBusinessUnit() != null ? e.getBusinessUnit().getBusinessUnitName() : null)
+            .businessUnitId(e.getBusinessUnit() != null
+                ? String.valueOf(e.getBusinessUnit().getBusinessUnitId()) : null)
             .prosecutorCaseReference(e.getProsecutorCaseReference())
-            .lastEnforcementAction(e.getLastEnforcement()) // entity now maps this as String
-            .accountBalance(e.getDefendantAccountBalance())
-            .birthDate(e.getBirthDate() != null ? e.getBirthDate().toString() : null)
+            .lastEnforcementAction(e.getLastEnforcement())
+            .accountBalance(e.getAccountBalance())
+            .birthDate(party != null && !isOrganisation
+                ? uk.gov.hmcts.opal.util.DateTimeUtils.toString(party.getBirthDate())
+                : null)
             .aliases(aliases)
             .build();
     }
