@@ -45,7 +45,7 @@ import static uk.gov.hmcts.opal.util.VersionUtils.verifyVersions;
 @Slf4j(topic = "opal.DraftAccountService")
 @RequiredArgsConstructor
 @Qualifier("draftAccountService")
-public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
+public class DraftAccountTransactional implements DraftAccountTransactionalProxy {
 
     private static final String DEFENDANT_JSON_PATH = "$.defendant";
 
@@ -79,7 +79,7 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
     }
 
     @Transactional
-    public boolean deleteDraftAccount(long draftAccountId, DraftAccountTransactionsProxy proxy) {
+    public boolean deleteDraftAccount(long draftAccountId, DraftAccountTransactionalProxy proxy) {
         draftAccountRepository.delete(proxy.getDraftAccount(draftAccountId));
         return true;
     }
@@ -104,7 +104,7 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
 
     @Transactional
     public DraftAccountEntity replaceDraftAccount(Long draftAccountId, ReplaceDraftAccountRequestDto dto,
-                                                  DraftAccountTransactionsProxy proxy, String ifMatch) {
+                                                  DraftAccountTransactionalProxy proxy, String ifMatch) {
         DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
         verifyIfMatch(existingAccount, ifMatch, draftAccountId, "replaceDraftAccount");
 
@@ -137,7 +137,7 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
 
     @Transactional
     public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
-                                                 DraftAccountTransactionsProxy proxy, String ifMatch) {
+                                                 DraftAccountTransactionalProxy proxy, String ifMatch) {
         DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
         verifyIfMatch(existingAccount, ifMatch, draftAccountId, "updateDraftAccount");
 
@@ -180,7 +180,7 @@ public class DraftAccountTransactions implements DraftAccountTransactionsProxy {
 
     @Transactional
     public DraftAccountEntity updateStatus(DraftAccountEntity entity, DraftAccountStatus status,
-                                           DraftAccountTransactionsProxy proxy) {
+                                           DraftAccountTransactionalProxy proxy) {
 
         Long draftAccountId = entity.getDraftAccountId();
         log.debug(":updateStatus: Updating draft account with ID: {} to status: {}",

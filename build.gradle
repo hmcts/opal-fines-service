@@ -18,8 +18,14 @@ plugins {
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.34'
   id "org.openapi.generator" version "7.13.0"
 }
-//Should we fail fast on test failures?
 
+ext {
+  log4JVersion = "2.25.2"
+  serenityVersion = "4.2.34"
+  cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
+}
+
+//Should we fail fast on test failures?
 //Defaults to true if env is not present
 var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
 
@@ -63,6 +69,7 @@ sourceSets {
     resources.srcDir file('src/integrationTest/resources')
   }
 }
+
 configurations {
   openapiImplementation.extendsFrom implementation
   openapiRuntimeOnly.extendsFrom runtimeOnly
@@ -75,6 +82,14 @@ configurations {
 
   smokeTestImplementation.extendsFrom testImplementation
   smokeTestRuntimeOnly.extendsFrom runtimeOnly
+}
+
+configurations.all {
+  resolutionStrategy {
+    force "io.cucumber:cucumber-core:${cucumberVersion}"
+    force "io.cucumber:cucumber-java:${cucumberVersion}"
+    force "io.cucumber:cucumber-junit:${cucumberVersion}"
+  }
 }
 
 tasks.register("bundleOpenApi", JavaExec) {
@@ -301,11 +316,6 @@ dependencyUpdates {
   }
 }
 
-ext {
-  log4JVersion = "2.25.2"
-  serenityVersion = "4.2.34"
-}
-
 dependencyManagement {
   imports {
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.0.0'
@@ -342,9 +352,9 @@ ext['tomcat.version'] = '10.1.42'
 
 
 dependencies {
-  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.16"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.22"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.22"
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.34"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.38"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.38"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.17.2"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
@@ -424,14 +434,14 @@ dependencies {
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:junit-jupiter:1.21.3'
   testImplementation 'org.testcontainers:postgresql'
-  testImplementation(platform('org.junit:junit-bom:5.13.4'))
+  testImplementation(platform('org.junit:junit-bom:6.0.0'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  testImplementation 'org.junit.platform:junit-platform-suite:1.13.4'
-  testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.23.0'
+  testImplementation 'org.junit.platform:junit-platform-suite:6.0.0'
+  testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-rest-assured:${serenityVersion}"
