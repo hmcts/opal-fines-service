@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.dto.reference.OffenceReferenceDataResults;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchDataResults;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.offence.OffenceEntityFull;
+import uk.gov.hmcts.opal.entity.offence.OffenceFullEntity;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
 
 import java.time.LocalDateTime;
@@ -38,12 +38,12 @@ class OffenceControllerTest {
     @Test
     void testGetOffence_Success() {
         // Arrange
-        OffenceEntityFull entity = OffenceEntityFull.builder().build();
+        OffenceFullEntity entity = OffenceFullEntity.builder().build();
 
         when(offenceService.getOffence(any(Long.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<OffenceEntityFull> response = offenceController.getOffenceById(1L);
+        ResponseEntity<OffenceFullEntity> response = offenceController.getOffenceById(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

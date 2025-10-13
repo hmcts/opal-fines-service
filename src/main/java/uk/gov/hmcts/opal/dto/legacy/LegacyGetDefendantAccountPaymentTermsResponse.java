@@ -27,19 +27,9 @@ public class LegacyGetDefendantAccountPaymentTermsResponse implements ToXmlStrin
     @XmlElement(name = "payment_terms")
     private LegacyPaymentTerms paymentTerms;
 
-    @XmlElement(name = "posted_details")
-    private LegacyPostedDetails postedDetails;
-
     @XmlElement(name = "payment_card_last_requested")
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate paymentCardLastRequested;
-
-    @XmlElement(name = "date_last_amended")
-    @XmlJavaTypeAdapter(LocalDateAdapter.class)
-    private LocalDate dateLastAmended;
-
-    @XmlElement(name = "extension")
-    private Boolean extension;
 
     @XmlElement(name = "last_enforcement")
     private String lastEnforcement;

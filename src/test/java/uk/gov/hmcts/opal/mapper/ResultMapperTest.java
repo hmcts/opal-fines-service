@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
-import uk.gov.hmcts.opal.entity.result.ResultEntityFull;
-import uk.gov.hmcts.opal.entity.result.ResultEntityLite;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 
 import java.util.List;
 
@@ -19,7 +18,7 @@ class ResultMapperTest {
     @Test
     void toRefData_shouldMapLiteEntityToDto() {
         // Arrange
-        ResultEntityLite entity = ResultEntityLite.builder()
+        ResultEntity.Lite entity = ResultEntity.Lite.builder()
             .resultId("R123")
             .resultTitle("Test Result")
             .resultTitleCy("Test Result Welsh")
@@ -46,7 +45,7 @@ class ResultMapperTest {
     @Test
     void toRefDataFromFull_shouldMapFullEntityToDto() {
         // Arrange
-        ResultEntityFull entity = ResultEntityFull.builder()
+        ResultEntity.Lite entity = ResultEntity.Lite.builder()
             .resultId("R456")
             .resultTitle("Full Result")
             .resultTitleCy("Full Result Welsh")
@@ -61,7 +60,7 @@ class ResultMapperTest {
             .build();
 
         // Act
-        ResultReferenceData result = resultMapper.toRefDataFromFull(entity);
+        ResultReferenceData result = resultMapper.toRefData(entity);
 
         // Assert
         assertNotNull(result);
@@ -77,7 +76,7 @@ class ResultMapperTest {
     @Test
     void toReferenceDataResponse_shouldConvertListToResponse() {
         // Arrange
-        ResultEntityLite entity1 = ResultEntityLite.builder()
+        ResultEntity.Lite entity1 = ResultEntity.Lite.builder()
             .resultId("R1")
             .resultTitle("Result 1")
             .resultTitleCy("Result 1 Welsh")
@@ -85,7 +84,7 @@ class ResultMapperTest {
             .active(true)
             .build();
 
-        ResultEntityLite entity2 = ResultEntityLite.builder()
+        ResultEntity.Lite entity2 = ResultEntity.Lite.builder()
             .resultId("R2")
             .resultTitle("Result 2")
             .resultTitleCy("Result 2 Welsh")
@@ -93,7 +92,7 @@ class ResultMapperTest {
             .active(false)
             .build();
 
-        List<ResultEntityLite> entities = List.of(entity1, entity2);
+        List<ResultEntity.Lite> entities = List.of(entity1, entity2);
 
         // Act
         ResultReferenceDataResponse response = resultMapper.toReferenceDataResponse(entities);

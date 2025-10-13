@@ -24,6 +24,11 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.amendment.RecordType;
+import uk.gov.hmcts.opal.service.opal.AmendmentService;
+import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -117,13 +122,10 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
     @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_METHOD)
     @Sql(scripts = "classpath:db/deleteData/delete_from_amendments.sql", executionPhase = AFTER_TEST_METHOD)
     void testAuditStoredProcedures() throws Exception {
+        Long defAccId = 77L;
+        Short busUnitId = (short)78;
 
-        DefendantAccountSearchResultsDto searchResults =
-            opalDefendantAccountService.searchDefendantAccounts(AccountSearchDto.builder().build());
-        DefendantAccountSummaryDto dto = searchResults.getDefendantAccounts().getFirst();
-        Long defAccId = Long.parseLong(dto.getDefendantAccountId());
-        Short busUnitId = Short.parseShort(dto.getBusinessUnitId());
-
+        transactionalContext.callTheStoredProcedures(defAccId, busUnitId);
         log.info(":testAuditStoredProcedures: found defendant:{} in business unit: {}", defAccId, busUnitId);
 
         transactionalContext.callTheStoredProcedures(defAccId, busUnitId);
@@ -133,8 +135,8 @@ class AmendmentControllerIntegrationTest extends AbstractIntegrationTest {
         log.info(":testAuditStoredProcedures: defendant account: {}", rowData);
 
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
-                                                     .contentType(MediaType.APPLICATION_JSON)
-                                                     .content("{\"associated_record_id\": \"" + defAccId + "\"}"));
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"associated_record_id\": \"" + defAccId + "\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testAuditStoredProcedures: Response body:\n" + ToJsonString.toPrettyJson(body));

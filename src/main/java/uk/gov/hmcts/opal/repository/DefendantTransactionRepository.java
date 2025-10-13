@@ -12,10 +12,11 @@ import java.util.List;
 @Repository
 public interface DefendantTransactionRepository extends JpaRepository<DefendantTransactionEntity, Long>,
     JpaSpecificationExecutor<DefendantTransactionEntity> {
-    void deleteByDefendantAccount_DefendantAccountId(long defendantAccountId);
+
+    void deleteByDefendantAccountId(long defendantAccountId);
 
     @Query("SELECT dt.defendantTransactionId FROM DefendantTransactionEntity dt "
-        + "WHERE dt.defendantAccount.defendantAccountId = :accountId")
+        + "WHERE dt.defendantAccountId = :accountId")
     List<Long> findDefendantAccountTransactionIdsByDefendantAccountId(@Param("accountId")long defendantAccountId);
 
 }

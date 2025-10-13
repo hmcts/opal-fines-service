@@ -14,4 +14,4 @@
 */
 
 -- Delete test creditor transactions first (FK references creditor_accounts)
-DELETE FROM amendments WHERE amendment_id > 60000000000000;
+DELETE FROM amendments WHERE amendment_id >= 60000000000000;

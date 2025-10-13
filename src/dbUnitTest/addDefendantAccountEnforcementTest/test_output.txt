@@ -1,0 +1,86 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  table "temp_def_ac_amendment_list" does not exist, skipping
+NOTICE:  table "temp_cred_ac_amendment_list" does not exist, skipping
+NOTICE:  Data cleanup before tests completed
+NOTICE:  === TEST 1: Test successful enforcement creation with warrant generation ===
+NOTICE:  Using result_id: NBWT
+INFO:  p_add_defendant_account_enforcement: Starting with pi_result_id = NBWT, pi_defendant_account_id = 90001, pi_version_number = 1
+INFO:  p_audit_initialise: Starting with pi_associated_account_id = 90001, pi_record_type = defendant_accounts
+NOTICE:  table "temp_def_ac_amendment_list" does not exist, skipping
+INFO:  p_audit_initialise: Created temp_def_ac_amendment_list with 1 records
+INFO:  p_audit_initialise: Successfully completed for record_type = defendant_accounts
+INFO:  p_audit_finalise: Starting with pi_associated_account_id = 90001, pi_record_type = defendant_accounts
+INFO:  p_audit_finalise: Processed defendant account with 0 amendments recorded
+INFO:  p_audit_finalise: Successfully completed with 0 total amendments recorded
+INFO:  p_add_defendant_account_enforcement: Successfully completed. Created enforcement_id = 60000000000001
+NOTICE:  TEST 1 PASSED: Enforcement created successfully with warrant generation
+NOTICE:  === TEST 2: Test COLLO enforcement action updates collection order ===
+INFO:  p_add_defendant_account_enforcement: Starting with pi_result_id = COLLO, pi_defendant_account_id = 90002, pi_version_number = 1
+INFO:  p_audit_initialise: Starting with pi_associated_account_id = 90002, pi_record_type = defendant_accounts
+NOTICE:  table "temp_def_ac_amendment_list" does not exist, skipping
+INFO:  p_audit_initialise: Created temp_def_ac_amendment_list with 1 records
+INFO:  p_audit_initialise: Successfully completed for record_type = defendant_accounts
+INFO:  p_audit_finalise: Starting with pi_associated_account_id = 90002, pi_record_type = defendant_accounts
+INFO:  p_audit_finalise: Processed defendant account with 1 amendments recorded
+INFO:  p_audit_finalise: Successfully completed with 1 total amendments recorded
+INFO:  p_add_defendant_account_enforcement: Successfully completed. Created enforcement_id = 60000000000002
+NOTICE:  TEST 2 PASSED: COLLO enforcement correctly updates collection order
+NOTICE:  === TEST 3: Test FSN enforcement action sets further steps notice date only if NULL ===
+INFO:  p_add_defendant_account_enforcement: Starting with pi_result_id = FSN, pi_defendant_account_id = 90003, pi_version_number = 1
+INFO:  p_audit_initialise: Starting with pi_associated_account_id = 90003, pi_record_type = defendant_accounts
+NOTICE:  table "temp_def_ac_amendment_list" does not exist, skipping
+INFO:  p_audit_initialise: Created temp_def_ac_amendment_list with 1 records
+INFO:  p_audit_initialise: Successfully completed for record_type = defendant_accounts
+INFO:  p_audit_finalise: Starting with pi_associated_account_id = 90003, pi_record_type = defendant_accounts
+INFO:  p_audit_finalise: Processed defendant account with 0 amendments recorded
+INFO:  p_audit_finalise: Successfully completed with 0 total amendments recorded
+INFO:  p_add_defendant_account_enforcement: Successfully completed. Created enforcement_id = 60000000000003
+NOTICE:  TEST 3 PASSED: FSN enforcement correctly preserves existing further steps notice date
+NOTICE:  === TEST 4: Test error handling - NULL result_id ===
+INFO:  p_add_defendant_account_enforcement: Starting with pi_result_id = <NULL>, pi_defendant_account_id = 90001, pi_version_number = 1
+NOTICE:  Error in p_add_defendant_account_enforcement: P4001 - Result ID cannot be null
+NOTICE:  Expected error caught: P4001 - Result ID cannot be null
+NOTICE:  TEST 4 PASSED: Error handling works correctly for NULL result_id
+NOTICE:  === TEST 5: Test error handling - NULL defendant_account_id ===
+INFO:  p_add_defendant_account_enforcement: Starting with pi_result_id = SUMM, pi_defendant_account_id = <NULL>, pi_version_number = 1
+NOTICE:  Error in p_add_defendant_account_enforcement: P4002 - Defendant account ID cannot be null
+NOTICE:  Expected error caught: P4002 - Defendant account ID cannot be null
+NOTICE:  TEST 5 PASSED: Error handling works correctly for NULL defendant_account_id
+NOTICE:  === TEST 6: Test error handling - Invalid record type ===
+INFO:  p_add_defendant_account_enforcement: Starting with pi_result_id = SUMM, pi_defendant_account_id = 90001, pi_version_number = 1
+NOTICE:  Error in p_add_defendant_account_enforcement: P4004 - Invalid record type: invalid_type. Must be defendant_accounts
+NOTICE:  Expected error caught: P4004 - Invalid record type: invalid_type. Must be defendant_accounts
+NOTICE:  TEST 6 PASSED: Error handling works correctly for invalid record type
+NOTICE:  === TEST 7: Test error handling - Non-existent enforcer_id ===
+INFO:  p_add_defendant_account_enforcement: Starting with pi_result_id = NBWT, pi_defendant_account_id = 90001, pi_version_number = 1
+INFO:  p_audit_initialise: Starting with pi_associated_account_id = 90001, pi_record_type = defendant_accounts
+NOTICE:  table "temp_def_ac_amendment_list" does not exist, skipping
+INFO:  p_audit_initialise: Created temp_def_ac_amendment_list with 1 records
+INFO:  p_audit_initialise: Successfully completed for record_type = defendant_accounts
+NOTICE:  Error in p_add_defendant_account_enforcement: P4006 - Enforcer not found with ID: 999999
+NOTICE:  Expected error caught: P4006 - Enforcer not found with ID: 999999
+NOTICE:  TEST 7 PASSED: Error handling works correctly for non-existent enforcer_id
+NOTICE:  === TEST 8: Test error handling - NULL version_number ===
+INFO:  p_add_defendant_account_enforcement: Starting with pi_result_id = SUMM, pi_defendant_account_id = 90001, pi_version_number = <NULL>
+NOTICE:  Error in p_add_defendant_account_enforcement: P4007 - Version number cannot be null
+NOTICE:  Expected error caught: P4007 - Version number cannot be null
+NOTICE:  TEST 8 PASSED: Error handling works correctly for NULL version_number
+NOTICE:  === TEST 9: Test error handling - Version number mismatch (concurrency check) ===
+INFO:  p_add_defendant_account_enforcement: Starting with pi_result_id = SUMM, pi_defendant_account_id = 90004, pi_version_number = 5
+INFO:  p_audit_initialise: Starting with pi_associated_account_id = 90004, pi_record_type = defendant_accounts
+NOTICE:  table "temp_def_ac_amendment_list" does not exist, skipping
+INFO:  p_audit_initialise: Created temp_def_ac_amendment_list with 1 records
+INFO:  p_audit_initialise: Successfully completed for record_type = defendant_accounts
+INFO:  p_audit_finalise: Starting with pi_associated_account_id = 90004, pi_record_type = defendant_accounts
+INFO:  p_audit_finalise: Processed defendant account with 0 amendments recorded
+INFO:  p_audit_finalise: Successfully completed with 0 total amendments recorded
+NOTICE:  Error in p_add_defendant_account_enforcement: P4008 - Some information on this page may be out of date.
+NOTICE:  Expected error caught: P4008 - Some information on this page may be out of date.
+NOTICE:  TEST 9 PASSED: Error handling works correctly for version number mismatch (concurrency check)
+NOTICE:  === Cleanup test data ===
+NOTICE:  table "temp_def_ac_amendment_list" does not exist, skipping
+NOTICE:  table "temp_cred_ac_amendment_list" does not exist, skipping
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 776 msec.

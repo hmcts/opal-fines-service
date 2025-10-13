@@ -33,17 +33,17 @@ public class CourtService {
 
     private final CourtSpecs specs = new CourtSpecs();
 
-    public CourtEntity getCourtById(long courtId) {
+    public CourtEntity.Lite getCourtById(long courtId) {
         return courtRepository.findById(courtId)
             .orElseThrow(() -> new EntityNotFoundException("Court not found with id: " + courtId));
     }
 
-    public List<CourtEntity> searchCourts(CourtSearchDto criteria) {
+    public List<CourtEntity.Lite> searchCourts(CourtSearchDto criteria) {
 
         log.debug(":searchCourts: criteria: {}", criteria);
         Sort nameSort = Sort.by(Sort.Direction.ASC, AddressEntity_.NAME);
 
-        Page<CourtEntity> courtsPage = courtRepository
+        Page<CourtEntity.Lite> courtsPage = courtRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq
                         .sortBy(nameSort)
@@ -61,7 +61,7 @@ public class CourtService {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, AddressEntity_.NAME);
 
-        Page<CourtEntity> page = courtRepository
+        Page<CourtEntity.Lite> page = courtRepository
             .findBy(specs.referenceDataFilter(filter, businessUnitId),
                     ffq -> ffq
                         .sortBy(nameSort)
