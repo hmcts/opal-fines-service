@@ -1,7 +1,10 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -17,9 +20,12 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
@@ -40,28 +46,15 @@ import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
-import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
-import org.springframework.data.jpa.domain.Specification;
-import org.mockito.ArgumentMatchers;
-import java.util.Collections;
-
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.EnforcementOverrideResultEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.repository.CourtRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
-import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
@@ -70,18 +63,8 @@ import uk.gov.hmcts.opal.repository.EnforcementOverrideResultRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
-import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 
 class OpalDefendantAccountServiceTest {
 
@@ -103,15 +86,14 @@ class OpalDefendantAccountServiceTest {
 
     // If you need to create the service, mock the repos as needed.
     private final OpalDefendantAccountService service =
-        new OpalDefendantAccountService(null, defendantAccountRepository, null, null, dasvRepository,null,null,null,
-            null,null,null,null);
         new OpalDefendantAccountService(
             dahvRepository,
             defendantAccountRepository,
             searchDefAccRepo,
             searchDefAccSpecs,
             paymentTermsRepository,
-            dasvRepository
+            dasvRepository,
+            null, null, null, null, null, null, null
         );
 
     @Test
@@ -436,14 +418,15 @@ class OpalDefendantAccountServiceTest {
         // Core repos & deps
         final DefendantAccountHeaderViewRepository headerViewRepo = mock(DefendantAccountHeaderViewRepository.class);
         final DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
-        final DefendantAccountSpecs specs = mock(DefendantAccountSpecs.class);
         final DefendantAccountPaymentTermsRepository paymentTermsRepo = mock(DefendantAccountPaymentTermsRepository
-            .class);
+                                                                                 .class);
+        final DefendantAccountSummaryViewRepository dasvRepo = mock(DefendantAccountSummaryViewRepository.class);
+        final SearchDefendantAccountRepository searchDefAccRepo = mock(SearchDefendantAccountRepository.class);
+        final SearchDefendantAccountSpecs searchDefAccSpecs = mock(SearchDefendantAccountSpecs.class);
         final CourtRepository courtRepo = mock(CourtRepository.class);
         final AmendmentService amendmentService = mock(AmendmentService.class);
         final EntityManager em = mock(EntityManager.class);
-        final NoteRepository noteRepository = mock(NoteRepository
-            .class);
+        final NoteRepository noteRepository = mock(NoteRepository.class);
 
         // Repos needed for enforcementOverrides
         final EnforcementOverrideResultRepository eorRepo = mock(EnforcementOverrideResultRepository.class);
@@ -453,7 +436,8 @@ class OpalDefendantAccountServiceTest {
         // Stubs
         when(accountRepo.findById(id)).thenReturn(Optional.of(entity));
         // Echo the saved entity (so assertions see updated values)
-        when(accountRepo.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(accountRepo.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(
+            0));
 
         CourtEntity.Lite court = CourtEntity.Lite.builder()
             .courtId(100L)
@@ -478,9 +462,19 @@ class OpalDefendantAccountServiceTest {
 
         // Service under test
         final OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            headerViewRepo, accountRepo, specs, paymentTermsRepo, /* summary */ null, courtRepo,
-            amendmentService, em, noteRepository,
-            eorRepo, ljaRepo, enforcerRepo
+            headerViewRepo,        // 1 - DefendantAccountHeaderViewRepository
+            accountRepo,           // 2 - DefendantAccountRepository
+            searchDefAccRepo,      // 3 - SearchDefendantAccountRepository
+            searchDefAccSpecs,     // 4 - SearchDefendantAccountSpecs
+            paymentTermsRepo,      // 5 - DefendantAccountPaymentTermsRepository
+            dasvRepo,              // 6 - DefendantAccountSummaryViewRepository
+            courtRepo,             // 7 - CourtRepository
+            amendmentService,      // 8 - AmendmentService
+            em,                    // 9 - EntityManager
+            noteRepository,        // 10 - NoteRepository
+            eorRepo,               // 11 - EnforcementOverrideResultRepository
+            ljaRepo,               // 12 - LocalJusticeAreaRepository
+            enforcerRepo           // 13 - EnforcerRepository
         );
 
         // Request DTO
@@ -557,7 +551,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -575,7 +569,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenBusinessUnitMismatch() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -605,7 +599,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenCollectionOrderDateInvalid() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -637,7 +631,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenEntityNotFound() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
 
         when(accountRepo.findById(99L)).thenReturn(Optional.empty());
 
@@ -661,18 +655,20 @@ class OpalDefendantAccountServiceTest {
 
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
             /*headerViewRepo*/ null,
-            accountRepo,
-            /*specs*/ null,
+                               accountRepo,
+            /*searchDefendantAccountRepository*/ null,
+            /*searchDefendantAccountSpecs*/ null,
             /*paymentTermsRepo*/ null,
-            /* summary */ null,
+            /*summaryViewRepo*/ null,
             /*courtRepo*/ null,
-            amendmentService,
-            em,
-            noteRepository,
-            /* enforcementOverrideResultRepository */ null,
-            /* localJusticeAreaRepository        */ null,
-            /* enforcerRepository                */ null
+                               amendmentService,
+                               em,
+                               noteRepository,
+            /*enforcementOverrideResultRepository*/ null,
+            /*localJusticeAreaRepository*/ null,
+            /*enforcerRepository*/ null
         );
+
 
         Long id = 77L;
         String bu = "10";
@@ -704,9 +700,19 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_versionMismatch_throwsResourceConflict() {
         var repo = mock(DefendantAccountRepository.class);
         var svc = new OpalDefendantAccountService(
-            null, repo, null, null, null, mock(CourtRepository.class),
-            mock(AmendmentService.class), mock(EntityManager.class),
-            mock(NoteRepository.class), null, null, null
+            null,
+            repo,
+            null,
+            null,
+            null,
+            null,
+            mock(CourtRepository.class),
+            mock(AmendmentService.class),
+            mock(EntityManager.class),
+            mock(NoteRepository.class),
+            null,
+            null,
+            null
         );
 
         var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
@@ -734,7 +740,20 @@ class OpalDefendantAccountServiceTest {
         when(accountRepo.findById(77L)).thenReturn(Optional.of(entity));
 
         var svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null,/* summary */ null, null, amend, em, noteRepo, null, null, null);
+            null,
+            accountRepo,
+            null,
+            null,
+            null,
+            null,
+            null,
+            amend,
+            em,
+            noteRepo,
+            null,
+            null,
+            null
+        );
 
         var req = UpdateDefendantAccountRequest.builder()
             .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("hello").build()).build();
@@ -750,13 +769,21 @@ class OpalDefendantAccountServiceTest {
     @Test
     void updateDefendantAccount_enforcementOverrideLookupsMissing_areNull() {
         var accountRepo = mock(DefendantAccountRepository.class);
-        var svc = new OpalDefendantAccountService(null, accountRepo, null,
-            null, null, null,
-            mock(AmendmentService.class), mock(EntityManager.class), mock(NoteRepository.class),
+        var svc = new OpalDefendantAccountService(
+            null,
+            accountRepo,
+            null,
+            null,
+            null,
+            null,
+            null,
+            mock(AmendmentService.class),
+            mock(EntityManager.class),
+            mock(NoteRepository.class),
             mock(EnforcementOverrideResultRepository.class),
             mock(LocalJusticeAreaRepository.class),
-            mock(EnforcerRepository.class));
-
+            mock(EnforcerRepository.class)
+        );
 
         var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
         var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu).version(0L).build();

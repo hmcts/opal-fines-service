@@ -78,7 +78,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
         )).thenReturn(responseBody);
 
-
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
@@ -116,17 +115,23 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                               .build())
             .build();
 
-        assertNotNull(actual, "Expected non-null header summary");
-        assertEquals(expected.getDefendantAccountId(), actual.getDefendantAccountId());
-        assertEquals(expected.getDebtorType(), actual.getDebtorType());
-        assertEquals(expected.getIsYouth(), actual.getIsYouth());
-        assertEquals(expected.getAccountNumber(), actual.getAccountNumber());
-        assertEquals(expected.getAccountStatusReference().getAccountStatusCode(),
-                     actual.getAccountStatusReference().getAccountStatusCode());
-        assertEquals(expected.getBusinessUnitSummary().getBusinessUnitName(),
-                     actual.getBusinessUnitSummary().getBusinessUnitName());
-        assertEquals(expected.getPaymentStateSummary().getImposedAmount(),
-                     actual.getPaymentStateSummary().getImposedAmount());
+        assertNotNull(published, "Expected non-null header summary");
+        assertEquals(expected.getDefendantAccountId(), published.getDefendantAccountId());
+        assertEquals(expected.getDebtorType(), published.getDebtorType());
+        assertEquals(expected.getIsYouth(), published.getIsYouth());
+        assertEquals(expected.getAccountNumber(), published.getAccountNumber());
+        assertEquals(
+            expected.getAccountStatusReference().getAccountStatusCode(),
+            published.getAccountStatusReference().getAccountStatusCode()
+        );
+        assertEquals(
+            expected.getBusinessUnitSummary().getBusinessUnitName(),
+            published.getBusinessUnitSummary().getBusinessUnitName()
+        );
+        assertEquals(
+            expected.getPaymentStateSummary().getImposedAmount(),
+            published.getPaymentStateSummary().getImposedAmount()
+        );
     }
 
     @Test
@@ -307,7 +312,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNotNull(published);
         assertEquals("SAMPLE", published.getAccountNumber());
         assertEquals("Fine", published.getAccountType());
-        assertEquals("Live", published.getAccountStatusReference().getAccountStatusDisplayName());
         assertEquals("L", published.getAccountStatusReference().getAccountStatusCode());
         assertNull(published.getAccountStatusReference().getAccountStatusDisplayName(),
                    "Legacy should not populate display name");
@@ -327,7 +331,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
             new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(Mockito
+                 .<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()))
+            .thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
