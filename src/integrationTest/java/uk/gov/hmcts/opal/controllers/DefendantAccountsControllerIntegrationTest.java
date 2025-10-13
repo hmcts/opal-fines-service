@@ -371,7 +371,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(2))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
@@ -651,7 +651,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(2))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
@@ -1360,8 +1360,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             ToJsonString.toPrettyJson(body));
 
         allAccountsActions.andExpect(status().isOk())
-            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.count").value(3))
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')].account_number")
+                .value("177B"))
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')]").exists())
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')].account_number")
                 .value("444C"));
