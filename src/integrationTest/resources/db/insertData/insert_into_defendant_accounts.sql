@@ -112,6 +112,41 @@ INSERT INTO NOTES
 VALUES ( 001077, 'AC', 'defendant_accounts', 0077
        , 'Comment for Notes for Ms Anna Graham', NULL, 'Dr Notes');
 
+
+-- 177B (inactive) — new unique ID
+INSERT INTO defendant_accounts (
+  defendant_account_id, business_unit_id, account_number,
+  imposed_hearing_date, imposing_court_id, amount_imposed, amount_paid, account_balance,
+  account_status, completed_date, enforcing_court_id, last_hearing_court_id, last_hearing_date,
+  last_movement_date, last_changed_date, last_enforcement,
+  originator_name, originator_id, originator_type,
+  allow_writeoffs, allow_cheques, cheque_clearance_period, credit_trans_clearance_period,
+  enf_override_result_id, enf_override_enforcer_id, enf_override_tfo_lja_id,
+  unit_fine_detail, unit_fine_value, collection_order, collection_order_date,
+  further_steps_notice_date, confiscation_order_date, fine_registration_date, suspended_committal_date,
+  consolidated_account_type, payment_card_requested, payment_card_requested_date, payment_card_requested_by,
+  prosecutor_case_reference, enforcement_case_status, account_type,
+  account_comments, account_note_1, account_note_2, account_note_3, version_number
+)
+VALUES (
+  9077, 78, '177B',
+  '2023-11-03 16:05:10', 780000000185, 700.58, 700.58, 0.00,           -- balance 0 => inactive
+  'C', '2024-02-01 00:00:00', 780000000185, 780000000185, '2024-01-04 18:06:11',
+  '2024-01-02 17:08:09', '2024-01-03 12:00:12', '10',
+  'Seed data', NULL, NULL,
+  'N', 'N', 14, 21,
+  'FWEC', 780000000021, 240,
+  'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00',
+  '2023-12-19 00:00:00', NULL, NULL, NULL,
+  'Y', 'Y', '2024-01-01 00:00:00', '11111111A',
+  '090B', NULL, 'Fine',
+  'Text - Account Comment 177B', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3', 1
+);
+
+INSERT INTO defendant_account_parties
+( defendant_account_party_id, defendant_account_id, party_id, association_type, debtor )
+VALUES ( 9077, 9077, 77, 'Defendant', 'Y' );
+
 --  NEW: Record with business_unit_id = 78, to test partially populated party (all nulls)
 INSERT INTO defendant_accounts
 (defendant_account_id, business_unit_id, account_number,
@@ -700,4 +735,9 @@ WHERE payment_terms_id = 10004
               WHERE table_schema = 'public'
                 AND table_name = 'payment_terms'
                 AND column_name = 'active');
+
 -- ✅ END TEST DATA: Account where party is an individual (parent/guardian)
+
+
+
+

@@ -2209,4 +2209,63 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(status().isForbidden())
             .andExpect(content().string(""));
     }
+
+    @DisplayName("PO-2241 / AC1a+AC1b: With core '177' and one inactive record, both 177A and 177B are returned (active flag ignored)")
+    void testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        // Case 1: active_accounts_only = true (ignored because account_number provided)
+        ResultActions activeTrue = mockMvc.perform(post("/defendant-accounts/search")
+                                                       .header("authorization", "Bearer some_value")
+                                                       .contentType(MediaType.APPLICATION_JSON)
+                                                       .content("""
+            {
+              "active_accounts_only": true,
+              "business_unit_ids": [78],
+              "reference_number": {
+                "account_number": "177",
+                "prosecutor_case_reference": null,
+                "organisation": false
+              },
+              "defendant": null
+            }
+        """));
+
+        String bodyTrue = activeTrue.andReturn().getResponse().getContentAsString();
+        log.info(":PO-2241 AC1a+AC1b (active_accounts_only=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
+
+        activeTrue.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
+
+        // Case 2: active_accounts_only = false (also ignored; set should be identical)
+        ResultActions activeFalse = mockMvc.perform(post("/defendant-accounts/search")
+                                                        .header("authorization", "Bearer some_value")
+                                                        .contentType(MediaType.APPLICATION_JSON)
+                                                        .content("""
+            {
+              "active_accounts_only": false,
+              "business_unit_ids": [78],
+              "reference_number": {
+                "account_number": "177",
+                "prosecutor_case_reference": null,
+                "organisation": false
+              },
+              "defendant": null
+            }
+        """));
+
+        String bodyFalse = activeFalse.andReturn().getResponse().getContentAsString();
+        log.info(":PO-2241 AC1a+AC1b (active_accounts_only=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
+
+        activeFalse.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
+    }
+
 }

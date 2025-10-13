@@ -318,4 +318,9 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     void testGetAtAGlance_authenticatedWithoutPermission_returns403() throws Exception {
         super.opalGetAtAGlance_authenticatedWithoutPermission_returns403(log);
     }
+
+    @Test
+    void testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned() throws Exception {
+        super.testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned(log);
+    }
 }

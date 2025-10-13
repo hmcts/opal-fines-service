@@ -5,19 +5,24 @@ DELETE FROM aliases WHERE alias_id IN (8801, 9011, 5551, 5552, 6661, 6662, 7771,
 DELETE FROM aliases WHERE party_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999);
 
 -- Remove defendant_account_parties links
-DELETE FROM defendant_account_parties WHERE defendant_account_party_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004);
+DELETE FROM defendant_account_parties
+WHERE defendant_account_party_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077);
 
--- Remove from fixed_penalty_offences
-DELETE FROM fixed_penalty_offences WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999);
+-- Remove from fixed_penalty_offences (safe even if none exist)
+DELETE FROM fixed_penalty_offences
+WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 9077);
 
--- Remove payment_terms
-DELETE FROM payment_terms WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004);
+-- Remove payment_terms (safe even if none exist)
+DELETE FROM payment_terms
+WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077);
 
--- Remove notes (ASSOCIATED_RECORD_ID is varchar, so use quoted strings!)
-DELETE FROM notes WHERE associated_record_id IN ('77', '88', '901', '333', '555', '666', '777', '444', '999');
+-- Remove notes (ASSOCIATED_RECORD_ID is varchar)
+DELETE FROM notes
+WHERE associated_record_id IN ('77', '88', '901', '333', '555', '666', '777', '444', '999', '9077');
 
 -- Remove main defendant accounts
-DELETE FROM defendant_accounts WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004);
+DELETE FROM defendant_accounts
+WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077);
 
 -- Remove from debtor_detail before removing parties
 DELETE FROM debtor_detail WHERE party_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004);
