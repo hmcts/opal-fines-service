@@ -412,7 +412,7 @@ class OpalDefendantAccountServiceTest {
         final EntityManager em = mock(EntityManager.class);
         final NoteRepository noteRepository = mock(NoteRepository.class);
 
-        // Repos needed for enforcementOverrides
+        // Repos needed for enforcementOverride
         final EnforcementOverrideResultRepository eorRepo = mock(EnforcementOverrideResultRepository.class);
         final LocalJusticeAreaRepository ljaRepo = mock(LocalJusticeAreaRepository.class);
         final EnforcerRepository enforcerRepo = mock(EnforcerRepository.class);
@@ -476,7 +476,7 @@ class OpalDefendantAccountServiceTest {
                                  .collectionOrderFlag(true)
                                  .collectionOrderDate("2025-01-01")
                                  .build())
-            .enforcementOverrides(EnforcementOverride.builder()
+            .enforcementOverride(EnforcementOverride.builder()
                                       .enforcementOverrideResult(EnforcementOverrideResult.builder()
                                                                      .enforcementOverrideId("EO-1")
                                                                      .enforcementOverrideTitle("Result Title")
@@ -515,11 +515,11 @@ class OpalDefendantAccountServiceTest {
         assertEquals(Boolean.TRUE, resp.getCollectionOrder().getCollectionOrderFlag());
         assertEquals("2025-01-01", resp.getCollectionOrder().getCollectionOrderDate());
 
-        assertNotNull(resp.getEnforcementOverrides());
-        assertEquals("EO-1", resp.getEnforcementOverrides().getEnforcementOverrideResult()
+        assertNotNull(resp.getEnforcementOverride());
+        assertEquals("EO-1", resp.getEnforcementOverride().getEnforcementOverrideResult()
             .getEnforcementOverrideId());
-        assertEquals(22, resp.getEnforcementOverrides().getEnforcer().getEnforcerId());
-        assertEquals(33, resp.getEnforcementOverrides().getLja().getLjaId());
+        assertEquals(22, resp.getEnforcementOverride().getEnforcer().getEnforcerId());
+        assertEquals(33, resp.getEnforcementOverride().getLja().getLjaId());
 
         // Verify entity was updated as expected
         assertEquals(court, entity.getEnforcingCourt());
@@ -776,7 +776,7 @@ class OpalDefendantAccountServiceTest {
         when(accountRepo.findById(77L)).thenReturn(Optional.of(entity));
 
         var req = UpdateDefendantAccountRequest.builder()
-            .enforcementOverrides(EnforcementOverride.builder()
+            .enforcementOverride(EnforcementOverride.builder()
                                       .enforcementOverrideResult(EnforcementOverrideResult.builder()
                                                                      .enforcementOverrideId("NOPE").build())
                                       .enforcer(Enforcer.builder().enforcerId(Math.toIntExact(999999L)).build())
@@ -785,7 +785,7 @@ class OpalDefendantAccountServiceTest {
             .build();
 
         var resp = svc.updateDefendantAccount(77L, "78", req, "0", "tester");
-        assertNotNull(resp.getEnforcementOverrides());
+        assertNotNull(resp.getEnforcementOverride());
     }
 
     @Test

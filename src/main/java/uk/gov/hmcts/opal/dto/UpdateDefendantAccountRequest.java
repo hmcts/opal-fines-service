@@ -29,6 +29,6 @@ public class UpdateDefendantAccountRequest implements ToJsonString {
     @JsonProperty("collection_order")
     private CollectionOrderDto collectionOrder;
 
-    @JsonProperty("enforcement_overrides")
-    private EnforcementOverride enforcementOverrides;
+    @JsonProperty("enforcement_override")
+    private EnforcementOverride enforcementOverride;
 }
