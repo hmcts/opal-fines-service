@@ -504,7 +504,7 @@ public class GlobalExceptionHandler {
         problemDetail.setType(URI.create("https://hmcts.gov.uk/problems/" + typeUri));
         problemDetail.setInstance(URI.create("https://hmcts.gov.uk/problems/instance/" + opalOperationId));
         problemDetail.setProperty("operation_id", opalOperationId);
-        problemDetail.setProperty("retryable", retry);
+        problemDetail.setProperty("retriable", retry);
         return problemDetail;
     }
 

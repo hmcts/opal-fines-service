@@ -88,7 +88,7 @@ class GlobalExceptionHandlerTest {
         assertEquals(URI.create("https://hmcts.gov.uk/problems/feature-disabled"),
                    problemDetail.getType()
         );
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
 
         assertNotNull(problemDetail.getInstance());
 
@@ -108,7 +108,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Missing Required Header", problemDetail.getTitle());
         assertEquals("A required request header is missing", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/missing-header"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
 
         assertNotNull(problemDetail.getInstance());
 
@@ -134,7 +134,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Forbidden", problemDetail.getTitle());
         assertEquals("You do not have permission to access this resource", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/forbidden"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
 
         assertNotNull(problemDetail.getInstance());
 
@@ -154,7 +154,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Not Acceptable", problemDetail.getTitle());
         assertEquals("The requested media type cannot be produced by the server", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/not-acceptable"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
 
         assertNotNull(problemDetail.getInstance());
 
@@ -191,7 +191,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Not Acceptable", problemDetail.getTitle());
         assertEquals("Invalid parameter value format", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/type-mismatch"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
 
         assertNotNull(problemDetail.getInstance());
 
@@ -214,7 +214,7 @@ class GlobalExceptionHandlerTest {
         assertEquals(URI.create("https://hmcts.gov.uk/problems/property-value-error"), problemDetail.getType());
         assertEquals("entity", problemDetail.getProperties().get("entity"));
         assertEquals("property", problemDetail.getProperties().get("property"));
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
 
         assertNotNull(problemDetail.getInstance());
 
@@ -236,7 +236,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Unsupported Media Type", problemDetail.getTitle());
         assertEquals("The Content-Type is not supported. Please use application/json", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/unsupported-media-type"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -258,7 +258,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("The request body could not be read. It may be missing or invalid JSON.",
                      problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/message-not-readable"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -279,7 +279,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Internal Server Error", problemDetail.getTitle());
         assertEquals("A problem occurred while accessing data", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/invalid-data-access"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -300,7 +300,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Internal Server Error", problemDetail.getTitle());
         assertEquals("A problem occurred with the requested data resource", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/invalid-resource-usage"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -319,7 +319,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Entity Not Found", problemDetail.getTitle());
         assertEquals("The requested entity could not be found", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/entity-not-found"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -338,7 +338,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("No Value Present", problemDetail.getTitle());
         assertEquals("The requested element does not exist", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/no-such-element"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -358,7 +358,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Internal Server Error", problemDetail.getTitle());
         assertEquals("An error occurred while processing your request", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/opal-api-error"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -378,7 +378,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("The request did not receive a response from the database within the timeout period",
                      problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/query-timeout"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -397,7 +397,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Internal Server Error", problemDetail.getTitle());
         assertEquals("An unexpected error occurred while processing your request", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/servlet-error"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -416,7 +416,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Not Found", problemDetail.getTitle());
         assertEquals("The requested resource could not be found", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/resource-not-found"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -437,7 +437,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Service Unavailable", problemDetail.getTitle());
         assertEquals("Opal Fines Database is currently unavailable", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/database-unavailable"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -457,7 +457,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Internal Server Error", problemDetail.getTitle());
         assertEquals("A database error occurred while processing your request", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/database-error"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -478,7 +478,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Service Unavailable", problemDetail.getTitle());
         assertEquals("Opal Fines Database is currently unavailable", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/database-unavailable"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -499,7 +499,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Internal Server Error", problemDetail.getTitle());
         assertEquals("A data access error occurred.", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/lazy-initialization"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -519,7 +519,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Internal Server Error", problemDetail.getTitle());
         assertEquals("A persistence error occurred while processing your request", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/jpa-system-error"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -539,7 +539,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Downstream Server Error", problemDetail.getTitle());
         assertEquals("404 Not Found!", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/http-server-error"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -560,7 +560,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Bad Request", problemDetail.getTitle());
         assertEquals("The request does not conform to the required JSON schema", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/json-schema-validation"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -581,7 +581,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Bad Request", problemDetail.getTitle());
         assertEquals("Invalid arguments were provided in the request", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/illegal-argument"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -603,7 +603,7 @@ class GlobalExceptionHandlerTest {
         assertEquals(URI.create("https://hmcts.gov.uk/problems/optimistic-locking"), problemDetail.getType());
         assertEquals(DraftAccountEntity.class.getName(), problemDetail.getProperties().get("resourceType"));
         assertEquals("123", problemDetail.getProperties().get("resourceId"));
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -625,7 +625,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("DraftAccount", problemDetail.getProperties().get("resourceType"));
         assertEquals("123", problemDetail.getProperties().get("resourceId"));
         assertEquals("BusinessUnits mismatch", problemDetail.getProperties().get("conflictReason"));
-        assertEquals(false, problemDetail.getProperties().get("retryable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable"));
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
