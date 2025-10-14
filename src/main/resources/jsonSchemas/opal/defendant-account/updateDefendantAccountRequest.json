@@ -13,7 +13,7 @@
     "collection_order": {
       "$ref": "../common-objects/collectionOrder.json"
     },
-    "enforcement_overrides": {
+    "enforcement_override": {
       "$ref": "../common-objects/enforcementOverride.json"
     }
   },
@@ -21,7 +21,7 @@
     { "required": ["comment_and_notes"] },
     { "required": ["enforcement_court"] },
     { "required": ["collection_order"] },
-    { "required": ["enforcement_overrides"] }
+    { "required": ["enforcement_override"] }
   ],
   "minProperties": 1,
   "maxProperties": 1
