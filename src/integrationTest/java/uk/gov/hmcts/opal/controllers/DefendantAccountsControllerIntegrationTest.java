@@ -2545,10 +2545,17 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     void patch_updatesCollectionOrder(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
+        // Use the live version from DB to avoid 409 conflicts
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            77L
+        );
+
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");
         headers.add("Business-Unit-Id", "78");
-        headers.add(HttpHeaders.IF_MATCH, "\"0\"");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
         mockMvc.perform(patch(URL_BASE + "/77")
                 .headers(headers)
@@ -2560,8 +2567,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(header().exists("ETag"));
     }
 
-    @DisplayName("OPAL: PATCH Update Defendant Account - Update Enforcement Overrides [@PO-1565]")
-    void patch_updatesEnforcementOverrides(Logger log) throws Exception {
+    @DisplayName("OPAL: PATCH Update Defendant Account - Update Enforcement Override [@PO-1565]")
+    void patch_updatesEnforcementOverride(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // Use the live version from DB to avoid 409 conflicts
@@ -2578,7 +2585,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         String body = """
         {
-          "enforcement_overrides": {
+          "enforcement_override": {
             "enforcement_override_result": {
               "enforcement_override_result_id": "FWEC",
               "enforcement_override_result_title": "Further Warrant Execution Cancelled"
@@ -2603,7 +2610,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         );
 
         String resp = a.andReturn().getResponse().getContentAsString();
-        log.info("enforcement_overrides update resp:\n{}", ToJsonString.toPrettyJson(resp));
+        log.info("enforcement_override update resp:\n{}", ToJsonString.toPrettyJson(resp));
 
         a.andExpect(status().isOk())
             .andExpect(header().exists("ETag"))

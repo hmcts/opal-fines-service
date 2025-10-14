@@ -380,8 +380,8 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
-    void opal_updateDefendantAccount_updatesEnforcementOverrides() throws Exception {
-        super.patch_updatesEnforcementOverrides(log);
+    void opal_updateDefendantAccount_updatesEnforcementOverride() throws Exception {
+        super.patch_updatesEnforcementOverride(log);
     }
 
     @Test
