@@ -1,11 +1,19 @@
 package uk.gov.hmcts.opal.controllers.advice;
 
+import static uk.gov.hmcts.opal.authentication.service.AccessTokenService.AUTH_HEADER;
+import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
+
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.QueryTimeoutException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
+import java.net.ConnectException;
+import java.net.URI;
+import java.net.UnknownHostException;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.LazyInitializationException;
@@ -39,15 +47,6 @@ import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.util.LogUtil;
 
-import java.net.ConnectException;
-import java.net.URI;
-import java.net.UnknownHostException;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-
-import static uk.gov.hmcts.opal.authentication.service.AccessTokenService.AUTH_HEADER;
-import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
-
 @Slf4j(topic = "opal.GlobalExceptionHandler")
 @ControllerAdvice
 @RequiredArgsConstructor
@@ -65,6 +64,7 @@ public class GlobalExceptionHandler {
             "Feature Disabled",
             "The requested feature is not currently available",
             "feature-disabled",
+            false,
             ex
         );
         return responseWithProblemDetail(HttpStatus.METHOD_NOT_ALLOWED, problemDetail);
@@ -77,6 +77,7 @@ public class GlobalExceptionHandler {
             "Missing Required Header",
             "A required request header is missing",
             "missing-header",
+            false,
             ex
         );
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
@@ -97,6 +98,7 @@ public class GlobalExceptionHandler {
             "Forbidden",
             "You do not have permission to access this resource",
             "forbidden",
+            false,
             ex
         );
 
@@ -112,6 +114,7 @@ public class GlobalExceptionHandler {
             "Not Acceptable",
             "The requested media type cannot be produced by the server",
             "not-acceptable",
+            false,
             ex
         );
 
@@ -127,6 +130,7 @@ public class GlobalExceptionHandler {
             "Not Acceptable",
             "Invalid parameter value format",
             "type-mismatch",
+            false,
             ex
         );
 
@@ -140,6 +144,7 @@ public class GlobalExceptionHandler {
             "Property Value Error",
             "Invalid or missing value for a required property",
             "property-value-error",
+            false,
             pve
         );
 
@@ -159,6 +164,7 @@ public class GlobalExceptionHandler {
             "Unsupported Media Type",
             "The Content-Type is not supported. Please use application/json",
             "unsupported-media-type",
+            false,
             ex
         );
 
@@ -174,6 +180,7 @@ public class GlobalExceptionHandler {
             "Bad Request",
             "The request body could not be read. It may be missing or invalid JSON.",
             "message-not-readable",
+            false,
             ex
         );
 
@@ -189,6 +196,7 @@ public class GlobalExceptionHandler {
             "Internal Server Error",
             "A problem occurred while accessing data",
             "invalid-data-access",
+            false,
             idaaue
         );
 
@@ -204,6 +212,7 @@ public class GlobalExceptionHandler {
             "Internal Server Error",
             "A problem occurred with the requested data resource",
             "invalid-resource-usage",
+            false,
             idarue
         );
 
@@ -219,6 +228,7 @@ public class GlobalExceptionHandler {
             "Entity Not Found",
             "The requested entity could not be found",
             "entity-not-found",
+            false,
             entityNotFoundException
         );
 
@@ -234,6 +244,7 @@ public class GlobalExceptionHandler {
             "No Value Present",
             "The requested element does not exist",
             "no-such-element",
+            false,
             noSuchElementException
         );
 
@@ -251,6 +262,7 @@ public class GlobalExceptionHandler {
             status.getReasonPhrase(),
             "An error occurred while processing your request",
             "opal-api-error",
+            false,
             opalApiException
         );
 
@@ -266,6 +278,7 @@ public class GlobalExceptionHandler {
                 "Request Timeout",
                 "The request did not receive a response from the database within the timeout period",
                 "query-timeout",
+                false,
                 ex
             );
 
@@ -278,6 +291,7 @@ public class GlobalExceptionHandler {
                 "Not Found",
                 "The requested resource could not be found",
                 "resource-not-found",
+                false,
                 nrfe
             );
 
@@ -289,6 +303,7 @@ public class GlobalExceptionHandler {
             "Internal Server Error",
             "An unexpected error occurred while processing your request",
             "servlet-error",
+            false,
             ex
         );
 
@@ -305,6 +320,7 @@ public class GlobalExceptionHandler {
                 "Service Unavailable",
                 DB_UNAVAILABLE_MESSAGE,
                 "database-unavailable",
+                false,
                 psqlException
             );
 
@@ -316,6 +332,7 @@ public class GlobalExceptionHandler {
             "Internal Server Error",
             "A database error occurred while processing your request",
             "database-error",
+            false,
             psqlException
         );
 
@@ -331,6 +348,7 @@ public class GlobalExceptionHandler {
             "Service Unavailable",
             DB_UNAVAILABLE_MESSAGE,
             "database-unavailable",
+            false,
             dataAccessResourceFailureException
         );
 
@@ -346,6 +364,7 @@ public class GlobalExceptionHandler {
             "Internal Server Error",
             "A data access error occurred.",
             "lazy-initialization",
+            false,
             lazyInitializationException
         );
 
@@ -359,6 +378,7 @@ public class GlobalExceptionHandler {
             "Internal Server Error",
             "A persistence error occurred while processing your request",
             "jpa-system-error",
+            false,
             jpaSystemException
         );
 
@@ -372,6 +392,7 @@ public class GlobalExceptionHandler {
             "Downstream Server Error",
             httpSystemException.getMessage(),
             "http-server-error",
+            false,
             httpSystemException
         );
 
@@ -385,6 +406,7 @@ public class GlobalExceptionHandler {
             "Bad Request",
             "The request does not conform to the required JSON schema",
             "json-schema-validation",
+            false,
             e
         );
 
@@ -398,6 +420,7 @@ public class GlobalExceptionHandler {
             "Bad Request",
             "Invalid arguments were provided in the request",
             "illegal-argument",
+            false,
             e
         );
 
@@ -413,6 +436,7 @@ public class GlobalExceptionHandler {
             "Conflict",
             Optional.ofNullable(e.getMessage()).orElse("Conflict updating record. Please try again."),
             "optimistic-locking",
+            false,
             e
         );
 
@@ -430,6 +454,7 @@ public class GlobalExceptionHandler {
             "Conflict",
             "A conflict occurred with the requested resource",
             "resource-conflict",
+            false,
             e
         );
 
@@ -447,6 +472,7 @@ public class GlobalExceptionHandler {
             "Not Authorised for Connection",
             e.getMessage(),
             "unauthorized",
+            false,
             e
         );
 
@@ -460,6 +486,7 @@ public class GlobalExceptionHandler {
             "Downstream Service Error",
             "Problem with connecting to a dependant service: " + e.getMessage(),
             "internal-server-error",
+            false,
             e
         );
 
@@ -467,7 +494,7 @@ public class GlobalExceptionHandler {
     }
 
     private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,
-                                              String typeUri, Throwable exception) {
+                                              String typeUri, boolean retry, Throwable exception) {
         String opalOperationId = LogUtil.getOrCreateOpalOperationId();
 
         log.error("Error ID {}:", opalOperationId, exception);
@@ -477,6 +504,7 @@ public class GlobalExceptionHandler {
         problemDetail.setType(URI.create("https://hmcts.gov.uk/problems/" + typeUri));
         problemDetail.setInstance(URI.create("https://hmcts.gov.uk/problems/instance/" + opalOperationId));
         problemDetail.setProperty("operation_id", opalOperationId);
+        problemDetail.setProperty("retry", retry);
         return problemDetail;
     }
 
