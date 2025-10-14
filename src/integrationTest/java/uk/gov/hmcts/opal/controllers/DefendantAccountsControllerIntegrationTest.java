@@ -2,12 +2,15 @@ package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -15,21 +18,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
-import static org.htmlunit.util.MimeType.APPLICATION_JSON;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
-
-import org.hamcrest.core.IsNull;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -50,24 +38,6 @@ import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-
-import static org.hamcrest.text.MatchesPattern.matchesPattern;
-import static org.htmlunit.util.MimeType.APPLICATION_JSON;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
  */
@@ -427,37 +397,38 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"));
     }
 
-    @DisplayName("OPAL: Account number 'starts with' (177*)")
+    @DisplayName("OPAL: Account number 'starts with' (177*) — active flag respected in new search view")
     void testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                        {
-                                  "active_accounts_only": true,
-                                  "business_unit_ids": [78],
-                                  "reference_number": {
-                                    "account_number": "177",
-                                    "prosecutor_case_reference": null,
-                                    "organisation": false
-                                  },
-                                  "defendant": null
-                                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+            {
+              "active_accounts_only": true,
+              "business_unit_ids": [78],
+              "reference_number": {
+                "account_number": "177",
+                "prosecutor_case_reference": null,
+                "organisation": false
+              },
+              "defendant": null
+            }
+            """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_AccountNumberStartsWith: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+                 ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").doesNotExist());
     }
 
 
@@ -698,47 +669,50 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"));
     }
 
-    @DisplayName("OPAL: Active accounts only = false -> returns active (and would return inactive if present)")
+    @DisplayName("OPAL: Active accounts only = false → returns both active and inactive accounts (order-agnostic)")
     void testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
         ResultActions actions = mockMvc.perform(post("/defendant-accounts/search")
-            .header("authorization", "Bearer some_value")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""
-                {
-                  "active_accounts_only": false,
-                  "business_unit_ids": [78],
-                  "reference_number": null,
-                  "defendant": {
-                    "include_aliases": true,
-                    "organisation": false,
-                    "address_line_1": "Lumber House",
-                    "postcode": "MA4 1AL",
-                    "organisation_name": null,
-                    "exact_match_organisation_name": null,
-                    "surname": "Graham",
-                    "exact_match_surname": true,
-                    "forenames": "Anna",
-                    "exact_match_forenames": true,
-                    "birth_date": "1980-02-03",
-                    "national_insurance_number": "A11111A"
-                  }
-                }
-                """));
+                                                    .header("authorization", "Bearer some_value")
+                                                    .contentType(MediaType.APPLICATION_JSON)
+                                                    .content("""
+            {
+              "active_accounts_only": false,
+              "business_unit_ids": [78],
+              "reference_number": null,
+              "defendant": {
+                "include_aliases": true,
+                "organisation": false,
+                "address_line_1": "Lumber House",
+                "postcode": "MA4 1AL",
+                "organisation_name": null,
+                "exact_match_organisation_name": null,
+                "surname": "Graham",
+                "exact_match_surname": true,
+                "forenames": "Anna",
+                "exact_match_forenames": true,
+                "birth_date": "1980-02-03",
+                "national_insurance_number": "A11111A"
+              }
+            }
+            """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch_Opal_ActiveAccountsOnlyFalse: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
+                 ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // There should be 2 results (177A and 177B)
             .andExpect(jsonPath("$.count").value(2))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
-            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+            // Assert both accounts exist regardless of order
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[*].business_unit_id").value(org.hamcrest.Matchers.hasItem("78")));
     }
+
 
     @DisplayName("OPAL: Account number request includes check letter -> still matches (strips check letter)")
     void testPostDefendantAccountsSearch_Opal_AccountNumber_WithCheckLetter(Logger log) throws Exception {
@@ -2698,56 +2672,56 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     }
 
 
-    @DisplayName("PO-2241 / AC1a+AC1b: Search core '177'; 177A and 177B returned (active flag ignored)")
-    void testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned(Logger log) throws Exception {
+    @DisplayName("PO-2241 / AC1a+AC1b: Search core '177' — active flag respected for search view")
+    void testPostDefendantAccountsSearch_PO2241_Core177_ActiveFlagRespected(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
-        // Case 1: active_accounts_only = true (ignored because account_number provided)
+        // Case 1: active_accounts_only = true → should return only active (177A)
         ResultActions activeTrue = mockMvc.perform(post("/defendant-accounts/search")
                                                        .header("authorization", "Bearer some_value")
                                                        .contentType(MediaType.APPLICATION_JSON)
                                                        .content("""
-            {
-              "active_accounts_only": true,
-              "business_unit_ids": [78],
-              "reference_number": {
-                "account_number": "177",
-                "prosecutor_case_reference": null,
-                "organisation": false
-              },
-              "defendant": null
-            }
-            """));
+                {
+                  "active_accounts_only": true,
+                  "business_unit_ids": [78],
+                  "reference_number": {
+                    "account_number": "177",
+                    "prosecutor_case_reference": null,
+                    "organisation": false
+                  },
+                  "defendant": null
+                }
+                """));
 
         String bodyTrue = activeTrue.andReturn().getResponse().getContentAsString();
-        log.info(":PO-2241 AC1a+AC1b (active_accounts_only=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
+        log.info(":PO-2241 AC1a (active_accounts_only=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
 
         activeTrue.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists())
-            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").doesNotExist());
 
-        // Case 2: active_accounts_only = false (also ignored; set should be identical)
+        // Case 2: active_accounts_only = false → should return both (177A + 177B)
         ResultActions activeFalse = mockMvc.perform(post("/defendant-accounts/search")
                                                         .header("authorization", "Bearer some_value")
                                                         .contentType(MediaType.APPLICATION_JSON)
                                                         .content("""
-            {
-              "active_accounts_only": false,
-              "business_unit_ids": [78],
-              "reference_number": {
-                "account_number": "177",
-                "prosecutor_case_reference": null,
-                "organisation": false
-              },
-              "defendant": null
-            }
-            """));
+                {
+                  "active_accounts_only": false,
+                  "business_unit_ids": [78],
+                  "reference_number": {
+                    "account_number": "177",
+                    "prosecutor_case_reference": null,
+                    "organisation": false
+                  },
+                  "defendant": null
+                }
+                """));
 
         String bodyFalse = activeFalse.andReturn().getResponse().getContentAsString();
-        log.info(":PO-2241 AC1a+AC1b (active_accounts_only=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
+        log.info(":PO-2241 AC1b (active_accounts_only=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
 
         activeFalse.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))

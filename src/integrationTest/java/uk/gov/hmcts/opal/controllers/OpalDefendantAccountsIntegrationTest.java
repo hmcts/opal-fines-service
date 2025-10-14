@@ -338,7 +338,7 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
 
     @Test
     void testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned() throws Exception {
-        super.testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned(log);
+        super.testPostDefendantAccountsSearch_PO2241_Core177_ActiveFlagRespected(log);
     }
 
     @Test
