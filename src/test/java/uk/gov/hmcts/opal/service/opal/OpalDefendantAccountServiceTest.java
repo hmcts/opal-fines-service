@@ -1,29 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -72,6 +50,29 @@ import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class OpalDefendantAccountServiceTest {
 
@@ -412,7 +413,7 @@ class OpalDefendantAccountServiceTest {
         final EntityManager em = mock(EntityManager.class);
         final NoteRepository noteRepository = mock(NoteRepository.class);
 
-        // Repos needed for enforcementOverrides
+        // Repos needed for enforcementOverride
         final EnforcementOverrideResultRepository eorRepo = mock(EnforcementOverrideResultRepository.class);
         final LocalJusticeAreaRepository ljaRepo = mock(LocalJusticeAreaRepository.class);
         final EnforcerRepository enforcerRepo = mock(EnforcerRepository.class);
@@ -476,7 +477,7 @@ class OpalDefendantAccountServiceTest {
                                  .collectionOrderFlag(true)
                                  .collectionOrderDate("2025-01-01")
                                  .build())
-            .enforcementOverrides(EnforcementOverride.builder()
+            .enforcementOverride(EnforcementOverride.builder()
                                       .enforcementOverrideResult(EnforcementOverrideResult.builder()
                                                                      .enforcementOverrideId("EO-1")
                                                                      .enforcementOverrideTitle("Result Title")
@@ -515,11 +516,11 @@ class OpalDefendantAccountServiceTest {
         assertEquals(Boolean.TRUE, resp.getCollectionOrder().getCollectionOrderFlag());
         assertEquals("2025-01-01", resp.getCollectionOrder().getCollectionOrderDate());
 
-        assertNotNull(resp.getEnforcementOverrides());
-        assertEquals("EO-1", resp.getEnforcementOverrides().getEnforcementOverrideResult()
+        assertNotNull(resp.getEnforcementOverride());
+        assertEquals("EO-1", resp.getEnforcementOverride().getEnforcementOverrideResult()
             .getEnforcementOverrideId());
-        assertEquals(22, resp.getEnforcementOverrides().getEnforcer().getEnforcerId());
-        assertEquals(33, resp.getEnforcementOverrides().getLja().getLjaId());
+        assertEquals(22, resp.getEnforcementOverride().getEnforcer().getEnforcerId());
+        assertEquals(33, resp.getEnforcementOverride().getLja().getLjaId());
 
         // Verify entity was updated as expected
         assertEquals(court, entity.getEnforcingCourt());
@@ -776,7 +777,7 @@ class OpalDefendantAccountServiceTest {
         when(accountRepo.findById(77L)).thenReturn(Optional.of(entity));
 
         var req = UpdateDefendantAccountRequest.builder()
-            .enforcementOverrides(EnforcementOverride.builder()
+            .enforcementOverride(EnforcementOverride.builder()
                                       .enforcementOverrideResult(EnforcementOverrideResult.builder()
                                                                      .enforcementOverrideId("NOPE").build())
                                       .enforcer(Enforcer.builder().enforcerId(Math.toIntExact(999999L)).build())
@@ -785,7 +786,7 @@ class OpalDefendantAccountServiceTest {
             .build();
 
         var resp = svc.updateDefendantAccount(77L, "78", req, "0", "tester");
-        assertNotNull(resp.getEnforcementOverrides());
+        assertNotNull(resp.getEnforcementOverride());
     }
 
     @Test
