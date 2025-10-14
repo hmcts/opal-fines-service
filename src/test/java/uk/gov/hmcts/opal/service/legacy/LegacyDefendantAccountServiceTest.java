@@ -731,12 +731,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    void testGetAtAGlance_notImplemented() {
-        assertThrows(UnsupportedOperationException.class,
-                     () -> legacyDefendantAccountService.getAtAGlance(1L));
-    }
-
-    @Test
     void testUpdateDefendantAccount_notImplemented() {
         var ex = assertThrows(org.springframework.web.server.ResponseStatusException
                                   .class,
