@@ -2,13 +2,15 @@ package uk.gov.hmcts.opal.openapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class OpenApiBundler {
 
@@ -62,7 +64,9 @@ public class OpenApiBundler {
                     if (components != null) {
                         for (String section : COMPONENT_SECTIONS) {
                             Map<String, Object> src = (Map<String, Object>) components.get(section);
-                            if (src == null) continue;
+                            if (src == null) {
+                                continue;
+                            }
 
                             Map<String, Object> dst = getOrCreateSection(bundledComponents, section);
                             for (Map.Entry<String, Object> e : src.entrySet()) {
@@ -73,8 +77,8 @@ public class OpenApiBundler {
                                 if (dst.containsKey(newName)) {
                                     // You can choose to overwrite, skip, or fail. Failing is safest.
                                     throw new IllegalStateException(
-                                        "Name collision in components/" + section + ": " + newName +
-                                            " (from " + file.getFileName() + ")"
+                                        "Name collision in components/" + section + ": " + newName + " (from "
+                                            + file.getFileName() + ")"
                                     );
                                 }
                                 dst.put(newName, valueWithRewrites);
@@ -107,9 +111,8 @@ public class OpenApiBundler {
                         String componentPath = fileAndPath[1].replaceFirst("^/components/", "");
                         map.put("$ref", "#/components/" + addSuffixToLastSegment(componentPath, suffix));
                     }
-                }
                 // Case 2: local reference: #/components/<section>/<name>[...]
-                else if (ref.startsWith("#/components/")) {
+                } else if (ref.startsWith("#/components/")) {
                     String componentPath = ref.replaceFirst("^#/components/", "");
                     String suffix = currentSuffix; // already capitalized outside
                     map.put("$ref", "#/components/" + addSuffixToLastSegment(componentPath, suffix));
@@ -134,7 +137,9 @@ public class OpenApiBundler {
     //      "schemas/MyThing/allOf/0" -> "schemas/MyThingX/allOf/0"
     private static String addSuffixToLastSegment(String componentPath, String suffix) {
         int slash = componentPath.indexOf('/'); // first slash after section
-        if (slash < 0) return componentPath; // malformed; don't touch
+        if (slash < 0) {
+            return componentPath; // malformed; don't touch
+        }
 
         String section = componentPath.substring(0, slash);
         String rest = componentPath.substring(slash + 1);
@@ -158,7 +163,9 @@ public class OpenApiBundler {
     }
 
     private static String capitalize(String s) {
-        if (s == null || s.isEmpty()) return s;
+        if (s == null || s.isEmpty()) {
+            return s;
+        }
         return s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 

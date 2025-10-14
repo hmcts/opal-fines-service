@@ -507,6 +507,7 @@ tasks.register('runAllStyleChecks') {
   dependsOn 'checkstyleTest'
   dependsOn 'checkstyleIntegrationTest'
   dependsOn 'checkstyleFunctionalTest'
+  dependsOn 'checkstyleOpenapi'
 }
 tasks.named("openApiGenerate") {
   dependsOn 'bundleOpenApi'
