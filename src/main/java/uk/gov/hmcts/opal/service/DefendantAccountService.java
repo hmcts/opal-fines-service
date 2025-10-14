@@ -1,13 +1,13 @@
 package uk.gov.hmcts.opal.service;
 
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -108,7 +108,7 @@ public class DefendantAccountService {
             short buId = Short.parseShort(businessUnitId);
 
             String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
-                .map(uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+                .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
                 .filter(id -> !id.isBlank())
                 .orElse(userState.getUserName());
 
