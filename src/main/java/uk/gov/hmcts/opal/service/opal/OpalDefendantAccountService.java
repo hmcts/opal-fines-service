@@ -84,6 +84,10 @@ import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
+import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
+import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
+import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -97,9 +101,14 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final DefendantAccountRepository defendantAccountRepository;
 
+    private final DefendantAccountSpecs defendantAccountSpecs;
+
     private final SearchDefendantAccountRepository searchDefendantAccountRepository;
+
     private final SearchDefendantAccountSpecs searchDefendantAccountSpecs;
+
     private final DefendantAccountPaymentTermsRepository defendantAccountPaymentTermsRepository;
+
     private final DefendantAccountSummaryViewRepository defendantAccountSummaryViewRepository;
 
     private final CourtRepository courtRepository;
@@ -766,7 +775,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (request.getCommentsAndNotes() == null
             && request.getEnforcementCourt() == null
             && request.getCollectionOrder() == null
-            && request.getEnforcementOverrides() == null) {
+            && request.getEnforcementOverride() == null) {
             throw new IllegalArgumentException("At least one update group must be provided");
         }
 
@@ -794,8 +803,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (request.getCollectionOrder() != null) {
             applyCollectionOrder(entity, request.getCollectionOrder());
         }
-        if (request.getEnforcementOverrides() != null) {
-            applyEnforcementOverrides(entity, request.getEnforcementOverrides());
+        if (request.getEnforcementOverride() != null) {
+            applyEnforcementOverride(entity, request.getEnforcementOverride());
         }
 
         defendantAccountRepository.save(entity);
@@ -830,12 +839,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 : null)
             .build();
 
-        EnforcementOverride enforcementOverridesDto = null;
+        EnforcementOverride enforcementOverrideDto = null;
         if (entity.getEnforcementOverrideResultId() != null
             || entity.getEnforcementOverrideEnforcerId() != null
             || entity.getEnforcementOverrideTfoLjaId() != null) {
 
-            enforcementOverridesDto = EnforcementOverride.builder()
+            enforcementOverrideDto = EnforcementOverride.builder()
                 .enforcementOverrideResult(
                     Optional.ofNullable(entity.getEnforcementOverrideResultId())
                         .flatMap(enforcementOverrideResultRepository::findById) // Optional-friendly
@@ -886,7 +895,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .commentsAndNotes(notesOut)
             .enforcementCourt(courtDto)
             .collectionOrder(collectionOrderDto)
-            .enforcementOverrides(enforcementOverridesDto)
+            .enforcementOverride(enforcementOverrideDto)
             .version(newVersion)
             .build();
     }
@@ -999,7 +1008,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             entity.getDefendantAccountId(), co.getCollectionOrderFlag(), co.getCollectionOrderDate());
     }
 
-    private void applyEnforcementOverrides(DefendantAccountEntity entity, EnforcementOverride override) {
+    private void applyEnforcementOverride(DefendantAccountEntity entity, EnforcementOverride override) {
         if (override.getEnforcementOverrideResult() != null) {
             entity.setEnforcementOverrideResultId(
                 override.getEnforcementOverrideResult().getEnforcementOverrideId());
@@ -1010,7 +1019,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (override.getLja() != null && override.getLja().getLjaId() != null) {
             entity.setEnforcementOverrideTfoLjaId(override.getLja().getLjaId().shortValue());
         }
-        log.debug(":applyEnforcementOverrides: accountId={}, resultId={}, enforcerId={}, ljaId={}",
+        log.debug(":applyEnforcementOverride: accountId={}, resultId={}, enforcerId={}, ljaId={}",
             entity.getDefendantAccountId(),
             override.getEnforcementOverrideResult() != null
                 ? override.getEnforcementOverrideResult().getEnforcementOverrideId() : null,

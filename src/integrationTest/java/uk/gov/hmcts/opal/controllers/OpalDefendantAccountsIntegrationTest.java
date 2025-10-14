@@ -337,6 +337,11 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
+    void testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned() throws Exception {
+        super.testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned(log);
+    }
+
+    @Test
     void opal_updateDefendantAccount_unauthorised() throws Exception {
         super.patch_forbidden_whenUserLacksAccountMaintenance(log);
     }
@@ -367,8 +372,8 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
-    void opal_updateDefendantAccount_updatesEnforcementOverrides() throws Exception {
-        super.patch_updatesEnforcementOverrides(log);
+    void opal_updateDefendantAccount_updatesEnforcementOverride() throws Exception {
+        super.patch_updatesEnforcementOverride(log);
     }
 
     @Test
