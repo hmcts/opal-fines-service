@@ -9,7 +9,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
  * Transactional method, then that can be problematic.  Direct method calls should be avoided, but instead
  * routed through a proxy object that captures all the JPA Transactional 'overhead'.
  */
-public interface DraftAccountTransactionsProxy {
+public interface DraftAccountTransactionalProxy {
     @Transactional(readOnly = true)
     DraftAccountEntity getDraftAccount(long draftAccountId);
 }

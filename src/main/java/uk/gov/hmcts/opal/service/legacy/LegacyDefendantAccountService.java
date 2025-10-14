@@ -6,10 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
@@ -558,6 +560,17 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .accountNotesFreeTextNote2(src.getFreeTextNote2())
             .accountNotesFreeTextNote3(src.getFreeTextNote3())
             .build();
+    }
+
+    @Override
+    public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+                                                           String businessUnitId,
+                                                           UpdateDefendantAccountRequest request,
+                                                           String ifMatch,
+                                                           String postedBy) {
+        throw new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
+            "Update Defendant Account is not implemented in legacy mode");
     }
 
 }

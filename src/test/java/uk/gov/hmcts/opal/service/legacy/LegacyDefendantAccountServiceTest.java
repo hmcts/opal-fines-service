@@ -80,10 +80,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         DefendantAccountHeaderSummary headerSummary = createHeaderSummaryDto();
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {
-            };
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.valueOf(200));
@@ -106,10 +106,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         LegacyDefendantAccountsSearchResults legacyResponse =
             LegacyDefendantAccountsSearchResults.builder().build();
 
-        ParameterizedTypeReference<LegacyDefendantAccountsSearchResults> typeRef =
-            new ParameterizedTypeReference<>() {
-            };
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(legacyResponse);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyDefendantAccountsSearchResults>>any()
+        )).thenReturn(legacyResponse);
 
         DefendantAccountSearchResultsDto result =
             legacyDefendantAccountService.searchDefendantAccounts(searchDto);
@@ -254,9 +253,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -306,9 +306,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -351,9 +352,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             createHeaderSummaryResponse();
         responseBody.setPartyDetails(party);
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -375,9 +377,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -421,9 +424,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             createHeaderSummaryResponse();
         responseBody.setPartyDetails(party);
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -458,9 +462,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .lastEnforcement("REM")
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -496,9 +501,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 )
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(responseBody);
 
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
@@ -518,9 +523,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void getPaymentTerms_error5xx_returnsNull() throws Exception {
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(null);
 
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
@@ -534,9 +539,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void getPaymentTerms_success_withNullEntity_returnsEmptyDto() throws Exception {
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(null);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<response/>", HttpStatus.OK));
 
@@ -572,9 +578,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .paymentTerms(legacyTerms)
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -585,6 +592,157 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNull(out.getPaymentTerms().getPaymentTermsType());
         assertNull(out.getPaymentTerms().getInstalmentPeriod());
         assertNull(out.getPaymentTerms().getPostedDetails());
+    }
+
+    // --- NEW: cover error -> legacy failure branch (5xx) for getHeaderSummary ---
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_legacyFailure5xx_logsAndMaps() {
+        LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+
+        DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
+        assertNotNull(out);
+        assertEquals("SAMPLE", out.getAccountNumber());
+    }
+
+    // --- NEW: cover error -> exception branch for getHeaderSummary (gateway returns Response with exception) ---
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_exceptionBranch_rethrows() {
+        LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenThrow(new RuntimeException("boom"));
+
+        assertThrows(RuntimeException.class,
+                     () -> legacyDefendantAccountService.getHeaderSummary(1L));
+    }
+
+    // --- NEW: cover Number branch in toBigDecimalOrZero via public API ---
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_numberInputs_mapToBigDecimal() {
+        // Arrange: build a legacy response with numeric values (BigDecimal + Number variants)
+        LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
+
+        PaymentStateSummary pay = PaymentStateSummary.builder()
+            .imposedAmount(new BigDecimal("100.0"))
+            .arrearsAmount(BigDecimal.valueOf(0))
+            .paidAmount(BigDecimal.valueOf(25L))
+            .accountBalance(BigDecimal.valueOf(75.5f))
+            .build();
+
+        resp.setPaymentStateSummary(
+            uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary.builder()
+                .imposedAmount(pay.getImposedAmount().toString())
+                .arrearsAmount(pay.getArrearsAmount().toString())
+                .paidAmount(pay.getPaidAmount().toString())
+                .accountBalance(pay.getAccountBalance().toString())
+                .build()
+        );
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(resp);
+
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+
+        // Act
+        DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
+
+        // Assert (compareTo to ignore scale)
+        var ps = out.getPaymentStateSummary();
+        assertEquals(0, ps.getImposedAmount().compareTo(new BigDecimal("100.0")));
+        assertEquals(0, ps.getArrearsAmount().compareTo(new BigDecimal("0")));
+        assertEquals(0, ps.getPaidAmount().compareTo(new BigDecimal("25")));
+        assertEquals(0, ps.getAccountBalance().compareTo(new BigDecimal("75.5")));
+    }
+
+
+    // --- NEW: cover unsupported-type branch → defaults to ZERO (and logs warn) ---
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_unsupportedPaymentType_defaultsZero() {
+        var pay = uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary.builder()
+            .imposedAmount("0")
+            .build();
+
+        var resp = createHeaderSummaryResponse();
+        resp.setPaymentStateSummary(pay);
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(resp);
+
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+
+        var out = legacyDefendantAccountService.getHeaderSummary(1L);
+        assertEquals(BigDecimal.ZERO, out.getPaymentStateSummary().getImposedAmount());
+    }
+
+    // --- NEW: cover individual aliases mapping (non-empty array) ---
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_individualAliases_areMapped() {
+        var alias = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias.builder()
+            .aliasId("AL1").sequenceNumber(Short.valueOf("1")).surname("AliasSurname").forenames("AliasForenames")
+            .build();
+        var ind = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
+            .title("Mr").firstNames("John").surname("Smith")
+            .individualAliases(new uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias[]{ alias })
+            .build();
+
+        var party = uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
+            .individualDetails(ind).build();
+
+        var resp = createHeaderSummaryResponse();
+        resp.setPartyDetails(party);
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(resp);
+
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+
+        var out = legacyDefendantAccountService.getHeaderSummary(1L);
+        assertNotNull(out.getPartyDetails().getIndividualDetails().getIndividualAliases());
+        assertEquals(1, out.getPartyDetails().getIndividualDetails().getIndividualAliases().size());
+    }
+
+    // --- NEW: cover the three not-implemented public APIs (no reflection) ---
+    @Test
+    void testGetDefendantAccountParty_notImplemented() {
+        assertThrows(UnsupportedOperationException.class,
+                     () -> legacyDefendantAccountService.getDefendantAccountParty(1L, 2L));
+    }
+
+    @Test
+    void testGetAtAGlance_notImplemented() {
+        assertThrows(UnsupportedOperationException.class,
+                     () -> legacyDefendantAccountService.getAtAGlance(1L));
+    }
+
+    @Test
+    void testUpdateDefendantAccount_notImplemented() {
+        var ex = assertThrows(org.springframework.web.server.ResponseStatusException
+                                  .class,
+                              () -> legacyDefendantAccountService.updateDefendantAccount(1L, "78", null, "\"0\"",
+                                                                                         "tester"));
+        assertEquals(HttpStatus.NOT_IMPLEMENTED, ex.getStatusCode());
     }
 
 

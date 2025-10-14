@@ -4,7 +4,7 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.LogAuditDetailSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.LogActionEntity;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity;
 import uk.gov.hmcts.opal.entity.LogAuditDetailEntity_;
@@ -61,7 +61,7 @@ public class LogAuditDetailSpecs extends EntitySpecs<LogAuditDetailEntity> {
         return (root, query, builder) -> builder.equal(root.get(LogAuditDetailEntity_.userId), userId);
     }
 
-    public static Join<LogAuditDetailEntity, BusinessUnitEntity> joinBusinessUnit(
+    public static Join<LogAuditDetailEntity, BusinessUnitFullEntity> joinBusinessUnit(
         From<?, LogAuditDetailEntity> from) {
         return from.join(LogAuditDetailEntity_.businessUnit);
     }

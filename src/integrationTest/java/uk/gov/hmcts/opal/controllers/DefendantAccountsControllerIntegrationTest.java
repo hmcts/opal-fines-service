@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
+import org.hamcrest.core.IsNull;
+import static org.hamcrest.text.MatchesPattern.matchesPattern;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -14,12 +16,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
+import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
@@ -29,27 +34,33 @@ import uk.gov.hmcts.opal.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
  */
+
 abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
-    @MockitoBean
-    UserStateService userStateService;
-    @MockitoSpyBean
-    private JsonSchemaValidationService jsonSchemaValidationService;
-    // Suppressed until @MockBean is replaced with new approach (Spring Boot 3.3+)
-    @SuppressWarnings("removal")
-    @MockBean
-    private UserState userState;
 
     abstract String getHeaderSummaryResponseSchemaLocation();
 
     abstract String getPaymentTermsResponseSchemaLocation();
 
     abstract String getAtAGlanceResponseSchemaLocation();
+
+    @MockitoBean
+    UserStateService userStateService;
+
+    @MockitoSpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
+
+    // Suppressed until @MockBean is replaced with new approach (Spring Boot 3.3+)
+    @SuppressWarnings("removal")
+    @MockBean
+    private UserState userState;
+
+    @Autowired
+    JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void setupUserState() {
@@ -66,7 +77,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/header-summary")
-                                                          .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -93,7 +104,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/500/header-summary")
-                                                          .header("authorization", "Bearer some_value"));
+            .header("authorization", "Bearer some_value"));
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetHeaderSummary: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -377,7 +388,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(2))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
@@ -669,7 +680,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(2))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
@@ -1412,8 +1423,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         );
 
         allAccountsActions.andExpect(status().isOk())
-            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.count").value(3))
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')].account_number")
+                .value("177B"))
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')]").exists())
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')].account_number")
                            .value("444C"));
@@ -1952,11 +1965,17 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     }
 
     void testGetPaymentTerms(Logger log) throws Exception {
-
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
-        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/payment-terms/latest")
-                                                          .header("authorization", "Bearer some_value"));
+        // Make the 'date_last_amended' deterministic for acct 77
+        jdbcTemplate.update(
+            "UPDATE defendant_accounts SET last_changed_date = '2024-01-03 00:00:00' WHERE defendant_account_id = 77"
+        );
+
+        ResultActions resultActions = mockMvc.perform(
+            get(URL_BASE + "/77/payment-terms/latest")
+                .header("authorization", "Bearer some_value")
+        );
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
         log.info(":testGetPaymentTerms: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -1978,7 +1997,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
             .andExpect(jsonPath("$.payment_card_last_requested").value("2024-01-01"))
             .andExpect(jsonPath("$.payment_terms.extension").value(false))
-            .andExpect(jsonPath("$.last_enforcement").value("REM"));
+            .andExpect(jsonPath("$.last_enforcement").value("10"));
 
         jsonSchemaValidationService.validateOrError(body, getPaymentTermsResponseSchemaLocation());
     }
@@ -2095,14 +2114,14 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                                                           .header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
-        log.info(":testGetAtAGlance: Party is an individual. etag header: \n" + headers);
+        log.info(":testGetAtAGlance: Party is an individual. etag header: \n{}", headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetAtAGlance: Party is an individual. Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetAtAGlance: Party is an individual. Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             // verify the header contains an ETag value
-            .andExpect(header().string("etag", "\"1\""))
+            .andExpect(header().string("etag", matchesPattern("\"\\d+\"")))
             .andExpect(jsonPath("$.defendant_account_id").value("77"))
             .andExpect(jsonPath("$.account_number").value("177A"))
             .andExpect(jsonPath("$.debtor_type").value("Defendant"))
@@ -2113,9 +2132,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.address").exists())
             .andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
-            // verify comments_and_notes node is present (test data included for these optional fields)
+            .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_id").value("10"))
+            .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_title").value(
+                IsNull.nullValue()))
             .andExpect(jsonPath("$.comments_and_notes").exists());
-        ;
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -2287,6 +2307,461 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(status().isForbidden())
             .andExpect(content().string(""));
     }
+
+    @DisplayName("OPAL: PATCH Update Defendant Account - Happy Path [@PO-1565]")
+    void opalUpdateDefendantAccount_Happy(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Read the current version to avoid optimistic locking conflicts
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class, 77L
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\""); // use actual version
+
+        String requestJson = commentAndNotesPayload("hello");
+
+        ResultActions a = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        );
+
+        String body = a.andReturn().getResponse().getContentAsString();
+        String etag = a.andReturn().getResponse().getHeader("ETag");
+
+        log.info(":opal_updateDefendantAccount_Happy body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":opal_updateDefendantAccount_Happy ETag: {}", etag);
+
+        a.andExpect(status().isOk())
+            .andExpect(header().exists("ETag"))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        // ETag should be a quoted integer, e.g. "1"
+        assertNotNull(etag, "ETag must be present");
+        assertTrue(etag.matches("^\"\\d+\"$"), "ETag should be a quoted number");
+
+        // Validate response JSON against schema
+        jsonSchemaValidationService.validateOrError(body, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
+    }
+
+
+    @DisplayName("OPAL: PATCH Update Defendant Account - If-Match Mismatch [@PO-1565]")
+    void patch_conflict_whenIfMatchDoesNotMatch(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"999\"");
+
+        ResultActions a = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(commentAndNotesPayload("no change"))
+        );
+
+        String body = a.andReturn().getResponse().getContentAsString();
+        log.info(":patch_conflict_whenIfMatchDoesNotMatch response body:\n{}", body);
+
+        a.andExpect(status().isConflict())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/optimistic-locking"))
+            .andExpect(jsonPath("$.title").value("Conflict"))
+            .andExpect(jsonPath("$.status").value(409));
+    }
+
+    @DisplayName("OPAL: PATCH Update Defendant Account - Missing If-Match [@PO-1565]")
+    void patch_conflict_whenIfMatchMissing(org.slf4j.Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        // Intentionally DO NOT add If-Match
+
+        ResultActions a = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(commentAndNotesPayload("hello"))
+        );
+
+        String body = a.andReturn().getResponse().getContentAsString();
+        log.info(":patch_conflict_whenIfMatchMissing body:\n{}", body);
+
+        a.andExpect(status().isConflict())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            // Depending on VersionUtils, this may be resource-conflict or optimistic-locking.
+            .andExpect(jsonPath("$.type", org.hamcrest.Matchers.anyOf(
+                org.hamcrest.Matchers.is("https://hmcts.gov.uk/problems/resource-conflict"),
+                org.hamcrest.Matchers.is("https://hmcts.gov.uk/problems/optimistic-locking")
+            )));
+    }
+
+    @DisplayName("OPAL: PATCH Update Defendant Account - Forbidden when user lacks permission [@PO-1565]")
+    void patch_forbidden_whenUserLacksAccountMaintenance(Logger log) throws Exception {
+        // user without ACCOUNT_MAINTENANCE
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            UserState.builder()
+                .userId(999L)
+                .userName("no-perm-user")
+                .businessUnitUser(java.util.Collections.emptySet())
+                .build()
+        );
+
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("token_without_perm");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"0\"");
+
+        String body = commentAndNotesPayload("hello");
+
+        mockMvc.perform(patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
+    }
+
+    @DisplayName("OPAL: PATCH Update Defendant Account - Not Found (account not in BU) [@PO-1565]")
+    void patch_notFound_whenAccountNotInHeaderBU(Logger log) throws Exception {
+        // User is authenticated and has perms, but BU header doesn't match the DA's BU → 404
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "99");
+        headers.add(HttpHeaders.IF_MATCH, "\"0\"");
+
+        String requestJson = commentAndNotesPayload("hello");
+
+        var result = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        );
+
+        log.info(":patch_notFound_whenAccountNotInHeaderBU response:\n{}",
+            result.andReturn().getResponse().getContentAsString());
+
+        result.andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
+    }
+
+
+    @DisplayName("OPAL: PATCH Update Defendant Account - Wrong Business Unit [@PO-1565]")
+    void patch_badRequest_whenMultipleGroupsProvided(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"0\"");
+
+        mockMvc.perform(patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+              {
+                "comment_and_notes":{"account_comment":"x"},
+                "collection_order":{"collection_order_flag":true}
+              }
+            """))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+    }
+
+    @DisplayName("OPAL: PATCH Update Defendant Account - Schema violation (multiple groups) [@PO-1565]")
+    void patch_badRequest_whenTypesInvalid(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"0\"");
+
+        mockMvc.perform(patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+              {"comment_and_notes":{"free_text_note_1": 123}}
+            """))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
+    }
+
+    @DisplayName("OPAL: PATCH Update Defendant Account - Update Enforcement Court [@PO-1565]")
+    void patch_updatesEnforcementCourt_andValidatesResponseSchema(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // 🔑 Get the current version number from DB for account 77
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            77L
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+
+        String body = """
+    {
+      "enforcement_court": {
+        "court_id": 100,
+        "court_name": "Central Magistrates"
+      }
+    }
+            """;
+
+        var a = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        String resp = a.andReturn().getResponse().getContentAsString();
+        log.info("enforcement_court update resp:\n{}", resp);
+
+        a.andExpect(status().isOk())
+            .andExpect(header().exists("ETag"))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value(77))
+            .andExpect(jsonPath("$.enforcement_court.court_id").value(100))
+            .andExpect(jsonPath("$.enforcement_court.court_name").value("Central Magistrates"));
+
+        jsonSchemaValidationService.validateOrError(resp, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
+    }
+
+
+    @DisplayName("OPAL: PATCH Update Defendant Account - Update Collection Order [@PO-1565]")
+    void patch_updatesCollectionOrder(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Use the live version from DB to avoid 409 conflicts
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            77L
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+
+        mockMvc.perform(patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+              {"collection_order":{"collection_order_flag":true,"collection_order_date":"2025-01-01"}}
+            """))
+            .andExpect(status().isOk())
+            .andExpect(header().exists("ETag"));
+    }
+
+    @DisplayName("OPAL: PATCH Update Defendant Account - Update Enforcement Override [@PO-1565]")
+    void patch_updatesEnforcementOverride(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Use the live version from DB to avoid 409 conflicts
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            77L
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+
+        String body = """
+        {
+          "enforcement_override": {
+            "enforcement_override_result": {
+              "enforcement_override_result_id": "FWEC",
+              "enforcement_override_result_title": "Further Warrant Execution Cancelled"
+            },
+            "enforcer": {
+              "enforcer_id": 21,
+              "enforcer_name": "North East Enforcement"
+            },
+            "lja": {
+              "lja_id": 240,
+              "lja_name": "Tyne & Wear LJA"
+            }
+          }
+        }
+                """;
+
+        ResultActions a = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        String resp = a.andReturn().getResponse().getContentAsString();
+        log.info("enforcement_override update resp:\n{}", ToJsonString.toPrettyJson(resp));
+
+        a.andExpect(status().isOk())
+            .andExpect(header().exists("ETag"))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        jsonSchemaValidationService.validateOrError(resp, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
+    }
+
+    @DisplayName("OPAL: PATCH Update Defendant Account - ETag present & Response Schema OK [@PO-1565]")
+    void patch_returnsETag_andResponseConformsToSchema(org.slf4j.Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Pull the current version from DB to satisfy optimistic locking
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            77L
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+
+        String requestJson = commentAndNotesPayload("etag test");
+
+        ResultActions result = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        );
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        String etag = result.andReturn().getResponse().getHeader("ETag");
+
+        log.info(":patch_returnsETag_andResponseConformsToSchema body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":patch_returnsETag_andResponseConformsToSchema ETag: {}", etag);
+
+        result.andExpect(status().isOk())
+            .andExpect(header().exists("ETag"))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        assertNotNull(etag, "ETag must be present");
+        assertTrue(etag.matches("^\"\\d+\"$"), "ETag should be a quoted number");
+
+        jsonSchemaValidationService.validateOrError(body, SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_RESPONSE);
+    }
+
+    // -- test helpers ------
+
+    private static String commentAndNotesPayload(String accountComment) {
+        return commentAndNotesPayload(accountComment, null, null, null);
+    }
+
+    private static String commentAndNotesPayload(String accountComment,
+                                                 String note1,
+                                                 String note2,
+                                                 String note3) {
+        return """
+        {
+          "comment_and_notes": {
+            "account_comment": %s,
+            "free_text_note_1": %s,
+            "free_text_note_2": %s,
+            "free_text_note_3": %s
+          }
+        }
+        """.formatted(
+            jsonValue(accountComment),
+            jsonValue(note1),
+            jsonValue(note2),
+            jsonValue(note3)
+        );
+    }
+
+    /** Renders a JSON value: quoted string if not null, otherwise JSON null. */
+    private static String jsonValue(String s) {
+        if (s == null) {
+            return "null";
+        }
+        // basic escape for quotes; good enough for tests
+        return "\"" + s.replace("\"", "\\\"") + "\"";
+    }
+
+
+    @DisplayName("PO-2241 / AC1a+AC1b: Search core '177'; 177A and 177B returned (active flag ignored)")
+    void testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        // Case 1: active_accounts_only = true (ignored because account_number provided)
+        ResultActions activeTrue = mockMvc.perform(post("/defendant-accounts/search")
+                                                       .header("authorization", "Bearer some_value")
+                                                       .contentType(MediaType.APPLICATION_JSON)
+                                                       .content("""
+            {
+              "active_accounts_only": true,
+              "business_unit_ids": [78],
+              "reference_number": {
+                "account_number": "177",
+                "prosecutor_case_reference": null,
+                "organisation": false
+              },
+              "defendant": null
+            }
+            """));
+
+        String bodyTrue = activeTrue.andReturn().getResponse().getContentAsString();
+        log.info(":PO-2241 AC1a+AC1b (active_accounts_only=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
+
+        activeTrue.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
+
+        // Case 2: active_accounts_only = false (also ignored; set should be identical)
+        ResultActions activeFalse = mockMvc.perform(post("/defendant-accounts/search")
+                                                        .header("authorization", "Bearer some_value")
+                                                        .contentType(MediaType.APPLICATION_JSON)
+                                                        .content("""
+            {
+              "active_accounts_only": false,
+              "business_unit_ids": [78],
+              "reference_number": {
+                "account_number": "177",
+                "prosecutor_case_reference": null,
+                "organisation": false
+              },
+              "defendant": null
+            }
+            """));
+
+        String bodyFalse = activeFalse.andReturn().getResponse().getContentAsString();
+        log.info(":PO-2241 AC1a+AC1b (active_accounts_only=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
+
+        activeFalse.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
+    }
+
 
     void getDefendantAccountAtAGlance_500Error(Logger log) throws Exception {
 

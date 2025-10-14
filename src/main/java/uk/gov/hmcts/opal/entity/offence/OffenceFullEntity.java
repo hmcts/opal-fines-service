@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 
 @Entity
 @Getter
@@ -24,9 +24,9 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 @ToString(callSuper = true)
 @SuperBuilder
 @XmlType(name = "Offence")
-public class OffenceEntityFull extends AbstractOffenceEntity {
+public class OffenceFullEntity extends OffenceEntity {
 
     @ManyToOne
-    @JoinColumn(name = "business_unit_id")
-    private BusinessUnitEntity businessUnit;
+    @JoinColumn(name = "business_unit_id", insertable = false, updatable = false)
+    private BusinessUnitFullEntity businessUnit;
 }

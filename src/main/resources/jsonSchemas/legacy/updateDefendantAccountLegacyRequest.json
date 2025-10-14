@@ -28,7 +28,7 @@
     "collection_order": {
       "$ref": "./common-objects/collectionOrderLegacy.json"
     },
-    "enforcement_overrides": {
+    "enforcement_override": {
       "$ref": "./common-objects/enforcementOverrideLegacy.json"
     }
   },
@@ -45,7 +45,7 @@
         "anyOf": [
           { "required": ["enforcement_court_id"] },
           { "required": ["collection_order"] },
-          { "required": ["enforcement_overrides"] }
+          { "required": ["enforcement_override"] }
         ]
       }
     },
@@ -55,7 +55,7 @@
         "anyOf": [
           { "required": ["comment_and_notes"] },
           { "required": ["collection_order"] },
-          { "required": ["enforcement_overrides"] }
+          { "required": ["enforcement_override"] }
         ]
       }
     },
@@ -65,12 +65,12 @@
         "anyOf": [
           { "required": ["comment_and_notes"] },
           { "required": ["enforcement_court_id"] },
-          { "required": ["enforcement_overrides"] }
+          { "required": ["enforcement_override"] }
         ]
       }
     },
     {
-      "required": ["enforcement_overrides"],
+      "required": ["enforcement_override"],
       "not": {
         "anyOf": [
           { "required": ["comment_and_notes"] },

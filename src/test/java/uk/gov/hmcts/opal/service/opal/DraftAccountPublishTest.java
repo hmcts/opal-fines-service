@@ -9,14 +9,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.jpa.JpaSystemException;
 import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
-import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
+import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -44,24 +44,24 @@ class DraftAccountPublishTest {
     @Mock
     BusinessUnitRepository businessRepository;
 
-    private DraftAccountTransactions draftAccountTransactions;
+    private DraftAccountTransactional draftAccountTransactional;
 
     @InjectMocks
     private DraftAccountPublish draftAccountPublish;
 
     @BeforeEach
     void openMocks() throws Exception {
-        draftAccountTransactions = spy(new DraftAccountTransactions(draftRepository, businessRepository));
-        injectDraftTransactionsService(draftAccountPublish, draftAccountTransactions);
+        draftAccountTransactional = spy(new DraftAccountTransactional(draftRepository, businessRepository));
+        injectDraftTransactionsService(draftAccountPublish, draftAccountTransactional);
     }
 
     private void injectDraftTransactionsService(
-        DraftAccountPublish draftAccountPublish, DraftAccountTransactions draftAccountTransactions)
+        DraftAccountPublish draftAccountPublish, DraftAccountTransactional draftAccountTransactional)
         throws NoSuchFieldException, IllegalAccessException {
 
-        Field field = DraftAccountPublish.class.getDeclaredField("draftAccountTransactions");
+        Field field = DraftAccountPublish.class.getDeclaredField("draftAccountTransactional");
         field.setAccessible(true);
-        field.set(draftAccountPublish, draftAccountTransactions);
+        field.set(draftAccountPublish, draftAccountTransactional);
 
     }
 
@@ -140,7 +140,7 @@ class DraftAccountPublishTest {
         return DraftAccountEntity.builder()
             .draftAccountId(1L)
             .businessUnit(
-                BusinessUnitEntity.builder()
+                BusinessUnitFullEntity.builder()
                     .businessUnitId((short)6)
                     .build())
             .timelineData(emptyTimelineData())

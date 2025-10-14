@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class DraftAccountTransactionsTest {
+class DraftAccountTransactionalTest {
 
     @Mock
     private DraftAccountRepository draftAccountRepository;
@@ -51,18 +51,18 @@ class DraftAccountTransactionsTest {
     private BusinessUnitRepository businessUnitRepository;
 
     @InjectMocks
-    private DraftAccountTransactions draftAccountTransactions;
+    private DraftAccountTransactional draftAccountTransactional;
 
     @Test
     void testGetDraftAccount() {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-            BusinessUnitEntity.builder().businessUnitId((short)77).build())
+            BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
         // Act
-        DraftAccountEntity result = draftAccountTransactions.getDraftAccount(1);
+        DraftAccountEntity result = draftAccountTransactional.getDraftAccount(1);
 
         // Assert
         assertNotNull(result);
@@ -75,7 +75,7 @@ class DraftAccountTransactionsTest {
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
-            BusinessUnitEntity.builder().businessUnitId((short)77).build())
+            BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
             .build();
         Page<DraftAccountEntity> mockPage = new PageImpl<>(List.of(draftAccountEntity), Pageable.unpaged(), 999L);
         when(draftAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
@@ -84,7 +84,7 @@ class DraftAccountTransactionsTest {
         });
 
         // Act
-        List<DraftAccountEntity> result = draftAccountTransactions.getDraftAccounts(
+        List<DraftAccountEntity> result = draftAccountTransactional.getDraftAccounts(
             List.copyOf(Set.of((short) 1)), List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
             List.of(), List.of(), Optional.empty(), Optional.empty()
         );
@@ -107,7 +107,7 @@ class DraftAccountTransactionsTest {
         });
 
         // Act
-        List<DraftAccountEntity> result = draftAccountTransactions.searchDraftAccounts(
+        List<DraftAccountEntity> result = draftAccountTransactional.searchDraftAccounts(
             DraftAccountSearchDto.builder().build());
 
         // Assert
@@ -127,7 +127,7 @@ class DraftAccountTransactionsTest {
             .accountType("Fine")
             .timelineData(createTimelineDataString())
             .build();
-        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+        BusinessUnitFullEntity businessUnit = BusinessUnitFullEntity.builder()
             .businessUnitName("Old Bailey")
             .build();
 
@@ -135,7 +135,7 @@ class DraftAccountTransactionsTest {
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(draftAccountEntity);
 
         // Act
-        DraftAccountEntity result = draftAccountTransactions.submitDraftAccount(addDraftAccountDto);
+        DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(addDraftAccountDto);
 
         // Assert
         assertEquals(draftAccountEntity.getAccount(), result.getAccount());
@@ -148,8 +148,7 @@ class DraftAccountTransactionsTest {
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(draftAccountEntity));
 
         // Act
-        boolean deleted = draftAccountTransactions
-            .deleteDraftAccount(1, true, draftAccountTransactions);
+        boolean deleted = draftAccountTransactional.deleteDraftAccount(1, draftAccountTransactional);
         assertTrue(deleted);
     }
 
@@ -160,8 +159,8 @@ class DraftAccountTransactionsTest {
 
         // Act
         EntityNotFoundException enfe = assertThrows(
-            EntityNotFoundException.class, () -> draftAccountTransactions
-                .deleteDraftAccount(1, true, draftAccountTransactions)
+            EntityNotFoundException.class, () -> draftAccountTransactional
+                .deleteDraftAccount(1, draftAccountTransactional)
         );
 
         // Assert
@@ -184,12 +183,12 @@ class DraftAccountTransactionsTest {
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
             .createdDate(LocalDateTime.now())
             .version(0L)
             .build();
 
-        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+        BusinessUnitFullEntity businessUnit = BusinessUnitFullEntity.builder()
             .businessUnitId(((short) 2))
             .businessUnitName("New Bailey")
             .build();
@@ -209,8 +208,8 @@ class DraftAccountTransactionsTest {
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(updatedAccount);
 
         // Act
-        DraftAccountEntity result = draftAccountTransactions
-            .replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactions, "0");
+        DraftAccountEntity result = draftAccountTransactional
+            .replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "0");
 
         // Assert
         assertNotNull(result);
@@ -244,7 +243,7 @@ class DraftAccountTransactionsTest {
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-            draftAccountTransactions.replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactions, "")
+            draftAccountTransactional.replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "")
         );
         assertEquals("Draft Account not found with id: 1", exception.getMessage());
     }
@@ -270,7 +269,7 @@ class DraftAccountTransactionsTest {
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-            draftAccountTransactions.replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactions, "0")
+            draftAccountTransactional.replaceDraftAccount(draftAccountId, replaceDto, draftAccountTransactional, "0")
         );
         assertEquals("Business Unit not found with id: 2", exception.getMessage());
     }
@@ -281,11 +280,11 @@ class DraftAccountTransactionsTest {
         Long draftAccountId = 1L;
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
             .version(0L)
             .build();
 
-        BusinessUnitEntity businessUnit = BusinessUnitEntity.builder()
+        BusinessUnitFullEntity businessUnit = BusinessUnitFullEntity.builder()
             .businessUnitId(((short) 3))
             .build();
 
@@ -304,7 +303,7 @@ class DraftAccountTransactionsTest {
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () ->
-            draftAccountTransactions.replaceDraftAccount(draftAccountId, dto, draftAccountTransactions, "0")
+            draftAccountTransactional.replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, "0")
         );
     }
 
@@ -320,7 +319,7 @@ class DraftAccountTransactionsTest {
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
             .version(0L)
             .build();
 
@@ -328,7 +327,7 @@ class DraftAccountTransactionsTest {
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () ->
-            draftAccountTransactions.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactions, "0")
+            draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, "0")
         );
     }
 
@@ -348,7 +347,7 @@ class DraftAccountTransactionsTest {
             .draftAccountId(draftAccountId)
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\"}")
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
             .timelineData(createTimelineDataString())
             .version(0L)
             .build();
@@ -368,8 +367,8 @@ class DraftAccountTransactionsTest {
         when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(updatedAccount);
 
         // Act
-        DraftAccountEntity result = draftAccountTransactions
-            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactions, "0");
+        DraftAccountEntity result = draftAccountTransactional
+            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, "0");
 
         // Assert
         assertNotNull(result);
@@ -398,7 +397,7 @@ class DraftAccountTransactionsTest {
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .timelineData(createTimelineDataString())
             .version(0L)
@@ -408,7 +407,7 @@ class DraftAccountTransactionsTest {
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-            draftAccountTransactions.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactions, "0")
+            draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, "0")
         );
         assertEquals("'SUBMITTED' is not a valid Draft Account Status.", exception.getMessage());
 
@@ -427,8 +426,9 @@ class DraftAccountTransactionsTest {
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(entity));
 
         // Act
-        DraftAccountEntity result = draftAccountTransactions.updateStatus(entity, DraftAccountStatus.PUBLISHING_FAILED,
-                                                                          draftAccountTransactions);
+        DraftAccountEntity result = draftAccountTransactional.updateStatus(entity, DraftAccountStatus.PUBLISHING_FAILED,
+                                                                           draftAccountTransactional
+        );
 
         Assertions.assertDoesNotThrow(() -> { }); // Stops SonarQube complaining about no assertions in method.
     }
@@ -438,7 +438,7 @@ class DraftAccountTransactionsTest {
         // Arrange
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder()
             .draftAccountId(007L)
-            .businessUnit(BusinessUnitEntity.builder()
+            .businessUnit(BusinessUnitFullEntity.builder()
                               .businessUnitId((short)78)
                               .build())
             .submittedBy("BU001")
@@ -449,7 +449,7 @@ class DraftAccountTransactionsTest {
             .thenReturn(mockOutputs);
 
         // Act
-        Map<String, Object> outputs = draftAccountTransactions.publishAccountStoredProc(draftAccountEntity);
+        Map<String, Object> outputs = draftAccountTransactional.publishAccountStoredProc(draftAccountEntity);
         assertNotNull(outputs);
     }
 
