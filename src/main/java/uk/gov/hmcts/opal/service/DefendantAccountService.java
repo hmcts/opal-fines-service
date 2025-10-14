@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,8 +8,10 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
@@ -77,6 +80,43 @@ public class DefendantAccountService {
             return defendantAccountServiceProxy.getPaymentTerms(defendantAccountId);
         } else {
             throw new PermissionNotAllowedException(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+    }
+
+    public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId, String authHeaderValue) {
+        log.debug(":getAtAGlance");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)) {
+            return defendantAccountServiceProxy.getAtAGlance(defendantAccountId);
+        } else {
+            throw new PermissionNotAllowedException(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+    }
+
+    public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+                                                           String businessUnitId,
+                                                           UpdateDefendantAccountRequest request,
+                                                           String ifMatch,
+                                                           String authHeaderValue) {
+        log.debug(":updateDefendantAccount:");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.anyBusinessUnitUserHasPermission(Permissions.ACCOUNT_MAINTENANCE)) {
+            short buId = Short.parseShort(businessUnitId);
+
+            String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
+                .map(uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+                .filter(id -> !id.isBlank())
+                .orElse(userState.getUserName());
+
+            return defendantAccountServiceProxy.updateDefendantAccount(
+                defendantAccountId, businessUnitId, request, ifMatch, postedBy
+            );
+        } else {
+            throw new PermissionNotAllowedException(Permissions.ACCOUNT_MAINTENANCE);
         }
     }
 

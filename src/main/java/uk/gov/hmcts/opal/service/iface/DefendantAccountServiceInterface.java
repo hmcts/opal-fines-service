@@ -1,8 +1,11 @@
 package uk.gov.hmcts.opal.service.iface;
 
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 
@@ -15,4 +18,11 @@ public interface DefendantAccountServiceInterface {
 
 
     GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId);
+
+    DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId);
+
+    DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+                                                    String businessUnitId,
+                                                    UpdateDefendantAccountRequest request,String ifMatch,
+                                                    String postedBy);
 }

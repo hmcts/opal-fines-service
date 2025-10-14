@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Update Defendant Account Request",
+  "title": "Update Defendant Account Request Payload",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -13,18 +13,16 @@
     "collection_order": {
       "$ref": "../common-objects/collectionOrder.json"
     },
-    "enforcement_overrides": {
+    "enforcement_override": {
       "$ref": "../common-objects/enforcementOverride.json"
     }
   },
-  "required": [
-    "defendant_account_id",
-    "business_unit_id",
-    "business_unit_user_id",
-    "comment_and_notes",
-    "enforcement_court",
-    "collection_order",
-    "enforcement_overrides"
-  ]
+  "oneOf": [
+    { "required": ["comment_and_notes"] },
+    { "required": ["enforcement_court"] },
+    { "required": ["collection_order"] },
+    { "required": ["enforcement_override"] }
+  ],
+  "minProperties": 1,
+  "maxProperties": 1
 }
-

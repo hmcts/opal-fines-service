@@ -16,12 +16,12 @@ import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.legacy.ErrorResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountResponse;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
-import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactions;
+import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 
 import java.lang.reflect.Field;
 
@@ -44,7 +44,7 @@ class LegacyDraftAccountPublishTest {
     private GatewayService gatewayService;
 
     @Mock
-    private DraftAccountTransactions draftAccountTransactions;
+    private DraftAccountTransactional draftAccountTransactional;
 
     @InjectMocks
     private LegacyDraftAccountPublish legacyDraftAccountPublish;
@@ -75,7 +75,7 @@ class LegacyDraftAccountPublishTest {
             .build();
         DraftAccountEntity publish = DraftAccountEntity.builder()
             .businessUnit(
-                BusinessUnitEntity.builder()
+                BusinessUnitFullEntity.builder()
                     .businessUnitId((short)6)
                     .build())
             .timelineData(emptyTimelineData())
@@ -92,11 +92,11 @@ class LegacyDraftAccountPublishTest {
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.valueOf(200));
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
 
-        when(draftAccountTransactions
-                 .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactions))
+        when(draftAccountTransactional
+                 .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
             .thenReturn(publish);
-        when(draftAccountTransactions
-                 .updateStatus(publish, DraftAccountStatus.PUBLISHED, draftAccountTransactions))
+        when(draftAccountTransactional
+                 .updateStatus(publish, DraftAccountStatus.PUBLISHED, draftAccountTransactional))
             .thenReturn(publish);
 
         DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
@@ -114,7 +114,7 @@ class LegacyDraftAccountPublishTest {
             .build();
         DraftAccountEntity publish = DraftAccountEntity.builder()
             .businessUnit(
-                BusinessUnitEntity.builder()
+                BusinessUnitFullEntity.builder()
                     .businessUnitId((short)6)
                     .build())
             .timelineData(emptyTimelineData())
@@ -132,11 +132,11 @@ class LegacyDraftAccountPublishTest {
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.INTERNAL_SERVER_ERROR);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverErrorResponse);
 
-        when(draftAccountTransactions
-                 .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactions))
+        when(draftAccountTransactional
+                 .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
             .thenReturn(publish);
-        when(draftAccountTransactions
-                 .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactions))
+        when(draftAccountTransactional
+                 .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactional))
             .thenReturn(publish);
 
         DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
@@ -154,7 +154,7 @@ class LegacyDraftAccountPublishTest {
             .build();
         DraftAccountEntity publish = DraftAccountEntity.builder()
             .businessUnit(
-                BusinessUnitEntity.builder()
+                BusinessUnitFullEntity.builder()
                     .businessUnitId((short)6)
                     .build())
             .timelineData(emptyTimelineData())
@@ -169,8 +169,8 @@ class LegacyDraftAccountPublishTest {
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.NOT_FOUND);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverErrorResponse);
 
-        when(draftAccountTransactions
-                 .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactions))
+        when(draftAccountTransactional
+                 .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
             .thenReturn(publish);
 
         DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
@@ -188,7 +188,7 @@ class LegacyDraftAccountPublishTest {
             .build();
         DraftAccountEntity publish = DraftAccountEntity.builder()
             .businessUnit(
-                BusinessUnitEntity.builder()
+                BusinessUnitFullEntity.builder()
                     .businessUnitId((short)6)
                     .build())
             .timelineData(emptyTimelineData())
@@ -207,18 +207,18 @@ class LegacyDraftAccountPublishTest {
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.MOVED_PERMANENTLY);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverErrorResponse);
 
-        when(draftAccountTransactions
-                 .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactions))
+        when(draftAccountTransactional
+                 .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
             .thenReturn(publish);
-        when(draftAccountTransactions
-            .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactions))
+        when(draftAccountTransactional
+            .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactional))
             .thenReturn(publish);
 
         DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
 
         assertEquals(publish, published);
-        verify(draftAccountTransactions)
-            .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactions);
+        verify(draftAccountTransactional)
+            .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactional);
     }
 
     @Test
@@ -227,7 +227,7 @@ class LegacyDraftAccountPublishTest {
         LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
             DraftAccountEntity.builder()
                 .businessUnit(
-                    BusinessUnitEntity.builder()
+                    BusinessUnitFullEntity.builder()
                         .businessUnitId((short) 6)
                         .build())
                 .account("{}")
@@ -245,7 +245,7 @@ class LegacyDraftAccountPublishTest {
         LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
             DraftAccountEntity.builder()
                 .businessUnit(
-                    BusinessUnitEntity.builder()
+                    BusinessUnitFullEntity.builder()
                         .businessUnitId((short) 6)
                         .build())
                 .account(null)
@@ -260,7 +260,7 @@ class LegacyDraftAccountPublishTest {
     @Test
     void testcreateDefendantAccountRequest_invalidJson_throwsException() {
         DraftAccountEntity entity = DraftAccountEntity.builder()
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 6).build())
             .account("{invalidJson:}") // malformed JSON
             .build();
         BusinessUnitUser user = BusinessUnitUser.builder().businessUnitUserId("testUser").build();
@@ -276,7 +276,7 @@ class LegacyDraftAccountPublishTest {
         LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
             DraftAccountEntity.builder()
                 .businessUnit(
-                    BusinessUnitEntity.builder()
+                    BusinessUnitFullEntity.builder()
                         .businessUnitId((short) 6)
                         .build())
                 .account("{\"defendantAccountId\":12345,\"accountNumber\":\"77-007\"}")

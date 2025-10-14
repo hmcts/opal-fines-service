@@ -2,7 +2,7 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 
 buildscript {
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:11.13.0")
+    classpath("org.flywaydb:flyway-database-postgresql:11.13.3")
   }
 }
 
@@ -14,11 +14,18 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.53.0'
   id 'org.sonarqube' version '6.2.0.5505'
   id 'uk.gov.hmcts.java' version '0.12.67'
-  id 'org.flywaydb.flyway' version '11.13.0'
+  id 'org.flywaydb.flyway' version '11.13.3'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.2.34'
+  id "org.openapi.generator" version "7.13.0"
 }
-//Should we fail fast on test failures?
 
+ext {
+  log4JVersion = "2.25.2"
+  serenityVersion = "4.2.34"
+  cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
+}
+
+//Should we fail fast on test failures?
 //Defaults to true if env is not present
 var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
 
@@ -32,6 +39,18 @@ java {
 }
 
 sourceSets {
+  openapi {
+    java {
+      srcDir file('src/openApi/java')
+    }
+    resources.srcDir file('src/openApi/resources')
+  }
+  main {
+    java {
+      srcDir "$buildDir/generated/openapi/src/main/java"
+    }
+  }
+
   functionalTest {
     java {
       compileClasspath += main.output
@@ -51,16 +70,10 @@ sourceSets {
   }
 }
 
-// (Temp?) Fix to solve the issue:
-// Toolchain from `executable` property does not match toolchain from `javaLauncher` property.
-gradle.taskGraph.whenReady { taskGraph ->
-  def task = taskGraph.allTasks.find { it.name.endsWith(".main()") }
-  if (task instanceof JavaExec) {
-    task.executable = task.javaLauncher.get().executablePath.asFile.absolutePath
-  }
-}
-
 configurations {
+  openapiImplementation.extendsFrom implementation
+  openapiRuntimeOnly.extendsFrom runtimeOnly
+
   functionalTestImplementation.extendsFrom testImplementation
   functionalTestRuntimeOnly.extendsFrom runtimeOnly
 
@@ -70,6 +83,57 @@ configurations {
   smokeTestImplementation.extendsFrom testImplementation
   smokeTestRuntimeOnly.extendsFrom runtimeOnly
 }
+
+configurations.all {
+  resolutionStrategy {
+    force "io.cucumber:cucumber-core:${cucumberVersion}"
+    force "io.cucumber:cucumber-java:${cucumberVersion}"
+    force "io.cucumber:cucumber-junit:${cucumberVersion}"
+  }
+}
+
+tasks.register("bundleOpenApi", JavaExec) {
+  dependsOn 'compileOpenapiJava'
+  classpath = sourceSets.openapi.runtimeClasspath
+  group = "openapi"
+  description = "Bundle multiple OpenAPI YAML files into one"
+  mainClass = 'uk.gov.hmcts.opal.openapi.OpenApiBundler'
+  args = ["$rootDir/src/main/resources/openapi", "$buildDir/openapi-bundled.yaml"]
+}
+
+openApiGenerate {
+  generatorName = "spring"                  // or "spring", "kotlin", etc.
+  inputSpec = "$buildDir/openapi-bundled.yaml".toString()
+  outputDir = "$buildDir/generated/openapi".toString()
+  apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
+  modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "model"
+  // Point to your customized mustache templates
+  templateDir = "$rootDir/openapi/templates".toString()
+  generateApiTests = false
+  generateModelTests = false
+  skipOperationExample = true
+  openapiNormalizer = [
+    REF_AS_PARENT_IN_ALLOF: "true"
+  ]
+  configOptions = [
+    dateLibrary                           : "java8",
+    interfaceOnly                         : "true",
+    useTags                               : "true",
+    useSpringBoot3                        : "true",
+    containerDefaultToNull                : "true",
+    generatedConstructorWithRequiredArgs  : "false",
+    additionalModelTypeAnnotations        : "@lombok.Data;",
+  ]
+}
+// (Temp?) Fix to solve the issue:
+// Toolchain from `executable` property does not match toolchain from `javaLauncher` property.
+gradle.taskGraph.whenReady { taskGraph ->
+  def task = taskGraph.allTasks.find { it.name.endsWith(".main()") }
+  if (task instanceof JavaExec) {
+    task.executable = task.javaLauncher.get().executablePath.asFile.absolutePath
+  }
+}
+
 
 tasks.withType(JavaCompile).configureEach {
   options.compilerArgs << "-Xlint:unchecked"
@@ -193,10 +257,10 @@ tasks.register('smoke') {
 }
 
 def coverageExclusions = [
-    '**/uk/gov/hmcts/opal/**/model/**',
-    '**/uk/gov/hmcts/opal/**/config/**',
-    '**/uk/gov/hmcts/opal/authentication/client/**',
-    '**/uk/gov/hmcts/opal/**/exception/**'
+  '**/uk/gov/hmcts/opal/**/model/**',
+  '**/uk/gov/hmcts/opal/**/config/**',
+  '**/uk/gov/hmcts/opal/authentication/client/**',
+  '**/uk/gov/hmcts/opal/**/exception/**'
 ]
 
 jacocoTestReport {
@@ -252,11 +316,6 @@ dependencyUpdates {
   }
 }
 
-ext {
-  log4JVersion = "2.25.2"
-  serenityVersion = "4.2.34"
-}
-
 dependencyManagement {
   imports {
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.0.0'
@@ -291,7 +350,13 @@ ext['snakeyaml.version'] = '2.0'
 ext['jackson.version'] = '2.19.1'
 ext['tomcat.version'] = '10.1.42'
 
+
 dependencies {
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.34"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.38"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.38"
+  openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.17.2"
+
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
@@ -307,7 +372,6 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-integration'
   implementation group: 'org.springframework.integration', name: 'spring-integration-sftp'
   implementation group: 'org.springframework.integration', name: 'spring-integration-file'
-
 
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-authorization-server', version: '1.5.2'
 
@@ -330,15 +394,18 @@ dependencies {
   implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.9');
   implementation(group: 'com.jayway.jsonpath', name: 'json-path', version: '2.9.0');
 
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.7'
   implementation group: 'io.rest-assured', name: 'rest-assured'
-  implementation 'org.flywaydb:flyway-core'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.13.0'
+  implementation 'org.flywaydb:flyway-core:11.13.3'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.13.3', {
+    exclude group: 'org.flywaydb', module: 'flyway-core'
+  }
   implementation 'org.postgresql:postgresql'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
   compileOnly 'org.projectlombok:lombok:1.18.42'
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.29.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.31.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -367,14 +434,14 @@ dependencies {
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:junit-jupiter:1.21.3'
   testImplementation 'org.testcontainers:postgresql'
-  testImplementation(platform('org.junit:junit-bom:5.13.4'))
+  testImplementation(platform('org.junit:junit-bom:6.0.0'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  testImplementation 'org.junit.platform:junit-platform-suite:1.13.4'
-  testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.23.0'
+  testImplementation 'org.junit.platform:junit-platform-suite:6.0.0'
+  testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
   testImplementation "net.serenity-bdd:serenity-rest-assured:${serenityVersion}"
@@ -384,10 +451,10 @@ dependencies {
   testImplementation "net.serenity-bdd:serenity-ensure:${serenityVersion}"
 
   //Added to override dependency version to resolve vulnerability
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.11'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.11'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.11'
-  implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.11'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.12'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.12'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.12'
+  implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.12'
   implementation 'org.apache.commons:commons-lang3:3.19.0'
 
 }
@@ -424,7 +491,9 @@ flyway {
   baselineOnMigrate = true
   baselineVersion = '000'
 }
-
+checkstyle {
+  checkstyleMain.exclude '**uk/gov/hmcts/opal/generated/**'
+}
 tasks.register('migratePostgresDatabase', FlywayMigrateTask) {
   baselineOnMigrate = true
   if (project.hasProperty("dburl")) {
@@ -438,4 +507,10 @@ tasks.register('runAllStyleChecks') {
   dependsOn 'checkstyleTest'
   dependsOn 'checkstyleIntegrationTest'
   dependsOn 'checkstyleFunctionalTest'
+}
+tasks.named("openApiGenerate") {
+  dependsOn 'bundleOpenApi'
+}
+tasks.named("compileJava") {
+  dependsOn 'openApiGenerate'
 }

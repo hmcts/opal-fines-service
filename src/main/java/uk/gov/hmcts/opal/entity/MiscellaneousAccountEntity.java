@@ -21,7 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 
 @Entity
 @Table(name = "miscellaneous_accounts")
@@ -44,7 +44,7 @@ public class MiscellaneousAccountEntity {
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "business_unit_id", nullable = false)
-    private BusinessUnitEntity businessUnit;
+    private BusinessUnitFullEntity businessUnit;
 
     @Column(name = "account_number", length = 20, nullable = false)
     private String accountNumber;

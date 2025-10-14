@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,7 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -91,4 +96,35 @@ public class DefendantAccountController {
         return buildResponse(
             defendantAccountService.getPaymentTerms(defendantAccountId, authHeaderValue));
     }
+
+    @GetMapping(value = "/{defendantAccountId}/at-a-glance")
+    @Operation(summary = "Get At A Glance details for a given defendant account")
+    public ResponseEntity<DefendantAccountAtAGlanceResponse> getAtAGlance(@PathVariable Long defendantAccountId,
+              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        return buildResponse(defendantAccountService.getAtAGlance(defendantAccountId, authHeaderValue));
+    }
+
+    @PatchMapping(value = "/{defendantAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Update defendant account (comments, notes, enforcement details)")
+    public ResponseEntity<DefendantAccountResponse> updateDefendantAccount(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
+        @RequestHeader("Business-Unit-Id") String businessUnitId,
+        @RequestHeader(value = "If-Match", required = false) String ifMatch,
+        @JsonSchemaValidated(schemaPath = SchemaPaths.PATCH_UPDATE_DEFENDANT_ACCOUNT_REQUEST)
+        @RequestBody UpdateDefendantAccountRequest request
+    ) {
+        log.debug(":PATCH:updateDefendantAccount: id={}", defendantAccountId);
+
+        DefendantAccountResponse response = defendantAccountService.updateDefendantAccount(
+            defendantAccountId, businessUnitId, request, ifMatch, authHeaderValue
+        );
+
+        return buildResponse(response);
+    }
+
+
+
 }

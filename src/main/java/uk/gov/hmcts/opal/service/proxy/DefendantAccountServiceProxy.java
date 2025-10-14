@@ -1,11 +1,14 @@
 package uk.gov.hmcts.opal.service.proxy;
 
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
@@ -42,10 +45,22 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
         return getCurrentModeService().getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
     }
 
-
     @Override
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
         return getCurrentModeService().getPaymentTerms(defendantAccountId);
+    }
+
+    public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
+        return getCurrentModeService().getAtAGlance(defendantAccountId);
+    }
+
+    @Override
+    public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
+                                                           String businessUnitId,
+                                                           UpdateDefendantAccountRequest request,
+                                                           String ifMatch, String postedBy) {
+        return getCurrentModeService().updateDefendantAccount(defendantAccountId, businessUnitId, request,
+            ifMatch, postedBy);
     }
 
 

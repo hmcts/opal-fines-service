@@ -12,7 +12,7 @@ INSERT INTO creditor_accounts (
   creditor_account_id, business_unit_id, account_number, creditor_account_type,
   prosecution_service, from_suspense, hold_payout, pay_by_bacs
 ) VALUES (
-  9200, 78, 'CRED001', 'TC',
+  9200, 78, 'CRED001', 'MN',
   false, false, false, false);
 
 -- Add required court reference
@@ -54,7 +54,7 @@ INSERT INTO defendant_accounts (
   unit_fine_detail, unit_fine_value, collection_order, collection_order_date,
   further_steps_notice_date, confiscation_order_date, fine_registration_date, suspended_committal_date,
   consolidated_account_type, payment_card_requested, payment_card_requested_date, payment_card_requested_by,
-  prosecutor_case_reference, enforcement_case_status, account_type
+  prosecutor_case_reference, enforcement_case_status, account_type, version_number
 )
 VALUES (
   1001, 78, '100B',
@@ -64,12 +64,17 @@ VALUES (
   '2024-01-02 17:08:09', '2024-01-03 12:00:12', 'REM',
   'Kingston-upon-Thames Mags Court', NULL, NULL,
   'N', 'N', 14, 21,
-  'FWEC', 780000000021, 240,
+  NULL, NULL, NULL,
   'GB pound sterling', 700.00, 'Y', '2023-12-18 00:00:00',
   '2023-12-19 00:00:00', NULL, NULL, NULL,
   'Y', 'Y', '2024-01-01 00:00:00', '11111111A',
-  '090A', NULL, 'Fine'
+  '090A', NULL, 'Fine', 1
 );
+
+--  Ensure the version is initialized so deletes include a bound value
+UPDATE defendant_accounts
+SET version_number = 0
+WHERE defendant_account_id = 1001 AND version_number IS NULL;
 
 -- Insert party
 INSERT INTO parties (

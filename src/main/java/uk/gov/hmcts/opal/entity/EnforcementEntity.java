@@ -83,7 +83,7 @@ public class EnforcementEntity {
 
     @ManyToOne
     @JoinColumn(name = "hearing_court_id", referencedColumnName = "court_id", nullable = false)
-    private CourtEntity hearingCourt;
+    private CourtEntity.Lite hearingCourt;
 
     @Column(name = "account_type", length = 20)
     private String accountType;

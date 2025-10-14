@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Update Defendant Account Response",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "integer" },
+    "comment_and_notes": { "$ref": "../common-objects/commentsAndNotes.json" },
+    "enforcement_court": { "$ref": "../common-objects/courtReference.json" },
+    "collection_order": { "$ref": "../common-objects/collectionOrder.json" },
+    "enforcement_override": { "$ref": "../common-objects/enforcementOverride.json" }
+  },
+  "required": ["id"]
+}

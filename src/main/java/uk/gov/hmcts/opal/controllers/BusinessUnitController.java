@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.authorisation.model.Permissions;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -45,22 +45,22 @@ public class BusinessUnitController {
 
     @GetMapping(value = "/{businessUnitId}")
     @Operation(summary = "Returns the BusinessUnit for the given businessUnitId.")
-    public ResponseEntity<BusinessUnitEntity> getBusinessUnitById(@PathVariable Short businessUnitId) {
+    public ResponseEntity<BusinessUnitFullEntity> getBusinessUnitById(@PathVariable Short businessUnitId) {
 
         log.debug(":GET:getBusinessUnitById: businessUnitId: {}", businessUnitId);
 
-        BusinessUnitEntity response = businessUnitService.getBusinessUnit(businessUnitId);
+        BusinessUnitFullEntity response = businessUnitService.getBusinessUnit(businessUnitId);
 
         return buildResponse(response);
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches BusinessUnits based upon criteria in request body")
-    public ResponseEntity<List<BusinessUnitEntity>> postBusinessUnitsSearch(
+    public ResponseEntity<List<BusinessUnitFullEntity>> postBusinessUnitsSearch(
         @RequestBody BusinessUnitSearchDto criteria) {
         log.debug(":POST:postBusinessUnitsSearch: query: \n{}", criteria);
 
-        List<BusinessUnitEntity> response = businessUnitService.searchBusinessUnits(criteria);
+        List<BusinessUnitFullEntity> response = businessUnitService.searchBusinessUnits(criteria);
 
         return buildResponse(response);
     }

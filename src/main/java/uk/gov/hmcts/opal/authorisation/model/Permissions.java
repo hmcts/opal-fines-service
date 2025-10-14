@@ -7,6 +7,7 @@ public enum Permissions {
     COLLECTION_ORDER(4, "Collection Order"),
     CHECK_VALIDATE_DRAFT_ACCOUNTS(5, "Check and Validate Draft Accounts"),
     SEARCH_AND_VIEW_ACCOUNTS(6, "Search and View Accounts"),
+    ACCOUNT_MAINTENANCE(7, "Account Maintenance"),
     AMEND_PAYMENT_TERMS(9, "Amend Payment Terms");
 
     public static final Permissions[] DRAFT_ACCOUNT_PERMISSIONS = {

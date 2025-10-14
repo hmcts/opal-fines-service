@@ -10,21 +10,15 @@
     "payment_terms" : {
       "$ref": "./common-objects/paymentTermsLegacy.json"
     },
-    "posted_details": {
-      "$ref": "./common-objects/postedDetailsLegacy.json"
-    },
     "payment_card_last_requested": {
       "type": "string",
       "format": "date"
-    },
-    "extension": {
-      "type": "boolean"
     },
     "last_enforcement": {
       "type": "string",
       "minLength": 1
     }
   },
-  "required": ["version", "payment_terms", "posted_details"]
+  "required": ["version", "payment_terms"]
 }
 

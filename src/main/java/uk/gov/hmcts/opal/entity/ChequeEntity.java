@@ -18,7 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -41,7 +41,7 @@ public class ChequeEntity {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", nullable = false)
-    private BusinessUnitEntity businessUnit;
+    private BusinessUnitFullEntity businessUnit;
 
     @Column(name = "cheque_number", nullable = false)
     private Long chequeNumber;

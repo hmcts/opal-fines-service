@@ -20,7 +20,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 
 @Data
 @Entity
@@ -43,7 +43,7 @@ public class EnforcerEntity extends AddressCyEntity {
 
     @ManyToOne
     @JoinColumn(name = "business_unit_id", updatable = false)
-    private BusinessUnitEntity businessUnit;
+    private BusinessUnitFullEntity businessUnit;
 
     @Column(name = "enforcer_code", nullable = false)
     private Short enforcerCode;
@@ -53,4 +53,7 @@ public class EnforcerEntity extends AddressCyEntity {
 
     @Column(name = "warrant_register_sequence")
     private Integer warrantRegisterSequence;
+
+    @Column(name = "name")
+    private String name;
 }

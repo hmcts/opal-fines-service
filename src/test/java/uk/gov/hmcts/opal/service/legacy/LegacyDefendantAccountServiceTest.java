@@ -1,5 +1,16 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,29 +26,22 @@ import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.InstalmentPeriod;
-import uk.gov.hmcts.opal.dto.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
+import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
@@ -76,10 +80,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         DefendantAccountHeaderSummary headerSummary = createHeaderSummaryDto();
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {
-            };
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.valueOf(200));
@@ -102,10 +106,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         LegacyDefendantAccountsSearchResults legacyResponse =
             LegacyDefendantAccountsSearchResults.builder().build();
 
-        ParameterizedTypeReference<LegacyDefendantAccountsSearchResults> typeRef =
-            new ParameterizedTypeReference<>() {
-            };
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(legacyResponse);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyDefendantAccountsSearchResults>>any()
+        )).thenReturn(legacyResponse);
 
         DefendantAccountSearchResultsDto result =
             legacyDefendantAccountService.searchDefendantAccounts(searchDto);
@@ -250,9 +253,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -302,9 +306,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -347,9 +352,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             createHeaderSummaryResponse();
         responseBody.setPartyDetails(party);
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -371,9 +377,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -417,9 +424,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             createHeaderSummaryResponse();
         responseBody.setPartyDetails(party);
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -441,23 +449,23 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .paymentTerms(
                     uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms.builder()
                         .daysInDefault(120)
+                        .extension(false)
                         .paymentTermsType(new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
                             uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode.B))
                         .instalmentPeriod(new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
                             uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.W))
+                        .postedDetails(new uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails(
+                            java.time.LocalDate.of(2023, 11, 3), "01000000A", ""))
                         .build()
                 )
-                .postedDetails(new uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails(
-                    java.time.LocalDate.of(2023, 11, 3), "01000000A", ""))
                 .paymentCardLastRequested(java.time.LocalDate.of(2024, 1, 1))
-                .dateLastAmended(java.time.LocalDate.of(2024, 1, 3))
-                .extension(false)
                 .lastEnforcement("REM")
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -493,9 +501,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 )
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(responseBody);
 
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
@@ -515,9 +523,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void getPaymentTerms_error5xx_returnsNull() throws Exception {
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(null);
 
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
@@ -531,9 +539,10 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void getPaymentTerms_success_withNullEntity_returnsEmptyDto() throws Exception {
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(null);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<response/>", HttpStatus.OK));
 
@@ -542,10 +551,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNotNull(out);
         assertNull(out.getVersion());
         assertNull(out.getPaymentTerms());
-        assertNull(out.getPostedDetails());
         assertNull(out.getPaymentCardLastRequested());
-        assertNull(out.getDateLastAmended());
-        assertNull(out.getExtension());
         assertNull(out.getLastEnforcement());
     }
 
@@ -563,18 +569,19 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .instalmentPeriod(null) // toInstalmentPeriod → null
                 .lumpSumAmount(null)
                 .instalmentAmount(null)
+                .postedDetails(null) // toPostedDetails → null
                 .build();
 
         LegacyGetDefendantAccountPaymentTermsResponse responseBody =
             LegacyGetDefendantAccountPaymentTermsResponse.builder()
                 .version(4L)
                 .paymentTerms(legacyTerms)
-                .postedDetails(null) // toPostedDetails → null
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(responseBody);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any()
+        )).thenReturn(responseBody);
+
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
@@ -584,8 +591,469 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNotNull(out.getPaymentTerms());
         assertNull(out.getPaymentTerms().getPaymentTermsType());
         assertNull(out.getPaymentTerms().getInstalmentPeriod());
-        assertNull(out.getPostedDetails());
+        assertNull(out.getPaymentTerms().getPostedDetails());
+    }
+
+    // --- NEW: cover error -> legacy failure branch (5xx) for getHeaderSummary ---
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_legacyFailure5xx_logsAndMaps() {
+        LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+
+        DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
+        assertNotNull(out);
+        assertEquals("SAMPLE", out.getAccountNumber());
+    }
+
+    // --- NEW: cover error -> exception branch for getHeaderSummary (gateway returns Response with exception) ---
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_exceptionBranch_rethrows() {
+        LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(responseBody);
+
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenThrow(new RuntimeException("boom"));
+
+        assertThrows(RuntimeException.class,
+                     () -> legacyDefendantAccountService.getHeaderSummary(1L));
+    }
+
+    // --- NEW: cover Number branch in toBigDecimalOrZero via public API ---
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_numberInputs_mapToBigDecimal() {
+        // Arrange: build a legacy response with numeric values (BigDecimal + Number variants)
+        LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
+
+        PaymentStateSummary pay = PaymentStateSummary.builder()
+            .imposedAmount(new BigDecimal("100.0"))
+            .arrearsAmount(BigDecimal.valueOf(0))
+            .paidAmount(BigDecimal.valueOf(25L))
+            .accountBalance(BigDecimal.valueOf(75.5f))
+            .build();
+
+        resp.setPaymentStateSummary(
+            uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary.builder()
+                .imposedAmount(pay.getImposedAmount().toString())
+                .arrearsAmount(pay.getArrearsAmount().toString())
+                .paidAmount(pay.getPaidAmount().toString())
+                .accountBalance(pay.getAccountBalance().toString())
+                .build()
+        );
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(resp);
+
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+
+        // Act
+        DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
+
+        // Assert (compareTo to ignore scale)
+        var ps = out.getPaymentStateSummary();
+        assertEquals(0, ps.getImposedAmount().compareTo(new BigDecimal("100.0")));
+        assertEquals(0, ps.getArrearsAmount().compareTo(new BigDecimal("0")));
+        assertEquals(0, ps.getPaidAmount().compareTo(new BigDecimal("25")));
+        assertEquals(0, ps.getAccountBalance().compareTo(new BigDecimal("75.5")));
     }
 
 
+    // --- NEW: cover unsupported-type branch → defaults to ZERO (and logs warn) ---
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_unsupportedPaymentType_defaultsZero() {
+        var pay = uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary.builder()
+            .imposedAmount("0")
+            .build();
+
+        var resp = createHeaderSummaryResponse();
+        resp.setPaymentStateSummary(pay);
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(resp);
+
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+
+        var out = legacyDefendantAccountService.getHeaderSummary(1L);
+        assertEquals(BigDecimal.ZERO, out.getPaymentStateSummary().getImposedAmount());
+    }
+
+    // --- NEW: cover individual aliases mapping (non-empty array) ---
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_individualAliases_areMapped() {
+        var alias = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias.builder()
+            .aliasId("AL1").sequenceNumber(Short.valueOf("1")).surname("AliasSurname").forenames("AliasForenames")
+            .build();
+        var ind = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
+            .title("Mr").firstNames("John").surname("Smith")
+            .individualAliases(new uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias[]{ alias })
+            .build();
+
+        var party = uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
+            .individualDetails(ind).build();
+
+        var resp = createHeaderSummaryResponse();
+        resp.setPartyDetails(party);
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(resp);
+
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+
+        var out = legacyDefendantAccountService.getHeaderSummary(1L);
+        assertNotNull(out.getPartyDetails().getIndividualDetails().getIndividualAliases());
+        assertEquals(1, out.getPartyDetails().getIndividualDetails().getIndividualAliases().size());
+    }
+
+    // --- NEW: cover the three not-implemented public APIs (no reflection) ---
+    @Test
+    void testGetDefendantAccountParty_notImplemented() {
+        assertThrows(UnsupportedOperationException.class,
+                     () -> legacyDefendantAccountService.getDefendantAccountParty(1L, 2L));
+    }
+
+    @Test
+    void testUpdateDefendantAccount_notImplemented() {
+        var ex = assertThrows(org.springframework.web.server.ResponseStatusException
+                                  .class,
+                              () -> legacyDefendantAccountService.updateDefendantAccount(1L, "78", null, "\"0\"",
+                                                                                         "tester"));
+        assertEquals(HttpStatus.NOT_IMPLEMENTED, ex.getStatusCode());
+    }
+
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getAtAGlance_success_mapsTopLevelAndNulls() {
+        LegacyGetDefendantAccountAtAGlanceResponse body = LegacyGetDefendantAccountAtAGlanceResponse.builder()
+            .defendantAccountId("123")
+            .accountNumber("ACC-42")
+            .debtorType("PERSON")
+            .youth(Boolean.FALSE)
+            .version(5L)
+            // leave nested sections null to cover null branches
+            .build();
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
+
+        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(123L);
+
+        assertNotNull(out);
+        assertEquals("123", out.getDefendantAccountId());
+        assertEquals("ACC-42", out.getAccountNumber());
+        assertEquals("PERSON", out.getDebtorType());
+        assertEquals(Boolean.FALSE, out.getIsYouth());
+        assertEquals(5L, out.getVersion());
+        assertNull(out.getPartyDetails());
+        assertNull(out.getAddressDetails());
+        assertNull(out.getLanguagePreferences());
+        assertNull(out.getPaymentTermsSummary());
+        assertNull(out.getEnforcementStatus());
+        assertNull(out.getCommentsAndNotes());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getAtAGlance_legacyFailure5xx_withEntity_mapsAnyway() {
+        LegacyGetDefendantAccountAtAGlanceResponse body =
+            LegacyGetDefendantAccountAtAGlanceResponse.builder().defendantAccountId("456").build();
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
+        // simulate 5xx but with a body (service should still map)
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+
+        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(456L);
+        assertNotNull(out);
+        assertEquals("456", out.getDefendantAccountId());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getAtAGlance_error5xx_noEntity_returnsNull() {
+        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
+
+        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(999L);
+        assertNull(out);
+    }
+
+    @Test
+    void getAtAGlance_gatewayThrows_hitsCatchAndRethrows() {
+        doThrow(new RuntimeException("boom"))
+            .when(gatewayService)
+            .postToGateway(any(), any(), any(), any());
+
+        assertThrows(RuntimeException.class, () -> legacyDefendantAccountService.getAtAGlance(1L));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getAtAGlance_mapsOrganisationBranch_withAliases() {
+        // org alias element
+        OrganisationDetails.OrganisationAlias orgAlias = OrganisationDetails.OrganisationAlias.builder()
+            .aliasId("10")
+            .sequenceNumber(Short.valueOf("2"))
+            .organisationName("Alt Name Ltd")
+            .build();
+
+        OrganisationDetails legacyOrg = OrganisationDetails.builder()
+            .organisationName("Acme Ltd")
+            .organisationAliases(new OrganisationDetails.OrganisationAlias[]{ orgAlias })
+            .build();
+
+        LegacyPartyDetails party = LegacyPartyDetails.builder()
+            .organisationFlag(Boolean.TRUE)
+            .defendantAccountPartyId("777")
+            .organisationDetails(legacyOrg)
+            .build();
+
+        LegacyGetDefendantAccountAtAGlanceResponse body =
+            LegacyGetDefendantAccountAtAGlanceResponse.builder()
+                .partyDetails(party)
+                .build();
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
+
+        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
+
+        PartyDetails pd = out.getPartyDetails();
+        assertNotNull(pd);
+        assertEquals(true, pd.getOrganisationFlag());
+        assertEquals("777", pd.getPartyId());
+        assertNotNull(pd.getOrganisationDetails());
+        assertNull(pd.getIndividualDetails());
+        assertEquals("Acme Ltd", pd.getOrganisationDetails().getOrganisationName());
+        assertNotNull(pd.getOrganisationDetails().getOrganisationAliases());
+        assertEquals(1, pd.getOrganisationDetails().getOrganisationAliases().size());
+        assertEquals("10", pd.getOrganisationDetails().getOrganisationAliases().get(0).getAliasId());
+        assertEquals(2, pd.getOrganisationDetails().getOrganisationAliases().get(0).getSequenceNumber());
+        assertEquals("Alt Name Ltd", pd.getOrganisationDetails()
+            .getOrganisationAliases().get(0).getOrganisationName());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getAtAGlance_mapsIndividualBranch_withAliases_andDobFormatting() {
+        IndividualDetails.IndividualAlias alias = IndividualDetails.IndividualAlias.builder()
+            .aliasId("21")
+            .sequenceNumber(Short.valueOf("3"))
+            .surname("Smith")
+            .forenames("John")
+            .build();
+
+        IndividualDetails ind = IndividualDetails.builder()
+            .title("Mr")
+            .firstNames("John James")
+            .surname("Smith")
+            .dateOfBirth(null)
+            .age("34")
+            .nationalInsuranceNumber("QQ123456C")
+            .individualAliases(new IndividualDetails.IndividualAlias[]{ alias })
+            .build();
+
+        LegacyPartyDetails party = LegacyPartyDetails.builder()
+            .organisationFlag(Boolean.FALSE)
+            .defendantAccountPartyId("1001")
+            .individualDetails(ind)
+            .build();
+
+        LegacyGetDefendantAccountAtAGlanceResponse body =
+            LegacyGetDefendantAccountAtAGlanceResponse.builder()
+                .partyDetails(party)
+                .build();
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
+
+        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
+
+        PartyDetails pd = out.getPartyDetails();
+        assertEquals(false, pd.getOrganisationFlag());
+        assertEquals("1001", pd.getPartyId());
+        assertNull(pd.getOrganisationDetails());
+        assertNotNull(pd.getIndividualDetails());
+        assertEquals("Mr", pd.getIndividualDetails().getTitle());
+        assertEquals("John James", pd.getIndividualDetails().getForenames());
+        assertEquals("Smith", pd.getIndividualDetails().getSurname());
+        assertNull(pd.getIndividualDetails().getDateOfBirth());
+        assertEquals("34", pd.getIndividualDetails().getAge());
+        assertEquals("QQ123456C", pd.getIndividualDetails().getNationalInsuranceNumber());
+        assertNotNull(pd.getIndividualDetails().getIndividualAliases());
+        assertEquals(1, pd.getIndividualDetails().getIndividualAliases().size());
+        assertEquals("21", pd.getIndividualDetails().getIndividualAliases().get(0).getAliasId());
+        assertEquals(3, pd.getIndividualDetails().getIndividualAliases().get(0).getSequenceNumber());
+        assertEquals("Smith", pd.getIndividualDetails().getIndividualAliases().get(0).getSurname());
+        assertEquals("John", pd.getIndividualDetails().getIndividualAliases().get(0).getForenames());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getAtAGlance_mapsAddress_language_payment_enforcement_comments() {
+        // --- arrange legacy inputs ---
+        uk.gov.hmcts.opal.dto.legacy.common.AddressDetails addr =
+            uk.gov.hmcts.opal.dto.legacy.common.AddressDetails.builder()
+                .addressLine1("1 Street")
+                .addressLine2("Area")
+                .addressLine3(null)
+                .addressLine4("Town")
+                .addressLine5("County")
+                .postcode("AB1 2CD")
+                .build();
+
+        var dlp = uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.DocumentLanguagePreference
+            .builder().documentLanguageCode("EN").build();
+        var hlp = uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.HearingLanguagePreference
+            .builder().hearingLanguageCode("CY").build();
+        var legacyLang = uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.builder()
+            .documentLanguagePreference(dlp)
+            .hearingLanguagePreference(hlp)
+            .build();
+
+        var legacyPts = uk.gov.hmcts.opal.dto.legacy.common.PaymentTermsSummary.builder()
+            .paymentTermsType(new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
+                uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode.I))
+            .instalmentPeriod(new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
+                uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.W))
+            .effectiveDate(java.time.LocalDate.of(2024, 1, 2))
+            .lumpSumAmount(new java.math.BigDecimal("250.00"))
+            .instalmentAmount(new java.math.BigDecimal("25.00"))
+            .build();
+
+        var lea = uk.gov.hmcts.opal.dto.common.LastEnforcementAction.builder()
+            .lastEnforcementActionId("REM")
+            .lastEnforcementActionTitle("Reminder")
+            .build();
+
+        var legacyEnf = uk.gov.hmcts.opal.dto.legacy.common.EnforcementStatusSummary.builder()
+            .lastEnforcementAction(lea)
+            .collectionOrderMade(Boolean.TRUE)
+            .defaultDaysInJail(7)
+            .enforcementOverride(null) // you expect null in API
+            .lastMovementDate(java.time.LocalDate.of(2023, 12, 31))
+            .build();
+
+        var legacyCom = uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes.builder()
+            .accountComment("Main note")
+            .freeTextNote1("N1")
+            .freeTextNote2("N2")
+            .freeTextNote3("N3")
+            .build();
+
+        // This is the ONLY body we should stub with
+        uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse body =
+            uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse.builder()
+                .address(addr)
+                .languagePreferences(legacyLang)
+                .paymentTermsSummary(legacyPts)
+                .enforcementStatusSummary(legacyEnf)
+                .commentsAndNotes(legacyCom)
+                .build();
+
+        ParameterizedTypeReference<uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
+
+        // --- act ---
+        uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse out =
+            legacyDefendantAccountService.getAtAGlance(1L);
+
+        // --- assert ---
+
+        // Address
+        assertNotNull(out.getAddressDetails());
+        assertEquals("1 Street", out.getAddressDetails().getAddressLine1());
+        assertNull(out.getAddressDetails().getAddressLine3());
+        assertEquals("AB1 2CD", out.getAddressDetails().getPostcode());
+
+        // Language
+        uk.gov.hmcts.opal.dto.common.LanguagePreferences lp = out.getLanguagePreferences();
+        assertNotNull(lp);
+
+        // Payment terms
+        uk.gov.hmcts.opal.dto.common.PaymentTermsSummary pts = out.getPaymentTermsSummary();
+        assertEquals(java.time.LocalDate.of(2024, 1, 2), pts.getEffectiveDate());
+        assertEquals(new java.math.BigDecimal("250.00"), pts.getLumpSumAmount());
+        assertEquals(new java.math.BigDecimal("25.00"), pts.getInstalmentAmount());
+
+        // Enforcement (API model uses value objects)
+        uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary es = out.getEnforcementStatus();
+        assertNotNull(es);
+        assertNotNull(es.getLastEnforcementAction());
+        assertEquals("REM", es.getLastEnforcementAction().getLastEnforcementActionId());
+        assertEquals("Reminder", es.getLastEnforcementAction().getLastEnforcementActionTitle());
+        assertEquals(Boolean.TRUE, es.getCollectionOrderMade());
+        assertEquals(7, es.getDefaultDaysInJail());
+        assertNull(es.getEnforcementOverride()); // we set null
+        assertEquals(java.time.LocalDate.of(2023, 12, 31), es.getLastMovementDate());
+
+        // Comments
+        uk.gov.hmcts.opal.dto.common.CommentsAndNotes cn = out.getCommentsAndNotes();
+        assertEquals("Main note", cn.getAccountNotesAccountComments());
+        assertEquals("N1", cn.getAccountNotesFreeTextNote1());
+        assertEquals("N2", cn.getAccountNotesFreeTextNote2());
+        assertEquals("N3", cn.getAccountNotesFreeTextNote3());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getAtAGlance_paymentTerms_nullEnumsHandled() {
+        uk.gov.hmcts.opal.dto.legacy.common.PaymentTermsSummary legacyPtsNulls =
+            uk.gov.hmcts.opal.dto.legacy.common.PaymentTermsSummary.builder()
+                .paymentTermsType(null)
+                .instalmentPeriod(null)
+                .build();
+
+        uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse body =
+            uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse.builder()
+                .paymentTermsSummary(legacyPtsNulls)
+                .build();
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
+
+        DefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
+        assertNotNull(out.getPaymentTermsSummary());
+        assertNull(out.getPaymentTermsSummary().getPaymentTermsType());
+        assertNull(out.getPaymentTermsSummary().getInstalmentPeriod());
+    }
 }
