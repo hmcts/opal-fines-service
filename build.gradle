@@ -102,7 +102,10 @@ tasks.register("bundleOpenApi", JavaExec) {
 }
 
 openApiGenerate {
-  generatorName = "spring"                  // or "spring", "kotlin", etc.
+  globalProperties = [
+    debugModels: "true"
+  ]
+  generatorName = "spring"
   inputSpec = "$buildDir/openapi-bundled.yaml".toString()
   outputDir = "$buildDir/generated/openapi".toString()
   apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
@@ -116,13 +119,13 @@ openApiGenerate {
     REF_AS_PARENT_IN_ALLOF: "true"
   ]
   configOptions = [
-    dateLibrary                           : "java8",
-    interfaceOnly                         : "true",
-    useTags                               : "true",
-    useSpringBoot3                        : "true",
-    containerDefaultToNull                : "true",
-    generatedConstructorWithRequiredArgs  : "false",
-    additionalModelTypeAnnotations        : "@lombok.Data;",
+    dateLibrary                         : "java8",
+    interfaceOnly                       : "true",
+    useTags                             : "true",
+    useSpringBoot3                      : "true",
+    containerDefaultToNull              : "true",
+    generatedConstructorWithRequiredArgs: "false",
+    useBeanValidation                   : "true",
   ]
 }
 // (Temp?) Fix to solve the issue:
