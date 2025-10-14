@@ -80,8 +80,6 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
         ProblemDetail problemDetail = response.getBody();
 
-        System.out.println(problemDetail);
-
         assertEquals(HttpStatus.METHOD_NOT_ALLOWED.value(), problemDetail.getStatus());
         assertEquals("Feature Disabled", problemDetail.getTitle());
         assertEquals("The requested feature is not currently available", problemDetail.getDetail());
