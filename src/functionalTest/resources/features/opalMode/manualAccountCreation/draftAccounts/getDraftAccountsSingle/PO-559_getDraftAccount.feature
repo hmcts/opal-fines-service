@@ -25,4 +25,8 @@ Feature: PO-559 get draft account
       | account_snapshot.submitted_by       | BUUID                |
       | account_snapshot.business_unit_name | West London          |
 
+    Then The draft account response returns 200
+    And the response must include a strong quoted ETag header
+    And the response body must not include the "version" field anywhere
+
     Then I delete the created draft accounts
