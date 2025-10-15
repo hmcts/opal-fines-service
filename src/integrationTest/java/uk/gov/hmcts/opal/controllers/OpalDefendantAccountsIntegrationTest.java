@@ -388,4 +388,9 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     void opal_wrongMediaTypeContainsRetriableField() throws Exception {
         super.testWrongMediaTypeContainsRetriableField(log);
     }
+
+    @Test
+    void testInvalidBodyContainsRetriable() throws Exception {
+        super.testInvalidBodyContainsRetriable(log);
+    }
 }
