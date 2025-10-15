@@ -2876,4 +2876,64 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
     }
 
+    @DisplayName("PO-2119 / Problem JSON contains retriable field")
+    void testEntityNotFoundExceptionContainsRetriable(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/12345/header-summary")
+                                                          .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testRetriableIncludedInProblemDetail: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
+            .andExpect(jsonPath("$.title").value("Entity Not Found"))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(jsonPath("$.retriable").value(false));
+
+    }
+
+    @DisplayName("PO-2119 / Problem JSON contains retriable field")
+    void testWrongMediaTypeContainsRetriableField(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        ResultActions resultActions = mockMvc.perform(post("/defendant-accounts/search")
+                                                        .header("authorization", "Bearer some_value")
+                                                        .contentType(MediaType.APPLICATION_ATOM_XML)
+                                                        .content("""
+                                                                 {
+                                                                   "active_accounts_only": true,
+                                                                   "business_unit_ids": [],
+                                                                   "reference_number": {
+                                                                     "account_number": "177A",
+                                                                     "prosecutor_case_reference": null,
+                                                                     "organisation": false
+                                                                   },
+                                                                   "defendant": null
+                                                                 }
+                                                                 """));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testRetriableIncludedInProblemDetail: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isUnsupportedMediaType())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type")
+                           .value("https://hmcts.gov.uk/problems/unsupported-media-type"))
+            .andExpect(jsonPath("$.title").value("Unsupported Media Type"))
+            .andExpect(jsonPath("$.status").value(415))
+            .andExpect(jsonPath("$.detail")
+                           .value("The Content-Type is not supported. Please use application/json"))
+            .andExpect(jsonPath("$.retriable").value(false));
+
+    }
+
+
+
 }
