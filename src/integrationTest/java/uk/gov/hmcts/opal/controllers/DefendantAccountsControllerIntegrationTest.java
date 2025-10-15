@@ -2934,6 +2934,25 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
     }
 
+    @DisplayName("PO-2119 / Problem JSON contains retriable for invalid request body")
+    void testInvalidBodyContainsRetriable(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        var resultActions = mockMvc.perform(post("/defendant-accounts/search")
+                                         .header("authorization", "Bearer some_value")
+                                         .contentType(MediaType.APPLICATION_JSON)
+                                         .content("{ invalid json"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info("Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+
 
 
 }
