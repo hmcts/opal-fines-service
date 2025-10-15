@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.steps.draftaccount;
 
-import org.jetbrains.annotations.Nullable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
@@ -14,12 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.empty;
 import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
+
+import static uk.gov.hmcts.opal.steps.draftaccount.DraftAccountCommonSteps.fetchStrongEtag;
 
 /**
  * Draft account deletion steps with ETag/If-Match support and verified cleanup.
@@ -28,29 +29,6 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
     private static final Logger log = LoggerFactory.getLogger(DraftAccountDeleteSteps.class);
 
     // ─────────────── helpers ───────────────
-
-    /** Strong, quoted ETag. */
-    private @Nullable String fetchStrongEtag(String id) {
-        Response r = SerenityRest.given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("application/json")
-            .get(getTestUrl() + DRAFT_ACCOUNTS_URI + "/" + id);
-
-        int code = r.getStatusCode();
-        if (code == 404) {
-            log.info("GET {}{} returned 404; no ETag available",
-                     getTestUrl(), DRAFT_ACCOUNTS_URI + "/" + id);
-            return null;
-        }
-
-        // Allow 200/304 only here
-        assertThat("GET for ETag should be 200 or 304", code, anyOf(is(200), is(304)));
-
-        String etag = r.getHeader("ETag");
-        log.info("GET {}{} → {} with ETag: {}", getTestUrl(), DRAFT_ACCOUNTS_URI + "/" + id, code, etag);
-
-        return etag;
-    }
 
     // Delete /draft-accounts/{id} with optional If-Match and ignore_missing.
     // - Only sends If-Match when an ETag is provided (non-null/non-blank)
@@ -85,18 +63,16 @@ public class DraftAccountDeleteSteps extends BaseStepDef {
     /** Delete with If-Match when possible; be resilient to flaky 406/500 by falling back;
      *  consider cleanup successful if the resource is gone afterwards (GET=404). */
     private void deleteWithConcurrency(String id, boolean ignoreMissingResource) {
-        String etag = this.fetchStrongEtag(id);
+        String etag = fetchStrongEtag(getTestUrl(), id);
 
-        // If there's no ETag (already gone), don't send If-Match and do ignore_missing=true
         boolean ignore = ignoreMissingResource || etag == null;
 
         Response del = this.deleteWithIfMatch(id, etag, ignore);
         int code = del.getStatusCode();
 
-        // One retry on 409 with a fresh ETag (classic concurrency race)
         if (code == 409 && etag != null && !ignore) {
             log.info("409 on delete for {}. Refreshing ETag and retrying once.", id);
-            String fresh = this.fetchStrongEtag(id);
+            String fresh = fetchStrongEtag(getTestUrl(), id); // 🔁 again
             del = this.deleteWithIfMatch(id, fresh, false);
             code = del.getStatusCode();
         }

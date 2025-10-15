@@ -6,7 +6,7 @@ import io.cucumber.java.en.Then;
 import net.serenitybdd.rest.SerenityRest;
 import org.hamcrest.Matchers;
 
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
+//import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class HealthApiStepDef extends BaseStepDef {
 
@@ -14,7 +14,7 @@ public class HealthApiStepDef extends BaseStepDef {
     public void checkHealthOfFinesApi() {
         System.out.println("Test URL: " + getTestUrl());
         SerenityRest.given()
-            .header("Authorization", "Bearer " + getToken())
+            //.header("Authorization", "Bearer " + getToken())
             .when()
             .get(getTestUrl() + "/health");
         SerenityRest.then().assertThat().statusCode(200).and().body("status", Matchers.is("UP"));

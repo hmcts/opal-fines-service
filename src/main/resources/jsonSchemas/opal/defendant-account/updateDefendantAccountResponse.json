@@ -8,7 +8,7 @@
     "comment_and_notes": { "$ref": "../common-objects/commentsAndNotes.json" },
     "enforcement_court": { "$ref": "../common-objects/courtReference.json" },
     "collection_order": { "$ref": "../common-objects/collectionOrder.json" },
-    "enforcement_overrides": { "$ref": "../common-objects/enforcementOverride.json" }
+    "enforcement_override": { "$ref": "../common-objects/enforcementOverride.json" }
   },
   "required": ["id"]
 }

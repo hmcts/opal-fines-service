@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.authentication.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.authentication.model.Session;
+import uk.gov.hmcts.opal.common.user.authentication.model.Session;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
