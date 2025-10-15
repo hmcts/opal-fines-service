@@ -11,3 +11,9 @@ components:
     BigInt:
       type: integer
       format: int64
+    monetaryZeroOrPositive:
+      type: number
+      description: A monetary value that is zero or positive, with up to two decimal places.
+      maximum: 999999999999
+      minimum: 0
+      multipleOf: 0.01

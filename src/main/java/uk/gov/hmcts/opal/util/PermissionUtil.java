@@ -1,9 +1,9 @@
 package uk.gov.hmcts.opal.util;
 
 import org.springframework.security.access.AccessDeniedException;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.authorisation.model.Permissions;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.BusinessUnitRef;
 import uk.gov.hmcts.opal.service.UserStateService;
 
