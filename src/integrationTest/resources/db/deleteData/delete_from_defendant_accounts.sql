@@ -40,17 +40,6 @@ DELETE FROM enforcers WHERE business_unit_id = 9999;
 -- Remove from prisons referencing test BU
 DELETE FROM prisons WHERE business_unit_id = 9999;
 
--- Remove from user_entitlements referencing business_unit_users of test BU
-DELETE FROM user_entitlements
-WHERE business_unit_user_id IN (
-    SELECT business_unit_user_id
-    FROM business_unit_users
-    WHERE business_unit_id = 9999
-);
-
--- Remove from business_unit_users referencing test BU
-DELETE FROM business_unit_users WHERE business_unit_id = 9999;
-
 -- Remove from offences referencing test BU
 DELETE FROM offences WHERE business_unit_id = 9999;
 
