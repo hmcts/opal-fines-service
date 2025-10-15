@@ -23,6 +23,8 @@ Feature: PO-745 patch draft account
       | If-Match           | 0                           |
 
     Then The draft account response returns 200
+    And the response must include a strong quoted ETag header
+    And the response body must not include the "version" field anywhere
 
     Then I get the single created draft account and the response contains
       | business_unit_id                    | 73                   |

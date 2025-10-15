@@ -10,9 +10,9 @@ import uk.gov.hmcts.opal.authentication.config.AuthenticationConfigurationProper
 import uk.gov.hmcts.opal.authentication.dao.AzureDao;
 import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
 import uk.gov.hmcts.opal.authentication.exception.AzureDaoException;
-import uk.gov.hmcts.opal.authentication.model.JwtValidationResult;
-import uk.gov.hmcts.opal.authentication.model.OAuthProviderRawResponse;
-import uk.gov.hmcts.opal.authentication.model.SecurityToken;
+import uk.gov.hmcts.opal.common.user.authentication.model.JwtValidationResult;
+import uk.gov.hmcts.opal.common.user.authentication.model.OAuthProviderRawResponse;
+import uk.gov.hmcts.opal.common.user.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authorisation.model.LogActions;
 import uk.gov.hmcts.opal.authorisation.service.AuthorisationService;
 import uk.gov.hmcts.opal.exception.OpalApiException;

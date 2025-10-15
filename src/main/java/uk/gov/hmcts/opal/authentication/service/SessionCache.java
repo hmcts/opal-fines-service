@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.authentication.service;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.opal.authentication.model.Session;
+import uk.gov.hmcts.opal.common.user.authentication.model.Session;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

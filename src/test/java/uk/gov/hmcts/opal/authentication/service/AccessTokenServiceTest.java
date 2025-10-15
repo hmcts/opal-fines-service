@@ -10,8 +10,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authentication.client.AzureTokenClient;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
-import uk.gov.hmcts.opal.authentication.model.AccessTokenRequest;
-import uk.gov.hmcts.opal.authentication.model.AccessTokenResponse;
+import uk.gov.hmcts.opal.common.user.authentication.model.AccessTokenRequest;
+import uk.gov.hmcts.opal.common.user.authentication.model.AccessTokenResponse;
 import uk.gov.hmcts.opal.config.properties.TestUser;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 
