@@ -353,7 +353,7 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.1.3'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.1.4'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.35"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.39"
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.39"
