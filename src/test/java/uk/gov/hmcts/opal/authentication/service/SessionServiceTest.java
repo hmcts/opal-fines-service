@@ -10,7 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import uk.gov.hmcts.opal.authentication.model.Session;
+import uk.gov.hmcts.opal.common.user.authentication.model.Session;
 
 @ExtendWith(MockitoExtension.class)
 class SessionServiceTest {

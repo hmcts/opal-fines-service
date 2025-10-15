@@ -7,6 +7,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -68,11 +70,11 @@ class DefendantAccountControllerTest {
         // Arrange
         DefendantAccountHeaderSummary mockBody = new DefendantAccountHeaderSummary();
 
-        var userWithPermission = uk.gov.hmcts.opal.authorisation.model.UserState.builder()
+        var userWithPermission = UserState.builder()
             .userId(99L)
             .userName("tester")
             .businessUnitUser(java.util.Set.of(
-                uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser.builder()
+                BusinessUnitUser.builder()
                     .businessUnitUserId("1L")
                     .businessUnitId((short) 78)
                     .build()

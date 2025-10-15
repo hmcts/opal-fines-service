@@ -6,8 +6,8 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.authentication.aspect.UserStateAspectService;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 
 import static uk.gov.hmcts.opal.util.PermissionUtil.checkAnyBusinessUnitUserHasPermission;
 import static uk.gov.hmcts.opal.util.PermissionUtil.checkBusinessUnitUserHasPermission;

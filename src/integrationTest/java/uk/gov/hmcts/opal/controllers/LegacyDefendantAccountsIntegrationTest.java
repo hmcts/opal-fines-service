@@ -46,6 +46,18 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
         super.getDefendantAccountPaymentTerms_500Error(log);
     }
 
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetDefendantAccountsAtAGlance_500Error() throws Exception {
+        super.getDefendantAccountAtAGlance_500Error(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetDefendantAccountsAtAGlance_Success() throws Exception {
+        super.testLegacyGetDefendantAtAGlance(log);
+    }
+
     @Override
     String getHeaderSummaryResponseSchemaLocation() {
         return "legacy/getDefendantAccountHeaderSummaryLegacyResponse.json";
