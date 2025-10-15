@@ -7,6 +7,12 @@ info:
   title: Opal Fines Service
   version: v0.0.1
 components:
+  headers:
+    ETag:
+      description: Version of the account.
+      schema:
+        $ref: "./types.yaml#/components/schemas/BigInt"
+      required: true
   schemas:
     ProblemDetail:
       type: object
@@ -614,3 +620,26 @@ components:
         hold_payment:
           type: boolean
           description: DB Mapping - creditor_accounts.hold_payout
+    creditorAccountTypeReference:
+      title: Creditor Account Type Reference
+      type: object
+      additionalProperties: false
+      required:
+        - creditor_account_type
+      properties:
+        account_type:
+          type: string
+          description: DB Mapping - creditor_accounts.creditor_account_type
+        display_name:
+          type: string
+          description: |
+            Converts the short hand code of creditor_accounts.creditor_account_type into a display name.
+            Mapping:
+              'MN' becomes 'Minor Creditor'
+              'MJ' becomes 'Major Creditor'
+              'CF' becomes 'Central Fund'
+          enum:
+            - Minor Creditor
+            - Major Creditor
+            - Central Fund
+

@@ -12,14 +12,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * This is a support class used to combine multiple OpenAPI YAML files into a single bundled file. It rewrites $ref
- * references to ensure they point correctly within the bundled file. This is not part of the main application code and
- * is intended to be run as a standalone utility.
- */
 public class OpenApiBundler {
 
     private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+
+    // All OpenAPI component sections that can contain $ref targets
+    private static final List<String> COMPONENT_SECTIONS = List.of(
+        "schemas", "responses", "parameters", "headers",
+        "requestBodies", "examples", "links", "callbacks", "securitySchemes", "pathItems"
+    );
 
     @SuppressWarnings("unchecked")
     public static void main(String[] args) throws IOException {
@@ -35,36 +36,60 @@ public class OpenApiBundler {
         bundled.put("openapi", "3.1.1");
         bundled.put("info", Map.of("title", "Bundled API", "version", "1.0.0"));
         bundled.put("paths", new LinkedHashMap<>());
-        bundled.put("components", Map.of("schemas", new LinkedHashMap<>()));
+        Map<String, Object> bundledComponents = new LinkedHashMap<>();
+        bundled.put("components", bundledComponents);
 
-        Files.list(inputDir).filter(f -> f.toString().endsWith(".yaml")).forEach(file -> {
-            try {
-                Map<String, Object> yaml = mapper.readValue(file.toFile(), Map.class);
-                String suffix = file.getFileName().toString().replace(".yaml", "");
+        // Pre-create empty maps for known component sections
+        for (String section : COMPONENT_SECTIONS) {
+            bundledComponents.put(section, new LinkedHashMap<String, Object>());
+        }
 
-                // Merge paths
-                Map<String, Object> paths = (Map<String, Object>) yaml.get("paths");
-                if (paths != null) {
-                    paths.replaceAll((k, v) -> rewriteRefs(v, suffix));
-                    ((Map<String, Object>) bundled.get("paths")).putAll(paths);
-                }
+        Files.list(inputDir)
+            .filter(f -> f.toString().endsWith(".yaml"))
+            .sorted() // deterministic
+            .forEach(file -> {
+                try {
+                    Map<String, Object> yaml = mapper.readValue(file.toFile(), Map.class);
+                    String suffix = capitalize(stripYaml(file.getFileName().toString()));
 
-                // Merge schemas
-                Map<String, Object> comps = (Map<String, Object>) yaml.get("components");
-                if (comps != null && comps.get("schemas") != null) {
-                    Map<String, Object> schemas = (Map<String, Object>) comps.get("schemas");
-                    Map<String, Object> bundledSchemas =
-                        (Map<String, Object>) ((Map<String, Object>) bundled.get("components")).get("schemas");
-
-                    for (Map.Entry<String, Object> e : schemas.entrySet()) {
-                        String newName = e.getKey() + capitalize(suffix);
-                        bundledSchemas.put(newName, rewriteRefs(e.getValue(), suffix));
+                    // Merge paths (rewrite local & cross-file refs)
+                    Map<String, Object> paths = (Map<String, Object>) yaml.get("paths");
+                    if (paths != null) {
+                        paths.replaceAll((k, v) -> rewriteRefs(v, suffix));
+                        ((Map<String, Object>) bundled.get("paths")).putAll(paths);
                     }
+
+                    // Merge ALL component sections, adding the file suffix to each component key
+                    Map<String, Object> components = (Map<String, Object>) yaml.get("components");
+                    if (components != null) {
+                        for (String section : COMPONENT_SECTIONS) {
+                            Map<String, Object> src = (Map<String, Object>) components.get(section);
+                            if (src == null) {
+                                continue;
+                            }
+
+                            Map<String, Object> dst = getOrCreateSection(bundledComponents, section);
+                            for (Map.Entry<String, Object> e : src.entrySet()) {
+                                String oldName = e.getKey();
+                                String newName = maybeSuffix(oldName, suffix);
+                                Object valueWithRewrites = rewriteRefs(e.getValue(), suffix);
+
+                                if (dst.containsKey(newName)) {
+                                    // You can choose to overwrite, skip, or fail. Failing is safest.
+                                    throw new IllegalStateException(
+                                        "Name collision in components/" + section + ": " + newName + " (from "
+                                            + file.getFileName() + ")"
+                                    );
+                                }
+                                dst.put(newName, valueWithRewrites);
+                            }
+                        }
+                    }
+
+                } catch (Exception e) {
+                    throw new RuntimeException("While processing " + file.getFileName() + ": " + e.getMessage(), e);
                 }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+            });
 
         mapper.writeValue(outputFile.toFile(), bundled);
     }
@@ -73,28 +98,28 @@ public class OpenApiBundler {
     private static Object rewriteRefs(Object node, String currentSuffix) {
         if (node instanceof Map) {
             Map<String, Object> map = new LinkedHashMap<>((Map<String, Object>) node);
-            if (map.containsKey("$ref")) {
-                String ref = map.get("$ref").toString();
 
-                // Case 1: external file reference
+            Object refVal = map.get("$ref");
+            if (refVal instanceof String ref) {
+                // Case 1: external file reference: ./file.yaml#/components/<section>/<name>[...]
                 if (ref.startsWith("./")) {
-                    // Example: ./types.yaml#/components/schemas/BigInt
                     String[] fileAndPath = ref.split("#", 2);
-                    String fileName = new File(fileAndPath[0]).getName().replace(".yaml", "");
+                    String fileName = stripYaml(new File(fileAndPath[0]).getName());
                     String suffix = capitalize(fileName);
 
                     if (fileAndPath.length == 2 && fileAndPath[1].startsWith("/components/")) {
-                        String componentPath = fileAndPath[1].replace("/components/", "");
-                        map.put("$ref", "#/components/" + addSuffix(componentPath, suffix));
+                        String componentPath = fileAndPath[1].replaceFirst("^/components/", "");
+                        map.put("$ref", "#/components/" + addSuffixToLastSegment(componentPath, suffix));
                     }
+                // Case 2: local reference: #/components/<section>/<name>[...]
                 } else if (ref.startsWith("#/components/")) {
-                    // Case 2: local reference
-                    String componentPath = ref.replace("#/components/", "");
-                    String suffix = capitalize(currentSuffix);
-                    map.put("$ref", "#/components/" + addSuffix(componentPath, suffix));
+                    String componentPath = ref.replaceFirst("^#/components/", "");
+                    String suffix = currentSuffix; // already capitalized outside
+                    map.put("$ref", "#/components/" + addSuffixToLastSegment(componentPath, suffix));
                 }
             }
 
+            // Recurse
             map.replaceAll((k, v) -> rewriteRefs(v, currentSuffix));
             return map;
         } else if (node instanceof List) {
@@ -107,19 +132,45 @@ public class OpenApiBundler {
         return node;
     }
 
-    // Append suffix only to the last segment of the component path
-    private static String addSuffix(String componentPath, String suffix) {
-        // Example: "schemas/BigInt" → "schemas/BigIntTypes"
-        int idx = componentPath.lastIndexOf('/');
-        if (idx == -1) {
-            return componentPath + suffix;
+    // Append suffix only to the final name segment, keeping the section and any trailing JSON Pointers intact.
+    // e.g. "headers/ETagCommon" -> "headers/ETagCommonX"
+    //      "schemas/MyThing/allOf/0" -> "schemas/MyThingX/allOf/0"
+    private static String addSuffixToLastSegment(String componentPath, String suffix) {
+        int slash = componentPath.indexOf('/'); // first slash after section
+        if (slash < 0) {
+            return componentPath; // malformed; don't touch
         }
-        String prefix = componentPath.substring(0, idx + 1);
-        String name = componentPath.substring(idx + 1);
-        return prefix + name + suffix;
+
+        String section = componentPath.substring(0, slash);
+        String rest = componentPath.substring(slash + 1);
+
+        // Split rest at the next '/' to isolate the component name
+        int next = rest.indexOf('/');
+        String name = (next == -1) ? rest : rest.substring(0, next);
+        String tail = (next == -1) ? "" : rest.substring(next); // includes the '/'
+
+        String suffixedName = maybeSuffix(name, suffix);
+        return section + "/" + suffixedName + tail;
+    }
+
+    // Only add the suffix if it's not already there
+    private static String maybeSuffix(String name, String suffix) {
+        return name.endsWith(suffix) ? name : name + suffix;
+    }
+
+    private static String stripYaml(String fileName) {
+        return fileName.endsWith(".yaml") ? fileName.substring(0, fileName.length() - 5) : fileName;
     }
 
     private static String capitalize(String s) {
+        if (s == null || s.isEmpty()) {
+            return s;
+        }
         return s.substring(0, 1).toUpperCase() + s.substring(1);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> getOrCreateSection(Map<String, Object> components, String section) {
+        return (Map<String, Object>) components.computeIfAbsent(section, k -> new LinkedHashMap<>());
     }
 }
