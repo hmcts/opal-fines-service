@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import org.hamcrest.core.IsNull;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,9 +41,27 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
+import static org.hamcrest.text.MatchesPattern.matchesPattern;
+import static org.htmlunit.util.MimeType.APPLICATION_JSON;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
  */
+
 abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
@@ -383,7 +402,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(2))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
@@ -663,7 +682,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(2))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
@@ -1372,8 +1391,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             ToJsonString.toPrettyJson(body));
 
         allAccountsActions.andExpect(status().isOk())
-            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.count").value(3))
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')].account_number")
+                .value("177B"))
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')]").exists())
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '444')].account_number")
                 .value("444C"));
@@ -1920,7 +1941,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
             .andExpect(jsonPath("$.payment_card_last_requested").value("2024-01-01"))
             .andExpect(jsonPath("$.payment_terms.extension").value(false))
-            .andExpect(jsonPath("$.last_enforcement").value("REM"));
+            .andExpect(jsonPath("$.last_enforcement").value("10"));
 
         jsonSchemaValidationService.validateOrError(body, getPaymentTermsResponseSchemaLocation());
     }
@@ -2037,9 +2058,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .header("authorization", "Bearer some_value"));
 
         String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
-        log.info(":testGetAtAGlance: Party is an individual. etag header: \n" + headers);
+        log.info(":testGetAtAGlance: Party is an individual. etag header: \n{}", headers);
         String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetAtAGlance: Party is an individual. Response body:\n" + ToJsonString.toPrettyJson(body));
+        log.info(":testGetAtAGlance: Party is an individual. Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -2055,9 +2076,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.address").exists())
             .andExpect(jsonPath("$.payment_terms").exists())
             .andExpect(jsonPath("$.enforcement_status").exists())
-            // verify comments_and_notes node is present (test data included for these optional fields)
+            .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_id").value("10"))
+            .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_title").value(
+                IsNull.nullValue()))
             .andExpect(jsonPath("$.comments_and_notes").exists());
-        ;
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -2248,8 +2270,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         String requestJson = commentAndNotesPayload("hello");
 
         ResultActions a = mockMvc.perform(
-            org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                .patch(URL_BASE + "/77")
+            patch(URL_BASE + "/77")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson)
@@ -2284,8 +2305,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         headers.add(HttpHeaders.IF_MATCH, "\"999\"");
 
         ResultActions a = mockMvc.perform(
-            org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                .patch(URL_BASE + "/77")
+            patch(URL_BASE + "/77")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(commentAndNotesPayload("no change"))
@@ -2311,8 +2331,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         // Intentionally DO NOT add If-Match
 
         ResultActions a = mockMvc.perform(
-            org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                .patch(URL_BASE + "/77")
+            patch(URL_BASE + "/77")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(commentAndNotesPayload("hello"))
@@ -2349,8 +2368,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         String body = commentAndNotesPayload("hello");
 
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                .patch(URL_BASE + "/77")
+        mockMvc.perform(patch(URL_BASE + "/77")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
@@ -2372,8 +2390,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         String requestJson = commentAndNotesPayload("hello");
 
         var result = mockMvc.perform(
-            org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                .patch(URL_BASE + "/77")
+            patch(URL_BASE + "/77")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson)
@@ -2455,8 +2472,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             """;
 
         var a = mockMvc.perform(
-            MockMvcRequestBuilders
-                .patch(URL_BASE + "/77")
+            patch(URL_BASE + "/77")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body)
@@ -2480,10 +2496,17 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     void patch_updatesCollectionOrder(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
+        // Use the live version from DB to avoid 409 conflicts
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            77L
+        );
+
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("good_token");
         headers.add("Business-Unit-Id", "78");
-        headers.add(HttpHeaders.IF_MATCH, "\"0\"");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
         mockMvc.perform(patch(URL_BASE + "/77")
                 .headers(headers)
@@ -2495,8 +2518,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(header().exists("ETag"));
     }
 
-    @DisplayName("OPAL: PATCH Update Defendant Account - Update Enforcement Overrides [@PO-1565]")
-    void patch_updatesEnforcementOverrides(Logger log) throws Exception {
+    @DisplayName("OPAL: PATCH Update Defendant Account - Update Enforcement Override [@PO-1565]")
+    void patch_updatesEnforcementOverride(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // Use the live version from DB to avoid 409 conflicts
@@ -2513,7 +2536,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         String body = """
         {
-          "enforcement_overrides": {
+          "enforcement_override": {
             "enforcement_override_result": {
               "enforcement_override_result_id": "FWEC",
               "enforcement_override_result_title": "Further Warrant Execution Cancelled"
@@ -2538,7 +2561,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         );
 
         String resp = a.andReturn().getResponse().getContentAsString();
-        log.info("enforcement_overrides update resp:\n{}", ToJsonString.toPrettyJson(resp));
+        log.info("enforcement_override update resp:\n{}", ToJsonString.toPrettyJson(resp));
 
         a.andExpect(status().isOk())
             .andExpect(header().exists("ETag"))
@@ -2566,8 +2589,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         String requestJson = commentAndNotesPayload("etag test");
 
         ResultActions result = mockMvc.perform(
-            org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                .patch(URL_BASE + "/77")
+            patch(URL_BASE + "/77")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson)
@@ -2625,6 +2647,66 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         return "\"" + s.replace("\"", "\\\"") + "\"";
     }
 
+
+    @DisplayName("PO-2241 / AC1a+AC1b: Search core '177'; 177A and 177B returned (active flag ignored)")
+    void testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        // Case 1: active_accounts_only = true (ignored because account_number provided)
+        ResultActions activeTrue = mockMvc.perform(post("/defendant-accounts/search")
+                                                       .header("authorization", "Bearer some_value")
+                                                       .contentType(MediaType.APPLICATION_JSON)
+                                                       .content("""
+            {
+              "active_accounts_only": true,
+              "business_unit_ids": [78],
+              "reference_number": {
+                "account_number": "177",
+                "prosecutor_case_reference": null,
+                "organisation": false
+              },
+              "defendant": null
+            }
+            """));
+
+        String bodyTrue = activeTrue.andReturn().getResponse().getContentAsString();
+        log.info(":PO-2241 AC1a+AC1b (active_accounts_only=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
+
+        activeTrue.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
+
+        // Case 2: active_accounts_only = false (also ignored; set should be identical)
+        ResultActions activeFalse = mockMvc.perform(post("/defendant-accounts/search")
+                                                        .header("authorization", "Bearer some_value")
+                                                        .contentType(MediaType.APPLICATION_JSON)
+                                                        .content("""
+            {
+              "active_accounts_only": false,
+              "business_unit_ids": [78],
+              "reference_number": {
+                "account_number": "177",
+                "prosecutor_case_reference": null,
+                "organisation": false
+              },
+              "defendant": null
+            }
+            """));
+
+        String bodyFalse = activeFalse.andReturn().getResponse().getContentAsString();
+        log.info(":PO-2241 AC1a+AC1b (active_accounts_only=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
+
+        activeFalse.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists())
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
+    }
+
+}
     @DisplayName("LEGACY: Get Defendant Account Party - Happy Path [@PO-1973]")
     public void legacyGetDefendantAccountParty_Happy(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
