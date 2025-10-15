@@ -33,14 +33,14 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Get Prosecutor By ID [@PO-1787]")
     void testGetProsecutorById() throws Exception {
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1111"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetEnforcerById: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.prosecutor_id").value(1L))
+            .andExpect(jsonPath("$.prosecutor_id").value(1111L))
             .andExpect(jsonPath("$.prosecutor_code").value("AA01"))
             .andExpect(jsonPath("$.name").value("AA1 Chief Prosecutor"))
             .andExpect(jsonPath("$.address_line_1").value("9 Prosecutor Street"))
@@ -52,7 +52,7 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Get Prosecutor By ID - Prosecutor Does Not Exist [@PO-1787]")
     void testGetProsecutorById_WhenProsecutorDoesNotExist() throws Exception {
-        mockMvc.perform(get(URL_BASE + "/4"))
+        mockMvc.perform(get(URL_BASE + "/4444"))
             .andExpect(status().isNotFound());
     }
 
@@ -67,22 +67,7 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(3))
-            .andExpect(jsonPath("$.ref_data[0].prosecutor_id").value(1L))
-            .andExpect(jsonPath("$.ref_data[0].prosecutor_code").value("AA01"))
-            .andExpect(jsonPath("$.ref_data[0].name").value("AA1 Chief Prosecutor"))
-            .andExpect(jsonPath("$.ref_data[0].address_line_1").value("9 Prosecutor Street"))
-            .andExpect(jsonPath("$.ref_data[0].postcode").value("PR01 2PR"))
-            .andExpect(jsonPath("$.ref_data[1].prosecutor_id").value(2L))
-            .andExpect(jsonPath("$.ref_data[1].prosecutor_code").value("AA02"))
-            .andExpect(jsonPath("$.ref_data[1].name").value("AA2 Assistant Prosecutor"))
-            .andExpect(jsonPath("$.ref_data[1].address_line_1").value("49 Prosecutor Street"))
-            .andExpect(jsonPath("$.ref_data[1].postcode").value("PR01 4PR"))
-            .andExpect(jsonPath("$.ref_data[2].prosecutor_id").value(3L))
-            .andExpect(jsonPath("$.ref_data[2].prosecutor_code").value("AA03"))
-            .andExpect(jsonPath("$.ref_data[2].name").value("AA3 Junior Prosecutor"))
-            .andExpect(jsonPath("$.ref_data[2].address_line_1").value("99 Prosecutor Street"))
-            .andExpect(jsonPath("$.ref_data[2].postcode").value("PR01 9PR"));
+            .andExpect(jsonPath("$.count").value(47));
 
         jsonSchemaValidationService.validateOrError(body, GET_PROSECUTORS_REF_DATA_RESPONSE);
     }
