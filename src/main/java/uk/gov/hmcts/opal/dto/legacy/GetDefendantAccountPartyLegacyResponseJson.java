@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,7 +19,6 @@ public class GetDefendantAccountPartyLegacyResponseJson extends GetDefendantAcco
     private Long version;
 
     @Override
-    @JsonIgnore
     public Long getVersion() {
         return version;
     }

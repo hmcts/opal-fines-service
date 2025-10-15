@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.dto.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.ALWAYS)
+@JsonInclude(Include.NON_NULL)
 public class AddressDetails {
 
     @JsonProperty("address_line_1")
@@ -23,9 +24,11 @@ public class AddressDetails {
     @JsonProperty("address_line_3")
     private String addressLine3;
 
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     @JsonProperty("address_line_4")
     private String addressLine4;
 
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     @JsonProperty("address_line_5")
     private String addressLine5;
 

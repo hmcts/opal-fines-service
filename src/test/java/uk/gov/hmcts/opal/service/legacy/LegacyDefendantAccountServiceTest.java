@@ -1193,9 +1193,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void getDefendantAccountParty_languagePreferences_buildsContainer_whenCodesPresent() {
         var doc = uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy.LanguagePreference.builder()
-            .languageCode("EN").languageDisplayName("English").build();
+            .languageCode("EN").build();
         var hear = uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy.LanguagePreference.builder()
-            .languageCode("CY").languageDisplayName("Welsh").build();
+            .languageCode("CY").build();
 
         var langs = uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy.builder()
             .documentLanguagePreference(doc)
@@ -1226,17 +1226,19 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             org.mockito.ArgumentMatchers.eq(uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService
                 .GET_DEFENDANT_ACCOUNT_PARTY),
             org.mockito.ArgumentMatchers.eq(respType),
-            org.mockito.ArgumentMatchers.any(uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyRequest
-                .class),
+            org.mockito.ArgumentMatchers.any(uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyRequest.class),
             org.mockito.Mockito.nullable(String.class)
         );
 
         var out = legacyDefendantAccountService.getDefendantAccountParty(77L, 77L);
-        var prefs = out.getDefendantAccountParty().getLanguagePreferences();
+        var prefs = ((uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacyJson)
+            out.getDefendantAccountParty()).getLegacyLanguagePreferences();
 
         org.junit.jupiter.api.Assertions.assertNotNull(prefs);
-        org.junit.jupiter.api.Assertions.assertEquals("EN", prefs.getDocumentLanguagePreference().getLanguageCode());
-        org.junit.jupiter.api.Assertions.assertEquals("CY", prefs.getHearingLanguagePreference().getLanguageCode());
+        org.junit.jupiter.api.Assertions.assertEquals("EN",
+            prefs.getDocumentLanguagePreference().getLanguageCode());
+        org.junit.jupiter.api.Assertions.assertEquals("CY",
+            prefs.getHearingLanguagePreference().getLanguageCode());
     }
 
     @Test

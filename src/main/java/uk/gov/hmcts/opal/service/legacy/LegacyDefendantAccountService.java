@@ -22,7 +22,6 @@ import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
-import uk.gov.hmcts.opal.dto.common.LanguagePreference;
 import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
@@ -48,6 +47,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryRespon
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
+import uk.gov.hmcts.opal.dto.legacy.LegacyLanguagePreferencesJson;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
@@ -523,33 +523,37 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         // ----- Language Preferences -----
         LanguagePreferencesLegacy lp = src.getLanguagePreferences();
-        LanguagePreferences apiLangs = null;
-        if (lp != null) {
-            LanguagePreference docPref = null;
-            LanguagePreference hearPref = null;
+        LegacyLanguagePreferencesJson apiLangs = null;
 
+        if (lp != null) {
+            // Extract legacy document and hearing preferences
             LanguagePreferencesLegacy.LanguagePreference doc = lp.getDocumentLanguagePreference();
             LanguagePreferencesLegacy.LanguagePreference hear = lp.getHearingLanguagePreference();
 
             String docCode = mapSafe(doc, LanguagePreferencesLegacy.LanguagePreference::getLanguageCode);
+            String hearCode = mapSafe(hear, LanguagePreferencesLegacy.LanguagePreference::getLanguageCode);
+
+            // Build the new legacy JSON DTOs (no language_display_name)
+            LegacyLanguagePreferencesJson.LegacyLanguagePreferenceJson docPrefJson = null;
+            LegacyLanguagePreferencesJson.LegacyLanguagePreferenceJson hearPrefJson = null;
+
             if (docCode != null && !docCode.isBlank()) {
-                docPref = LanguagePreference.builder()
-                        .languageCode(LanguagePreference.LanguageCode.fromValue(docCode))
+                docPrefJson = LegacyLanguagePreferencesJson.LegacyLanguagePreferenceJson.builder()
+                    .languageCode(docCode)
                     .build();
             }
 
-            String hearCode = mapSafe(hear, LanguagePreferencesLegacy.LanguagePreference::getLanguageCode);
             if (hearCode != null && !hearCode.isBlank()) {
-                hearPref = LanguagePreference.builder()
-                        .languageCode(LanguagePreference.LanguageCode.fromValue(hearCode))
+                hearPrefJson = LegacyLanguagePreferencesJson.LegacyLanguagePreferenceJson.builder()
+                    .languageCode(hearCode)
                     .build();
             }
 
             // Only build the container if at least one child exists (avoid {} which fails schema)
-            if (docPref != null || hearPref != null) {
-                apiLangs = LanguagePreferences.builder()
-                    .documentLanguagePreference(docPref)
-                    .hearingLanguagePreference(hearPref)
+            if (docPrefJson != null || hearPrefJson != null) {
+                apiLangs = LegacyLanguagePreferencesJson.builder()
+                    .documentLanguagePreference(docPrefJson)
+                    .hearingLanguagePreference(hearPrefJson)
                     .build();
             }
         }
@@ -565,7 +569,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         legacyParty.setContactDetails(apiContact);
         legacyParty.setVehicleDetails(apiVehicle);
         legacyParty.setEmployerDetails(apiEmployer);
-        legacyParty.setLanguagePreferences(apiLangs);
+        legacyParty.setLegacyLanguagePreferences(apiLangs);
 
         // Return the legacy wrapper with version + correctly-shaped party
         return GetDefendantAccountPartyLegacyResponseJson.of(legacy.getVersion(), legacyParty);

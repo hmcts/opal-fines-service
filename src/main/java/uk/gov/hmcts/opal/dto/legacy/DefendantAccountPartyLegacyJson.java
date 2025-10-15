@@ -12,4 +12,7 @@ import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 public class DefendantAccountPartyLegacyJson extends DefendantAccountParty {
     @JsonProperty("defendant_account_party_id")
     private String defendantAccountPartyId;
+
+    @JsonProperty("language_preferences")
+    private LegacyLanguagePreferencesJson legacyLanguagePreferences;
 }
