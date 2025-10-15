@@ -17,6 +17,13 @@
     "account_status_reference": {
       "$ref": "./common-objects/accountStatusReferenceLegacy.json"
     },
+    "originator_type": {
+      "type": "string",
+      "enum": ["Court", "Police", "Other"]
+    },
+    "originator_name": {
+      "type": "string"
+    },
     "account_type": {
       "type": "string",
       "enum": ["Fine", "Conditional Caution", "Confiscation", "Fixed Penalty"]
@@ -42,6 +49,8 @@
     "is_youth",
     "account_status_reference",
     "account_type",
+    "originator_type",
+    "originator_name",
     "business_unit_summary",
     "payment_state_summary",
     "party_details"
