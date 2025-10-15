@@ -357,7 +357,7 @@ dependencies {
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.34"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.38"
   openapiImplementation "io.swagger.core.v3:swagger-core:2.2.39"
-  openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.17.2"
+  openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.0"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
