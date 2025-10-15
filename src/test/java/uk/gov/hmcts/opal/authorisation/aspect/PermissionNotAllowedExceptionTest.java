@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.authorisation.aspect;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

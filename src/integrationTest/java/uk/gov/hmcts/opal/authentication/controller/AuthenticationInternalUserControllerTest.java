@@ -8,12 +8,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.authentication.model.SecurityToken;
+import uk.gov.hmcts.opal.common.user.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authentication.service.AuthenticationService;
-import uk.gov.hmcts.opal.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.authorisation.model.Permission;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
 import java.net.URI;

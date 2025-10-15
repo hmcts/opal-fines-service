@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -12,6 +13,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableFeignClients("uk.gov.hmcts.opal.*")
 @EntityScan("uk.gov.hmcts.opal.*")
 @EnableCaching
+@Slf4j
 @SuppressWarnings("HideUtilityClassConstructor") // Spring needs a constructor, its not a utility class
 public class Application {
 

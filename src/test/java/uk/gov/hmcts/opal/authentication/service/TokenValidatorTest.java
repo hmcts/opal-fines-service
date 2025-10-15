@@ -21,8 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authentication.config.AuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.AuthProviderConfigurationProperties;
-import uk.gov.hmcts.opal.authentication.model.JwtValidationResult;
-import uk.gov.hmcts.opal.authentication.service.TokenValidator;
+import uk.gov.hmcts.opal.common.user.authentication.model.JwtValidationResult;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
