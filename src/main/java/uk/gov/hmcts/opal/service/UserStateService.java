@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
-import uk.gov.hmcts.opal.client.user.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.config.properties.BeDeveloperConfiguration;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;

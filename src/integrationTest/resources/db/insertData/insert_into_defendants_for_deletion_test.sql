@@ -1,12 +1,6 @@
 -- File: insert_into_defendants_for_deletion_test.sql
 -- Enhanced test data for comprehensive deletion testing
 
--- Add a user for foreign key constraints
-INSERT INTO users (
-  user_id, username, password, description
-) VALUES (
-  9100, 'test_user', 'password123', 'Test user for deletion test');
-
 -- Add a creditor account for the test (this is what impositions references, not major_creditors)
 INSERT INTO creditor_accounts (
   creditor_account_id, business_unit_id, account_number, creditor_account_type,

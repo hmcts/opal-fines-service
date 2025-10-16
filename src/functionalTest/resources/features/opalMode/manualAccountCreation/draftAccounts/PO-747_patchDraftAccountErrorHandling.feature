@@ -77,3 +77,40 @@ Feature: PO-747 patch draft account error handling
           Given I am testing as the "opal-test@hmcts.net" user
           When I patch the draft account trying to provoke an internal server error
           Then The draft account response returns 500
+
+  @PO-747 @cleanUpData
+  Scenario: Patch draft account - Stale If-Match results in 409 Conflict
+    Given I am testing as the "opal-test@hmcts.net" user
+    When I create a draft account with the following details
+      | business_unit_id  | 73                                     |
+      | account           | draftAccounts/accountJson/account.json |
+      | account_type      | Fine                                   |
+      | account_status    | Submitted                              |
+      | submitted_by      | BUUID                                  |
+      | submitted_by_name | Laura Clerk                            |
+      | timeline_data     | draftAccounts/timelineJson/default.json |
+    Then The draft account response returns 201
+    And I store the created draft account ID
+    And the response must include a strong quoted ETag header
+    And I remember the last response ETag as "before"
+
+    # First PATCH uses the "before" ETag → succeeds and increments version
+    When I patch the draft account with the following details
+      | business_unit_id | 73                   |
+      | account_status   | Publishing Pending   |
+      | validated_by     | BUUID_REVIEWER       |
+      | reason_text      | Reason for change    |
+      | If-Match         | $etag:before         |
+    Then The draft account response returns 200
+    And the response must include a strong quoted ETag header
+
+    # Second PATCH reuses the stale "before" eTag again → 409 Conflict
+    When I patch the draft account with the following details
+      | business_unit_id | 73                   |
+      | account_status   | Submitted            |
+      | validated_by     | BUUID_REVIEWER       |
+      | reason_text      | Revert               |
+      | If-Match         | $etag:before         |
+    Then The draft account response returns 409
+
+

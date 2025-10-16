@@ -380,4 +380,19 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     void opal_updateDefendantAccount_returnsEtag() throws Exception {
         super.patch_returnsETag_andResponseConformsToSchema(log);
     }
+
+    @Test
+    void opal_exceptionContainsRetriableField() throws Exception {
+        super.testEntityNotFoundExceptionContainsRetriable(log);
+    }
+
+    @Test
+    void opal_wrongMediaTypeContainsRetriableField() throws Exception {
+        super.testWrongMediaTypeContainsRetriableField(log);
+    }
+
+    @Test
+    void testInvalidBodyContainsRetriable() throws Exception {
+        super.testInvalidBodyContainsRetriable(log);
+    }
 }
