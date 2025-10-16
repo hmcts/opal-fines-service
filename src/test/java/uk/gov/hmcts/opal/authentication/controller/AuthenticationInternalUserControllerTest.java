@@ -17,10 +17,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.ModelAndView;
-import uk.gov.hmcts.opal.authentication.model.SecurityToken;
+import uk.gov.hmcts.opal.common.user.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.authentication.service.AuthenticationService;
-import uk.gov.hmcts.opal.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 
 import java.net.URI;
 import java.util.Date;

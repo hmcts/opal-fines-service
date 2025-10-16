@@ -45,18 +45,24 @@ Feature: PO-606 get draft accounts
       | account_snapshot.business_unit_name | West London |
     And The draft account filtered response does not contain accounts in the "77" business unit
     And The draft account filtered response does not contain accounts in the "65" business unit
+    Then The draft account response returns 200
+    And the response body must not include the "version" field anywhere
 
     When I get the draft accounts filtering on the Business unit "77" then the response contains
       | business_unit_id                    | 77               |
       | account_snapshot.business_unit_name | Camberwell Green |
     And The draft account filtered response does not contain accounts in the "73" business unit
     And The draft account filtered response does not contain accounts in the "65" business unit
+    Then The draft account response returns 200
+    And the response body must not include the "version" field anywhere
 
     When I get the draft accounts filtering on the Business unit "65" then the response contains
       | business_unit_id                    | 65                   |
       | account_snapshot.business_unit_name | Camden and Islington |
     And The draft account filtered response does not contain accounts in the "73" business unit
     And The draft account filtered response does not contain accounts in the "77" business unit
+    Then The draft account response returns 200
+    And the response body must not include the "version" field anywhere
 
     Then I delete the created draft accounts
 

@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
+import uk.gov.hmcts.opal.dto.ToXmlString;
 
 @Data
 @Builder
@@ -17,7 +18,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class AddressDetails {
+public class AddressDetails implements ToXmlString {
 
     @XmlElement(name = "address_line_1")
     private String addressLine1;

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.steps;
 
 import io.cucumber.java.AfterAll;
+import io.cucumber.java.Before;
 import io.cucumber.java.BeforeAll;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
@@ -15,6 +16,11 @@ public class BearerTokenStepDef extends BaseStepDef {
     private static final ThreadLocal<String> TOKEN = new ThreadLocal<>();
     private static final ThreadLocal<String> ALT_TOKEN = new ThreadLocal<>();
     private static final ConcurrentHashMap<String, String> tokenCache = new ConcurrentHashMap<>();
+
+    @Before
+    public void resetAltToken() {
+        ALT_TOKEN.remove();
+    }
 
     public String getAccessTokenForUser(String user) {
         return tokenCache.computeIfAbsent(user, BearerTokenStepDef::fetchAccessToken);

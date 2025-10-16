@@ -30,8 +30,6 @@ BEGIN
     DELETE FROM enforcers;
     DELETE FROM prisons;
     DELETE FROM major_creditors;
-    DELETE FROM user_entitlements;
-    DELETE FROM business_unit_users;
     DELETE FROM configuration_items;
     DELETE FROM business_units;      
 

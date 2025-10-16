@@ -14,6 +14,8 @@ Feature: PO-591 create draft account
       | timeline_data     | draftAccounts/timelineJson/default.json     |
 
     Then The draft account response returns 201
+    And the response must include a strong quoted ETag header
+    And the response body must not include the "version" field anywhere
     And I store the created draft account ID
 
     And The draft account response contains the following data

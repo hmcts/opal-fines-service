@@ -20,7 +20,7 @@
     },
     {
       "matchManagers": ["helm"],
-      "matchPackageNames": ["postgresql"],
+      "matchPackageNames": ["postgresql", "userServicePostgresql"],
       "enabled": false
     },
     {

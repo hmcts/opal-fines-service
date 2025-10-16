@@ -4,25 +4,61 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "version": { "type": "integer" },
-    "defendant_account_id": { "type": "string" },
-    "account_number": { "type": "string" },
-    "defendant_party_id": { "type": "string" },
-    "parent_guardian_party_id": { "type": "string" },
+    "version": {
+      "type": "integer"
+    },
+    "defendant_account_id": {
+      "type": "string"
+    },
+    "account_number": {
+      "type": "string"
+    },
+    "defendant_party_id": {
+      "type": "string"
+    },
+    "parent_guardian_party_id": {
+      "type": "string"
+    },
     "debtor_type": {
       "type": "string",
-      "enum": ["Defendant", "Parent/Guardian"]
+      "enum": [
+        "Defendant",
+        "Parent/Guardian"
+      ]
     },
-    "is_youth": { "type": "boolean" },
+    "is_youth": {
+      "type": "boolean"
+    },
     "account_status_reference": {
       "$ref": "./common-objects/accountStatusReferenceLegacy.json"
     },
+    "originator_type": {
+      "type": "string",
+      "enum": [
+        "TFO",
+        "FP",
+        "CASE",
+        "MAC"
+      ]
+    },
+    "originator_name": {
+      "type": "string"
+    },
     "account_type": {
       "type": "string",
-      "enum": ["Fine", "Conditional Caution", "Confiscation", "Fixed Penalty"]
+      "enum": [
+        "Fine",
+        "Conditional Caution",
+        "Confiscation",
+        "Fixed Penalty"
+      ]
     },
-    "prosecutor_case_reference": { "type": "string" },
-    "fixed_penalty_ticket_number": { "type": "string" },
+    "prosecutor_case_reference": {
+      "type": "string"
+    },
+    "fixed_penalty_ticket_number": {
+      "type": "string"
+    },
     "business_unit_summary": {
       "$ref": "./common-objects/businessUnitSummaryLegacy.json"
     },
@@ -41,6 +77,8 @@
     "is_youth",
     "account_status_reference",
     "account_type",
+    "originator_type",
+    "originator_name",
     "business_unit_summary",
     "payment_state_summary",
     "party_details"

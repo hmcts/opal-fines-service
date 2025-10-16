@@ -1,14 +1,14 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.SchemaPaths;
-
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -387,5 +387,20 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     @Test
     void opal_updateDefendantAccount_returnsEtag() throws Exception {
         super.patch_returnsETag_andResponseConformsToSchema(log);
+    }
+
+    @Test
+    void opal_exceptionContainsRetriableField() throws Exception {
+        super.testEntityNotFoundExceptionContainsRetriable(log);
+    }
+
+    @Test
+    void opal_wrongMediaTypeContainsRetriableField() throws Exception {
+        super.testWrongMediaTypeContainsRetriableField(log);
+    }
+
+    @Test
+    void testInvalidBodyContainsRetriable() throws Exception {
+        super.testInvalidBodyContainsRetriable(log);
     }
 }
