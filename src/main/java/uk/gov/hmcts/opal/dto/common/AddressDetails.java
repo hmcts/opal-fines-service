@@ -24,11 +24,9 @@ public class AddressDetails {
     @JsonProperty("address_line_3")
     private String addressLine3;
 
-    @JsonInclude(JsonInclude.Include.ALWAYS)
     @JsonProperty("address_line_4")
     private String addressLine4;
 
-    @JsonInclude(JsonInclude.Include.ALWAYS)
     @JsonProperty("address_line_5")
     private String addressLine5;
 

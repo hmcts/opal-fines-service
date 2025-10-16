@@ -21,11 +21,9 @@ public class PartyDetails {
     @JsonProperty("organisation_flag")
     private Boolean organisationFlag;
 
-    @JsonInclude(JsonInclude.Include.ALWAYS)
     @JsonProperty("organisation_details")
     private OrganisationDetails organisationDetails;
 
-    @JsonInclude(JsonInclude.Include.ALWAYS)
     @JsonProperty("individual_details")
     private IndividualDetails individualDetails;
 }
