@@ -36,8 +36,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -881,7 +881,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         LegacyPartyDetails party = LegacyPartyDetails.builder()
             .organisationFlag(Boolean.TRUE)
-            .defendantAccountPartyId("777")
+            .partyId("777")
             .organisationDetails(legacyOrg)
             .build();
 
@@ -935,7 +935,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         LegacyPartyDetails party = LegacyPartyDetails.builder()
             .organisationFlag(Boolean.FALSE)
-            .defendantAccountPartyId("1001")
+            .partyId("1001")
             .individualDetails(ind)
             .build();
 

@@ -401,7 +401,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
         Boolean org = src.getOrganisationFlag();
         return PartyDetails.builder()
-            .partyId(src.getDefendantAccountPartyId())
+            .partyId(src.getPartyId())
             .organisationFlag(org)
             .organisationDetails(Boolean.TRUE.equals(org) ? toOrganisationDetails(src.getOrganisationDetails()) : null)
             .individualDetails(!Boolean.TRUE.equals(org) ? toIndividualDetails(src.getIndividualDetails()) : null)
