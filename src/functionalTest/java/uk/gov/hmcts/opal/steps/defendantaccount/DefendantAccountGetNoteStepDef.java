@@ -1,10 +1,11 @@
-package uk.gov.hmcts.opal.steps;
+package uk.gov.hmcts.opal.steps.defendantaccount;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
 import org.json.JSONException;
+import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 import java.util.Map;
 
@@ -14,7 +15,7 @@ import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 public class DefendantAccountGetNoteStepDef extends BaseStepDef {
     @When("I make a request to get the defendant account notes for")
-    public void getDefendantAccountNotes(DataTable data) throws JSONException {
+    public void getDefendantAccountNotes(DataTable data) {
         Map<String, String> idToSend = data.asMap(String.class, String.class);
 
         SerenityRest
