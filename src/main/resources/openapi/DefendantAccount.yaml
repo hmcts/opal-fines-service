@@ -1,0 +1,155 @@
+openapi: 3.1.1
+
+servers:
+  - url: http://localhost:4550/
+
+info:
+  description: Opal Fines Service - Defendant Account
+  version: v0.0.1
+  title: Opal Fines Service
+
+paths:
+  /defendant-accounts/{id}/header-summary:
+    get:
+      tags:
+        - Defendant Account
+      summary: Get Defendant Account Header Summary
+      description: Returns a Header Summary for a Defendant Account.
+      operationId: getDefendantAccountHeaderSummary
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - defendant_account_id
+                  - account_number
+                  - defendant_party_id
+                  - debtor_type
+                  - is_youth
+                  - account_status_reference
+                  - account_type
+                  - originator_type
+                  - originator_name
+                  - business_unit_summary
+                  - payment_state_summary
+                  - party_details
+                properties:
+                  defendant_account_id:
+                    type: string
+                    description: DB Mapping - defendant_accounts.defendant_account_id
+                  account_number:
+                    type: string
+                    description: DB Mapping - defendant_accounts.account_number
+                  defendant_party_id:
+                    type: string
+                    description: defendant_account_parties.defendant_account_party_id (where defendant_account_parties.association_type = 'Defendant')
+                  parent_guardian_party_id:
+                    type: string
+                    description: |
+                      Only provided if a parent/guardian has been associated with the account, during account creation.
+                      DB Mapping - defendant_account_parties.defendant_account_party_id (where defendant_account_parties.association_type = 'Parent/Guardian')
+                  debtor_type:
+                    type: string
+                    enum:
+                      - Defendant
+                      - Parent/Guardian
+                    description: |
+                      This field will be set to 'Defendant' if defendant_account_parties.debtor = 'TRUE', otherwise if this is null and a Parent/Guardian is on the account with defendant_account_parties.debtor = 'TRUE', then the value returned is 'Parent/Guardian'.
+                      DB Mapping - defendant_account_parties.debtor (where debtor = True)
+                  is_youth:
+                    type: boolean
+                    description: |
+                      DERIVED FROM THE DEFENDANT
+                      The BE will need to check the defendants DOB via (parties.birth_date) and if:
+                      parties.birth_date ≥ 18, then value is FALSE
+                      I.e. An Adult defendant
+                      parties.birth_date < 18, then value is TRUE
+                      I.e. A Youth defendant
+                      If parties.birth_date = null, then the defendants age (parties.age) should be observed:
+                      parties.age ≥ 18, then the value is ‘FALSE’
+                      parties.age < 18, then the value is ‘TRUE’
+                      parties.age = null, then the value is ‘FALSE’
+
+                      DB Mapping - parties.birth_date The defendants DOB is derived from this database field, but is not returned. Instead the BE will set the is_youth flag depending on the DOB value parties.age
+                  account_status_reference:
+                    $ref: './common.yaml#/components/schemas/accountStatusReference'
+                  account_type:
+                    type: string
+                    description: DB Mapping - defendant_accounts.account_type
+                    enum:
+                      - Fine
+                      - Conditional Caution
+                      - Confiscation
+                      - Fixed Penalty
+                  originator_type:
+                    type: string
+                    description: NEW - DB Mapping - defendant_accounts.originator_type
+                    enum:
+                      - TFO
+                      - FP
+                      - CASE
+                      - MAC
+                  originator_name:
+                    type: string
+                    description: NEW - DB Mapping - defendant.accounts.originator_name
+                  prosecutor_case_reference:
+                    type: string
+                    description: DB Mapping - defendant.accounts.prosecutor_case_reference
+                  fixed_penalty_ticket_number:
+                    type: string
+                    description: |
+                      Only provided for Fixed Penalty accounts
+                      DB Mapping - fixed_penalty_offences.ticket_number
+                  business_unit_summary:
+                    $ref: './common.yaml#/components/schemas/businessUnitSummary'
+                  payment_state_summary:
+                    $ref: './common.yaml#/components/schemas/paymentStateSummary'
+                  party_details:
+                    $ref: './common.yaml#/components/schemas/partyDetails'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
