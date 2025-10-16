@@ -4,7 +4,6 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
-import org.json.JSONException;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 import java.util.Map;
