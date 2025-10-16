@@ -91,7 +91,6 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
         super.legacyGetDefendantAccountParty_500Error(log);
     }
 
-    @Override
     String getDefendantAccountPartyResponseSchemaLocation() {
         return "legacy/getDefendantAccountPartyLegacyResponse.json";
     }
