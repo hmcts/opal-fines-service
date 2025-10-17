@@ -20,6 +20,15 @@ import uk.gov.hmcts.opal.util.Versioned;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class DefendantAccountHeaderSummary implements ToJsonString, Versioned {
 
+    @JsonProperty("defendant_account_id")
+    private String defendantAccountId;
+
+    @JsonProperty("debtor_type")
+    private String debtorType;
+
+    @JsonProperty("is_youth")
+    private Boolean isYouth;
+
     @JsonProperty("account_number")
     private String accountNumber;
 

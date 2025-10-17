@@ -12,14 +12,20 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
 
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
-    void testGetHeaderSummary() throws Exception {
-        super.getHeaderSummaryImpl(log);
+    void testGetHeaderSummaryInd() throws Exception {
+        super.getHeaderSummary_Individual(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetHeaderSummaryOrg() throws Exception {
+        super.getHeaderSummary_Organisation(log);
     }
 
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetHeaderSummary_500Error() throws Exception {
-        super.getHeaderSummaryImpl_500Error(log);
+        super.getHeaderSummary_Legacy_500(log);
     }
 
     @Disabled("A running instance of Legacy Stub App is required to execute this test")

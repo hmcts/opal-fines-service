@@ -16,8 +16,9 @@ import lombok.NoArgsConstructor;
 @XmlRootElement(name = "party_details")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyPartyDetails {
-    @XmlElement(name = "defendant_account_party_id")
-    private String defendantAccountPartyId;
+    @XmlElement(name = "party_id")
+    private String partyId;
+
 
     @XmlElement(name = "organisation_flag")
     private Boolean organisationFlag;
