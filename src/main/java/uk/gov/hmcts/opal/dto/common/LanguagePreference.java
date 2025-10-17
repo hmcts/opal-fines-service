@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.dto.common;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +17,7 @@ import lombok.Getter;
  */
 @Getter
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class LanguagePreference {
 
     @Getter

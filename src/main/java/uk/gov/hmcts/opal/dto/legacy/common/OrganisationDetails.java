@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy.common;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -17,6 +18,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrganisationDetails {
 
     @XmlElement(name = "organisation_name")
