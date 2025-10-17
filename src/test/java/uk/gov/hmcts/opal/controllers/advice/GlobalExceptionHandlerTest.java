@@ -84,7 +84,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Feature Disabled", problemDetail.getTitle());
         assertEquals("The requested feature is not currently available", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/feature-disabled"),
-                   problemDetail.getType()
+                     problemDetail.getType()
         );
         assertEquals(false, problemDetail.getProperties().get("retriable"));
 
@@ -116,15 +116,12 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handlePermissionNotAllowedException_ShouldReturnForbiddenResponse() {
-        // Arrange
         PermissionNotAllowedException ex = new PermissionNotAllowedException(Permissions.ACCOUNT_ENQUIRY);
         HttpServletRequest request = new MockHttpServletRequest();
 
-        // Act
         ResponseEntity<ProblemDetail> response =
             globalExceptionHandler.handlePermissionNotAllowedException(ex, request);
 
-        // Assert
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         ProblemDetail problemDetail = response.getBody();
 
@@ -162,7 +159,6 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void testHandleMethodArgumentTypeMismatchException() throws NoSuchMethodException {
-        // Simulate a value that caused the type mismatch
         Object invalidValue = "invalidInt";
         Class<?> requiredType = Integer.class;
         String parameterName = "testParam";
@@ -170,7 +166,6 @@ class GlobalExceptionHandlerTest {
         Method method = GlobalExceptionHandlerTest.class.getMethod("sampleMethod", Integer.class);
         MethodParameter methodParameter = new MethodParameter(method, 0);
 
-        // Initialize MethodArgumentTypeMismatchException
         MethodArgumentTypeMismatchException exception = new MethodArgumentTypeMismatchException(
             invalidValue,
             requiredType,
@@ -376,7 +371,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("The request did not receive a response from the database within the timeout period",
                      problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/query-timeout"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
+        assertEquals(true, problemDetail.getProperties().get("retriable")); // updated to true
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -435,7 +430,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Service Unavailable", problemDetail.getTitle());
         assertEquals("Opal Fines Database is currently unavailable", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/database-unavailable"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
+        assertEquals(true, problemDetail.getProperties().get("retriable")); // updated to true
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -476,7 +471,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Service Unavailable", problemDetail.getTitle());
         assertEquals("Opal Fines Database is currently unavailable", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/database-unavailable"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
+        assertEquals(true, problemDetail.getProperties().get("retriable")); // updated to true
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -517,7 +512,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Internal Server Error", problemDetail.getTitle());
         assertEquals("A persistence error occurred while processing your request", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/jpa-system-error"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable")); // still false for this test scenario
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()
@@ -537,7 +532,7 @@ class GlobalExceptionHandlerTest {
         assertEquals("Downstream Server Error", problemDetail.getTitle());
         assertEquals("404 Not Found!", problemDetail.getDetail());
         assertEquals(URI.create("https://hmcts.gov.uk/problems/http-server-error"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
+        assertEquals(false, problemDetail.getProperties().get("retriable")); // 404 is not retriable
         assertNotNull(problemDetail.getInstance());
 
         assertTrue(response.getHeaders().getContentType().toString()

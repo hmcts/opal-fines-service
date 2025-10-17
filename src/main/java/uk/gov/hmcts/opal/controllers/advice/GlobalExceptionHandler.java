@@ -14,11 +14,13 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.LazyInitializationException;
 import org.hibernate.PropertyValueException;
 import org.postgresql.util.PSQLException;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
@@ -55,6 +57,8 @@ public class GlobalExceptionHandler {
     public static final String DB_UNAVAILABLE_MESSAGE = "Opal Fines Database is currently unavailable";
     public static final String UNKNOWN = "'Unknown'";
 
+    private static final Set<Integer> RETRIABLE_HTTP = Set.of(429, 502, 503, 504);
+
     private final AccessTokenService tokenService;
 
     @ExceptionHandler(FeatureDisabledException.class)
@@ -89,8 +93,6 @@ public class GlobalExceptionHandler {
         String authorization = request.getHeader(AUTH_HEADER);
         String preferredName = extractUsername(authorization);
         String internalMessage = String.format("For user %s, %s", preferredName, ex.getMessage());
-
-        // Log the user-specific message, but return generic message to the user
         log.error("Permission denied: {}", internalMessage);
 
         ProblemDetail problemDetail = createProblemDetail(
@@ -148,7 +150,6 @@ public class GlobalExceptionHandler {
             pve
         );
 
-        // Add additional properties to the problem detail
         problemDetail.setProperty("entity", pve.getEntityName());
         problemDetail.setProperty("property", pve.getPropertyName());
 
@@ -262,7 +263,7 @@ public class GlobalExceptionHandler {
             status.getReasonPhrase(),
             "An error occurred while processing your request",
             "opal-api-error",
-            false,
+            false, // unless your internal error model marks it retriable
             opalApiException
         );
 
@@ -278,10 +279,9 @@ public class GlobalExceptionHandler {
                 "Request Timeout",
                 "The request did not receive a response from the database within the timeout period",
                 "query-timeout",
-                false,
+                true, // retriable
                 ex
             );
-
             return responseWithProblemDetail(HttpStatus.REQUEST_TIMEOUT, problemDetail);
         }
 
@@ -294,10 +294,24 @@ public class GlobalExceptionHandler {
                 false,
                 nrfe
             );
-
             return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
         }
 
+        if (ex instanceof TransactionSystemException tse) {
+            Throwable root = NestedExceptionUtils.getMostSpecificCause(tse);
+            boolean retriable = isTransientSqlState(psqlState(root));
+            ProblemDetail problemDetail = createProblemDetail(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Transaction Error",
+                "A transaction error occurred while processing your request",
+                "transaction-error",
+                retriable,
+                tse
+            );
+            return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
+        }
+
+        // ServletException / PersistenceException default
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Internal Server Error",
@@ -306,7 +320,6 @@ public class GlobalExceptionHandler {
             false,
             ex
         );
-
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
@@ -320,10 +333,9 @@ public class GlobalExceptionHandler {
                 "Service Unavailable",
                 DB_UNAVAILABLE_MESSAGE,
                 "database-unavailable",
-                false,
+                true, // retriable on connectivity/DNS errors
                 psqlException
             );
-
             return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
         }
 
@@ -332,32 +344,30 @@ public class GlobalExceptionHandler {
             "Internal Server Error",
             "A database error occurred while processing your request",
             "database-error",
-            false,
+            false, // all other PSQLException -> not retriable (per list)
             psqlException
         );
-
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(DataAccessResourceFailureException.class)
     public ResponseEntity<ProblemDetail> handleDataAccessResourceFailureException(
-        DataAccessResourceFailureException dataAccessResourceFailureException) {
+        DataAccessResourceFailureException e) {
 
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.SERVICE_UNAVAILABLE,
             "Service Unavailable",
             DB_UNAVAILABLE_MESSAGE,
             "database-unavailable",
-            false,
-            dataAccessResourceFailureException
+            true, // retriable
+            e
         );
-
         return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
     }
 
     @ExceptionHandler(LazyInitializationException.class)
     public ResponseEntity<ProblemDetail> handleLazyInitializationException(
-        LazyInitializationException lazyInitializationException) {
+        LazyInitializationException e) {
 
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -365,40 +375,43 @@ public class GlobalExceptionHandler {
             "A data access error occurred.",
             "lazy-initialization",
             false,
-            lazyInitializationException
+            e
         );
-
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(JpaSystemException.class)
-    public ResponseEntity<ProblemDetail> handleJpaSystemException(JpaSystemException jpaSystemException) {
+    public ResponseEntity<ProblemDetail> handleJpaSystemException(JpaSystemException e) {
+        Throwable root = NestedExceptionUtils.getMostSpecificCause(e);
+        boolean retriable = isTransientSqlState(psqlState(root));
+
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Internal Server Error",
             "A persistence error occurred while processing your request",
             "jpa-system-error",
-            false,
-            jpaSystemException
+            retriable,
+            e
         );
-
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(HttpServerErrorException.class)
-    public ResponseEntity<ProblemDetail> handleHttpServerErrorException(HttpServerErrorException httpSystemException) {
+    public ResponseEntity<ProblemDetail> handleHttpServerErrorException(HttpServerErrorException e) {
+        int upstream = e.getStatusCode().value();
+        boolean retriable = RETRIABLE_HTTP.contains(upstream);
+
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Downstream Server Error",
-            httpSystemException.getMessage(),
+            e.getMessage(),
             "http-server-error",
-            false,
-            httpSystemException
+            retriable,
+            e
         );
 
-        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail); // response status = 500
     }
-
     @ExceptionHandler(JsonSchemaValidationException.class)
     public ResponseEntity<ProblemDetail> handleJsonSchemaValidationException(JsonSchemaValidationException e) {
         ProblemDetail problemDetail = createProblemDetail(
@@ -409,7 +422,6 @@ public class GlobalExceptionHandler {
             false,
             e
         );
-
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
@@ -423,7 +435,6 @@ public class GlobalExceptionHandler {
             false,
             e
         );
-
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
@@ -439,11 +450,9 @@ public class GlobalExceptionHandler {
             false,
             e
         );
-
         problemDetail.setProperty("resourceType", e.getPersistentClassName());
         problemDetail.setProperty("resourceId",
-            Optional.ofNullable(e.getIdentifier()).map(Object::toString).orElse(""));
-
+                                  Optional.ofNullable(e.getIdentifier()).map(Object::toString).orElse(""));
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail);
     }
 
@@ -457,11 +466,9 @@ public class GlobalExceptionHandler {
             false,
             e
         );
-
         problemDetail.setProperty("resourceType", e.getResourceType());
         problemDetail.setProperty("resourceId", e.getResourceId());
         problemDetail.setProperty("conflictReason", e.getConflictReason());
-
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail);
     }
 
@@ -475,28 +482,28 @@ public class GlobalExceptionHandler {
             false,
             e
         );
-
         return responseWithProblemDetail(HttpStatus.valueOf(e.status()), problemDetail);
     }
 
     @ExceptionHandler(FeignException.class)
     public ResponseEntity<ProblemDetail> handleFeignException(FeignException e) {
+        HttpStatus status = HttpStatus.valueOf(e.status());
+        boolean retriable = RETRIABLE_HTTP.contains(status.value());
+
         ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR,
+            status,
             "Downstream Service Error",
             "Problem with connecting to a dependant service: " + e.getMessage(),
             "internal-server-error",
-            false,
+            retriable,
             e
         );
-
-        return responseWithProblemDetail(HttpStatus.valueOf(e.status()), problemDetail);
+        return responseWithProblemDetail(status, problemDetail);
     }
 
     private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,
                                               String typeUri, boolean retry, Throwable exception) {
         String opalOperationId = LogUtil.getOrCreateOpalOperationId();
-
         log.error("Error ID {}:", opalOperationId, exception);
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
@@ -522,4 +529,19 @@ public class GlobalExceptionHandler {
         }
     }
 
+    // ----- helpers -----
+
+    private static String psqlState(Throwable t) {
+        if (t instanceof PSQLException p) return p.getSQLState();
+        Throwable cause = t == null ? null : t.getCause();
+        if (cause instanceof PSQLException p) return p.getSQLState();
+        return null;
+    }
+
+    private static boolean isTransientSqlState(String state) {
+        if (state == null) return false;
+        return state.equals("40001")   // serialization_failure
+            || state.equals("40P01")   // deadlock_detected
+            || state.equals("55P03");  // lock_not_available
+    }
 }
