@@ -29,6 +29,16 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
+    void testGetHeaderSummary_PO2297_Individual_UsesDefendantAccountPartyId() throws Exception {
+        super.testGetHeaderSummary_Individual_UsesDefendantAccountPartyId(log);
+    }
+
+    @Test
+    void testGetHeaderSummary_PO2297_Organisation_UsesDefendantAccountPartyId() throws Exception {
+        super.testGetHeaderSummary_Organisation_UsesDefendantAccountPartyId(log);
+    }
+
+    @Test
     void testSearch_Opal_Happy() throws Exception {
         super.testPostDefendantAccountsSearch_Opal(log);
     }
