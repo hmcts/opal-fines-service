@@ -412,6 +412,7 @@ public class GlobalExceptionHandler {
 
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail); // response status = 500
     }
+
     @ExceptionHandler(JsonSchemaValidationException.class)
     public ResponseEntity<ProblemDetail> handleJsonSchemaValidationException(JsonSchemaValidationException e) {
         ProblemDetail problemDetail = createProblemDetail(
@@ -532,14 +533,24 @@ public class GlobalExceptionHandler {
     // ----- helpers -----
 
     private static String psqlState(Throwable t) {
-        if (t instanceof PSQLException p) return p.getSQLState();
+        if (t instanceof PSQLException p) {
+            return p.getSQLState();
+        }
+
         Throwable cause = t == null ? null : t.getCause();
-        if (cause instanceof PSQLException p) return p.getSQLState();
+
+        if (cause instanceof PSQLException p) {
+            return p.getSQLState();
+        }
+
         return null;
     }
 
     private static boolean isTransientSqlState(String state) {
-        if (state == null) return false;
+        if (state == null) {
+            return false;
+        }
+
         return state.equals("40001")   // serialization_failure
             || state.equals("40P01")   // deadlock_detected
             || state.equals("55P03");  // lock_not_available
