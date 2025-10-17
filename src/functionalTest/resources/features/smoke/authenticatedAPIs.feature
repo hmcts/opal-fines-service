@@ -1,12 +1,20 @@
 @Smoke @PO-149
 Feature: Tests to confirm unauthenticated requests are not authenticated
 
-  Scenario: Unauthorised request returns 401
-    When I make an unauthenticated request to the defendant account details api with
-      | defendantID | 500000009 |
-    Then the response from the defendant account details api is unauthorised
+  Scenario Outline: Unauthenticated requests are rejected
+    When I call <method> "<path>" without a token
+    Then the response status is 401
 
-  Scenario: Invalid token request returns 401
-    When I make a request to the defendant account details api with an invalid token
-      | defendantID | 500000009 |
-    Then the response from the defendant account details api is unauthorised
+    Examples:
+      | method | path                                   |
+      | GET    | /defendant-accounts/500000009          |
+      | GET    | /courts?q=magistrates&business_unit=43 |
+
+  Scenario Outline: Invalid token is rejected
+    When I call <method> "<path>" with an invalid token
+    Then the response status is 401
+
+    Examples:
+      | method | path                                   |
+      | GET    | /defendant-accounts/500000009          |
+      | GET    | /courts?q=magistrates&business_unit=43 |

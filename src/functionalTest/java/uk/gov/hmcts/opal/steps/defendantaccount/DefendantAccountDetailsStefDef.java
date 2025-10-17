@@ -1,10 +1,11 @@
-package uk.gov.hmcts.opal.steps;
+package uk.gov.hmcts.opal.steps.defendantaccount;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
 import org.hamcrest.Matchers;
+import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 import java.util.Map;
 
@@ -23,28 +24,7 @@ public class DefendantAccountDetailsStefDef extends BaseStepDef {
             .header("Authorization", "Bearer " + getToken())
             .contentType("application/json")
             .when()
-            .get(getTestUrl() + "/defendant-accounts/" + idToSend.get("defendantID"));
-    }
-
-    @When("I make an unauthenticated request to the defendant account details api with")
-    public void getDefendantAccountDetailsByIDUnauthenticated(DataTable id) {
-        Map<String, String> idToSend = id.asMap(String.class, String.class);
-        SerenityRest.given()
-            .accept("*/*")
-            .contentType("application/json")
-            .when()
-            .get(getTestUrl() + "/defendant-accounts/" + idToSend.get("defendantID"));
-    }
-
-    @When("I make a request to the defendant account details api with an invalid token")
-    public void getDefendantAccountDetailsByIDInvalidToken(DataTable id) {
-        Map<String, String> idToSend = id.asMap(String.class, String.class);
-        SerenityRest.given()
-            .accept("*/*")
-            .header("Authorization", "Bearer invalidToken")
-            .contentType("application/json")
-            .when()
-            .get(getTestUrl() + "/defendant-accounts/" + idToSend.get("defendantID"));
+            .get(getTestUrl() + "/defendant-accounts/" + idToSend.get("defendantID") + "/header-summary");
     }
 
     @Then("the response from the defendant account details api is")
