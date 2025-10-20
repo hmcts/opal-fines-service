@@ -61,16 +61,20 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     @Autowired
     JdbcTemplate jdbcTemplate;
 
-    String getAtAGlanceResponseSchemaLocation() {
+    final String getAtAGlanceResponseSchemaLocation() {
         return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountAtAGlanceResponse.json";
     }
 
-    String getPaymentTermsResponseSchemaLocation() {
+    final String getPaymentTermsResponseSchemaLocation() {
         return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountPaymentTermsResponse.json";
     }
 
-    String getHeaderSummaryResponseSchemaLocation() {
+    final String getHeaderSummaryResponseSchemaLocation() {
         return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountHeaderSummaryResponse.json";
+    }
+
+    final String getDefendantAccountPartyResponseSchemaLocation() {
+        return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountPartyResponse.json";
     }
 
     @BeforeEach
@@ -2091,6 +2095,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_account_party.party_details.party_id").value("77"))
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").value("Graham"))
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"));
+        String body = actions.andReturn().getResponse().getContentAsString();
+        // Schema validation
+        jsonSchemaValidationService.validateOrError(body, getDefendantAccountPartyResponseSchemaLocation());
     }
 
     @DisplayName("OPAL: Get Defendant Account Party - Organisation Only [@PO-1588]")
@@ -2957,10 +2964,6 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         actions.andExpect(status().is5xxServerError())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
             .andExpect(header().doesNotExist("ETag")); // no ETag on error payloads
-    }
-
-    String getDefendantAccountPartyResponseSchemaLocation() {
-        return "opal/defendant-account/getDefendantAccountPartyResponse.json";
     }
 
     @DisplayName("PO-2119 / Problem JSON contains retriable field")
