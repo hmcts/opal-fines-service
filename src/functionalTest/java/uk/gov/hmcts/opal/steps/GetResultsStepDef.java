@@ -42,4 +42,12 @@ public class GetResultsStepDef extends BaseStepDef {
             assertEquals(expected.get(key), actual, "Values are not equal");
         }
     }
+
+    /** Verifies the HTTP status code of the last API response. */
+    @Then("the response status is {int}")
+    public void theResponseStatusIs(int status) {
+        then()
+            .log().ifValidationFails()  // shows payload on failure
+            .statusCode(status);
+    }
 }
