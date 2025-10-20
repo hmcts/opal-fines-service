@@ -17,11 +17,13 @@ import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
 import uk.gov.hmcts.opal.dto.common.ContactDetails;
+import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails;
 import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
+import uk.gov.hmcts.opal.dto.common.LanguagePreference;
 import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
 import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
@@ -33,11 +35,9 @@ import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
-import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacyJson;
 import uk.gov.hmcts.opal.dto.legacy.EmployerDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson;
 import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
@@ -47,7 +47,6 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryRespon
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
-import uk.gov.hmcts.opal.dto.legacy.LegacyLanguagePreferencesJson;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
@@ -350,7 +349,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     @Override
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
-                                                                     Long defendantAccountPartyId) {
+        Long defendantAccountPartyId) {
         log.debug(":getDefendantAccountParty: Legacy call for accountId={}, partyId={}",
             defendantAccountId, defendantAccountPartyId);
 
@@ -382,13 +381,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     private GetDefendantAccountPartyResponse toDefendantAccountPartyResponse(
         GetDefendantAccountPartyLegacyResponse legacy) {
-
+        GetDefendantAccountPartyResponse response = new GetDefendantAccountPartyResponse();
         // Always return the legacy JSON wrapper so top-level "version" exists for schema validation
-        if (legacy == null) {
-            return GetDefendantAccountPartyLegacyResponseJson.of(null, null);
-        }
-        if (legacy.getDefendantAccountParty() == null) {
-            return GetDefendantAccountPartyLegacyResponseJson.of(legacy.getVersion(), null);
+        if (legacy == null || legacy.getDefendantAccountParty() == null) {
+            return response;
         }
 
         DefendantAccountPartyLegacy src = legacy.getDefendantAccountParty();
@@ -523,7 +519,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         // ----- Language Preferences -----
         LanguagePreferencesLegacy lp = src.getLanguagePreferences();
-        LegacyLanguagePreferencesJson apiLangs = null;
+        LanguagePreferences apiLangs = null;
 
         if (lp != null) {
             // Extract legacy document and hearing preferences
@@ -534,24 +530,20 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             String hearCode = mapSafe(hear, LanguagePreferencesLegacy.LanguagePreference::getLanguageCode);
 
             // Build the new legacy JSON DTOs (no language_display_name)
-            LegacyLanguagePreferencesJson.LegacyLanguagePreferenceJson docPrefJson = null;
-            LegacyLanguagePreferencesJson.LegacyLanguagePreferenceJson hearPrefJson = null;
+            LanguagePreference docPrefJson = null;
+            LanguagePreference hearPrefJson = null;
 
             if (docCode != null && !docCode.isBlank()) {
-                docPrefJson = LegacyLanguagePreferencesJson.LegacyLanguagePreferenceJson.builder()
-                    .languageCode(docCode)
-                    .build();
+                docPrefJson = LanguagePreference.fromCode(docCode);
             }
 
             if (hearCode != null && !hearCode.isBlank()) {
-                hearPrefJson = LegacyLanguagePreferencesJson.LegacyLanguagePreferenceJson.builder()
-                    .languageCode(hearCode)
-                    .build();
+                hearPrefJson = LanguagePreference.fromCode(hearCode);
             }
 
             // Only build the container if at least one child exists (avoid {} which fails schema)
             if (docPrefJson != null || hearPrefJson != null) {
-                apiLangs = LegacyLanguagePreferencesJson.builder()
+                apiLangs = LanguagePreferences.builder()
                     .documentLanguagePreference(docPrefJson)
                     .hearingLanguagePreference(hearPrefJson)
                     .build();
@@ -559,9 +551,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
 
         // Build the JSON party that includes required defendant_account_party_id
-        DefendantAccountPartyLegacyJson legacyParty =
-            new DefendantAccountPartyLegacyJson();
-        legacyParty.setDefendantAccountPartyId(mapSafe(pd, PartyDetailsLegacy::getPartyId));
+        DefendantAccountParty legacyParty = new DefendantAccountParty();
         legacyParty.setDefendantAccountPartyType(src.getDefendantAccountPartyType());
         legacyParty.setIsDebtor(src.getIsDebtor());
         legacyParty.setPartyDetails(apiPartyDetails);
@@ -569,10 +559,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         legacyParty.setContactDetails(apiContact);
         legacyParty.setVehicleDetails(apiVehicle);
         legacyParty.setEmployerDetails(apiEmployer);
-        legacyParty.setLegacyLanguagePreferences(apiLangs);
+        legacyParty.setLanguagePreferences(apiLangs);
 
         // Return the legacy wrapper with version + correctly-shaped party
-        return GetDefendantAccountPartyLegacyResponseJson.of(legacy.getVersion(), legacyParty);
+        response.setDefendantAccountParty(legacyParty);
+        response.setVersion(legacy.getVersion());
+        return response;
     }
 
     private static <T, R> R mapSafe(T obj, java.util.function.Function<T, R> f) {
@@ -733,12 +725,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         String docCode = java.util.Optional.ofNullable(src.getDocumentLanguagePreference())
             .map(uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.DocumentLanguagePreference
-                    ::getDocumentLanguageCode)
+                ::getDocumentLanguageCode)
             .orElse(null);
 
         String hearingCode = java.util.Optional.ofNullable(src.getHearingLanguagePreference())
             .map(uk.gov.hmcts.opal.dto.legacy.common.LanguagePreferences.HearingLanguagePreference
-                     ::getHearingLanguageCode)
+                ::getHearingLanguageCode)
             .orElse(null);
 
         return LanguagePreferences.ofCodes(docCode, hearingCode);
@@ -800,10 +792,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     @Override
     public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
-                                                           String businessUnitId,
-                                                           UpdateDefendantAccountRequest request,
-                                                           String ifMatch,
-                                                           String postedBy) {
+        String businessUnitId,
+        UpdateDefendantAccountRequest request,
+        String ifMatch,
+        String postedBy) {
         throw new org.springframework.web.server.ResponseStatusException(
             org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
             "Update Defendant Account is not implemented in legacy mode");
