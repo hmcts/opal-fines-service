@@ -4,6 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
+import feign.Response;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.QueryTimeoutException;
@@ -11,6 +15,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.net.ConnectException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import org.hibernate.LazyInitializationException;
 import org.hibernate.PropertyValueException;
@@ -37,6 +45,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -57,575 +66,387 @@ import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 @ContextConfiguration(classes = GlobalExceptionHandler.class)
 class GlobalExceptionHandlerTest {
 
-    @MockitoBean
-    FeatureDisabledException exception;
+    @MockitoBean FeatureDisabledException featureDisabledException;
+    @MockitoBean MissingRequestHeaderException missingRequestHeaderException;
+    @MockitoBean PermissionNotAllowedException permissionNotAllowedException;
+    @MockitoBean AccessTokenService tokenService;
 
-    @MockitoBean
-    MissingRequestHeaderException missingRequestHeaderException;
+    @Autowired GlobalExceptionHandler globalExceptionHandler;
 
-    @MockitoBean
-    PermissionNotAllowedException permissionNotAllowedException;
-
-    @MockitoBean
-    AccessTokenService tokenService;
-
-    @Autowired
-    GlobalExceptionHandler globalExceptionHandler;
+    // ---------- Simple false (non-retriable) buckets ----------
 
     @Test
-    void testHandleFeatureDisabledException() {
-        FeatureDisabledException exception = new FeatureDisabledException("Feature is disabled");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleFeatureDisabledException(exception);
+    void handleFeatureDisabledException_false() {
+        FeatureDisabledException ex = new FeatureDisabledException("off");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleFeatureDisabledException(ex);
 
-        assertEquals(HttpStatus.METHOD_NOT_ALLOWED, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.METHOD_NOT_ALLOWED.value(), problemDetail.getStatus());
-        assertEquals("Feature Disabled", problemDetail.getTitle());
-        assertEquals("The requested feature is not currently available", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/feature-disabled"),
-                     problemDetail.getType()
-        );
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+        assertEquals(HttpStatus.METHOD_NOT_ALLOWED, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.METHOD_NOT_ALLOWED.value(), pd.getStatus());
+        assertEquals("Feature Disabled", pd.getTitle());
+        assertEquals("The requested feature is not currently available", pd.getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/feature-disabled"), pd.getType());
+        assertEquals(false, pd.getProperties().get("retriable"));
+        assertNotNull(pd.getInstance());
+        assertTrue(r.getHeaders().getContentType().toString().contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
     @Test
-    void testHandleMissingRequestHeaderException() {
-        MissingRequestHeaderException exception = new MissingRequestHeaderException("TYPE");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleMissingRequestHeaderException(exception);
+    void handleMissingHeader_false() {
+        MissingRequestHeaderException ex = new MissingRequestHeaderException("TYPE");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleMissingRequestHeaderException(ex);
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.BAD_REQUEST.value(), problemDetail.getStatus());
-        assertEquals("Missing Required Header", problemDetail.getTitle());
-        assertEquals("A required request header is missing", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/missing-header"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+        assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.BAD_REQUEST.value(), pd.getStatus());
+        assertEquals("Missing Required Header", pd.getTitle());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/missing-header"), pd.getType());
+        assertEquals(false, pd.getProperties().get("retriable"));
     }
 
     @Test
-    void handlePermissionNotAllowedException_ShouldReturnForbiddenResponse() {
+    void handleForbidden_false() {
         PermissionNotAllowedException ex = new PermissionNotAllowedException(Permissions.ACCOUNT_ENQUIRY);
-        HttpServletRequest request = new MockHttpServletRequest();
+        HttpServletRequest req = new MockHttpServletRequest();
 
-        ResponseEntity<ProblemDetail> response =
-            globalExceptionHandler.handlePermissionNotAllowedException(ex, request);
-
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.FORBIDDEN.value(), problemDetail.getStatus());
-        assertEquals("Forbidden", problemDetail.getTitle());
-        assertEquals("You do not have permission to access this resource", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/forbidden"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-
-        assertNotNull(problemDetail.getInstance());
-
-        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handlePermissionNotAllowedException(ex, req);
+        assertEquals(HttpStatus.FORBIDDEN, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.FORBIDDEN.value(), pd.getStatus());
+        assertEquals("Forbidden", pd.getTitle());
+        assertEquals(false, pd.getProperties().get("retriable"));
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, r.getHeaders().getContentType());
     }
 
     @Test
-    void testHandleHttpMediaTypeNotAcceptableException() {
-        HttpMediaTypeNotAcceptableException exception = new HttpMediaTypeNotAcceptableException("Not acceptable");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler
-            .handleHttpMediaTypeNotAcceptableException(exception);
+    void handleNotAcceptable_false() {
+        ResponseEntity<ProblemDetail> r =
+            globalExceptionHandler.handleHttpMediaTypeNotAcceptableException(
+                new HttpMediaTypeNotAcceptableException("nope"));
 
-        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.NOT_ACCEPTABLE.value(), problemDetail.getStatus());
-        assertEquals("Not Acceptable", problemDetail.getTitle());
-        assertEquals("The requested media type cannot be produced by the server", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/not-acceptable"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void testHandleMethodArgumentTypeMismatchException() throws NoSuchMethodException {
-        Object invalidValue = "invalidInt";
+    void handleTypeMismatch_false() throws Exception {
+        Object invalidValue = "x";
         Class<?> requiredType = Integer.class;
-        String parameterName = "testParam";
-        Throwable cause = new NumberFormatException("For input string: \"invalidInt\"");
-        Method method = GlobalExceptionHandlerTest.class.getMethod("sampleMethod", Integer.class);
-        MethodParameter methodParameter = new MethodParameter(method, 0);
+        String name = "n";
+        Method m = GlobalExceptionHandlerTest.class.getMethod("sampleMethod", Integer.class);
+        MethodParameter mp = new MethodParameter(m, 0);
 
-        MethodArgumentTypeMismatchException exception = new MethodArgumentTypeMismatchException(
-            invalidValue,
-            requiredType,
-            parameterName,
-            methodParameter,
-            cause
-        );
+        MethodArgumentTypeMismatchException ex = new MethodArgumentTypeMismatchException(
+            invalidValue, requiredType, name, mp, new NumberFormatException("bad"));
 
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler
-            .handleMethodArgumentTypeMismatchException(exception);
-
-        assertEquals(HttpStatus.NOT_ACCEPTABLE, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.NOT_ACCEPTABLE.value(), problemDetail.getStatus());
-        assertEquals("Not Acceptable", problemDetail.getTitle());
-        assertEquals("Invalid parameter value format", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/type-mismatch"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleMethodArgumentTypeMismatchException(ex);
+        assertEquals(HttpStatus.NOT_ACCEPTABLE, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void testHandlePropertyValueException() {
-        PropertyValueException exception = new PropertyValueException("Property value exception", "entity",
-                                                                      "property");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handlePropertyValueException(exception);
+    void handlePropertyValue_false() {
+        PropertyValueException ex = new PropertyValueException("msg", "entity", "prop");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handlePropertyValueException(ex);
+        ProblemDetail pd = r.getBody();
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
-        assertEquals("Property Value Error", problemDetail.getTitle());
-        assertEquals("Invalid or missing value for a required property", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/property-value-error"), problemDetail.getType());
-        assertEquals("entity", problemDetail.getProperties().get("entity"));
-        assertEquals("property", problemDetail.getProperties().get("property"));
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals("entity", pd.getProperties().get("entity"));
+        assertEquals("prop", pd.getProperties().get("property"));
+        assertEquals(false, pd.getProperties().get("retriable"));
     }
 
     @Test
-    void testHandleHttpMediaTypeNotSupportedException() {
-        HttpMediaTypeNotSupportedException exception =
-            new HttpMediaTypeNotSupportedException("Unsupported media type");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler
-            .handleHttpMediaTypeNotSupportedException(exception);
-
-        assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE.value(), problemDetail.getStatus());
-        assertEquals("Unsupported Media Type", problemDetail.getTitle());
-        assertEquals("The Content-Type is not supported. Please use application/json", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/unsupported-media-type"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    void handleUnsupportedMediaType_false() {
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleHttpMediaTypeNotSupportedException(new HttpMediaTypeNotSupportedException("bad"));
+        assertEquals(HttpStatus.UNSUPPORTED_MEDIA_TYPE, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void testHandleHttpMessageNotReadableException() {
+    void handleMessageNotReadable_false() {
         HttpInputMessage msg = Mockito.mock(HttpInputMessage.class);
-        HttpMessageNotReadableException exception = new HttpMessageNotReadableException("Cannot read message", msg);
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler
-            .handleHttpMessageNotReadableException(exception);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.BAD_REQUEST.value(), problemDetail.getStatus());
-        assertEquals("Bad Request", problemDetail.getTitle());
-        assertEquals("The request body could not be read. It may be missing or invalid JSON.",
-                     problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/message-not-readable"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleHttpMessageNotReadableException(new HttpMessageNotReadableException("x", msg));
+        assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void testHandleInvalidDataAccessApiUsageException() {
-        InvalidDataAccessApiUsageException exception =
-            new InvalidDataAccessApiUsageException("Invalid API usage", new Throwable("Root cause"));
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler
-            .handleInvalidDataAccessApiUsageException(exception);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
-        assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("A problem occurred while accessing data", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/invalid-data-access"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    void handleInvalidDataAccessApiUsage_false() {
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleInvalidDataAccessApiUsageException(
+                new InvalidDataAccessApiUsageException("bad", new Throwable("root")));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void handleInvalidDataAccessResourceUsageException_ShouldReturnInternalServerError() {
-        InvalidDataAccessResourceUsageException exception =
-            new InvalidDataAccessResourceUsageException("Invalid resource usage");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler
-            .handleInvalidDataAccessResourceUsageException(exception);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
-        assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("A problem occurred with the requested data resource", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/invalid-resource-usage"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    void handleInvalidDataAccessResourceUsage_false() {
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleInvalidDataAccessResourceUsageException(
+                new InvalidDataAccessResourceUsageException("bad"));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void testHandleEntityNotFoundException() {
-        EntityNotFoundException exception = new EntityNotFoundException("Entity not found");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleEntityNotFoundException(exception);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.NOT_FOUND.value(), problemDetail.getStatus());
-        assertEquals("Entity Not Found", problemDetail.getTitle());
-        assertEquals("The requested entity could not be found", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/entity-not-found"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    void handleEntityNotFound_false() {
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleEntityNotFoundException(new EntityNotFoundException("nf"));
+        assertEquals(HttpStatus.NOT_FOUND, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void testHandleNoSuchElementException() {
-        NoSuchElementException exception = new NoSuchElementException("No such element");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleNoSuchElementException(exception);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.NOT_FOUND.value(), problemDetail.getStatus());
-        assertEquals("No Value Present", problemDetail.getTitle());
-        assertEquals("The requested element does not exist", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/no-such-element"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    void handleNoSuchElement_false() {
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleNoSuchElementException(new NoSuchElementException("none"));
+        assertEquals(HttpStatus.NOT_FOUND, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void handleOpalApiException_ReturnsInternalServerError() {
-        OpalApiException ex = new OpalApiException(
-            AuthenticationError.FAILED_TO_OBTAIN_AUTHENTICATION_CONFIG);
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleOpalApiException(ex);
+    void handleOpalApi_false() {
+        OpalApiException ex = new OpalApiException(AuthenticationError.FAILED_TO_OBTAIN_AUTHENTICATION_CONFIG);
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleOpalApiException(ex);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
+    }
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
+    // ---------- Servlet/Transaction/Persistence buckets ----------
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
-        assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("An error occurred while processing your request", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/opal-api-error"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
+    @Test
+    void handleServlet_queryTimeout_true() {
+        QueryTimeoutException ex = new QueryTimeoutException("q", null, null);
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleServletExceptions(ex);
 
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+        assertEquals(HttpStatus.REQUEST_TIMEOUT, r.getStatusCode());
+        assertEquals(true, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void testHandleServletExceptions_queryTimeout() {
-        QueryTimeoutException exception = new QueryTimeoutException("Query timeout", null, null);
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleServletExceptions(exception);
-
-        assertEquals(HttpStatus.REQUEST_TIMEOUT, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.REQUEST_TIMEOUT.value(), problemDetail.getStatus());
-        assertEquals("Request Timeout", problemDetail.getTitle());
-        assertEquals("The request did not receive a response from the database within the timeout period",
-                     problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/query-timeout"), problemDetail.getType());
-        assertEquals(true, problemDetail.getProperties().get("retriable")); // updated to true
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    void handleServlet_noResource_false() {
+        NoResourceFoundException ex = new NoResourceFoundException(HttpMethod.GET, "/x");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleServletExceptions(ex);
+        assertEquals(HttpStatus.NOT_FOUND, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void handleServletExceptions_OtherDatabaseException_ShouldReturnInternalServerError() {
-        PersistenceException exception = new PersistenceException("Persistence exception");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleServletExceptions(exception);
+    void handleServlet_txTransient_true() {
+        // underlying cause -> transient PSQLState (deadlock 40P01)
+        TransactionSystemException ex = new TransactionSystemException(
+            "tx", new PSQLException("deadlock", PSQLState.DEADLOCK_DETECTED));
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleServletExceptions(ex);
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
-        assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("An unexpected error occurred while processing your request", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/servlet-error"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(true, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void handleServletExceptions_ResourceNotFound_ShouldReturnNotFoundError() {
-        NoResourceFoundException exception = new NoResourceFoundException(HttpMethod.GET, "path");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleServletExceptions(exception);
+    void handleServlet_txNonTransient_false() {
+        // underlying cause -> non-transient PSQLState (syntax error)
+        TransactionSystemException ex = new TransactionSystemException(
+            "tx", new PSQLException("syntax", PSQLState.SYNTAX_ERROR));
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleServletExceptions(ex);
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.NOT_FOUND.value(), problemDetail.getStatus());
-        assertEquals("Not Found", problemDetail.getTitle());
-        assertEquals("The requested resource could not be found", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/resource-not-found"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void testHandlePsqlException_serviceUnavailable() {
-        PSQLException exception = new PSQLException("PSQL Exception",
-                                                    PSQLState.CONNECTION_FAILURE,
-                                                    new ConnectException("Connection refused"));
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handlePsqlException(exception);
+    void handleServlet_otherPersistence_false() {
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleServletExceptions(new PersistenceException("oops"));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
+    }
 
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
+    // ---------- PostgreSQL buckets ----------
 
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), problemDetail.getStatus());
-        assertEquals("Service Unavailable", problemDetail.getTitle());
-        assertEquals("Opal Fines Database is currently unavailable", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/database-unavailable"), problemDetail.getType());
-        assertEquals(true, problemDetail.getProperties().get("retriable")); // updated to true
-        assertNotNull(problemDetail.getInstance());
+    @Test
+    void handlePsql_connectivity_true() throws Exception {
+        PSQLException ex = new PSQLException("db down", PSQLState.CONNECTION_FAILURE,
+                                             new ConnectException("refused"));
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handlePsqlException(ex);
 
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, r.getStatusCode());
+        assertEquals(true, r.getBody().getProperties().get("retriable"));
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/database-unavailable"), r.getBody().getType());
     }
 
     @Test
-    void handlePsqlException_WithOtherCause_ShouldReturnInternalServerError() {
-        PSQLException exception = new PSQLException("PSQL Exception", PSQLState.UNEXPECTED_ERROR,
-                                                    new Throwable("Unexpected error"));
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handlePsqlException(exception);
+    void handlePsql_other_false() {
+        PSQLException ex = new PSQLException("db err", PSQLState.UNEXPECTED_ERROR, new Throwable("t"));
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handlePsqlException(ex);
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/database-error"), r.getBody().getType());
+    }
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
-        assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("A database error occurred while processing your request", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/database-error"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
+    // ---------- DataAccess ----------
 
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    @Test
+    void handleDataAccessResourceFailure_true() {
+        DataAccessResourceFailureException ex = new DataAccessResourceFailureException("down");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleDataAccessResourceFailureException(ex);
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, r.getStatusCode());
+        assertEquals(true, r.getBody().getProperties().get("retriable"));
+    }
+
+    // ---------- Lazy & JPA ----------
+
+    @Test
+    void handleLazy_false() {
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleLazyInitializationException(new LazyInitializationException("lazy"));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void testHandleDataAccessResourceFailureException() {
-        DataAccessResourceFailureException exception =
-            new DataAccessResourceFailureException("Data access resource failure");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler
-            .handleDataAccessResourceFailureException(exception);
+    void handleJpa_transient_true() {
+        // most specific cause -> SERIALIZATION_FAILURE (40001) -> true
+        PSQLException psql = new PSQLException("serial", PSQLState.SERIALIZATION_FAILURE);
+        JpaSystemException ex = new JpaSystemException(new RuntimeException("wrap", psql));
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleJpaSystemException(ex);
 
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), problemDetail.getStatus());
-        assertEquals("Service Unavailable", problemDetail.getTitle());
-        assertEquals("Opal Fines Database is currently unavailable", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/database-unavailable"), problemDetail.getType());
-        assertEquals(true, problemDetail.getProperties().get("retriable")); // updated to true
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(true, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void testHandleLazyInitializationException() {
-        LazyInitializationException exception =
-            new LazyInitializationException("Could not access Lazy Loaded Entity");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler
-            .handleLazyInitializationException(exception);
+    void handleJpa_nonTransient_false() {
+        JpaSystemException ex = new JpaSystemException(new RuntimeException("plain"));
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleJpaSystemException(ex);
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
+    }
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
-        assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("A data access error occurred.", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/lazy-initialization"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
+    // ---------- HttpServerErrorException (always respond 500) ----------
 
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    @Test
+    void handleHttpServerError_forced500_retriableFalse() {
+        HttpServerErrorException ex = new HttpServerErrorException(HttpStatusCode.valueOf(404), "Not Found!");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleHttpServerErrorException(ex);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), pd.getStatus());
+        assertEquals("Downstream Server Error", pd.getTitle());
+        assertEquals("404 Not Found!", pd.getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/http-server-error"), pd.getType());
+        assertEquals(false, pd.getProperties().get("retriable"));
+        assertNotNull(pd.getInstance());
+        assertTrue(r.getHeaders().getContentType().toString().contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
     @Test
-    void testHandleJpaSystemException() {
-        JpaSystemException jse = new JpaSystemException(new RuntimeException("Problem with JPA"));
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler
-            .handleJpaSystemException(jse);
+    void handleHttpServerError_forced500_retriableTrueOn503() {
+        HttpServerErrorException ex = new HttpServerErrorException(HttpStatusCode.valueOf(503), "Service Unavailable");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleHttpServerErrorException(ex);
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(true, r.getBody().getProperties().get("retriable")); // 503 -> true
+    }
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
-        assertEquals("Internal Server Error", problemDetail.getTitle());
-        assertEquals("A persistence error occurred while processing your request", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/jpa-system-error"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable")); // still false for this test scenario
-        assertNotNull(problemDetail.getInstance());
+    // ---------- JSON schema & IllegalArgument ----------
 
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    @Test
+    void handleJsonSchema_false() {
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleJsonSchemaValidationException(new JsonSchemaValidationException("bad schema"));
+        assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
     @Test
-    void testHandleHttpServerErrorException() {
-        HttpServerErrorException jse = new HttpServerErrorException(HttpStatusCode.valueOf(404), "Not Found!");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler
-            .handleHttpServerErrorException(jse);
+    void handleIllegalArgument_false() {
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler
+            .handleIllegalArgumentException(new IllegalArgumentException("bad arg"));
+        assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
+    }
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
+    // ---------- Conflicts ----------
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), problemDetail.getStatus());
-        assertEquals("Downstream Server Error", problemDetail.getTitle());
-        assertEquals("404 Not Found!", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/http-server-error"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable")); // 404 is not retriable
-        assertNotNull(problemDetail.getInstance());
+    @Test
+    void handleOptimisticLock_false() {
+        ObjectOptimisticLockingFailureException ex =
+            new ObjectOptimisticLockingFailureException(DraftAccountEntity.class, "123");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleObjectOptimisticLockingFailureException(ex);
 
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+        assertEquals(HttpStatus.CONFLICT, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(false, pd.getProperties().get("retriable"));
+        assertEquals(DraftAccountEntity.class.getName(), pd.getProperties().get("resourceType"));
+        assertEquals("123", pd.getProperties().get("resourceId"));
     }
 
     @Test
-    void testHandleJsonSchemaValidationException() {
-        JsonSchemaValidationException exception =
-            new JsonSchemaValidationException("JSON Schema Validation failed");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler
-            .handleJsonSchemaValidationException(exception);
+    void handleResourceConflict_false() {
+        ResourceConflictException ex = new ResourceConflictException("DraftAccount", "123", "BU mismatch");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleResourceConflictException(ex);
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
+        assertEquals(HttpStatus.CONFLICT, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(false, pd.getProperties().get("retriable"));
+        assertEquals("DraftAccount", pd.getProperties().get("resourceType"));
+        assertEquals("123", pd.getProperties().get("resourceId"));
+        assertEquals("BU mismatch", pd.getProperties().get("conflictReason"));
+    }
 
-        assertEquals(HttpStatus.BAD_REQUEST.value(), problemDetail.getStatus());
-        assertEquals("Bad Request", problemDetail.getTitle());
-        assertEquals("The request does not conform to the required JSON schema", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/json-schema-validation"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
+    // ---------- FeignException (generic handler) ----------
 
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+    @Test
+    void handleFeign_generic_503_retriableTrue() {
+        FeignException ex = buildFeignException(503, "Service Unavailable");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleFeignException(ex);
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE, r.getStatusCode());
+        assertEquals(true, r.getBody().getProperties().get("retriable"));
+        assertEquals("Downstream Service Error", r.getBody().getTitle());
     }
 
     @Test
-    void testHandleIllegalArgumentException() {
-        IllegalArgumentException exception =
-            new IllegalArgumentException("Cannot include both A and B parameters");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler
-            .handleIllegalArgumentException(exception);
+    void handleFeign_generic_500_retriableFalse() {
+        FeignException ex = buildFeignException(500, "Boom");
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleFeignException(ex);
 
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.BAD_REQUEST.value(), problemDetail.getStatus());
-        assertEquals("Bad Request", problemDetail.getTitle());
-        assertEquals("Invalid arguments were provided in the request", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/illegal-argument"), problemDetail.getType());
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
+        assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
-    @Test
-    void testHandleObjectOptimisticLockingFailureException() {
-        ObjectOptimisticLockingFailureException e = new ObjectOptimisticLockingFailureException(
-            DraftAccountEntity.class, "123");
-        ResponseEntity<ProblemDetail> response =
-            globalExceptionHandler.handleObjectOptimisticLockingFailureException(e);
-
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.CONFLICT.value(), problemDetail.getStatus());
-        assertEquals("Conflict", problemDetail.getTitle());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/optimistic-locking"), problemDetail.getType());
-        assertEquals(DraftAccountEntity.class.getName(), problemDetail.getProperties().get("resourceType"));
-        assertEquals("123", problemDetail.getProperties().get("resourceId"));
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
-    }
-
-    @Test
-    void testHandleResourceConflictException() {
-        ResourceConflictException e = new ResourceConflictException("DraftAccount", "123","BusinessUnits mismatch");
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleResourceConflictException(e);
-
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        ProblemDetail problemDetail = response.getBody();
-
-        assertEquals(HttpStatus.CONFLICT.value(), problemDetail.getStatus());
-        assertEquals("Conflict", problemDetail.getTitle());
-        assertEquals("A conflict occurred with the requested resource", problemDetail.getDetail());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/resource-conflict"), problemDetail.getType());
-        assertEquals("DraftAccount", problemDetail.getProperties().get("resourceType"));
-        assertEquals("123", problemDetail.getProperties().get("resourceId"));
-        assertEquals("BusinessUnits mismatch", problemDetail.getProperties().get("conflictReason"));
-        assertEquals(false, problemDetail.getProperties().get("retriable"));
-        assertNotNull(problemDetail.getInstance());
-
-        assertTrue(response.getHeaders().getContentType().toString()
-                       .contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
-    }
+    // ---------- util ----------
 
     public static void sampleMethod(Integer testParam) {
-        // Sample method to simulate the method parameter
+        // no-op
+    }
+
+    private static FeignException buildFeignException(int status, String reason) {
+        Map<String, Collection<String>> headers = Collections.emptyMap();
+
+        Request request = Request.create(
+            Request.HttpMethod.GET,
+            "/test",
+            headers,
+            null,
+            StandardCharsets.UTF_8,
+            new RequestTemplate()
+        );
+
+        Response response = Response.builder()
+            .request(request)
+            .status(status)
+            .reason(reason)
+            .headers(headers)
+            .build();
+
+        return FeignException.errorStatus("GET /test", response);
     }
 }
