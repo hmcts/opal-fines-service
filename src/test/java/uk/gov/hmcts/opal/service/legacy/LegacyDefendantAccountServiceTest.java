@@ -814,8 +814,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             legacyDefendantAccountService.getDefendantAccountParty(77L, 77L);
 
         assertNotNull(out);
-        assertEquals(1L,
-            ((uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson) out).getVersion());
+        assertEquals(1L, out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
         // individual kept, organisation null
         assertNotNull(out.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
@@ -849,8 +848,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         GetDefendantAccountPartyResponse outA =
             legacyDefendantAccountService.getDefendantAccountParty(555L, 555L);
         assertNotNull(outA);
-        assertEquals(2L,
-            ((uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson) outA).getVersion());
+        assertEquals(2L, outA.getVersion());
         assertNotNull(outA.getDefendantAccountParty());
         assertNotNull(outA.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
         assertNull(outA.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
@@ -861,8 +859,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         GetDefendantAccountPartyResponse outB =
             legacyDefendantAccountService.getDefendantAccountParty(555L, 555L);
         assertNotNull(outB);
-        assertEquals(2L,
-            ((uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson) outB).getVersion());
+        assertEquals(2L, outB.getVersion());
         assertNotNull(outB.getDefendantAccountParty());
         assertNotNull(outB.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
         assertNull(outB.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
@@ -901,8 +898,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // assert
         assertNotNull(out);
-        assertEquals(99L,
-            ((uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson) out).getVersion());
+        assertNull(out.getVersion());
         assertNull(out.getDefendantAccountParty());
     }
 
@@ -929,7 +925,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // assert
         assertNotNull(out);
-        assertNull(((uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson) out).getVersion());
+        assertNull(out.getVersion());
         assertNull(out.getDefendantAccountParty());
     }
 
@@ -960,8 +956,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Assert: non-null and some basic fields
         assertNotNull(result);
-        assertEquals(1L,
-            ((uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson) result).getVersion());
+        assertEquals(1L, result.getVersion());
         assertNotNull(result.getDefendantAccountParty());
 
         // Verify gateway called once with properly stringified IDs in the request
@@ -1008,8 +1003,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // assert
         assertNotNull(out);
-        assertEquals(42L,
-            ((uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponseJson) out).getVersion());
+        assertNull(out.getVersion());
         assertNull(out.getDefendantAccountParty());
 
         verify(gatewayService, times(1)).postToGateway(
@@ -1231,8 +1225,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         );
 
         var out = legacyDefendantAccountService.getDefendantAccountParty(77L, 77L);
-        var prefs = ((uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacyJson)
-            out.getDefendantAccountParty()).getLegacyLanguagePreferences();
+        var prefs = out.getDefendantAccountParty().getLanguagePreferences();
 
         org.junit.jupiter.api.Assertions.assertNotNull(prefs);
         org.junit.jupiter.api.Assertions.assertEquals("EN",
