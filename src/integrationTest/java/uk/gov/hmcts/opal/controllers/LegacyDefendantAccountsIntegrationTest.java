@@ -57,11 +57,13 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
         super.testLegacyGetDefendantAtAGlance(log);
     }
 
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetDefendantAccountParty_Success() throws Exception {
         super.legacyGetDefendantAccountParty_Happy(log);
     }
 
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetDefendantAccountParty_Organisation() throws Exception {
         super.legacyGetDefendantAccountParty_Organisation(log);
