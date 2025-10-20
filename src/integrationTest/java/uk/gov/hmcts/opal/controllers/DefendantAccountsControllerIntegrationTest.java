@@ -21,6 +21,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.text.MatchesPattern.matchesPattern;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -464,9 +465,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(2))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
-            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+            .andExpect(jsonPath("$.defendant_accounts[*].defendant_account_id", containsInAnyOrder("77", "9077")))
+            .andExpect(jsonPath("$.defendant_accounts[*].account_number", containsInAnyOrder("177A", "177B")))
+            .andExpect(jsonPath("$.defendant_accounts[*].business_unit_id", containsInAnyOrder("78", "78")));
     }
 
 
@@ -756,9 +757,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(2))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
-            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+            .andExpect(jsonPath("$.defendant_accounts[*].defendant_account_id", containsInAnyOrder("77", "9077")))
+            .andExpect(jsonPath("$.defendant_accounts[*].account_number", containsInAnyOrder("177A", "177B")))
+            .andExpect(jsonPath("$.defendant_accounts[*].business_unit_id", containsInAnyOrder("78", "78")));
     }
 
     @DisplayName("OPAL: Account number request includes check letter -> still matches (strips check letter)")
@@ -1089,7 +1090,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].alias_number").value(1))
-            .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].organisation_name").value("AliasOrg"))
+            .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].organisation_name").doesNotExist())
             .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].surname").value("AliasSurname"))
             .andExpect(jsonPath("$.defendant_accounts[0].aliases[0].forenames").value("AliasForenames"));
     }
