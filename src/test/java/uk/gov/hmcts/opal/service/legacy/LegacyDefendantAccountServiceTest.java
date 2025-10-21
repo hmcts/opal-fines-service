@@ -54,7 +54,6 @@ import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -1601,4 +1600,115 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNull(out.getPaymentTermsSummary().getPaymentTermsType());
         assertNull(out.getPaymentTermsSummary().getInstalmentPeriod());
     }
+
+    @Test
+    void toBigDecimalOrZero_handlesAllBranches() throws Exception {
+        var method = LegacyDefendantAccountService.class.getDeclaredMethod("toBigDecimalOrZero", Object.class);
+        method.setAccessible(true);
+
+        // null input → ZERO
+        assertEquals(BigDecimal.ZERO, method.invoke(null, (Object) null));
+
+        // BigDecimal instance → returns as-is
+        BigDecimal value = new BigDecimal("123.45");
+        assertEquals(value, method.invoke(null, value));
+
+        // CharSequence good → parses correctly
+        assertEquals(new BigDecimal("77"), method.invoke(null, "77"));
+
+        // CharSequence bad → logs and defaults to ZERO
+        assertEquals(BigDecimal.ZERO, method.invoke(null, "NaN"));
+
+        // Number instance (Integer) → converted
+        assertEquals(new BigDecimal("5.0"), method.invoke(null, 5));
+
+        // Unsupported type → defaults ZERO
+        assertEquals(BigDecimal.ZERO, method.invoke(null, new Object()));
+    }
+
+    @Test
+    void toPaymentTermsType_and_toInstalmentPeriod_coverNonNullCodes() throws Exception {
+        var ptt = LegacyDefendantAccountService.class.getDeclaredMethod(
+            "toPaymentTermsType", uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.class);
+        var ip  = LegacyDefendantAccountService.class.getDeclaredMethod(
+            "toInstalmentPeriod", uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.class);
+        ptt.setAccessible(true);
+        ip.setAccessible(true);
+
+        var legacyType = new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
+            uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode.B);
+        var legacyInst = new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
+            uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.W);
+
+        var out1 = ptt.invoke(null, legacyType);
+        var out2 = ip.invoke(null, legacyInst);
+        assertNotNull(out1);
+        assertNotNull(out2);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getHeaderSummary_errorAndSuccessBranches_triggerLogging() {
+        // Arrange a fake response entity
+        uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse legacyEntity =
+            uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.builder().build();
+
+        // First response → simulate 5xx LegacyFailure
+        GatewayService.Response<uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse> respError =
+            new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, legacyEntity, "body", null);
+
+        // Second response → simulate 200 OK success
+        GatewayService.Response<uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse>
+            respSuccess =
+            new GatewayService.Response<>(HttpStatus.OK, legacyEntity, null, null);
+
+        // Spy gateway to return each response in order
+        doReturn(respError, respSuccess).when(gatewayService)
+            .postToGateway(any(), any(), any(), any());
+
+        // Act 1: triggers error + legacyFailure path
+        legacyDefendantAccountService.getHeaderSummary(1L);
+
+        // Act 2: triggers success logging path
+        legacyDefendantAccountService.getHeaderSummary(1L);
+
+        // Verify gateway called twice (once for each)
+        verify(gatewayService, times(2)).postToGateway(any(), any(), any(), any());
+    }
+
+    @Test
+    void toHeaderSumaryDto_mapsOrgAndIndBranches() throws Exception {
+        var method = LegacyDefendantAccountService.class.getDeclaredMethod(
+            "toHeaderSumaryDto",
+            uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.class);
+        method.setAccessible(true);
+
+        // --- organisation branch ---
+        var orgAlias = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias.builder()
+            .aliasId("O1").sequenceNumber((short)1).organisationName("AliasCo").build();
+        var orgDetails = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.builder()
+            .organisationName("MainCo")
+            .organisationAliases(new uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[]
+                {orgAlias})
+            .build();
+        var party = uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
+            .organisationFlag(true).organisationDetails(orgDetails).build();
+        var resp = uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+            .partyDetails(party).build();
+        assertNotNull(method.invoke(legacyDefendantAccountService, resp));
+
+        // --- individual branch ---
+        var indAlias = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias.builder()
+            .aliasId("I1").sequenceNumber((short)1).surname("Smith").forenames("John").build();
+        var ind = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
+            .firstNames("John").surname("Smith")
+            .individualAliases(new uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias[]{indAlias})
+            .build();
+        party = uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
+            .organisationFlag(false).individualDetails(ind).build();
+        resp = uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+            .partyDetails(party).build();
+        assertNotNull(method.invoke(legacyDefendantAccountService, resp));
+    }
+
 }

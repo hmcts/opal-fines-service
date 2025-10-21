@@ -922,4 +922,77 @@ class OpalDefendantAccountServiceTest {
         when(c.getDefendant()).thenReturn(null);
         return c;
     }
+
+    @Test
+    void safeInt_returnsNullForOverflowAndUnderflow() throws Exception {
+        var method = OpalDefendantAccountService.class.getDeclaredMethod("safeInt", Long.class);
+        method.setAccessible(true);
+
+        // Overflow
+        Integer result1 = (Integer) method.invoke(null, Long.MAX_VALUE);
+        assertNull(result1);
+
+        // Underflow
+        Integer result2 = (Integer) method.invoke(null, Long.MIN_VALUE);
+        assertNull(result2);
+    }
+
+    @Test
+    void mapToDto_setsParentGuardianDebtorTypeAndYouthFlag() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .debtorType(null)
+            .hasParentGuardian(true)
+            .birthDate(LocalDate.now().minusYears(15))
+            .accountStatus("L")
+            .build();
+
+        DefendantAccountHeaderSummary dto = service.mapToDto(e);
+        assertEquals("Parent/Guardian", dto.getDebtorType());
+        assertTrue(dto.getIsYouth());
+    }
+
+    @Test
+    void mapToDto_setsDefaultDebtorTypeAndNotYouthWhenBirthDateMissing() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .debtorType(null)
+            .hasParentGuardian(false)
+            .birthDate(null)
+            .accountStatus("L")
+            .build();
+
+        DefendantAccountHeaderSummary dto = service.mapToDto(e);
+        assertEquals("Defendant", dto.getDebtorType());
+        assertFalse(dto.getIsYouth());
+    }
+
+    @Test
+    void buildBusinessUnitSummary_handlesNullBusinessUnitId() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .businessUnitId(null)
+            .businessUnitName("Some BU")
+            .build();
+
+        BusinessUnitSummary summary = service.buildBusinessUnitSummary(e);
+        assertNull(summary.getBusinessUnitId());
+        assertEquals("Some BU", summary.getBusinessUnitName());
+    }
+
+    @Test
+    void searchDefendantAccounts_hasRefTrueBranchCovered() {
+        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        ReferenceNumberDto ref = new ReferenceNumberDto();
+        ref.setAccountNumber("177");
+        ref.setProsecutorCaseReference(null);
+
+        when(dto.getReferenceNumberDto()).thenReturn(ref);
+        when(dto.getActiveAccountsOnly()).thenReturn(true);
+        when(dto.getBusinessUnitIds()).thenReturn(Collections.singletonList(78));
+        when(dto.getDefendant()).thenReturn(null);
+
+        // should not throw; branch just sets applyActiveOnly=false
+        service.searchDefendantAccounts(dto);
+
+        verify(searchSpecsSpy, times(1)).filterByActiveOnly(false);
+    }
+
 }

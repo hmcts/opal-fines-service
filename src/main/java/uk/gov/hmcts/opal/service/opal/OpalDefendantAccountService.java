@@ -85,9 +85,6 @@ import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
-import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
-import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
