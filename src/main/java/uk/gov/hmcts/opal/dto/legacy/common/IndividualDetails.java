@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy.common;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -21,6 +22,7 @@ import uk.gov.hmcts.opal.util.LocalDateAdapter;
 @Jacksonized
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class IndividualDetails {
 
     @XmlElement(name = "title")
