@@ -381,6 +381,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         return GetDefendantAccountPartyResponse.builder()
             .defendantAccountParty(defendantAccountParty)
+            .version(account.getVersion())
             .build();
 
     }
