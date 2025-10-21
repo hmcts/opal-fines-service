@@ -446,11 +446,11 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
-            .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
-            .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"))
-            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").doesNotExist());
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.defendant_accounts[*].defendant_account_id").value(containsInAnyOrder("77", "9077")))
+            .andExpect(jsonPath("$.defendant_accounts[*].account_number")
+                .value(containsInAnyOrder("177A", "177B")))
+             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
     }
 
 
@@ -1135,7 +1135,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                          "national_insurance_number": "A11111A"
                        }
                      }
-
+                
                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -1524,7 +1524,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                          "national_insurance_number": null
                        }
                      }
-
+                
                 """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -3089,5 +3089,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(false));
     }
+
+
+
 
 }

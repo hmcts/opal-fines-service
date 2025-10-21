@@ -100,8 +100,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final DefendantAccountRepository defendantAccountRepository;
 
-    private final DefendantAccountSpecs defendantAccountSpecs;
-
     private final SearchDefendantAccountRepository searchDefendantAccountRepository;
 
     private final SearchDefendantAccountSpecs searchDefendantAccountSpecs;
