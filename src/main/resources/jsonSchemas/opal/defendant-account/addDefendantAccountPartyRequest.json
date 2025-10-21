@@ -13,7 +13,6 @@
     }
   },
   "required": [
-    "defendant_account_party_id",
     "defendant_account_party"
   ]
 }
