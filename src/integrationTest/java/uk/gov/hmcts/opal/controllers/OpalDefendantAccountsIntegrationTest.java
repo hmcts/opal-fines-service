@@ -376,4 +376,9 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     void testInvalidBodyContainsRetriable() throws Exception {
         super.testInvalidBodyContainsRetriable(log);
     }
+
+    @Test
+    void organisationFlagFiltersResults() throws Exception {
+        super.testPostDefendantAccountsSearch_PO2298_OrganisationFlagRespected(log);
+    }
 }

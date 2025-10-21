@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -76,6 +78,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
     final String getDefendantAccountPartyResponseSchemaLocation() {
         return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountPartyResponse.json";
+    }
+
+    final String getDefendantAccountsSearchResponseSchemaLocation() {
+        return SchemaPaths.DEFENDANT_ACCOUNT + "/postDefendantAccountsSearchResponse.json";
     }
 
     @BeforeEach
@@ -2423,8 +2429,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             // Depending on VersionUtils, this may be resource-conflict or optimistic-locking.
             .andExpect(jsonPath("$.type", org.hamcrest.Matchers.anyOf(
-                org.hamcrest.Matchers.is("https://hmcts.gov.uk/problems/resource-conflict"),
-                org.hamcrest.Matchers.is("https://hmcts.gov.uk/problems/optimistic-locking")
+                is("https://hmcts.gov.uk/problems/resource-conflict"),
+                is("https://hmcts.gov.uk/problems/optimistic-locking")
             )));
     }
 
@@ -2786,6 +2792,63 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
     }
 
+    @DisplayName("PO-2298 / AC1+AC2: reference_number.organisation flag filters results")
+    void testPostDefendantAccountsSearch_PO2298_OrganisationFlagRespected(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        // === AC1: organisation = true  → only organisation defendants (e.g. 333A, 555O) ===
+        ResultActions orgTrue = mockMvc.perform(post("/defendant-accounts/search")
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+            {
+              "active_accounts_only": false,
+              "business_unit_ids": [78],
+              "reference_number": {
+                "account_number": "3",
+                "prosecutor_case_reference": null,
+                "organisation": true
+              },
+              "defendant": null
+            }
+            """));
+
+        String bodyTrue = orgTrue.andReturn().getResponse().getContentAsString();
+        log.info(":PO-2298 AC1 (organisation=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
+
+        orgTrue.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // should only return organisation accounts (organisation=true)
+            .andExpect(jsonPath("$.defendant_accounts[*].organisation").value(everyItem(is(true))));
+
+        // === AC2: organisation = false  → only individual defendants (e.g. 177A, 177B) ===
+        ResultActions orgFalse = mockMvc.perform(post("/defendant-accounts/search")
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+            {
+              "active_accounts_only": false,
+              "business_unit_ids": [78],
+              "reference_number": {
+                "account_number": "177",
+                "prosecutor_case_reference": null,
+                "organisation": false
+              },
+              "defendant": null
+            }
+            """));
+
+        String bodyFalse = orgFalse.andReturn().getResponse().getContentAsString();
+        log.info(":PO-2298 AC2 (organisation=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
+
+        orgFalse.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // should only return individual accounts (organisation=false)
+            .andExpect(jsonPath("$.defendant_accounts[*].organisation").value(everyItem(is(false))));
+
+        jsonSchemaValidationService.validateOrError(bodyTrue, getDefendantAccountsSearchResponseSchemaLocation());
+    }
 
     void getDefendantAccountAtAGlance_500Error(Logger log) throws Exception {
 
