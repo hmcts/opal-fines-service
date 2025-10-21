@@ -12,22 +12,22 @@
       "type": "boolean"
     },
     "party_details": {
-      "$ref": "./partyDetailsLegacy.json"
+      "$ref": "./partyDetails.json"
     },
     "address": {
-      "$ref": "./addressDetailsLegacy.json"
+      "$ref": "./addressDetails.json"
     },
     "contact_details": {
-      "$ref": "./contactDetailsLegacy.json"
+      "$ref": "./contactDetails.json"
     },
     "vehicle_details": {
-      "$ref": "./vehicleDetailsLegacy.json"
+      "$ref": "./vehicleDetails.json"
     },
     "employer_details": {
-      "$ref": "./employerDetailsLegacy.json"
+      "$ref": "./employerDetails.json"
     },
     "language_preferences": {
-      "$ref": "./languagePreferencesLegacy.json"
+      "$ref": "./languagePreferences.json"
     }
   },
   "required": [

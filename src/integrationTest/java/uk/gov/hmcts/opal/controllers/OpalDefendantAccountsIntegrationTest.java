@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import uk.gov.hmcts.opal.SchemaPaths;
 
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -263,17 +262,6 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.testGetPaymentTermsLatest_NoPaymentTermFoundForId(log);
     }
 
-    @Override
-    String getHeaderSummaryResponseSchemaLocation() {
-        return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountHeaderSummaryResponse.json";
-    }
-
-    @Override
-    String getPaymentTermsResponseSchemaLocation() {
-        return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountPaymentTermsResponse.json";
-    }
-
-
     @Test
     void opal_getDefendantAccountParty_happy() throws Exception {
         super.opalGetDefendantAccountParty_Happy(log);
@@ -287,11 +275,6 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     @Test
     void opal_getDefendantAccountParty_nullFields() throws Exception {
         super.opalGetDefendantAccountParty_NullFields(log);
-    }
-
-    @Override
-    String getAtAGlanceResponseSchemaLocation() {
-        return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountAtAGlanceResponse.json";
     }
 
     @Test
