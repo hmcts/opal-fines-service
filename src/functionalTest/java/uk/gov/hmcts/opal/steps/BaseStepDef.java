@@ -9,9 +9,15 @@ import java.util.Map;
 public class BaseStepDef {
 
     private static final String TEST_URL = System.getenv().getOrDefault("TEST_URL", "http://localhost:4550");
+    private static final String USER_SERVICE_URL =
+        System.getenv().getOrDefault("OPAL_USER_SERVICE_API_URL", "http://localhost:4555");
 
     protected static String getTestUrl() {
         return TEST_URL;
+    }
+
+    protected static String getUserServiceUrl() {
+        return USER_SERVICE_URL;
     }
 
     public static JSONObject addToNewJsonObject(Map<String, String> dataToPost, String... names) throws JSONException {
