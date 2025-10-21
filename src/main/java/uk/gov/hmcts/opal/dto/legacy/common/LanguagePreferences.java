@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy.common;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -18,6 +19,7 @@ import uk.gov.hmcts.opal.dto.ToXmlString;
 @Jacksonized
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class LanguagePreferences implements ToXmlString {
 
     @XmlElement(name = "document_language_preference")

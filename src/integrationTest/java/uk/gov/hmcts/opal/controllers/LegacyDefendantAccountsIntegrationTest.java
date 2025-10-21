@@ -1,10 +1,9 @@
 package uk.gov.hmcts.opal.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
-
-import lombok.extern.slf4j.Slf4j;
 
 @ActiveProfiles({"integration", "legacy"})
 @Slf4j(topic = "opal.LegacyDefendantAccountsIntegrationTest")
@@ -64,18 +63,21 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
         super.testLegacyGetDefendantAtAGlance(log);
     }
 
-    @Override
-    String getHeaderSummaryResponseSchemaLocation() {
-        return "legacy/getDefendantAccountHeaderSummaryLegacyResponse.json";
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetDefendantAccountParty_Success() throws Exception {
+        super.legacyGetDefendantAccountParty_Happy(log);
     }
 
-    @Override
-    String getPaymentTermsResponseSchemaLocation() {
-        return "legacy/getDefendantAccountPaymentTermsLegacyResponse.json";
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetDefendantAccountParty_Organisation() throws Exception {
+        super.legacyGetDefendantAccountParty_Organisation(log);
     }
 
-    @Override
-    String getAtAGlanceResponseSchemaLocation() {
-        return "legacy/getDefendantAccountAtAGlanceResponse.json";
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetDefendantAccountParty_500Error() throws Exception {
+        super.legacyGetDefendantAccountParty_500Error(log);
     }
 }

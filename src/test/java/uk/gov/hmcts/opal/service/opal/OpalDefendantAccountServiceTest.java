@@ -22,6 +22,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +47,7 @@ import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
+import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
@@ -95,13 +97,11 @@ class OpalDefendantAccountServiceTest {
     void setUp() {
         // Create the spy fresh each test
         searchSpecsSpy = spy(new SearchDefendantAccountSpecs());
-        defendantAccountSpecs = spy(new DefendantAccountSpecs());
 
         // Build the service with EXACTLY these dependencies in the expected order
         this.service = new OpalDefendantAccountService(
             /* headerViewRepo */ null,
             /* defendantAccountRepository */ defendantAccountRepository,
-            /* defendantAccountSpecs     */ defendantAccountSpecs,
             /* searchDefAccRepo          */ searchDefAccRepo,
             /* searchDefAccSpecs         */ searchSpecsSpy,
             /* paymentTermsRepository    */ paymentTermsRepository,
@@ -323,8 +323,8 @@ class OpalDefendantAccountServiceTest {
         // when
         service.searchDefendantAccounts(dto);
 
-        // then → in PO-2287, activeOnly flag is passed through as-is
-        verify(searchSpecsSpy, times(1)).filterByActiveOnly(true);
+        // then → AC1b requires the service to IGNORE activeOnly (i.e., pass false to the spec)
+        verify(searchSpecsSpy, times(1)).filterByActiveOnly(false);
         verify(searchDefAccRepo, times(1))
             .findAll(ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
     }
@@ -343,8 +343,8 @@ class OpalDefendantAccountServiceTest {
         // when
         service.searchDefendantAccounts(dto);
 
-        // then → in PO-2287, activeOnly flag is passed through unchanged (true)
-        verify(searchSpecsSpy, times(1)).filterByActiveOnly(true);
+        // then
+        verify(searchSpecsSpy, times(1)).filterByActiveOnly(false);
         verify(searchDefAccRepo, times(1))
             .findAll(ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
     }
@@ -359,7 +359,7 @@ class OpalDefendantAccountServiceTest {
         // when
         service.searchDefendantAccounts(dto);
 
-        // then → with no reference, activeOnly is passed as true (unchanged)
+        // then → with no reference, activeOnly should be applied as true
         verify(searchSpecsSpy, times(1)).filterByActiveOnly(true);
         verify(searchDefAccRepo, times(1))
             .findAll(ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
@@ -378,7 +378,7 @@ class OpalDefendantAccountServiceTest {
         // when
         service.searchDefendantAccounts(dto);
 
-        // then → should pass false directly
+        // then → should pass false (ignoring or not, final effect is false)
         verify(searchSpecsSpy, times(1)).filterByActiveOnly(false);
         verify(searchDefAccRepo, times(1))
             .findAll(ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
@@ -401,7 +401,7 @@ class OpalDefendantAccountServiceTest {
         // If-Match must match this (@Version)
         entity.setVersion(1L);
 
-        // Core repos & deps (updated to match new constructor)
+        // Core repos & deps
         final DefendantAccountHeaderViewRepository headerViewRepo = mock(DefendantAccountHeaderViewRepository.class);
         final DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         final DefendantAccountSpecs specs = mock(DefendantAccountSpecs.class);
@@ -449,7 +449,6 @@ class OpalDefendantAccountServiceTest {
         final OpalDefendantAccountService svc = new OpalDefendantAccountService(
             headerViewRepo,
             accountRepo,
-            defendantAccountSpecs,
             searchDefAccRepo,
             searchSpecsSpy,
             paymentTermsRepo,
@@ -537,7 +536,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null, null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -555,7 +554,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenBusinessUnitMismatch() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null, null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -585,7 +584,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenCollectionOrderDateInvalid() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null, null);
+            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -617,7 +616,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenEntityNotFound() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null, null);
+            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null);
 
         when(accountRepo.findById(99L)).thenReturn(Optional.empty());
 
@@ -642,7 +641,6 @@ class OpalDefendantAccountServiceTest {
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
             null,
             accountRepo,
-            null,
             null,
             null,
             null,
@@ -692,7 +690,6 @@ class OpalDefendantAccountServiceTest {
             null,
             null,
             null,
-            null,
             mock(CourtRepository.class),
             mock(AmendmentService.class),
             mock(EntityManager.class),
@@ -734,7 +731,6 @@ class OpalDefendantAccountServiceTest {
             null,
             null,
             null,
-            null,
             amend,
             em,
             noteRepo,
@@ -760,7 +756,6 @@ class OpalDefendantAccountServiceTest {
         var svc = new OpalDefendantAccountService(
             null,
             accountRepo,
-            null,
             null,
             null,
             null,
@@ -793,34 +788,39 @@ class OpalDefendantAccountServiceTest {
 
     @Test
     void searchDefendantAccounts_mapsAliases_forIndividual() {
-        // --- Arrange: create the shape that matches the flat v_search_defendant_accounts view ---
+        // Given a person with mixed alias shapes
         SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
             .defendantAccountId(1L)
             .accountNumber("ACC1")
             .organisation(false)
+            .organisationName(null)
             .title("Mr")
             .forenames("Amy")
             .surname("Pond")
             .addressLine1("1 Main St")
             .postcode("AB12CD")
-            .businessUnitId(78L)
-            .businessUnitName("NorthEast")
+            .businessUnitName("BU")
+            .businessUnitId(99L)
             .prosecutorCaseReference("PCR1")
             .lastEnforcement("LEVY")
             .defendantAccountBalance(new BigDecimal("12.34"))
-            .alias1("Amy Pond")
-            .alias2("Amelia Pond")
-            .alias5("Pond") // single token → treated as surname only
+            .birthDate(LocalDate.of(2000, 1, 1))
+            .alias1("Amy Pond")       // normal "forenames surname"
+            .alias2("Amelia Pond")    // another normal case
+            .alias3("  ")             // blank → ignored
+            .alias4(null)             // null → ignored
+            .alias5("Pond")           // single token → treated as surname
             .build();
 
-        // Mock the flat search repository
-        when(searchDefAccRepo.findAll(ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()))
-            .thenReturn(List.of(row));
+        when(searchDefAccRepo.findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        )).thenReturn(Collections.singletonList(row));
 
-        // --- Act ---
-        var out = service.searchDefendantAccounts(emptyCriteria());
+        // When
+        DefendantAccountSearchResultsDto out =
+            service.searchDefendantAccounts(emptyCriteria());
 
-        // --- Assert ---
+        // Then
         assertEquals(1, out.getCount());
         var dto = out.getDefendantAccounts().get(0);
 
@@ -829,93 +829,85 @@ class OpalDefendantAccountServiceTest {
         assertEquals("LEVY", dto.getLastEnforcementAction());
         assertEquals(0, dto.getAccountBalance().compareTo(new BigDecimal("12.34")));
 
+        // Aliases: alias1, alias2, alias5 should be present
         List<AliasDto> aliases = dto.getAliases();
         assertEquals(3, aliases.size());
 
-        // alias1: "Amy Pond"
-        var a1Dto = aliases.stream().filter(a -> a.getAliasNumber() == 1).findFirst().orElseThrow();
-        assertEquals("Amy", a1Dto.getForenames());
-        assertEquals("Pond", a1Dto.getSurname());
-        assertNull(a1Dto.getOrganisationName());
+        // Check a “forenames surname” split
+        AliasDto a1 = aliases.stream().filter(a -> a.getAliasNumber() == 1).findFirst().orElseThrow();
+        assertEquals("Amy", a1.getForenames());
+        assertEquals("Pond", a1.getSurname());
+        assertNull(a1.getOrganisationName());
 
-        // alias5: "Pond"
-        var a5Dto = aliases.stream().filter(a -> a.getAliasNumber() == 5).findFirst().orElseThrow();
-        assertNull(a5Dto.getForenames());
-        assertEquals("Pond", a5Dto.getSurname());
+        // Single token treated as surname
+        AliasDto a5 = aliases.stream().filter(a -> a.getAliasNumber() == 5).findFirst().orElseThrow();
+        assertNull(a5.getForenames());
+        assertEquals("Pond", a5.getSurname());
     }
 
     @Test
     void searchDefendantAccounts_mapsAliases_forOrganisation() {
-        // --- Arrange: simulate flat row from v_search_defendant_accounts ---
+        // Given an organisation, alias fields are full org names
         SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
             .defendantAccountId(2L)
             .accountNumber("ACC2")
             .organisation(true)
             .organisationName("Wayne Enterprises")
-            .businessUnitId(88L)
             .businessUnitName("BU")
+            .businessUnitId(88L)
             .prosecutorCaseReference("PCR2")
             .lastEnforcement("CLAMP")
             .defendantAccountBalance(new BigDecimal("99.00"))
             .alias1("Wayne Ent Ltd")
             .alias2("Wayne Group")
-            .alias5("Wayne Holdings")
+            .alias3(null)
+            .alias4("")
+            .alias5(" Wayne Holdings ")
             .build();
 
-        // Mock the repository used by the service
-        when(searchDefAccRepo.findAll(ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()))
-            .thenReturn(List.of(row));
+        when(searchDefAccRepo.findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        )).thenReturn(Collections.singletonList(row));
 
-        // --- Act ---
-        var out = service.searchDefendantAccounts(emptyCriteria());
+        DefendantAccountSearchResultsDto out = service.searchDefendantAccounts(emptyCriteria());
 
-        // --- Assert ---
-        assertEquals(1, out.getCount());
         var dto = out.getDefendantAccounts().get(0);
 
         assertTrue(dto.getOrganisation());
         assertEquals("Wayne Enterprises", dto.getOrganisationName());
+        // Personal fields must be null for orgs
         assertNull(dto.getDefendantTitle());
         assertNull(dto.getDefendantFirstnames());
         assertNull(dto.getDefendantSurname());
 
-        var aliases = dto.getAliases();
+        // Aliases: names go into organisationName; person fields null
+        List<AliasDto> aliases = dto.getAliases();
         assertEquals(3, aliases.size());
         assertTrue(aliases.stream().allMatch(a ->
                                                  a.getOrganisationName() != null
-                                                     &&
-                                                     a.getForenames() == null
-                                                     &&
-                                                     a.getSurname() == null
-        ));
+                                                     && a.getForenames() == null
+                                                     && a.getSurname() == null));
     }
 
     @Test
     void searchDefendantAccounts_ignoresBlankAliasSlots() {
-        // --- Arrange: flat entity row from v_search_defendant_accounts ---
         SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
             .defendantAccountId(3L)
             .accountNumber("ACC3")
             .organisation(false)
-            .forenames("John")
-            .surname("Doe")
-            .alias1("John Doe")  // valid
-            .alias2("   ")       // blank → ignored
-            .alias3("")          // empty → ignored
-            .alias4(null)        // null → ignored
-            .alias5(null)        // null → ignored
+            .alias1("John Doe")
+            .alias2("   ")
+            .alias3("")
+            .alias4(null)
+            .alias5(null)
             .build();
 
-        // Mock the repository the service actually calls
-        when(searchDefAccRepo.findAll(ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()))
-            .thenReturn(List.of(row));
+        when(searchDefAccRepo.findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        )).thenReturn(Collections.singletonList(row));
 
-        // --- Act ---
         var out = service.searchDefendantAccounts(emptyCriteria());
         var aliases = out.getDefendantAccounts().get(0).getAliases();
-
-        // --- Assert ---
-        assertEquals(1, out.getCount());
         assertEquals(1, aliases.size());
         assertEquals(1, aliases.get(0).getAliasNumber());
         assertEquals("John", aliases.get(0).getForenames());
@@ -930,5 +922,4 @@ class OpalDefendantAccountServiceTest {
         when(c.getDefendant()).thenReturn(null);
         return c;
     }
-
 }
