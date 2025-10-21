@@ -2771,16 +2771,16 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     }
 
 
-    @DisplayName("PO-2241 / AC1a+AC1b: Search core '177' — active flag respected for search view")
-    void testPostDefendantAccountsSearch_PO2241_Core177_ActiveFlagRespected(Logger log) throws Exception {
+    @DisplayName("PO-2241 / AC1a+AC1b: Search core '177'; 177A and 177B returned (active flag ignored)")
+    void testPostDefendantAccountsSearch_PO2241_Core177_InactiveStillReturned(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString()))
             .thenReturn(new UserState.DeveloperUserState());
 
-        // Case 1: active_accounts_only = true → should return only active (177A)
+        // Case 1: active_accounts_only = true (ignored because account_number provided)
         ResultActions activeTrue = mockMvc.perform(post("/defendant-accounts/search")
-                                                       .header("authorization", "Bearer some_value")
-                                                       .contentType(MediaType.APPLICATION_JSON)
-                                                       .content("""
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
                 {
                   "active_accounts_only": true,
                   "business_unit_ids": [78],
@@ -2794,19 +2794,19 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 """));
 
         String bodyTrue = activeTrue.andReturn().getResponse().getContentAsString();
-        log.info(":PO-2241 AC1a (active_accounts_only=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
+        log.info(":PO-2241 AC1a+AC1b (active_accounts_only=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
 
         activeTrue.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(2))
             .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists())
-            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").doesNotExist());
+            .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
 
-        // Case 2: active_accounts_only = false → should return both (177A + 177B)
+        // Case 2: active_accounts_only = false (also ignored; set should be identical)
         ResultActions activeFalse = mockMvc.perform(post("/defendant-accounts/search")
-                                                        .header("authorization", "Bearer some_value")
-                                                        .contentType(MediaType.APPLICATION_JSON)
-                                                        .content("""
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
                 {
                   "active_accounts_only": false,
                   "business_unit_ids": [78],
@@ -2820,7 +2820,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 """));
 
         String bodyFalse = activeFalse.andReturn().getResponse().getContentAsString();
-        log.info(":PO-2241 AC1b (active_accounts_only=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
+        log.info(":PO-2241 AC1a+AC1b (active_accounts_only=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
 
         activeFalse.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -2828,7 +2828,6 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177A')]").exists())
             .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
     }
-
 
     void getDefendantAccountAtAGlance_500Error(Logger log) throws Exception {
 
