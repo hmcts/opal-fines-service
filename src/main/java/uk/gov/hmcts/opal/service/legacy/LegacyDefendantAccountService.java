@@ -62,6 +62,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 
@@ -224,7 +225,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         AccountStatusReference status = response.getAccountStatusReference() == null ? null
             : AccountStatusReference.builder()
                 .accountStatusCode(response.getAccountStatusReference().getAccountStatusCode())
-                .accountStatusDisplayName(response.getAccountStatusReference().getAccountStatusDisplayName())
+                .accountStatusDisplayName(
+                    Optional.ofNullable(response.getAccountStatusReference().getAccountStatusDisplayName())
+                        .orElse(SpecificationUtils.mapAccountStatusDisplayName(
+                            response.getAccountStatusReference().getAccountStatusCode()))
+                )
                 .build();
 
         // ----- Payment State Summary (never null numbers) -----
@@ -813,5 +818,4 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
             "Update Defendant Account is not implemented in legacy mode");
     }
-
 }

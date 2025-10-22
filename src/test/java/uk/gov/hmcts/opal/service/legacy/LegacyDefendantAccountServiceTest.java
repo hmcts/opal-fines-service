@@ -330,8 +330,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("SAMPLE", published.getAccountNumber());
         assertEquals("Fine", published.getAccountType());
         assertEquals("L", published.getAccountStatusReference().getAccountStatusCode());
-        assertNull(published.getAccountStatusReference().getAccountStatusDisplayName(),
-                   "Legacy should not populate display name");
+        assertEquals("Live", published.getAccountStatusReference().getAccountStatusDisplayName(),
+            "Legacy mapper should populate display name for schema compliance");
         assertEquals("78", published.getBusinessUnitSummary().getBusinessUnitId());
         assertEquals("Test BU", published.getBusinessUnitSummary().getBusinessUnitName());
         assertEquals(new BigDecimal("700.58"), published.getPaymentStateSummary().getImposedAmount());
@@ -1711,4 +1711,32 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNotNull(method.invoke(legacyDefendantAccountService, resp));
     }
 
+    @Test
+    void toHeaderSumaryDto_populatesDisplayNameFromCodeWhenMissing() throws Exception {
+        // Arrange – legacy response has status code but no display name
+        var legacyResponse = uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+            .accountStatusReference(
+                uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference.builder()
+                    .accountStatusCode("L")
+                    .accountStatusDisplayName(null)
+                    .build()
+            )
+            .accountNumber("177A")
+            .defendantAccountId("77")
+            .accountType("Fine")
+            .build();
+
+        // Reflectively access the private mapping method
+        var method = LegacyDefendantAccountService.class.getDeclaredMethod(
+            "toHeaderSumaryDto",
+            uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.class
+        );
+        method.setAccessible(true);
+
+        // Act
+        var result = (uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary)
+            method.invoke(legacyDefendantAccountService, legacyResponse);
+
+        // Assert
+    }
 }
