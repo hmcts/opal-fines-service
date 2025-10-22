@@ -51,36 +51,44 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @MockitoBean
     private AccessTokenService accessTokenService;
 
+    /**
+     * Build a FeignException with typed headers (no unsafe casts).
+     */
+    private static FeignException buildFeignException(int status, String reason) {
+        Map<String, Collection<String>> headers = Collections.emptyMap();
+        Request request = Request.create(Request.HttpMethod.GET, "/test", headers, null, StandardCharsets.UTF_8,
+            new RequestTemplate());
+
+        Response response = Response.builder().request(request).status(status).reason(reason).headers(headers).build();
+
+        return FeignException.errorStatus("GET /test", response);
+    }
+
     @BeforeEach
     void setupUserState() {
-        Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any()))
-            .thenReturn(true);
+        Mockito.when(userState.anyBusinessUnitUserHasPermission(Mockito.any())).thenReturn(true);
 
-        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any()))
-            .thenReturn(userState);
+        Mockito.when(userStateService.checkForAuthorisedUser(Mockito.any())).thenReturn(userState);
     }
 
     @Test
     @DisplayName("PO-2120 / QueryTimeoutException -> 408 with retriable=true")
     void retriable_QueryTimeout_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/query-timeout")
-                                    .header("authorization", "Bearer some_value")
-                                    .accept(MediaType.APPLICATION_PROBLEM_JSON));
+        var a = mockMvc.perform(get("/__exc/query-timeout").header("authorization", "Bearer some_value")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("QueryTimeout body:\n{}", ToJsonString.toPrettyJson(body));
 
-        a.andExpect(status().isRequestTimeout())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+        a.andExpect(status().isRequestTimeout()).andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
     }
 
     @Test
     @DisplayName("PO-2120 / DataAccessResourceFailureException -> 503 with retriable=true")
     void retriable_DataAccessResourceFailure_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/data-access-resource-failure")
-                                    .header("authorization", "Bearer some_value")
-                                    .accept(MediaType.APPLICATION_PROBLEM_JSON));
+        var a = mockMvc.perform(get("/__exc/data-access-resource-failure").header("authorization", "Bearer some_value")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("DARF body:\n{}", ToJsonString.toPrettyJson(body));
@@ -93,9 +101,8 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("PO-2120 / PSQLException(connectivity) -> 503 with retriable=true")
     void retriable_PsqlConnectivity_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/psql-connectivity")
-                                    .header("authorization", "Bearer some_value")
-                                    .accept(MediaType.APPLICATION_PROBLEM_JSON));
+        var a = mockMvc.perform(get("/__exc/psql-connectivity").header("authorization", "Bearer some_value")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("PSQL connectivity body:\n{}", ToJsonString.toPrettyJson(body));
@@ -108,9 +115,8 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("PO-2120 / JpaSystemException(40001) -> 500 with retriable=true")
     void retriable_JpaTransient_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/jpa-serial-failure")
-                                    .header("authorization", "Bearer some_value")
-                                    .accept(MediaType.APPLICATION_PROBLEM_JSON));
+        var a = mockMvc.perform(get("/__exc/jpa-serial-failure").header("authorization", "Bearer some_value")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("JPA serial body:\n{}", ToJsonString.toPrettyJson(body));
@@ -123,9 +129,8 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("PO-2120 / TransactionSystemException(40P01) -> 500 with retriable=true")
     void retriable_TransactionDeadlock_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/tx-deadlock")
-                                    .header("authorization", "Bearer some_value")
-                                    .accept(MediaType.APPLICATION_PROBLEM_JSON));
+        var a = mockMvc.perform(get("/__exc/tx-deadlock").header("authorization", "Bearer some_value")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("TX deadlock body:\n{}", ToJsonString.toPrettyJson(body));
@@ -138,9 +143,8 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("PO-2120 / HttpServerErrorException upstream 503 -> 500 with retriable=true")
     void retriable_HttpServer503_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/http-503")
-                                    .header("authorization", "Bearer some_value")
-                                    .accept(MediaType.APPLICATION_PROBLEM_JSON));
+        var a = mockMvc.perform(get("/__exc/http-503").header("authorization", "Bearer some_value")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("HTTP 503 body:\n{}", ToJsonString.toPrettyJson(body));
@@ -153,9 +157,8 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("PO-2120 / FeignException 503 -> 503 with retriable=true")
     void retriable_Feign503_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/feign-503")
-                                    .header("authorization", "Bearer some_value")
-                                    .accept(MediaType.APPLICATION_PROBLEM_JSON));
+        var a = mockMvc.perform(get("/__exc/feign-503").header("authorization", "Bearer some_value")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("Feign 503 body:\n{}", ToJsonString.toPrettyJson(body));
@@ -165,31 +168,63 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.retriable").value(true));
     }
 
-    /** Build a FeignException with typed headers (no unsafe casts). */
-    private static FeignException buildFeignException(int status, String reason) {
-        Map<String, Collection<String>> headers = Collections.emptyMap();
-        Request request = Request.create(
-            Request.HttpMethod.GET,
-            "/test",
-            headers,
-            null,
-            StandardCharsets.UTF_8,
-            new RequestTemplate()
-        );
+    @Test
+    @DisplayName("PO-2120 / FeignException 502 -> 502 with retriable=true")
+    void retriable_Feign502_ReturnsTrue() throws Exception {
+        var a = mockMvc.perform(get("/__exc/feign-502").header("authorization", "Bearer some_value")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
-        Response response = Response.builder()
-            .request(request)
-            .status(status)
-            .reason(reason)
-            .headers(headers)
-            .build();
-
-        return FeignException.errorStatus("GET /test", response);
+        a.andExpect(status().isBadGateway()).andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.retriable").value(true));
     }
 
-    /** Test-only controller to trigger specific exception paths in GlobalExceptionHandler. */
+    @Test
+    @DisplayName("PO-2120 / FeignException 504 -> 504 with retriable=true")
+    void retriable_Feign504_ReturnsTrue() throws Exception {
+        var a = mockMvc.perform(get("/__exc/feign-504").header("authorization", "Bearer some_value")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON));
+
+        a.andExpect(status().isGatewayTimeout()).andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.retriable").value(true));
+    }
+
+    @Test
+    @DisplayName("PO-2120 / FeignException 429 -> 429 with retriable=true")
+    void retriable_Feign429_ReturnsTrue() throws Exception {
+        var a = mockMvc.perform(get("/__exc/feign-429").header("authorization", "Bearer some_value")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON));
+
+        a.andExpect(status().isTooManyRequests()).andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.retriable").value(true));
+    }
+
+    @Test
+    @DisplayName("PO-2120 / PSQLException non-connectivity -> 500 with retriable=false")
+    void nonRetriable_PsqlOther_ReturnsFalse() throws Exception {
+        var a = mockMvc.perform(get("/__exc/psql-other").header("authorization", "Bearer some_value")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON));
+
+        a.andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    @Test
+    @DisplayName("PO-2120 / FeignException non-retriable (404) -> 404 with retriable=false")
+    void nonRetriable_Feign404_ReturnsFalse() throws Exception {
+        var a = mockMvc.perform(get("/__exc/feign-404").header("authorization", "Bearer some_value")
+            .accept(MediaType.APPLICATION_PROBLEM_JSON));
+
+        a.andExpect(status().isNotFound()).andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    /**
+     * Test-only controller to trigger specific exception paths in GlobalExceptionHandler.
+     */
     @RestController
     static class ThrowingController {
+
         @GetMapping("/__exc/query-timeout")
         void queryTimeout() {
             throw new jakarta.persistence.QueryTimeoutException("timeout", null, null);
@@ -203,7 +238,7 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
         @GetMapping("/__exc/psql-connectivity")
         void psqlConnectivity() throws PSQLException {
             throw new PSQLException("connect fail", PSQLState.CONNECTION_FAILURE,
-                                    new java.net.ConnectException("refused"));
+                new java.net.ConnectException("refused"));
         }
 
         @GetMapping("/__exc/jpa-serial-failure")
@@ -228,6 +263,31 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
         void feign503() {
             throw buildFeignException(503, "Service Unavailable");
         }
-    }
 
+        @GetMapping("/__exc/feign-502")
+        void feign502() {
+            throw buildFeignException(502, "Bad Gateway");
+        }
+
+        @GetMapping("/__exc/feign-504")
+        void feign504() {
+            throw buildFeignException(504, "Gateway Timeout");
+        }
+
+        @GetMapping("/__exc/feign-429")
+        void feign429() {
+            throw buildFeignException(429, "Too Many Requests");
+        }
+
+        @GetMapping("/__exc/feign-404")
+        void feign404() {
+            throw buildFeignException(404, "Not Found");
+        }
+
+        @GetMapping("/__exc/psql-other")
+        void psqlOther() throws PSQLException {
+            // Cause is neither ConnectException nor UnknownHostException -> non-retriable
+            throw new PSQLException("unexpected", PSQLState.UNEXPECTED_ERROR, new Throwable("other cause"));
+        }
+    }
 }
