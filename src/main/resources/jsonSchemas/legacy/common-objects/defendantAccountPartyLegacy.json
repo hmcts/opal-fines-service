@@ -35,7 +35,6 @@
     }
   },
   "required": [
-    "defendant_account_party_id",
     "defendant_account_party_type",
     "is_debtor",
     "party_details",
