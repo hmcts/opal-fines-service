@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.common.user.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.UserClient;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -28,13 +28,11 @@ import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
 public class TestingSupportController {
 
-    private static final String X_USER_EMAIL = "X-User-Email";
-
     private final DynamicConfigService dynamicConfigService;
     private final FeatureToggleService featureToggleService;
     private final AccessTokenService accessTokenService;
     private final DefendantAccountDeletionService defendantAccountDeletionService;
-    private final UserClient userClient;
+    private final UserStateClientService userStateClientService;
 
     @GetMapping("/app-mode")
     @Operation(summary = "Retrieves the value for app mode.")
@@ -52,21 +50,17 @@ public class TestingSupportController {
         return ResponseEntity.ok(this.featureToggleService.getFeatureValue(featureKey));
     }
 
-    @GetMapping("/token/test-user")
-    @Operation(summary = "Retrieves the token for default test user")
-    public ResponseEntity<SecurityToken> getToken() {
-        return ResponseEntity.ok(userClient.getTestUserToken());
-    }
-
-    @GetMapping("/token/user")
-    @Operation(summary = "Retrieves the token for a given user")
-    public ResponseEntity<SecurityToken> getTokenForUser(@RequestHeader(value = X_USER_EMAIL) String userEmail) {
-        return ResponseEntity.ok(userClient.getTestUserToken(userEmail));
-    }
-
     @GetMapping("/token/parse")
     public ResponseEntity<String> parseToken(@RequestHeader("Authorization") String authorization) {
         return ResponseEntity.ok(this.accessTokenService.extractPreferredUsername(authorization));
+    }
+
+    @GetMapping("/user-client/{userId}")
+    @Operation(summary = "Retrieves user state via User Service client")
+    public ResponseEntity<UserState> getUserState(@PathVariable Long userId) {
+        return userStateClientService.getUserState(userId)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/defendant-accounts/{defendantAccountId}")
