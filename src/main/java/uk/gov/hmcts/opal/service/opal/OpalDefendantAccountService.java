@@ -341,7 +341,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .defendantAccountId(String.valueOf(e.getDefendantAccountId()))
             .accountNumber(e.getAccountNumber())
             .organisation(isOrganisation)
-            .organisationName(e.getOrganisationName())
+            .organisationName(isOrganisation ? e.getOrganisationName() : null)
             .defendantTitle(isOrganisation ? null : e.getTitle())
             .defendantFirstnames(isOrganisation ? null : e.getForenames())
             .defendantSurname(isOrganisation ? null : e.getSurname())

@@ -379,6 +379,6 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
 
     @Test
     void organisationFlagFiltersResults() throws Exception {
-        super.testPostDefendantAccountsSearch_PO2298_OrganisationFlagRespected(log);
+        super.testPostDefendantAccountsSearch_OrganisationFlagRespected(log);
     }
 }
