@@ -7,18 +7,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
-import uk.gov.hmcts.opal.common.user.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.UserClient;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AppMode;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
-import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(
@@ -37,9 +40,6 @@ import static org.mockito.Mockito.when;
 )
 class TestingSupportControllerTest {
 
-    private static final String TEST_USER_EMAIL = "test@example.com";
-    private static final String TEST_TOKEN = "testToken";
-
     @Autowired
     private TestingSupportController controller;
 
@@ -56,7 +56,7 @@ class TestingSupportControllerTest {
     @MockitoBean DefendantAccountDeletionService defendantAccountDeletionService;
 
     @MockitoBean
-    private UserClient userClient;
+    private UserStateClientService userStateClientService;
 
     @Test
     void getAppMode() {
@@ -90,60 +90,6 @@ class TestingSupportControllerTest {
     }
 
     @Test
-    void getToken_shouldReturnResponse() {
-        // Arrange
-        SecurityToken securityToken = SecurityToken.builder().accessToken(TEST_TOKEN).build();
-        when(userClient.getTestUserToken()).thenReturn(securityToken);
-
-        // Call the controller method
-        ResponseEntity<SecurityToken> responseEntity = controller.getToken();
-
-        // Verify the response
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals(securityToken, responseEntity.getBody());
-    }
-
-    @Test
-    void getToken_shouldHandleExceptions() {
-        // Arrange
-        when(userClient.getTestUserToken())
-            .thenThrow(new RuntimeException("Error!"));
-
-        // Act and Assert
-        assertThrows(
-            RuntimeException.class,
-            () -> controller.getToken()
-        );
-    }
-
-    @Test
-    void getTokenForUser_shouldReturnResponse() {
-        // Arrange
-        SecurityToken securityToken = SecurityToken.builder().accessToken(TEST_TOKEN).build();
-        when(userClient.getTestUserToken(any())).thenReturn(securityToken);
-
-        // Act
-        ResponseEntity<SecurityToken> response = controller.getTokenForUser(TEST_USER_EMAIL);
-
-        // Verify the response
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(securityToken, response.getBody());
-    }
-
-    @Test
-    void getTokenForUser_shouldHandleExceptions() {
-        // Arrange
-        when(userClient.getTestUserToken(TEST_USER_EMAIL))
-            .thenThrow(new RuntimeException("Error!"));
-
-        // Act and Assert
-        assertThrows(
-            RuntimeException.class,
-            () -> controller.getTokenForUser(TEST_USER_EMAIL)
-        );
-    }
-
-    @Test
     void parseToken_shouldReturnEmail() {
         String bearerToken = "Bearer token";
         when(accessTokenService.extractPreferredUsername(bearerToken)).thenReturn("my@email.com");
@@ -152,5 +98,26 @@ class TestingSupportControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("my@email.com", response.getBody());
+    }
+
+    @Test
+    void getUserState_shouldReturnResponse() {
+        UserState userState = UserStateUtil.permissionUser((short) 1, Permissions.ACCOUNT_ENQUIRY);
+        when(userStateClientService.getUserState(1L)).thenReturn(Optional.of(userState));
+
+        ResponseEntity<UserState> response = controller.getUserState(1L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(userState, response.getBody());
+    }
+
+    @Test
+    void getUserState_shouldReturnNotFound() {
+        when(userStateClientService.getUserState(99L)).thenReturn(Optional.empty());
+
+        ResponseEntity<UserState> response = controller.getUserState(99L);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertFalse(response.hasBody());
     }
 }
