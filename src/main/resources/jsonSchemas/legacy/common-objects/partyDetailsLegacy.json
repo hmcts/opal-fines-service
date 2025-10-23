@@ -18,7 +18,6 @@
     }
   },
   "required": [
-    "party_id",
     "organisation_flag"
   ],
   "allOf": [
