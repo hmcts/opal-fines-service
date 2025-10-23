@@ -75,11 +75,11 @@ class OpalDefendantAccountServiceTest {
 
     private final DefendantAccountRepository defendantAccountRepository = mock(DefendantAccountRepository.class);
     private final DefendantAccountSummaryViewRepository dasvRepository = mock(DefendantAccountSummaryViewRepository
-                                                                                  .class);
+        .class);
     private final DefendantAccountHeaderViewRepository dahvRepository = mock(DefendantAccountHeaderViewRepository
-                                                                                 .class);
+        .class);
     private final SearchDefendantAccountRepository searchDefAccRepo = mock(SearchDefendantAccountRepository
-                                                                               .class);
+        .class);
     private final SearchDefendantAccountSpecs searchDefAccSpecs = new SearchDefendantAccountSpecs();
     private final DefendantAccountPaymentTermsRepository paymentTermsRepository = mock(
         DefendantAccountPaymentTermsRepository.class);
@@ -465,33 +465,33 @@ class OpalDefendantAccountServiceTest {
         // Request DTO
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
             .commentsAndNotes(CommentsAndNotes.builder()
-                                  .accountNotesAccountComments("acc comment")
-                                  .accountNotesFreeTextNote1("n1")
-                                  .accountNotesFreeTextNote2("n2")
-                                  .accountNotesFreeTextNote3("n3")
-                                  .build())
+                .accountNotesAccountComments("acc comment")
+                .accountNotesFreeTextNote1("n1")
+                .accountNotesFreeTextNote2("n2")
+                .accountNotesFreeTextNote3("n3")
+                .build())
             .enforcementCourt(CourtReferenceDto.builder()
-                                  .courtId(100)
-                                  .courtName("Central Magistrates")
-                                  .build())
+                .courtId(100)
+                .courtName("Central Magistrates")
+                .build())
             .collectionOrder(CollectionOrderDto.builder()
-                                 .collectionOrderFlag(true)
-                                 .collectionOrderDate("2025-01-01")
-                                 .build())
+                .collectionOrderFlag(true)
+                .collectionOrderDate("2025-01-01")
+                .build())
             .enforcementOverride(EnforcementOverride.builder()
-                                      .enforcementOverrideResult(EnforcementOverrideResult.builder()
-                                                                     .enforcementOverrideId("EO-1")
-                                                                     .enforcementOverrideTitle("Result Title")
-                                                                     .build())
-                                      .enforcer(Enforcer.builder()
-                                                    .enforcerId(Math.toIntExact(22L))
-                                                    .enforcerName("Enforcer A")
-                                                    .build())
-                                      .lja(LJA.builder()
-                                               .ljaId(33)
-                                               .ljaName("LJA Name")
-                                               .build())
-                                      .build())
+                .enforcementOverrideResult(EnforcementOverrideResult.builder()
+                    .enforcementOverrideId("EO-1")
+                    .enforcementOverrideTitle("Result Title")
+                    .build())
+                .enforcer(Enforcer.builder()
+                    .enforcerId(Math.toIntExact(22L))
+                    .enforcerName("Enforcer A")
+                    .build())
+                .lja(LJA.builder()
+                    .ljaId(33)
+                    .ljaName("LJA Name")
+                    .build())
+                .build())
             .build();
 
         // ---------- Act ----------
@@ -602,9 +602,9 @@ class OpalDefendantAccountServiceTest {
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
             .collectionOrder(CollectionOrderDto.builder()
-                                 .collectionOrderFlag(true)
-                                 .collectionOrderDate("not-a-date")
-                                 .build())
+                .collectionOrderFlag(true)
+                .collectionOrderDate("not-a-date")
+                .build())
             .build();
 
         assertThrows(NullPointerException.class, () ->
@@ -707,7 +707,7 @@ class OpalDefendantAccountServiceTest {
             .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("x").build()).build();
 
         assertThrows(ObjectOptimisticLockingFailureException.class,
-                     () -> svc.updateDefendantAccount(77L, "78", req, "\"0\"", "tester"));
+            () -> svc.updateDefendantAccount(77L, "78", req, "\"0\"", "tester"));
         verify(repo, never()).save(any());
     }
 
@@ -775,11 +775,11 @@ class OpalDefendantAccountServiceTest {
 
         var req = UpdateDefendantAccountRequest.builder()
             .enforcementOverride(EnforcementOverride.builder()
-                                      .enforcementOverrideResult(EnforcementOverrideResult.builder()
-                                                                     .enforcementOverrideId("NOPE").build())
-                                      .enforcer(Enforcer.builder().enforcerId(Math.toIntExact(999999L)).build())
-                                      .lja(LJA.builder().ljaId(9999).build())
-                                      .build())
+                .enforcementOverrideResult(EnforcementOverrideResult.builder()
+                    .enforcementOverrideId("NOPE").build())
+                .enforcer(Enforcer.builder().enforcerId(Math.toIntExact(999999L)).build())
+                .lja(LJA.builder().ljaId(9999).build())
+                .build())
             .build();
 
         var resp = svc.updateDefendantAccount(77L, "78", req, "0", "tester");
@@ -884,9 +884,9 @@ class OpalDefendantAccountServiceTest {
         List<AliasDto> aliases = dto.getAliases();
         assertEquals(3, aliases.size());
         assertTrue(aliases.stream().allMatch(a ->
-                                                 a.getOrganisationName() != null
-                                                     && a.getForenames() == null
-                                                     && a.getSurname() == null));
+            a.getOrganisationName() != null
+                && a.getForenames() == null
+                && a.getSurname() == null));
     }
 
     @Test

@@ -102,6 +102,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_id").value("77"))
             .andExpect(jsonPath("$.account_number").value("177A"))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.is_youth").value(false))
             .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("888"))
             .andExpect(jsonPath("$.business_unit_summary.business_unit_id").value("78"))
             .andExpect(jsonPath("$.payment_state_summary.imposed_amount").value(700.58))
@@ -129,6 +131,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_id").value("10001"))
             .andExpect(jsonPath("$.account_number").value("10001A"))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.is_youth").value(false))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Kings Arms"))
             .andExpect(jsonPath("$.party_details.individual_details").doesNotExist());
@@ -1221,7 +1225,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                     "postcode": "MA4 1AL"
                   }
                 }
-                }"""));
+                """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(
@@ -1263,7 +1267,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                     "postcode": "XX99 9XX"
                   }
                 }
-                }"""));
+                """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(
@@ -1303,7 +1307,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                     "national_insurance_number": "A11111A"
                   }
                 }
-                }"""));
+                """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(
@@ -1387,7 +1391,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                     "national_insurance_number": null
                   }
                 }
-                }"""));
+                """));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(
@@ -3088,8 +3092,5 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(false));
     }
-
-
-
 
 }

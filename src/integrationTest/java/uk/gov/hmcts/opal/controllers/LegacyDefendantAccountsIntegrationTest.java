@@ -9,13 +9,13 @@ import org.springframework.test.context.ActiveProfiles;
 @Slf4j(topic = "opal.LegacyDefendantAccountsIntegrationTest")
 class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsControllerIntegrationTest {
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    //@Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetHeaderSummaryInd() throws Exception {
         super.getHeaderSummary_Individual(log);
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+   // @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testGetHeaderSummaryOrg() throws Exception {
         super.getHeaderSummary_Organisation(log);
