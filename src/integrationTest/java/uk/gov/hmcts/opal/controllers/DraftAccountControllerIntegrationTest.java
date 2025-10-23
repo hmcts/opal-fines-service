@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -38,8 +38,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noPermissionsUser;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 @ActiveProfiles({"integration"})
@@ -66,7 +66,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get Draft Account by ID [@PO-973, @PO-559]")
     void testGetDraftAccountById_success() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/1")
                                                .header("authorization", "Bearer some_value"));
@@ -94,7 +94,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Get draft accounts summaries - No query params [@PO-973, @PO-606]")
     void testGetDraftAccountsSummaries_noParams() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions =  mockMvc.perform(get(URL_BASE)
                                           .header("authorization", "Bearer some_value")
@@ -120,7 +120,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get draft accounts summaries - Param business unit [@PO-973, @PO-606]")
     void testGetDraftAccountsSummaries_paramBusinessUnit() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                                           .header("authorization", "Bearer some_value")
@@ -147,7 +147,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get draft accounts summaries - Params for status dates from and to")
     void testGetDraftAccountsSummaries_paramStatusDate() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         LocalDate fromDate = LocalDate.of(2025, 02, 03);
         LocalDate toDate = LocalDate.of(2025, 02, 03);
@@ -178,7 +178,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get draft accounts summaries - Param status [@PO-973, @PO-606]")
     void testGetDraftAccountsSummaries_paramStatus() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                                           .header("authorization", "Bearer some_value")
@@ -204,7 +204,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get draft accounts summaries - Param submitted by [@PO-973, @PO-606]")
     void testGetDraftAccountsSummaries_paramSubmittedBy() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                                           .header("authorization", "Bearer some_value")
@@ -231,7 +231,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetDraftAccountsSummaries_paramNotSubmittedBy() throws Exception {
 
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
                                           .header("authorization", "Bearer some_value")
@@ -257,7 +257,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get draft account summaries - Single business unit permission, no filter [@PO-973, @PO-829]")
     void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits1() throws Exception {
 
-        UserState user = permissionUser(BU_ID, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        UserState user = permissionUser(BU_ID, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
@@ -281,7 +281,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get draft account summaries - Multiple BU permissions, filtered to BU 73 [@PO-973, @PO-829]")
     void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits2() throws Exception {
 
-        UserState user = permissionUser(new Short[] {BU_ID, (short)77}, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        UserState user = permissionUser(new Short[] {BU_ID, (short)77}, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
@@ -306,7 +306,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get draft account summaries - Multiple BU permissions, no filter [@PO-973, @PO-829]")
     void testGetDraftAccountsSummaries_permissionRestrictedBusinessUnits3() throws Exception {
 
-        UserState user = permissionUser(new Short[] {BU_ID, (short)77}, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        UserState user = permissionUser(new Short[] {BU_ID, (short)77}, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
@@ -385,7 +385,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Replace draft account - Should return updated draft account [@PO-973, @PO-746]")
     void testReplaceDraftAccount_success() throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
         String requestBody = validReplaceRequestBody(0L);
         log.info(":testReplaceDraftAccount_success: Request Body:\n{}", ToJsonString.toPrettyJson(requestBody));
 
@@ -475,7 +475,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void testPostDraftAccount_permission() throws Exception {
 
         String validRequestBody = validRawJsonCreateRequestBody();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
                                                .header("authorization", "Bearer some_value")
@@ -500,7 +500,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         String request = validCreateRequestBody()
             .replace("\"submitted_by_name\": \"John\"", "\"submitted_by_name\": \"\"");
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(post(URL_BASE)
                 .header("Authorization", "Bearer some_value")
@@ -515,7 +515,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         String request = validCreateRequestBody()
             .replace("\"submitted_by\": \"BUUID1\"", "\"submitted_by\": \"\"");
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(post(URL_BASE)
                 .header("Authorization", "Bearer some_value")
@@ -530,7 +530,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         String request = validCreateRequestBody()
             .replace("\"account_type\": \"Fines\"", "\"account_type\": \"\"");
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(post(URL_BASE)
                 .header("Authorization", "Bearer some_value")
@@ -544,7 +544,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Update draft account - Should return updated account details [@PO-973, @PO-745]")
     void testUpdateDraftAccount_success() throws Exception {
         Long draftAccountId = 8L; // not touched by any other PATCH/PUT test
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
             .header("authorization", "Bearer some_value")
@@ -570,7 +570,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Update draft account - If-Match Conflict [@PO-2117]")
     void testUpdateDraftAccount_conflict() throws Exception {
         Long draftAccountId = 6L;
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
             .header("authorization", "Bearer some_value")
@@ -592,7 +592,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Patch draft account - user with CHECK_VALIDATE permission should succeed [@PO-1820]")
     void testPatchDraftAccount_withCheckValidatePermission_shouldSucceed() throws Exception {
         Long draftAccountId = 7L; // not touched by any other PATCH/PUT test
-        UserState user = permissionUser((short)78, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+        UserState user = permissionUser((short)78, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
@@ -617,7 +617,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Patch draft account - user with Publish Pending permission should succeed [@PO-991]")
     void testPatchDraftAccount_withPublishPending_shouldSucceed() throws Exception {
         Long draftAccountId = 9L; // not touched by any other PATCH/PUT test
-        UserState user = permissionUser((short)65, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+        UserState user = permissionUser((short)65, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
@@ -643,7 +643,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Patch draft account - user with CREATE_MANAGE permission should be forbidden [@PO-1820]")
     void testPatchDraftAccount_withCreateManagePermission_shouldFail403() throws Exception {
         Long draftAccountId = 6L;
-        UserState user = permissionUser((short)78, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        UserState user = permissionUser((short)78, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
         ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
@@ -668,7 +668,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get draft account by ID - User with wrong permission [@PO-973, @PO-828]")
     void testGetDraftAccountById_trap403Response_wrongPermission() throws Exception {
 
-        UserState userState = permissionUser(BU_ID, Permissions.COLLECTION_ORDER);
+        UserState userState = permissionUser(BU_ID, FinesPermission.COLLECTION_ORDER);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
         ResultActions actions = mockMvc.perform(get(URL_BASE + "/2")
@@ -691,7 +691,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Get draft account by ID - user with wrong permission for business unit [@PO-973, @PO-828]")
     void testGetDraftAccountById_trap403Response_wrongBusinessUnit() throws Exception {
 
-        UserState userState = permissionUser((short)005, Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+        UserState userState = permissionUser((short)005, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
 
         ResultActions resultActions = mockMvc.perform(
@@ -716,7 +716,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetDraftAccountsSummaries_trap403Response_noPermission() throws Exception {
         final Short businessId = (short)1;
 
-        UserState user = permissionUser(businessId, Permissions.COLLECTION_ORDER);
+        UserState user = permissionUser(businessId, FinesPermission.COLLECTION_ORDER);
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
@@ -732,7 +732,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Get draft account by ID - Should return 404 Not Found [@PO-973, @PO-690]")
     void testGetDraftAccountById_trap404Response() throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(get(URL_BASE + "/99")
                     .header("authorization", "Bearer some_value"))
@@ -754,7 +754,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetDraftAccountsSummaries_trap400Response() throws Exception {
         final Short businessId = (short)1;
 
-        UserState user = permissionUser(businessId, Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        UserState user = permissionUser(businessId, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(user);
 
@@ -783,7 +783,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void testReplaceDraftAccount_trap403Response_noPermission() throws Exception {
         Long draftAccountId = 241L;
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noFinesPermissionUser());
 
         mockMvc.perform(put(URL_BASE + "/" + draftAccountId)
                 .header("authorization", "Bearer some_value")
@@ -807,7 +807,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             + "\n"
             + "            }";
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noFinesPermissionUser());
 
         mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                 .header("authorization", "Bearer some_value")
@@ -826,7 +826,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             "JSON Schema Validation Error: Validating against JSON schema 'addDraftAccountRequest.json',"
                 + " found 15 validation errors:";
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
                             .header("authorization", "Bearer some_value")
@@ -849,7 +849,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void testPostDraftAccount_trap403Response_noPermission() throws Exception {
 
         String validRequestBody = validCreateRequestBody();
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
                                                .header("authorization", "Bearer some_value")
@@ -877,7 +877,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         String validRequestBody = validCreateRequestBody();
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
-            permissionUser((short)5, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS, Permissions.ACCOUNT_ENQUIRY));
+            permissionUser((short)5, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS, FinesPermission.ACCOUNT_ENQUIRY));
 
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
                                                 .header("authorization", "Bearer some_value")
@@ -904,7 +904,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void methodsShouldReturn400_whenRequestPayloadIsInvalid(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(requestBuilder
                             .header("Authorization", "Bearer some_value")
@@ -927,7 +927,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void methodsShouldReturn403_whenUserLacksPermission(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noFinesPermissionUser());
 
         ResultActions resultActions = mockMvc.perform(requestBuilder
             .header("Authorization", "Bearer some_value")
@@ -963,7 +963,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         long nonExistentId = 999L;
 
         // Mock the service behavior
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         mockMvc.perform(requestBuilder
                 .header("Authorization", "Bearer some_value")
@@ -987,7 +987,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     void methodsShouldReturn406_whenAcceptHeaderIsNotSupported(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
         mockMvc.perform(requestBuilder
                 .header("Authorization", "Bearer some_value")
                 .header("Accept", "application/xml")

@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.controllers.util;
 
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 
 import java.util.Arrays;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class UserStateUtil {
 
-    public static final UserState noPermissionsUser() {
+    public static final UserState noFinesPermissionUser() {
         return UserState.builder()
             .userId(999L)
             .userName("no-permissions@users.com")
@@ -21,11 +21,19 @@ public class UserStateUtil {
             .build();
     }
 
-    public static final UserState allPermissionsUser() {
+    public static UserState allFinesPermissionUser() {
         return new UserState.DeveloperUserState();
     }
 
-    public static final UserState permissionUser(Short buid, Permissions... permissions) {
+    public static UserState allPermissionsUser() {
+        return allFinesPermissionUser();
+    }
+
+    public static UserState noPermissionsUser() {
+        return noFinesPermissionUser();
+    }
+
+    public static UserState permissionUser(Short buid, FinesPermission... permissions) {
         return UserState.builder()
             .userId(1L)
             .userName("normal@users.com")
@@ -33,7 +41,7 @@ public class UserStateUtil {
             .build();
     }
 
-    public static final UserState permissionUser(Short[] buids, Permissions... permissions) {
+    public static UserState permissionUser(Short[] buids, FinesPermission... permissions) {
         return UserState.builder()
             .userId(1L)
             .userName("normal@users.com")
@@ -45,7 +53,7 @@ public class UserStateUtil {
             .build();
     }
 
-    public static final UserState permissionUser(Short buid, Permission... permissions) {
+    public static UserState permissionUser(Short buid, Permission... permissions) {
         return UserState.builder()
             .userId(1L)
             .userName("normal@users.com")
@@ -53,7 +61,7 @@ public class UserStateUtil {
             .build();
     }
 
-    public static final UserState permissionUser(Set<BusinessUnitUser> permissions) {
+    public static UserState permissionUser(Set<BusinessUnitUser> permissions) {
         return UserState.builder()
             .userId(1L)
             .userName("normal@users.com")
@@ -61,11 +69,11 @@ public class UserStateUtil {
             .build();
     }
 
-    public static final BusinessUnitUser permissions(Short buid, Permission... permissions) {
+    public static BusinessUnitUser permissions(Short buid, Permission... permissions) {
         return permissions(buid, new HashSet<>(Arrays.asList(permissions)));
     }
 
-    public static final BusinessUnitUser permissions(Short buid, Set<Permission> permissions) {
+    public static BusinessUnitUser permissions(Short buid, Set<Permission> permissions) {
         return BusinessUnitUser.builder()
             .businessUnitUserId("USER01")
             .businessUnitId(buid)
@@ -73,12 +81,17 @@ public class UserStateUtil {
             .build();
     }
 
-    public static final Set<Permission> permissionsFor(Permissions... permissions) {
-        return Arrays.stream(permissions).map(p -> new Permission(p.id, p.description)).collect(Collectors.toSet());
+    public static Set<Permission> permissionsFor(FinesPermission... permissions) {
+        return Arrays.stream(permissions)
+            .map(UserStateUtil::permissionFor)
+            .collect(Collectors.toSet());
     }
 
-    public static final Permission permissionFor(Permissions p) {
-        return new Permission(p.id, p.description);
+    public static Permission permissionFor(FinesPermission permission) {
+        return Permission.builder()
+            .permissionId(permission.getId())
+            .permissionName(permission.getDescription())
+            .build();
     }
 
 }
