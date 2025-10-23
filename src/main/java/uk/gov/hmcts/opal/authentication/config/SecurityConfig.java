@@ -1,11 +1,6 @@
 package uk.gov.hmcts.opal.authentication.config;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,18 +22,12 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtIss
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.web.filter.OncePerRequestFilter;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
-import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationPropertiesStrategy;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthProviderConfigurationProperties;
-import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
-import uk.gov.hmcts.opal.exception.OpalApiException;
 
-import java.io.IOException;
 import java.util.Map;
 
 
-@Slf4j(topic = "SecurityConfig")
 @Configuration
 @EnableWebSecurity
 //@EnableWebSecurity(debug = true)
@@ -46,9 +35,6 @@ import java.util.Map;
 @Profile("!integration")
 public class SecurityConfig {
 
-    private final AuthStrategySelector locator;
-
-    private final InternalAuthConfigurationPropertiesStrategy fallbackConfiguration;
     private final InternalAuthConfigurationProperties internalAuthConfigurationProperties;
     private final InternalAuthProviderConfigurationProperties internalAuthProviderConfigurationProperties;
     private final AuthenticationEntryPoint customAuthenticationEntryPoint;
@@ -65,9 +51,6 @@ public class SecurityConfig {
         "/info",
         "/metrics",
         "/metrics/**",
-        "/internal-user/login-or-refresh",
-        "/internal-user/logout",
-        "/internal-user/handle-oauth-code",
         "/testing-support/**",
         "/s2s/**",
         "/"
@@ -127,24 +110,4 @@ public class SecurityConfig {
 
         return Map.entry(issuer, authenticationProvider::authenticate);
     }
-
-    private class AuthorisationTokenExistenceFilter extends OncePerRequestFilter {
-
-        @Override
-        protected void doFilterInternal(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        FilterChain filterChain
-        ) throws ServletException, IOException {
-
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer")) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            log.warn(".AuthorisationTokenExistenceFilter:doFilterInternal: No Bearer Token.");
-            throw new OpalApiException(AuthenticationError.FAILED_TO_OBTAIN_ACCESS_TOKEN);
-        }
-    }
-
 }
