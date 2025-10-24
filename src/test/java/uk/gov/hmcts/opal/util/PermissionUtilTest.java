@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 
 import java.util.Collections;
@@ -18,15 +18,15 @@ public class PermissionUtilTest {
 
     @Test
     void testCheckBusinessUnitUserHasPermission_success() {
-        BusinessUnitUser businessUnitUser = createBusinessUnitUser(createSinglePermissions(2L));
-        Permissions permission = Permissions.ACCOUNT_ENQUIRY_NOTES;
+        BusinessUnitUser businessUnitUser = createBusinessUnitUser(createSingleFinesPermission(2L));
+        FinesPermission permission = FinesPermission.ACCOUNT_ENQUIRY_NOTES;
         assertTrue(PermissionUtil.checkBusinessUnitUserHasPermission(businessUnitUser, permission));
     }
 
     @Test
     void testCheckBusinessUnitUserHasPermission_fail1() {
         BusinessUnitUser businessUnitUser = createBusinessUnitUser(Collections.emptySet());
-        Permissions permission = Permissions.ACCOUNT_ENQUIRY;
+        FinesPermission permission = FinesPermission.ACCOUNT_ENQUIRY;
         AccessDeniedException ade = assertThrows(
             AccessDeniedException.class,
             () -> PermissionUtil.checkBusinessUnitUserHasPermission(businessUnitUser, permission));
@@ -35,8 +35,8 @@ public class PermissionUtilTest {
 
     @Test
     void testCheckBusinessUnitUserHasPermission_fail2() {
-        BusinessUnitUser businessUnitUser = createBusinessUnitUser(createSinglePermissions(2L));
-        Permissions permission = Permissions.ACCOUNT_ENQUIRY;
+        BusinessUnitUser businessUnitUser = createBusinessUnitUser(createSingleFinesPermission(2L));
+        FinesPermission permission = FinesPermission.ACCOUNT_ENQUIRY;
         AccessDeniedException ade = assertThrows(
             AccessDeniedException.class,
             () -> PermissionUtil.checkBusinessUnitUserHasPermission(businessUnitUser, permission));
@@ -45,15 +45,15 @@ public class PermissionUtilTest {
 
     @Test
     void testCheckAnyBusinessUnitUserHasPermission_success() {
-        UserState userState = createUserState(Set.of(createBusinessUnitUser(createSinglePermissions(2L))));
-        Permissions permission = Permissions.ACCOUNT_ENQUIRY_NOTES;
+        UserState userState = createUserState(Set.of(createBusinessUnitUser(createSingleFinesPermission(2L))));
+        FinesPermission permission = FinesPermission.ACCOUNT_ENQUIRY_NOTES;
         assertTrue(PermissionUtil.checkAnyBusinessUnitUserHasPermission(userState, permission));
     }
 
     @Test
     void testCheckAnyBusinessUnitUserHasPermission_fail1() {
         UserState userState = createUserState(Set.of(createBusinessUnitUser(Collections.emptySet())));
-        Permissions permission = Permissions.ACCOUNT_ENQUIRY;
+        FinesPermission permission = FinesPermission.ACCOUNT_ENQUIRY;
         AccessDeniedException ade = assertThrows(
             AccessDeniedException.class,
             () -> PermissionUtil.checkAnyBusinessUnitUserHasPermission(userState, permission));
@@ -62,8 +62,8 @@ public class PermissionUtilTest {
 
     @Test
     void testCheckAnyBusinessUnitUserHasPermission_fail2() {
-        UserState userState = createUserState(Set.of(createBusinessUnitUser(createSinglePermissions(50L))));
-        Permissions permission = Permissions.ACCOUNT_ENQUIRY;
+        UserState userState = createUserState(Set.of(createBusinessUnitUser(createSingleFinesPermission(50L))));
+        FinesPermission permission = FinesPermission.ACCOUNT_ENQUIRY;
         AccessDeniedException ade = assertThrows(
             AccessDeniedException.class,
             () -> PermissionUtil.checkAnyBusinessUnitUserHasPermission(userState, permission));
@@ -86,7 +86,7 @@ public class PermissionUtilTest {
             .build();
     }
 
-    private static Set<Permission> createSinglePermissions(long id) {
+    private static Set<Permission> createSingleFinesPermission(long id) {
         return Set.of(createPermission(id, "any desc"));
     }
 

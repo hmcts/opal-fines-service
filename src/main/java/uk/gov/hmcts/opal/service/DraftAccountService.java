@@ -10,7 +10,7 @@ import org.springframework.transaction.UnexpectedRollbackException;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
@@ -64,19 +64,19 @@ public class DraftAccountService {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
+        if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
             DraftAccountEntity response = draftAccountTransactional.getDraftAccount(draftAccountId);
             Short buId = response.getBusinessUnit().getBusinessUnitId();
 
-            if (userState.hasBusinessUnitUserWithAnyPermission(buId, Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
+            if (userState.hasBusinessUnitUserWithAnyPermission(buId, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
                 return toGetResponseDto(response);
 
             } else {
-                throw new PermissionNotAllowedException(buId, Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+                throw new PermissionNotAllowedException(buId, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
 
             }
         } else {
-            throw new PermissionNotAllowedException(Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+            throw new PermissionNotAllowedException(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
 
         }
     }
@@ -88,7 +88,7 @@ public class DraftAccountService {
         String authHeaderValue) {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
-        if (userState.anyBusinessUnitUserHasAnyPermission(Permissions.DRAFT_ACCOUNT_PERMISSIONS)) {
+        if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
 
             List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
             List<String> notSubmitted = optionalNotSubmittedBys.orElse(Collections.emptyList());
@@ -110,7 +110,7 @@ public class DraftAccountService {
 
             List<DraftAccountEntity> filtered = entities.stream()
                 .filter(e -> userState.hasBusinessUnitUserWithAnyPermission(
-                    e.getBusinessUnit().getBusinessUnitId(), Permissions.DRAFT_ACCOUNT_PERMISSIONS))
+                    e.getBusinessUnit().getBusinessUnitId(), FinesPermission.DRAFT_ACCOUNT_PERMISSIONS))
                 .toList();
 
             log.debug(":getDraftAccounts: filtered summaries count: {}", filtered.size());
@@ -122,7 +122,7 @@ public class DraftAccountService {
                         filtered.stream().map(this::toSummaryDto).toList()
                     ).build();
         } else {
-            throw new PermissionNotAllowedException(Permissions.DRAFT_ACCOUNT_PERMISSIONS);
+            throw new PermissionNotAllowedException(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
         }
     }
 
@@ -156,7 +156,7 @@ public class DraftAccountService {
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
-                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
+                                                        FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
             DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(dto);
@@ -165,7 +165,7 @@ public class DraftAccountService {
             return toGetResponseDto(entity);
 
         } else {
-            throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+            throw new PermissionNotAllowedException(FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         }
 
     }
@@ -177,7 +177,7 @@ public class DraftAccountService {
         jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
 
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
-                                                        Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
+                                                        FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
             DraftAccountEntity replacedEntity = draftAccountTransactional
                 .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch);
             verifyUpdated(replacedEntity, dto, draftAccountId, "replaceDraftAccount");
@@ -185,7 +185,7 @@ public class DraftAccountService {
 
             return toGetResponseDto(replacedEntity);
         } else {
-            throw new PermissionNotAllowedException(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+            throw new PermissionNotAllowedException(FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         }
     }
 
@@ -199,7 +199,7 @@ public class DraftAccountService {
 
         log.info(":updateDraftAccount: unit user: {}", unitUser);
 
-        if (UserState.userHasPermission(unitUser, Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
+        if (UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
 
             DraftAccountEntity updatedEntity = draftAccountTransactional
                 .updateDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch);
@@ -213,7 +213,7 @@ public class DraftAccountService {
 
             return toGetResponseDto(updatedEntity);
         } else {
-            throw new PermissionNotAllowedException(Permissions.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+            throw new PermissionNotAllowedException(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
         }
     }
 

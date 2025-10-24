@@ -9,7 +9,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
@@ -102,7 +102,7 @@ class TestingSupportControllerTest {
 
     @Test
     void getUserState_shouldReturnResponse() {
-        UserState userState = UserStateUtil.permissionUser((short) 1, Permissions.ACCOUNT_ENQUIRY);
+        UserState userState = UserStateUtil.permissionUser((short) 1, FinesPermission.ACCOUNT_ENQUIRY);
         when(userStateClientService.getUserState(1L)).thenReturn(Optional.of(userState));
 
         ResponseEntity<UserState> response = controller.getUserState(1L);
