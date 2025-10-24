@@ -67,8 +67,25 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(47));
+            .andExpect(jsonPath("$.count").value(48));
 
         jsonSchemaValidationService.validateOrError(body, GET_PROSECUTORS_REF_DATA_RESPONSE);
     }
+
+    @Test
+    @DisplayName("Get Prosecutor By ID returns full 60-char address_line_1 [@PO-1787]")
+    void testGetProsecutorById_WithSixtyCharAddressLine1() throws Exception {
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/9990")); // 009990 == 9990
+        String expected = "123456789012345678901234567890123456789012345678901234567890";
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.prosecutor_id").value(9990L))
+            .andExpect(jsonPath("$.prosecutor_code").value("AA04"))
+            .andExpect(jsonPath("$.name").value("AA4 Boundary Prosecutor"))
+            .andExpect(jsonPath("$.address_line_1").value(expected))
+            .andExpect(jsonPath("$.address_line_2").value("Boundaryville"))
+            .andExpect(jsonPath("$.address_line_3").value("Boundaryton"));
+    }
+
 }
