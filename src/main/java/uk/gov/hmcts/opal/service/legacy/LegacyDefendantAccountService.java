@@ -1,5 +1,10 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +62,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 
@@ -152,55 +158,57 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private DefendantAccountHeaderSummary toHeaderSumaryDto(
         LegacyGetDefendantAccountHeaderSummaryResponse response) {
 
-        LegacyPartyDetails legacyParty = response.getPartyDetails();
+        var legacyParty = response.getPartyDetails();
         PartyDetails opalPartyDetails = null;
 
         if (legacyParty != null) {
-            uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails legacyOrg = legacyParty.getOrganisationDetails();
-            uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails legacyInd = legacyParty.getIndividualDetails();
+            var legacyOrg = legacyParty.getOrganisationDetails();
+            var legacyInd = legacyParty.getIndividualDetails();
 
-            java.util.List<OrganisationAlias> orgAliases = null;
-            if (legacyOrg != null && legacyOrg.getOrganisationAliases() != null) {
-                orgAliases = java.util.Arrays.stream(legacyOrg.getOrganisationAliases())
-                    .map(a -> OrganisationAlias.builder()
-                        .aliasId(a.getAliasId())
-                        .sequenceNumber(a.getSequenceNumber() != null ? a.getSequenceNumber().intValue() : null)
-                        .organisationName(a.getOrganisationName())
-                        .build())
-                    .collect(java.util.stream.Collectors.toList());
-            }
+            List<OrganisationAlias> orgAliases = (legacyOrg != null && legacyOrg.getOrganisationAliases() != null)
+                ? Arrays.stream(legacyOrg.getOrganisationAliases())
+                .filter(a -> a.getAliasId() != null && a.getOrganisationName() != null)
+                .map(a -> OrganisationAlias.builder()
+                    .aliasId(a.getAliasId())
+                    .sequenceNumber(a.getSequenceNumber() != null ? a.getSequenceNumber().intValue() : null)
+                    .organisationName(a.getOrganisationName())
+                    .build())
+                .collect(Collectors.toList())
+                : Collections.emptyList();
 
-            OrganisationDetails opalOrg = legacyOrg == null ? null
-                : OrganisationDetails.builder()
-                    .organisationName(legacyOrg.getOrganisationName())
-                    .organisationAliases(orgAliases)
-                    .build();
+            List<IndividualAlias> indAliases = (legacyInd != null && legacyInd.getIndividualAliases() != null)
+                ? Arrays.stream(legacyInd.getIndividualAliases())
+                .filter(a -> a.getAliasId() != null)
+                .map(a -> IndividualAlias.builder()
+                    .aliasId(a.getAliasId())
+                    .sequenceNumber(a.getSequenceNumber() != null ? a.getSequenceNumber().intValue() : null)
+                    .surname(a.getSurname())
+                    .forenames(a.getForenames())
+                    .build())
+                .collect(Collectors.toList())
+                : Collections.emptyList();
 
-            java.util.List<IndividualAlias> indAliases = null;
-            if (legacyInd != null && legacyInd.getIndividualAliases() != null) {
-                indAliases = java.util.Arrays.stream(legacyInd.getIndividualAliases())
-                    .map(a -> IndividualAlias.builder()
-                        .aliasId(a.getAliasId())
-                        .sequenceNumber(a.getSequenceNumber() != null ? a.getSequenceNumber().intValue() : null)
-                        .surname(a.getSurname())
-                        .forenames(a.getForenames())
-                        .build())
-                    .collect(java.util.stream.Collectors.toList());
-            }
+            OrganisationDetails opalOrg = Boolean.TRUE.equals(legacyParty.getOrganisationFlag()) && legacyOrg != null
+                ? OrganisationDetails.builder()
+                .organisationName(legacyOrg.getOrganisationName())
+                .organisationAliases(orgAliases)
+                .build()
+                : null;
 
-            IndividualDetails opalInd = legacyInd == null ? null
-                : IndividualDetails.builder()
-                    .title(legacyInd.getTitle())
-                    .forenames(legacyInd.getFirstNames())
-                    .surname(legacyInd.getSurname())
-                    .dateOfBirth(legacyInd.getDateOfBirth() != null ? legacyInd.getDateOfBirth().toString() : null)
-                    .age(legacyInd.getAge())
-                    .nationalInsuranceNumber(legacyInd.getNationalInsuranceNumber())
-                    .individualAliases(indAliases)
-                    .build();
+            IndividualDetails opalInd = !Boolean.TRUE.equals(legacyParty.getOrganisationFlag()) && legacyInd != null
+                ? IndividualDetails.builder()
+                .title(legacyInd.getTitle())
+                .forenames(legacyInd.getFirstNames())
+                .surname(legacyInd.getSurname())
+                .dateOfBirth(legacyInd.getDateOfBirth() != null ? legacyInd.getDateOfBirth().toString() : null)
+                .age(legacyInd.getAge())
+                .nationalInsuranceNumber(legacyInd.getNationalInsuranceNumber())
+                .individualAliases(indAliases)
+                .build()
+                : null;
 
             opalPartyDetails = PartyDetails.builder()
-                .partyId(legacyParty.getDefendantAccountPartyId())
+                .partyId(legacyParty.getPartyId())
                 .organisationFlag(legacyParty.getOrganisationFlag())
                 .organisationDetails(opalOrg)
                 .individualDetails(opalInd)
@@ -217,9 +225,14 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         AccountStatusReference status = response.getAccountStatusReference() == null ? null
             : AccountStatusReference.builder()
                 .accountStatusCode(response.getAccountStatusReference().getAccountStatusCode())
-                .accountStatusDisplayName(response.getAccountStatusReference().getAccountStatusDisplayName())
+                .accountStatusDisplayName(
+                    Optional.ofNullable(response.getAccountStatusReference().getAccountStatusDisplayName())
+                        .orElse(SpecificationUtils.mapAccountStatusDisplayName(
+                            response.getAccountStatusReference().getAccountStatusCode()))
+                )
                 .build();
 
+        // ----- Payment State Summary (never null numbers) -----
         PaymentStateSummary pay = response.getPaymentStateSummary() == null ? null
             : PaymentStateSummary.builder()
                 .imposedAmount(toBigDecimalOrZero(response.getPaymentStateSummary().getImposedAmount()))
@@ -229,9 +242,13 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .build();
 
         return DefendantAccountHeaderSummary.builder()
+            .version(response.getVersion() != null ? response.getVersion().longValue() : 1L)
+            .defendantAccountId(response.getDefendantAccountId())
             .accountNumber(response.getAccountNumber())
             .defendantPartyId(response.getDefendantPartyId())
             .parentGuardianPartyId(response.getParentGuardianPartyId())
+            .debtorType(Optional.ofNullable(response.getDebtorType()).orElse("Defendant"))
+            .isYouth(Optional.ofNullable(response.getIsYouth()).orElse(Boolean.FALSE))
             .accountStatusReference(status)
             .accountType(response.getAccountType())
             .prosecutorCaseReference(response.getProsecutorCaseReference())
@@ -241,6 +258,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .partyDetails(opalPartyDetails)
             .build();
     }
+
 
     private static BigDecimal toBigDecimalOrZero(Object input) {
         if (input == null) {
@@ -624,7 +642,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
         Boolean org = src.getOrganisationFlag();
         return PartyDetails.builder()
-            .partyId(src.getDefendantAccountPartyId())
+            .partyId(src.getPartyId())
             .organisationFlag(org)
             .organisationDetails(Boolean.TRUE.equals(org) ? toOrganisationDetails(src.getOrganisationDetails()) : null)
             .individualDetails(!Boolean.TRUE.equals(org) ? toIndividualDetails(src.getIndividualDetails()) : null)
@@ -800,5 +818,4 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
             "Update Defendant Account is not implemented in legacy mode");
     }
-
 }

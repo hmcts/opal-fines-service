@@ -5,12 +5,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.authentication.client.AzureTokenClient;
-import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.exception.AuthenticationError;
-import uk.gov.hmcts.opal.common.user.authentication.model.AccessTokenRequest;
-import uk.gov.hmcts.opal.common.user.authentication.model.AccessTokenResponse;
-import uk.gov.hmcts.opal.config.properties.TestUser;
 import uk.gov.hmcts.opal.exception.OpalApiException;
 
 import java.text.ParseException;
@@ -28,34 +23,7 @@ public class AccessTokenService {
     public static final String UPN_NAME_KEY = "upn";
     public static final String BEARER_PREFIX = "Bearer ";
 
-    private final InternalAuthConfigurationProperties configuration;
-    private final AzureTokenClient azureTokenClient;
     private final TokenValidator tokenValidator;
-    private final TestUser testUser;
-
-    public AccessTokenResponse getTestUserToken() {
-        return getAccessToken(testUser.getEmail(), testUser.getPassword());
-    }
-
-    public AccessTokenResponse getTestUserToken(String userEmail) {
-        return getAccessToken(userEmail, testUser.getPassword());
-    }
-
-    public AccessTokenResponse getAccessToken(String userName, String password) {
-
-        AccessTokenRequest tokenRequest = AccessTokenRequest.builder()
-            .grantType("password")
-            .clientId(configuration.getClientId())
-            .clientSecret(configuration.getClientSecret())
-            .scope(configuration.getScope())
-            .username(userName)
-            .password(password)
-            .build();
-
-        return azureTokenClient.getAccessToken(
-            tokenRequest
-        );
-    }
 
     public String extractPreferredUsername(String accessToken) {
         return extractClaim(accessToken, PREFERRED_USERNAME_KEY);
