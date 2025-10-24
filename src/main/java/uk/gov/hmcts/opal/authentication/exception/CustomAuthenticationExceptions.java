@@ -52,4 +52,3 @@ public class CustomAuthenticationExceptions implements AuthenticationEntryPoint,
         }
     }
 }
-

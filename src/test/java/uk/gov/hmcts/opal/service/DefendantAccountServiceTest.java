@@ -9,7 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -53,7 +53,7 @@ class DefendantAccountServiceTest {
 
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(headerSummary);
 
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allFinesPermissionUser());
         // Act
         DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L, "authHeaderValue");
 
@@ -69,7 +69,7 @@ class DefendantAccountServiceTest {
         String authHeader = "Bearer abc";
         GetDefendantAccountPaymentTermsResponse proxyResponse = new GetDefendantAccountPaymentTermsResponse();
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountServiceProxy.getPaymentTerms(defendantAccountId)).thenReturn(proxyResponse);
 
         // act
@@ -81,7 +81,7 @@ class DefendantAccountServiceTest {
 
         // verify interactions
         verify(userStateService).checkForAuthorisedUser(authHeader);
-        verify(userState).anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
+        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountServiceProxy).getPaymentTerms(defendantAccountId);
         verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
     }
@@ -92,7 +92,7 @@ class DefendantAccountServiceTest {
         Long defendantAccountId = 77L;
         String authHeader = "Bearer abc";
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         // act + assert
         PermissionNotAllowedException ex = assertThrows(
@@ -100,13 +100,13 @@ class DefendantAccountServiceTest {
             () -> defendantAccountService.getPaymentTerms(defendantAccountId, authHeader)
         );
         assertTrue(
-            ex.getMessage() == null || ex.getMessage().contains(Permissions.SEARCH_AND_VIEW_ACCOUNTS.name()),
+            ex.getMessage() == null || ex.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.name()),
             "Exception should mention the denied permission"
         );
 
         // proxy must not be called
         verify(userStateService).checkForAuthorisedUser(authHeader);
-        verify(userState).anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
+        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountServiceProxy);
         verifyNoMoreInteractions(userStateService, userState);
     }
@@ -136,8 +136,8 @@ class DefendantAccountServiceTest {
                     .businessUnitId((short)77)
                     .permissions(java.util.Set.of(
                         new Permission(
-                            Permissions.SEARCH_AND_VIEW_ACCOUNTS.id,
-                            Permissions.SEARCH_AND_VIEW_ACCOUNTS.description
+                            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.getId(),
+                            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.getDescription()
                         )
                     ))
                     .build()
@@ -182,8 +182,8 @@ class DefendantAccountServiceTest {
                     .businessUnitId((short) 77)
                     .permissions(java.util.Set.of(
                         Permission.builder()
-                            .permissionId(Permissions.SEARCH_AND_VIEW_ACCOUNTS.id)
-                            .permissionName(Permissions.SEARCH_AND_VIEW_ACCOUNTS.name())
+                            .permissionId(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.getId())
+                            .permissionName(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.name())
                             .build()
                     ))
                     .build()
@@ -211,7 +211,7 @@ class DefendantAccountServiceTest {
         String authHeader = "Bearer abc";
         DefendantAccountAtAGlanceResponse proxyResponse = new DefendantAccountAtAGlanceResponse();
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountServiceProxy.getAtAGlance(defendantAccountId)).thenReturn(proxyResponse);
 
         // act
@@ -223,7 +223,7 @@ class DefendantAccountServiceTest {
 
         // verify interactions
         verify(userStateService).checkForAuthorisedUser(authHeader);
-        verify(userState).anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
+        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountServiceProxy).getAtAGlance(defendantAccountId);
         verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
     }
@@ -234,7 +234,7 @@ class DefendantAccountServiceTest {
         Long defendantAccountId = 77L;
         String authHeader = "Bearer abc";
         when(userStateService.checkForAuthorisedUser(authHeader)).thenReturn(userState);
-        when(userState.anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         // act + assert
         PermissionNotAllowedException ex = assertThrows(
@@ -242,13 +242,13 @@ class DefendantAccountServiceTest {
             () -> defendantAccountService.getAtAGlance(defendantAccountId, authHeader)
         );
         assertTrue(
-            ex.getMessage() == null || ex.getMessage().contains(Permissions.SEARCH_AND_VIEW_ACCOUNTS.name()),
+            ex.getMessage() == null || ex.getMessage().contains(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.name()),
             "Exception should mention the denied permission"
         );
 
         // proxy must not be called
         verify(userStateService).checkForAuthorisedUser(authHeader);
-        verify(userState).anyBusinessUnitUserHasPermission(Permissions.SEARCH_AND_VIEW_ACCOUNTS);
+        verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountServiceProxy);
         verifyNoMoreInteractions(userStateService, userState);
     }
