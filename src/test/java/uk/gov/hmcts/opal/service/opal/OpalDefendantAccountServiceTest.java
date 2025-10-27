@@ -863,7 +863,7 @@ class OpalDefendantAccountServiceTest {
 
         DefendantAccountSearchResultsDto out = service.searchDefendantAccounts(emptyCriteria());
 
-        var dto = out.getDefendantAccounts().get(0);
+        var dto = out.getDefendantAccounts().getFirst();
 
         assertTrue(dto.getOrganisation());
         assertEquals("Wayne Enterprises", dto.getOrganisationName());
@@ -899,12 +899,143 @@ class OpalDefendantAccountServiceTest {
         )).thenReturn(Collections.singletonList(row));
 
         var out = service.searchDefendantAccounts(emptyCriteria());
-        var aliases = out.getDefendantAccounts().get(0).getAliases();
+        var aliases = out.getDefendantAccounts().getFirst().getAliases();
         assertEquals(1, aliases.size());
-        assertEquals(1, aliases.get(0).getAliasNumber());
-        assertEquals("John", aliases.get(0).getForenames());
-        assertEquals("Doe", aliases.get(0).getSurname());
+        assertEquals(1, aliases.getFirst().getAliasNumber());
+        assertEquals("John", aliases.getFirst().getForenames());
+        assertEquals("Doe", aliases.getFirst().getSurname());
     }
+    // --- Add below your existing tests in OpalDefendantAccountServiceTest ---
+
+    private DefendantAccountSummaryViewEntity mockDasv(String a1, String a2, String a3, String a4, String a5) {
+        var e = mock(DefendantAccountSummaryViewEntity.class);
+        when(e.getAlias1()).thenReturn(a1);
+        when(e.getAlias2()).thenReturn(a2);
+        when(e.getAlias3()).thenReturn(a3);
+        when(e.getAlias4()).thenReturn(a4);
+        when(e.getAlias5()).thenReturn(a5);
+        return e;
+    }
+
+    @Test
+    void individualAliases_parsesPersonShape_only_and_trims() {
+        var e = mockDasv(
+            "P123|10|  Ada  |  Lovelace ",
+            "O999|20|Acme Corp",
+            "   ",
+            null,
+            "P777||Grace|Hopper"
+        );
+
+        var out = OpalDefendantAccountService.buildIndividualAliasesList(e);
+
+        assertEquals(2, out.size());
+        var a0 = out.get(0);
+        assertEquals("P123", a0.getAliasId());
+        assertEquals(10, a0.getSequenceNumber());
+        assertEquals("Ada", a0.getForenames());
+        assertEquals("Lovelace", a0.getSurname());
+
+        var a1 = out.get(1);
+        assertEquals("P777", a1.getAliasId());
+        assertNull(a1.getSequenceNumber());
+        assertEquals("Grace", a1.getForenames());
+        assertEquals("Hopper", a1.getSurname());
+    }
+
+    @Test
+    void organisationAliases_parsesOrgShape_only_and_trims() {
+        var e = mockDasv(
+            "O111|1|  Wayne Enterprises  ",
+            "P999|9|John|Smith",
+            null,
+            "",
+            "O222|| Wayne Group "
+        );
+
+        var out = OpalDefendantAccountService.buildOrganisationAliasesList(e);
+
+        assertEquals(2, out.size());
+        var a0 = out.get(0);
+        assertEquals("O111", a0.getAliasId());
+        assertEquals(1, a0.getSequenceNumber());
+        assertEquals("Wayne Enterprises", a0.getOrganisationName());
+
+        var a1 = out.get(1);
+        assertEquals("O222", a1.getAliasId());
+        assertNull(a1.getSequenceNumber());
+        assertEquals("Wayne Group", a1.getOrganisationName());
+    }
+
+    @Test
+    void malformedRows_areSkipped_safely() {
+        var e = mockDasv(
+            "X|notANumber|OnlyTwoParts",
+            "too|many|parts|here|oops",
+            null,
+            "   ",
+            "P100|1|John|Smith"
+        );
+
+        var ind = OpalDefendantAccountService.buildIndividualAliasesList(e);
+
+        assertEquals(1, ind.size());
+        assertEquals("P100", ind.get(0).getAliasId());
+        assertEquals(1, ind.get(0).getSequenceNumber());
+        assertEquals("John", ind.get(0).getForenames());
+        assertEquals("Smith", ind.get(0).getSurname());
+
+        var org = OpalDefendantAccountService.buildOrganisationAliasesList(e);
+
+        assertTrue(org.isEmpty());
+    }
+
+    @Test
+    void preserves_column_order_for_valid_rows() {
+        var e = mockDasv(
+            "P1|1|Alpha|One",
+            "O2|2|Beta Org",
+            "P3|3|Gamma|Three",
+            null, null
+        );
+
+        var ind = OpalDefendantAccountService.buildIndividualAliasesList(e);
+
+        assertEquals(2, ind.size());
+        assertEquals("P1", ind.get(0).getAliasId());
+        assertEquals("P3", ind.get(1).getAliasId());
+
+        var org = OpalDefendantAccountService.buildOrganisationAliasesList(e);
+
+        assertEquals(1, org.size());
+        assertEquals("O2", org.get(0).getAliasId());
+    }
+
+    @Test
+    void all_null_or_blank_alias_slots_yield_empty_lists() {
+        var e = mockDasv(null, "", "   ", null, "");
+
+        var ind = OpalDefendantAccountService.buildIndividualAliasesList(e);
+        var org = OpalDefendantAccountService.buildOrganisationAliasesList(e);
+
+        assertTrue(ind.isEmpty());
+        assertTrue(org.isEmpty());
+    }
+
+    @Test
+    void empty_fields_inside_pipe_are_mapped_to_nulls() {
+        var e = mockDasv("P5||Jane|", null, null, null, null);
+
+        var ind = OpalDefendantAccountService.buildIndividualAliasesList(e);
+        assertEquals(1, ind.size());
+
+        var a = ind.get(0);
+        assertEquals("P5", a.getAliasId());
+        assertNull(a.getSequenceNumber());
+        assertEquals("Jane", a.getForenames());
+        assertNull(a.getSurname());
+    }
+
 
     private AccountSearchDto emptyCriteria() {
         AccountSearchDto c = mock(AccountSearchDto.class);

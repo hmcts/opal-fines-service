@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -615,41 +616,114 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
-    /**
-     * Build OrganisationDetails from the DefendantAccountSummaryViewEntity.
-     */
-    private static OrganisationDetails buildOrganisationDetails(DefendantAccountSummaryViewEntity entity) {
-        return OrganisationDetails.builder()
-            .organisationName(entity.getOrganisationName())
-            .organisationAliases(
-                entity.getAliasId() != null
-                    ? List.of(OrganisationAlias.builder().aliasId(entity.getAliasId())
-                                  .sequenceNumber(entity.getSequenceNumber())
-                                  .organisationName(entity.getOrganisationName())
-                                  .build())
-                    : Collections.emptyList()
-            )
+    private static record ParsedAlias(
+        String aliasId,
+        Integer sequenceNumber,
+        String forenames,
+        String surname,
+        String organisationName
+    ) {}
+
+    // ---- public-ish helpers your builders can call ----
+    static List<IndividualAlias> buildIndividualAliasesList(DefendantAccountSummaryViewEntity e) {
+        return streamAliasSlots(e)
+            .map(OpalDefendantAccountService::parseAliasRaw) // Optional<ParsedAlias>
+            .flatMap(Optional::stream)
+            .filter(pa -> pa.organisationName() == null) // only person-shaped
+            .map(pa -> IndividualAlias.builder()
+                .aliasId(pa.aliasId())
+                .sequenceNumber(pa.sequenceNumber())
+                .forenames(pa.forenames())
+                .surname(pa.surname())
+                .build())
+            .toList();
+    }
+
+    static List<OrganisationAlias> buildOrganisationAliasesList(DefendantAccountSummaryViewEntity e) {
+        return streamAliasSlots(e)
+            .map(OpalDefendantAccountService::parseAliasRaw) // Optional<ParsedAlias>
+            .flatMap(Optional::stream)
+            .filter(pa -> pa.organisationName() != null) // only org-shaped
+            .map(pa -> OrganisationAlias.builder()
+                .aliasId(pa.aliasId())
+                .sequenceNumber(pa.sequenceNumber())
+                .organisationName(pa.organisationName())
+                .build())
+            .toList();
+    }
+
+    private static IndividualDetails buildIndividualDetails(DefendantAccountSummaryViewEntity e) {
+        return IndividualDetails.builder()
+            .title(e.getTitle())
+            .forenames(e.getForenames())
+            .surname(e.getSurname())
+            .dateOfBirth(e.getBirthDate() != null ? e.getBirthDate().toLocalDate().toString() : null)
+            .age(e.getBirthDate() != null ? String.valueOf(calculateAge(e.getBirthDate().toLocalDate())) : null)
+            .individualAliases(buildIndividualAliasesList(e))
+            .nationalInsuranceNumber(e.getNationalInsuranceNumber())
             .build();
     }
 
-    private static IndividualDetails buildIndividualDetails(DefendantAccountSummaryViewEntity entity) {
-        return IndividualDetails.builder()
-            .title(entity.getTitle())
-            .forenames(entity.getForenames())
-            .surname(entity.getSurname())
-            .dateOfBirth(entity.getBirthDate() != null ? entity.getBirthDate().toLocalDate().toString() : null)
-            .age(entity.getBirthDate() != null ? String.valueOf(
-                calculateAge(entity.getBirthDate().toLocalDate())) : null)
-            .individualAliases(
-                entity.getAliasId() != null
-                    ? List.of(IndividualAlias.builder().aliasId(entity.getAliasId())
-                                  .sequenceNumber(entity.getSequenceNumber())
-                                  .forenames(entity.getAliasForenames())
-                                  .surname(entity.getAliasSurname())
-                                  .build())
-                    : Collections.emptyList())
-            .nationalInsuranceNumber(entity.getNationalInsuranceNumber())
+    private static OrganisationDetails buildOrganisationDetails(DefendantAccountSummaryViewEntity e) {
+        return OrganisationDetails.builder()
+            .organisationName(e.getOrganisationName())
+            .organisationAliases(buildOrganisationAliasesList(e))
             .build();
+    }
+
+    // ---- core parsing (shared) ----
+    private static Stream<String> streamAliasSlots(DefendantAccountSummaryViewEntity e) {
+        return Stream.of(e.getAlias1(), e.getAlias2(), e.getAlias3(), e.getAlias4(), e.getAlias5())
+            .filter(Objects::nonNull)
+            .map(String::trim)
+            .filter(s -> !s.isEmpty());
+    }
+
+    private static Optional<ParsedAlias> parseAliasRaw(String raw) {
+        String[] parts = Arrays.stream(raw.split("\\|", -1))
+            .map(p -> p == null ? null : p.trim())
+            .toArray(String[]::new);
+
+        try {
+            if (parts.length == 4) {
+                // person
+                return Optional.of(new ParsedAlias(
+                    emptyToNull(parts[0]),
+                    parseIntOrNull(parts[1]),
+                    emptyToNull(parts[2]),
+                    emptyToNull(parts[3]),
+                    null
+                ));
+            } else if (parts.length == 3) {
+                // organisation
+                return Optional.of(new ParsedAlias(
+                    emptyToNull(parts[0]),
+                    parseIntOrNull(parts[1]),
+                    null,
+                    null,
+                    emptyToNull(parts[2])
+                ));
+            }
+            return Optional.empty(); // unexpected shape
+        } catch (Exception ex) {
+            return Optional.empty(); // malformed data
+        }
+    }
+
+    private static Integer parseIntOrNull(String s) {
+        if (s == null || s.isEmpty()) {
+            return null;
+        }
+
+        return Integer.valueOf(s);
+    }
+
+    private static String emptyToNull(String s) {
+        if (s == null) {
+            return null;
+        }
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
     }
 
     private static EnforcementStatusSummary buildEnforcementStatusSummary(DefendantAccountSummaryViewEntity entity) {
