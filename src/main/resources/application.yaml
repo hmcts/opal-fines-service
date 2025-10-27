@@ -137,6 +137,15 @@ quartzProperties:
       threadCount: 8
 
 opal:
+  content-digest:
+    request:
+      enforce: ${OPAL_CONTENT_DIGEST_ENABLED:true}
+      supported-algorithms:
+        sha-256: SHA-256
+        sha-512: SHA-512
+    response:
+      auto-generate: ${OPAL_CONTENT_DIGEST_RESPONSE_AUTO_GENERATE:true}
+      algorithm: ${OPAL_CONTENT_DIGEST_RESPONSE_ALGORITHM:SHA-256}
   redis:
     enabled: ${OPAL_REDIS_ENABLED:false}
     ttl-hours: ${OPAL_REDIS_TTL_HOURS:8}
