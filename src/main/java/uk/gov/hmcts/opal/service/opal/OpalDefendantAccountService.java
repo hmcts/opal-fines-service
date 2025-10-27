@@ -148,6 +148,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     DefendantAccountHeaderSummary mapToDto(DefendantAccountHeaderViewEntity e) {
         return DefendantAccountHeaderSummary.builder()
+            .defendantAccountId(
+                e.getDefendantAccountId() != null ? e.getDefendantAccountId().toString() : null
+            )
             .defendantAccountPartyId(
                 e.getDefendantAccountPartyId() != null ? e.getDefendantAccountPartyId().toString() : null
             )

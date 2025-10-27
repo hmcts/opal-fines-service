@@ -325,7 +325,7 @@ class OpalDefendantAccountServiceTest {
 
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
 
-        assertEquals("Fines", dto.getAccountType());
+        assertEquals("Fine", dto.getAccountType()); // Should normalise plural Fines → Fine"
         assertEquals("Live", dto.getAccountStatusReference().getAccountStatusDisplayName());
     }
 
