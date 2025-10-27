@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class DraftAccountUtils {
     private static final ThreadLocal<ArrayList<String>> draftAccountId = ThreadLocal.withInitial(ArrayList::new);
@@ -11,8 +13,9 @@ public class DraftAccountUtils {
         draftAccountId.get().add(id);
     }
 
-    public static ArrayList<String> getAllDraftAccountIds() {
-        return draftAccountId.get();
+    public static List<String> getAllDraftAccountIds() {
+        return Collections.unmodifiableList(new ArrayList<>(draftAccountId.get()));
+
     }
 
     public static void clearDraftAccountIds() {
