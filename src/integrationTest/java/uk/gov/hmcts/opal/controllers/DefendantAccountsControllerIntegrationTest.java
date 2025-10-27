@@ -183,6 +183,58 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     }
 
 
+    @DisplayName("PO-2297: header-summary (individual) returns correct defendant_party_id from "
+        + "defendantAccountPartyId bug fix validation")
+    void testGetHeaderSummary_Individual_UsesDefendantAccountPartyId(Logger log) throws Exception {
+        // Arrange
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/77/header-summary")
+                .header("authorization", "Bearer some_value")
+        );
+
+        // Assert
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info("PO-2297 Individual header summary response:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_party_id").value("77"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
+            .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Anna"))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value("Graham"));
+
+        jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
+    }
+
+    @DisplayName("PO-2297: header-summary (organisation) returns correct defendant_party_id from"
+        + " defendantAccountPartyId — bug fix validation")
+    void testGetHeaderSummary_Organisation_UsesDefendantAccountPartyId(Logger log) throws Exception {
+        // Arrange
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Act
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/10001/header-summary")
+                .header("authorization", "Bearer some_value")
+        );
+
+        // Assert
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info("PO-2297 Organisation header summary response:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_party_id").value("10001"))
+            .andExpect(jsonPath("$.party_details.party_id").value("10001"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Kings Arms"));
+
+        jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
+    }
+
     @DisplayName("Search defendant accounts - POST with valid criteria [@PO-33, @PO-119]")
     void testPostDefendantAccountsSearch(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(anyString()))

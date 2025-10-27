@@ -245,7 +245,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .version(response.getVersion() != null ? response.getVersion().longValue() : 1L)
             .defendantAccountId(response.getDefendantAccountId())
             .accountNumber(response.getAccountNumber())
-            .defendantPartyId(response.getDefendantPartyId())
+            .defendantAccountPartyId(response.getDefendantPartyId())
             .parentGuardianPartyId(response.getParentGuardianPartyId())
             .debtorType(Optional.ofNullable(response.getDebtorType()).orElse("Defendant"))
             .isYouth(Optional.ofNullable(response.getIsYouth()).orElse(Boolean.FALSE))
