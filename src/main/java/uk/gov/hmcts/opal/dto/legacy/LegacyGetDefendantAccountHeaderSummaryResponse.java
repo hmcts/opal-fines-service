@@ -39,6 +39,12 @@ public class LegacyGetDefendantAccountHeaderSummaryResponse implements ToXmlStri
     @XmlElement(name = "parent_guardian_party_id")
     private String parentGuardianPartyId;
 
+    @XmlElement(name = "debtor_type")
+    private String debtorType;
+
+    @XmlElement(name = "is_youth")
+    private Boolean isYouth;
+
     @XmlElement(name = "account_status_reference")
     private AccountStatusReference accountStatusReference;
 

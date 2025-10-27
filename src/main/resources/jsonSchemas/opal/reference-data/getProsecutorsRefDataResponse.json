@@ -5,7 +5,7 @@
   "properties": {
     "count": {
       "type": ["integer", "null"],
-      "description": "The count of Local Justice Areas returned in this response"
+      "description": "The count of prosecutors returned in this response"
     },
     "ref-data": {
       "type": ["array", "null"],
@@ -16,6 +16,8 @@
   },
   "$defs": {
     "prosecutor": {
+      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "prosecutor_id": {
           "type": "integer",
@@ -32,6 +34,7 @@
         },
         "address_line_1": {
           "type": ["string", "null"],
+          "maxLength": 60,
           "description": "The first line of the address of the prosecutor"
         },
         "address_line_2": {
@@ -44,7 +47,7 @@
         },
         "address_line_4": {
           "type": ["string", "null"],
-          "description": "The forth line of the address of the prosecutor"
+          "description": "The fourth line of the address of the prosecutor"
         },
         "address_line_5": {
           "type": ["string", "null"],
@@ -52,26 +55,26 @@
         },
         "postcode": {
           "type": ["string", "null"],
-          "description": "The Postcode of the prosecutor"
+          "description": "The postcode of the prosecutor"
         },
         "end_date": {
           "type": ["string", "null"],
           "format": "date-time",
           "description": "The date up until which the prosecutor is active"
-        },
-        "required": [
-          "prosecutor_id",
-          "name",
-          "prosecutor_code",
-          "address_line_1",
-          "address_line_2",
-          "address_line_3",
-          "address_line_4",
-          "address_line_5",
-          "postcode",
-          "end_date"
-        ]
-      }
+        }
+      },
+      "required": [
+        "prosecutor_id",
+        "name",
+        "prosecutor_code",
+        "address_line_1",
+        "address_line_2",
+        "address_line_3",
+        "address_line_4",
+        "address_line_5",
+        "postcode",
+        "end_date"
+      ]
     }
   }
 }

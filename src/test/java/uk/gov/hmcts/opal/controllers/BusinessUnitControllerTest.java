@@ -8,7 +8,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permissions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState.UserBusinessUnits;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
@@ -85,7 +85,7 @@ class BusinessUnitControllerTest {
 
         // Act
         Optional<String> filter = Optional.empty();
-        Optional<Permissions> permission = Optional.empty();
+        Optional<FinesPermission> permission = Optional.empty();
         String headerToken = "Bearer token";
         ResponseEntity<BusinessUnitReferenceDataResults> response = businessUnitController
             .getBusinessUnitRefData(filter, permission, headerToken);
@@ -112,7 +112,7 @@ class BusinessUnitControllerTest {
 
         // Act
         Optional<String> filter = Optional.empty();
-        Optional<Permissions> permission = Optional.of(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        Optional<FinesPermission> permission = Optional.of(FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         String headerToken = "Bearer token";
         ResponseEntity<BusinessUnitReferenceDataResults> response = businessUnitController
             .getBusinessUnitRefData(filter, permission, headerToken);
@@ -138,7 +138,7 @@ class BusinessUnitControllerTest {
 
         // Act
         Optional<String> filter = Optional.empty();
-        Optional<Permissions> permission = Optional.of(Permissions.CREATE_MANAGE_DRAFT_ACCOUNTS);
+        Optional<FinesPermission> permission = Optional.of(FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         String headerToken = "Bearer token";
         ResponseEntity<BusinessUnitReferenceDataResults> response = businessUnitController
             .getBusinessUnitRefData(filter, permission, headerToken);

@@ -11,6 +11,7 @@
 * ----------    --------     --------    --------------------------------------------------------------------------------------------------------------
 * 30/06/2025    R DODD        1.0         PO1787 Insert test data for prosecutors integration tests
 * 15/10/2025    P Brumby      1.1         PO1722 Change test data for prosecutors integration tests so prosecutor_id does not clash with reference data
+* 24/10/2025    T Gonella     1.2         PO2319 insert test data for prosecutor address line length change
 *
 **/
 
@@ -39,4 +40,12 @@ VALUES
 , '99 Prosecutor Street', 'Prosecutorville', 'Prosecutorton'
 , NULL, NULL, 'PR01 9PR'
 , '2009-04-16 20:00:00'
+),
+(
+009990, 'AA4 Boundary Prosecutor', 'AA04',
+'123456789012345678901234567890123456789012345678901234567890',  -- 60 chars
+'Boundaryville', 'Boundaryton',
+NULL, NULL, 'PR06 0PR',
+NULL
 );
+

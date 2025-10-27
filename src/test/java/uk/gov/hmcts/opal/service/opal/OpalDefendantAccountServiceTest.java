@@ -73,14 +73,19 @@ import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 
 class OpalDefendantAccountServiceTest {
 
-    private final DefendantAccountRepository defendantAccountRepository =
-        mock(DefendantAccountRepository.class);
-    private final DefendantAccountSummaryViewRepository dasvRepository =
-        mock(DefendantAccountSummaryViewRepository.class);
-    private final SearchDefendantAccountRepository searchDefAccRepo =
-        mock(SearchDefendantAccountRepository.class);
-    private final DefendantAccountPaymentTermsRepository paymentTermsRepository =
-        mock(DefendantAccountPaymentTermsRepository.class);
+    private final DefendantAccountRepository defendantAccountRepository = mock(DefendantAccountRepository.class);
+    private final DefendantAccountSummaryViewRepository dasvRepository = mock(DefendantAccountSummaryViewRepository
+        .class);
+    private final DefendantAccountHeaderViewRepository dahvRepository = mock(DefendantAccountHeaderViewRepository
+        .class);
+    private final SearchDefendantAccountRepository searchDefAccRepo = mock(SearchDefendantAccountRepository
+        .class);
+    private final SearchDefendantAccountSpecs searchDefAccSpecs = new SearchDefendantAccountSpecs();
+    private final DefendantAccountPaymentTermsRepository paymentTermsRepository = mock(
+        DefendantAccountPaymentTermsRepository.class);
+
+
+    private DefendantAccountSpecs defendantAccountSpecs;
 
     // ONE shared spy for search specs; this is the instance we verify interactions on
     private SearchDefendantAccountSpecs searchSpecsSpy;
@@ -402,6 +407,9 @@ class OpalDefendantAccountServiceTest {
         final DefendantAccountSpecs specs = mock(DefendantAccountSpecs.class);
         final DefendantAccountPaymentTermsRepository paymentTermsRepo =
             mock(DefendantAccountPaymentTermsRepository.class);
+        final SearchDefendantAccountRepository searchDefAccRepo = mock(SearchDefendantAccountRepository.class);
+        final SearchDefendantAccountSpecs searchDefAccSpecs = mock(SearchDefendantAccountSpecs.class);
+        final DefendantAccountSummaryViewRepository dasvRepo = mock(DefendantAccountSummaryViewRepository.class);
         final CourtRepository courtRepo = mock(CourtRepository.class);
         final AmendmentService amendmentService = mock(AmendmentService.class);
         final EntityManager em = mock(EntityManager.class);
@@ -457,33 +465,33 @@ class OpalDefendantAccountServiceTest {
         // Request DTO
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
             .commentsAndNotes(CommentsAndNotes.builder()
-                                  .accountNotesAccountComments("acc comment")
-                                  .accountNotesFreeTextNote1("n1")
-                                  .accountNotesFreeTextNote2("n2")
-                                  .accountNotesFreeTextNote3("n3")
-                                  .build())
+                .accountNotesAccountComments("acc comment")
+                .accountNotesFreeTextNote1("n1")
+                .accountNotesFreeTextNote2("n2")
+                .accountNotesFreeTextNote3("n3")
+                .build())
             .enforcementCourt(CourtReferenceDto.builder()
-                                  .courtId(100)
-                                  .courtName("Central Magistrates")
-                                  .build())
+                .courtId(100)
+                .courtName("Central Magistrates")
+                .build())
             .collectionOrder(CollectionOrderDto.builder()
-                                 .collectionOrderFlag(true)
-                                 .collectionOrderDate("2025-01-01")
-                                 .build())
+                .collectionOrderFlag(true)
+                .collectionOrderDate("2025-01-01")
+                .build())
             .enforcementOverride(EnforcementOverride.builder()
-                                      .enforcementOverrideResult(EnforcementOverrideResult.builder()
-                                                                     .enforcementOverrideId("EO-1")
-                                                                     .enforcementOverrideTitle("Result Title")
-                                                                     .build())
-                                      .enforcer(Enforcer.builder()
-                                                    .enforcerId(Math.toIntExact(22L))
-                                                    .enforcerName("Enforcer A")
-                                                    .build())
-                                      .lja(LJA.builder()
-                                               .ljaId(33)
-                                               .ljaName("LJA Name")
-                                               .build())
-                                      .build())
+                .enforcementOverrideResult(EnforcementOverrideResult.builder()
+                    .enforcementOverrideId("EO-1")
+                    .enforcementOverrideTitle("Result Title")
+                    .build())
+                .enforcer(Enforcer.builder()
+                    .enforcerId(Math.toIntExact(22L))
+                    .enforcerName("Enforcer A")
+                    .build())
+                .lja(LJA.builder()
+                    .ljaId(33)
+                    .ljaName("LJA Name")
+                    .build())
+                .build())
             .build();
 
         // ---------- Act ----------
@@ -594,9 +602,9 @@ class OpalDefendantAccountServiceTest {
 
         UpdateDefendantAccountRequest req = UpdateDefendantAccountRequest.builder()
             .collectionOrder(CollectionOrderDto.builder()
-                                 .collectionOrderFlag(true)
-                                 .collectionOrderDate("not-a-date")
-                                 .build())
+                .collectionOrderFlag(true)
+                .collectionOrderDate("not-a-date")
+                .build())
             .build();
 
         assertThrows(NullPointerException.class, () ->
@@ -699,7 +707,7 @@ class OpalDefendantAccountServiceTest {
             .commentsAndNotes(CommentsAndNotes.builder().accountNotesAccountComments("x").build()).build();
 
         assertThrows(ObjectOptimisticLockingFailureException.class,
-                     () -> svc.updateDefendantAccount(77L, "78", req, "\"0\"", "tester"));
+            () -> svc.updateDefendantAccount(77L, "78", req, "\"0\"", "tester"));
         verify(repo, never()).save(any());
     }
 
@@ -767,11 +775,11 @@ class OpalDefendantAccountServiceTest {
 
         var req = UpdateDefendantAccountRequest.builder()
             .enforcementOverride(EnforcementOverride.builder()
-                                      .enforcementOverrideResult(EnforcementOverrideResult.builder()
-                                                                     .enforcementOverrideId("NOPE").build())
-                                      .enforcer(Enforcer.builder().enforcerId(Math.toIntExact(999999L)).build())
-                                      .lja(LJA.builder().ljaId(9999).build())
-                                      .build())
+                .enforcementOverrideResult(EnforcementOverrideResult.builder()
+                    .enforcementOverrideId("NOPE").build())
+                .enforcer(Enforcer.builder().enforcerId(Math.toIntExact(999999L)).build())
+                .lja(LJA.builder().ljaId(9999).build())
+                .build())
             .build();
 
         var resp = svc.updateDefendantAccount(77L, "78", req, "0", "tester");
@@ -876,9 +884,9 @@ class OpalDefendantAccountServiceTest {
         List<AliasDto> aliases = dto.getAliases();
         assertEquals(3, aliases.size());
         assertTrue(aliases.stream().allMatch(a ->
-                                                 a.getOrganisationName() != null
-                                                     && a.getForenames() == null
-                                                     && a.getSurname() == null));
+            a.getOrganisationName() != null
+                && a.getForenames() == null
+                && a.getSurname() == null));
     }
 
     @Test
@@ -916,6 +924,48 @@ class OpalDefendantAccountServiceTest {
     }
 
     @Test
+    void safeInt_returnsNullForOverflowAndUnderflow() throws Exception {
+        var method = OpalDefendantAccountService.class.getDeclaredMethod("safeInt", Long.class);
+        method.setAccessible(true);
+
+        // Overflow
+        Integer result1 = (Integer) method.invoke(null, Long.MAX_VALUE);
+        assertNull(result1);
+
+        // Underflow
+        Integer result2 = (Integer) method.invoke(null, Long.MIN_VALUE);
+        assertNull(result2);
+    }
+
+    @Test
+    void mapToDto_setsParentGuardianDebtorTypeAndYouthFlag() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .debtorType(null)
+            .hasParentGuardian(true)
+            .birthDate(LocalDate.now().minusYears(15))
+            .accountStatus("L")
+            .build();
+
+        DefendantAccountHeaderSummary dto = service.mapToDto(e);
+        assertEquals("Parent/Guardian", dto.getDebtorType());
+        assertTrue(dto.getIsYouth());
+    }
+
+    @Test
+    void mapToDto_setsDefaultDebtorTypeAndNotYouthWhenBirthDateMissing() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .debtorType(null)
+            .hasParentGuardian(false)
+            .birthDate(null)
+            .accountStatus("L")
+            .build();
+
+        DefendantAccountHeaderSummary dto = service.mapToDto(e);
+        assertEquals("Defendant", dto.getDebtorType());
+        assertFalse(dto.getIsYouth());
+    }
+
+    @Test
     void whenReferenceOrganisationFlagProvided_appliesFilterCorrectly() {
         // Arrange
         AccountSearchDto dtoTrue = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
@@ -944,4 +994,36 @@ class OpalDefendantAccountServiceTest {
         verify(searchDefAccRepo, times(2))
             .findAll(ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
     }
+}
+
+    @Test
+    void buildBusinessUnitSummary_handlesNullBusinessUnitId() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .businessUnitId(null)
+            .businessUnitName("Some BU")
+            .build();
+
+        BusinessUnitSummary summary = service.buildBusinessUnitSummary(e);
+        assertNull(summary.getBusinessUnitId());
+        assertEquals("Some BU", summary.getBusinessUnitName());
+    }
+
+    @Test
+    void searchDefendantAccounts_hasRefTrueBranchCovered() {
+        AccountSearchDto dto = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        ReferenceNumberDto ref = new ReferenceNumberDto();
+        ref.setAccountNumber("177");
+        ref.setProsecutorCaseReference(null);
+
+        when(dto.getReferenceNumberDto()).thenReturn(ref);
+        when(dto.getActiveAccountsOnly()).thenReturn(true);
+        when(dto.getBusinessUnitIds()).thenReturn(Collections.singletonList(78));
+        when(dto.getDefendant()).thenReturn(null);
+
+        // should not throw; branch just sets applyActiveOnly=false
+        service.searchDefendantAccounts(dto);
+
+        verify(searchSpecsSpy, times(1)).filterByActiveOnly(false);
+    }
+
 }

@@ -98,8 +98,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final DefendantAccountRepository defendantAccountRepository;
 
     private final SearchDefendantAccountRepository searchDefendantAccountRepository;
+
     private final SearchDefendantAccountSpecs searchDefendantAccountSpecs;
+
     private final DefendantAccountPaymentTermsRepository defendantAccountPaymentTermsRepository;
+
     private final DefendantAccountSummaryViewRepository defendantAccountSummaryViewRepository;
 
     private final CourtRepository courtRepository;
@@ -145,11 +148,24 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     DefendantAccountHeaderSummary mapToDto(DefendantAccountHeaderViewEntity e) {
         return DefendantAccountHeaderSummary.builder()
+            .defendantAccountId(
+                e.getDefendantAccountId() != null ? e.getDefendantAccountId().toString() : null
+            )
+            .debtorType(
+                e.getDebtorType() != null
+                    ? e.getDebtorType()
+                    : (Boolean.TRUE.equals(e.getHasParentGuardian()) ? "Parent/Guardian" : "Defendant")
+            )
+            .isYouth(
+                e.getBirthDate() != null
+                    ? java.time.Period.between(e.getBirthDate(), java.time.LocalDate.now()).getYears() < 18
+                    : Boolean.FALSE
+            )
             .defendantPartyId(Optional.ofNullable(e.getPartyId()).map(Object::toString).orElse(null))
             .parentGuardianPartyId(Optional.ofNullable(e.getParentGuardianAccountPartyId())
                                        .map(Object::toString).orElse(null))
             .accountNumber(e.getAccountNumber())
-            .accountType(e.getAccountType())
+            .accountType(normaliseAccountType(e.getAccountType()))
             .prosecutorCaseReference(e.getProsecutorCaseReference())
             .fixedPenaltyTicketNumber(e.getFixedPenaltyTicketNumber())
             .accountStatusReference(buildAccountStatusReference(e.getAccountStatus()))
@@ -186,26 +202,35 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     PartyDetails buildPartyDetails(DefendantAccountHeaderViewEntity e) {
+        boolean isOrganisation = Boolean.TRUE.equals(e.getOrganisation());
+
         return PartyDetails.builder()
             .partyId(
                 e.getPartyId() != null ? e.getPartyId().toString() : null
             )
             .organisationFlag(e.getOrganisation())
+
             .organisationDetails(
-                OrganisationDetails.builder()
+                isOrganisation
+                    ? OrganisationDetails.builder()
                     .organisationName(e.getOrganisationName())
+                    .organisationAliases(null)
                     .build()
+                    : null
             )
+
             .individualDetails(
-                IndividualDetails.builder()
+                !isOrganisation
+                    ? IndividualDetails.builder()
                     .title(e.getTitle())
                     .forenames(e.getFirstnames())
                     .surname(e.getSurname())
                     .dateOfBirth(e.getBirthDate() != null ? e.getBirthDate().toString() : null)
                     .age(e.getBirthDate() != null ? String.valueOf(calculateAge(e.getBirthDate())) : null)
-                    .individualAliases(Collections.emptyList())
                     .nationalInsuranceNumber(null)
+                    .individualAliases(null)
                     .build()
+                    : null
             )
             .build();
     }
@@ -1007,6 +1032,19 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 ? override.getEnforcementOverrideResult().getEnforcementOverrideId() : null,
             override.getEnforcer() != null ? override.getEnforcer().getEnforcerId() : null,
             override.getLja() != null ? override.getLja().getLjaId() : null);
+    }
+
+    private static String normaliseAccountType(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        return switch (raw.trim()) {
+            case "Fines", "Fine" -> "Fine";
+            case "Conditional Caution" -> "Conditional Caution";
+            case "Confiscation" -> "Confiscation";
+            case "Fixed Penalty", "Fixed Penalty Registration" -> "Fixed Penalty";
+            default -> raw;
+        };
     }
 
 }
