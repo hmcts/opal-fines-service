@@ -1,7 +1,11 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -76,6 +80,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
     final String getDefendantAccountPartyResponseSchemaLocation() {
         return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountPartyResponse.json";
+    }
+
+    final String getDefendantAccountsSearchResponseSchemaLocation() {
+        return SchemaPaths.DEFENDANT_ACCOUNT + "/postDefendantAccountsSearchResponse.json";
     }
 
     @BeforeEach
@@ -2522,8 +2530,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             // Depending on VersionUtils, this may be resource-conflict or optimistic-locking.
             .andExpect(jsonPath("$.type", org.hamcrest.Matchers.anyOf(
-                org.hamcrest.Matchers.is("https://hmcts.gov.uk/problems/resource-conflict"),
-                org.hamcrest.Matchers.is("https://hmcts.gov.uk/problems/optimistic-locking")
+                is("https://hmcts.gov.uk/problems/resource-conflict"),
+                is("https://hmcts.gov.uk/problems/optimistic-locking")
             )));
     }
 
@@ -2885,6 +2893,70 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.defendant_accounts[?(@.account_number == '177B')]").exists());
     }
 
+    @DisplayName("PO-2298 / AC1+AC2: reference_number.organisation flag filters results")
+    void testPostDefendantAccountsSearch_OrganisationFlagRespected(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(anyString()))
+            .thenReturn(new UserState.DeveloperUserState());
+
+        // === AC1: organisation = true → only organisation defendants (e.g. 333A) ===
+        ResultActions orgTrue = mockMvc.perform(post("/defendant-accounts/search")
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+        {
+          "active_accounts_only": false,
+          "business_unit_ids": [78],
+          "reference_number": {
+            "account_number": "3",
+            "prosecutor_case_reference": null,
+            "organisation": true
+          },
+          "defendant": null
+        }
+            """));
+
+        String bodyTrue = orgTrue.andReturn().getResponse().getContentAsString();
+        log.info(":PO-2298 AC1 (organisation=true) response:\n{}", ToJsonString.toPrettyJson(bodyTrue));
+
+        orgTrue.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // should only return organisation accounts (organisation=true)
+            .andExpect(jsonPath("$.defendant_accounts[*].organisation").value(everyItem(is(true))))
+            // organisation_name should be present for org=true
+            .andExpect(jsonPath("$.defendant_accounts[*].organisation_name").value(everyItem(is(notNullValue()))));
+
+        // === AC2: organisation = false → only individual defendants (e.g. 177A, 177B) ===
+        ResultActions orgFalse = mockMvc.perform(post("/defendant-accounts/search")
+            .header("authorization", "Bearer some_value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""
+        {
+          "active_accounts_only": false,
+          "business_unit_ids": [78],
+          "reference_number": {
+            "account_number": "177",
+            "prosecutor_case_reference": null,
+            "organisation": false
+          },
+          "defendant": null
+        }
+            """));
+
+        String bodyFalse = orgFalse.andReturn().getResponse().getContentAsString();
+        log.info(":PO-2298 AC2 (organisation=false) response:\n{}", ToJsonString.toPrettyJson(bodyFalse));
+
+        orgFalse.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // should only return individual accounts (organisation=false)
+            .andExpect(jsonPath("$.defendant_accounts[*].organisation").value(everyItem(is(false))))
+            // organisation_name must be null for individuals
+            .andExpect(jsonPath("$.defendant_accounts[*].organisation_name").value(everyItem(is(nullValue()))));
+
+        //  Schema validation for both AC1 and AC2
+        jsonSchemaValidationService.validateOrError(bodyTrue, getDefendantAccountsSearchResponseSchemaLocation());
+        jsonSchemaValidationService.validateOrError(bodyFalse, getDefendantAccountsSearchResponseSchemaLocation());
+    }
+
     void getDefendantAccountAtAGlance_500Error(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -2917,9 +2989,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.is_youth").value(false))
 
             // party_details
-            .andExpect(jsonPath("$.party_details.party_id").value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.party_details.party_id").value(nullValue()))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
-            .andExpect(jsonPath("$.party_details.organisation_details").value(org.hamcrest.Matchers.nullValue()))
+            .andExpect(jsonPath("$.party_details.organisation_details").value(nullValue()))
 
             // party_details.individual_details
             .andExpect(jsonPath("$.party_details.individual_details.title").value("Mr"))
@@ -2943,13 +3015,13 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
             // language_preferences (all null)
             .andExpect(jsonPath("$.language_preferences.document_language_preference.language_code")
-                .value(org.hamcrest.Matchers.nullValue()))
+                .value(nullValue()))
             .andExpect(jsonPath("$.language_preferences.document_language_preference.language_display_name")
-                .value(org.hamcrest.Matchers.nullValue()))
+                .value(nullValue()))
             .andExpect(jsonPath("$.language_preferences.hearing_language_preference.language_code")
-                .value(org.hamcrest.Matchers.nullValue()))
+                .value(nullValue()))
             .andExpect(jsonPath("$.language_preferences.hearing_language_preference.language_display_name")
-                .value(org.hamcrest.Matchers.nullValue()))
+                .value(nullValue()))
 
             // payment_terms
             .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code")
@@ -2958,28 +3030,28 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 .value("Paid"))
             .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-01"))
             .andExpect(jsonPath("$.payment_terms.instalment_period")
-                .value(org.hamcrest.Matchers.nullValue()))
+                .value(nullValue()))
             .andExpect(jsonPath("$.payment_terms.lump_sum_amount").value(0.00))
             .andExpect(jsonPath("$.payment_terms.instalment_amount").value(50.00))
 
             // enforcement_status
             .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_id")
-                .value(org.hamcrest.Matchers.nullValue()))
+                .value(nullValue()))
             .andExpect(jsonPath("$.enforcement_status.last_enforcement_action.last_enforcement_action_title")
-                .value(org.hamcrest.Matchers.nullValue()))
+                .value(nullValue()))
             .andExpect(jsonPath("$.enforcement_status.collection_order_made").value(false))
             .andExpect(jsonPath("$.enforcement_status.default_days_in_jail").value(0))
             // enforcement_override object with nested nulls
             .andExpect(jsonPath("$.enforcement_status.enforcement_override.enforcement_override_result")
-                .value(org.hamcrest.Matchers.nullValue()))
+                .value(nullValue()))
             .andExpect(jsonPath("$.enforcement_status.enforcement_override.enforcer.enforcer_id")
-                .value(org.hamcrest.Matchers.nullValue()))
+                .value(nullValue()))
             .andExpect(jsonPath("$.enforcement_status.enforcement_override.enforcer.enforcer_name")
-                .value(org.hamcrest.Matchers.nullValue()))
+                .value(nullValue()))
             .andExpect(jsonPath("$.enforcement_status.enforcement_override.lja.lja_id")
-                .value(org.hamcrest.Matchers.nullValue()))
+                .value(nullValue()))
             .andExpect(jsonPath("$.enforcement_status.enforcement_override.lja.lja_name")
-                .value(org.hamcrest.Matchers.nullValue()))
+                .value(nullValue()))
             .andExpect(jsonPath("$.enforcement_status.last_movement_date").value("2025-09-30"))
 
             // comments_and_notes
