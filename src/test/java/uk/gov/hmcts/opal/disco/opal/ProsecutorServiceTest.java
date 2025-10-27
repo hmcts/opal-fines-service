@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -78,4 +79,36 @@ class ProsecutorServiceTest {
         assertEquals(List.of(mappedRefData), result);
 
     }
+
+    @Test
+    void testAddressLine1LengthLimit() {
+        // Arrange
+        ProsecutorEntity validEntity = ProsecutorEntity.builder()
+            .prosecutorCode("VAL60")
+            .addressLine1("A".repeat(60))
+            .build();
+
+        ProsecutorEntity invalidEntity = ProsecutorEntity.builder()
+            .prosecutorCode("INV61")
+            .addressLine1("A".repeat(61))
+            .build();
+
+        // Mock the repository behavior
+        when(prosecutorRepository.save(validEntity)).thenReturn(validEntity);
+        when(prosecutorRepository.save(invalidEntity))
+            .thenThrow(new IllegalArgumentException("address_line_1 exceeds 60 characters"));
+
+        // Act
+        ProsecutorEntity saved = prosecutorRepository.save(validEntity);
+
+        // Assert
+        assertEquals(60, saved.getAddressLine1().length());
+
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            prosecutorRepository.save(invalidEntity);
+        });
+
+        assertEquals("address_line_1 exceeds 60 characters", exception.getMessage());
+    }
+
 }
