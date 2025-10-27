@@ -966,6 +966,36 @@ class OpalDefendantAccountServiceTest {
     }
 
     @Test
+    void whenReferenceOrganisationFlagProvided_appliesFilterCorrectly() {
+        // Arrange
+        AccountSearchDto dtoTrue = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        ReferenceNumberDto refTrue = mock(ReferenceNumberDto.class);
+        when(refTrue.getOrganisation()).thenReturn(true);
+        when(dtoTrue.getReferenceNumberDto()).thenReturn(refTrue);
+        when(dtoTrue.getActiveAccountsOnly()).thenReturn(false);
+        when(dtoTrue.getBusinessUnitIds()).thenReturn(Collections.emptyList());
+        when(dtoTrue.getDefendant()).thenReturn(null);
+
+        AccountSearchDto dtoFalse = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        ReferenceNumberDto refFalse = mock(ReferenceNumberDto.class);
+        when(refFalse.getOrganisation()).thenReturn(false);
+        when(dtoFalse.getReferenceNumberDto()).thenReturn(refFalse);
+        when(dtoFalse.getActiveAccountsOnly()).thenReturn(false);
+        when(dtoFalse.getBusinessUnitIds()).thenReturn(Collections.emptyList());
+        when(dtoFalse.getDefendant()).thenReturn(null);
+
+        // Act
+        service.searchDefendantAccounts(dtoTrue);
+        service.searchDefendantAccounts(dtoFalse);
+
+        // Assert
+        verify(searchSpecsSpy, times(1)).filterByReferenceOrganisationFlag(dtoTrue);
+        verify(searchSpecsSpy, times(1)).filterByReferenceOrganisationFlag(dtoFalse);
+        verify(searchDefAccRepo, times(2))
+            .findAll(ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
+    }
+
+    @Test
     void buildBusinessUnitSummary_handlesNullBusinessUnitId() {
         DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
             .businessUnitId(null)

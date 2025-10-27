@@ -290,6 +290,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 .and(searchDefendantAccountSpecs.filterByActiveOnly(applyActiveOnly))
                 .and(searchDefendantAccountSpecs.filterByAccountNumberStartsWithWithCheckLetter(accountSearchDto))
                 .and(searchDefendantAccountSpecs.filterByPcrExact(accountSearchDto))
+                .and(searchDefendantAccountSpecs.filterByReferenceOrganisationFlag(accountSearchDto))
                 .and(
                     accountSearchDto.getDefendant() != null
                         && Boolean.TRUE.equals(accountSearchDto.getDefendant().getOrganisation())
@@ -365,11 +366,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .defendantAccountId(String.valueOf(e.getDefendantAccountId()))
             .accountNumber(e.getAccountNumber())
             .organisation(isOrganisation)
-            .organisationName(e.getOrganisationName())
+            .organisationName(isOrganisation ? e.getOrganisationName() : null)
             .defendantTitle(isOrganisation ? null : e.getTitle())
             .defendantFirstnames(isOrganisation ? null : e.getForenames())
             .defendantSurname(isOrganisation ? null : e.getSurname())
-            .addressLine1(e.getAddressLine1())
+            .addressLine1(orEmpty(e.getAddressLine1()))
             .postcode(e.getPostcode())
             .businessUnitName(e.getBusinessUnitName())
             .businessUnitId(String.valueOf(e.getBusinessUnitId()))
