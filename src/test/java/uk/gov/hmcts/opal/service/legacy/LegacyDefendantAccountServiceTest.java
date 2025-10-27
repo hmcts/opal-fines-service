@@ -342,6 +342,27 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @Test
     @SuppressWarnings("unchecked")
+    void testGetHeaderSummary_setsDefendantPartyIdCorrectly() {
+        LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
+        responseBody.setDefendantPartyId("77");
+
+        ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse> typeRef =
+            new ParameterizedTypeReference<>() {};
+        when(restClient.responseSpec.body(Mockito.<ParameterizedTypeReference
+            <LegacyGetDefendantAccountHeaderSummaryResponse>>any()))
+            .thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+
+        DefendantAccountHeaderSummary result = legacyDefendantAccountService.getHeaderSummary(1L);
+
+        assertNotNull(result);
+        assertEquals("77", result.getDefendantAccountPartyId(), "defendant_account_party_id should map from "
+            + "legacy response");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_blankAmounts_defaultToZero() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()

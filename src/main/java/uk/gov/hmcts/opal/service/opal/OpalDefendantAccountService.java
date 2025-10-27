@@ -151,6 +151,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .defendantAccountId(
                 e.getDefendantAccountId() != null ? e.getDefendantAccountId().toString() : null
             )
+            .defendantAccountPartyId(
+                e.getDefendantAccountPartyId() != null ? e.getDefendantAccountPartyId().toString() : null
+            )
             .debtorType(
                 e.getDebtorType() != null
                     ? e.getDebtorType()
@@ -161,7 +164,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     ? java.time.Period.between(e.getBirthDate(), java.time.LocalDate.now()).getYears() < 18
                     : Boolean.FALSE
             )
-            .defendantPartyId(Optional.ofNullable(e.getPartyId()).map(Object::toString).orElse(null))
             .parentGuardianPartyId(Optional.ofNullable(e.getParentGuardianAccountPartyId())
                                        .map(Object::toString).orElse(null))
             .accountNumber(e.getAccountNumber())
@@ -932,7 +934,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         } else {
             return Boolean.FALSE; // return FALSE if both are null
         }
-
     }
 
 
