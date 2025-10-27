@@ -6,6 +6,12 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: false
+opal:
+  content-digest:
+    request:
+      enforce: false
+    response:
+      auto-generate: false
 
   autoconfigure:
     exclude:
