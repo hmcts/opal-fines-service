@@ -317,5 +317,16 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                     cb.like(normalizeExpr(cb, aliasExpr), "%" + s))
             : cb.like(normalizeExpr(cb, aliasExpr), "%" + s + "%");
     }
+    /**
+     * Filters results by reference_number.organisation flag when provided.
+     * PO-2298 – ensures that reference searches honour organisation = true/false.
+     */
 
+    public Specification<SearchDefendantAccountEntity> filterByReferenceOrganisationFlag(AccountSearchDto dto) {
+        return (root, query, cb) ->
+            Optional.ofNullable(dto.getReferenceNumberDto())
+                .map(ReferenceNumberDto::getOrganisation)
+                .map(orgFlag -> cb.equal(root.get(SearchDefendantAccountEntity_.organisation), orgFlag))
+                .orElse(cb.conjunction());
+    }
 }
