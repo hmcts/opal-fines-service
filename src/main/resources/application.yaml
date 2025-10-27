@@ -167,10 +167,20 @@ opal:
   azure:
     active-directory-justice-auth-uri: https://login.microsoftonline.com
   testing-support-endpoints:
-    enabled: ${TESTING_SUPPORT_ENDPOINTS_ENABLED:true}
+    enabled: ${TESTING_SUPPORT_ENDPOINTS_ENABLED:false}
   test-user:
     email: ${OPAL_TEST_USER_EMAIL:opal-test@HMCTS.NET}
     password: ${OPAL_TEST_USER_PASSWORD}
+  content-digest:
+    request:
+      enforce: ${OPAL_CONTENT_DIGEST_ENABLED:true}
+      supported-algorithms:
+        sha-256: SHA-256
+        sha-512: SHA-512
+    response:
+      auto-generate: ${OPAL_CONTENT_DIGEST_RESPONSE_AUTO_GENERATE:true}
+      algorithm: ${OPAL_CONTENT_DIGEST_RESPONSE_ALGORITHM:SHA-256}
+
 
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}
