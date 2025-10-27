@@ -35,8 +35,8 @@ public class DefendantAccountHeaderSummary implements ToJsonString, Versioned {
     @JsonIgnore
     private Long version;
 
-    @JsonProperty("defendant_party_id")
-    private String defendantPartyId;
+    @JsonProperty("defendant_account_party_id")
+    private String defendantAccountPartyId;
 
     @JsonInclude(JsonInclude.Include.ALWAYS)
     @JsonProperty("parent_guardian_party_id")

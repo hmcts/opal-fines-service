@@ -1,10 +1,11 @@
-package uk.gov.hmcts.opal.utils;
+package uk.gov.hmcts.opal.steps.hooks;
 
 import io.cucumber.java.After;
+import io.cucumber.java.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
-// adjust this import to match your actual package for the step class
+import uk.gov.hmcts.opal.utils.DraftAccountUtils;
 import uk.gov.hmcts.opal.steps.draftaccount.DraftAccountDeleteSteps;
 
 public class DataCleanUp extends BaseStepDef {
@@ -14,7 +15,14 @@ public class DataCleanUp extends BaseStepDef {
     // Use an instance
     private final DraftAccountDeleteSteps deleter = new DraftAccountDeleteSteps();
 
-    @After("@cleanUpData")
+    @Before(order = Integer.MIN_VALUE)
+    public void resetPerScenarioState() {
+        DraftAccountUtils.clearDraftAccountIds();
+        DraftAccountUtils.clearDraftAccountCreatedAtTime();
+        DraftAccountUtils.clearInitialAccountStatusDate();
+    }
+
+    @After(order = Integer.MAX_VALUE)
     public void cleanUpData() {
         try {
             // ignoreMissing=true so pipelines don’t fail if the record was already deleted

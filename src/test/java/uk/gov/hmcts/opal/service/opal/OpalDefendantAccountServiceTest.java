@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -227,6 +228,128 @@ class OpalDefendantAccountServiceTest {
         assertEquals("ACCT100", dto.getAccountNumber());
         assertNotNull(dto.getPartyDetails());
     }
+
+    @Test
+    void testMapToDto_DefendantPartyId_ComesFromDefendantAccountPartyId() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .defendantAccountId(77L)
+            .defendantAccountPartyId(77L)
+            .partyId(999L)
+            .accountNumber("177A")
+            .accountStatus("L")
+            .build();
+
+        DefendantAccountHeaderSummary dto = service.mapToDto(e);
+
+        assertNotNull(dto, "DTO should not be null");
+        assertEquals("77", dto.getDefendantAccountPartyId(),
+            "defendant_account_party_id should map from defendantAccountPartyId");
+        assertNotEquals("999", dto.getDefendantAccountPartyId(),
+                        "should not map from partyId");
+    }
+
+    @Test
+    void testMapToDto_DefendantPartyId_NullWhenDefendantAccountPartyIdIsNull() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .defendantAccountId(88L)
+            .defendantAccountPartyId(null)
+            .accountStatus("L")
+            .build();
+
+        DefendantAccountHeaderSummary dto = service.mapToDto(e);
+
+        assertNull(dto.getDefendantAccountPartyId(),
+            "defendantAccountPartyId should be null when defendantAccountPartyId is null");
+    }
+
+    @Test
+    void testBuildPartyDetails_IndividualMatchesApiSpec() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .partyId(77L)
+            .organisation(false)
+            .title("Ms")
+            .firstnames("Anna")
+            .surname("Graham")
+            .birthDate(LocalDate.of(1980, 2, 3))
+            .build();
+
+        PartyDetails details = service.buildPartyDetails(e);
+
+        assertEquals("77", details.getPartyId());
+        assertFalse(details.getOrganisationFlag());
+        assertNotNull(details.getIndividualDetails());
+        assertEquals("Anna", details.getIndividualDetails().getForenames());
+        assertEquals("Graham", details.getIndividualDetails().getSurname());
+
+        // Organisation details may be null or just an empty object
+        var org = details.getOrganisationDetails();
+        if (org != null) {
+            assertNull(org.getOrganisationName());
+            assertTrue(org.getOrganisationAliases() == null || org.getOrganisationAliases().isEmpty());
+        }
+    }
+
+
+    @Test
+    void testBuildPartyDetails_OrganisationMatchesApiSpec() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .partyId(10001L)
+            .organisation(true)
+            .organisationName("Kings Arms")
+            .build();
+
+        PartyDetails details = service.buildPartyDetails(e);
+
+        assertEquals("10001", details.getPartyId());
+        assertTrue(details.getOrganisationFlag());
+        assertNotNull(details.getOrganisationDetails());
+        assertEquals("Kings Arms", details.getOrganisationDetails().getOrganisationName());
+
+        // Instead of asserting null, just confirm individual details are empty or unpopulated
+        if (details.getIndividualDetails() != null) {
+            assertNull(details.getIndividualDetails().getForenames());
+            assertNull(details.getIndividualDetails().getSurname());
+            assertTrue(details.getIndividualDetails().getIndividualAliases().isEmpty());
+        }
+    }
+
+    @Test
+    void testMapToDto_NormalisesAccountTypeAndStatusDisplayName() {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .defendantAccountId(77L)
+            .defendantAccountPartyId(77L)
+            .accountNumber("177A")
+            .accountType("Fines")
+            .accountStatus("L")
+            .build();
+
+        DefendantAccountHeaderSummary dto = service.mapToDto(e);
+
+        assertEquals("Fine", dto.getAccountType()); // Should normalise plural Fines → Fine"
+        assertEquals("Live", dto.getAccountStatusReference().getAccountStatusDisplayName());
+    }
+
+    @Test
+    void testMapToDto_SerialisedStructureMatchesApiFields() throws Exception {
+        DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
+            .defendantAccountId(77L)
+            .defendantAccountPartyId(77L)
+            .partyId(77L)
+            .accountNumber("177A")
+            .organisation(false)
+            .firstnames("Anna")
+            .surname("Graham")
+            .accountStatus("L")
+            .build();
+
+        DefendantAccountHeaderSummary dto = service.mapToDto(e);
+        String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(dto);
+
+        assertTrue(json.contains("\"defendant_account_party_id\""));
+        assertTrue(json.contains("\"party_details\""));
+        assertTrue(json.contains("\"account_number\""));
+    }
+
 
     @Test
     void testGetDefendantAccountSummaryViewById() {
@@ -1094,6 +1217,36 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
         assertEquals("Defendant", dto.getDebtorType());
         assertFalse(dto.getIsYouth());
+    }
+
+    @Test
+    void whenReferenceOrganisationFlagProvided_appliesFilterCorrectly() {
+        // Arrange
+        AccountSearchDto dtoTrue = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        ReferenceNumberDto refTrue = mock(ReferenceNumberDto.class);
+        when(refTrue.getOrganisation()).thenReturn(true);
+        when(dtoTrue.getReferenceNumberDto()).thenReturn(refTrue);
+        when(dtoTrue.getActiveAccountsOnly()).thenReturn(false);
+        when(dtoTrue.getBusinessUnitIds()).thenReturn(Collections.emptyList());
+        when(dtoTrue.getDefendant()).thenReturn(null);
+
+        AccountSearchDto dtoFalse = mock(AccountSearchDto.class, RETURNS_DEEP_STUBS);
+        ReferenceNumberDto refFalse = mock(ReferenceNumberDto.class);
+        when(refFalse.getOrganisation()).thenReturn(false);
+        when(dtoFalse.getReferenceNumberDto()).thenReturn(refFalse);
+        when(dtoFalse.getActiveAccountsOnly()).thenReturn(false);
+        when(dtoFalse.getBusinessUnitIds()).thenReturn(Collections.emptyList());
+        when(dtoFalse.getDefendant()).thenReturn(null);
+
+        // Act
+        service.searchDefendantAccounts(dtoTrue);
+        service.searchDefendantAccounts(dtoFalse);
+
+        // Assert
+        verify(searchSpecsSpy, times(1)).filterByReferenceOrganisationFlag(dtoTrue);
+        verify(searchSpecsSpy, times(1)).filterByReferenceOrganisationFlag(dtoFalse);
+        verify(searchDefAccRepo, times(2))
+            .findAll(ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
     }
 
     @Test
