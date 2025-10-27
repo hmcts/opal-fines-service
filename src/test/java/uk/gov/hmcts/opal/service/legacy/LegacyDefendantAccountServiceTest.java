@@ -307,7 +307,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         DefendantAccountHeaderSummary result = legacyDefendantAccountService.getHeaderSummary(1L);
 
         assertNotNull(result);
-        assertEquals("77", result.getDefendantPartyId(), "defendant_party_id should map from legacy response");
+        assertEquals("77", result.getDefendantAccountPartyId(), "defendant_account_party_id should map from "
+            + "legacy response");
     }
 
     @Test

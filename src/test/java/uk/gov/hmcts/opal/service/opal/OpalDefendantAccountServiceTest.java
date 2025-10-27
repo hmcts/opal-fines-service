@@ -237,9 +237,9 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
 
         assertNotNull(dto, "DTO should not be null");
-        assertEquals("77", dto.getDefendantPartyId(),
-                     "defendant_party_id should map from defendantAccountPartyId");
-        assertNotEquals("999", dto.getDefendantPartyId(),
+        assertEquals("77", dto.getDefendantAccountPartyId(),
+            "defendant_account_party_id should map from defendantAccountPartyId");
+        assertNotEquals("999", dto.getDefendantAccountPartyId(),
                         "should not map from partyId");
     }
 
@@ -253,8 +253,8 @@ class OpalDefendantAccountServiceTest {
 
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
 
-        assertNull(dto.getDefendantPartyId(),
-                   "defendantPartyId should be null when defendantAccountPartyId is null");
+        assertNull(dto.getDefendantAccountPartyId(),
+            "defendantAccountPartyId should be null when defendantAccountPartyId is null");
     }
 
     @Test
@@ -340,7 +340,7 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
         String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(dto);
 
-        assertTrue(json.contains("\"defendant_party_id\""));
+        assertTrue(json.contains("\"defendant_account_party_id\""));
         assertTrue(json.contains("\"party_details\""));
         assertTrue(json.contains("\"account_number\""));
     }

@@ -129,21 +129,6 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
-    // ----------------------------------------------------------------------
-    // PO-2297: Verify that the /defendant-accounts/{id}/header-summary endpoint
-    // correctly uses defendantAccountPartyId instead of partyId.
-    //
-    // NOTE: Schema validation is temporarily disabled because the current schema
-    // still requires the 'is_youth' and 'debtor_type' fields, which are introduced
-    // in PO-2287. Once that PR merges, re-enable validation.
-    //
-    // Additionally, PO-2287 already includes full integration tests for the Opal
-    // mode header-summary endpoint, and related coverage for the Legacy API
-    // exists in PO-1973 (Get Defendant Account Party - Legacy Mode), which is yet
-    // to be merged. Once both PO-2287 and PO-1973 are merged, these temporary
-    // tests can be removed.
-    // ----------------------------------------------------------------------
-
     @DisplayName("PO-2297: header-summary (individual) returns correct defendant_party_id from "
         + "defendantAccountPartyId bug fix validation")
     void testGetHeaderSummary_Individual_UsesDefendantAccountPartyId(Logger log) throws Exception {
@@ -162,14 +147,12 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendant_party_id").value("77"))
-            .andExpect(jsonPath("$.party_details.party_id").value("77"))
+            .andExpect(jsonPath("$.defendant_account_party_id").value("77"))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Anna"))
             .andExpect(jsonPath("$.party_details.individual_details.surname").value("Graham"));
 
-        // NOTE(PO-2297): schema validation disabled until PO-2287 introduces is_youth and debtor_type
-        // jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
+        jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
     }
 
     @DisplayName("PO-2297: header-summary (organisation) returns correct defendant_party_id from"
@@ -190,14 +173,12 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendant_party_id").value("10001"))
+            .andExpect(jsonPath("$.defendant_account_party_id").value("10001"))
             .andExpect(jsonPath("$.party_details.party_id").value("10001"))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
             .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Kings Arms"));
-        // Removed .doesNotExist() since individual_details may appear in seeded data
 
-        // NOTE(PO-2297): schema validation disabled until PO-2287 introduces is_youth and debtor_type
-        // jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
+        jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
     }
 
     @DisplayName("Search defendant accounts - POST with valid criteria [@PO-33, @PO-119]")

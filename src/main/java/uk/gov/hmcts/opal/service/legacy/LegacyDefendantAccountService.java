@@ -230,7 +230,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         return DefendantAccountHeaderSummary.builder()
             .accountNumber(response.getAccountNumber())
-            .defendantPartyId(response.getDefendantPartyId())
+            .defendantAccountPartyId(response.getDefendantPartyId())
             .parentGuardianPartyId(response.getParentGuardianPartyId())
             .accountStatusReference(status)
             .accountType(response.getAccountType())

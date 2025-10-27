@@ -145,7 +145,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     DefendantAccountHeaderSummary mapToDto(DefendantAccountHeaderViewEntity e) {
         return DefendantAccountHeaderSummary.builder()
-            .defendantPartyId(Optional.ofNullable(e.getDefendantAccountPartyId()).map(Object::toString).orElse(null))
+            .defendantAccountPartyId(Optional.ofNullable(e.getDefendantAccountPartyId()).map(Object::toString)
+                .orElse(null))
             .parentGuardianPartyId(Optional.ofNullable(e.getParentGuardianAccountPartyId())
                                        .map(Object::toString).orElse(null))
             .accountNumber(e.getAccountNumber())

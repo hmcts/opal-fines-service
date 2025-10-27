@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "properties": {
     "account_number": { "type": "string" },
-    "defendant_party_id": { "type": "string" },
+    "defendant_account_party_id": { "type": "string" },
     "parent_guardian_party_id": { "type": ["string", "null"] },
     "debtor_type": {
       "type": "string",
@@ -33,7 +33,7 @@
   },
   "required": [
     "account_number",
-    "defendant_party_id",
+    "defendant_account_party_id",
     "parent_guardian_party_id",
     "debtor_type",
     "is_youth",
