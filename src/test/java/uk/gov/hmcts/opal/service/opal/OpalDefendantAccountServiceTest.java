@@ -994,7 +994,6 @@ class OpalDefendantAccountServiceTest {
         verify(searchDefAccRepo, times(2))
             .findAll(ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any());
     }
-}
 
     @Test
     void buildBusinessUnitSummary_handlesNullBusinessUnitId() {
