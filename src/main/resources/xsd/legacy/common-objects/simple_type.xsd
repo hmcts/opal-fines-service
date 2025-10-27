@@ -46,7 +46,12 @@
       <xsd:enumeration value="English only"/>
     </xsd:restriction>
   </xsd:simpleType>
-
+  <xsd:simpleType name="defendant_account_party_type">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="Defendant"/>
+      <xsd:enumeration value="Parent/Guardian"/>
+    </xsd:restriction>
+  </xsd:simpleType>
   <!-- Enums Used In account_status_reference.xsd -->
   <xsd:simpleType name="account_status_code">
     <xsd:restriction base="xsd:string">
