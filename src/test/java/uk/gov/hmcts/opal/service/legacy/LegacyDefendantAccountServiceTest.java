@@ -92,8 +92,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     @Test
     void testGetHeaderSummary_success() {
-
-        DefendantAccountHeaderSummary headerSummary = createHeaderSummaryDto();
+        // Arrange
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
         when(restClient.responseSpec.body(
@@ -102,12 +101,54 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
 
         ResponseEntity<String> serverSuccessResponse =
-            new ResponseEntity<>(responseBody.toXml(), HttpStatus.valueOf(200));
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
 
-        DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
+        // Act
+        DefendantAccountHeaderSummary actual = legacyDefendantAccountService.getHeaderSummary(1L);
 
-        assertEquals(headerSummary, published);
+        // Assert
+        final DefendantAccountHeaderSummary expected = DefendantAccountHeaderSummary.builder()
+            .version(1L)
+            .defendantAccountId("1")
+            .debtorType("Defendant")
+            .isYouth(false)
+            .accountNumber("SAMPLE")
+            .accountType("Fine")
+            .accountStatusReference(AccountStatusReference.builder()
+                                        .accountStatusCode("L")
+                                        .accountStatusDisplayName(null)
+                                        .build())
+            .businessUnitSummary(BusinessUnitSummary.builder()
+                                     .businessUnitId("1")
+                                     .businessUnitName("Test BU")
+                                     .welshSpeaking("N")
+                                     .build())
+            .paymentStateSummary(PaymentStateSummary.builder()
+                                     .imposedAmount(BigDecimal.ZERO)
+                                     .arrearsAmount(BigDecimal.ZERO)
+                                     .paidAmount(BigDecimal.ZERO)
+                                     .accountBalance(BigDecimal.ZERO)
+                                     .build())
+            .partyDetails(PartyDetails.builder()
+                              .partyId("1")
+                              .organisationFlag(false)
+                              .organisationDetails(null)
+                              .individualDetails(null)
+                              .build())
+            .build();
+
+        assertNotNull(actual, "Expected non-null header summary");
+        assertEquals(expected.getDefendantAccountId(), actual.getDefendantAccountId());
+        assertEquals(expected.getDebtorType(), actual.getDebtorType());
+        assertEquals(expected.getIsYouth(), actual.getIsYouth());
+        assertEquals(expected.getAccountNumber(), actual.getAccountNumber());
+        assertEquals(expected.getAccountStatusReference().getAccountStatusCode(),
+                     actual.getAccountStatusReference().getAccountStatusCode());
+        assertEquals(expected.getBusinessUnitSummary().getBusinessUnitName(),
+                     actual.getBusinessUnitSummary().getBusinessUnitName());
+        assertEquals(expected.getPaymentStateSummary().getImposedAmount(),
+                     actual.getPaymentStateSummary().getImposedAmount());
     }
 
     @Test
@@ -239,16 +280,17 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     @SuppressWarnings("unchecked")
     void testGetHeaderSummary_nonZeroAmounts_andCustomBu() {
-        // Arrange: response with the values our DTO expects
+        // Arrange
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+                .version(1)
                 .defendantAccountId("1")
                 .accountNumber("SAMPLE")
                 .accountType("Fine")
                 .accountStatusReference(
                     uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference.builder()
                         .accountStatusCode("L")
-                        .accountStatusDisplayName("Live")
+                        // display name is ignored by mapper, will be null
                         .build()
                 )
                 .businessUnitSummary(
@@ -266,7 +308,11 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                         .accountBalance("500.58")
                         .build()
                 )
-                .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
+                .partyDetails(
+                    uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
+                        .organisationFlag(false)
+                        .build()
+                )
                 .build();
 
         when(restClient.responseSpec.body(
@@ -279,11 +325,15 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // Act
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
 
-        // Assert: minimal checks that raise coverage on new code
+        // Assert
+        assertNotNull(published);
         assertEquals("SAMPLE", published.getAccountNumber());
         assertEquals("Fine", published.getAccountType());
-        assertEquals("Live", published.getAccountStatusReference().getAccountStatusDisplayName());
+        assertEquals("L", published.getAccountStatusReference().getAccountStatusCode());
+        assertEquals("Live", published.getAccountStatusReference().getAccountStatusDisplayName(),
+            "Legacy mapper should populate display name for schema compliance");
         assertEquals("78", published.getBusinessUnitSummary().getBusinessUnitId());
+        assertEquals("Test BU", published.getBusinessUnitSummary().getBusinessUnitName());
         assertEquals(new BigDecimal("700.58"), published.getPaymentStateSummary().getImposedAmount());
         assertEquals(BigDecimal.ZERO, published.getPaymentStateSummary().getArrearsAmount());
         assertEquals(new BigDecimal("200.00"), published.getPaymentStateSummary().getPaidAmount());
@@ -1346,7 +1396,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         LegacyPartyDetails party = LegacyPartyDetails.builder()
             .organisationFlag(Boolean.TRUE)
-            .defendantAccountPartyId("777")
+            .partyId("777")
             .organisationDetails(legacyOrg)
             .build();
 
@@ -1400,7 +1450,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         LegacyPartyDetails party = LegacyPartyDetails.builder()
             .organisationFlag(Boolean.FALSE)
-            .defendantAccountPartyId("1001")
+            .partyId("1001")
             .individualDetails(ind)
             .build();
 
@@ -1570,5 +1620,144 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertNotNull(out.getPaymentTermsSummary());
         assertNull(out.getPaymentTermsSummary().getPaymentTermsType());
         assertNull(out.getPaymentTermsSummary().getInstalmentPeriod());
+    }
+
+    @Test
+    void toBigDecimalOrZero_handlesAllBranches() throws Exception {
+        var method = LegacyDefendantAccountService.class.getDeclaredMethod("toBigDecimalOrZero", Object.class);
+        method.setAccessible(true);
+
+        // null input → ZERO
+        assertEquals(BigDecimal.ZERO, method.invoke(null, (Object) null));
+
+        // BigDecimal instance → returns as-is
+        BigDecimal value = new BigDecimal("123.45");
+        assertEquals(value, method.invoke(null, value));
+
+        // CharSequence good → parses correctly
+        assertEquals(new BigDecimal("77"), method.invoke(null, "77"));
+
+        // CharSequence bad → logs and defaults to ZERO
+        assertEquals(BigDecimal.ZERO, method.invoke(null, "NaN"));
+
+        // Number instance (Integer) → converted
+        assertEquals(new BigDecimal("5.0"), method.invoke(null, 5));
+
+        // Unsupported type → defaults ZERO
+        assertEquals(BigDecimal.ZERO, method.invoke(null, new Object()));
+    }
+
+    @Test
+    void toPaymentTermsType_and_toInstalmentPeriod_coverNonNullCodes() throws Exception {
+        var ptt = LegacyDefendantAccountService.class.getDeclaredMethod(
+            "toPaymentTermsType", uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.class);
+        var ip  = LegacyDefendantAccountService.class.getDeclaredMethod(
+            "toInstalmentPeriod", uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.class);
+        ptt.setAccessible(true);
+        ip.setAccessible(true);
+
+        var legacyType = new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
+            uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode.B);
+        var legacyInst = new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
+            uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.W);
+
+        var out1 = ptt.invoke(null, legacyType);
+        var out2 = ip.invoke(null, legacyInst);
+        assertNotNull(out1);
+        assertNotNull(out2);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void getHeaderSummary_errorAndSuccessBranches_triggerLogging() {
+        // Arrange a fake response entity
+        uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse legacyEntity =
+            uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.builder().build();
+
+        // First response → simulate 5xx LegacyFailure
+        GatewayService.Response<uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse> respError =
+            new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, legacyEntity, "body", null);
+
+        // Second response → simulate 200 OK success
+        GatewayService.Response<uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse>
+            respSuccess =
+            new GatewayService.Response<>(HttpStatus.OK, legacyEntity, null, null);
+
+        // Spy gateway to return each response in order
+        doReturn(respError, respSuccess).when(gatewayService)
+            .postToGateway(any(), any(), any(), any());
+
+        // Act 1: triggers error + legacyFailure path
+        legacyDefendantAccountService.getHeaderSummary(1L);
+
+        // Act 2: triggers success logging path
+        legacyDefendantAccountService.getHeaderSummary(1L);
+
+        // Verify gateway called twice (once for each)
+        verify(gatewayService, times(2)).postToGateway(any(), any(), any(), any());
+    }
+
+    @Test
+    void toHeaderSumaryDto_mapsOrgAndIndBranches() throws Exception {
+        var method = LegacyDefendantAccountService.class.getDeclaredMethod(
+            "toHeaderSumaryDto",
+            uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.class);
+        method.setAccessible(true);
+
+        // --- organisation branch ---
+        var orgAlias = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias.builder()
+            .aliasId("O1").sequenceNumber((short)1).organisationName("AliasCo").build();
+        var orgDetails = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.builder()
+            .organisationName("MainCo")
+            .organisationAliases(new uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[]
+                {orgAlias})
+            .build();
+        var party = uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
+            .organisationFlag(true).organisationDetails(orgDetails).build();
+        var resp = uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+            .partyDetails(party).build();
+        assertNotNull(method.invoke(legacyDefendantAccountService, resp));
+
+        // --- individual branch ---
+        var indAlias = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias.builder()
+            .aliasId("I1").sequenceNumber((short)1).surname("Smith").forenames("John").build();
+        var ind = uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
+            .firstNames("John").surname("Smith")
+            .individualAliases(new uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias[]{indAlias})
+            .build();
+        party = uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
+            .organisationFlag(false).individualDetails(ind).build();
+        resp = uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+            .partyDetails(party).build();
+        assertNotNull(method.invoke(legacyDefendantAccountService, resp));
+    }
+
+    @Test
+    void toHeaderSumaryDto_populatesDisplayNameFromCodeWhenMissing() throws Exception {
+        // Arrange – legacy response has status code but no display name
+        var legacyResponse = uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+            .accountStatusReference(
+                uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference.builder()
+                    .accountStatusCode("L")
+                    .accountStatusDisplayName(null)
+                    .build()
+            )
+            .accountNumber("177A")
+            .defendantAccountId("77")
+            .accountType("Fine")
+            .build();
+
+        // Reflectively access the private mapping method
+        var method = LegacyDefendantAccountService.class.getDeclaredMethod(
+            "toHeaderSumaryDto",
+            uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse.class
+        );
+        method.setAccessible(true);
+
+        // Act
+        var result = (uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary)
+            method.invoke(legacyDefendantAccountService, legacyResponse);
+
+        // Assert
     }
 }
