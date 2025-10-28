@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -404,8 +405,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 "Defendant Account Party not found for accountId=" + defendantAccountId
                     + ", partyId=" + defendantAccountPartyId));
 
+        List<AliasEntity> aliasEntity = aliasRepository.findByParty_PartyId(party.getParty().getPartyId());
+
         // Map entity to PartyDetails DTO
-        DefendantAccountParty defendantAccountParty = mapDefendantAccountParty(party);
+        DefendantAccountParty defendantAccountParty = mapDefendantAccountParty(party, aliasEntity);
 
         return GetDefendantAccountPartyResponse.builder()
             .defendantAccountParty(defendantAccountParty)
@@ -415,13 +418,36 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     private DefendantAccountParty mapDefendantAccountParty(
-        DefendantAccountPartiesEntity partyEntity
+        DefendantAccountPartiesEntity partyEntity,
+        List<AliasEntity> aliases
     ) {
         PartyEntity party = partyEntity.getParty();
         DebtorDetailEntity debtorDetail = debtorDetailRepository.findByPartyId(party.getPartyId());
 
         String defendantAccountPartyType = partyEntity.getAssociationType();
         Boolean isDebtor = partyEntity.getDebtor();
+
+        List<OrganisationAlias> organisationAliases = aliases.stream()
+            .filter(a -> a.getOrganisationName() != null && !a.getOrganisationName().isBlank())
+            .sorted(Comparator.comparing(AliasEntity::getSequenceNumber))
+            .map(a -> OrganisationAlias.builder()
+                .aliasId(String.valueOf(a.getAliasId()))
+                .sequenceNumber(a.getSequenceNumber())
+                .organisationName(a.getOrganisationName())
+                .build())
+            .toList();
+
+        // Map to Individual aliases (non-blank surname)
+        List<IndividualAlias> individualAliases = aliases.stream()
+            .filter(a -> a.getSurname() != null && !a.getSurname().isBlank())
+            .sorted(Comparator.comparing(AliasEntity::getSequenceNumber))
+            .map(a -> IndividualAlias.builder()
+                .aliasId(String.valueOf(a.getAliasId()))
+                .sequenceNumber(a.getSequenceNumber())
+                .surname(a.getSurname())
+                .forenames(a.getForenames())
+                .build())
+            .toList();
 
         PartyDetails partyDetails = PartyDetails.builder()
             .partyId(String.valueOf(party.getPartyId()))
@@ -430,7 +456,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 party.isOrganisation()
                     ? OrganisationDetails.builder()
                     .organisationName(party.getOrganisationName())
-                    .organisationAliases(null)
+                    .organisationAliases(organisationAliases.isEmpty() ? null : organisationAliases)
                     .build()
                     : null
             )
@@ -443,7 +469,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     .dateOfBirth(party.getBirthDate() != null ? party.getBirthDate().toString() : null)
                     .age(party.getAge() != null ? String.valueOf(party.getAge()) : null)
                     .nationalInsuranceNumber(party.getNiNumber())
-                    .individualAliases(null)
+                    .individualAliases(individualAliases.isEmpty() ? null : individualAliases)
                     .build()
                     : null
             )
