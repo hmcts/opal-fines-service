@@ -57,7 +57,7 @@ def determineDevEnvironmentDeployment() {
 withPipeline(type, product, component) {
   env.FAIL_FAST = true
   env.SKIP_SONAR = false
-  if (params.SKIP_SONAR || githubApi.checkForLabel(env.BRANCH_NAME, "skip_sonar")) {
+  if (params.SKIP_SONAR || githubApi.checkForLabel(env.BRANCH_NAME, "SKIP_SONAR")) {
     env.SKIP_SONAR = true
   }
   env.STAGING_DB_SCHEMA = 'public'
