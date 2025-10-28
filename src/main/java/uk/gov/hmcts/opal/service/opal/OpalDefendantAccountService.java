@@ -651,12 +651,32 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String organisationName
     ) {}
 
+    /** Split a full name into forenames + surname (surname = last token). */
+    private static String[] splitForenamesSurname(String fullName) {
+        if (fullName == null) {
+            return new String[] { null, null };
+        }
+        String s = fullName.trim().replaceAll("\\s+", " ");
+        int idx = s.lastIndexOf(' ');
+        if (idx < 0) {
+            // Single token — treat as forename only (no surname)
+            return new String[] { emptyToNull(s), null };
+        }
+        String forenames = emptyToNull(s.substring(0, idx));
+        String surname   = emptyToNull(s.substring(idx + 1));
+        return new String[] { forenames, surname };
+    }
+
     // ---- public-ish helpers your builders can call ----
     static List<IndividualAlias> buildIndividualAliasesList(DefendantAccountSummaryViewEntity e) {
+        // If the entity is an organisation, there should be no individual aliases to emit.
+        if (Boolean.TRUE.equals(e.getOrganisation())) {
+            return List.of();
+        }
+
         return streamAliasSlots(e)
-            .map(OpalDefendantAccountService::parseAliasRaw) // Optional<ParsedAlias>
+            .map(raw -> parseAliasRaw(raw, /* isOrganisation= */ false)) // Optional<ParsedAlias>
             .flatMap(Optional::stream)
-            .filter(pa -> pa.organisationName() == null) // only person-shaped
             .map(pa -> IndividualAlias.builder()
                 .aliasId(pa.aliasId())
                 .sequenceNumber(pa.sequenceNumber())
@@ -667,10 +687,14 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     static List<OrganisationAlias> buildOrganisationAliasesList(DefendantAccountSummaryViewEntity e) {
+        // If the entity is an individual, there should be no organisation aliases to emit.
+        if (!Boolean.TRUE.equals(e.getOrganisation())) {
+            return List.of();
+        }
+
         return streamAliasSlots(e)
-            .map(OpalDefendantAccountService::parseAliasRaw) // Optional<ParsedAlias>
+            .map(raw -> parseAliasRaw(raw, /* isOrganisation= */ true)) // Optional<ParsedAlias>
             .flatMap(Optional::stream)
-            .filter(pa -> pa.organisationName() != null) // only org-shaped
             .map(pa -> OrganisationAlias.builder()
                 .aliasId(pa.aliasId())
                 .sequenceNumber(pa.sequenceNumber())
@@ -679,6 +703,71 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .toList();
     }
 
+    // ---- core parsing (shared) ----
+    private static Stream<String> streamAliasSlots(DefendantAccountSummaryViewEntity e) {
+        return Stream.of(e.getAlias1(), e.getAlias2(), e.getAlias3(), e.getAlias4(), e.getAlias5())
+            .filter(Objects::nonNull)
+            .map(String::trim)
+            .filter(s -> !s.isEmpty());
+    }
+
+    /**
+     * Parse alias in the new unified shape: id|seq|name
+     * Use isOrganisation to decide whether "name" is an organisation name or a personal full name.
+     */
+    private static Optional<ParsedAlias> parseAliasRaw(String raw, boolean isOrganisation) {
+        String[] parts = Arrays.stream(raw.split("\\|", -1))
+            .map(p -> p == null ? null : p.trim())
+            .toArray(String[]::new);
+
+        try {
+            if (parts.length != 3) {
+                return Optional.empty(); // unexpected shape
+            }
+
+            String aliasId = emptyToNull(parts[0]);
+            Integer seq    = parseIntOrNull(parts[1]);
+            String name    = emptyToNull(parts[2]);
+
+            if (isOrganisation) {
+                return Optional.of(new ParsedAlias(
+                    aliasId,
+                    seq,
+                    null,
+                    null,
+                    name
+                ));
+            } else {
+                String[] split = splitForenamesSurname(name);
+                return Optional.of(new ParsedAlias(
+                    aliasId,
+                    seq,
+                    split[0],
+                    split[1],
+                    null
+                ));
+            }
+        } catch (Exception ex) {
+            return Optional.empty(); // malformed data
+        }
+    }
+
+    private static Integer parseIntOrNull(String s) {
+        if (s == null || s.isEmpty()) {
+            return null;
+        }
+        return Integer.valueOf(s);
+    }
+
+    private static String emptyToNull(String s) {
+        if (s == null) {
+            return null;
+        }
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
+    }
+
+    // ---- unchanged ----
     private static IndividualDetails buildIndividualDetails(DefendantAccountSummaryViewEntity e) {
         return IndividualDetails.builder()
             .title(e.getTitle())
@@ -696,61 +785,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .organisationName(e.getOrganisationName())
             .organisationAliases(buildOrganisationAliasesList(e))
             .build();
-    }
-
-    // ---- core parsing (shared) ----
-    private static Stream<String> streamAliasSlots(DefendantAccountSummaryViewEntity e) {
-        return Stream.of(e.getAlias1(), e.getAlias2(), e.getAlias3(), e.getAlias4(), e.getAlias5())
-            .filter(Objects::nonNull)
-            .map(String::trim)
-            .filter(s -> !s.isEmpty());
-    }
-
-    private static Optional<ParsedAlias> parseAliasRaw(String raw) {
-        String[] parts = Arrays.stream(raw.split("\\|", -1))
-            .map(p -> p == null ? null : p.trim())
-            .toArray(String[]::new);
-
-        try {
-            if (parts.length == 4) {
-                // person
-                return Optional.of(new ParsedAlias(
-                    emptyToNull(parts[0]),
-                    parseIntOrNull(parts[1]),
-                    emptyToNull(parts[2]),
-                    emptyToNull(parts[3]),
-                    null
-                ));
-            } else if (parts.length == 3) {
-                // organisation
-                return Optional.of(new ParsedAlias(
-                    emptyToNull(parts[0]),
-                    parseIntOrNull(parts[1]),
-                    null,
-                    null,
-                    emptyToNull(parts[2])
-                ));
-            }
-            return Optional.empty(); // unexpected shape
-        } catch (Exception ex) {
-            return Optional.empty(); // malformed data
-        }
-    }
-
-    private static Integer parseIntOrNull(String s) {
-        if (s == null || s.isEmpty()) {
-            return null;
-        }
-
-        return Integer.valueOf(s);
-    }
-
-    private static String emptyToNull(String s) {
-        if (s == null) {
-            return null;
-        }
-        String t = s.trim();
-        return t.isEmpty() ? null : t;
     }
 
     private static EnforcementStatusSummary buildEnforcementStatusSummary(DefendantAccountSummaryViewEntity entity) {
