@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="../common-objects/error_response.xsd"/>
+  <xsd:include schemaLocation="../common-objects/defendant_account_party.xsd"/>
+  <xsd:element name="response">
+    <xsd:complexType>
+      <xsd:choice>
+        <xsd:sequence>
+          <xsd:element name="version" type="xsd:int" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="defendant_account_party" type="defendant_account_party" minOccurs="1" maxOccurs="1" />
+        </xsd:sequence>
+        <xsd:sequence>
+          <xsd:element name="error_response" type="error_response" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:choice>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>
+
+
