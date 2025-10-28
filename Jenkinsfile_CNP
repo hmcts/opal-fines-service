@@ -57,6 +57,7 @@ def determineDevEnvironmentDeployment() {
 withPipeline(type, product, component) {
   env.FAIL_FAST = true
   env.SKIP_SONAR = false
+  def githubApi = new GithubAPI(this)
   if (params.SKIP_SONAR || githubApi.checkForLabel(env.BRANCH_NAME, "SKIP_SONAR")) {
     env.SKIP_SONAR = true
   }
