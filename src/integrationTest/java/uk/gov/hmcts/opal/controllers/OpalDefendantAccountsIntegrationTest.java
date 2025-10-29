@@ -395,12 +395,12 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
-    void testGetAtAGlance_VerifyAliasesArrayContainsAllRetrievedAliases() throws Exception {
-        super.opalGetAtAGlance_VerifyAliasesArrayContainsAllRetrievedAliases(log);
+    void testGetAtAGlance_VerifyAliasesArray_Organisation() throws Exception {
+        super.testGetAtAGlance_VerifyAliasesArray_Organisation(log);
     }
 
     @Test
-    void testGetAtAGlance_VerifyAliasesArrayContainsAllRetrievedAliases_Individual() throws Exception {
-        super.opalGetAtAGlance_VerifyAliasesArrayContainsAllRetrievedAliases_Individual(log);
+    void testGetAtAGlance_VerifyAliasesArray_Individual() throws Exception {
+        super.testGetAtAGlance_VerifyAliasesArray_Individual(log);
     }
 }
