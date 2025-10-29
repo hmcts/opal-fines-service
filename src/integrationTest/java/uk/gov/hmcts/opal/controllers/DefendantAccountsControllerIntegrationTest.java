@@ -6,14 +6,27 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import org.hamcrest.core.IsNull;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import org.mockito.Mockito;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpHeaders;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.web.servlet.ResultActions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -21,25 +34,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
-
-import org.hamcrest.core.IsNull;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
+
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -3215,6 +3215,123 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance - "
+         + "Verify aliases array organisation [@PO-2312]")
+    void testGetAtAGlance_VerifyAliasesArray_Organisation(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/10001/at-a-glance")
+            .header("authorization", "Bearer some_value"));
+
+        String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
+        log.info(":testGetAtAGlance: Verify aliases array. etag header: \n{}", headers);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetAtAGlance: Verify aliases array. Response body:\n{}", 
+                 ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("etag", "\"1\""))
+            .andExpect(jsonPath("$.defendant_account_id").value("10001"))
+            .andExpect(jsonPath("$.account_number").value("10001A"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true))
+            .andExpect(jsonPath("$.party_details.organisation_details").exists())
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_name").value("Kings Arms"))
+            // Verify that the organisation_aliases array exists and contains the expected aliases
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases")
+                       .isArray())
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases")
+                       .isNotEmpty())
+            // Verify the array has exactly 3 aliases 
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases.length()")
+                       .value(3))
+            // Verify the first alias details
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases[0].alias_id")
+                       .value("100011"))
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases[0].sequence_number")
+                       .value(1))
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases[0].organisation_name")
+                       .value("AliasOrg"))
+            // Verify the second alias details
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases[1].alias_id")
+                       .value("100012"))
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases[1].sequence_number")
+                       .value(2))
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases[1].organisation_name")
+                       .value("SecondAliasOrg"))
+            // Verify the third alias details
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases[2].alias_id")
+                       .value("100013"))
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases[2].sequence_number")
+                       .value(3))
+            .andExpect(jsonPath("$.party_details.organisation_details.organisation_aliases[2].organisation_name")
+                       .value("ThirdAliasOrg"))
+            .andExpect(jsonPath("$.party_details.individual_details").doesNotExist());
+
+        jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL: Get Defendant Account At A Glance - "
+         + "Verify aliases array individual [@PO-2312]")
+    void testGetAtAGlance_VerifyAliasesArray_Individual(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/at-a-glance")
+            .header("authorization", "Bearer some_value"));
+
+        String headers = resultActions.andReturn().getResponse().getHeaders("etag").toString();
+        log.info(":testGetAtAGlance: Verify individual aliases array. etag header: \n{}", headers);
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetAtAGlance: Verify individual aliases array. Response body:\n{}", 
+                 ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value("77"))
+            .andExpect(jsonPath("$.account_number").value("177A"))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
+            .andExpect(jsonPath("$.party_details.individual_details").exists())
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value("Graham"))
+            // Verify that the individual_aliases array exists and contains the expected aliases
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases")
+                       .isArray())
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases")
+                       .isNotEmpty())
+            // Verify the array has exactly 3 aliases 
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases.length()")
+                       .value(3))
+            // Verify the first alias details
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[0].alias_id")
+                       .value("7701"))
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[0].sequence_number")
+                       .value(1))
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[0].forenames")
+                       .value("Annie"))
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[0].surname")
+                       .value("Smith"))
+            // Verify the second alias details
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[1].alias_id")
+                       .value("7702"))
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[1].sequence_number")
+                       .value(2))
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[1].forenames")
+                       .value("Anne"))
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[1].surname")
+                       .value("Johnson"))
+            // Verify the third alias details
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[2].alias_id")
+                       .value("7703"))
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[2].sequence_number")
+                       .value(3))
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[2].forenames")
+                       .value("Ana"))
+            .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[2].surname")
+                       .value("Williams"))
+            .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist());
+
+        jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
 
 }
