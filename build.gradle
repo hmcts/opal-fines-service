@@ -10,7 +10,7 @@ plugins {
   id 'application'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.5.6'
+  id 'org.springframework.boot' version '3.5.7'
   id 'com.github.ben-manes.versions' version '0.53.0'
   id 'org.sonarqube' version '7.0.0.6105'
   id 'uk.gov.hmcts.java' version '0.12.67'
@@ -353,10 +353,10 @@ ext['tomcat.version'] = '10.1.42'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.1.5'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.35"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.39"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.39"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.40"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.0"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
@@ -407,7 +407,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
   compileOnly 'org.projectlombok:lombok:1.18.42'
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.33.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.34.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'

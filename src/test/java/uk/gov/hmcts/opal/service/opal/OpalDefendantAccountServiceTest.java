@@ -994,7 +994,7 @@ class OpalDefendantAccountServiceTest {
 
         DefendantAccountSearchResultsDto out = service.searchDefendantAccounts(emptyCriteria());
 
-        var dto = out.getDefendantAccounts().get(0);
+        var dto = out.getDefendantAccounts().getFirst();
 
         assertTrue(dto.getOrganisation());
         assertEquals("Wayne Enterprises", dto.getOrganisationName());
@@ -1030,12 +1030,188 @@ class OpalDefendantAccountServiceTest {
         )).thenReturn(Collections.singletonList(row));
 
         var out = service.searchDefendantAccounts(emptyCriteria());
-        var aliases = out.getDefendantAccounts().get(0).getAliases();
+        var aliases = out.getDefendantAccounts().getFirst().getAliases();
         assertEquals(1, aliases.size());
-        assertEquals(1, aliases.get(0).getAliasNumber());
-        assertEquals("John", aliases.get(0).getForenames());
-        assertEquals("Doe", aliases.get(0).getSurname());
+        assertEquals(1, aliases.getFirst().getAliasNumber());
+        assertEquals("John", aliases.getFirst().getForenames());
+        assertEquals("Doe", aliases.getFirst().getSurname());
     }
+
+    private DefendantAccountSummaryViewEntity mockDasv(Boolean organisation,
+        String a1, String a2, String a3, String a4, String a5) {
+        var e = mock(DefendantAccountSummaryViewEntity.class);
+        when(e.getAlias1()).thenReturn(a1);
+        when(e.getAlias2()).thenReturn(a2);
+        when(e.getAlias3()).thenReturn(a3);
+        when(e.getAlias4()).thenReturn(a4);
+        when(e.getAlias5()).thenReturn(a5);
+        when(e.getOrganisation()).thenReturn(organisation);
+        return e;
+    }
+
+    // --- Individuals ---
+
+    @Test
+    void individualAliases_parses_and_trims_and_splits_full_name() {
+        // unified person rows; entity is an individual
+        var e = mockDasv(false,
+            "P123|10|  Ada   Lovelace  ",
+            "P777|| Grace   Hopper ",
+            "   ",
+            null,
+            null
+        );
+
+        var out = OpalDefendantAccountService.buildIndividualAliasesList(e);
+
+        assertEquals(2, out.size());
+
+        var a0 = out.get(0);
+        assertEquals("P123", a0.getAliasId());
+        assertEquals(10, a0.getSequenceNumber());
+        assertEquals("Ada", a0.getForenames());         // trimmed, internal spaces collapsed for split
+        assertEquals("Lovelace", a0.getSurname());
+
+        var a1 = out.get(1);
+        assertEquals("P777", a1.getAliasId());
+        assertNull(a1.getSequenceNumber());             // empty seq → null
+        assertEquals("Grace", a1.getForenames());
+        assertEquals("Hopper", a1.getSurname());
+    }
+
+    @Test
+    void individualAliases_single_token_name_maps_to_forenames_only() {
+        var e = mockDasv(false,
+            "P5||Jane",
+            null, null, null, null
+        );
+
+        var ind = OpalDefendantAccountService.buildIndividualAliasesList(e);
+        assertEquals(1, ind.size());
+        var a = ind.get(0);
+        assertEquals("P5", a.getAliasId());
+        assertNull(a.getSequenceNumber());              // empty → null
+        assertEquals("Jane", a.getForenames());
+        assertNull(a.getSurname());                     // single token → null surname
+    }
+
+    @Test
+    void individualAliases_malformedRows_areSkipped_safely() {
+        var e = mockDasv(false,
+            "X|notANumber|OnlyTwoParts",   // NumberFormatException → skipped
+            "too|many|parts|here|oops",    // wrong arity → skipped
+            null,
+            "   ",
+            "P100|1|John William Smith"    // valid, test splitting on last token
+        );
+
+        var ind = OpalDefendantAccountService.buildIndividualAliasesList(e);
+
+        assertEquals(1, ind.size());
+        assertEquals("P100", ind.get(0).getAliasId());
+        assertEquals(1, ind.get(0).getSequenceNumber());
+        assertEquals("John William", ind.get(0).getForenames()); // last token is surname
+        assertEquals("Smith", ind.get(0).getSurname());
+
+        // entity is an individual → org aliases list must be empty
+        var org = OpalDefendantAccountService.buildOrganisationAliasesList(e);
+        assertTrue(org.isEmpty());
+    }
+
+    @Test
+    void individualAliases_preserves_row_order_for_valid_rows() {
+        var e = mockDasv(false,
+            "P1|1|Alpha One",
+            "P3|3|Gamma Three",
+            null, null, null
+        );
+
+        var ind = OpalDefendantAccountService.buildIndividualAliasesList(e);
+        assertEquals(2, ind.size());
+        assertEquals("P1", ind.get(0).getAliasId());
+        assertEquals("P3", ind.get(1).getAliasId());
+    }
+
+    // --- Organisations ---
+
+    @Test
+    void organisationAliases_parses_and_trims() {
+        var e = mockDasv(true,
+            "O111|1|  Wayne Enterprises  ",
+            "O222|| Wayne Group ",
+            null,
+            "",
+            null
+        );
+
+        var out = OpalDefendantAccountService.buildOrganisationAliasesList(e);
+
+        assertEquals(2, out.size());
+        var a0 = out.get(0);
+        assertEquals("O111", a0.getAliasId());
+        assertEquals(1, a0.getSequenceNumber());
+        assertEquals("Wayne Enterprises", a0.getOrganisationName());
+
+        var a1 = out.get(1);
+        assertEquals("O222", a1.getAliasId());
+        assertNull(a1.getSequenceNumber());
+        assertEquals("Wayne Group", a1.getOrganisationName());
+    }
+
+    @Test
+    void organisationAliases_malformedRows_areSkipped_safely() {
+        var e = mockDasv(true,
+            "O1|badNumber|Acme Corp",     // NumberFormatException → skipped
+            "O2|2|Beta Org",
+            "too|many|parts|oops",
+            null, "   "
+        );
+
+        var out = OpalDefendantAccountService.buildOrganisationAliasesList(e);
+        assertEquals(1, out.size());
+        assertEquals("O2", out.get(0).getAliasId());
+        assertEquals(2, out.get(0).getSequenceNumber());
+        assertEquals("Beta Org", out.get(0).getOrganisationName());
+
+        // entity is an organisation → individual list must be empty
+        var ind = OpalDefendantAccountService.buildIndividualAliasesList(e);
+        assertTrue(ind.isEmpty());
+    }
+
+    // --- Shared / edge cases ---
+
+    @Test
+    void all_null_or_blank_alias_slots_yield_empty_lists_for_both_entity_types() {
+        var person = mockDasv(false, null, "", "   ", null, "");
+        var org    = mockDasv(true,  null, "", "   ", null, "");
+
+        assertTrue(OpalDefendantAccountService.buildIndividualAliasesList(person).isEmpty());
+        assertTrue(OpalDefendantAccountService.buildOrganisationAliasesList(person).isEmpty());
+
+        assertTrue(OpalDefendantAccountService.buildIndividualAliasesList(org).isEmpty());
+        assertTrue(OpalDefendantAccountService.buildOrganisationAliasesList(org).isEmpty());
+    }
+
+    @Test
+    void gating_by_entity_type_means_wrong_list_is_always_empty() {
+        var person = mockDasv(false,
+            "P1|1|Alice Wonderland",
+            "P2|2|Bob Builder",
+            null, null, null
+        );
+        var org = mockDasv(true,
+            "O1|1|Umbrella Corp",
+            "O2|2|Stark Industries",
+            null, null, null
+        );
+
+        assertEquals(2, OpalDefendantAccountService.buildIndividualAliasesList(person).size());
+        assertTrue(OpalDefendantAccountService.buildOrganisationAliasesList(person).isEmpty());
+
+        assertEquals(2, OpalDefendantAccountService.buildOrganisationAliasesList(org).size());
+        assertTrue(OpalDefendantAccountService.buildIndividualAliasesList(org).isEmpty());
+    }
+
 
     private AccountSearchDto emptyCriteria() {
         AccountSearchDto c = mock(AccountSearchDto.class);
