@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -643,40 +643,147 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+    private static record ParsedAlias(
+        String aliasId,
+        Integer sequenceNumber,
+        String forenames,
+        String surname,
+        String organisationName
+    ) {}
+
+    /** Split a full name into forenames + surname (surname = last token). */
+    private static String[] splitForenamesSurname(String fullName) {
+        if (fullName == null) {
+            return new String[] { null, null };
+        }
+        String s = fullName.trim().replaceAll("\\s+", " ");
+        int idx = s.lastIndexOf(' ');
+        if (idx < 0) {
+            // Single token — treat as forename only (no surname)
+            return new String[] { emptyToNull(s), null };
+        }
+        String forenames = emptyToNull(s.substring(0, idx));
+        String surname   = emptyToNull(s.substring(idx + 1));
+        return new String[] { forenames, surname };
+    }
+
+    // ---- public-ish helpers your builders can call ----
+    static List<IndividualAlias> buildIndividualAliasesList(DefendantAccountSummaryViewEntity e) {
+        // If the entity is an organisation, there should be no individual aliases to emit.
+        if (Boolean.TRUE.equals(e.getOrganisation())) {
+            return List.of();
+        }
+
+        return streamAliasSlots(e)
+            .map(raw -> parseAliasRaw(raw, /* isOrganisation= */ false)) // Optional<ParsedAlias>
+            .flatMap(Optional::stream)
+            .map(pa -> IndividualAlias.builder()
+                .aliasId(pa.aliasId())
+                .sequenceNumber(pa.sequenceNumber())
+                .forenames(pa.forenames())
+                .surname(pa.surname())
+                .build())
+            .toList();
+    }
+
+    static List<OrganisationAlias> buildOrganisationAliasesList(DefendantAccountSummaryViewEntity e) {
+        // If the entity is an individual, there should be no organisation aliases to emit.
+        if (!Boolean.TRUE.equals(e.getOrganisation())) {
+            return List.of();
+        }
+
+        return streamAliasSlots(e)
+            .map(raw -> parseAliasRaw(raw, /* isOrganisation= */ true)) // Optional<ParsedAlias>
+            .flatMap(Optional::stream)
+            .map(pa -> OrganisationAlias.builder()
+                .aliasId(pa.aliasId())
+                .sequenceNumber(pa.sequenceNumber())
+                .organisationName(pa.organisationName())
+                .build())
+            .toList();
+    }
+
+    // ---- core parsing (shared) ----
+    private static Stream<String> streamAliasSlots(DefendantAccountSummaryViewEntity e) {
+        return Stream.of(e.getAlias1(), e.getAlias2(), e.getAlias3(), e.getAlias4(), e.getAlias5())
+            .filter(Objects::nonNull)
+            .map(String::trim)
+            .filter(s -> !s.isEmpty());
+    }
+
     /**
-     * Build OrganisationDetails from the DefendantAccountSummaryViewEntity.
+     * Parse alias in the new unified shape: id|seq|name
+     * Use isOrganisation to decide whether "name" is an organisation name or a personal full name.
      */
-    private static OrganisationDetails buildOrganisationDetails(DefendantAccountSummaryViewEntity entity) {
-        return OrganisationDetails.builder()
-            .organisationName(entity.getOrganisationName())
-            .organisationAliases(
-                entity.getAliasId() != null
-                    ? List.of(OrganisationAlias.builder().aliasId(entity.getAliasId())
-                                  .sequenceNumber(entity.getSequenceNumber())
-                                  .organisationName(entity.getOrganisationName())
-                                  .build())
-                    : Collections.emptyList()
-            )
+    private static Optional<ParsedAlias> parseAliasRaw(String raw, boolean isOrganisation) {
+        String[] parts = Arrays.stream(raw.split("\\|", -1))
+            .map(p -> p == null ? null : p.trim())
+            .toArray(String[]::new);
+
+        try {
+            if (parts.length != 3) {
+                return Optional.empty(); // unexpected shape
+            }
+
+            String aliasId = emptyToNull(parts[0]);
+            Integer seq    = parseIntOrNull(parts[1]);
+            String name    = emptyToNull(parts[2]);
+
+            if (isOrganisation) {
+                return Optional.of(new ParsedAlias(
+                    aliasId,
+                    seq,
+                    null,
+                    null,
+                    name
+                ));
+            } else {
+                String[] split = splitForenamesSurname(name);
+                return Optional.of(new ParsedAlias(
+                    aliasId,
+                    seq,
+                    split[0],
+                    split[1],
+                    null
+                ));
+            }
+        } catch (Exception ex) {
+            return Optional.empty(); // malformed data
+        }
+    }
+
+    private static Integer parseIntOrNull(String s) {
+        if (s == null || s.isEmpty()) {
+            return null;
+        }
+        return Integer.valueOf(s);
+    }
+
+    private static String emptyToNull(String s) {
+        if (s == null) {
+            return null;
+        }
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
+    }
+
+    // ---- unchanged ----
+    private static IndividualDetails buildIndividualDetails(DefendantAccountSummaryViewEntity e) {
+        return IndividualDetails.builder()
+            .title(e.getTitle())
+            .forenames(e.getForenames())
+            .surname(e.getSurname())
+            .dateOfBirth(e.getBirthDate() != null ? e.getBirthDate().toLocalDate().toString() : null)
+            .age(e.getBirthDate() != null ? String.valueOf(calculateAge(e.getBirthDate().toLocalDate())) : null)
+            .individualAliases(buildIndividualAliasesList(e))
+            .nationalInsuranceNumber(e.getNationalInsuranceNumber())
             .build();
     }
 
-    private static IndividualDetails buildIndividualDetails(DefendantAccountSummaryViewEntity entity) {
-        return IndividualDetails.builder()
-            .title(entity.getTitle())
-            .forenames(entity.getForenames())
-            .surname(entity.getSurname())
-            .dateOfBirth(entity.getBirthDate() != null ? entity.getBirthDate().toLocalDate().toString() : null)
-            .age(entity.getBirthDate() != null ? String.valueOf(
-                calculateAge(entity.getBirthDate().toLocalDate())) : null)
-            .individualAliases(
-                entity.getAliasId() != null
-                    ? List.of(IndividualAlias.builder().aliasId(entity.getAliasId())
-                                  .sequenceNumber(entity.getSequenceNumber())
-                                  .forenames(entity.getAliasForenames())
-                                  .surname(entity.getAliasSurname())
-                                  .build())
-                    : Collections.emptyList())
-            .nationalInsuranceNumber(entity.getNationalInsuranceNumber())
+    private static OrganisationDetails buildOrganisationDetails(DefendantAccountSummaryViewEntity e) {
+        return OrganisationDetails.builder()
+            .organisationName(e.getOrganisationName())
+            .organisationAliases(buildOrganisationAliasesList(e))
             .build();
     }
 
