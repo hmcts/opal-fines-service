@@ -40,6 +40,12 @@ components:
           type: string
           format: uri
           example: 'https://example.com/problem/12345'
+        operation_id:
+          type: string
+          description: A unique operation id that links logs of the same operation together
+          format: uuid
+        retriable:
+          type: boolean
         properties:
           type: object
           additionalProperties:
