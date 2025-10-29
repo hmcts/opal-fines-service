@@ -66,6 +66,7 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.repository.EnforcementOverrideResultRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
+import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
@@ -84,6 +85,8 @@ class OpalDefendantAccountServiceTest {
     private final SearchDefendantAccountSpecs searchDefAccSpecs = new SearchDefendantAccountSpecs();
     private final DefendantAccountPaymentTermsRepository paymentTermsRepository = mock(
         DefendantAccountPaymentTermsRepository.class);
+    private final FixedPenaltyOffenceRepository fixedPenaltyOffenceRepository = mock(FixedPenaltyOffenceRepository
+        .class);
 
 
     private DefendantAccountSpecs defendantAccountSpecs;
@@ -113,7 +116,8 @@ class OpalDefendantAccountServiceTest {
             /* noteRepository            */ null,
             /* enforcementOverrideResult */ null,
             /* localJusticeAreaRepo      */ null,
-            /* enforcerRepository        */ null
+            /* enforcerRepository        */ null,
+            null
         );
 
         // Generic matcher to avoid unchecked warnings
@@ -582,7 +586,8 @@ class OpalDefendantAccountServiceTest {
             noteRepository,
             eorRepo,
             ljaRepo,
-            enforcerRepo
+            enforcerRepo,
+            fixedPenaltyOffenceRepository
         );
 
         // Request DTO
@@ -659,7 +664,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -677,7 +682,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenBusinessUnitMismatch() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -707,7 +712,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenCollectionOrderDateInvalid() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null);
+            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -739,7 +744,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenEntityNotFound() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null);
+            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null,null);
 
         when(accountRepo.findById(99L)).thenReturn(Optional.empty());
 
@@ -772,6 +777,7 @@ class OpalDefendantAccountServiceTest {
             amendmentService,
             em,
             noteRepository,
+            null,
             null,
             null,
             null
@@ -819,6 +825,7 @@ class OpalDefendantAccountServiceTest {
             mock(NoteRepository.class),
             null,
             null,
+            null,
             null
         );
 
@@ -859,6 +866,7 @@ class OpalDefendantAccountServiceTest {
             noteRepo,
             null,
             null,
+            null,
             null
         );
 
@@ -889,7 +897,8 @@ class OpalDefendantAccountServiceTest {
             mock(NoteRepository.class),
             mock(EnforcementOverrideResultRepository.class),
             mock(LocalJusticeAreaRepository.class),
-            mock(EnforcerRepository.class)
+            mock(EnforcerRepository.class),
+            mock(FixedPenaltyOffenceRepository.class)
         );
 
         var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
