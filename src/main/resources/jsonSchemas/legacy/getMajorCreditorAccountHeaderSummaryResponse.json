@@ -9,14 +9,14 @@
     "major_creditor": {
       "type": "object",
       "required": [
-        "account_id",
+        "creditor_account_id",
         "account_version",
         "account_number",
         "name",
         "account_reference"
       ],
       "properties": {
-        "account_id": {
+        "creditor_account_id": {
           "type": "integer",
           "format": "int64",
           "description": "The unique identifier for the major creditor account."

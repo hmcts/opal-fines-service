@@ -42,11 +42,11 @@ paths:
                   major_creditor:
                     type: object
                     required:
-                      - account_id
+                      - creditor_account_id
                       - account_number
                       - name
                     properties:
-                      account_id:
+                      creditor_account_id:
                         type: integer
                         format: int64
                         description: The unique identifier for the major creditor account. DB Mapping from creditor_accounts.creditor_account_id
@@ -126,12 +126,12 @@ paths:
                   major_creditor:
                     type: object
                     required:
-                      - account_id
+                      - creditor_account_id
                       - account_number
                       - name
                       - account_reference
                     properties:
-                      account_id:
+                      creditor_account_id:
                         type: integer
                         format: int64
                         description: The unique identifier for the major creditor account. DB Mapping from creditor_accounts.creditor_account_id
