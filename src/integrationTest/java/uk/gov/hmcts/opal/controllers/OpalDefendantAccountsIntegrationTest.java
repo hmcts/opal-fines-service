@@ -315,6 +315,16 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
+    void testGetDefendantAccountFixedPenalty_Success() throws Exception {
+        super.testGetDefendantAccountFixedPenalty(log);
+    }
+
+    @Test
+    void testGetDefendantAccountFixedPenalty_NotFound() throws Exception {
+        super.testGetDefendantAccountFixedPenalty_NotFound(log);
+    }
+
+    @Test
     void opal_updateDefendantAccount_Happy() throws Exception {
         super.opalUpdateDefendantAccount_Happy(log);
     }

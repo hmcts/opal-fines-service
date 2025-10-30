@@ -31,9 +31,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
@@ -54,6 +58,7 @@ import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.EnforcementOverrideResultEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
@@ -66,11 +71,15 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.repository.EnforcementOverrideResultRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
+import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
+import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
 class OpalDefendantAccountServiceTest {
 
@@ -84,6 +93,8 @@ class OpalDefendantAccountServiceTest {
     private final SearchDefendantAccountSpecs searchDefAccSpecs = new SearchDefendantAccountSpecs();
     private final DefendantAccountPaymentTermsRepository paymentTermsRepository = mock(
         DefendantAccountPaymentTermsRepository.class);
+    private final FixedPenaltyOffenceRepository fixedPenaltyOffenceRepository = mock(FixedPenaltyOffenceRepository
+        .class);
 
 
     private DefendantAccountSpecs defendantAccountSpecs;
@@ -113,7 +124,8 @@ class OpalDefendantAccountServiceTest {
             /* noteRepository            */ null,
             /* enforcementOverrideResult */ null,
             /* localJusticeAreaRepo      */ null,
-            /* enforcerRepository        */ null
+            /* enforcerRepository        */ null,
+            fixedPenaltyOffenceRepository
         );
 
         // Generic matcher to avoid unchecked warnings
@@ -582,7 +594,8 @@ class OpalDefendantAccountServiceTest {
             noteRepository,
             eorRepo,
             ljaRepo,
-            enforcerRepo
+            enforcerRepo,
+            fixedPenaltyOffenceRepository
         );
 
         // Request DTO
@@ -659,7 +672,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -677,7 +690,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenBusinessUnitMismatch() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -707,7 +720,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenCollectionOrderDateInvalid() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null);
+            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null,null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -739,7 +752,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenEntityNotFound() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null);
+            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null,null);
 
         when(accountRepo.findById(99L)).thenReturn(Optional.empty());
 
@@ -772,6 +785,7 @@ class OpalDefendantAccountServiceTest {
             amendmentService,
             em,
             noteRepository,
+            null,
             null,
             null,
             null
@@ -819,6 +833,7 @@ class OpalDefendantAccountServiceTest {
             mock(NoteRepository.class),
             null,
             null,
+            null,
             null
         );
 
@@ -859,6 +874,7 @@ class OpalDefendantAccountServiceTest {
             noteRepo,
             null,
             null,
+            null,
             null
         );
 
@@ -889,7 +905,8 @@ class OpalDefendantAccountServiceTest {
             mock(NoteRepository.class),
             mock(EnforcementOverrideResultRepository.class),
             mock(LocalJusticeAreaRepository.class),
-            mock(EnforcerRepository.class)
+            mock(EnforcerRepository.class),
+            mock(FixedPenaltyOffenceRepository.class)
         );
 
         var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
@@ -1626,4 +1643,253 @@ class OpalDefendantAccountServiceTest {
         }
     }
 
+    @Test
+    void getDefendantAccountFixedPenalty_shouldReturnVehicleFixedPenaltyResponse() {
+        // --- Arrange ---
+        Long defendantAccountId = 77L;
+
+        // Mock account entity
+        DefendantAccountEntity mockAccount = DefendantAccountEntity.builder()
+            .defendantAccountId(defendantAccountId)
+            .originatorName("Kingston-upon-Thames Mags Court")
+            .version(1L)
+            .build();
+
+        // Mock offence entity
+        FixedPenaltyOffenceEntity mockOffence = FixedPenaltyOffenceEntity.builder()
+            .ticketNumber("888")
+            .vehicleRegistration("AB12CDE")
+            .offenceLocation("London")
+            .noticeNumber("PN98765")
+            .issuedDate(LocalDate.of(2024, 1, 1))
+            .licenceNumber("DOE1234567")
+            .vehicleFixedPenalty(true)
+            .timeOfOffence("12:34")
+            .build();
+
+        when(defendantAccountRepository.findById(defendantAccountId))
+            .thenReturn(Optional.of(mockAccount));
+        when(fixedPenaltyOffenceRepository.findByDefendantAccountId(defendantAccountId))
+            .thenReturn(Optional.of(mockOffence));
+
+        // --- Act ---
+        GetDefendantAccountFixedPenaltyResponse response =
+            service.getDefendantAccountFixedPenalty(defendantAccountId);
+
+        // --- Assert ---
+        assertNotNull(response);
+        assertTrue(response.isVehicleFixedPenaltyFlag(), "Expected vehicle_fixed_penalty_flag to be true");
+
+        var ticket = response.getFixedPenaltyTicketDetails();
+        assertNotNull(ticket);
+        assertEquals("Kingston-upon-Thames Mags Court", ticket.getIssuingAuthority());
+        assertEquals("888", ticket.getTicketNumber());
+        assertEquals("12:34", ticket.getTimeOfOffence());
+        assertEquals("London", ticket.getPlaceOfOffence());
+
+        var vehicle = response.getVehicleFixedPenaltyDetails();
+        assertNotNull(vehicle);
+        assertEquals("AB12CDE", vehicle.getVehicleRegistrationNumber());
+        assertEquals("DOE1234567", vehicle.getVehicleDriversLicense());
+        assertEquals("PN98765", vehicle.getNoticeNumber());
+        assertEquals("2024-01-01", vehicle.getDateNoticeIssued());
+    }
+
+    @Test
+    void getDefendantAccountFixedPenalty_shouldReturnNonVehiclePenaltyResponse() {
+        // Arrange
+        Long accountId = 88L;
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .version(2L)
+            .originatorName("Crown Prosecution Service")
+            .build();
+
+        FixedPenaltyOffenceEntity offence = FixedPenaltyOffenceEntity.builder()
+            .defendantAccountId(accountId)
+            .ticketNumber("FP654321")
+            .offenceLocation("Manchester")
+            .issuedDate(LocalDate.of(2023, 12, 12))
+            .vehicleFixedPenalty(false)
+            .timeOfOffence("2023-12-12")
+            .build();
+
+        FixedPenaltyOffenceRepository fixedPenaltyRepo = mock(FixedPenaltyOffenceRepository.class);
+        when(fixedPenaltyRepo.findByDefendantAccountId(accountId)).thenReturn(Optional.of(offence));
+
+        DefendantAccountRepository daRepo = mock(DefendantAccountRepository.class);
+        when(daRepo.findById(accountId)).thenReturn(Optional.of(account));
+
+        OpalDefendantAccountService service = new OpalDefendantAccountService(
+            null, daRepo, null, null, null, null, null,
+            null, null, null, null, null, null,
+            fixedPenaltyRepo
+        );
+
+        // Act
+        var response = service.getDefendantAccountFixedPenalty(accountId);
+
+        // Assert
+        assertNotNull(response);
+        assertFalse(response.isVehicleFixedPenaltyFlag());
+        assertEquals("Crown Prosecution Service", response.getFixedPenaltyTicketDetails().getIssuingAuthority());
+        assertEquals("FP654321", response.getFixedPenaltyTicketDetails().getTicketNumber());
+        assertEquals("2023-12-12", response.getFixedPenaltyTicketDetails().getTimeOfOffence());
+        assertEquals("Manchester", response.getFixedPenaltyTicketDetails().getPlaceOfOffence());
+        assertNull(response.getVehicleFixedPenaltyDetails());
+    }
+
+    @Test
+    void getDefendantAccountFixedPenalty_shouldThrowWhenNoOffenceFound() {
+        // Arrange
+        Long accountId = 999L;
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .originatorName("Test Authority")
+            .build();
+
+        FixedPenaltyOffenceRepository fixedPenaltyRepo = mock(FixedPenaltyOffenceRepository.class);
+        when(fixedPenaltyRepo.findByDefendantAccountId(accountId)).thenReturn(Optional.empty());
+
+        DefendantAccountRepository daRepo = mock(DefendantAccountRepository.class);
+        when(daRepo.findById(accountId)).thenReturn(Optional.of(account));
+
+        OpalDefendantAccountService service = new OpalDefendantAccountService(
+            null, daRepo, null, null, null, null, null,
+            null, null, null, null, null, null,
+            fixedPenaltyRepo
+        );
+
+        // Act + Assert
+        EntityNotFoundException ex = assertThrows(
+            EntityNotFoundException.class,
+            () -> service.getDefendantAccountFixedPenalty(accountId)
+        );
+
+        assertTrue(ex.getMessage().contains("Fixed Penalty Offence not found for account: 999"));
+        verify(fixedPenaltyRepo).findByDefendantAccountId(accountId);
+    }
+
+    @Test
+    void getDefendantAccountFixedPenalty_shouldThrowWhenAccountNotFound() {
+        Long id = 123L;
+        DefendantAccountRepository daRepo = mock(DefendantAccountRepository.class);
+        when(daRepo.findById(id)).thenReturn(Optional.empty());
+
+        FixedPenaltyOffenceRepository fpRepo = mock(FixedPenaltyOffenceRepository.class);
+
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            null, daRepo, null, null, null, null, null,
+            null, null, null, null, null, null, fpRepo
+        );
+
+        assertThrows(EntityNotFoundException.class,
+            () -> svc.getDefendantAccountFixedPenalty(id));
+    }
+
+    @Test
+    void getDefendantAccountFixedPenalty_shouldHandleNullOptionalFields() {
+        Long id = 456L;
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(id)
+            .originatorName(null)
+            .version(1L)
+            .build();
+
+        FixedPenaltyOffenceEntity offence = FixedPenaltyOffenceEntity.builder()
+            .ticketNumber("FP0001")
+            .offenceLocation(null)
+            .issuedDate(null)
+            .licenceNumber(null)
+            .vehicleFixedPenalty(true)
+            .vehicleRegistration(null)
+            .timeOfOffence(null)
+            .build();
+
+        DefendantAccountRepository daRepo = mock(DefendantAccountRepository.class);
+        when(daRepo.findById(id)).thenReturn(Optional.of(account));
+
+        FixedPenaltyOffenceRepository fpRepo = mock(FixedPenaltyOffenceRepository.class);
+        when(fpRepo.findByDefendantAccountId(id)).thenReturn(Optional.of(offence));
+
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            null, daRepo, null, null, null, null, null,
+            null, null, null, null, null, null, fpRepo
+        );
+
+        var response = svc.getDefendantAccountFixedPenalty(id);
+        assertNotNull(response);
+        assertNotNull(response.getFixedPenaltyTicketDetails());
+    }
+
+    @Test
+    void getDefendantAccountFixedPenalty_shouldMapVersionCorrectly() {
+        Long id = 789L;
+        DefendantAccountEntity acc = DefendantAccountEntity.builder()
+            .defendantAccountId(id)
+            .version(5L)
+            .originatorName("Met Police")
+            .build();
+
+        FixedPenaltyOffenceEntity offence = FixedPenaltyOffenceEntity.builder()
+            .ticketNumber("FP987")
+            .vehicleFixedPenalty(false)
+            .build();
+
+        DefendantAccountRepository daRepo = mock(DefendantAccountRepository.class);
+        FixedPenaltyOffenceRepository fpRepo = mock(FixedPenaltyOffenceRepository.class);
+        when(daRepo.findById(id)).thenReturn(Optional.of(acc));
+        when(fpRepo.findByDefendantAccountId(id)).thenReturn(Optional.of(offence));
+
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            null, daRepo, null, null, null, null, null,
+            null, null, null, null, null, null, fpRepo
+        );
+
+        var resp = svc.getDefendantAccountFixedPenalty(id);
+        assertEquals("5", resp.getVersion());
+    }
+
+    @Test
+    void getDefendantAccountFixedPenalty_shouldCallProxyWhenAuthorized() {
+        // Arrange
+        var proxy = mock(DefendantAccountServiceProxy.class);
+        var userStateService = mock(UserStateService.class);
+
+        var mockResponse = new GetDefendantAccountFixedPenaltyResponse();
+        when(proxy.getDefendantAccountFixedPenalty(123L)).thenReturn(mockResponse);
+
+        var mockUserState = mock(UserState.class);
+        when(userStateService.checkForAuthorisedUser("Bearer token")).thenReturn(mockUserState);
+        when(mockUserState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+
+        var service = new DefendantAccountService(proxy, userStateService);
+
+        // Act
+        var response = service.getDefendantAccountFixedPenalty(123L, "Bearer token");
+
+        // Assert
+        verify(proxy).getDefendantAccountFixedPenalty(123L);
+        assertEquals(mockResponse, response);
+    }
+
+    @Test
+    void getDefendantAccountFixedPenalty_shouldThrowWhenNotAuthorized() {
+        var proxy = mock(DefendantAccountServiceProxy.class);
+        var userStateService = mock(UserStateService.class);
+
+        var mockUserState = mock(UserState.class);
+        when(userStateService.checkForAuthorisedUser("auth")).thenReturn(mockUserState);
+        when(mockUserState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(false);
+
+        var service = new DefendantAccountService(proxy, userStateService);
+
+        assertThrows(PermissionNotAllowedException.class, () ->
+            service.getDefendantAccountFixedPenalty(123L, "auth")
+        );
+
+        verifyNoInteractions(proxy);
+    }
 }
