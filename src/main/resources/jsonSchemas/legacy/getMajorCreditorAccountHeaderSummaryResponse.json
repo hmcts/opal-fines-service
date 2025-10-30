@@ -1,15 +1,12 @@
 {
   "type": "object",
   "required": [
-    "creditor_account_id",
-    "account_number",
-    "major_creditor_name",
-    "creditor_account_reference",
+    "major_creditor",
     "business_unit_details",
     "awaiting_payout"
   ],
   "properties": {
-    "creditor": {
+    "major_creditor": {
       "type": "object",
       "required": [
         "account_id",
