@@ -37,9 +37,9 @@ paths:
                 type: object
                 required:
                   - business_unit_details
-                  - creditor
+                  - major_creditor
                 properties:
-                  creditor:
+                  major_creditor:
                     type: object
                     required:
                       - account_id
@@ -121,9 +121,9 @@ paths:
                 type: object
                 required:
                   - business_unit_details
-                  - creditor
+                  - major_creditor
                 properties:
-                  creditor:
+                  major_creditor:
                     type: object
                     required:
                       - account_id
