@@ -120,31 +120,37 @@ paths:
               schema:
                 type: object
                 required:
-                  - creditor_account_id
-                  - account_number
-                  - major_creditor_name
-                  - creditor_account_reference
                   - business_unit_details
-                  - awaiting_payout
+                  - creditor
                 properties:
-                  creditor_account_id:
-                    type: integer
-                    format: int64
-                    description: The unique identifier for the major creditor account. DB Mapping from creditor_accounts.creditor_account_id
-                  account_number:
-                    type: string
-                    description: The account number of the major creditor account. DB Mapping from creditor_accounts.account_number
-                  major_creditor_name:
-                    type: string
-                    description: DB Mapping major_creditors.name where the creditor account type is 'MJ' or 'CF'
-                  creditor_account_reference:
-                    $ref: './common.yaml#/components/schemas/creditorAccountTypeReference'
-                    description: Set to 'Major creditor' or 'Central fund'
-                  business_unit_details:
-                    $ref: './common.yaml#/components/schemas/businessUnitSummary'
+                  creditor:
+                    type: object
+                    required:
+                      - account_id
+                      - account_number
+                      - name
+                      - account_reference
+                    properties:
+                      account_id:
+                        type: integer
+                        format: int64
+                        description: The unique identifier for the major creditor account. DB Mapping from creditor_accounts.creditor_account_id
+                      account_number:
+                        type: string
+                        description: The account number of the major creditor account. DB Mapping from creditor_accounts.account_number
+                        minLength: 8
+                        maxLength: 9
+                      name:
+                        type: string
+                        description: major_creditors.name where the creditor account type is 'MJ'  configuration_items.item_values.$.name where configuration_items.item_name = 'CENTRAL_FUND_ACCOUNT' and configuration_items.business_unit_id = creditor_accounts.business_unit_id
+                      account_reference:
+                        $ref: './common.yaml#/components/schemas/creditorAccountTypeReference'
+                        description: Set to 'Major creditor' or 'Central fund'
                   awaiting_payout:
                     $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
                     description: This is the sum of all payment transactions that have been paid by the defendants which has not been paid out to the major creditor. So transaction_amount in creditor_transactions that are related to the major creditor where payment_processed is FALSE and transaction_type = 'PAYMNT'
+                  business_unit_details:
+                    $ref: './common.yaml#/components/schemas/businessUnitSummary'
 
         400:
           description: Bad request
