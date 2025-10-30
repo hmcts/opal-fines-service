@@ -591,7 +591,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         FixedPenaltyTicketDetails ticketDetails = FixedPenaltyTicketDetails.builder()
             .issuingAuthority(account.getOriginatorName())
             .ticketNumber(offence.getTicketNumber())
-            .timeOfOffence(offence.getIssuedDate() != null ? offence.getIssuedDate().toString() : null)
+            .timeOfOffence(offence.getTimeOfOffence())
             .placeOfOffence(offence.getOffenceLocation())
             .build();
 
@@ -611,8 +611,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .version(String.valueOf(account.getVersion()))
             .build();
     }
-
-
 
     private static PaymentTermsType.PaymentTermsTypeCode safePaymentTermsTypeCode(String dbValue) {
         if (dbValue == null) {
