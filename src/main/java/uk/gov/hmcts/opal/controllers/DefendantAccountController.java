@@ -106,12 +106,11 @@ public class DefendantAccountController {
         return buildResponse(defendantAccountService.getAtAGlance(defendantAccountId, authHeaderValue));
     }
 
-    @GetMapping(value = "/{defendantAccountId}/fixed-penalty")
+    @GetMapping("/{defendantAccountId}/fixed-penalty")
     @Operation(summary = "Retrieve Fixed Penalty Offence details for a given Defendant Account")
     public ResponseEntity<GetDefendantAccountFixedPenaltyResponse> getDefendantAccountFixedPenalty(
         @PathVariable Long defendantAccountId,
-        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-
+        @RequestHeader("Authorization") String authHeaderValue) {
         log.debug(":GET:getDefendantAccountFixedPenalty: for defendantAccountId={}", defendantAccountId);
 
         GetDefendantAccountFixedPenaltyResponse response =
