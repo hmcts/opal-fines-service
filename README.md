@@ -188,6 +188,24 @@ Get an existing Defendant Account by business Unit ID and Account Number.
 The OpenAPI specification is available publicly (see badge at top of README) and when running the application
 at `/swagger-ui/index.html`. When running locally this is available at http://localhost:4550/swagger-ui/index.html.
 
+
+## Style rules
+This project we use a common set of styles rules to ensure all changes follow the same structure.
+These rules are outlined in the project's style file located at .idea/codeStyles/Project.xml
+
+To ensure we are following the same styles you will need to enable this project style on your IDE to do this following the below instructions.
+
+**Step 1: To to your InteliJ Settings**
+
+![intelij_settings.png](readme_images/intelij_settings.png)
+
+**Step 2: Go to the 'Code Styles' tab**
+
+![intelij_settings_codestyle.png](readme_images/intelij_settings_codestyle.png)
+
+**Step 3: Ensure the global scheme is set to 'Project' under the 'Stored in Project' heading.**
+
+![intelij_settings_codestyle_project.png](readme_images/intelij_settings_codestyle_project.png)
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
