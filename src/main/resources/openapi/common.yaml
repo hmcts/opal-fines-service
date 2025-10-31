@@ -636,6 +636,10 @@ components:
         account_type:
           type: string
           description: DB Mapping - creditor_accounts.creditor_account_type
+          enum:
+            - MN
+            - MJ
+            - CF
         display_name:
           type: string
           description: |

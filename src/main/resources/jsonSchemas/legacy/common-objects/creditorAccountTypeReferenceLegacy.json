@@ -4,11 +4,16 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "type": {
-      "type": "string"
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "MN",
+        "MJ",
+        "CF"
+      ]
     }
   },
   "required": [
-    "type"
+    "account_type"
   ]
 }
