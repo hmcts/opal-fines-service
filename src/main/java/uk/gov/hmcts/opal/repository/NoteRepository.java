@@ -15,4 +15,7 @@ public interface NoteRepository extends JpaRepository<NoteEntity, Long>, JpaSpec
     NoteEntity findTopByAssociatedRecordIdAndNoteTypeOrderByPostedDateDesc(
         String associatedRecordId, String noteType);
 
+    void deleteByAssociatedRecordId(String defendantAccountId);
+
+
 }
