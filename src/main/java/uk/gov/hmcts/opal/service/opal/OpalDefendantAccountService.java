@@ -92,6 +92,7 @@ import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.util.DateTimeUtils;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
@@ -616,8 +617,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private static GetDefendantAccountFixedPenaltyResponse toFixedPenaltyResponse(
         DefendantAccountEntity account, FixedPenaltyOffenceEntity offence) {
 
-        boolean isVehicle = Boolean.TRUE.equals(offence.getVehicleFixedPenalty())
-            || (offence.getVehicleRegistration() != null && !"NV".equalsIgnoreCase(offence.getVehicleRegistration()));
+        boolean isVehicle =
+            offence.getVehicleRegistration() != null
+                && !"NV".equalsIgnoreCase(offence.getVehicleRegistration());
 
         FixedPenaltyTicketDetails ticketDetails = FixedPenaltyTicketDetails.builder()
             .issuingAuthority(account.getOriginatorName())
@@ -631,7 +633,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .vehicleRegistrationNumber(offence.getVehicleRegistration())
             .vehicleDriversLicense(offence.getLicenceNumber())
             .noticeNumber(offence.getNoticeNumber())
-            .dateNoticeIssued(offence.getIssuedDate() != null ? offence.getIssuedDate().toString() : null)
+            .dateNoticeIssued(DateTimeUtils.toString(offence.getIssuedDate()))
             .build()
             : null;
 

@@ -100,15 +100,13 @@ public class DefendantAccountService {
         Long defendantAccountId,
         String authHeaderValue) {
 
-        log.debug(":getDefendantAccountFixedPenalty:");
-
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            return defendantAccountServiceProxy.getDefendantAccountFixedPenalty(defendantAccountId);
-        } else {
+        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
+
+        return defendantAccountServiceProxy.getDefendantAccountFixedPenalty(defendantAccountId);
     }
 
     public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
@@ -135,6 +133,5 @@ public class DefendantAccountService {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }
     }
-
 
 }

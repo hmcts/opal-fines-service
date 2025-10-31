@@ -1,7 +1,9 @@
 package uk.gov.hmcts.opal.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.launchdarkly.shaded.org.jetbrains.annotations.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,17 +15,20 @@ import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class GetDefendantAccountFixedPenaltyResponse {
-
+    @NotNull
     @JsonProperty("vehicle_fixed_penalty_flag")
     private boolean vehicleFixedPenaltyFlag;
 
+    @NotNull
     @JsonProperty("fixed_penalty_ticket_details")
     private FixedPenaltyTicketDetails fixedPenaltyTicketDetails;
 
+    @NotNull
     @JsonProperty("vehicle_fixed_penalty_details")
     private VehicleFixedPenaltyDetails vehicleFixedPenaltyDetails;
 
     @JsonIgnore
-    private String version;
+    private String version; // optional
 }

@@ -3272,7 +3272,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.vehicle_fixed_penalty_flag").isBoolean())
+            .andExpect(jsonPath("$.vehicle_fixed_penalty_flag").value(true))
             .andExpect(jsonPath("$.fixed_penalty_ticket_details.issuing_authority")
                 .value("Kingston-upon-Thames Mags Court"))
             .andExpect(jsonPath("$.fixed_penalty_ticket_details.ticket_number").value("888"))
