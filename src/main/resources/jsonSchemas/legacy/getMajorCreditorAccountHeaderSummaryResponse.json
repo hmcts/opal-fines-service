@@ -35,7 +35,7 @@
           "description": "major_creditors name where the creditor account type is 'MJ' or 'CF'"
         },
         "account_reference": {
-          "$ref": "./common-objects/creditorAccountTypeReference.json",
+          "$ref": "./common-objects/creditorAccountTypeReferenceLegacy.json",
           "description": "Set to 'Major creditor' or 'Central fund'"
         }
       }
