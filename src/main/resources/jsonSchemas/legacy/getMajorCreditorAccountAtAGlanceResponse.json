@@ -1,0 +1,42 @@
+{
+  "title": "Get Major Creditor Account At A Glance",
+  "type": "object",
+  "required": [
+    "major_creditor"
+  ],
+  "properties": {
+    "major_creditor": {
+      "type": "object",
+      "required": [
+        "creditor_account_id",
+        "creditor_account_version",
+        "name"
+      ],
+      "properties": {
+        "creditor_account_id": {
+          "type": "integer",
+          "format": "int64",
+        },
+        "creditor_account_version": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The version of the account"
+        },
+        "name": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string",
+          "description": "Required where creditor account type is 'MJ'."
+        },
+        "address": {
+          "$ref": "./common-objects/majorCreditorAddressDetailsLegacy.json"
+        },
+        "pay_by_bacs": {
+          "type": "boolean",
+          "description": "Required where creditor account type is 'MJ'"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "title": "Major Creditor Address Details",
+  "type": "object",
+  "properties": {
+    "line_1": {
+      "type": "string"
+    },
+    "line_2": {
+      "type": "string"
+    },
+    "line_3": {
+      "type": "string"
+    },
+    "postcode": {
+      "type": "string"
+    }
+  }
+}
