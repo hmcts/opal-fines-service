@@ -1,5 +1,15 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,26 +20,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
-import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.AppMode;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.launchdarkly.FeatureToggleService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.TestingSupportControllerTest")
@@ -142,6 +141,10 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
             "defendant_account_id = 1001")
         ).isGreaterThan(0);
         assertThat(count(
+            "notes",
+            "associated_record_id = '1001'"
+        )).isGreaterThan(0);
+        assertThat(count(
             "allocations",
             "imposition_id IN (SELECT imposition_id FROM impositions WHERE defendant_account_id = 1001)")
         ).isGreaterThan(0);
@@ -166,6 +169,8 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(count("payment_terms", "defendant_account_id = 1001")).isZero();
         assertThat(count("defendant_transactions", "defendant_account_id = 1001")).isZero();
         assertThat(count("impositions", "defendant_account_id = 1001")).isZero();
+        assertThat(count("notes", "associated_record_id = '1001'")).isZero();
+
         assertThat(count(
             "allocations",
             "imposition_id IN (SELECT imposition_id FROM impositions WHERE defendant_account_id = 1001)"))
