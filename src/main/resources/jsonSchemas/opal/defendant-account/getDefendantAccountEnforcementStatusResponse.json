@@ -64,7 +64,7 @@
     "last_enforcement_action",
     "next_enforcement_action_data",
     "defendant_account_type",
-    "account_status",
+    "account_status_reference",
     "employer_flag"
   ],
   "$defs": {
