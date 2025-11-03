@@ -10,13 +10,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.common.FixedPenaltyTicketDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
+import uk.gov.hmcts.opal.util.Versioned;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.ALWAYS)
-public class GetDefendantAccountFixedPenaltyResponse {
+public class GetDefendantAccountFixedPenaltyResponse implements Versioned, ToJsonString {
+
     @NotNull
     @JsonProperty("vehicle_fixed_penalty_flag")
     private boolean vehicleFixedPenaltyFlag;
@@ -30,5 +32,5 @@ public class GetDefendantAccountFixedPenaltyResponse {
     private VehicleFixedPenaltyDetails vehicleFixedPenaltyDetails;
 
     @JsonIgnore
-    private String version; // optional
+    private Long version; // optional
 }

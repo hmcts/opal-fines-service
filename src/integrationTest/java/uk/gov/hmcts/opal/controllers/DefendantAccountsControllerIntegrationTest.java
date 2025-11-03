@@ -3272,6 +3272,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("etag", matchesPattern("\"\\d+\"")))
             .andExpect(jsonPath("$.vehicle_fixed_penalty_flag").value(true))
             .andExpect(jsonPath("$.fixed_penalty_ticket_details.issuing_authority")
                 .value("Kingston-upon-Thames Mags Court"))
@@ -3304,7 +3305,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
             .andExpect(jsonPath("$.title").value("Entity Not Found"))
             .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"));
+            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(header().doesNotExist("ETag"));
     }
 
 
