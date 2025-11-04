@@ -1748,7 +1748,7 @@ class OpalDefendantAccountServiceTest {
         when(fixedPenaltyOffenceRepository.findByDefendantAccountId(id)).thenReturn(Optional.of(offence));
 
         var resp = service.getDefendantAccountFixedPenalty(id);
-        assertEquals("5", resp.getVersion());
+        assertEquals(5, resp.getVersion());
     }
 
     @Test
