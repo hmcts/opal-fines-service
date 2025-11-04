@@ -636,6 +636,10 @@ components:
         account_type:
           type: string
           description: DB Mapping - creditor_accounts.creditor_account_type
+          enum:
+            - MN
+            - MJ
+            - CF
         display_name:
           type: string
           description: |
@@ -648,4 +652,21 @@ components:
             - Minor Creditor
             - Major Creditor
             - Central Fund
+    majorCreditorAddressDetails:
+      title: Major Creditor Address Details
+      type: object
+      properties:
+        line_1:
+          type: string
+          description: major_creditors.address_line_1 where the creditor account type is 'MJ'  configuration_items.item_values.$.address_line_1 where configuration_items.item_name = 'CENTRAL_FUND_ACCOUNT' and configuration_items.business_unit_id = creditor_accounts.business_unit_id
+        line_2:
+          type: string
+          description: major_creditors.address_line_2 where the creditor account type is 'MJ'  configuration_items.item_values.$.address_line_2 where configuration_items.item_name = 'CENTRAL_FUND_ACCOUNT' and configuration_items.business_unit_id = creditor_accounts.business_unit_id
+        line_3:
+          type: string
+          description: major_creditors.address_line_3 where the creditor account type is 'MJ'            configuration_items.item_values.$.address_line_3 where configuration_items.item_name = 'CENTRAL_FUND_ACCOUNT' and configuration_items.business_unit_id = creditor_accounts.business_unit_id
+        postcode:
+          type: string
+          description: DB Mapping - major_creditors.postcode
+
 

@@ -26,7 +26,7 @@
   "required": [
     "version",
     "employer_flag",
-    "account_status",
+    "account_status_reference",
     "enforcement_overview"
   ],
   "$defs": {

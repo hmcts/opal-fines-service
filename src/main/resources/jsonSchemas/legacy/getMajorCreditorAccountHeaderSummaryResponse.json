@@ -1,41 +1,53 @@
 {
   "type": "object",
   "required": [
-    "creditor_account_id",
-    "account_number",
-    "major_creditor_name",
-    "creditor_account_reference",
+    "major_creditor",
     "business_unit_details",
     "awaiting_payout"
   ],
   "properties": {
-    "creditor_account_id": {
-      "type": "integer",
-      "format": "int64",
-      "description": "The unique identifier for the major creditor account."
-    },
-    "creditor_account_version": {
-      "type": "integer",
-      "format": "int64",
-      "description": "The version of the account"
-    },
-    "account_number": {
-      "type": "string",
-      "description": "The account number of the major creditor account."
-    },
-    "major_creditor_name": {
-      "type": "string",
-      "description": "major_creditors name where the creditor account type is 'MJ' or 'CF'"
-    },
-    "creditor_account_reference": {
-      "$ref": "./common-objects/creditorAccountTypeReference.json",
-      "description": "Set to 'Major creditor' or 'Central fund'"
+    "major_creditor": {
+      "type": "object",
+      "required": [
+        "creditor_account_id",
+        "account_version",
+        "account_number",
+        "name",
+        "account_reference"
+      ],
+      "properties": {
+        "creditor_account_id": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The unique identifier for the major creditor account."
+        },
+        "account_version": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The version of the account"
+        },
+        "account_number": {
+          "type": "string",
+          "description": "The account number of the major creditor account."
+        },
+        "name": {
+          "type": "string",
+          "description": "major_creditors name where the creditor account type is 'MJ' or 'CF'"
+        },
+        "account_reference": {
+          "$ref": "./common-objects/creditorAccountTypeReferenceLegacy.json",
+          "description": "Set to 'Major creditor' or 'Central fund'"
+        }
+      }
     },
     "business_unit_details": {
       "$ref": "./common-objects/businessUnitSummaryLegacy.json"
     },
     "awaiting_payout": {
-      "$ref": "./types.yaml#/components/schemas/monetaryZeroOrPositive",
+      "type": "number",
+      "multipleOf": 0.01,
+      "maximum": 999999999999,
+      "minimum": 0,
       "description": "This is the sum of all payment transactions that have been paid by the defendants which has not been paid out to the major creditor. So transaction_amount in creditor_transactions that are related to the major creditor where payment_processed is FALSE and transaction_type = 'PAYMNT'"
     }
   }
