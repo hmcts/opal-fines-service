@@ -21,7 +21,7 @@ plugins {
 
 ext {
   log4JVersion = "2.25.2"
-  serenityVersion = "4.2.34"
+  serenityVersion = "4.3.2"
   cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
 }
 
