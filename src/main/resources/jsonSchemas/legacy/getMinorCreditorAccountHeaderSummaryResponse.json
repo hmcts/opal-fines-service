@@ -33,8 +33,8 @@
         },
         "account_number": {
           "type": "string",
-          "minLength": 8,
-          "maxLength": 9
+          "minLength": 1,
+          "maxLength": 10
         },
         "account_type": {
           "$ref": "./common-objects/creditorAccountTypeReferenceLegacy.json"
