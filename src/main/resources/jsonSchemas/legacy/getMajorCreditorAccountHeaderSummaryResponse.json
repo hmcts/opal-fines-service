@@ -28,7 +28,9 @@
         },
         "account_number": {
           "type": "string",
-          "description": "The account number of the major creditor account."
+          "description": "The account number of the major creditor account.",
+          "minLength": 1,
+          "maxLength": 10
         },
         "name": {
           "type": "string",
