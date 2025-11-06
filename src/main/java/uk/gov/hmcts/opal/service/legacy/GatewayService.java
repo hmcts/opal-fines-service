@@ -14,6 +14,11 @@ public interface GatewayService {
     <T> CompletableFuture<Response<T>> postToGatewayAsync(
         String actionType, Class<T> responseType, Object request, String responseSchemaFile);
 
+    <T> Response<T> patchToGateway(String actionType, Class<T> responseType, Object request, String responseSchemaFile);
+
+    <T> CompletableFuture<Response<T>> patchToGatewayAsync(
+        String actionType, Class<T> responseType, Object request, String responseSchemaFile);
+
     class Response<T> {
         public final HttpStatusCode code;
         public final T responseEntity;
