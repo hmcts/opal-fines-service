@@ -3521,4 +3521,77 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
 
+    @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes [@PO-1908]")
+    void test_Legacy_UpdateDefendantAccount_CommentsNotes_Success(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Read the current version to avoid optimistic locking conflicts
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class, 77L
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\""); // use actual version
+
+        // create patch request with CommentsAndNotes payload
+        String requestJson = commentAndNotesPayload("patch DefAcc comment legacy test",
+            "patch DefAcc note one legacy test", "patch DefAcc note two legacy test",
+            "patch DefAcc note three legacy test");
+
+        ResultActions resultActions = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        )
+            .andDo(MockMvcResultHandlers.print());
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        String etag = resultActions.andReturn().getResponse().getHeader("ETag");
+        long version = objectMapper.readTree(body).path("version").asLong();
+
+        log.info(":legacy_UpdateDefendantAccount_CommentsNotes_Success ETag: {}", etag);
+
+        // Verify the response
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value("77"))
+            .andExpect(jsonPath("$.comment_and_notes.account_comment")
+                .value("patch DefAcc comment legacy test"))
+            .andExpect(jsonPath("$.comment_and_notes.free_text_note_1")
+                .value("patch DefAcc note one legacy test"))
+            .andExpect(jsonPath("$.comment_and_notes.free_text_note_2")
+                .value("patch DefAcc note two legacy test"))
+            .andExpect(jsonPath("$.comment_and_notes.free_text_note_3")
+                .value("patch DefAcc note three legacy test"))
+            .andExpect(header().string("ETag", "\"" + ++currentVersion + "\""));
+    }
+
+
+    @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes - 500 Error [@PO-1908]")
+    void test_Legacy_UpdateDefendantAccount_CommentNotes_500Error(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // create patch request with CommentsAndNotes payload
+        String requestJson = commentAndNotesPayload("patch DefAcc comment legacy test",
+            "patch DefAcc note one legacy test", "patch DefAcc note two legacy test",
+            "patch DefAcc note three legacy test");
+
+        ResultActions actions = mockMvc.perform(
+            patch(URL_BASE + "/500")
+                .header("authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        );
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":Legacy_UpdateDefendantAccount_CommentNotes_500Error body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().is5xxServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(header().doesNotExist("ETag")); // no ETag on error payloads
+    }
 }

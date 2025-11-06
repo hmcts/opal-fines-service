@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -104,6 +105,27 @@ public class LegacyGatewayService implements GatewayService {
 
         return CompletableFuture.completedFuture(response);
 
+    }
+
+    @Override
+    public <T> Response<T> patchToGateway(
+        String actionType, Class<T> responseType, Object request, String responseSchemaFile) {
+        // Legacy gateway does not support HTTP PATCH — tunnel with POST.
+        log.debug("Legacy gateway does not support PATCH; tunneling PATCH '{}' via POST", actionType);
+        return postToGateway(actionType, responseType, request, responseSchemaFile);
+    }
+
+    public Response<String> patchToGateway(String actionType, Object request) {
+        return patchToGateway(actionType, String.class, request, null);
+    }
+
+    @Override
+    @Async
+    public <T> CompletableFuture<Response<T>> patchToGatewayAsync(
+        String actionType, Class<T> responseType, Object request, String responseSchemaFile) {
+        return CompletableFuture.completedFuture(
+            patchToGateway(actionType, responseType, request, responseSchemaFile)
+        );
     }
 
     /*
