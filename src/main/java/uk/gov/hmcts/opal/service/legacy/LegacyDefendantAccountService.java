@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.math.BigDecimal;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -820,7 +821,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     @Override
     public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
         String businessUnitId,
-        UpdateDefendantAccountRequest request,
+        @NonNull UpdateDefendantAccountRequest request,
         String ifMatch,
         String postedBy) {
 
