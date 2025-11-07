@@ -1016,10 +1016,243 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
-    private static String orEmpty(String s) {
-        return (s == null) ? "" : s;
+    @Override
+    @Transactional
+    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
+        Long accountId,
+        Long dapId,
+        DefendantAccountParty request,
+        String ifMatch,
+        String businessUnitId,
+        String postedBy) {
+
+        DefendantAccountEntity account = defendantAccountRepository.findById(accountId)
+            .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: " + accountId));
+
+        if (account.getBusinessUnit() == null
+            || account.getBusinessUnit().getBusinessUnitId() == null
+            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
+            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
+        }
+
+        VersionUtils.verifyIfMatch(account, ifMatch, accountId, "replaceDefendantAccountParty");
+        amendmentService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+
+        DefendantAccountPartiesEntity dap = account.getParties().stream()
+            .filter(p -> p.getDefendantAccountPartyId().equals(dapId))
+            .findFirst()
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account Party not found for accountId=" + accountId + ", partyId=" + dapId));
+
+        PartyEntity party = dap.getParty();
+        Long requestedPartyId = safeParseLong(
+            request != null && request.getPartyDetails() != null ? request.getPartyDetails().getPartyId() : null);
+
+        if (party == null) {
+            if (requestedPartyId == null) {
+                throw new IllegalArgumentException("party_id is required");
+            }
+            party = em.getReference(PartyEntity.class, requestedPartyId); // managed proxy, no INSERT
+            dap.setParty(party);
+        } else {
+            if (requestedPartyId != null && !Objects.equals(party.getPartyId(), requestedPartyId)) {
+                throw new IllegalArgumentException("Switching party is not allowed");
+            }
+            if (!em.contains(party)) {
+                party = em.getReference(PartyEntity.class, party.getPartyId());
+                dap.setParty(party);
+            }
+        }
+
+        assert request != null;
+        dap.setAssociationType(request.getDefendantAccountPartyType());
+        dap.setDebtor(request.getIsDebtor());
+
+        applyPartyCoreReplace(party, request.getPartyDetails());
+        applyPartyAddressReplace(party, request.getAddress());
+        applyPartyContactReplace(party, request.getContactDetails());
+        party.setLastChangedDate(LocalDateTime.now());
+
+        boolean isDebtor = Boolean.TRUE.equals(request.getIsDebtor());
+        replaceDebtorDetail(
+            party.getPartyId(),
+            request.getVehicleDetails(),
+            request.getEmployerDetails(),
+            request.getLanguagePreferences(),
+            isDebtor
+        );
+
+        account.setLastChangedDate(LocalDate.now());
+
+        defendantAccountRepository.save(account);
+        em.flush();
+
+        amendmentService.auditFinaliseStoredProc(
+            account.getDefendantAccountId(),
+            RecordType.DEFENDANT_ACCOUNTS,
+            Short.parseShort(businessUnitId),
+            postedBy,
+            account.getProsecutorCaseReference(),
+            "ACCOUNT_ENQUIRY"
+        );
+
+        return GetDefendantAccountPartyResponse.builder()
+            .defendantAccountParty(mapDefendantAccountParty(dap))
+            .version(account.getVersion())
+            .build();
+
     }
 
+    private void applyPartyCoreReplace(PartyEntity party, PartyDetails details) {
+
+        Boolean orgFlag = details.getOrganisationFlag();
+        party.setOrganisation(orgFlag);
+
+        if (orgFlag) {
+            OrganisationDetails od = details.getOrganisationDetails();
+            if (od != null) {
+                party.setOrganisationName(od.getOrganisationName());
+            } else {
+                party.setOrganisationName(null);
+            }
+            party.setTitle(null);
+            party.setForenames(null);
+            party.setSurname(null);
+            party.setBirthDate(null);
+            party.setAge(null);
+            party.setNiNumber(null);
+        } else {
+            IndividualDetails id = details.getIndividualDetails();
+            if (id != null) {
+                party.setTitle(id.getTitle());
+                party.setForenames(id.getForenames());
+                party.setSurname(id.getSurname());
+                party.setBirthDate(safeParseLocalDate(id.getDateOfBirth()));
+                party.setAge(safeParseShort(id.getAge()));
+                party.setNiNumber(id.getNationalInsuranceNumber());
+            } else {
+                party.setTitle(null);
+                party.setForenames(null);
+                party.setSurname(null);
+                party.setBirthDate(null);
+                party.setAge(null);
+                party.setNiNumber(null);
+            }
+            party.setOrganisationName(null);
+        }
+    }
+
+    private void applyPartyAddressReplace(PartyEntity party, AddressDetails a) {
+        if (a == null) {
+            party.setAddressLine1(null);
+            party.setAddressLine2(null);
+            party.setAddressLine3(null);
+            party.setAddressLine4(null);
+            party.setAddressLine5(null);
+            party.setPostcode(null);
+            return;
+        }
+        party.setAddressLine1(a.getAddressLine1());
+        party.setAddressLine2(a.getAddressLine2());
+        party.setAddressLine3(a.getAddressLine3());
+        party.setAddressLine4(a.getAddressLine4());
+        party.setAddressLine5(a.getAddressLine5());
+        party.setPostcode(a.getPostcode());
+    }
+
+    private void applyPartyContactReplace(PartyEntity party, ContactDetails c) {
+        if (c == null) {
+            party.setPrimaryEmailAddress(null);
+            party.setSecondaryEmailAddress(null);
+            party.setMobileTelephoneNumber(null);
+            party.setHomeTelephoneNumber(null);
+            party.setWorkTelephoneNumber(null);
+            return;
+        }
+        party.setPrimaryEmailAddress(c.getPrimaryEmailAddress());
+        party.setSecondaryEmailAddress(c.getSecondaryEmailAddress());
+        party.setMobileTelephoneNumber(c.getMobileTelephoneNumber());
+        party.setHomeTelephoneNumber(c.getHomeTelephoneNumber());
+        party.setWorkTelephoneNumber(c.getWorkTelephoneNumber());
+    }
+
+    private void replaceDebtorDetail(Long partyId,
+        VehicleDetails vehicle,
+        EmployerDetails employer,
+        LanguagePreferences language,
+        boolean isDebtor) {
+        if (partyId == null) {
+            return;
+        }
+
+        DebtorDetailEntity debtor = debtorDetailRepository.findById(partyId).orElse(null);
+
+        if (!isDebtor && vehicle == null && employer == null && language == null) {
+            if (debtor != null) {
+                debtorDetailRepository.delete(debtor);
+            }
+            return;
+        }
+
+        if (debtor == null) {
+            debtor = new DebtorDetailEntity();
+            debtor.setPartyId(partyId);
+        }
+
+        debtor.setVehicleMake(vehicle != null ? vehicle.getVehicleMakeAndModel() : null);
+        debtor.setVehicleRegistration(vehicle != null ? vehicle.getVehicleRegistration() : null);
+
+        if (employer != null) {
+            debtor.setEmployerName(employer.getEmployerName());
+            debtor.setEmployeeReference(employer.getEmployerReference());
+            debtor.setEmployerEmail(employer.getEmployerEmailAddress());
+            debtor.setEmployerTelephone(employer.getEmployerTelephoneNumber());
+
+            AddressDetails ea = employer.getEmployerAddress();
+            if (ea != null) {
+                debtor.setEmployerAddressLine1(ea.getAddressLine1());
+                debtor.setEmployerAddressLine2(ea.getAddressLine2());
+                debtor.setEmployerAddressLine3(ea.getAddressLine3());
+                debtor.setEmployerAddressLine4(ea.getAddressLine4());
+                debtor.setEmployerAddressLine5(ea.getAddressLine5());
+                debtor.setEmployerPostcode(ea.getPostcode());
+            } else {
+                debtor.setEmployerAddressLine1(null);
+                debtor.setEmployerAddressLine2(null);
+                debtor.setEmployerAddressLine3(null);
+                debtor.setEmployerAddressLine4(null);
+                debtor.setEmployerAddressLine5(null);
+                debtor.setEmployerPostcode(null);
+            }
+        } else {
+            debtor.setEmployerName(null);
+            debtor.setEmployeeReference(null);
+            debtor.setEmployerEmail(null);
+            debtor.setEmployerTelephone(null);
+            debtor.setEmployerAddressLine1(null);
+            debtor.setEmployerAddressLine2(null);
+            debtor.setEmployerAddressLine3(null);
+            debtor.setEmployerAddressLine4(null);
+            debtor.setEmployerAddressLine5(null);
+            debtor.setEmployerPostcode(null);
+        }
+
+        if (language != null) {
+            debtor.setDocumentLanguage(language.getDocumentLanguagePreference() != null
+                ? language.getDocumentLanguagePreference().getLanguageCode() : null);
+            debtor.setHearingLanguage(language.getHearingLanguagePreference() != null
+                ? language.getHearingLanguagePreference().getLanguageCode() : null);
+            debtor.setDocumentLanguageDate(LocalDate.now());
+            debtor.setHearingLanguageDate(LocalDate.now());
+        } else {
+            debtor.setDocumentLanguage(null);
+            debtor.setHearingLanguage(null);
+            debtor.setDocumentLanguageDate(null);
+            debtor.setHearingLanguageDate(null);
+        }
+
+        debtorDetailRepository.save(debtor);
+    }
 
     /**
      * Determines if the individual is considered a youth (under 18 years old).
@@ -1113,7 +1346,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (co.getCollectionOrderFlag() == null || co.getCollectionOrderDate() == null) {
             throw new IllegalArgumentException("collection_order_flag and collection_order_date are required");
         }
-        entity.setCollectionOrder(Boolean.TRUE.equals(co.getCollectionOrderFlag()));
+        entity.setCollectionOrder(co.getCollectionOrderFlag());
         try {
             entity.setCollectionOrderEffectiveDate(LocalDate.parse(co.getCollectionOrderDate()));
         } catch (DateTimeParseException ex) {
@@ -1154,5 +1387,47 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             default -> raw;
         };
     }
+
+    private static Long safeParseLong(String s) {
+        if (s == null || s.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(s.trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private static Short safeParseShort(String s) {
+        if (s == null || s.isBlank()) {
+            return null;
+        }
+        try {
+            int i = Integer.parseInt(s.trim());
+            if (i < Short.MIN_VALUE || i > Short.MAX_VALUE) {
+                return null;
+            }
+            return (short) i;
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private static LocalDate safeParseLocalDate(String s) {
+        if (s == null || s.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(s.trim()); // ISO yyyy-MM-dd
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private static String orEmpty(String s) {
+        return Objects.requireNonNullElse(s, "");
+    }
+
 
 }

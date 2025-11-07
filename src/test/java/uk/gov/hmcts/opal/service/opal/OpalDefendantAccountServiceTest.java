@@ -8,15 +8,19 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,21 +33,31 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
+import org.mockito.MockedStatic;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
+import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
+import uk.gov.hmcts.opal.dto.common.ContactDetails;
+import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.common.EmployerDetails;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
 import uk.gov.hmcts.opal.dto.common.Enforcer;
 import uk.gov.hmcts.opal.dto.common.LJA;
+import uk.gov.hmcts.opal.dto.common.LanguagePreference;
+import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
+import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
+import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -51,15 +65,18 @@ import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
+import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.EnforcementOverrideResultEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.repository.CourtRepository;
+import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
@@ -1322,6 +1339,330 @@ class OpalDefendantAccountServiceTest {
         service.searchDefendantAccounts(dto);
 
         verify(searchSpecsSpy, times(1)).filterByActiveOnly(false);
+    }
+
+    // ========================= UPDATED TESTS (save + flush, no lock) =========================
+
+    @Test
+    void replaceDefendantAccountParty_happyPath_attachedParty_updates_and_audits() {
+        Long accountId = 777L;
+        Long dapId = 888L;
+        String bu = "10";
+        String ifMatch = "\"1\"";
+
+        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+            .businessUnitId(Short.valueOf(bu))
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(buEnt)
+            .version(1L)
+            .build();
+
+        // Party is mocked so we can verify setters
+        PartyEntity party = mock(PartyEntity.class);
+        when(party.getPartyId()).thenReturn(123L);
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(dapId)
+            .party(party)
+            .associationType("RESPONDENT") // initial; will be overwritten by req
+            .debtor(Boolean.FALSE)
+            .build();
+
+        account.setParties(List.of(dap));
+        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        // repository.save echoes the same instance
+        when(defendantAccountRepository.save(account)).thenReturn(account);
+
+        AmendmentService amendmentService = mock(AmendmentService.class);
+        EntityManager em = mock(EntityManager.class);
+        when(em.contains(party)).thenReturn(true);
+
+        // Inject mocked DebtorDetailRepository
+        DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
+        when(debtorRepo.findById(anyLong())).thenReturn(Optional.empty());
+        when(debtorRepo.existsById(anyLong())).thenReturn(false);
+        when(debtorRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            null, defendantAccountRepository, searchDefAccRepo, searchSpecsSpy, paymentTermsRepository,
+            dasvRepository, null, amendmentService, em, null, null, null, null
+        );
+
+        setField(svc, "debtorDetailRepository", debtorRepo);
+
+        // ---- Build the request ----
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .defendantAccountPartyType("Defendant")
+            .isDebtor(Boolean.TRUE)
+            .partyDetails(PartyDetails.builder()
+                .partyId("123") // must match existing
+                .organisationFlag(Boolean.TRUE)
+                .organisationDetails(OrganisationDetails.builder()
+                    .organisationName("ACME LTD")
+                    .build())
+                .build())
+            .address(AddressDetails.builder()
+                .addressLine1("1 MAIN")
+                .postcode("AB1 2CD")
+                .build())
+            .contactDetails(ContactDetails.builder()
+                .primaryEmailAddress("a@b.com")
+                .workTelephoneNumber("0207")
+                .build())
+            .vehicleDetails(VehicleDetails.builder()
+                .vehicleMakeAndModel("Ford Focus")
+                .vehicleRegistration("AB12CDE")
+                .build())
+            .employerDetails(EmployerDetails.builder()
+                .employerName("Widgets Inc")
+                .employerAddress(AddressDetails.builder()
+                    .addressLine1("10 Park")
+                    .postcode("ZZ1 1ZZ")
+                    .build())
+                .build())
+            .languagePreferences(LanguagePreferences.builder()
+                .documentLanguagePreference(LanguagePreference.fromCode("EN"))
+                .hearingLanguagePreference(LanguagePreference.fromCode("CY"))
+                .build())
+            .build();
+
+        try (MockedStatic<uk.gov.hmcts.opal.util.VersionUtils> vs =
+            mockStatic(uk.gov.hmcts.opal.util.VersionUtils.class)) {
+            vs.when(() -> uk.gov.hmcts.opal.util.VersionUtils
+                    .verifyIfMatch(eq(account), eq(ifMatch), eq(accountId), anyString()))
+                .thenAnswer(i -> null);
+
+            GetDefendantAccountPartyResponse resp =
+                svc.replaceDefendantAccountParty(accountId, dapId, req, ifMatch, bu, "tester");
+
+            assertNotNull(resp);
+            assertNotNull(resp.getDefendantAccountParty());
+
+            // behavioural assertions (no lock now)
+            verify(defendantAccountRepository).save(account);
+            verify(em).flush();
+
+            verify(amendmentService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+            verify(amendmentService).auditFinaliseStoredProc(eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
+                eq(Short.parseShort(bu)), eq("tester"), any(), eq("ACCOUNT_ENQUIRY"));
+
+            // a couple of key field updates on Party
+            verify(party).setOrganisation(Boolean.TRUE);
+            verify(party).setOrganisationName("ACME LTD");
+            verify(party).setAddressLine1("1 MAIN");
+            verify(party).setPrimaryEmailAddress("a@b.com");
+        }
+    }
+
+    @Test
+    void replaceDefendantAccountParty_detachedParty_isReattached_with_getReference() {
+        Long accountId = 100L;
+        Long dapId = 200L;
+        String bu = "10";
+
+        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+            .businessUnitId(Short.valueOf(bu))
+            .build();
+
+        PartyEntity party = mock(PartyEntity.class);
+        when(party.getPartyId()).thenReturn(300L);
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(dapId)
+            .party(party)
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(buEnt)
+            .parties(List.of(dap))
+            .version(1L)
+            .build();
+
+        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        when(defendantAccountRepository.save(account)).thenReturn(account);
+
+        AmendmentService amendmentService = mock(AmendmentService.class);
+        EntityManager em = mock(EntityManager.class);
+        when(em.contains(party)).thenReturn(false);
+        when(em.getReference(PartyEntity.class, 300L)).thenReturn(party);
+
+        // Inject mocked DebtorDetailRepository
+        DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
+        when(debtorRepo.findById(anyLong())).thenReturn(Optional.empty());
+        when(debtorRepo.existsById(anyLong())).thenReturn(false);
+        when(debtorRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            null, defendantAccountRepository, searchDefAccRepo, searchSpecsSpy, paymentTermsRepository,
+            dasvRepository, null, amendmentService, em, null, null, null, null
+        );
+        setField(svc, "debtorDetailRepository", debtorRepo);
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .partyDetails(PartyDetails.builder()
+                .partyId("300")
+                .organisationFlag(Boolean.TRUE)
+                .organisationDetails(OrganisationDetails.builder().organisationName("ACME").build())
+                .build())
+            .build();
+
+        try (MockedStatic<uk.gov.hmcts.opal.util.VersionUtils> vs =
+            mockStatic(uk.gov.hmcts.opal.util.VersionUtils.class)) {
+            vs.when(() -> uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+                .thenAnswer(i -> null);
+
+            GetDefendantAccountPartyResponse resp =
+                svc.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", bu, "tester");
+
+            assertNotNull(resp);
+            assertNotNull(resp.getDefendantAccountParty());
+            verify(em).getReference(PartyEntity.class, 300L);
+            verify(defendantAccountRepository).save(account);
+            verify(em).flush();
+        }
+    }
+
+    @Test
+    void replaceDefendantAccountParty_switchingParty_isForbidden() {
+        Long accountId = 100L;
+        Long dapId = 200L;
+
+        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10)
+            .build();
+
+        PartyEntity party = mock(PartyEntity.class);
+        when(party.getPartyId()).thenReturn(300L);
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(dapId)
+            .party(party)
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(buEnt)
+            .parties(List.of(dap))
+            .version(1L)
+            .build();
+
+        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
+
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            null, defendantAccountRepository, null, null, null, null, null,
+            mock(AmendmentService.class), mock(EntityManager.class), null, null, null, null
+        );
+
+        // Inject mocked DebtorDetailRepository
+        DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
+        setField(svc, "debtorDetailRepository", debtorRepo);
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .partyDetails(PartyDetails.builder()
+                .partyId("999") // different to existing 300
+                .organisationFlag(Boolean.TRUE)
+                .build())
+            .build();
+
+        try (MockedStatic<uk.gov.hmcts.opal.util.VersionUtils> vs =
+            mockStatic(uk.gov.hmcts.opal.util.VersionUtils.class)) {
+            vs.when(() -> uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+                .thenAnswer(i -> null);
+
+            assertThrows(IllegalArgumentException.class, () ->
+                svc.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester"));
+
+            // failure path → no save/flush
+            verify(defendantAccountRepository, never()).save(any());
+        }
+    }
+
+    @Test
+    void replaceDefendantAccountParty_noExistingParty_andMissingPartyId_throws() {
+        Long accountId = 100L;
+        Long dapId = 200L;
+
+        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10)
+            .build();
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(dapId)
+            .party(null) // nothing linked yet
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(buEnt)
+            .parties(List.of(dap))
+            .version(1L)
+            .build();
+
+        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
+
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            null, defendantAccountRepository, null, null, null, null, null,
+            mock(AmendmentService.class), mock(EntityManager.class), null, null, null, null
+        );
+
+        // Inject mocked DebtorDetailRepository
+        DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
+        setField(svc, "debtorDetailRepository", debtorRepo);
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .partyDetails(PartyDetails.builder()
+                .organisationFlag(Boolean.TRUE)
+                .organisationDetails(OrganisationDetails.builder().organisationName("ACME").build())
+                .build())
+            .build();
+
+        try (MockedStatic<uk.gov.hmcts.opal.util.VersionUtils> vs =
+            mockStatic(uk.gov.hmcts.opal.util.VersionUtils.class)) {
+            vs.when(() -> uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+                .thenAnswer(i -> null);
+
+            assertThrows(IllegalArgumentException.class, () ->
+                svc.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester"));
+
+            verify(defendantAccountRepository, never()).save(any());
+            // skip explicit flush verify if you don't expose EM
+        }
+    }
+
+    @Test
+    void replaceDefendantAccountParty_wrongBusinessUnit_throws() {
+        Long accountId = 100L;
+
+        BusinessUnitFullEntity buWrong = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 77)
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(buWrong)
+            .version(1L)
+            .build();
+
+        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
+
+        OpalDefendantAccountService svc = new OpalDefendantAccountService(
+            null, defendantAccountRepository, null, null, null, null, null,
+            mock(AmendmentService.class), mock(EntityManager.class), null, null, null, null
+        );
+
+        // Inject mocked DebtorDetailRepository
+        DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
+        setField(svc, "debtorDetailRepository", debtorRepo);
+
+        assertThrows(EntityNotFoundException.class, () ->
+            svc.replaceDefendantAccountParty(accountId, 1L, DefendantAccountParty.builder().build(),
+                "\"1\"", "10", "tester"));
+
+        verify(defendantAccountRepository, never()).save(any());
+        // skip flush verify as above
     }
 
 }
