@@ -46,6 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.web.server.ResponseStatusException;
 
 import uk.gov.hmcts.opal.AbstractIntegrationTest;

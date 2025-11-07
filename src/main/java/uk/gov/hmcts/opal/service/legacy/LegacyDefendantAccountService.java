@@ -65,6 +65,7 @@ import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
+import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
@@ -84,6 +85,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
+
+    /* ---- Mappers ---- */
+    private final UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
     private final LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
@@ -822,28 +826,13 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         log.info(":updateDefendantAccount: id: {}", defendantAccountId);
 
-        // ---
         // build legacy request object with mapped fields from UpdateDefendantAccountRequest
         LegacyUpdateDefendantAccountRequest legacyRequest =
-            LegacyUpdateDefendantAccountRequest.builder()
-                .defendantAccountId(defendantAccountId.toString())
-                .businessUnitId(businessUnitId)
-                // legacy expects a business_unit_user_id and a version (both non-null)
-                // use postedBy for businessUnitUserId and parse ifMatch for version
-                .businessUnitUserId(postedBy)
-                .version(parseIfMatchVersion(ifMatch))
-                .commentAndNotes(toLegacyCommentsAndNotes(request == null ? null : request.getCommentsAndNotes()))
-                .enforcementCourtId(String.valueOf(request != null && request.getEnforcementCourt() != null
-                    ? request.getEnforcementCourt().getCourtId()
-                    : null))
-                .collectionOrder(request != null && request.getCollectionOrder() != null
-                    ? toLegacyCollectionOrder(request.getCollectionOrder())
-                    : null)
-                .enforcementOverride(request != null && request.getEnforcementOverride() != null
-                    ? toLegacyEnforcementOverride(request.getEnforcementOverride())
-                    : null)
-                .build();
-        // ===
+            updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(request,
+                String.valueOf(defendantAccountId),
+                businessUnitId,
+                postedBy,
+                parseIfMatchVersion(ifMatch));
 
         // Send the request to the gateway service
         Response<LegacyUpdateDefendantAccountResponse> gwResponse = gatewayService.patchToGateway(
@@ -867,7 +856,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     // Helper methods
-
     private static Integer parseIfMatchVersion(String ifMatch) {
         if (ifMatch == null) {
             return 1;
@@ -883,64 +871,4 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             return 1;
         }
     }
-
-    private static uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes toLegacyCommentsAndNotes(
-        uk.gov.hmcts.opal.dto.common.CommentsAndNotes src) {
-        if (src == null) {
-            return null;
-        }
-        uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes dst =
-            new uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes();
-        dst.setAccountComment(src.getAccountNotesAccountComments());
-        dst.setFreeTextNote1(src.getAccountNotesFreeTextNote1());
-        dst.setFreeTextNote2(src.getAccountNotesFreeTextNote2());
-        dst.setFreeTextNote3(src.getAccountNotesFreeTextNote3());
-        return dst;
-    }
-
-    private static uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder toLegacyCollectionOrder(
-        uk.gov.hmcts.opal.dto.CollectionOrderDto src) {
-        if (src == null) {
-            return null;
-        }
-        // Minimal mapping: create legacy object and copy fields that exist in both models if available.
-        uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder dst =
-            new uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder();
-        // Example attempts to map common fields if present on the DTOs (safe to adjust when fields known)
-        try {
-            // attempt to call known getters via typical names if they exist
-            // if methods don't exist, these calls will be no-ops because of the try/catch
-            java.lang.reflect.Method m;
-            m = src.getClass().getMethod("getCollectionOrderCode");
-            Object val = m.invoke(src);
-            if (val != null) {
-                dst.setCollectionOrderCode(val.toString());
-            }
-        } catch (Exception ignored) {
-            // no-op: keep as minimal stub if fields are unknown
-        }
-        return dst;
-    }
-
-    private static uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride toLegacyEnforcementOverride(
-        uk.gov.hmcts.opal.dto.common.EnforcementOverride src) {
-        if (src == null) {
-            return null;
-        }
-        uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride dst =
-            new uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride();
-        // Map likely common fields if present
-        try {
-            java.lang.reflect.Method m = src.getClass().getMethod("getOverrideReason");
-            Object val = m.invoke(src);
-            if (val != null) {
-                dst.setOverrideReason(val.toString());
-            }
-        } catch (Exception ignored) {
-            // leave as minimal stub
-        }
-        return dst;
-    }
-    // ===
-
 }
