@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers;
+package uk.gov.hmcts.opal.controllers.defendant;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -17,7 +17,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
-@Component
 @DisplayName("Integration tests for /defendant-accounts/{id}/payment-terms/latest")
 public class DefendantAccountPaymentTermsIntegrationTest extends BaseDefendantAccountsIntegrationTest {
 

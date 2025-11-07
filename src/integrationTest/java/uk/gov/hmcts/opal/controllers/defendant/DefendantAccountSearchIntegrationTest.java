@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers;
+package uk.gov.hmcts.opal.controllers.defendant;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.everyItem;
@@ -22,7 +22,6 @@ import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 
-@Component
 @DisplayName("Integration tests for /defendant-accounts/search")
 public class DefendantAccountSearchIntegrationTest extends BaseDefendantAccountsIntegrationTest {
 

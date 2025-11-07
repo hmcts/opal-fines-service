@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers;
+package uk.gov.hmcts.opal.controllers.defendant;
 
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.SchemaPaths;
 
-@Component
 @DisplayName("Integration tests for /defendant-accounts/{id}/defendant-account-parties/{partyId}")
 public class DefendantAccountPartyIntegrationTest extends BaseDefendantAccountsIntegrationTest {
 

@@ -1,43 +1,18 @@
-package uk.gov.hmcts.opal.controllers;
+package uk.gov.hmcts.opal.controllers.defendant;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.OpalDefendantAccountsIntegrationTest")
 class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIntegrationTest {
-
-    @Test
-    void testGetHeaderSummaryInd() throws Exception {
-        super.getHeaderSummary_Individual(log);
-    }
-
-    @Test
-    void testGetHeaderSummaryOrg() throws Exception {
-        super.getHeaderSummary_Organisation(log);
-    }
-
-    @Test
-    void testGetHeaderSummary_NotFound() throws Exception {
-        super.getHeaderSummary_Opal_NotFound(log);
-    }
-
-    @Test
-    void testGetHeaderSummary_PO2297_Individual_UsesDefendantAccountPartyId() throws Exception {
-        super.testGetHeaderSummary_Individual_UsesDefendantAccountPartyId(log);
-    }
-
-    @Test
-    void testGetHeaderSummary_PO2297_Organisation_UsesDefendantAccountPartyId() throws Exception {
-        super.testGetHeaderSummary_Organisation_UsesDefendantAccountPartyId(log);
-    }
 
     @Test
     void testSearch_Opal_Happy() throws Exception {
@@ -132,11 +107,6 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     @Test
     void opal_optional_fields_present_and_missing() throws Exception {
         super.testPostDefendantAccountsSearch_Opal_OptionalFieldsPresentAndMissing(log);
-    }
-
-    @Test
-    void get_header_summary_throws_not_found() throws Exception {
-        super.testGetHeaderSummary_ThrowsNotFound(log);
     }
 
     @Test
@@ -280,41 +250,6 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
-    void testGetAtAGlance_Individual() throws Exception {
-        super.opalGetAtAGlance_Individual(log);
-    }
-
-    @Test
-    void testGetAtAGlance_Individual_ParentGuardian() throws Exception {
-        super.opalGetAtAGlance_Individual_ParentGuardian(log);
-    }
-
-    @Test
-    void testGetAtAGlance_Organisation() throws Exception {
-        super.opalGetAtAGlance_Organisation(log);
-    }
-
-    @Test
-    void testGetAtAGlance_Organisation_NoLanguagePrefs() throws Exception {
-        super.opalGetAtAGlance_Organisation_NoLanguagePrefs(log);
-    }
-
-    @Test
-    void testGetAtAGlance_Organisation_NoHearingLanguagePrefs() throws Exception {
-        super.opalGetAtAGlance_Organisation_NoHearingLanguagePref(log);
-    }
-
-    @Test
-    void testGetAtAGlance_missingAuthHeader_returns401() throws Exception {
-        super.opalGetAtAGlance_missingAuthHeader_returns401(log);
-    }
-
-    @Test
-    void testGetAtAGlance_authenticatedWithoutPermission_returns403() throws Exception {
-        super.opalGetAtAGlance_authenticatedWithoutPermission_returns403(log);
-    }
-
-    @Test
     void opal_updateDefendantAccount_Happy() throws Exception {
         super.opalUpdateDefendantAccount_Happy(log);
     }
@@ -374,10 +309,6 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.patch_returnsETag_andResponseConformsToSchema(log);
     }
 
-    @Test
-    void opal_exceptionContainsRetriableField() throws Exception {
-        super.testEntityNotFoundExceptionContainsRetriable(log);
-    }
 
     @Test
     void opal_wrongMediaTypeContainsRetriableField() throws Exception {
@@ -394,13 +325,4 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.testPostDefendantAccountsSearch_OrganisationFlagRespected(log);
     }
 
-    @Test
-    void testGetAtAGlance_VerifyAliasesArray_Organisation() throws Exception {
-        super.testGetAtAGlance_VerifyAliasesArray_Organisation(log);
-    }
-
-    @Test
-    void testGetAtAGlance_VerifyAliasesArray_Individual() throws Exception {
-        super.testGetAtAGlance_VerifyAliasesArray_Individual(log);
-    }
 }

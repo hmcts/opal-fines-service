@@ -1,25 +1,14 @@
-package uk.gov.hmcts.opal.controllers;
+package uk.gov.hmcts.opal.controllers.defendant;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
-
-import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.SchemaPaths;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.service.UserStateService;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 /**
  * Base class for all Defendant Account integration tests.
@@ -36,21 +25,6 @@ public abstract class BaseDefendantAccountsIntegrationTest extends AbstractInteg
 
     @Autowired
     protected JdbcTemplate jdbcTemplate;
-
-    @MockitoBean
-    protected UserStateService userStateService;
-
-    @MockitoSpyBean
-    protected JsonSchemaValidationService jsonSchemaValidationService;
-
-    @MockitoBean
-    protected UserState userState;
-
-    @BeforeEach
-    void setupUserState() {
-        when(userState.anyBusinessUnitUserHasPermission(any())).thenReturn(true);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-    }
 
     // ---------- Schema path helpers ----------
 

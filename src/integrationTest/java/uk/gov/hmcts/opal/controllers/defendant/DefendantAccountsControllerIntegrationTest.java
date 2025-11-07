@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers;
+package uk.gov.hmcts.opal.controllers.defendant;
 
 
 import org.junit.jupiter.api.BeforeEach;
@@ -16,9 +16,6 @@ public abstract class DefendantAccountsControllerIntegrationTest extends BaseDef
 
 
     // --- Test class delegates (sharing Spring context via base injection) ---
-    protected final DefendantAccountHeaderSummaryIntegrationTest headerSummary =
-        new DefendantAccountHeaderSummaryIntegrationTest();
-    protected final DefendantAccountAtAGlanceIntegrationTest atAGlance = new DefendantAccountAtAGlanceIntegrationTest();
     protected final DefendantAccountPartyIntegrationTest party =
         new DefendantAccountPartyIntegrationTest();
     protected final DefendantAccountPaymentTermsIntegrationTest paymentTerms =
@@ -28,12 +25,12 @@ public abstract class DefendantAccountsControllerIntegrationTest extends BaseDef
 
     @BeforeEach
     void propagateBaseContextToDelegates() {
-        injectBaseDependencies(headerSummary);
-        injectBaseDependencies(atAGlance);
-        injectBaseDependencies(party);
-        injectBaseDependencies(paymentTerms);
-        injectBaseDependencies(search);
-        injectBaseDependencies(update);
+//        injectBaseDependencies(headerSummary);
+//        injectBaseDependencies(atAGlance);
+//        injectBaseDependencies(party);
+//        injectBaseDependencies(paymentTerms);
+//        injectBaseDependencies(search);
+//        injectBaseDependencies(update);
     }
 
     /*
@@ -45,85 +42,6 @@ public abstract class DefendantAccountsControllerIntegrationTest extends BaseDef
       @Autowired protected DefendantAccountUpdateIntegrationTest update;
      */
 
-
-    // Header Summary
-    public void getHeaderSummary_Individual(Logger log) throws Exception {
-        headerSummary.getHeaderSummary_Individual(log);
-    }
-
-    public void getHeaderSummary_Organisation(Logger log) throws Exception {
-        headerSummary.getHeaderSummary_Organisation(log);
-    }
-
-    public void getHeaderSummary_Opal_NotFound(Logger log) throws Exception {
-        headerSummary.getHeaderSummary_Opal_NotFound(log);
-    }
-
-    public void getHeaderSummary_Legacy_500(Logger log) throws Exception {
-        headerSummary.getHeaderSummary_Legacy_500(log);
-    }
-
-    public void testGetHeaderSummary_Individual_UsesDefendantAccountPartyId(Logger log) throws Exception {
-        headerSummary.testGetHeaderSummary_Individual_UsesDefendantAccountPartyId(log);
-    }
-
-    public void testGetHeaderSummary_Organisation_UsesDefendantAccountPartyId(Logger log) throws Exception {
-        headerSummary.testGetHeaderSummary_Organisation_UsesDefendantAccountPartyId(log);
-    }
-
-    public void testGetHeaderSummary_ThrowsNotFound(Logger log) throws Exception {
-        headerSummary.testGetHeaderSummary_ThrowsNotFound(log);
-    }
-
-    public void testEntityNotFoundExceptionContainsRetriable(Logger log) throws Exception {
-        headerSummary.testEntityNotFoundExceptionContainsRetriable(log);
-    }
-
-
-    // At A Glance
-    public void opalGetAtAGlance_Individual(Logger log) throws Exception {
-        atAGlance.opalGetAtAGlance_Individual(log);
-    }
-
-    public void opalGetAtAGlance_Individual_ParentGuardian(Logger log) throws Exception {
-        atAGlance.opalGetAtAGlance_Individual_ParentGuardian(log);
-    }
-
-    public void opalGetAtAGlance_Organisation(Logger log) throws Exception {
-        atAGlance.opalGetAtAGlance_Organisation(log);
-    }
-
-    public void opalGetAtAGlance_Organisation_NoLanguagePrefs(Logger log) throws Exception {
-        atAGlance.opalGetAtAGlance_Organisation_NoLanguagePrefs(log);
-    }
-
-    public void opalGetAtAGlance_Organisation_NoHearingLanguagePref(Logger log) throws Exception {
-        atAGlance.opalGetAtAGlance_Organisation_NoHearingLanguagePref(log);
-    }
-
-    public void opalGetAtAGlance_missingAuthHeader_returns401(Logger log) throws Exception {
-        atAGlance.opalGetAtAGlance_missingAuthHeader_returns401(log);
-    }
-
-    public void opalGetAtAGlance_authenticatedWithoutPermission_returns403(Logger log) throws Exception {
-        atAGlance.opalGetAtAGlance_authenticatedWithoutPermission_returns403(log);
-    }
-
-    public void testGetAtAGlance_VerifyAliasesArray_Organisation(Logger log) throws Exception {
-        atAGlance.testGetAtAGlance_VerifyAliasesArray_Organisation(log);
-    }
-
-    public void testGetAtAGlance_VerifyAliasesArray_Individual(Logger log) throws Exception {
-        atAGlance.testGetAtAGlance_VerifyAliasesArray_Individual(log);
-    }
-
-    public void getDefendantAccountAtAGlance_500Error(Logger log) throws Exception {
-        atAGlance.getDefendantAccountAtAGlance_500Error(log);
-    }
-
-    public void testLegacyGetDefendantAtAGlance(Logger log) throws Exception {
-        atAGlance.testLegacyGetDefendantAtAGlance(log);
-    }
 
 
     // Payment Terms

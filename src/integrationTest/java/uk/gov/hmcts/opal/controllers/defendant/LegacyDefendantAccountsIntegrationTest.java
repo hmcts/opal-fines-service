@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.controllers;
+package uk.gov.hmcts.opal.controllers.defendant;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
@@ -9,23 +9,6 @@ import org.springframework.test.context.ActiveProfiles;
 @Slf4j(topic = "opal.LegacyDefendantAccountsIntegrationTest")
 class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsControllerIntegrationTest {
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
-    @Test
-    void testGetHeaderSummaryInd() throws Exception {
-        super.getHeaderSummary_Individual(log);
-    }
-
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
-    @Test
-    void testGetHeaderSummaryOrg() throws Exception {
-        super.getHeaderSummary_Organisation(log);
-    }
-
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
-    @Test
-    void testGetHeaderSummary_500Error() throws Exception {
-        super.getHeaderSummary_Legacy_500(log);
-    }
 
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
@@ -51,17 +34,6 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
         super.getDefendantAccountPaymentTerms_500Error(log);
     }
 
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
-    @Test
-    void testGetDefendantAccountsAtAGlance_500Error() throws Exception {
-        super.getDefendantAccountAtAGlance_500Error(log);
-    }
-
-    @Disabled("A running instance of Legacy Stub App is required to execute this test")
-    @Test
-    void testGetDefendantAccountsAtAGlance_Success() throws Exception {
-        super.testLegacyGetDefendantAtAGlance(log);
-    }
 
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
