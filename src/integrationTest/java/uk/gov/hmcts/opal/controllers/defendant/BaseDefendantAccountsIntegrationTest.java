@@ -32,7 +32,17 @@ public abstract class BaseDefendantAccountsIntegrationTest extends AbstractInteg
 
     // ---------- Utility methods ----------
     protected static String commentAndNotesPayload(String accountComment) {
-        return commentAndNotesPayload(accountComment, null, null, null);
+        // Always include all required fields for schema validation
+        return """
+        {
+          "comment_and_notes": {
+            "account_comment": %s,
+            "free_text_note_1": null,
+            "free_text_note_2": null,
+            "free_text_note_3": null
+          }
+        }
+        """.formatted(jsonValue(accountComment));
     }
 
     protected static String commentAndNotesPayload(String accountComment,
