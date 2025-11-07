@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -59,10 +58,18 @@ public class LegacyUpdateDefendantAccountResponse implements ToXmlString {
         + "or enforcement_override must be present")
     private boolean isExactlyOneUpdateFieldPresent() {
         int count = 0;
-        if (Objects.nonNull(commentAndNotes)) count++;
-        if (Objects.nonNull(enforcementCourtId)) count++;
-        if (Objects.nonNull(collectionOrder)) count++;
-        if (Objects.nonNull(enforcementOverride)) count++;
+        if (Objects.nonNull(commentAndNotes)) {
+            count++;
+        }
+        if (Objects.nonNull(enforcementCourtId)) {
+            count++;
+        }
+        if (Objects.nonNull(collectionOrder)) {
+            count++;
+        }
+        if (Objects.nonNull(enforcementOverride)) {
+            count++;
+        }
         return count == 1;
     }
 }
