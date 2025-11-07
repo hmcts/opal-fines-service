@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.dto.legacy.common;
 
-import java.io.Serializable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;

@@ -9,7 +9,6 @@ import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -71,10 +70,18 @@ public class LegacyUpdateDefendantAccountRequest {
         + "or enforcement_override must be present")
     private boolean isExactlyOneUpdateFieldPresent() {
         int count = 0;
-        if (Objects.nonNull(commentAndNotes)) count++;
-        if (Objects.nonNull(enforcementCourtId)) count++;
-        if (Objects.nonNull(collectionOrder)) count++;
-        if (Objects.nonNull(enforcementOverride)) count++;
+        if (Objects.nonNull(commentAndNotes)) {
+            count++;
+        }
+        if (Objects.nonNull(enforcementCourtId)) {
+            count++;
+        }
+        if (Objects.nonNull(collectionOrder)) {
+            count++;
+        }
+        if (Objects.nonNull(enforcementOverride)) {
+            count++;
+        }
         return count == 1;
     }
 }

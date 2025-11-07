@@ -1,6 +1,10 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Mappings;
+import org.mapstruct.Named;
+import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
@@ -32,11 +36,16 @@ public interface LegacyUpdateDefendantAccountResponseMapper {
     @Mapping(target = "collectionOrderFlag", source = "collectionOrderFlag")
     @Mapping(target = "collectionOrderDate", source = "collectionOrderDate")
     CollectionOrderDto map(uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder src);
+
     EnforcementOverride map(uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride src);
 
     @Named("stringToLong")
-    default Long stringToLong(String s) { return (s == null || s.isBlank()) ? null : Long.valueOf(s); }
+    default Long stringToLong(String s) {
+        return (s == null || s.isBlank()) ? null : Long.valueOf(s);
+    }
 
     @Named("intToLong")
-    default Long intToLong(Integer i) { return i == null ? null : i.longValue(); }
+    default Long intToLong(Integer i) {
+        return i == null ? null : i.longValue();
+    }
 }

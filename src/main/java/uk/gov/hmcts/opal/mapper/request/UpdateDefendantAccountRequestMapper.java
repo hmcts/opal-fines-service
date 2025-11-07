@@ -26,7 +26,8 @@ public interface UpdateDefendantAccountRequestMapper {
 
         // nested groups from body
         @Mapping(target = "commentAndNotes",       source = "request.commentsAndNotes"),
-        @Mapping(target = "enforcementCourtId",    source = "request.enforcementCourt.courtId", qualifiedByName = "numberToString"),
+        @Mapping(target = "enforcementCourtId",    source = "request.enforcementCourt.courtId",
+            qualifiedByName = "numberToString"),
         @Mapping(target = "collectionOrder",       source = "request.collectionOrder"),
         @Mapping(target = "enforcementOverride",   source = "request.enforcementOverride")
     })
@@ -57,5 +58,7 @@ public interface UpdateDefendantAccountRequestMapper {
 
     /* ----------- Converters ----------- */
     @Named("numberToString")
-    default String numberToString(Number n) { return n == null ? null : String.valueOf(n.longValue()); }
+    default String numberToString(Number n) {
+        return n == null ? null : String.valueOf(n.longValue());
+    }
 }
