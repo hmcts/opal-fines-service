@@ -75,6 +75,7 @@ import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
@@ -1693,6 +1694,11 @@ class OpalDefendantAccountServiceTest {
 
         setField(svc, "debtorDetailRepository", debtorRepo);
 
+        AliasRepository aliasRepo = mock(AliasRepository.class);
+        when(aliasRepo.findByParty_PartyId(anyLong())).thenReturn(java.util.Collections.emptyList());
+        setField(svc, "aliasRepository", aliasRepo);
+
+
         // ---- Build the request ----
         DefendantAccountParty req = DefendantAccountParty.builder()
             .defendantAccountPartyType("Defendant")
@@ -1800,6 +1806,11 @@ class OpalDefendantAccountServiceTest {
             dasvRepository, null, amendmentService, em, null, null, null, null
         );
         setField(svc, "debtorDetailRepository", debtorRepo);
+
+        AliasRepository aliasRepo = mock(AliasRepository.class);
+        when(aliasRepo.findByParty_PartyId(anyLong())).thenReturn(java.util.Collections.emptyList());
+        setField(svc, "aliasRepository", aliasRepo);
+
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .partyDetails(PartyDetails.builder()

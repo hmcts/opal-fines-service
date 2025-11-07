@@ -1126,8 +1126,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             "ACCOUNT_ENQUIRY"
         );
 
+        List<AliasEntity> aliasEntity = aliasRepository.findByParty_PartyId(party.getPartyId());
+
         return GetDefendantAccountPartyResponse.builder()
-            .defendantAccountParty(mapDefendantAccountParty(dap))
+            .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
             .version(account.getVersion())
             .build();
 
