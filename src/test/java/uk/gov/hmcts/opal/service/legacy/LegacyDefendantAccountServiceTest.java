@@ -1,13 +1,20 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -51,7 +58,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
@@ -62,6 +69,8 @@ import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
+import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
@@ -74,13 +83,20 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     private GatewayService gatewayService;
 
+    @Mock private UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
+    @Mock private LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
+
     @InjectMocks
     private LegacyDefendantAccountService legacyDefendantAccountService;
+
+    private UpdateDefendantAccountRequest updateDefendantAccountRequest;
 
     @BeforeEach
     void openMocks() throws Exception {
         gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
         injectGatewayService(legacyDefendantAccountService, gatewayService);
+
+        updateDefendantAccountRequest = mock(UpdateDefendantAccountRequest.class, RETURNS_DEEP_STUBS);
     }
 
     private void injectGatewayService(
@@ -1251,15 +1267,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
     @Test
-    void testUpdateDefendantAccount_notImplemented() {
-        var ex = assertThrows(org.springframework.web.server.ResponseStatusException
-                                  .class,
-                              () -> legacyDefendantAccountService.updateDefendantAccount(1L, "78", null, "\"0\"",
-                                                                                         "tester"));
-        assertEquals(HttpStatus.NOT_IMPLEMENTED, ex.getStatusCode());
-    }
-
-    @Test
     void getDefendantAccountParty_languagePreferences_buildsContainer_whenCodesPresent() {
         var doc = uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy.LanguagePreference.builder()
             .languageCode("EN").build();
@@ -1763,5 +1770,70 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             method.invoke(legacyDefendantAccountService, legacyResponse);
 
         // Assert
+    }
+
+    @Test
+    void testUpdateDefendantAccount_happyPath_buildsLegacyRequest_callsGateway_andMapsResponse() {
+
+        final String postedBy = "user-123";
+        long defendantAccountId = 77L;
+        String businessUnitId = "78";
+
+        // arrange: mapper builds the legacy request
+        LegacyUpdateDefendantAccountRequest legacyReq = LegacyUpdateDefendantAccountRequest.builder()
+            .defendantAccountId("77")
+            .businessUnitId("78")
+            .businessUnitUserId(postedBy)
+            .version(3)
+            .build();
+
+        when(updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(
+            any(), anyString(), anyString(), anyString(), anyInt())
+        ).thenReturn(legacyReq);
+
+        // arrange: gateway returns OK with an entity
+        LegacyUpdateDefendantAccountResponse legacyEntity = new LegacyUpdateDefendantAccountResponse();
+
+        GatewayService.Response<LegacyUpdateDefendantAccountResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyEntity, null, null);
+
+        // Stub spy’d gateway (choose correct overload)
+        doReturn(resp).when(gatewayService).patchToGateway(
+            eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
+            eq(LegacyUpdateDefendantAccountResponse.class),
+            any(LegacyUpdateDefendantAccountRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // arrange: response mapper
+        DefendantAccountResponse expected = DefendantAccountResponse.builder().id(defendantAccountId).build();
+        when(legacyUpdateDefendantAccountResponseMapper.toDefendantAccountResponse(legacyEntity)).thenReturn(expected);
+
+        // act
+        DefendantAccountResponse result = legacyDefendantAccountService
+            .updateDefendantAccount(defendantAccountId,
+                                    businessUnitId,
+                                    updateDefendantAccountRequest,
+                            "\"3\"",
+                                    postedBy);
+
+        // assert: correct result
+        assertThat(result).isSameAs(expected);
+
+        // assert: request mapper called with parsed version = 3 and proper ids
+        verify(updateDefendantAccountRequestMapper).toLegacyUpdateDefendantAccountRequest(
+            same(updateDefendantAccountRequest), eq("77"), eq("78"), eq(postedBy), eq(3)
+        );
+
+        // assert: gateway call & response mapping
+        verify(gatewayService).patchToGateway(
+            eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
+            eq(LegacyUpdateDefendantAccountResponse.class),
+            eq(legacyReq),
+            isNull()
+        );
+
+        // the PATCH_DEFENDANT_ACCOUNT action is "LIBRA.patchDefendantAccount"
+        verify(legacyUpdateDefendantAccountResponseMapper).toDefendantAccountResponse(legacyEntity);
     }
 }

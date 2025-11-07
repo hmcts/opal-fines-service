@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.UnmarshalException;
@@ -206,6 +208,19 @@ class LegacyGatewayServiceTest {
         when(requestBodySpec.accept(any(MediaType.class))).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(String.class))).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+    }
+
+    // =========================
+    // extractResponse() tests
+    // =========================
+
+    @Test
+    void testExtractResponse_withStringClass_returnsRawBody() {
+
+        var svc = new LegacyGatewayService(properties, restClient);
+        var re = ResponseEntity.ok("plain string body");
+        var out = svc.extractResponse(re, String.class, null);
+        assertThat(out.body).isEqualTo("plain string body");
     }
 
     class BrokenMapImplementation<K, V> implements Map<K, V> {
