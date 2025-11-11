@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.controllers.defendant;
 
 
 import org.junit.jupiter.api.BeforeEach;
-import org.slf4j.Logger;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
@@ -21,12 +20,12 @@ public abstract class DefendantAccountsControllerIntegrationTest extends BaseDef
 
     @BeforeEach
     void propagateBaseContextToDelegates() {
-//        injectBaseDependencies(headerSummary);
-//        injectBaseDependencies(atAGlance);
-//        injectBaseDependencies(party);
-//        injectBaseDependencies(paymentTerms);
-//        injectBaseDependencies(search);
-//        injectBaseDependencies(update);
+    //        injectBaseDependencies(headerSummary);
+    //        injectBaseDependencies(atAGlance);
+    //        injectBaseDependencies(party);
+    //        injectBaseDependencies(paymentTerms);
+    //        injectBaseDependencies(search);
+    //        injectBaseDependencies(update);
     }
 
     /*

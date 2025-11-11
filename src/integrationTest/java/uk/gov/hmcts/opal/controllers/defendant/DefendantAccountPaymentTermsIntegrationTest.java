@@ -3,7 +3,9 @@ package uk.gov.hmcts.opal.controllers.defendant;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -62,7 +64,7 @@ public class DefendantAccountPaymentTermsIntegrationTest {
                 .andExpect(jsonPath("$.payment_terms.posted_details.posted_by").value("01000000A"))
                 .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name").value(""))
                 .andExpect(jsonPath("$.payment_card_last_requested").value("2024-01-01"))
-                .andExpect(jsonPath("$.extension").value(false))
+                .andExpect(jsonPath("$.payment_terms.extension").value(false))
                 .andExpect(jsonPath("$.last_enforcement").value("REM"));
 
             validateJsonSchema(body, getPaymentTermsResponseSchemaLocation());
@@ -102,7 +104,8 @@ public class DefendantAccountPaymentTermsIntegrationTest {
         public void testGetPaymentTerms() throws Exception {
             // Make the 'date_last_amended' deterministic for acct 77
             jdbcTemplate.update(
-                "UPDATE defendant_accounts SET last_changed_date = '2024-01-03 00:00:00' WHERE defendant_account_id = 77"
+                "UPDATE defendant_accounts SET last_changed_date = "
+                    + "'2024-01-03 00:00:00' WHERE defendant_account_id = 77"
             );
 
             ResultActions resultActions = mockMvc.perform(

@@ -186,7 +186,7 @@ public class DefendantAccountUpdateIntegrationTest {
 
             String body = """
                 {"enforcement_court":{"court_id":100,"court_name":"Central Magistrates"}}
-            """;
+                """;
 
             ResultActions result = mockMvc.perform(
                 patch(URL_BASE + "/77")
@@ -238,7 +238,7 @@ public class DefendantAccountUpdateIntegrationTest {
                     }
                   }
                 }
-            """;
+                """;
 
             ResultActions result = mockMvc.perform(
                 patch(URL_BASE + "/77")

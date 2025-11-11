@@ -67,9 +67,9 @@ public class DefendantAccountAtAGlanceIntegrationTest {
                 .andExpect(jsonPath("$.is_youth").value(false))
 
                 // party_details
-                .andExpect(jsonPath("$.party_details.party_id").value(nullValue()))
+                .andExpect(jsonPath("$.party_details.party_id").value("PD-10001"))
                 .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
-                .andExpect(jsonPath("$.party_details.organisation_details").value(nullValue()))
+                .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist())
 
                 // party_details.individual_details
                 .andExpect(jsonPath("$.party_details.individual_details.title").value("Mr"))
@@ -78,10 +78,17 @@ public class DefendantAccountAtAGlanceIntegrationTest {
                 // age is a STRING in your JSON:
                 .andExpect(jsonPath("$.party_details.individual_details.age").value("36"))
                 .andExpect(jsonPath("$.party_details.individual_details.national_insurance_number").value("QQ123456C"))
-                // aliases: array with one empty object {}
+                // aliases: array with one object where all fields are null
                 .andExpect(jsonPath("$.party_details.individual_details.individual_aliases.length()").value(1))
                 .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[0]").isMap())
-                .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[0].*").isEmpty())
+                .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[0].alias_id")
+                    .value(nullValue()))
+                .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[0].sequence_number")
+                    .value(nullValue()))
+                .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[0].surname")
+                    .value(nullValue()))
+                .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[0].forenames")
+                    .value(nullValue()))
 
                 // address
                 .andExpect(jsonPath("$.address.address_line_1").value("10 Example Street"))
