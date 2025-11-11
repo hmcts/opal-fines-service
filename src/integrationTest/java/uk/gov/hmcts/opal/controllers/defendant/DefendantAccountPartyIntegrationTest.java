@@ -141,21 +141,21 @@ public class DefendantAccountPartyIntegrationTest {
                         "$.defendant_account_party.party_details.individual_details.individual_aliases[1].surname")
                         .value("Johnson"),
                     jsonPath(
-                        "$.defendant_account_party.party_details.individual_details.individual_aliases[1].forenames").value(
-                        "Anne"),
+                        "$.defendant_account_party.party_details.individual_details.individual_aliases[1].forenames")
+                        .value("Anne"),
                     jsonPath(
-                        "$.defendant_account_party.party_details.individual_details.individual_aliases[2].alias_id").value(
-                        "7703"),
+                        "$.defendant_account_party.party_details.individual_details.individual_aliases[2].alias_id")
+                        .value("7703"),
                     jsonPath(
                         "$.defendant_account_party.party_details.individual_details.individual_aliases[2]"
                             + ".sequence_number")
                         .value(3),
                     jsonPath(
-                        "$.defendant_account_party.party_details.individual_details.individual_aliases[2].surname").value(
-                        "Williams"),
+                        "$.defendant_account_party.party_details.individual_details.individual_aliases[2].surname")
+                        .value("Williams"),
                     jsonPath(
-                        "$.defendant_account_party.party_details.individual_details.individual_aliases[2].forenames").value(
-                        "Ana"),
+                        "$.defendant_account_party.party_details.individual_details.individual_aliases[2].forenames")
+                        .value("Ana"),
                     jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"),
                     jsonPath("$.defendant_account_party.address.address_line_2").value("77 Gordon Road"),
                     jsonPath("$.defendant_account_party.address.address_line_3").value("Maidstone, Kent"),
@@ -189,15 +189,15 @@ public class DefendantAccountPartyIntegrationTest {
                         is(nullValue())),
                     jsonPath("$.defendant_account_party.employer_details.employer_address.postcode").value("EMP1 2AA"),
                     jsonPath(
-                        "$.defendant_account_party.language_preferences.document_language_preference.language_code").value(
-                        "EN"),
+                        "$.defendant_account_party.language_preferences.document_language_preference.language_code")
+                        .value("EN"),
                     jsonPath(
                         "$.defendant_account_party.language_preferences.document_language_preference"
                             + ".language_display_name")
                         .value("English only"),
                     jsonPath(
-                        "$.defendant_account_party.language_preferences.hearing_language_preference.language_code").value(
-                        "EN"),
+                        "$.defendant_account_party.language_preferences.hearing_language_preference.language_code")
+                        .value("EN"),
                     jsonPath(
                         "$.defendant_account_party.language_preferences.hearing_language_preference"
                             + ".language_display_name")
