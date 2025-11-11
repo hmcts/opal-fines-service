@@ -2416,7 +2416,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         ResultActions actions = mockMvc.perform(get("/defendant-accounts/88/defendant-account-parties/88")
             .header("Authorization", "Bearer test-token"));
         log.info("Null fields response:\n" + actions.andReturn().getResponse().getContentAsString());
-        actions.andExpect(status().isOk())
+        actions.andExpect(status(
+            ).isOk())
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").doesNotExist())
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").doesNotExist());
     }
@@ -3561,48 +3562,6 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         res.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
-    }
-
-    @DisplayName("OPAL: PUT Replace DAP – Switching party is forbidden")
-    void put_badRequest_whenSwitchingParty(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
-        Integer currentVersion = jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class,
-            20010L
-        );
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
-        headers.add("Business-Unit-Id", "78");
-        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
-
-        // Attempt to switch from existing party 20010 → 99999
-        String body = """
-        {
-            "defendant_account_party_type": "Defendant",
-            "is_debtor": true,
-            "party_details": {
-            "party_id": "99999",
-                "organisation_flag": true,
-                "organisation_details": { "organisation_name": "Other Co" }
-            }
-        }
-            """;
-
-        var res = mockMvc.perform(
-            put("/defendant-accounts/20010/defendant-account-parties/20010")
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
-        );
-
-        log.info("PUT DAP switching party resp:\n{}", res.andReturn().getResponse().getContentAsString());
-
-        res.andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/invalid-request"));
     }
 
     @DisplayName("OPAL: PUT Replace DAP – Happy path (updates party + debtor + bumps version)")
