@@ -9,7 +9,6 @@ import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,6 +16,7 @@ import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder;
 import uk.gov.hmcts.opal.dto.legacy.common.CommentsAndNotes;
 import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride;
+import uk.gov.hmcts.opal.dto.legacy.utils.ValidationUtils;
 
 @Data
 @Builder
@@ -69,19 +69,9 @@ public class LegacyUpdateDefendantAccountRequest {
     @AssertTrue(message = "Exactly one of comment_and_notes, enforcement_court_id, collection_order "
         + "or enforcement_override must be present")
     private boolean isExactlyOneUpdateFieldPresent() {
-        int count = 0;
-        if (Objects.nonNull(commentAndNotes)) {
-            count++;
-        }
-        if (Objects.nonNull(enforcementCourtId)) {
-            count++;
-        }
-        if (Objects.nonNull(collectionOrder)) {
-            count++;
-        }
-        if (Objects.nonNull(enforcementOverride)) {
-            count++;
-        }
-        return count == 1;
+        return ValidationUtils.hasExactlyOneNonNull(commentAndNotes,
+            enforcementCourtId,
+            collectionOrder,
+            enforcementOverride);
     }
 }
