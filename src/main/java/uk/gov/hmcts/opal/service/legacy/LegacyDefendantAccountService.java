@@ -843,7 +843,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         if (gwResponse.isError()) {
             log.error(":updateDefendantAccount: Legacy Gateway response: HTTP Response Code: {}", gwResponse.code);
             if (gwResponse.isException()) {
-                log.error(":updateDefendantAccount:", gwResponse.exception);
+                log.error(":updateDefendantAccount: Legacy Gateway response exception: {}", gwResponse.exception);
             } else if (gwResponse.isLegacyFailure()) {
                 log.error(":updateDefendantAccount: Legacy Gateway: body: \n{}", gwResponse.body);
                 LegacyUpdateDefendantAccountResponse responseEntity = gwResponse.responseEntity;

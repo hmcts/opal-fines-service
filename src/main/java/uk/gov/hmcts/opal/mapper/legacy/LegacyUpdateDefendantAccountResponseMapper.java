@@ -40,8 +40,15 @@ public interface LegacyUpdateDefendantAccountResponseMapper {
     EnforcementOverride map(uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride src);
 
     @Named("stringToLong")
-    default Long stringToLong(String s) {
-        return (s == null || s.isBlank()) ? null : Long.valueOf(s);
+    default Long stringToLong(String v) {
+        if (v == null) {
+            return null;
+        }
+        try {
+            return Long.valueOf(v.trim());
+        } catch (NumberFormatException e) {
+            return null; // or rethrow for strict behavior
+        }
     }
 
     @Named("intToLong")
