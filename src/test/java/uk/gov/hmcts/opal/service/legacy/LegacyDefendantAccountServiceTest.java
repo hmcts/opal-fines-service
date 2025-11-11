@@ -22,9 +22,13 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -1781,8 +1785,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // arrange: mapper builds the legacy request
         LegacyUpdateDefendantAccountRequest legacyReq = LegacyUpdateDefendantAccountRequest.builder()
-            .defendantAccountId("77")
-            .businessUnitId("78")
+            .defendantAccountId(String.valueOf(defendantAccountId))
+            .businessUnitId(businessUnitId)
             .businessUnitUserId(postedBy)
             .version(3)
             .build();
@@ -1835,5 +1839,104 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // the PATCH_DEFENDANT_ACCOUNT action is "LIBRA.patchDefendantAccount"
         verify(legacyUpdateDefendantAccountResponseMapper).toDefendantAccountResponse(legacyEntity);
+    }
+
+    @Test
+    void testUpdateDefendantAccount_whenGatewayThrows_exceptionPropagates() {
+        final String postedBy = "user-123";
+        long defendantAccountId = 77L;
+        String businessUnitId = "78";
+
+        // arrange: mapper builds the legacy request
+        when(updateDefendantAccountRequestMapper
+            .toLegacyUpdateDefendantAccountRequest(any(), anyString(), anyString(), anyString(), anyInt()))
+            .thenReturn(LegacyUpdateDefendantAccountRequest.builder().build());
+
+        // service stubbed to throw exception
+        when(gatewayService.patchToGateway(eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
+            eq(LegacyUpdateDefendantAccountResponse.class),
+            any(),
+            isNull()))
+            .thenThrow(new RuntimeException("Simulate Run Time Exception from gateway"));
+
+        // act + assert
+        assertThrows(RuntimeException.class, () ->
+            legacyDefendantAccountService
+                .updateDefendantAccount(defendantAccountId, businessUnitId, mock(UpdateDefendantAccountRequest.class),
+                    "\"5\"", postedBy)
+        );
+
+        // verify the call path hit the mock
+        verify(gatewayService).patchToGateway(
+            eq("LIBRA.patchDefendantAccount"),
+            eq(LegacyUpdateDefendantAccountResponse.class),
+            any(LegacyUpdateDefendantAccountRequest.class),
+            isNull()
+        );
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testUpdateDefendantAccount_error5xx_noEntity_returnsNull() {
+        // stubbed to return error 5xx
+        ParameterizedTypeReference<LegacyUpdateDefendantAccountResponse> typeRef =
+            new ParameterizedTypeReference<>() {
+            };
+        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>("<response><error/></response>", HttpStatus.INTERNAL_SERVER_ERROR));
+
+        // act + assert
+        DefendantAccountResponse response = legacyDefendantAccountService
+            .updateDefendantAccount(77L, "78", mock(UpdateDefendantAccountRequest.class),
+                null, "postedBy");
+        assertNull(response);
+    }
+
+    static Stream<Arguments> ifMatchCases() {
+        return Stream.of(
+            // ifMatch, expectedVersion
+            org.junit.jupiter.params.provider.Arguments.of(null,                   1),   // default
+            org.junit.jupiter.params.provider.Arguments.of("",                     1),   // empty -> default
+            org.junit.jupiter.params.provider.Arguments.of("\"3\"",                3),
+            org.junit.jupiter.params.provider.Arguments.of("W/\"7\"",              7),
+            org.junit.jupiter.params.provider.Arguments.of("  \"12\"  ",          12),
+            org.junit.jupiter.params.provider.Arguments.of("W/\"001\"",            1),   // leading zeros ok
+            // no digits -> default
+            org.junit.jupiter.params.provider.Arguments.of("garbage",              1),
+            // no digits -> default
+            org.junit.jupiter.params.provider.Arguments.of("W/\"abc\"",            1),
+            // minus stripped -> default (depends on impl)
+            org.junit.jupiter.params.provider.Arguments.of("\"-1\"",               1)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("ifMatchCases")
+    void testUpdateDefendantAccount_parsesIfMatch_intoMapperVersion(String ifMatch, int expectedVersion) {
+        // Arrange: mapper returns some legacy request; for this test we only look at the captured version
+        when(updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(
+            any(), anyString(), anyString(), anyString(), anyInt()
+        )).thenReturn(LegacyUpdateDefendantAccountRequest.builder().build());
+
+        // Arrange: gateway returns OK + dummy entity so the call finishes
+        when(gatewayService.patchToGateway(
+            anyString(), eq(LegacyUpdateDefendantAccountResponse.class), any(), isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, new LegacyUpdateDefendantAccountResponse()));
+
+        when(legacyUpdateDefendantAccountResponseMapper.toDefendantAccountResponse(any()))
+            .thenReturn(DefendantAccountResponse.builder().build());
+
+        // Act
+        legacyDefendantAccountService.updateDefendantAccount(77L, "78",
+            mock(UpdateDefendantAccountRequest.class),
+            ifMatch, "user-123");
+
+        // Assert: capture version given to mapper (this is parseIfMatchVersion’s output)
+        ArgumentCaptor<Integer> versionCap = ArgumentCaptor.forClass(Integer.class);
+        verify(updateDefendantAccountRequestMapper).toLegacyUpdateDefendantAccountRequest(
+            any(), eq("77"), eq("78"), eq("user-123"), versionCap.capture()
+        );
+        assertThat(versionCap.getValue()).isEqualTo(expectedVersion);
     }
 }
