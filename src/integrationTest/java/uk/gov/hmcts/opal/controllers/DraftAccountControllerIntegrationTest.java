@@ -105,7 +105,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(9))
+            .andExpect(jsonPath("$.count").value(29))
             .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[2].account_type")
@@ -189,7 +189,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         log.info(":testGetDraftAccountsSummaries_paramStatus: body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(4))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[0].account_type")
@@ -242,7 +242,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         log.info(":testGetDraftAccountsSummaries_paramNotSubmittedBy: body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(3))
+            .andExpect(jsonPath("$.count").value(23))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
             .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
@@ -319,7 +319,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                      + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.count").value(3))
+                .andExpect(jsonPath("$.count").value(23))
                 .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
                 .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
                 .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
