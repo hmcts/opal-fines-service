@@ -1082,7 +1082,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             if (requestedPartyId == null) {
                 throw new IllegalArgumentException("party_id is required");
             }
-            party = em.getReference(PartyEntity.class, requestedPartyId); // managed proxy, no INSERT
+            party = em.getReference(PartyEntity.class, requestedPartyId);
             dap.setParty(party);
         } else {
             if (requestedPartyId != null && !Objects.equals(party.getPartyId(), requestedPartyId)) {
@@ -1094,7 +1094,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             }
         }
 
-        assert request != null;
+        if (request == null) {
+            throw new IllegalArgumentException("Request body is required");
+        }
+
         dap.setAssociationType(request.getDefendantAccountPartyType());
         dap.setDebtor(request.getIsDebtor());
 
@@ -1112,8 +1115,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             isDebtor
         );
 
-        account.setLastChangedDate(LocalDate.now());
+        replaceAliasesForParty(party.getPartyId(), request.getPartyDetails());
 
+        account.setLastChangedDate(LocalDate.now());
         defendantAccountRepository.save(account);
         em.flush();
 
@@ -1126,13 +1130,67 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             "ACCOUNT_ENQUIRY"
         );
 
-        List<AliasEntity> aliasEntity = aliasRepository.findByParty_PartyId(party.getPartyId());
+        List<AliasEntity> aliasEntity = party.getPartyId() == null
+            ? java.util.Collections.emptyList()
+            : aliasRepository.findByParty_PartyId(party.getPartyId());
 
         return GetDefendantAccountPartyResponse.builder()
             .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
             .version(account.getVersion())
             .build();
+    }
 
+    private void replaceAliasesForParty(Long partyId, PartyDetails pd) {
+        aliasRepository.deleteByParty_PartyId(partyId);
+
+        if (pd == null || pd.getOrganisationFlag() == null) {
+            return;
+        }
+
+        if (pd.getOrganisationFlag()) {
+            OrganisationDetails od = pd.getOrganisationDetails();
+            List<OrganisationAlias> orgAliases =
+                (od != null) ? od.getOrganisationAliases() : null;
+            if (orgAliases == null || orgAliases.isEmpty()) {
+                return; // nothing to save -> don't call getReference
+            }
+
+            PartyEntity partyRef = em.getReference(PartyEntity.class, partyId);
+            for (OrganisationAlias a : orgAliases) {
+                if (a == null) {
+                    continue;
+                }
+                AliasEntity alias = new AliasEntity();
+                alias.setParty(partyRef);
+                alias.setSequenceNumber(a.getSequenceNumber());
+                alias.setOrganisationName(a.getOrganisationName());
+                alias.setForenames(null);
+                alias.setSurname(null);
+                aliasRepository.save(alias);
+            }
+
+        } else {
+            IndividualDetails id = pd.getIndividualDetails();
+            List<IndividualAlias> indAliases =
+                (id != null) ? id.getIndividualAliases() : null;
+            if (indAliases == null || indAliases.isEmpty()) {
+                return; // nothing to save -> don't call getReference
+            }
+
+            PartyEntity partyRef = em.getReference(PartyEntity.class, partyId);
+            for (IndividualAlias a : indAliases) {
+                if (a == null) {
+                    continue;
+                }
+                AliasEntity alias = new AliasEntity();
+                alias.setParty(partyRef);
+                alias.setSequenceNumber(a.getSequenceNumber());
+                alias.setForenames(a.getForenames());
+                alias.setSurname(a.getSurname());
+                alias.setOrganisationName(null);
+                aliasRepository.save(alias);
+            }
+        }
     }
 
     private void applyPartyCoreReplace(PartyEntity party, PartyDetails details) {

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,14 +22,17 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -54,10 +58,12 @@ import uk.gov.hmcts.opal.dto.common.EmployerDetails;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
 import uk.gov.hmcts.opal.dto.common.Enforcer;
+import uk.gov.hmcts.opal.dto.common.IndividualAlias;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.LJA;
 import uk.gov.hmcts.opal.dto.common.LanguagePreference;
 import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
+import uk.gov.hmcts.opal.dto.common.OrganisationAlias;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
@@ -67,6 +73,7 @@ import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
@@ -2328,4 +2335,200 @@ class OpalDefendantAccountServiceTest {
         }
     }
 
+    @Test
+    void replaceAliasesForParty_pdNull_deletesAndReturns_without_getReference_or_saves() throws Exception {
+        Long partyId = 111L;
+        AliasRepository aliasRepo = mock(AliasRepository.class);
+        EntityManager em = mock(EntityManager.class);
+
+        OpalDefendantAccountService svc = newServiceWith(aliasRepo, em);
+        setField(svc, "aliasRepository", aliasRepo);
+
+        invokeReplaceAliasesForParty(svc, partyId, null);
+
+        verify(aliasRepo).deleteByParty_PartyId(partyId);
+        verifyNoMoreInteractions(aliasRepo);
+        verify(em, never()).getReference(any(), any());
+    }
+
+    @Test
+    void replaceAliasesForParty_orgFlagNull_deletesAndReturns_without_getReference_or_saves() throws Exception {
+        Long partyId = 222L;
+        AliasRepository aliasRepo = mock(AliasRepository.class);
+        EntityManager em = mock(EntityManager.class);
+
+        OpalDefendantAccountService svc = newServiceWith(aliasRepo, em);
+        setField(svc, "aliasRepository", aliasRepo);
+
+        PartyDetails pd = PartyDetails.builder()
+            .organisationFlag(null)
+            .build();
+
+        invokeReplaceAliasesForParty(svc, partyId, pd);
+
+        verify(aliasRepo).deleteByParty_PartyId(partyId);
+        verifyNoMoreInteractions(aliasRepo);
+        verify(em, never()).getReference(any(), any());
+    }
+
+    @Test
+    void replaceAliasesForParty_org_withAliases_savesEach_and_getsReference_once() throws Exception {
+        Long partyId = 333L;
+        AliasRepository aliasRepo = mock(AliasRepository.class);
+        EntityManager em = mock(EntityManager.class);
+        PartyEntity partyRef = mock(PartyEntity.class);
+        when(em.getReference(PartyEntity.class, partyId)).thenReturn(partyRef);
+
+        OpalDefendantAccountService svc = newServiceWith(aliasRepo, em);
+        setField(svc, "aliasRepository", aliasRepo);
+
+        OrganisationAlias a1 = OrganisationAlias.builder()
+            .sequenceNumber(1).organisationName("ACME ONE").build();
+        OrganisationAlias a2 = OrganisationAlias.builder()
+            .sequenceNumber(2).organisationName("ACME TWO").build();
+
+        OrganisationDetails od = OrganisationDetails.builder()
+            .organisationName("ACME LTD")
+            // Use Arrays.asList to allow a null element
+            .organisationAliases(Arrays.asList(a1, null, a2))
+            .build();
+
+        PartyDetails pd = PartyDetails.builder()
+            .organisationFlag(Boolean.TRUE)
+            .organisationDetails(od)
+            .build();
+
+        invokeReplaceAliasesForParty(svc, partyId, pd);
+
+        verify(aliasRepo).deleteByParty_PartyId(partyId);
+        verify(em, times(1)).getReference(PartyEntity.class, partyId);
+
+        ArgumentCaptor<AliasEntity> aliasCap = ArgumentCaptor.forClass(AliasEntity.class);
+        verify(aliasRepo, times(2)).save(aliasCap.capture());
+        List<AliasEntity> saved = aliasCap.getAllValues();
+
+        assertEquals(2, saved.size());
+        assertSame(partyRef, saved.get(0).getParty());
+        assertEquals("ACME ONE", saved.get(0).getOrganisationName());
+        assertNull(saved.get(0).getForenames());
+        assertNull(saved.get(0).getSurname());
+
+        assertSame(partyRef, saved.get(1).getParty());
+        assertEquals("ACME TWO", saved.get(1).getOrganisationName());
+        assertNull(saved.get(1).getForenames());
+        assertNull(saved.get(1).getSurname());
+    }
+
+    @Test
+    void replaceAliasesForParty_org_withNoAliases_doesNot_getReference_or_save() throws Exception {
+        Long partyId = 444L;
+        AliasRepository aliasRepo = mock(AliasRepository.class);
+        EntityManager em = mock(EntityManager.class);
+
+        OpalDefendantAccountService svc = newServiceWith(aliasRepo, em);
+        setField(svc, "aliasRepository", aliasRepo);
+
+        OrganisationDetails od = OrganisationDetails.builder()
+            .organisationName("ACME LTD")
+            .organisationAliases(List.of())  // empty
+            .build();
+
+        PartyDetails pd = PartyDetails.builder()
+            .organisationFlag(Boolean.TRUE)
+            .organisationDetails(od)
+            .build();
+
+        invokeReplaceAliasesForParty(svc, partyId, pd);
+
+        verify(aliasRepo).deleteByParty_PartyId(partyId);
+        verify(aliasRepo, never()).save(any());
+        verify(em, never()).getReference(any(), any());
+    }
+
+    @Test
+    void replaceAliasesForParty_individual_withAliases_savesEach_and_getsReference_once() throws Exception {
+        Long partyId = 555L;
+        AliasRepository aliasRepo = mock(AliasRepository.class);
+        EntityManager em = mock(EntityManager.class);
+        PartyEntity partyRef = mock(PartyEntity.class);
+        when(em.getReference(PartyEntity.class, partyId)).thenReturn(partyRef);
+
+        OpalDefendantAccountService svc = newServiceWith(aliasRepo, em);
+        setField(svc, "aliasRepository", aliasRepo);
+
+        IndividualAlias a1 = IndividualAlias.builder().sequenceNumber(1).forenames("Jane").surname("Doe").build();
+        IndividualAlias a2 = IndividualAlias.builder().sequenceNumber(2).forenames("J.").surname("Smith").build();
+        IndividualDetails id = IndividualDetails.builder()
+            .individualAliases(List.of(a1, a2))
+            .build();
+
+        PartyDetails pd = PartyDetails.builder()
+            .organisationFlag(Boolean.FALSE)
+            .individualDetails(id)
+            .build();
+
+        invokeReplaceAliasesForParty(svc, partyId, pd);
+
+        verify(aliasRepo).deleteByParty_PartyId(partyId);
+        verify(em, times(1)).getReference(PartyEntity.class, partyId);
+
+        ArgumentCaptor<AliasEntity> aliasCap = ArgumentCaptor.forClass(AliasEntity.class);
+        verify(aliasRepo, times(2)).save(aliasCap.capture());
+        List<AliasEntity> saved = aliasCap.getAllValues();
+
+        assertEquals(2, saved.size());
+        assertSame(partyRef, saved.get(0).getParty());
+        assertEquals("Jane", saved.get(0).getForenames());
+        assertEquals("Doe", saved.get(0).getSurname());
+        assertNull(saved.get(0).getOrganisationName());
+
+        assertSame(partyRef, saved.get(1).getParty());
+        assertEquals("J.", saved.get(1).getForenames());
+        assertEquals("Smith", saved.get(1).getSurname());
+        assertNull(saved.get(1).getOrganisationName());
+    }
+
+    @Test
+    void replaceAliasesForParty_individual_withNoAliases_doesNot_getReference_or_save() throws Exception {
+        Long partyId = 666L;
+        AliasRepository aliasRepo = mock(AliasRepository.class);
+        EntityManager em = mock(EntityManager.class);
+
+        OpalDefendantAccountService svc = newServiceWith(aliasRepo, em);
+        setField(svc, "aliasRepository", aliasRepo);
+
+        IndividualDetails id = IndividualDetails.builder()
+            .individualAliases(List.of())  // empty
+            .build();
+
+        PartyDetails pd = PartyDetails.builder()
+            .organisationFlag(Boolean.FALSE)
+            .individualDetails(id)
+            .build();
+
+        invokeReplaceAliasesForParty(svc, partyId, pd);
+
+        verify(aliasRepo).deleteByParty_PartyId(partyId);
+        verify(aliasRepo, never()).save(any());
+        verify(em, never()).getReference(any(), any());
+    }
+
+    private static void invokeReplaceAliasesForParty(
+        OpalDefendantAccountService svc, Long partyId, PartyDetails pd
+    ) throws Exception {
+        Method m = OpalDefendantAccountService.class
+            .getDeclaredMethod("replaceAliasesForParty", Long.class, PartyDetails.class);
+        m.setAccessible(true);
+        m.invoke(svc, partyId, pd);
+    }
+
+    private OpalDefendantAccountService newServiceWith(
+        AliasRepository aliasRepository, EntityManager em
+    ) {
+        // keep alignment with your existing constructor usage
+        return new OpalDefendantAccountService(
+            null, null, null, null, null, null, null, mock(AmendmentService.class),
+            em, null, null, null, null
+        );
+    }
 }
