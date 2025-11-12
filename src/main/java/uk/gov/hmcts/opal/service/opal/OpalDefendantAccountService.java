@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static uk.gov.hmcts.opal.entity.DefendantAccountEntity_.defendantAccountId;
+import static uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity_.defendantAccountPartyId;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
@@ -340,7 +343,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return toPaymentTermsResponse(entity);
     }
 
-    private static List<AliasDto> buildSearchAliases(SearchDefendantAccountEntity e) {
+
     @Override
     public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
         log.debug(":getDefendantAccountFixedPenalty (Opal): id={}", defendantAccountId);
@@ -357,7 +360,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
 
-    private DefendantAccountSummaryDto toSummaryDto(SearchDefendantAccountEntity e) {
+    private static List<AliasDto> buildSearchAliases(SearchDefendantAccountEntity e) {
         boolean isOrganisation = Boolean.TRUE.equals(e.getOrganisation());
         String[] aliasValues = { e.getAlias1(), e.getAlias2(), e.getAlias3(), e.getAlias4(), e.getAlias5() };
 

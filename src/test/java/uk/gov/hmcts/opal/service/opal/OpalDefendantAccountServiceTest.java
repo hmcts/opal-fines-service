@@ -1396,7 +1396,7 @@ class OpalDefendantAccountServiceTest {
             /* amendment */ null,
             /* em */ null,
             /* noteRepo */ null,
-            /* eor/lja/enforcer */ null, null, null
+            /* eor/lja/enforcer */ null, null, null,null
         );
         java.lang.reflect.Field f1;
         try {
@@ -1476,7 +1476,7 @@ class OpalDefendantAccountServiceTest {
         when(debtorRepo.findByPartyId(20L)).thenReturn(null);
 
         var svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null,null);
 
         try {
             var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
@@ -1553,7 +1553,7 @@ class OpalDefendantAccountServiceTest {
         when(debtorRepo.findByPartyId(10L)).thenReturn(null);
 
         var svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null,null);
 
         try {
             var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
@@ -1616,7 +1616,7 @@ class OpalDefendantAccountServiceTest {
         when(debtorRepo.findByPartyId(20L)).thenReturn(null);
 
         var svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null,null);
 
         try {
             var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
