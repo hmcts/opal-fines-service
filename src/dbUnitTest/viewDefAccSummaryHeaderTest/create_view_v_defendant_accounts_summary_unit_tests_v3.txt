@@ -1,0 +1,16 @@
+Timing is on.
+psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:600: NOTICE:  === Setting up test data for v_defendant_accounts_summary tests ===
+psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:600: NOTICE:  Test data setup completed: defendant_account_id = 999901 & 999902
+DO
+Time: 10.726 ms
+psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:897: NOTICE:  === Comprehensive set of tests for Defendant Accounts ===
+psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:897: NOTICE:  TEST 1 PASSED: All information retrieved and validated successfully for account 999901
+psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:897: NOTICE:  TEST 2 PASSED: All information retrieved and validated successfully for account 999902
+psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:897: NOTICE:  === All tests completed and passed for v_defendant_accounts_summary view ===
+DO
+Time: 293.527 ms
+psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:922: NOTICE:  === Cleaning up test data ===
+psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:922: NOTICE:  Test data cleanup completed
+DO
+Time: 7.403 ms
+Timing is off.

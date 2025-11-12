@@ -994,7 +994,7 @@ class OpalDefendantAccountServiceTest {
 
         DefendantAccountSearchResultsDto out = service.searchDefendantAccounts(emptyCriteria());
 
-        var dto = out.getDefendantAccounts().get(0);
+        var dto = out.getDefendantAccounts().getFirst();
 
         assertTrue(dto.getOrganisation());
         assertEquals("Wayne Enterprises", dto.getOrganisationName());
@@ -1030,12 +1030,188 @@ class OpalDefendantAccountServiceTest {
         )).thenReturn(Collections.singletonList(row));
 
         var out = service.searchDefendantAccounts(emptyCriteria());
-        var aliases = out.getDefendantAccounts().get(0).getAliases();
+        var aliases = out.getDefendantAccounts().getFirst().getAliases();
         assertEquals(1, aliases.size());
-        assertEquals(1, aliases.get(0).getAliasNumber());
-        assertEquals("John", aliases.get(0).getForenames());
-        assertEquals("Doe", aliases.get(0).getSurname());
+        assertEquals(1, aliases.getFirst().getAliasNumber());
+        assertEquals("John", aliases.getFirst().getForenames());
+        assertEquals("Doe", aliases.getFirst().getSurname());
     }
+
+    private DefendantAccountSummaryViewEntity mockDasv(Boolean organisation,
+        String a1, String a2, String a3, String a4, String a5) {
+        var e = mock(DefendantAccountSummaryViewEntity.class);
+        when(e.getAlias1()).thenReturn(a1);
+        when(e.getAlias2()).thenReturn(a2);
+        when(e.getAlias3()).thenReturn(a3);
+        when(e.getAlias4()).thenReturn(a4);
+        when(e.getAlias5()).thenReturn(a5);
+        when(e.getOrganisation()).thenReturn(organisation);
+        return e;
+    }
+
+    // --- Individuals ---
+
+    @Test
+    void individualAliases_parses_and_trims_and_splits_full_name() {
+        // unified person rows; entity is an individual
+        var e = mockDasv(false,
+            "P123|10|  Ada   Lovelace  ",
+            "P777|| Grace   Hopper ",
+            "   ",
+            null,
+            null
+        );
+
+        var out = OpalDefendantAccountService.buildIndividualAliasesList(e);
+
+        assertEquals(2, out.size());
+
+        var a0 = out.get(0);
+        assertEquals("P123", a0.getAliasId());
+        assertEquals(10, a0.getSequenceNumber());
+        assertEquals("Ada", a0.getForenames());         // trimmed, internal spaces collapsed for split
+        assertEquals("Lovelace", a0.getSurname());
+
+        var a1 = out.get(1);
+        assertEquals("P777", a1.getAliasId());
+        assertNull(a1.getSequenceNumber());             // empty seq → null
+        assertEquals("Grace", a1.getForenames());
+        assertEquals("Hopper", a1.getSurname());
+    }
+
+    @Test
+    void individualAliases_single_token_name_maps_to_forenames_only() {
+        var e = mockDasv(false,
+            "P5||Jane",
+            null, null, null, null
+        );
+
+        var ind = OpalDefendantAccountService.buildIndividualAliasesList(e);
+        assertEquals(1, ind.size());
+        var a = ind.get(0);
+        assertEquals("P5", a.getAliasId());
+        assertNull(a.getSequenceNumber());              // empty → null
+        assertEquals("Jane", a.getForenames());
+        assertNull(a.getSurname());                     // single token → null surname
+    }
+
+    @Test
+    void individualAliases_malformedRows_areSkipped_safely() {
+        var e = mockDasv(false,
+            "X|notANumber|OnlyTwoParts",   // NumberFormatException → skipped
+            "too|many|parts|here|oops",    // wrong arity → skipped
+            null,
+            "   ",
+            "P100|1|John William Smith"    // valid, test splitting on last token
+        );
+
+        var ind = OpalDefendantAccountService.buildIndividualAliasesList(e);
+
+        assertEquals(1, ind.size());
+        assertEquals("P100", ind.get(0).getAliasId());
+        assertEquals(1, ind.get(0).getSequenceNumber());
+        assertEquals("John William", ind.get(0).getForenames()); // last token is surname
+        assertEquals("Smith", ind.get(0).getSurname());
+
+        // entity is an individual → org aliases list must be empty
+        var org = OpalDefendantAccountService.buildOrganisationAliasesList(e);
+        assertTrue(org.isEmpty());
+    }
+
+    @Test
+    void individualAliases_preserves_row_order_for_valid_rows() {
+        var e = mockDasv(false,
+            "P1|1|Alpha One",
+            "P3|3|Gamma Three",
+            null, null, null
+        );
+
+        var ind = OpalDefendantAccountService.buildIndividualAliasesList(e);
+        assertEquals(2, ind.size());
+        assertEquals("P1", ind.get(0).getAliasId());
+        assertEquals("P3", ind.get(1).getAliasId());
+    }
+
+    // --- Organisations ---
+
+    @Test
+    void organisationAliases_parses_and_trims() {
+        var e = mockDasv(true,
+            "O111|1|  Wayne Enterprises  ",
+            "O222|| Wayne Group ",
+            null,
+            "",
+            null
+        );
+
+        var out = OpalDefendantAccountService.buildOrganisationAliasesList(e);
+
+        assertEquals(2, out.size());
+        var a0 = out.get(0);
+        assertEquals("O111", a0.getAliasId());
+        assertEquals(1, a0.getSequenceNumber());
+        assertEquals("Wayne Enterprises", a0.getOrganisationName());
+
+        var a1 = out.get(1);
+        assertEquals("O222", a1.getAliasId());
+        assertNull(a1.getSequenceNumber());
+        assertEquals("Wayne Group", a1.getOrganisationName());
+    }
+
+    @Test
+    void organisationAliases_malformedRows_areSkipped_safely() {
+        var e = mockDasv(true,
+            "O1|badNumber|Acme Corp",     // NumberFormatException → skipped
+            "O2|2|Beta Org",
+            "too|many|parts|oops",
+            null, "   "
+        );
+
+        var out = OpalDefendantAccountService.buildOrganisationAliasesList(e);
+        assertEquals(1, out.size());
+        assertEquals("O2", out.get(0).getAliasId());
+        assertEquals(2, out.get(0).getSequenceNumber());
+        assertEquals("Beta Org", out.get(0).getOrganisationName());
+
+        // entity is an organisation → individual list must be empty
+        var ind = OpalDefendantAccountService.buildIndividualAliasesList(e);
+        assertTrue(ind.isEmpty());
+    }
+
+    // --- Shared / edge cases ---
+
+    @Test
+    void all_null_or_blank_alias_slots_yield_empty_lists_for_both_entity_types() {
+        var person = mockDasv(false, null, "", "   ", null, "");
+        var org    = mockDasv(true,  null, "", "   ", null, "");
+
+        assertTrue(OpalDefendantAccountService.buildIndividualAliasesList(person).isEmpty());
+        assertTrue(OpalDefendantAccountService.buildOrganisationAliasesList(person).isEmpty());
+
+        assertTrue(OpalDefendantAccountService.buildIndividualAliasesList(org).isEmpty());
+        assertTrue(OpalDefendantAccountService.buildOrganisationAliasesList(org).isEmpty());
+    }
+
+    @Test
+    void gating_by_entity_type_means_wrong_list_is_always_empty() {
+        var person = mockDasv(false,
+            "P1|1|Alice Wonderland",
+            "P2|2|Bob Builder",
+            null, null, null
+        );
+        var org = mockDasv(true,
+            "O1|1|Umbrella Corp",
+            "O2|2|Stark Industries",
+            null, null, null
+        );
+
+        assertEquals(2, OpalDefendantAccountService.buildIndividualAliasesList(person).size());
+        assertTrue(OpalDefendantAccountService.buildOrganisationAliasesList(person).isEmpty());
+
+        assertEquals(2, OpalDefendantAccountService.buildOrganisationAliasesList(org).size());
+        assertTrue(OpalDefendantAccountService.buildIndividualAliasesList(org).isEmpty());
+    }
+
 
     private AccountSearchDto emptyCriteria() {
         AccountSearchDto c = mock(AccountSearchDto.class);
@@ -1146,6 +1322,308 @@ class OpalDefendantAccountServiceTest {
         service.searchDefendantAccounts(dto);
 
         verify(searchSpecsSpy, times(1)).filterByActiveOnly(false);
+    }
+
+    @Test
+    void getDefendantAccountParty_builds_individual_aliases_only() {
+        // --- Arrange repos/deps
+        var accountRepo = mock(DefendantAccountRepository.class);
+        var aliasRepo = mock(uk.gov.hmcts.opal.repository.AliasRepository.class);
+        var debtorRepo = mock(uk.gov.hmcts.opal.repository.DebtorDetailRepository.class);
+
+        // Build a Party (individual)
+        var party = uk.gov.hmcts.opal.entity.PartyEntity.builder()
+            .partyId(10L).organisation(false).title("Mr").forenames("John").surname("Doe")
+            .build();
+
+        // Link party into DefendantAccountPartiesEntity
+        var dap = uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(100L)
+            .associationType("DEFENDANT")
+            .debtor(true)
+            .party(party)
+            .build();
+
+        // Account with that party
+        var account = uk.gov.hmcts.opal.entity.DefendantAccountEntity.builder()
+            .defendantAccountId(1L)
+            .parties(List.of(dap))
+            .businessUnit(uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity.builder()
+                .businessUnitId((short) 1).build())
+            .version(0L)
+            .build();
+
+        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+
+        // AliasEntity rows: only surname populated should be considered for individual path;
+        // blanks and org-only names ignored; ensure sorting by sequenceNumber.
+        var a1 = uk.gov.hmcts.opal.entity.AliasEntity.builder()
+            .aliasId(200L).sequenceNumber(2).surname("Smith").forenames("Alice").build();
+        var a2 = uk.gov.hmcts.opal.entity.AliasEntity.builder()
+            .aliasId(201L).sequenceNumber(1).surname("Jones").forenames("Bob").build();
+        var blank = uk.gov.hmcts.opal.entity.AliasEntity.builder()
+            .aliasId(202L).sequenceNumber(3).surname("   ").forenames("X").build(); // ignored
+        var orgOnly = uk.gov.hmcts.opal.entity.AliasEntity.builder()
+            .aliasId(203L).sequenceNumber(4).organisationName("Wayne Ent") // ignored for individual
+            .build();
+
+        when(aliasRepo.findByParty_PartyId(10L)).thenReturn(List.of(a1, a2, blank, orgOnly));
+        when(debtorRepo.findByPartyId(10L)).thenReturn(null);
+
+        // Service with required deps
+        var svc = new OpalDefendantAccountService(
+            /* headerViewRepo */ null,
+            accountRepo,
+            /* search repo/specs etc not used here */ null, null, null, null,
+            /* courtRepo */ null,
+            /* amendment */ null,
+            /* em */ null,
+            /* noteRepo */ null,
+            /* eor/lja/enforcer */ null, null, null
+        );
+        java.lang.reflect.Field f1;
+        try {
+            f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
+            f1.setAccessible(true);
+            f1.set(svc, aliasRepo);
+            var f2 = OpalDefendantAccountService.class.getDeclaredField("debtorDetailRepository");
+            f2.setAccessible(true);
+            f2.set(svc, debtorRepo);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        // --- Act
+        var resp = svc.getDefendantAccountParty(1L, 100L);
+
+        assertNotNull(resp);
+        var partyDto = resp.getDefendantAccountParty();
+        assertNotNull(partyDto.getPartyDetails().getIndividualDetails());
+        var indAliases = partyDto.getPartyDetails().getIndividualDetails().getIndividualAliases();
+        assertNotNull(indAliases);
+        assertEquals(2, indAliases.size(), "should include only valid surname-bearing aliases");
+
+        assertEquals("201", indAliases.get(0).getAliasId());
+        assertEquals(Integer.valueOf(1), indAliases.get(0).getSequenceNumber());
+        assertEquals("Bob", indAliases.get(0).getForenames());
+        assertEquals("Jones", indAliases.get(0).getSurname());
+
+        assertEquals("200", indAliases.get(1).getAliasId());
+        assertEquals(Integer.valueOf(2), indAliases.get(1).getSequenceNumber());
+        assertEquals("Alice", indAliases.get(1).getForenames());
+        assertEquals("Smith", indAliases.get(1).getSurname());
+
+        // Organisation aliases must be null/empty for an individual party
+        var orgAliases = partyDto.getPartyDetails().getOrganisationDetails();
+        if (orgAliases != null) {
+            assertTrue(orgAliases.getOrganisationAliases() == null || orgAliases.getOrganisationAliases().isEmpty());
+        }
+    }
+
+    @Test
+    void getDefendantAccountParty_builds_organisation_aliases_only() {
+        var accountRepo = mock(DefendantAccountRepository.class);
+        var aliasRepo = mock(uk.gov.hmcts.opal.repository.AliasRepository.class);
+        var debtorRepo = mock(uk.gov.hmcts.opal.repository.DebtorDetailRepository.class);
+
+        var party = uk.gov.hmcts.opal.entity.PartyEntity.builder()
+            .partyId(20L).organisation(true).organisationName("Wayne Enterprises")
+            .build();
+
+        var dap = uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(200L)
+            .associationType("DEFENDANT")
+            .debtor(true)
+            .party(party)
+            .build();
+
+        var account = uk.gov.hmcts.opal.entity.DefendantAccountEntity.builder()
+            .defendantAccountId(2L).parties(List.of(dap))
+            .businessUnit(uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity.builder()
+                .businessUnitId((short) 1).build())
+            .version(0L).build();
+
+        when(accountRepo.findById(2L)).thenReturn(Optional.of(account));
+
+        // Only org-name-bearing aliases should be mapped; blanks ignored; sorted by seq.
+        var o1 = uk.gov.hmcts.opal.entity.AliasEntity.builder()
+            .aliasId(300L).sequenceNumber(2).organisationName("Wayne Group").build();
+        var o2 = uk.gov.hmcts.opal.entity.AliasEntity.builder()
+            .aliasId(301L).sequenceNumber(1).organisationName("Wayne Ent Ltd").build();
+        var blank = uk.gov.hmcts.opal.entity.AliasEntity.builder()
+            .aliasId(302L).sequenceNumber(3).organisationName("   ").build(); // ignored
+        var personOnly = uk.gov.hmcts.opal.entity.AliasEntity.builder()
+            .aliasId(303L).sequenceNumber(4).surname("Jones").forenames("Bob").build(); // ignored for org
+
+        when(aliasRepo.findByParty_PartyId(20L)).thenReturn(List.of(o1, o2, blank, personOnly));
+        when(debtorRepo.findByPartyId(20L)).thenReturn(null);
+
+        var svc = new OpalDefendantAccountService(
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null);
+
+        try {
+            var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
+            f1.setAccessible(true);
+            f1.set(svc, aliasRepo);
+            var f2 = OpalDefendantAccountService.class.getDeclaredField("debtorDetailRepository");
+            f2.setAccessible(true);
+            f2.set(svc, debtorRepo);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        var resp = svc.getDefendantAccountParty(2L, 200L);
+
+        assertNotNull(resp);
+        var partyDto = resp.getDefendantAccountParty();
+        assertTrue(partyDto.getPartyDetails().getOrganisationFlag());
+
+        var orgDetails = partyDto.getPartyDetails().getOrganisationDetails();
+        assertNotNull(orgDetails);
+        var orgAliases = orgDetails.getOrganisationAliases();
+        assertNotNull(orgAliases);
+        assertEquals(2, orgAliases.size());
+
+        // Sorted: o2 (seq=1) then o1 (seq=2)
+        assertEquals("301", orgAliases.get(0).getAliasId());
+        assertEquals(Integer.valueOf(1), orgAliases.get(0).getSequenceNumber());
+        assertEquals("Wayne Ent Ltd", orgAliases.get(0).getOrganisationName());
+
+        assertEquals("300", orgAliases.get(1).getAliasId());
+        assertEquals(Integer.valueOf(2), orgAliases.get(1).getSequenceNumber());
+        assertEquals("Wayne Group", orgAliases.get(1).getOrganisationName());
+
+        // Individual aliases must be null/empty for an organisation party
+        var indDetails = partyDto.getPartyDetails().getIndividualDetails();
+        if (indDetails != null) {
+            assertTrue(indDetails.getIndividualAliases() == null || indDetails.getIndividualAliases().isEmpty());
+        }
+    }
+
+    @Test
+    void getDefendantAccountParty_individual_with_no_aliases_sets_individualAliases_null() {
+        // Repos
+        var accountRepo = mock(DefendantAccountRepository.class);
+        var aliasRepo   = mock(uk.gov.hmcts.opal.repository.AliasRepository.class);
+        var debtorRepo  = mock(uk.gov.hmcts.opal.repository.DebtorDetailRepository.class);
+
+        // Party (individual)
+        var party = uk.gov.hmcts.opal.entity.PartyEntity.builder()
+            .partyId(10L).organisation(false).title("Ms").forenames("Anna").surname("Graham")
+            .build();
+
+        var dap = uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(100L).associationType("DEFENDANT").debtor(true).party(party)
+            .build();
+
+        var account = uk.gov.hmcts.opal.entity.DefendantAccountEntity.builder()
+            .defendantAccountId(1L)
+            .parties(List.of(dap))
+            .businessUnit(uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity.builder()
+                .businessUnitId((short) 1).build())
+            .version(0L)
+            .build();
+
+        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+
+        // No valid aliases: empty list OR rows that don't have surname populated are ignored
+        when(aliasRepo.findByParty_PartyId(10L)).thenReturn(List.of(
+            uk.gov.hmcts.opal.entity.AliasEntity.builder().aliasId(1L)
+                .sequenceNumber(1).surname("   ").forenames("X").build(),
+            uk.gov.hmcts.opal.entity.AliasEntity.builder().aliasId(2L)
+                .sequenceNumber(2).organisationName("Some Org").build()
+        ));
+        when(debtorRepo.findByPartyId(10L)).thenReturn(null);
+
+        var svc = new OpalDefendantAccountService(
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null);
+
+        try {
+            var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
+            f1.setAccessible(true);
+            f1.set(svc, aliasRepo);
+            var f2 = OpalDefendantAccountService.class.getDeclaredField("debtorDetailRepository");
+            f2.setAccessible(true);
+            f2.set(svc, debtorRepo);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        var resp = svc.getDefendantAccountParty(1L, 100L);
+
+        assertNotNull(resp);
+        var ind = resp.getDefendantAccountParty().getPartyDetails().getIndividualDetails();
+        assertNotNull(ind, "individual details should be present for an individual party");
+        assertNull(ind.getIndividualAliases(), "no valid individual aliases → should be null");
+
+        // also ensure org details/aliases are absent or empty
+        var org = resp.getDefendantAccountParty().getPartyDetails().getOrganisationDetails();
+        if (org != null) {
+            assertTrue(org.getOrganisationAliases() == null || org.getOrganisationAliases().isEmpty());
+        }
+    }
+
+    @Test
+    void getDefendantAccountParty_organisation_with_no_aliases_sets_organisationAliases_null() {
+        var accountRepo = mock(DefendantAccountRepository.class);
+        var aliasRepo   = mock(uk.gov.hmcts.opal.repository.AliasRepository.class);
+        var debtorRepo  = mock(uk.gov.hmcts.opal.repository.DebtorDetailRepository.class);
+
+        // Party (organisation)
+        var party = uk.gov.hmcts.opal.entity.PartyEntity.builder()
+            .partyId(20L).organisation(true).organisationName("TechCorp Solutions Ltd")
+            .build();
+
+        var dap = uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(200L).associationType("DEFENDANT").debtor(true).party(party)
+            .build();
+
+        var account = uk.gov.hmcts.opal.entity.DefendantAccountEntity.builder()
+            .defendantAccountId(2L)
+            .parties(List.of(dap))
+            .businessUnit(uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity.builder()
+                .businessUnitId((short) 1).build())
+            .version(0L)
+            .build();
+
+        when(accountRepo.findById(2L)).thenReturn(Optional.of(account));
+
+        // No valid org aliases: empty list OR rows with blank org names are ignored;
+        // person-only rows are ignored for org parties
+        when(aliasRepo.findByParty_PartyId(20L)).thenReturn(List.of(
+            uk.gov.hmcts.opal.entity.AliasEntity.builder().aliasId(10L)
+                .sequenceNumber(1).organisationName("   ").build(),
+            uk.gov.hmcts.opal.entity.AliasEntity.builder().aliasId(11L)
+                .sequenceNumber(2).surname("Jones").forenames("Bob").build()
+        ));
+        when(debtorRepo.findByPartyId(20L)).thenReturn(null);
+
+        var svc = new OpalDefendantAccountService(
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null);
+
+        try {
+            var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
+            f1.setAccessible(true);
+            f1.set(svc, aliasRepo);
+            var f2 = OpalDefendantAccountService.class.getDeclaredField("debtorDetailRepository");
+            f2.setAccessible(true);
+            f2.set(svc, debtorRepo);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        var resp = svc.getDefendantAccountParty(2L, 200L);
+
+        assertNotNull(resp);
+        var org = resp.getDefendantAccountParty().getPartyDetails().getOrganisationDetails();
+        assertNotNull(org, "organisation details should be present for an organisation party");
+        assertNull(org.getOrganisationAliases(), "no valid organisation aliases → should be null");
+
+        // also ensure individual alias list is absent/empty
+        var ind = resp.getDefendantAccountParty().getPartyDetails().getIndividualDetails();
+        if (ind != null) {
+            assertTrue(ind.getIndividualAliases() == null || ind.getIndividualAliases().isEmpty());
+        }
     }
 
 }

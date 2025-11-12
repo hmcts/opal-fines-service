@@ -25,8 +25,8 @@
             "string",
             "null"
           ],
-          "minLength": 8,
-          "maxLength": 9
+          "minLength": 1,
+          "maxLength": 10
         },
         "account_id": {
           "$ref": "../../types/bigint_value.json",

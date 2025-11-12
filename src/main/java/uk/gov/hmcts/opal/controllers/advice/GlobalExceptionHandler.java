@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.controllers.advice;
 
-import static uk.gov.hmcts.opal.authentication.service.AccessTokenService.AUTH_HEADER;
+import static uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService.AUTH_HEADER;
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
 
 import feign.FeignException;
@@ -40,11 +40,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
-import uk.gov.hmcts.opal.authentication.exception.MissingRequestHeaderException;
-import uk.gov.hmcts.opal.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.authorisation.aspect.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.common.user.authentication.exception.MissingRequestHeaderException;
+import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
-import uk.gov.hmcts.opal.exception.OpalApiException;
+import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.spring.exceptions.OpalException;

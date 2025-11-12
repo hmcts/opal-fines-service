@@ -174,6 +174,13 @@ INSERT INTO NOTES
 VALUES ( 001077, 'AC', 'defendant_accounts', 0077
        , 'Comment for Notes for Ms Anna Graham', NULL, 'Dr Notes');
 
+-- Add multiple aliases for individual party 77 (Anna Graham) to test aliases array
+INSERT INTO aliases
+(alias_id, party_id, surname, forenames, sequence_number, organisation_name)
+VALUES 
+(7701, 77, 'Smith', 'Annie', 1, NULL),
+(7702, 77, 'Johnson', 'Anne', 2, NULL),
+(7703, 77, 'Williams', 'Ana', 3, NULL);
 
 -- 177B (inactive) — new unique ID
 INSERT INTO defendant_accounts (
@@ -524,7 +531,10 @@ VALUES (10001, 10001, 10001,
 
 INSERT INTO aliases
 (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
-VALUES (10001, 10001, 'AliasSurname', 'AliasForenames', 1, 'AliasOrg');
+VALUES 
+(100011, 10001, 'AliasSurname', 'AliasForenames', 1, 'AliasOrg'),
+(100012, 10001, 'SecondAlias', 'SecondForenames', 2, 'SecondAliasOrg'),
+(100013, 10001, 'ThirdAlias', 'ThirdForenames', 3, 'ThirdAliasOrg');
 
 INSERT INTO debtor_detail
 ( party_id, vehicle_make, vehicle_registration,
