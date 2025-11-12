@@ -21,7 +21,7 @@ plugins {
 
 ext {
   log4JVersion = "2.25.2"
-  serenityVersion = "4.3.2"
+  serenityVersion = "4.3.4"
   cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
 }
 
@@ -454,9 +454,9 @@ dependencies {
 
   //Added to override dependency version to resolve vulnerability
   implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.13'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.13'
-  implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.13'
-  implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.13'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.14'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.14'
+  implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.14'
   implementation 'org.apache.commons:commons-lang3:3.19.0'
 
 }
