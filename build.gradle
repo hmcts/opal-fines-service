@@ -393,7 +393,7 @@ dependencies {
 
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '7.10.2'
 
-  implementation(group: 'com.networknt', name: 'json-schema-validator', version: '1.5.9');
+  implementation(group: 'com.networknt', name: 'json-schema-validator', version: '2.0.0');
   implementation(group: 'com.jayway.jsonpath', name: 'json-path', version: '2.10.0');
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.8'
