@@ -128,6 +128,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     @Autowired
     private AliasRepository aliasRepository;
 
+    private final OpalPartyService opalPartyService;
 
     public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
         return defendantAccountRepository.findById(defendantAccountId)
@@ -1056,8 +1057,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String businessUnitId,
         String postedBy) {
 
-        DefendantAccountEntity account = defendantAccountRepository.findById(accountId)
-            .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: " + accountId));
+        DefendantAccountEntity account = getDefendantAccountById(accountId);
 
         if (account.getBusinessUnit() == null
             || account.getBusinessUnit().getBusinessUnitId() == null
@@ -1082,16 +1082,15 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             if (requestedPartyId == null) {
                 throw new IllegalArgumentException("party_id is required");
             }
-            party = em.getReference(PartyEntity.class, requestedPartyId);
+            party = opalPartyService.findById(requestedPartyId);   // loads & manages the entity
             dap.setParty(party);
         } else {
             if (requestedPartyId != null && !Objects.equals(party.getPartyId(), requestedPartyId)) {
                 throw new IllegalArgumentException("Switching party is not allowed");
             }
-            if (!em.contains(party)) {
-                party = em.getReference(PartyEntity.class, party.getPartyId());
-                dap.setParty(party);
-            }
+
+            party = opalPartyService.findById(party.getPartyId());
+            dap.setParty(party);
         }
 
         if (request == null) {
@@ -1104,7 +1103,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         applyPartyCoreReplace(party, request.getPartyDetails());
         applyPartyAddressReplace(party, request.getAddress());
         applyPartyContactReplace(party, request.getContactDetails());
-        party.setLastChangedDate(LocalDateTime.now());
 
         boolean isDebtor = Boolean.TRUE.equals(request.getIsDebtor());
         replaceDebtorDetail(
@@ -1117,9 +1115,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         replaceAliasesForParty(party.getPartyId(), request.getPartyDetails());
 
+        opalPartyService.save(party);
         account.setLastChangedDate(LocalDate.now());
-        defendantAccountRepository.save(account);
-        em.flush();
+        defendantAccountRepository.saveAndFlush(account); // keeps your previous explicit flush semantics
 
         amendmentService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
@@ -1147,21 +1145,21 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             return;
         }
 
+        PartyEntity party = opalPartyService.findById(partyId);
+
         if (pd.getOrganisationFlag()) {
             OrganisationDetails od = pd.getOrganisationDetails();
-            List<OrganisationAlias> orgAliases =
-                (od != null) ? od.getOrganisationAliases() : null;
+            List<OrganisationAlias> orgAliases = (od != null) ? od.getOrganisationAliases() : null;
             if (orgAliases == null || orgAliases.isEmpty()) {
-                return; // nothing to save -> don't call getReference
+                return;
             }
 
-            PartyEntity partyRef = em.getReference(PartyEntity.class, partyId);
             for (OrganisationAlias a : orgAliases) {
                 if (a == null) {
                     continue;
                 }
                 AliasEntity alias = new AliasEntity();
-                alias.setParty(partyRef);
+                alias.setParty(party);
                 alias.setSequenceNumber(a.getSequenceNumber());
                 alias.setOrganisationName(a.getOrganisationName());
                 alias.setForenames(null);
@@ -1171,19 +1169,17 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         } else {
             IndividualDetails id = pd.getIndividualDetails();
-            List<IndividualAlias> indAliases =
-                (id != null) ? id.getIndividualAliases() : null;
+            List<IndividualAlias> indAliases = (id != null) ? id.getIndividualAliases() : null;
             if (indAliases == null || indAliases.isEmpty()) {
-                return; // nothing to save -> don't call getReference
+                return;
             }
 
-            PartyEntity partyRef = em.getReference(PartyEntity.class, partyId);
             for (IndividualAlias a : indAliases) {
                 if (a == null) {
                     continue;
                 }
                 AliasEntity alias = new AliasEntity();
-                alias.setParty(partyRef);
+                alias.setParty(party);
                 alias.setSequenceNumber(a.getSequenceNumber());
                 alias.setForenames(a.getForenames());
                 alias.setSurname(a.getSurname());

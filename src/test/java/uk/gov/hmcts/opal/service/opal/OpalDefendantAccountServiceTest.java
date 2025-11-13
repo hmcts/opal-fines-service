@@ -15,6 +15,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -24,7 +26,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -40,6 +41,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -116,6 +118,19 @@ class OpalDefendantAccountServiceTest {
     private final DefendantAccountPaymentTermsRepository paymentTermsRepository = mock(
         DefendantAccountPaymentTermsRepository.class);
 
+    @Mock AmendmentService amendmentService = mock(AmendmentService.class);
+    @Mock DebtorDetailRepository debtorDetailRepository = mock(DebtorDetailRepository.class);
+    @Mock AliasRepository aliasRepository = mock(AliasRepository.class);
+    @Mock OpalPartyService opalPartyService = mock(OpalPartyService.class);
+
+    private OpalDefendantAccountService newService() {
+        // Keep alignment with your existing constructor usage (pass nulls for irrelevant deps)
+        return new OpalDefendantAccountService(
+            null, defendantAccountRepository, null, null, null,
+            null, null, amendmentService, null, null, null, null, null, opalPartyService
+        );
+    }
+
 
     private DefendantAccountSpecs defendantAccountSpecs;
 
@@ -140,11 +155,13 @@ class OpalDefendantAccountServiceTest {
             /* dasvRepository            */ dasvRepository,
             /* courtRepo                 */ null,
             /* amendmentService          */ null,
+
             /* entityManager             */ null,
             /* noteRepository            */ null,
             /* enforcementOverrideResult */ null,
             /* localJusticeAreaRepo      */ null,
-            /* enforcerRepository        */ null
+            /* enforcerRepository        */ null,
+            null
         );
 
         // Generic matcher to avoid unchecked warnings
@@ -613,7 +630,8 @@ class OpalDefendantAccountServiceTest {
             noteRepository,
             eorRepo,
             ljaRepo,
-            enforcerRepo
+            enforcerRepo,
+            null
         );
 
         // Request DTO
@@ -690,7 +708,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null, null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -708,7 +726,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenBusinessUnitMismatch() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null);
+            null, accountRepo, null, null, null, null, null, null,null,null,null,null,null, null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -738,7 +756,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenCollectionOrderDateInvalid() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null);
+            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null, null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -770,7 +788,7 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenEntityNotFound() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null);
+            null, accountRepo, null, null, null, null, null,null,null,null,null,null, null, null);
 
         when(accountRepo.findById(99L)).thenReturn(Optional.empty());
 
@@ -803,6 +821,7 @@ class OpalDefendantAccountServiceTest {
             amendmentService,
             em,
             noteRepository,
+            null,
             null,
             null,
             null
@@ -850,6 +869,7 @@ class OpalDefendantAccountServiceTest {
             mock(NoteRepository.class),
             null,
             null,
+            null,
             null
         );
 
@@ -890,6 +910,7 @@ class OpalDefendantAccountServiceTest {
             noteRepo,
             null,
             null,
+            null,
             null
         );
 
@@ -920,7 +941,8 @@ class OpalDefendantAccountServiceTest {
             mock(NoteRepository.class),
             mock(EnforcementOverrideResultRepository.class),
             mock(LocalJusticeAreaRepository.class),
-            mock(EnforcerRepository.class)
+            mock(EnforcerRepository.class),
+            mock(OpalPartyService.class)
         );
 
         var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
@@ -1410,7 +1432,7 @@ class OpalDefendantAccountServiceTest {
             /* amendment */ null,
             /* em */ null,
             /* noteRepo */ null,
-            /* eor/lja/enforcer */ null, null, null
+            /* eor/lja/enforcer */ null, null, null, null
         );
         java.lang.reflect.Field f1;
         try {
@@ -1490,7 +1512,7 @@ class OpalDefendantAccountServiceTest {
         when(debtorRepo.findByPartyId(20L)).thenReturn(null);
 
         var svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null);
 
         try {
             var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
@@ -1567,7 +1589,7 @@ class OpalDefendantAccountServiceTest {
         when(debtorRepo.findByPartyId(10L)).thenReturn(null);
 
         var svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null);
 
         try {
             var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
@@ -1630,7 +1652,7 @@ class OpalDefendantAccountServiceTest {
         when(debtorRepo.findByPartyId(20L)).thenReturn(null);
 
         var svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null);
 
         try {
             var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
@@ -1657,6 +1679,21 @@ class OpalDefendantAccountServiceTest {
         }
     }
 
+
+    private OpalDefendantAccountService spyWithAccount(DefendantAccountEntity account) {
+        OpalDefendantAccountService svc = newService();
+        // inject fields not set in ctor
+        setField(svc, "debtorDetailRepository", debtorDetailRepository);
+        setField(svc, "aliasRepository", aliasRepository);
+
+        // Spy to stub the method the production code actually calls
+        OpalDefendantAccountService spySvc = spy(svc);
+        doReturn(account).when(spySvc).getDefendantAccountById(account.getDefendantAccountId());
+        return spySvc;
+    }
+
+    // -------------------- Tests --------------------
+
     @Test
     void replaceDefendantAccountParty_happyPath_attachedParty_updates_and_audits() {
         Long accountId = 777L;
@@ -1665,8 +1702,7 @@ class OpalDefendantAccountServiceTest {
         String ifMatch = "\"1\"";
 
         BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
-            .businessUnitId(Short.valueOf(bu))
-            .build();
+            .businessUnitId(Short.valueOf(bu)).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
@@ -1674,73 +1710,45 @@ class OpalDefendantAccountServiceTest {
             .version(1L)
             .build();
 
-        // Party is mocked so we can verify setters
         PartyEntity party = mock(PartyEntity.class);
         when(party.getPartyId()).thenReturn(123L);
 
         DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
             .defendantAccountPartyId(dapId)
             .party(party)
-            .associationType("RESPONDENT") // initial; will be overwritten by req
+            .associationType("RESPONDENT")
             .debtor(Boolean.FALSE)
             .build();
 
         account.setParties(List.of(dap));
-        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
-        // repository.save echoes the same instance
-        when(defendantAccountRepository.save(account)).thenReturn(account);
 
-        AmendmentService amendmentService = mock(AmendmentService.class);
-        EntityManager em = mock(EntityManager.class);
-        when(em.contains(party)).thenReturn(true);
+        // alias lookup empty
+        when(aliasRepository.findByParty_PartyId(anyLong())).thenReturn(emptyList());
+        // party load should return the same mock instance so setters can be verified
+        when(opalPartyService.findById(123L)).thenReturn(party);
+        doAnswer(inv -> inv.getArgument(0)).when(opalPartyService).save(any());
 
-        // Inject mocked DebtorDetailRepository
-        DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
-        when(debtorRepo.findById(anyLong())).thenReturn(Optional.empty());
-        when(debtorRepo.existsById(anyLong())).thenReturn(false);
-        when(debtorRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        // saveAndFlush echoes
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
 
-        OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, searchDefAccRepo, searchSpecsSpy, paymentTermsRepository,
-            dasvRepository, null, amendmentService, em, null, null, null, null
-        );
-
-        setField(svc, "debtorDetailRepository", debtorRepo);
-
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        when(aliasRepo.findByParty_PartyId(anyLong())).thenReturn(emptyList());
-        setField(svc, "aliasRepository", aliasRepo);
-
+        OpalDefendantAccountService svc = spyWithAccount(account);
 
         // ---- Build the request ----
         DefendantAccountParty req = DefendantAccountParty.builder()
             .defendantAccountPartyType("Defendant")
             .isDebtor(Boolean.TRUE)
             .partyDetails(PartyDetails.builder()
-                .partyId("123") // must match existing
+                .partyId("123")
                 .organisationFlag(Boolean.TRUE)
-                .organisationDetails(OrganisationDetails.builder()
-                    .organisationName("ACME LTD")
-                    .build())
+                .organisationDetails(OrganisationDetails.builder().organisationName("ACME LTD").build())
                 .build())
-            .address(AddressDetails.builder()
-                .addressLine1("1 MAIN")
-                .postcode("AB1 2CD")
-                .build())
-            .contactDetails(ContactDetails.builder()
-                .primaryEmailAddress("a@b.com")
-                .workTelephoneNumber("0207")
-                .build())
-            .vehicleDetails(VehicleDetails.builder()
-                .vehicleMakeAndModel("Ford Focus")
-                .vehicleRegistration("AB12CDE")
-                .build())
+            .address(AddressDetails.builder().addressLine1("1 MAIN").postcode("AB1 2CD").build())
+            .contactDetails(ContactDetails.builder().primaryEmailAddress("a@b.com").workTelephoneNumber("0207").build())
+            .vehicleDetails(VehicleDetails.builder().vehicleMakeAndModel("Ford Focus")
+                .vehicleRegistration("AB12CDE").build())
             .employerDetails(EmployerDetails.builder()
                 .employerName("Widgets Inc")
-                .employerAddress(AddressDetails.builder()
-                    .addressLine1("10 Park")
-                    .postcode("ZZ1 1ZZ")
-                    .build())
+                .employerAddress(AddressDetails.builder().addressLine1("10 Park").postcode("ZZ1 1ZZ").build())
                 .build())
             .languagePreferences(LanguagePreferences.builder()
                 .documentLanguagePreference(LanguagePreference.fromCode("EN"))
@@ -1748,7 +1756,7 @@ class OpalDefendantAccountServiceTest {
                 .build())
             .build();
 
-        try (MockedStatic<uk.gov.hmcts.opal.util.VersionUtils> vs =
+        try (MockedStatic<VersionUtils> vs =
             mockStatic(uk.gov.hmcts.opal.util.VersionUtils.class)) {
             vs.when(() -> uk.gov.hmcts.opal.util.VersionUtils
                     .verifyIfMatch(eq(account), eq(ifMatch), eq(accountId), anyString()))
@@ -1760,82 +1768,58 @@ class OpalDefendantAccountServiceTest {
             assertNotNull(resp);
             assertNotNull(resp.getDefendantAccountParty());
 
-            // behavioural assertions (no lock now)
-            verify(defendantAccountRepository).save(account);
-            verify(em).flush();
-
+            verify(defendantAccountRepository).saveAndFlush(account);
+            // audit calls
             verify(amendmentService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
-            verify(amendmentService).auditFinaliseStoredProc(eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
+            verify(amendmentService).auditFinaliseStoredProc(
+                eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
                 eq(Short.parseShort(bu)), eq("tester"), any(), eq("ACCOUNT_ENQUIRY"));
 
-            // a couple of key field updates on Party
+            // Core updates
             verify(party).setOrganisation(Boolean.TRUE);
             verify(party).setOrganisationName("ACME LTD");
             verify(party).setAddressLine1("1 MAIN");
             verify(party).setPrimaryEmailAddress("a@b.com");
+
+            verify(opalPartyService).save(party);
+            verify(aliasRepository).findByParty_PartyId(123L);
         }
     }
 
     @Test
-    void replaceDefendantAccountParty_detachedParty_isReattached_with_getReference() {
+    void replaceDefendantAccountParty_detachedParty_isReattached_via_OpalPartyService_findById() {
         Long accountId = 100L;
         Long dapId = 200L;
         String bu = "10";
 
         BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
-            .businessUnitId(Short.valueOf(bu))
-            .build();
+            .businessUnitId(Short.valueOf(bu)).build();
 
-        PartyEntity party = mock(PartyEntity.class);
-        when(party.getPartyId()).thenReturn(300L);
+        PartyEntity partyProxy = mock(PartyEntity.class);
+        when(partyProxy.getPartyId()).thenReturn(300L);
 
         DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
-            .defendantAccountPartyId(dapId)
-            .party(party)
-            .build();
+            .defendantAccountPartyId(dapId).party(partyProxy).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId)
-            .businessUnit(buEnt)
-            .parties(List.of(dap))
-            .version(1L)
-            .build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).version(1L).build();
 
-        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
-        when(defendantAccountRepository.save(account)).thenReturn(account);
+        // production path: service reloads the party via opalPartyService.findById(id)
+        when(opalPartyService.findById(300L)).thenReturn(partyProxy);
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+        when(aliasRepository.findByParty_PartyId(300L)).thenReturn(emptyList());
 
-        AmendmentService amendmentService = mock(AmendmentService.class);
-        EntityManager em = mock(EntityManager.class);
-        when(em.contains(party)).thenReturn(false);
-        when(em.getReference(PartyEntity.class, 300L)).thenReturn(party);
-
-        // Inject mocked DebtorDetailRepository
-        DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
-        when(debtorRepo.findById(anyLong())).thenReturn(Optional.empty());
-        when(debtorRepo.existsById(anyLong())).thenReturn(false);
-        when(debtorRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, searchDefAccRepo, searchSpecsSpy, paymentTermsRepository,
-            dasvRepository, null, amendmentService, em, null, null, null, null
-        );
-        setField(svc, "debtorDetailRepository", debtorRepo);
-
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        when(aliasRepo.findByParty_PartyId(anyLong())).thenReturn(emptyList());
-        setField(svc, "aliasRepository", aliasRepo);
-
+        OpalDefendantAccountService svc = spyWithAccount(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .partyDetails(PartyDetails.builder()
-                .partyId("300")
-                .organisationFlag(Boolean.TRUE)
+                .partyId("300").organisationFlag(Boolean.TRUE)
                 .organisationDetails(OrganisationDetails.builder().organisationName("ACME").build())
                 .build())
             .build();
 
-        try (MockedStatic<uk.gov.hmcts.opal.util.VersionUtils> vs =
-            mockStatic(uk.gov.hmcts.opal.util.VersionUtils.class)) {
-            vs.when(() -> uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+        try (var vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
@@ -1843,9 +1827,9 @@ class OpalDefendantAccountServiceTest {
 
             assertNotNull(resp);
             assertNotNull(resp.getDefendantAccountParty());
-            verify(em).getReference(PartyEntity.class, 300L);
-            verify(defendantAccountRepository).save(account);
-            verify(em).flush();
+            verify(opalPartyService, times(2)).findById(300L);
+            verify(defendantAccountRepository).saveAndFlush(account);
+            verify(aliasRepository).findByParty_PartyId(300L);
         }
     }
 
@@ -1868,27 +1852,14 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
             .defendantAccountPartyId(dapId).party(party).associationType("OLDTYPE").debtor(Boolean.FALSE).build();
 
-        account.setParties(java.util.List.of(dap));
-        when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
-        when(defendantAccountRepository.save(account)).thenReturn(account);
+        account.setParties(List.of(dap));
 
-        AmendmentService amendmentService = mock(AmendmentService.class);
-        EntityManager em = mock(EntityManager.class);
-        when(em.contains(party)).thenReturn(true);
+        when(opalPartyService.findById(123L)).thenReturn(party);
+        when(aliasRepository.findByParty_PartyId(123L)).thenReturn(emptyList());
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+        doAnswer(inv -> inv.getArgument(0)).when(opalPartyService).save(any());
 
-        OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, searchDefAccRepo, searchSpecsSpy, paymentTermsRepository,
-            dasvRepository, null, amendmentService, em, null, null, null, null
-        );
-
-        DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
-        when(debtorRepo.findById(anyLong())).thenReturn(java.util.Optional.empty());
-        when(debtorRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        setField(svc, "debtorDetailRepository", debtorRepo);
-
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        when(aliasRepo.findByParty_PartyId(123L)).thenReturn(java.util.Collections.emptyList());
-        setField(svc, "aliasRepository", aliasRepo);
+        OpalDefendantAccountService svc = spyWithAccount(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .defendantAccountPartyType("Defendant").isDebtor(Boolean.TRUE)
@@ -1920,8 +1891,7 @@ class OpalDefendantAccountServiceTest {
             assertNotNull(resp);
             assertNotNull(resp.getDefendantAccountParty());
 
-            verify(defendantAccountRepository).save(account);
-            verify(em).flush();
+            verify(defendantAccountRepository).saveAndFlush(account);
 
             verify(amendmentService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
             verify(amendmentService).auditFinaliseStoredProc(
@@ -1933,13 +1903,14 @@ class OpalDefendantAccountServiceTest {
             verify(party).setAddressLine1("1 MAIN");
             verify(party).setPrimaryEmailAddress("a@b.com");
 
-            verify(debtorRepo, atLeastOnce()).save(any());
-            verify(aliasRepo).findByParty_PartyId(123L);
+            verify(debtorDetailRepository, atLeastOnce()).save(any());
+            verify(aliasRepository).findByParty_PartyId(123L);
+            verify(opalPartyService).save(party);
         }
     }
 
     @Test
-    void replaceDefendantAccountParty_detachedParty_isReattached_with_getReference_and_saved() {
+    void replaceDefendantAccountParty_detachedParty_isReattached_and_saved_via_OpalPartyService() {
         Long accountId = 100L;
         Long dapId = 200L;
         String bu = "10";
@@ -1954,29 +1925,13 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap)).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).version(1L).build();
 
-        when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
-        when(defendantAccountRepository.save(account)).thenReturn(account);
+        when(opalPartyService.findById(300L)).thenReturn(party);
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+        when(aliasRepository.findByParty_PartyId(300L)).thenReturn(emptyList());
 
-        AmendmentService amendmentService = mock(AmendmentService.class);
-        EntityManager em = mock(EntityManager.class);
-        when(em.contains(party)).thenReturn(false);
-        when(em.getReference(PartyEntity.class, 300L)).thenReturn(party);
-
-        OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, searchDefAccRepo, searchSpecsSpy, paymentTermsRepository,
-            dasvRepository, null, amendmentService, em, null, null, null, null
-        );
-
-        DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
-        when(debtorRepo.findById(anyLong())).thenReturn(java.util.Optional.empty());
-        when(debtorRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        setField(svc, "debtorDetailRepository", debtorRepo);
-
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        when(aliasRepo.findByParty_PartyId(300L)).thenReturn(java.util.Collections.emptyList());
-        setField(svc, "aliasRepository", aliasRepo);
+        OpalDefendantAccountService svc = spyWithAccount(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .partyDetails(PartyDetails.builder()
@@ -1993,10 +1948,9 @@ class OpalDefendantAccountServiceTest {
                 svc.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", bu, "tester");
 
             assertNotNull(resp);
-            verify(em).getReference(PartyEntity.class, 300L);
-            verify(defendantAccountRepository).save(account);
-            verify(em).flush();
-            verify(aliasRepo).findByParty_PartyId(300L);
+            verify(opalPartyService, times(2)).findById(300L);
+            verify(defendantAccountRepository).saveAndFlush(account);
+            verify(aliasRepository).findByParty_PartyId(300L);
         }
     }
 
@@ -2012,17 +1966,9 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountPartyId(dapId).party(null).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap)).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).version(1L).build();
 
-        when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
-
-        OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, null, null, null, null, null,
-            mock(AmendmentService.class), mock(EntityManager.class), null, null, null, null
-        );
-
-        setField(svc, "debtorDetailRepository", mock(DebtorDetailRepository.class));
-        setField(svc, "aliasRepository", mock(AliasRepository.class));
+        OpalDefendantAccountService svc = spyWithAccount(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .partyDetails(PartyDetails.builder()
@@ -2038,7 +1984,7 @@ class OpalDefendantAccountServiceTest {
             assertThrows(IllegalArgumentException.class, () ->
                 svc.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester"));
 
-            verify(defendantAccountRepository, never()).save(any());
+            verify(defendantAccountRepository, never()).saveAndFlush(any());
         }
     }
 
@@ -2057,17 +2003,9 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap)).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).version(1L).build();
 
-        when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
-
-        OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, null, null, null, null, null,
-            mock(AmendmentService.class), mock(EntityManager.class), null, null, null, null
-        );
-
-        setField(svc, "debtorDetailRepository", mock(DebtorDetailRepository.class));
-        setField(svc, "aliasRepository", mock(AliasRepository.class));
+        OpalDefendantAccountService svc = spyWithAccount(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .partyDetails(PartyDetails.builder().partyId("999").organisationFlag(Boolean.TRUE).build())
@@ -2080,7 +2018,7 @@ class OpalDefendantAccountServiceTest {
             assertThrows(IllegalArgumentException.class, () ->
                 svc.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester"));
 
-            verify(defendantAccountRepository, never()).save(any());
+            verify(defendantAccountRepository, never()).saveAndFlush(any());
         }
     }
 
@@ -2094,21 +2032,13 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId).businessUnit(buWrong).version(1L).build();
 
-        when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
-
-        OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, null, null, null, null, null,
-            mock(AmendmentService.class), mock(EntityManager.class), null, null, null, null
-        );
-
-        setField(svc, "debtorDetailRepository", mock(DebtorDetailRepository.class));
-        setField(svc, "aliasRepository", mock(AliasRepository.class));
+        OpalDefendantAccountService svc = spyWithAccount(account);
 
         assertThrows(EntityNotFoundException.class, () ->
             svc.replaceDefendantAccountParty(accountId, 1L,
                 DefendantAccountParty.builder().build(), "\"1\"", "10", "tester"));
 
-        verify(defendantAccountRepository, never()).save(any());
+        verify(defendantAccountRepository, never()).saveAndFlush(any());
     }
 
     @Test
@@ -2126,30 +2056,16 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap)).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).version(1L).build();
 
-        when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
-        when(defendantAccountRepository.save(account)).thenReturn(account);
-
-        AmendmentService amendmentService = mock(AmendmentService.class);
-        EntityManager em = mock(EntityManager.class);
-        when(em.contains(party)).thenReturn(true);
-
-        OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, null, null, null, null, null, amendmentService, em,
-            null, null, null, null
-        );
+        OpalDefendantAccountService svc = spyWithAccount(account);
 
         DebtorDetailEntity existing = new DebtorDetailEntity();
         existing.setPartyId(222L);
-
-        DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
-        when(debtorRepo.findById(222L)).thenReturn(java.util.Optional.of(existing));
-        setField(svc, "debtorDetailRepository", debtorRepo);
-
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        when(aliasRepo.findByParty_PartyId(222L)).thenReturn(java.util.Collections.emptyList());
-        setField(svc, "aliasRepository", aliasRepo);
+        when(debtorDetailRepository.findById(222L)).thenReturn(Optional.of(existing));
+        when(opalPartyService.findById(222L)).thenReturn(party);
+        when(aliasRepository.findByParty_PartyId(222L)).thenReturn(emptyList());
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .defendantAccountPartyType("Defendant").isDebtor(Boolean.FALSE)
@@ -2167,9 +2083,8 @@ class OpalDefendantAccountServiceTest {
                 svc.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester");
 
             assertNotNull(resp);
-            verify(debtorRepo).delete(existing);
-            verify(defendantAccountRepository).save(account);
-            verify(em).flush();
+            verify(debtorDetailRepository).delete(existing);
+            verify(defendantAccountRepository).saveAndFlush(account);
         }
     }
 
@@ -2188,28 +2103,15 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap)).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).version(1L).build();
 
-        when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
-        when(defendantAccountRepository.save(account)).thenReturn(account);
+        OpalDefendantAccountService svc = spyWithAccount(account);
 
-        AmendmentService amendmentService = mock(AmendmentService.class);
-        EntityManager em = mock(EntityManager.class);
-        when(em.contains(party)).thenReturn(true);
-
-        OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, null, null, null, null, null, amendmentService, em,
-            null, null, null, null
-        );
-
-        DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
-        when(debtorRepo.findById(333L)).thenReturn(java.util.Optional.empty());
-        when(debtorRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        setField(svc, "debtorDetailRepository", debtorRepo);
-
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        when(aliasRepo.findByParty_PartyId(333L)).thenReturn(java.util.Collections.emptyList());
-        setField(svc, "aliasRepository", aliasRepo);
+        when(opalPartyService.findById(333L)).thenReturn(party);
+        when(aliasRepository.findByParty_PartyId(333L)).thenReturn(emptyList());
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+        when(debtorDetailRepository.findById(333L)).thenReturn(Optional.empty());
+        when(debtorDetailRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .defendantAccountPartyType("Defendant").isDebtor(Boolean.TRUE)
@@ -2234,7 +2136,7 @@ class OpalDefendantAccountServiceTest {
             assertNotNull(resp);
 
             ArgumentCaptor<DebtorDetailEntity> cap = ArgumentCaptor.forClass(DebtorDetailEntity.class);
-            verify(debtorRepo).save(cap.capture());
+            verify(debtorDetailRepository).save(cap.capture());
             DebtorDetailEntity saved = cap.getValue();
 
             assertEquals("VW Golf", saved.getVehicleMake());
@@ -2256,9 +2158,8 @@ class OpalDefendantAccountServiceTest {
             assertNull(saved.getDocumentLanguageDate());
             assertNull(saved.getHearingLanguageDate());
 
-            verify(defendantAccountRepository).save(account);
-            verify(em).flush();
-            verify(aliasRepo).findByParty_PartyId(333L);
+            verify(defendantAccountRepository).saveAndFlush(account);
+            verify(aliasRepository).findByParty_PartyId(333L);
         }
     }
 
@@ -2277,28 +2178,13 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap)).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).version(1L).build();
 
-        when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
-        when(defendantAccountRepository.save(account)).thenReturn(account);
+        when(opalPartyService.findById(444L)).thenReturn(party);
+        when(aliasRepository.findByParty_PartyId(444L)).thenReturn(emptyList());
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
 
-        AmendmentService amendmentService = mock(AmendmentService.class);
-        EntityManager em = mock(EntityManager.class);
-        when(em.contains(party)).thenReturn(true);
-
-        OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, null, null, null, null, null, amendmentService, em,
-            null, null, null, null
-        );
-
-        DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
-        when(debtorRepo.findById(444L)).thenReturn(java.util.Optional.empty());
-        when(debtorRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        setField(svc, "debtorDetailRepository", debtorRepo);
-
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        when(aliasRepo.findByParty_PartyId(444L)).thenReturn(java.util.Collections.emptyList());
-        setField(svc, "aliasRepository", aliasRepo);
+        OpalDefendantAccountService svc = spyWithAccount(account);
 
         DefendantAccountParty req = DefendantAccountParty.builder()
             .defendantAccountPartyType("Defendant").isDebtor(Boolean.TRUE)
@@ -2330,66 +2216,57 @@ class OpalDefendantAccountServiceTest {
             verify(party).setHomeTelephoneNumber(null);
             verify(party).setWorkTelephoneNumber(null);
 
-            verify(defendantAccountRepository).save(account);
-            verify(em).flush();
+            verify(defendantAccountRepository).saveAndFlush(account);
         }
     }
 
-    @Test
-    void replaceAliasesForParty_pdNull_deletesAndReturns_without_getReference_or_saves() throws Exception {
-        Long partyId = 111L;
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        EntityManager em = mock(EntityManager.class);
+    // ---------- replaceAliasesForParty (now uses opalPartyService.findById) ----------
 
-        OpalDefendantAccountService svc = newServiceWith(aliasRepo, em);
-        setField(svc, "aliasRepository", aliasRepo);
+    @Test
+    void replaceAliasesForParty_pdNull_deletesAndReturns_without_loading_party_or_saves() throws Exception {
+        Long partyId = 111L;
+
+        OpalDefendantAccountService svc = newService();
+        setField(svc, "aliasRepository", aliasRepository);
 
         invokeReplaceAliasesForParty(svc, partyId, null);
 
-        verify(aliasRepo).deleteByParty_PartyId(partyId);
-        verifyNoMoreInteractions(aliasRepo);
-        verify(em, never()).getReference(any(), any());
+        verify(aliasRepository).deleteByParty_PartyId(partyId);
+        verifyNoMoreInteractions(aliasRepository);
+        verifyNoInteractions(opalPartyService);
     }
 
     @Test
-    void replaceAliasesForParty_orgFlagNull_deletesAndReturns_without_getReference_or_saves() throws Exception {
+    void replaceAliasesForParty_orgFlagNull_deletesAndReturns_without_loading_party_or_saves() throws Exception {
         Long partyId = 222L;
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        EntityManager em = mock(EntityManager.class);
 
-        OpalDefendantAccountService svc = newServiceWith(aliasRepo, em);
-        setField(svc, "aliasRepository", aliasRepo);
+        OpalDefendantAccountService svc = newService();
+        setField(svc, "aliasRepository", aliasRepository);
 
-        PartyDetails pd = PartyDetails.builder()
-            .organisationFlag(null)
-            .build();
+        PartyDetails pd = PartyDetails.builder().organisationFlag(null).build();
 
         invokeReplaceAliasesForParty(svc, partyId, pd);
 
-        verify(aliasRepo).deleteByParty_PartyId(partyId);
-        verifyNoMoreInteractions(aliasRepo);
-        verify(em, never()).getReference(any(), any());
+        verify(aliasRepository).deleteByParty_PartyId(partyId);
+        verifyNoMoreInteractions(aliasRepository);
+        verifyNoInteractions(opalPartyService);
     }
 
     @Test
-    void replaceAliasesForParty_org_withAliases_savesEach_and_getsReference_once() throws Exception {
+    void replaceAliasesForParty_org_withAliases_savesEach_and_loads_party_once() throws Exception {
         Long partyId = 333L;
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        EntityManager em = mock(EntityManager.class);
-        PartyEntity partyRef = mock(PartyEntity.class);
-        when(em.getReference(PartyEntity.class, partyId)).thenReturn(partyRef);
+        PartyEntity partyRef = new PartyEntity();
+        partyRef.setPartyId(partyId);
+        when(opalPartyService.findById(partyId)).thenReturn(partyRef);
 
-        OpalDefendantAccountService svc = newServiceWith(aliasRepo, em);
-        setField(svc, "aliasRepository", aliasRepo);
+        OpalDefendantAccountService svc = newService();
+        setField(svc, "aliasRepository", aliasRepository);
 
-        OrganisationAlias a1 = OrganisationAlias.builder()
-            .sequenceNumber(1).organisationName("ACME ONE").build();
-        OrganisationAlias a2 = OrganisationAlias.builder()
-            .sequenceNumber(2).organisationName("ACME TWO").build();
+        OrganisationAlias a1 = OrganisationAlias.builder().sequenceNumber(1).organisationName("ACME ONE").build();
+        OrganisationAlias a2 = OrganisationAlias.builder().sequenceNumber(2).organisationName("ACME TWO").build();
 
         OrganisationDetails od = OrganisationDetails.builder()
             .organisationName("ACME LTD")
-            // Use Arrays.asList to allow a null element
             .organisationAliases(Arrays.asList(a1, null, a2))
             .build();
 
@@ -2400,11 +2277,11 @@ class OpalDefendantAccountServiceTest {
 
         invokeReplaceAliasesForParty(svc, partyId, pd);
 
-        verify(aliasRepo).deleteByParty_PartyId(partyId);
-        verify(em, times(1)).getReference(PartyEntity.class, partyId);
+        verify(aliasRepository).deleteByParty_PartyId(partyId);
+        verify(opalPartyService, times(1)).findById(partyId);
 
         ArgumentCaptor<AliasEntity> aliasCap = ArgumentCaptor.forClass(AliasEntity.class);
-        verify(aliasRepo, times(2)).save(aliasCap.capture());
+        verify(aliasRepository, times(2)).save(aliasCap.capture());
         List<AliasEntity> saved = aliasCap.getAllValues();
 
         assertEquals(2, saved.size());
@@ -2420,13 +2297,11 @@ class OpalDefendantAccountServiceTest {
     }
 
     @Test
-    void replaceAliasesForParty_org_withNoAliases_doesNot_getReference_or_save() throws Exception {
+    void replaceAliasesForParty_org_withNoAliases_doesNot_load_party_or_save() throws Exception {
         Long partyId = 444L;
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        EntityManager em = mock(EntityManager.class);
 
-        OpalDefendantAccountService svc = newServiceWith(aliasRepo, em);
-        setField(svc, "aliasRepository", aliasRepo);
+        OpalDefendantAccountService svc = newService();
+        setField(svc, "aliasRepository", aliasRepository);
 
         OrganisationDetails od = OrganisationDetails.builder()
             .organisationName("ACME LTD")
@@ -2440,21 +2315,20 @@ class OpalDefendantAccountServiceTest {
 
         invokeReplaceAliasesForParty(svc, partyId, pd);
 
-        verify(aliasRepo).deleteByParty_PartyId(partyId);
-        verify(aliasRepo, never()).save(any());
-        verify(em, never()).getReference(any(), any());
+        verify(aliasRepository).deleteByParty_PartyId(partyId);
+        verify(aliasRepository, never()).save(any());
+        verify(opalPartyService).findById(444L);
     }
 
     @Test
-    void replaceAliasesForParty_individual_withAliases_savesEach_and_getsReference_once() throws Exception {
+    void replaceAliasesForParty_individual_withAliases_savesEach_and_loads_party_once() throws Exception {
         Long partyId = 555L;
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        EntityManager em = mock(EntityManager.class);
-        PartyEntity partyRef = mock(PartyEntity.class);
-        when(em.getReference(PartyEntity.class, partyId)).thenReturn(partyRef);
+        PartyEntity partyRef = new PartyEntity();
+        partyRef.setPartyId(partyId);
+        when(opalPartyService.findById(partyId)).thenReturn(partyRef);
 
-        OpalDefendantAccountService svc = newServiceWith(aliasRepo, em);
-        setField(svc, "aliasRepository", aliasRepo);
+        OpalDefendantAccountService svc = newService();
+        setField(svc, "aliasRepository", aliasRepository);
 
         IndividualAlias a1 = IndividualAlias.builder().sequenceNumber(1).forenames("Jane").surname("Doe").build();
         IndividualAlias a2 = IndividualAlias.builder().sequenceNumber(2).forenames("J.").surname("Smith").build();
@@ -2469,11 +2343,11 @@ class OpalDefendantAccountServiceTest {
 
         invokeReplaceAliasesForParty(svc, partyId, pd);
 
-        verify(aliasRepo).deleteByParty_PartyId(partyId);
-        verify(em, times(1)).getReference(PartyEntity.class, partyId);
+        verify(aliasRepository).deleteByParty_PartyId(partyId);
+        verify(opalPartyService, times(1)).findById(partyId);
 
         ArgumentCaptor<AliasEntity> aliasCap = ArgumentCaptor.forClass(AliasEntity.class);
-        verify(aliasRepo, times(2)).save(aliasCap.capture());
+        verify(aliasRepository, times(2)).save(aliasCap.capture());
         List<AliasEntity> saved = aliasCap.getAllValues();
 
         assertEquals(2, saved.size());
@@ -2489,17 +2363,13 @@ class OpalDefendantAccountServiceTest {
     }
 
     @Test
-    void replaceAliasesForParty_individual_withNoAliases_doesNot_getReference_or_save() throws Exception {
+    void replaceAliasesForParty_individual_withNoAliases_doesNot_load_party_or_save() throws Exception {
         Long partyId = 666L;
-        AliasRepository aliasRepo = mock(AliasRepository.class);
-        EntityManager em = mock(EntityManager.class);
 
-        OpalDefendantAccountService svc = newServiceWith(aliasRepo, em);
-        setField(svc, "aliasRepository", aliasRepo);
+        OpalDefendantAccountService svc = newService();
+        setField(svc, "aliasRepository", aliasRepository);
 
-        IndividualDetails id = IndividualDetails.builder()
-            .individualAliases(List.of())  // empty
-            .build();
+        IndividualDetails id = IndividualDetails.builder().individualAliases(List.of()).build();
 
         PartyDetails pd = PartyDetails.builder()
             .organisationFlag(Boolean.FALSE)
@@ -2508,10 +2378,12 @@ class OpalDefendantAccountServiceTest {
 
         invokeReplaceAliasesForParty(svc, partyId, pd);
 
-        verify(aliasRepo).deleteByParty_PartyId(partyId);
-        verify(aliasRepo, never()).save(any());
-        verify(em, never()).getReference(any(), any());
+        verify(aliasRepository).deleteByParty_PartyId(partyId);
+        verify(aliasRepository, never()).save(any());
+        verify(opalPartyService).findById(666L);
     }
+
+    // ---------- helpers ----------
 
     private static void invokeReplaceAliasesForParty(
         OpalDefendantAccountService svc, Long partyId, PartyDetails pd
@@ -2522,13 +2394,23 @@ class OpalDefendantAccountServiceTest {
         m.invoke(svc, partyId, pd);
     }
 
-    private OpalDefendantAccountService newServiceWith(
-        AliasRepository aliasRepository, EntityManager em
-    ) {
-        // keep alignment with your existing constructor usage
-        return new OpalDefendantAccountService(
-            null, null, null, null, null, null, null, mock(AmendmentService.class),
-            em, null, null, null, null
-        );
+    /** crude reflection field injection, like Spring's ReflectionTestUtils.setField */
+    private static void setField(Object target, String fieldName, Object value) {
+        try {
+            Class<?> c = target.getClass();
+            while (c != Object.class) {
+                try {
+                    var f = c.getDeclaredField(fieldName);
+                    f.setAccessible(true);
+                    f.set(target, value);
+                    return;
+                } catch (NoSuchFieldException ignored) {
+                    c = c.getSuperclass();
+                }
+            }
+            throw new RuntimeException("Field not found: " + fieldName);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
