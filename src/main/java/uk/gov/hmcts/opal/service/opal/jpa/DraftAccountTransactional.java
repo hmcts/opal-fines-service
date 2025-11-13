@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountSnapshots;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -70,10 +72,12 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         Collection<String> submittedBy, Collection<String> notSubmitted,
         Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo) {
 
-        Page<DraftAccountEntity> page = draftAccountRepository
-            .findBy(specs.findForSummaries(businessUnitIds, statuses, submittedBy, notSubmitted,
-                                           accountStatusDateFrom, accountStatusDateTo),
-                    ffq -> ffq.page(Pageable.unpaged()));
+        Sort draftIdSort = Sort.by(Sort.Direction.ASC, DraftAccountEntity_.DRAFT_ACCOUNT_ID);
+
+        Page<DraftAccountEntity> page = draftAccountRepository.findBy(
+            specs.findForSummaries(
+                businessUnitIds, statuses, submittedBy, notSubmitted, accountStatusDateFrom, accountStatusDateTo),
+            ffq -> ffq.sortBy(draftIdSort).page(Pageable.unpaged()));
 
         return page.getContent();
     }
