@@ -873,5 +873,57 @@ VALUES
       NULL, NULL, NULL, NULL )
 ON CONFLICT (party_id) DO NOTHING;
 
+INSERT INTO aliases
+(alias_id, party_id, surname, forenames, sequence_number, organisation_name)
+VALUES
+    (200101, 20010, NULL, NULL, 1, 'Seed Org Alias 1'),
+    (200102, 20010, NULL, NULL, 2, 'Seed Org Alias 2')
+ON CONFLICT (alias_id) DO NOTHING;
 
+-- === Individual aliases test dataset (isolated) ===
+-- Account 22004 (BU 78)
+INSERT INTO defendant_accounts
+( defendant_account_id, version_number, business_unit_id, account_number,
+  amount_paid, account_balance, amount_imposed, account_status,
+  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+  collection_order, payment_card_requested )
+VALUES (22004, 0, 78, '22004A',
+        0.00, 0.00, 0.00, 'L',
+        '22004PCR', 'N', 'N', 'Fine',
+        'N', 'N')
+ON CONFLICT (defendant_account_id) DO NOTHING;
+
+-- Party 22004 (individual)
+INSERT INTO parties
+( party_id, organisation, organisation_name,
+  surname, forenames, title,
+  address_line_1, postcode, birth_date, national_insurance_number, last_changed_date )
+VALUES (22004, 'N', NULL,
+        'SeedSurname22004', 'SeedForenames22004', 'Mr',
+        'Seed Address 22004', 'SE2 0AA', '1990-01-01 00:00:00', 'SNI22004', NULL)
+ON CONFLICT (party_id) DO NOTHING;
+
+-- DAP link
+INSERT INTO defendant_account_parties
+( defendant_account_party_id, defendant_account_id, party_id, association_type, debtor )
+VALUES (22004, 22004, 22004, 'Defendant', 'Y')
+ON CONFLICT (defendant_account_party_id) DO NOTHING;
+
+-- Minimal debtor_detail
+INSERT INTO debtor_detail
+( party_id, vehicle_make, vehicle_registration,
+  employer_name, employer_address_line_1, employer_postcode,
+  employee_reference, employer_telephone, employer_email,
+  document_language, document_language_date, hearing_language, hearing_language_date )
+VALUES
+    ( 22004, NULL, NULL,
+      NULL, NULL, NULL,
+      NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL )
+ON CONFLICT (party_id) DO NOTHING;
+
+-- Seed one individual alias we will update in the test
+INSERT INTO aliases (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
+VALUES (2200401, 22004, 'AliasSurnameSeed', 'AliasForenamesSeed', 1, NULL)
+ON CONFLICT (alias_id) DO NOTHING;
 

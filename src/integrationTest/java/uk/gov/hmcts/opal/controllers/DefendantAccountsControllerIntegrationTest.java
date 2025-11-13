@@ -7,53 +7,46 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-
-import org.hamcrest.core.IsNull;
-
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-
-import org.mockito.Mockito;
-
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
+import java.util.List;
+import java.util.Map;
+import org.hamcrest.core.IsNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
-
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import org.springframework.web.server.ResponseStatusException;
-
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
-
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -3564,78 +3557,6 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
     }
 
-    @DisplayName("OPAL: PUT Replace DAP – Happy path (updates party + debtor + bumps version)")
-    void put_happyPath_updates_andReturnsResponse(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
-        // Get current version so we can set If-Match and then assert ETag bumped
-        Integer currentVersion = jdbcTemplate.queryForObject(
-            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-            Integer.class,
-            20010L
-        );
-
-        String etag = "\"" + currentVersion + "\"";
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
-        headers.add("Business-Unit-Id", "78");
-        headers.add(HttpHeaders.IF_MATCH, etag);
-
-        String body = """
-        {
-            "defendant_account_party_type": "Defendant",
-            "is_debtor": true,
-            "party_details": {
-             "party_id": "20010",
-             "organisation_flag": true,
-              "organisation_details": { "organisation_name": "PutCo Ltd" }
-            },
-            "address": {
-            "address_line_1": "100 Put Street",
-            "postcode": "PU1 1TT"
-            },
-                "contact_details": {
-                "primary_email_address": "putco@example.com",
-                "work_telephone_number": "0207000000"
-            },
-                "vehicle_details": {
-                "vehicle_make_and_model": "VW Golf",
-                "vehicle_registration": "PU70ABC"
-            },
-                "employer_details": {
-                "employer_name": "Put Employer",
-                "employer_address": {
-                    "address_line_1": "1 Employer Way",
-                    "postcode": "EM1 1AA"
-                }
-            },
-                "language_preferences": {
-                "document_language_preference": { "language_code": "EN" },
-                "hearing_language_preference":  { "language_code": "CY" }
-             }
-        }
-            """;
-
-        var call = mockMvc.perform(
-            put("/defendant-accounts/20010/defendant-account-parties/20010")
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
-        );
-
-        String resp = call.andReturn().getResponse().getContentAsString();
-        log.info("PUT DAP happy path resp:\n{}", resp);
-
-        String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
-
-        call.andExpect(status().isOk())
-            .andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            // response wrapper shape
-            .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
-
-
-    }
 
     @DisplayName("OPAL: PUT Replace DAP – DAP not found on account")
     void put_notFound_whenDapMissing(Logger log) throws Exception {
@@ -3675,6 +3596,192 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         res.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
+    }
+
+    @DisplayName("OPAL: PUT Replace DAP – Individual aliases upsert/trim on isolated IDs (22004)")
+    void put_individual_aliases_upsert_and_trim(Logger log) throws Exception {
+        // Authorise
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Get current version → ETag
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class, 22004L
+        );
+        String etag = "\"" + currentVersion + "\"";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, etag);
+
+        // Request: individual with aliases:
+        //  - Update existing (id=2200401, seq=1) to Jane Doe
+        //  - Add NEW alias (no id) as J. Smith with seq=2
+        //  - Omit any others → service should trim extras
+        String body = """
+    {
+      "defendant_account_party_type": "Defendant",
+      "is_debtor": true,
+      "party_details": {
+        "party_id": "22004",
+        "organisation_flag": false,
+        "individual_details": {
+          "forenames": "MainForenames",
+          "surname": "MainSurname",
+          "individual_aliases": [
+            { "alias_id": "2200401", "sequence_number": 1, "forenames": "Jane", "surname": "Doe" },
+            { "sequence_number": 2, "forenames": "J.", "surname": "Smith" }
+          ]
+        }
+      }
+    }
+            """;
+
+        var call = mockMvc.perform(
+            put("/defendant-accounts/22004/defendant-account-parties/22004")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        String resp = call.andReturn().getResponse().getContentAsString();
+        log.info("PUT DAP individual aliases (22004) resp:\n{}", resp);
+
+        String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
+
+        call.andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
+
+        // Verify DB aliases now: should be two rows, seq 1..2; id 2200401 updated + one new row
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+            "SELECT alias_id, sequence_number, forenames, surname, organisation_name "
+                + "FROM aliases WHERE party_id = ? ORDER BY sequence_number",
+            22004L
+        );
+
+        // Exactly 2 aliases
+        assertEquals(2, rows.size());
+
+        // Row 1 (updated)
+        assertEquals(1, ((Number) rows.get(0).get("sequence_number")).intValue());
+        assertEquals(2200401L, ((Number) rows.get(0).get("alias_id")).longValue());
+        assertEquals("Jane", rows.get(0).get("forenames"));
+        assertEquals("Doe", rows.get(0).get("surname"));
+        assertNull(rows.get(0).get("organisation_name"));
+
+        // Row 2 (newly created, id != 2200401)
+        assertEquals(2, ((Number) rows.get(1).get("sequence_number")).intValue());
+        assertNotNull(rows.get(1).get("alias_id"));
+        assertNotEquals(2200401L, ((Number) rows.get(1).get("alias_id")).longValue());
+        assertEquals("J.", rows.get(1).get("forenames"));
+        assertEquals("Smith", rows.get(1).get("surname"));
+        assertNull(rows.get(1).get("organisation_name"));
+    }
+
+    @DisplayName("OPAL: PUT Replace DAP – Organisation aliases upsert (update + insert) and trim (delete missing)")
+    void put_org_aliases_upsert_and_trim(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // 1) ETag for If-Match
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class, 20010L
+        );
+        assertNotNull(currentVersion);
+        String etag = "\"" + currentVersion + "\"";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, etag);
+
+        String body = """
+    {
+      "defendant_account_party_type": "Defendant",
+      "is_debtor": true,
+      "party_details": {
+        "party_id": "20010",
+        "organisation_flag": true,
+        "organisation_details": {
+          "organisation_name": "PutCo Ltd",
+          "organisation_aliases": [
+            { "alias_id": 200101, "sequence_number": 2, "organisation_name": "PutCo Alias One (updated)" },
+            { "sequence_number": 3, "organisation_name": "PutCo Alias Three (new)" }
+          ]
+        }
+      },
+      "address": { "address_line_1": "100 Put Street", "postcode": "PU1 1TT" },
+      "contact_details": { "primary_email_address": "putco@example.com", "work_telephone_number": "0207000000" },
+      "vehicle_details": { "vehicle_make_and_model": "VW Golf", "vehicle_registration": "PU70ABC" },
+      "employer_details": {
+        "employer_name": "Put Employer",
+        "employer_address": { "address_line_1": "1 Employer Way", "postcode": "EM1 1AA" }
+      },
+      "language_preferences": {
+        "document_language_preference": { "language_code": "EN" },
+        "hearing_language_preference":  { "language_code": "CY" }
+      }
+    }
+            """;
+
+        // 3) Call API
+        var call = mockMvc.perform(
+            put("/defendant-accounts/20010/defendant-account-parties/20010")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        String resp = call.andReturn().getResponse().getContentAsString();
+        log.info("PUT DAP (org aliases upsert/trim) resp:\n{}", resp);
+
+        // 4) Assert ETag bump + basic shape
+        String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
+        call.andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
+
+        // 5) Verify DB: only updated (200101) + new remain; 200102 must be gone; order by sequence_number
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(
+            "SELECT alias_id, sequence_number, organisation_name, surname, forenames "
+                + "FROM aliases WHERE party_id = ? ORDER BY sequence_number ASC",
+            20010L
+        );
+
+        assertEquals(2, rows.size(), "Expected exactly 2 aliases after upsert+trim");
+
+        // Row #1: updated 200101
+        {
+            Map<String, Object> r0 = rows.get(0);
+            assertEquals(2, ((Number) r0.get("sequence_number")).intValue());
+            assertEquals(200101L, ((Number) r0.get("alias_id")).longValue());
+            assertEquals("PutCo Alias One (updated)", r0.get("organisation_name"));
+            assertNull(r0.get("surname"));
+            assertNull(r0.get("forenames"));
+        }
+
+        // Row #2: new alias (db-generated id, not 200102)
+        {
+            Map<String, Object> r1 = rows.get(1);
+            assertEquals(3, ((Number) r1.get("sequence_number")).intValue());
+            Long newId = ((Number) r1.get("alias_id")).longValue();
+            assertNotNull(newId);
+            assertNotEquals(200102L, newId, "Omitted alias 200102 must have been deleted");
+            assertEquals("PutCo Alias Three (new)", r1.get("organisation_name"));
+            assertNull(r1.get("surname"));
+            assertNull(r1.get("forenames"));
+        }
+
+        // Safety: verify 200102 deleted
+        Integer stillThere = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM aliases WHERE party_id = ? AND alias_id = 200102",
+            Integer.class, 20010L
+        );
+        assertEquals(0, stillThere, "Alias 200102 should be trimmed");
     }
 
 }

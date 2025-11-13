@@ -405,8 +405,13 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
-    void testPut_happyPath_updates_andReturnsResponse() throws Exception {
-        super.put_happyPath_updates_andReturnsResponse(log);
+    void testPut_org_aliases_upsert_and_trim() throws Exception {
+        super.put_org_aliases_upsert_and_trim(log);
+    }
+
+    @Test
+    void testPut_individual_aliases_upsert_and_trim() throws Exception {
+        super.put_individual_aliases_upsert_and_trim(log);
     }
 
 }

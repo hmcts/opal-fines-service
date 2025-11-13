@@ -10,10 +10,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -1115,9 +1120,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         replaceAliasesForParty(party.getPartyId(), request.getPartyDetails());
 
-        opalPartyService.save(party);
         account.setLastChangedDate(LocalDate.now());
-        defendantAccountRepository.saveAndFlush(account); // keeps your previous explicit flush semantics
+        defendantAccountRepository.saveAndFlush(account);
 
         amendmentService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
@@ -1139,53 +1143,135 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     private void replaceAliasesForParty(Long partyId, PartyDetails pd) {
-        aliasRepository.deleteByParty_PartyId(partyId);
-
-        if (pd == null || pd.getOrganisationFlag() == null) {
+        if (partyId == null || pd == null || pd.getOrganisationFlag() == null) {
             return;
         }
 
         PartyEntity party = opalPartyService.findById(partyId);
 
-        if (pd.getOrganisationFlag()) {
-            OrganisationDetails od = pd.getOrganisationDetails();
-            List<OrganisationAlias> orgAliases = (od != null) ? od.getOrganisationAliases() : null;
-            if (orgAliases == null || orgAliases.isEmpty()) {
-                return;
+        List<AliasEntity> existing = aliasRepository.findByParty_PartyId(partyId);
+        Map<Long, AliasEntity> byId = new HashMap<>();
+        for (AliasEntity e : existing) {
+            if (e.getAliasId() != null) {
+                byId.put(e.getAliasId(), e);
             }
+        }
+
+        List<AliasEntity> toPersist = new ArrayList<>();
+        Set<Long> keepIds = new HashSet<>();
+
+        if (pd.getOrganisationFlag()) {
+            List<OrganisationAlias> orgAliases = Optional.ofNullable(pd.getOrganisationDetails())
+                .map(OrganisationDetails::getOrganisationAliases)
+                .orElse(Collections.emptyList());
 
             for (OrganisationAlias a : orgAliases) {
                 if (a == null) {
                     continue;
                 }
-                AliasEntity alias = new AliasEntity();
-                alias.setParty(party);
-                alias.setSequenceNumber(a.getSequenceNumber());
-                alias.setOrganisationName(a.getOrganisationName());
-                alias.setForenames(null);
-                alias.setSurname(null);
-                aliasRepository.save(alias);
+
+                Long id = a.getAliasId() == null ? null : Long.parseLong(a.getAliasId());
+
+                AliasEntity row = upsertAlias(
+                    byId, party,
+                    id, a.getSequenceNumber(),
+                    a.getOrganisationName(),
+                     null, null,
+                    true
+                );
+                toPersist.add(row);
+                if (row.getAliasId() != null) {
+                    keepIds.add(row.getAliasId());
+                }
             }
 
         } else {
-            IndividualDetails id = pd.getIndividualDetails();
-            List<IndividualAlias> indAliases = (id != null) ? id.getIndividualAliases() : null;
-            if (indAliases == null || indAliases.isEmpty()) {
-                return;
-            }
+            List<IndividualAlias> indAliases = Optional.ofNullable(pd.getIndividualDetails())
+                .map(IndividualDetails::getIndividualAliases)
+                .orElse(Collections.emptyList());
 
             for (IndividualAlias a : indAliases) {
                 if (a == null) {
                     continue;
                 }
-                AliasEntity alias = new AliasEntity();
-                alias.setParty(party);
-                alias.setSequenceNumber(a.getSequenceNumber());
-                alias.setForenames(a.getForenames());
-                alias.setSurname(a.getSurname());
-                alias.setOrganisationName(null);
-                aliasRepository.save(alias);
+
+                Long id = a.getAliasId() == null ? null : Long.parseLong(a.getAliasId());
+
+                AliasEntity row = upsertAlias(
+                    byId, party,
+                    id, a.getSequenceNumber(),
+                    null,
+                    a.getForenames(), a.getSurname(),
+                     false
+                );
+                toPersist.add(row);
+                if (row.getAliasId() != null) {
+                    keepIds.add(row.getAliasId());
+                }
             }
+        }
+
+        if (!toPersist.isEmpty()) {
+            List<AliasEntity> persisted = aliasRepository.saveAll(toPersist);
+            aliasRepository.flush();
+            for (AliasEntity p : persisted) {
+                if (p.getAliasId() != null) {
+                    keepIds.add(p.getAliasId());
+                }
+            }
+        }
+
+        deleteAliasesNotIn(partyId, keepIds);
+        aliasRepository.flush();
+    }
+
+    /**
+     * Upsert a single alias:
+     * - if aliasId present, updates the existing row (must belong to this party)
+     * - if aliasId null, creates a new row (insert)
+     * Also normalizes org/individual fields.
+     */
+    private AliasEntity upsertAlias(
+        Map<Long, AliasEntity> byId,
+        PartyEntity party,
+        Long aliasId,
+        Integer sequenceNumber,
+        String orgName,
+        String forenames,
+        String surname,
+        boolean isOrg
+    ) {
+        AliasEntity row;
+        if (aliasId != null) {
+            row = byId.get(aliasId);
+            if (row == null) {
+                throw new EntityNotFoundException(
+                    "Alias not found for partyId=" + party.getPartyId() + ", aliasId=" + aliasId);
+            }
+        } else {
+            row = new AliasEntity();
+        }
+
+        row.setParty(party);
+        row.setSequenceNumber(sequenceNumber);
+
+        if (isOrg) {
+            row.setOrganisationName(orgName);
+            row.setForenames(null);
+            row.setSurname(null);
+        } else {
+            row.setOrganisationName(null);
+            row.setForenames(forenames);
+            row.setSurname(surname);
+        }
+        return row;
+    }
+
+    private void deleteAliasesNotIn(Long partyId, Set<Long> keepIds) {
+        if (keepIds == null || keepIds.isEmpty()) {
+            aliasRepository.deleteByParty_PartyId(partyId);
+        } else {
+            aliasRepository.deleteByParty_PartyIdAndAliasIdNotIn(partyId, keepIds);
         }
     }
 

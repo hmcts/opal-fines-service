@@ -10,8 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.atLeastOnce;
@@ -24,7 +26,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
@@ -33,6 +34,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -1692,268 +1694,6 @@ class OpalDefendantAccountServiceTest {
         return spySvc;
     }
 
-    // -------------------- Tests --------------------
-
-    @Test
-    void replaceDefendantAccountParty_happyPath_attachedParty_updates_and_audits() {
-        Long accountId = 777L;
-        Long dapId = 888L;
-        String bu = "10";
-        String ifMatch = "\"1\"";
-
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
-            .businessUnitId(Short.valueOf(bu)).build();
-
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId)
-            .businessUnit(buEnt)
-            .version(1L)
-            .build();
-
-        PartyEntity party = mock(PartyEntity.class);
-        when(party.getPartyId()).thenReturn(123L);
-
-        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
-            .defendantAccountPartyId(dapId)
-            .party(party)
-            .associationType("RESPONDENT")
-            .debtor(Boolean.FALSE)
-            .build();
-
-        account.setParties(List.of(dap));
-
-        // alias lookup empty
-        when(aliasRepository.findByParty_PartyId(anyLong())).thenReturn(emptyList());
-        // party load should return the same mock instance so setters can be verified
-        when(opalPartyService.findById(123L)).thenReturn(party);
-        doAnswer(inv -> inv.getArgument(0)).when(opalPartyService).save(any());
-
-        // saveAndFlush echoes
-        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
-
-        OpalDefendantAccountService svc = spyWithAccount(account);
-
-        // ---- Build the request ----
-        DefendantAccountParty req = DefendantAccountParty.builder()
-            .defendantAccountPartyType("Defendant")
-            .isDebtor(Boolean.TRUE)
-            .partyDetails(PartyDetails.builder()
-                .partyId("123")
-                .organisationFlag(Boolean.TRUE)
-                .organisationDetails(OrganisationDetails.builder().organisationName("ACME LTD").build())
-                .build())
-            .address(AddressDetails.builder().addressLine1("1 MAIN").postcode("AB1 2CD").build())
-            .contactDetails(ContactDetails.builder().primaryEmailAddress("a@b.com").workTelephoneNumber("0207").build())
-            .vehicleDetails(VehicleDetails.builder().vehicleMakeAndModel("Ford Focus")
-                .vehicleRegistration("AB12CDE").build())
-            .employerDetails(EmployerDetails.builder()
-                .employerName("Widgets Inc")
-                .employerAddress(AddressDetails.builder().addressLine1("10 Park").postcode("ZZ1 1ZZ").build())
-                .build())
-            .languagePreferences(LanguagePreferences.builder()
-                .documentLanguagePreference(LanguagePreference.fromCode("EN"))
-                .hearingLanguagePreference(LanguagePreference.fromCode("CY"))
-                .build())
-            .build();
-
-        try (MockedStatic<VersionUtils> vs =
-            mockStatic(uk.gov.hmcts.opal.util.VersionUtils.class)) {
-            vs.when(() -> uk.gov.hmcts.opal.util.VersionUtils
-                    .verifyIfMatch(eq(account), eq(ifMatch), eq(accountId), anyString()))
-                .thenAnswer(i -> null);
-
-            GetDefendantAccountPartyResponse resp =
-                svc.replaceDefendantAccountParty(accountId, dapId, req, ifMatch, bu, "tester");
-
-            assertNotNull(resp);
-            assertNotNull(resp.getDefendantAccountParty());
-
-            verify(defendantAccountRepository).saveAndFlush(account);
-            // audit calls
-            verify(amendmentService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
-            verify(amendmentService).auditFinaliseStoredProc(
-                eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
-                eq(Short.parseShort(bu)), eq("tester"), any(), eq("ACCOUNT_ENQUIRY"));
-
-            // Core updates
-            verify(party).setOrganisation(Boolean.TRUE);
-            verify(party).setOrganisationName("ACME LTD");
-            verify(party).setAddressLine1("1 MAIN");
-            verify(party).setPrimaryEmailAddress("a@b.com");
-
-            verify(opalPartyService).save(party);
-            verify(aliasRepository).findByParty_PartyId(123L);
-        }
-    }
-
-    @Test
-    void replaceDefendantAccountParty_detachedParty_isReattached_via_OpalPartyService_findById() {
-        Long accountId = 100L;
-        Long dapId = 200L;
-        String bu = "10";
-
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
-            .businessUnitId(Short.valueOf(bu)).build();
-
-        PartyEntity partyProxy = mock(PartyEntity.class);
-        when(partyProxy.getPartyId()).thenReturn(300L);
-
-        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
-            .defendantAccountPartyId(dapId).party(partyProxy).build();
-
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).version(1L).build();
-
-        // production path: service reloads the party via opalPartyService.findById(id)
-        when(opalPartyService.findById(300L)).thenReturn(partyProxy);
-        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
-        when(aliasRepository.findByParty_PartyId(300L)).thenReturn(emptyList());
-
-        OpalDefendantAccountService svc = spyWithAccount(account);
-
-        DefendantAccountParty req = DefendantAccountParty.builder()
-            .partyDetails(PartyDetails.builder()
-                .partyId("300").organisationFlag(Boolean.TRUE)
-                .organisationDetails(OrganisationDetails.builder().organisationName("ACME").build())
-                .build())
-            .build();
-
-        try (var vs = mockStatic(VersionUtils.class)) {
-            vs.when(() -> VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
-                .thenAnswer(i -> null);
-
-            GetDefendantAccountPartyResponse resp =
-                svc.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", bu, "tester");
-
-            assertNotNull(resp);
-            assertNotNull(resp.getDefendantAccountParty());
-            verify(opalPartyService, times(2)).findById(300L);
-            verify(defendantAccountRepository).saveAndFlush(account);
-            verify(aliasRepository).findByParty_PartyId(300L);
-        }
-    }
-
-    @Test
-    void replaceDefendantAccountParty_happyPath_updates_org_addr_contact_debtor_and_audits_and_aliases() {
-        Long accountId = 777L;
-        Long dapId = 888L;
-        String bu = "10";
-        String ifMatch = "\"1\"";
-
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
-            .businessUnitId(Short.valueOf(bu)).build();
-
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).version(1L).build();
-
-        PartyEntity party = mock(PartyEntity.class);
-        when(party.getPartyId()).thenReturn(123L);
-
-        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
-            .defendantAccountPartyId(dapId).party(party).associationType("OLDTYPE").debtor(Boolean.FALSE).build();
-
-        account.setParties(List.of(dap));
-
-        when(opalPartyService.findById(123L)).thenReturn(party);
-        when(aliasRepository.findByParty_PartyId(123L)).thenReturn(emptyList());
-        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
-        doAnswer(inv -> inv.getArgument(0)).when(opalPartyService).save(any());
-
-        OpalDefendantAccountService svc = spyWithAccount(account);
-
-        DefendantAccountParty req = DefendantAccountParty.builder()
-            .defendantAccountPartyType("Defendant").isDebtor(Boolean.TRUE)
-            .partyDetails(PartyDetails.builder()
-                .partyId("123").organisationFlag(Boolean.TRUE)
-                .organisationDetails(OrganisationDetails.builder().organisationName("ACME LTD").build())
-                .build())
-            .address(AddressDetails.builder().addressLine1("1 MAIN").postcode("AB1 2CD").build())
-            .contactDetails(ContactDetails.builder().primaryEmailAddress("a@b.com").workTelephoneNumber("0207").build())
-            .vehicleDetails(VehicleDetails.builder().vehicleMakeAndModel("Ford Focus")
-                .vehicleRegistration("AB12CDE").build())
-            .employerDetails(EmployerDetails.builder()
-                .employerName("Widgets Inc")
-                .employerAddress(AddressDetails.builder().addressLine1("10 Park").postcode("ZZ1 1ZZ").build())
-                .build())
-            .languagePreferences(LanguagePreferences.builder()
-                .documentLanguagePreference(LanguagePreference.fromCode("EN"))
-                .hearingLanguagePreference(LanguagePreference.fromCode("CY"))
-                .build())
-            .build();
-
-        try (var vs = mockStatic(VersionUtils.class)) {
-            vs.when(() -> VersionUtils.verifyIfMatch(eq(account), eq(ifMatch), eq(accountId), anyString()))
-                .thenAnswer(i -> null);
-
-            GetDefendantAccountPartyResponse resp =
-                svc.replaceDefendantAccountParty(accountId, dapId, req, ifMatch, bu, "tester");
-
-            assertNotNull(resp);
-            assertNotNull(resp.getDefendantAccountParty());
-
-            verify(defendantAccountRepository).saveAndFlush(account);
-
-            verify(amendmentService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
-            verify(amendmentService).auditFinaliseStoredProc(
-                eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
-                eq(Short.parseShort(bu)), eq("tester"), any(), eq("ACCOUNT_ENQUIRY"));
-
-            verify(party).setOrganisation(Boolean.TRUE);
-            verify(party).setOrganisationName("ACME LTD");
-            verify(party).setAddressLine1("1 MAIN");
-            verify(party).setPrimaryEmailAddress("a@b.com");
-
-            verify(debtorDetailRepository, atLeastOnce()).save(any());
-            verify(aliasRepository).findByParty_PartyId(123L);
-            verify(opalPartyService).save(party);
-        }
-    }
-
-    @Test
-    void replaceDefendantAccountParty_detachedParty_isReattached_and_saved_via_OpalPartyService() {
-        Long accountId = 100L;
-        Long dapId = 200L;
-        String bu = "10";
-
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
-            .businessUnitId(Short.valueOf(bu)).build();
-
-        PartyEntity party = mock(PartyEntity.class);
-        when(party.getPartyId()).thenReturn(300L);
-
-        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
-            .defendantAccountPartyId(dapId).party(party).build();
-
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).version(1L).build();
-
-        when(opalPartyService.findById(300L)).thenReturn(party);
-        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
-        when(aliasRepository.findByParty_PartyId(300L)).thenReturn(emptyList());
-
-        OpalDefendantAccountService svc = spyWithAccount(account);
-
-        DefendantAccountParty req = DefendantAccountParty.builder()
-            .partyDetails(PartyDetails.builder()
-                .partyId("300").organisationFlag(Boolean.TRUE)
-                .organisationDetails(OrganisationDetails.builder().organisationName("ACME").build())
-                .build())
-            .build();
-
-        try (var vs = mockStatic(VersionUtils.class)) {
-            vs.when(() -> VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
-                .thenAnswer(i -> null);
-
-            GetDefendantAccountPartyResponse resp =
-                svc.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", bu, "tester");
-
-            assertNotNull(resp);
-            verify(opalPartyService, times(2)).findById(300L);
-            verify(defendantAccountRepository).saveAndFlush(account);
-            verify(aliasRepository).findByParty_PartyId(300L);
-        }
-    }
-
     @Test
     void replaceDefendantAccountParty_noExistingParty_andMissingPartyId_throws() {
         Long accountId = 100L;
@@ -2089,81 +1829,6 @@ class OpalDefendantAccountServiceTest {
     }
 
     @Test
-    void replaceDefendantAccountParty_employerNull_languageNull_clearsEmployerAndLanguages_savesDebtor() {
-        Long accountId = 300L;
-        Long dapId = 301L;
-
-        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
-            .businessUnitId((short) 10).build();
-
-        PartyEntity party = mock(PartyEntity.class);
-        when(party.getPartyId()).thenReturn(333L);
-
-        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
-            .defendantAccountPartyId(dapId).party(party).build();
-
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).version(1L).build();
-
-        OpalDefendantAccountService svc = spyWithAccount(account);
-
-        when(opalPartyService.findById(333L)).thenReturn(party);
-        when(aliasRepository.findByParty_PartyId(333L)).thenReturn(emptyList());
-        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
-        when(debtorDetailRepository.findById(333L)).thenReturn(Optional.empty());
-        when(debtorDetailRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        DefendantAccountParty req = DefendantAccountParty.builder()
-            .defendantAccountPartyType("Defendant").isDebtor(Boolean.TRUE)
-            .partyDetails(PartyDetails.builder()
-                .partyId("333").organisationFlag(Boolean.FALSE)
-                .individualDetails(IndividualDetails.builder()
-                    .title("Ms").forenames("Jane").surname("Doe")
-                    .dateOfBirth("1990-01-02").age("35").nationalInsuranceNumber("NI123").build())
-                .build())
-            .vehicleDetails(VehicleDetails.builder().vehicleMakeAndModel("VW Golf")
-                .vehicleRegistration("JD02CAR").build())
-            // employer null, language null
-            .build();
-
-        try (var vs = mockStatic(VersionUtils.class)) {
-            vs.when(() -> VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
-                .thenAnswer(i -> null);
-
-            GetDefendantAccountPartyResponse resp =
-                svc.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester");
-
-            assertNotNull(resp);
-
-            ArgumentCaptor<DebtorDetailEntity> cap = ArgumentCaptor.forClass(DebtorDetailEntity.class);
-            verify(debtorDetailRepository).save(cap.capture());
-            DebtorDetailEntity saved = cap.getValue();
-
-            assertEquals("VW Golf", saved.getVehicleMake());
-            assertEquals("JD02CAR", saved.getVehicleRegistration());
-
-            assertNull(saved.getEmployerName());
-            assertNull(saved.getEmployeeReference());
-            assertNull(saved.getEmployerEmail());
-            assertNull(saved.getEmployerTelephone());
-            assertNull(saved.getEmployerAddressLine1());
-            assertNull(saved.getEmployerAddressLine2());
-            assertNull(saved.getEmployerAddressLine3());
-            assertNull(saved.getEmployerAddressLine4());
-            assertNull(saved.getEmployerAddressLine5());
-            assertNull(saved.getEmployerPostcode());
-
-            assertNull(saved.getDocumentLanguage());
-            assertNull(saved.getHearingLanguage());
-            assertNull(saved.getDocumentLanguageDate());
-            assertNull(saved.getHearingLanguageDate());
-
-            verify(defendantAccountRepository).saveAndFlush(account);
-            verify(aliasRepository).findByParty_PartyId(333L);
-        }
-    }
-
-    @Test
     void replaceDefendantAccountParty_addressNull_and_contactNull_clear_all_fields() {
         Long accountId = 400L;
         Long dapId = 401L;
@@ -2220,82 +1885,6 @@ class OpalDefendantAccountServiceTest {
         }
     }
 
-    // ---------- replaceAliasesForParty (now uses opalPartyService.findById) ----------
-
-    @Test
-    void replaceAliasesForParty_pdNull_deletesAndReturns_without_loading_party_or_saves() throws Exception {
-        Long partyId = 111L;
-
-        OpalDefendantAccountService svc = newService();
-        setField(svc, "aliasRepository", aliasRepository);
-
-        invokeReplaceAliasesForParty(svc, partyId, null);
-
-        verify(aliasRepository).deleteByParty_PartyId(partyId);
-        verifyNoMoreInteractions(aliasRepository);
-        verifyNoInteractions(opalPartyService);
-    }
-
-    @Test
-    void replaceAliasesForParty_orgFlagNull_deletesAndReturns_without_loading_party_or_saves() throws Exception {
-        Long partyId = 222L;
-
-        OpalDefendantAccountService svc = newService();
-        setField(svc, "aliasRepository", aliasRepository);
-
-        PartyDetails pd = PartyDetails.builder().organisationFlag(null).build();
-
-        invokeReplaceAliasesForParty(svc, partyId, pd);
-
-        verify(aliasRepository).deleteByParty_PartyId(partyId);
-        verifyNoMoreInteractions(aliasRepository);
-        verifyNoInteractions(opalPartyService);
-    }
-
-    @Test
-    void replaceAliasesForParty_org_withAliases_savesEach_and_loads_party_once() throws Exception {
-        Long partyId = 333L;
-        PartyEntity partyRef = new PartyEntity();
-        partyRef.setPartyId(partyId);
-        when(opalPartyService.findById(partyId)).thenReturn(partyRef);
-
-        OpalDefendantAccountService svc = newService();
-        setField(svc, "aliasRepository", aliasRepository);
-
-        OrganisationAlias a1 = OrganisationAlias.builder().sequenceNumber(1).organisationName("ACME ONE").build();
-        OrganisationAlias a2 = OrganisationAlias.builder().sequenceNumber(2).organisationName("ACME TWO").build();
-
-        OrganisationDetails od = OrganisationDetails.builder()
-            .organisationName("ACME LTD")
-            .organisationAliases(Arrays.asList(a1, null, a2))
-            .build();
-
-        PartyDetails pd = PartyDetails.builder()
-            .organisationFlag(Boolean.TRUE)
-            .organisationDetails(od)
-            .build();
-
-        invokeReplaceAliasesForParty(svc, partyId, pd);
-
-        verify(aliasRepository).deleteByParty_PartyId(partyId);
-        verify(opalPartyService, times(1)).findById(partyId);
-
-        ArgumentCaptor<AliasEntity> aliasCap = ArgumentCaptor.forClass(AliasEntity.class);
-        verify(aliasRepository, times(2)).save(aliasCap.capture());
-        List<AliasEntity> saved = aliasCap.getAllValues();
-
-        assertEquals(2, saved.size());
-        assertSame(partyRef, saved.get(0).getParty());
-        assertEquals("ACME ONE", saved.get(0).getOrganisationName());
-        assertNull(saved.get(0).getForenames());
-        assertNull(saved.get(0).getSurname());
-
-        assertSame(partyRef, saved.get(1).getParty());
-        assertEquals("ACME TWO", saved.get(1).getOrganisationName());
-        assertNull(saved.get(1).getForenames());
-        assertNull(saved.get(1).getSurname());
-    }
-
     @Test
     void replaceAliasesForParty_org_withNoAliases_doesNot_load_party_or_save() throws Exception {
         Long partyId = 444L;
@@ -2321,48 +1910,6 @@ class OpalDefendantAccountServiceTest {
     }
 
     @Test
-    void replaceAliasesForParty_individual_withAliases_savesEach_and_loads_party_once() throws Exception {
-        Long partyId = 555L;
-        PartyEntity partyRef = new PartyEntity();
-        partyRef.setPartyId(partyId);
-        when(opalPartyService.findById(partyId)).thenReturn(partyRef);
-
-        OpalDefendantAccountService svc = newService();
-        setField(svc, "aliasRepository", aliasRepository);
-
-        IndividualAlias a1 = IndividualAlias.builder().sequenceNumber(1).forenames("Jane").surname("Doe").build();
-        IndividualAlias a2 = IndividualAlias.builder().sequenceNumber(2).forenames("J.").surname("Smith").build();
-        IndividualDetails id = IndividualDetails.builder()
-            .individualAliases(List.of(a1, a2))
-            .build();
-
-        PartyDetails pd = PartyDetails.builder()
-            .organisationFlag(Boolean.FALSE)
-            .individualDetails(id)
-            .build();
-
-        invokeReplaceAliasesForParty(svc, partyId, pd);
-
-        verify(aliasRepository).deleteByParty_PartyId(partyId);
-        verify(opalPartyService, times(1)).findById(partyId);
-
-        ArgumentCaptor<AliasEntity> aliasCap = ArgumentCaptor.forClass(AliasEntity.class);
-        verify(aliasRepository, times(2)).save(aliasCap.capture());
-        List<AliasEntity> saved = aliasCap.getAllValues();
-
-        assertEquals(2, saved.size());
-        assertSame(partyRef, saved.get(0).getParty());
-        assertEquals("Jane", saved.get(0).getForenames());
-        assertEquals("Doe", saved.get(0).getSurname());
-        assertNull(saved.get(0).getOrganisationName());
-
-        assertSame(partyRef, saved.get(1).getParty());
-        assertEquals("J.", saved.get(1).getForenames());
-        assertEquals("Smith", saved.get(1).getSurname());
-        assertNull(saved.get(1).getOrganisationName());
-    }
-
-    @Test
     void replaceAliasesForParty_individual_withNoAliases_doesNot_load_party_or_save() throws Exception {
         Long partyId = 666L;
 
@@ -2383,7 +1930,504 @@ class OpalDefendantAccountServiceTest {
         verify(opalPartyService).findById(666L);
     }
 
-    // ---------- helpers ----------
+    @Test
+    void replaceAliasesForParty_pdNull_returns_without_any_repository_or_party_calls() throws Exception {
+        Long partyId = 111L;
+
+        OpalDefendantAccountService svc = newService();
+        setField(svc, "aliasRepository", aliasRepository);
+
+        invokeReplaceAliasesForParty(svc, partyId, null);
+
+        verifyNoInteractions(aliasRepository);
+        verifyNoInteractions(opalPartyService);
+    }
+
+    @Test
+    void replaceAliasesForParty_orgFlagNull_returns_without_any_repository_or_party_calls() throws Exception {
+        Long partyId = 222L;
+
+        OpalDefendantAccountService svc = newService();
+        setField(svc, "aliasRepository", aliasRepository);
+
+        PartyDetails pd = PartyDetails.builder().organisationFlag(null).build();
+
+        invokeReplaceAliasesForParty(svc, partyId, pd);
+
+        verifyNoInteractions(aliasRepository);
+        verifyNoInteractions(opalPartyService);
+    }
+
+    @Test
+    void replaceAliasesForParty_org_withAliases_savesAll_then_deletes_others_and_loads_party_once() throws Exception {
+        Long partyId = 333L;
+        PartyEntity partyRef = new PartyEntity();
+        partyRef.setPartyId(partyId);
+        when(opalPartyService.findById(partyId)).thenReturn(partyRef);
+
+        OpalDefendantAccountService svc = newService();
+        setField(svc, "aliasRepository", aliasRepository);
+
+        OrganisationAlias a1 = OrganisationAlias.builder()
+            .sequenceNumber(1).organisationName("ACME ONE").build();
+        OrganisationAlias a2 = OrganisationAlias.builder()
+            .sequenceNumber(2).organisationName("ACME TWO").build();
+
+        OrganisationDetails od = OrganisationDetails.builder()
+            .organisationName("ACME LTD")
+            .organisationAliases(Arrays.asList(a1, null, a2)) // include a null to exercise skip
+            .build();
+
+        PartyDetails pd = PartyDetails.builder()
+            .organisationFlag(Boolean.TRUE)
+            .organisationDetails(od)
+            .build();
+
+        List<AliasEntity> savedBatch = new ArrayList<>();
+        when(aliasRepository.saveAll(anyList())).thenAnswer(inv -> {
+            List<AliasEntity> list = inv.getArgument(0);
+            long idSeq = 1L;
+            for (AliasEntity e : list) {
+                e.setAliasId(idSeq++);
+            }
+            savedBatch.clear();
+            savedBatch.addAll(list);
+            return list;
+        });
+
+        invokeReplaceAliasesForParty(svc, partyId, pd);
+
+        verify(opalPartyService, times(1)).findById(partyId);
+
+        verify(aliasRepository, times(1)).saveAll(anyList());
+        assertEquals(2, savedBatch.size());
+        assertSame(partyRef, savedBatch.get(0).getParty());
+        assertEquals("ACME ONE", savedBatch.get(0).getOrganisationName());
+        assertNull(savedBatch.get(0).getForenames());
+        assertNull(savedBatch.get(0).getSurname());
+
+        assertSame(partyRef, savedBatch.get(1).getParty());
+        assertEquals("ACME TWO", savedBatch.get(1).getOrganisationName());
+        assertNull(savedBatch.get(1).getForenames());
+        assertNull(savedBatch.get(1).getSurname());
+
+        verify(aliasRepository, times(1)).deleteByParty_PartyIdAndAliasIdNotIn(
+            eq(partyId),
+            argThat(keepIds ->
+                keepIds != null
+                    && keepIds.size() == savedBatch.size()
+                    && keepIds.containsAll(savedBatch.stream().map(AliasEntity::getAliasId).toList())
+            )
+        );
+
+        // No blanket delete-all in this path
+        verify(aliasRepository, never()).deleteByParty_PartyId(anyLong());
+    }
+
+    @Test
+    void replaceAliasesForParty_individual_withAliases_savesAll_then_deletes_others_and_loads_party_once()
+        throws Exception {
+        Long partyId = 555L;
+        PartyEntity partyRef = new PartyEntity();
+        partyRef.setPartyId(partyId);
+        when(opalPartyService.findById(partyId)).thenReturn(partyRef);
+
+        OpalDefendantAccountService svc = newService();
+        setField(svc, "aliasRepository", aliasRepository);
+
+        IndividualAlias ia1 = IndividualAlias.builder()
+            .sequenceNumber(1).forenames("Jane").surname("Doe").build();
+        IndividualAlias ia2 = IndividualAlias.builder()
+            .sequenceNumber(2).forenames("J.").surname("Smith").build();
+        IndividualDetails id = IndividualDetails.builder()
+            .individualAliases(List.of(ia1, ia2))
+            .build();
+
+        PartyDetails pd = PartyDetails.builder()
+            .organisationFlag(Boolean.FALSE)
+            .individualDetails(id)
+            .build();
+
+        List<AliasEntity> savedBatch = new ArrayList<>();
+        when(aliasRepository.saveAll(anyList())).thenAnswer(inv -> {
+            List<AliasEntity> list = inv.getArgument(0);
+            long idSeq = 1L;
+            for (AliasEntity e : list) {
+                e.setAliasId(idSeq++);
+            }
+            savedBatch.clear();
+            savedBatch.addAll(list);
+            return list;
+        });
+
+        invokeReplaceAliasesForParty(svc, partyId, pd);
+
+        verify(opalPartyService, times(1)).findById(partyId);
+
+        verify(aliasRepository, times(1)).saveAll(anyList());
+        assertEquals(2, savedBatch.size());
+
+        assertSame(partyRef, savedBatch.get(0).getParty());
+        assertEquals("Jane", savedBatch.get(0).getForenames());
+        assertEquals("Doe", savedBatch.get(0).getSurname());
+        assertNull(savedBatch.get(0).getOrganisationName());
+
+        assertSame(partyRef, savedBatch.get(1).getParty());
+        assertEquals("J.", savedBatch.get(1).getForenames());
+        assertEquals("Smith", savedBatch.get(1).getSurname());
+        assertNull(savedBatch.get(1).getOrganisationName());
+
+        verify(aliasRepository, times(1)).deleteByParty_PartyIdAndAliasIdNotIn(
+            eq(partyId),
+            argThat(keepIds ->
+                keepIds != null
+                    && keepIds.size() == savedBatch.size()
+                    && keepIds.containsAll(savedBatch.stream().map(AliasEntity::getAliasId).toList())
+            )
+        );
+
+        verify(aliasRepository, never()).deleteByParty_PartyId(anyLong());
+    }
+
+    @Test
+    void replaceDefendantAccountParty_happyPath_attachedParty_updates_and_audits() {
+        Long accountId = 777L;
+        Long dapId = 888L;
+        String bu = "10";
+        String ifMatch = "\"1\"";
+
+        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+            .businessUnitId(Short.valueOf(bu)).build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(buEnt)
+            .version(1L)
+            .build();
+
+        PartyEntity party = mock(PartyEntity.class);
+        when(party.getPartyId()).thenReturn(123L);
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(dapId)
+            .party(party)
+            .associationType("RESPONDENT")
+            .debtor(Boolean.FALSE)
+            .build();
+
+        account.setParties(List.of(dap));
+
+        // alias method now looks up existing; and may call saveAll if aliases exist
+        when(aliasRepository.findByParty_PartyId(123L)).thenReturn(emptyList());
+        when(aliasRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+
+        when(opalPartyService.findById(123L)).thenReturn(party);
+        doAnswer(inv -> inv.getArgument(0)).when(opalPartyService).save(any());
+
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+
+        OpalDefendantAccountService svc = spyWithAccount(account);
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .defendantAccountPartyType("Defendant")
+            .isDebtor(Boolean.TRUE)
+            .partyDetails(PartyDetails.builder()
+                .partyId("123")
+                .organisationFlag(Boolean.TRUE)
+                .organisationDetails(OrganisationDetails.builder().organisationName("ACME LTD").build())
+                .build())
+            .address(AddressDetails.builder().addressLine1("1 MAIN").postcode("AB1 2CD").build())
+            .contactDetails(ContactDetails.builder().primaryEmailAddress("a@b.com").workTelephoneNumber("0207").build())
+            .vehicleDetails(VehicleDetails.builder().vehicleMakeAndModel("Ford Focus")
+                .vehicleRegistration("AB12CDE").build())
+            .employerDetails(EmployerDetails.builder()
+                .employerName("Widgets Inc")
+                .employerAddress(AddressDetails.builder().addressLine1("10 Park").postcode("ZZ1 1ZZ").build())
+                .build())
+            .languagePreferences(LanguagePreferences.builder()
+                .documentLanguagePreference(LanguagePreference.fromCode("EN"))
+                .hearingLanguagePreference(LanguagePreference.fromCode("CY"))
+                .build())
+            .build();
+
+        try (MockedStatic<VersionUtils> vs = mockStatic(uk.gov.hmcts.opal.util.VersionUtils.class)) {
+            vs.when(() -> uk.gov.hmcts.opal.util.VersionUtils
+                    .verifyIfMatch(eq(account), eq(ifMatch), eq(accountId), anyString()))
+                .thenAnswer(i -> null);
+
+            GetDefendantAccountPartyResponse resp =
+                svc.replaceDefendantAccountParty(accountId, dapId, req, ifMatch, bu, "tester");
+
+            assertNotNull(resp);
+            assertNotNull(resp.getDefendantAccountParty());
+
+            verify(defendantAccountRepository).saveAndFlush(account);
+            verify(amendmentService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+            verify(amendmentService).auditFinaliseStoredProc(
+                eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
+                eq(Short.parseShort(bu)), eq("tester"), any(), eq("ACCOUNT_ENQUIRY"));
+
+            verify(party).setOrganisation(Boolean.TRUE);
+            verify(party).setOrganisationName("ACME LTD");
+            verify(party).setAddressLine1("1 MAIN");
+            verify(party).setPrimaryEmailAddress("a@b.com");
+
+            verify(aliasRepository, times(2)).findByParty_PartyId(123L);
+        }
+    }
+
+    @Test
+    void replaceDefendantAccountParty_detachedParty_isReattached_via_OpalPartyService_findById() {
+        Long accountId = 100L;
+        Long dapId = 200L;
+        String bu = "10";
+
+        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+            .businessUnitId(Short.valueOf(bu)).build();
+
+        PartyEntity partyProxy = mock(PartyEntity.class);
+        when(partyProxy.getPartyId()).thenReturn(300L);
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(dapId).party(partyProxy).build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).version(1L).build();
+
+        when(opalPartyService.findById(300L)).thenReturn(partyProxy);
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+
+        // alias calls
+        when(aliasRepository.findByParty_PartyId(300L)).thenReturn(emptyList());
+        when(aliasRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+
+        OpalDefendantAccountService svc = spyWithAccount(account);
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .partyDetails(PartyDetails.builder()
+                .partyId("300").organisationFlag(Boolean.TRUE)
+                .organisationDetails(OrganisationDetails.builder().organisationName("ACME").build())
+                .build())
+            .build();
+
+        try (var vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+                .thenAnswer(i -> null);
+
+            GetDefendantAccountPartyResponse resp =
+                svc.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", bu, "tester");
+
+            assertNotNull(resp);
+            assertNotNull(resp.getDefendantAccountParty());
+            verify(opalPartyService, times(2)).findById(300L); // main + aliases
+            verify(defendantAccountRepository).saveAndFlush(account);
+            verify(aliasRepository, times(2)).findByParty_PartyId(300L);
+        }
+    }
+
+    @Test
+    void replaceDefendantAccountParty_happyPath_updates_org_addr_contact_debtor_and_audits_and_aliases() {
+        Long accountId = 777L;
+        Long dapId = 888L;
+        String bu = "10";
+        String ifMatch = "\"1\"";
+
+        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+            .businessUnitId(Short.valueOf(bu)).build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId).businessUnit(buEnt).version(1L).build();
+
+        PartyEntity party = mock(PartyEntity.class);
+        when(party.getPartyId()).thenReturn(123L);
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(dapId).party(party).associationType("OLDTYPE").debtor(Boolean.FALSE).build();
+
+        account.setParties(List.of(dap));
+
+        when(opalPartyService.findById(123L)).thenReturn(party);
+        when(opalPartyService.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        when(aliasRepository.findByParty_PartyId(123L)).thenReturn(emptyList());
+        when(aliasRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+
+        OpalDefendantAccountService svc = spyWithAccount(account);
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .defendantAccountPartyType("Defendant").isDebtor(Boolean.TRUE)
+            .partyDetails(PartyDetails.builder()
+                .partyId("123").organisationFlag(Boolean.TRUE)
+                .organisationDetails(OrganisationDetails.builder().organisationName("ACME LTD").build())
+                .build())
+            .address(AddressDetails.builder().addressLine1("1 MAIN").postcode("AB1 2CD").build())
+            .contactDetails(ContactDetails.builder().primaryEmailAddress("a@b.com").workTelephoneNumber("0207").build())
+            .vehicleDetails(VehicleDetails.builder().vehicleMakeAndModel("Ford Focus")
+                .vehicleRegistration("AB12CDE").build())
+            .employerDetails(EmployerDetails.builder()
+                .employerName("Widgets Inc")
+                .employerAddress(AddressDetails.builder().addressLine1("10 Park").postcode("ZZ1 1ZZ").build())
+                .build())
+            .languagePreferences(LanguagePreferences.builder()
+                .documentLanguagePreference(LanguagePreference.fromCode("EN"))
+                .hearingLanguagePreference(LanguagePreference.fromCode("CY"))
+                .build())
+            .build();
+
+        try (var vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(eq(account), eq(ifMatch), eq(accountId), anyString()))
+                .thenAnswer(i -> null);
+
+            GetDefendantAccountPartyResponse resp =
+                svc.replaceDefendantAccountParty(accountId, dapId, req, ifMatch, bu, "tester");
+
+            assertNotNull(resp);
+            assertNotNull(resp.getDefendantAccountParty());
+
+            verify(defendantAccountRepository).saveAndFlush(account);
+
+            verify(amendmentService).auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+            verify(amendmentService).auditFinaliseStoredProc(
+                eq(accountId), eq(RecordType.DEFENDANT_ACCOUNTS),
+                eq(Short.parseShort(bu)), eq("tester"), any(), eq("ACCOUNT_ENQUIRY"));
+
+            verify(party).setOrganisation(Boolean.TRUE);
+            verify(party).setOrganisationName("ACME LTD");
+            verify(party).setAddressLine1("1 MAIN");
+            verify(party).setPrimaryEmailAddress("a@b.com");
+
+            verify(debtorDetailRepository, atLeastOnce()).save(any());
+            verify(aliasRepository, times(2)).findByParty_PartyId(123L);
+        }
+    }
+
+    @Test
+    void replaceDefendantAccountParty_detachedParty_isReattached_and_saved_via_OpalPartyService() {
+        Long accountId = 100L;
+        Long dapId = 200L;
+        String bu = "10";
+
+        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+            .businessUnitId(Short.valueOf(bu)).build();
+
+        PartyEntity party = mock(PartyEntity.class);
+        when(party.getPartyId()).thenReturn(300L);
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(dapId).party(party).build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).version(1L).build();
+
+        when(opalPartyService.findById(300L)).thenReturn(party);
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+
+        when(aliasRepository.findByParty_PartyId(300L)).thenReturn(emptyList());
+        when(aliasRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+
+        OpalDefendantAccountService svc = spyWithAccount(account);
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .partyDetails(PartyDetails.builder()
+                .partyId("300").organisationFlag(Boolean.TRUE)
+                .organisationDetails(OrganisationDetails.builder().organisationName("ACME").build())
+                .build())
+            .build();
+
+        try (var vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+                .thenAnswer(i -> null);
+
+            GetDefendantAccountPartyResponse resp =
+                svc.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", bu, "tester");
+
+            assertNotNull(resp);
+            verify(opalPartyService, times(2)).findById(300L);
+            verify(defendantAccountRepository).saveAndFlush(account);
+            verify(aliasRepository, times(2)).findByParty_PartyId(300L);
+        }
+    }
+
+    @Test
+    void replaceDefendantAccountParty_employerNull_languageNull_clearsEmployerAndLanguages_savesDebtor() {
+        Long accountId = 300L;
+        Long dapId = 301L;
+
+        BusinessUnitFullEntity buEnt = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10).build();
+
+        PartyEntity party = mock(PartyEntity.class);
+        when(party.getPartyId()).thenReturn(333L);
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(dapId).party(party).build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(List.of(dap)).version(1L).build();
+
+        OpalDefendantAccountService svc = spyWithAccount(account);
+
+        when(opalPartyService.findById(333L)).thenReturn(party);
+        when(aliasRepository.findByParty_PartyId(333L)).thenReturn(emptyList());
+        when(aliasRepository.saveAll(anyList())).thenAnswer(inv -> inv.getArgument(0));
+
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+        when(debtorDetailRepository.findById(333L)).thenReturn(Optional.empty());
+        when(debtorDetailRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .defendantAccountPartyType("Defendant").isDebtor(Boolean.TRUE)
+            .partyDetails(PartyDetails.builder()
+                .partyId("333").organisationFlag(Boolean.FALSE)
+                .individualDetails(IndividualDetails.builder()
+                    .title("Ms").forenames("Jane").surname("Doe")
+                    .dateOfBirth("1990-01-02").age("35").nationalInsuranceNumber("NI123").build())
+                .build())
+            .vehicleDetails(VehicleDetails.builder().vehicleMakeAndModel("VW Golf")
+                .vehicleRegistration("JD02CAR").build())
+            // employer null, language null
+            .build();
+
+        try (var vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+                .thenAnswer(i -> null);
+
+            GetDefendantAccountPartyResponse resp =
+                svc.replaceDefendantAccountParty(accountId, dapId, req, "\"1\"", "10", "tester");
+
+            assertNotNull(resp);
+
+            // we still use a captor here since you’re asserting many fields on the saved debtor entity
+            ArgumentCaptor<DebtorDetailEntity> cap = ArgumentCaptor.forClass(DebtorDetailEntity.class);
+            verify(debtorDetailRepository).save(cap.capture());
+            DebtorDetailEntity saved = cap.getValue();
+
+            assertEquals("VW Golf", saved.getVehicleMake());
+            assertEquals("JD02CAR", saved.getVehicleRegistration());
+
+            assertNull(saved.getEmployerName());
+            assertNull(saved.getEmployeeReference());
+            assertNull(saved.getEmployerEmail());
+            assertNull(saved.getEmployerTelephone());
+            assertNull(saved.getEmployerAddressLine1());
+            assertNull(saved.getEmployerAddressLine2());
+            assertNull(saved.getEmployerAddressLine3());
+            assertNull(saved.getEmployerAddressLine4());
+            assertNull(saved.getEmployerAddressLine5());
+            assertNull(saved.getEmployerPostcode());
+
+            assertNull(saved.getDocumentLanguage());
+            assertNull(saved.getHearingLanguage());
+            assertNull(saved.getDocumentLanguageDate());
+            assertNull(saved.getHearingLanguageDate());
+
+            verify(defendantAccountRepository).saveAndFlush(account);
+            verify(aliasRepository, times(2)).findByParty_PartyId(333L);
+        }
+    }
+
 
     private static void invokeReplaceAliasesForParty(
         OpalDefendantAccountService svc, Long partyId, PartyDetails pd
@@ -2394,7 +2438,6 @@ class OpalDefendantAccountServiceTest {
         m.invoke(svc, partyId, pd);
     }
 
-    /** crude reflection field injection, like Spring's ReflectionTestUtils.setField */
     private static void setField(Object target, String fieldName, Object value) {
         try {
             Class<?> c = target.getClass();
