@@ -14,6 +14,13 @@
       "versioning": "fixed"
     },
     {
+      "description": "Lock the Schema Validator to v1.x.y to avoid major issues with v2+",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": ["json-schema-validator"],
+      "matchPackagePrefixes": "com.networknt",
+      "matchUpdateTypes": ["minor", "patch"]
+    },
+    {
       "matchDatasources": ["docker"],
       "matchPackageNames": ["postgres"],
       "enabled": false
