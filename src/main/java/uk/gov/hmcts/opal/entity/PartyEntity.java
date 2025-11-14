@@ -17,15 +17,15 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UpdateTimestamp;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -109,6 +109,7 @@ public class PartyEntity implements FullNameBuilder {
 
     @Column(name = "last_changed_date")
     @Temporal(TemporalType.TIMESTAMP)
+    @UpdateTimestamp
     private LocalDateTime lastChangedDate;
 
     @OneToMany(mappedBy = "party")
