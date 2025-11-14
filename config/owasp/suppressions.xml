@@ -10,6 +10,8 @@
     <notes>Disputed</notes>
     <cve>CVE-2023-39017</cve>
     <cve>CVE-2023-48795</cve>
+    <!-- We do not use the mail api-->
+    <cve>CVE-2025-7962</cve>
   </suppress>
 
   <!--End of Temporary suppression section -->
