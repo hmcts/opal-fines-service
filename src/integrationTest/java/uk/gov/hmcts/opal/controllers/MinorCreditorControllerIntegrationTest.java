@@ -1,19 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import org.slf4j.Logger;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.server.ResponseStatusException;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
-import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-import uk.gov.hmcts.opal.service.UserStateService;
-
-import java.util.List;
-
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.nullValue;
@@ -27,6 +13,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
+import java.util.List;
+import org.slf4j.Logger;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+
 /**
  * Common tests for both Opal and Legacy modes, to ensure 100% compatibility.
  */
@@ -37,11 +32,6 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     private static final String MINOR_CREDITOR_RESPONSE =
         "opal/minor-creditor/postMinorCreditorAccountSearchResponse.json";
 
-    @MockitoBean
-    UserStateService userStateService;
-
-    @MockitoSpyBean
-    private JsonSchemaValidationService jsonSchemaValidationService;
 
     void postSearchMinorCreditorImpl_Success(Logger log) throws Exception {
 
