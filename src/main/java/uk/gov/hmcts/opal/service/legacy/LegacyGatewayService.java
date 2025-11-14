@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.legacy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,11 @@ public class LegacyGatewayService implements GatewayService {
 
     @SuppressWarnings("unchecked")
     public <T> Response<T> extractResponse(ResponseEntity<String> responseEntity, Class<T> clzz, String schemaFile) {
+
+        if (responseEntity == null) {
+            return new Response<>(HttpStatus.INTERNAL_SERVER_ERROR, (T) null);
+        }
+
         HttpStatusCode code = responseEntity.getStatusCode();
 
         if (clzz.equals(String.class)) {
@@ -104,6 +110,27 @@ public class LegacyGatewayService implements GatewayService {
 
         return CompletableFuture.completedFuture(response);
 
+    }
+
+    @Override
+    public <T> Response<T> patchToGateway(
+        String actionType, Class<T> responseType, Object request, String responseSchemaFile) {
+        // Legacy gateway does not support HTTP PATCH — tunnel with POST.
+        log.debug("Legacy gateway does not support PATCH; tunneling PATCH '{}' via POST", actionType);
+        return postToGateway(actionType, responseType, request, responseSchemaFile);
+    }
+
+    public Response<String> patchToGateway(String actionType, Object request) {
+        return patchToGateway(actionType, String.class, request, null);
+    }
+
+    @Override
+    @Async
+    public <T> CompletableFuture<Response<T>> patchToGatewayAsync(
+        String actionType, Class<T> responseType, Object request, String responseSchemaFile) {
+        return CompletableFuture.completedFuture(
+            patchToGateway(actionType, responseType, request, responseSchemaFile)
+        );
     }
 
     /*
