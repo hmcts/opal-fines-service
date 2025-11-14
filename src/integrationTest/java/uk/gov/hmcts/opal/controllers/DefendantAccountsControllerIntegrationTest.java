@@ -3631,7 +3631,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
           "surname": "MainSurname",
           "individual_aliases": [
             { "alias_id": "2200401", "sequence_number": 1, "forenames": "Jane", "surname": "Doe" },
-            { "sequence_number": 2, "forenames": "J.", "surname": "Smith" }
+            { "alias_id": "","sequence_number": 2, "forenames": "J.", "surname": "Smith" }
           ]
         }
       }

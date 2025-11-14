@@ -1195,7 +1195,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     continue;
                 }
 
-                Long id = a.getAliasId() == null ? null : Long.parseLong(a.getAliasId());
+                String idStr = a.getAliasId();
+                Long id = (idStr == null || idStr.trim().isEmpty()) ? null : Long.valueOf(idStr.trim());
 
                 AliasEntity row = upsertAlias(
                     byId, party,
