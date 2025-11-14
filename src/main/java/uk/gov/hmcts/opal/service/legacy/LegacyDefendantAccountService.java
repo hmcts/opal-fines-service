@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -806,6 +807,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .accountNotesFreeTextNote2(src.getFreeTextNote2())
             .accountNotesFreeTextNote3(src.getFreeTextNote3())
             .build();
+    }
+
+    @Override
+    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
+        throw new UnsupportedOperationException("Legacy GetDefendantAccountFixedPenalty not implemented yet");
     }
 
     @Override
