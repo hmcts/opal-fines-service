@@ -43,13 +43,13 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         401:
-          description: Bad request
+          description: Unauthorized
           content:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         403:
-          description: Bad request
+          description: Forbidden
           content:
             application/json+problem:
               schema:
@@ -121,13 +121,13 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         401:
-          description: Bad request
+          description: Unauthorized
           content:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         403:
-          description: Bad request
+          description: Forbidden
           content:
             application/json+problem:
               schema:
