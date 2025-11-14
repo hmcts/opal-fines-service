@@ -1,6 +1,9 @@
 package uk.gov.hmcts.opal.util;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.PropertyValueException;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
@@ -10,6 +13,9 @@ import java.util.Optional;
 
 @Slf4j(topic = "opal.VersionUtils")
 public class VersionUtils {
+
+    // first run of digits in the header (e.g., matches 7 in W/"7")
+    private static final Pattern DIGITS = Pattern.compile("(\\d+)");
 
     private VersionUtils() {
     }
@@ -68,4 +74,34 @@ public class VersionUtils {
                   "Could not parse 'ifMatch': " + ifMatch + " in method: " + method)), id, method);
     }
 
+    /**
+     * Parse If-Match header into a version number.
+     *
+     * <p>
+     * For legacy system, version is inferred from the IfMatch value.
+     *
+     * Examples:
+     *  null/blank/garbage -> 1
+     *  "\"3\""           -> 3
+     *  "W/\"7\""         -> 7
+     *  "W/\"001\""       -> 1
+     *  "\"-1\""          -> 1   (negatives not allowed)
+     *  beyond Integer.MAX_VALUE -> 1
+     * </p>
+     */
+    public static int parseIfMatchVersion(String ifMatch) {
+        if (ifMatch == null || ifMatch.isBlank()) return 1;
+
+        Matcher m = DIGITS.matcher(ifMatch);
+        if (!m.find()) return 1;
+
+        String number = m.group(1); // digits only (no quotes/prefix)
+        try {
+            long parsed = Long.parseLong(number); // safe for large digits
+            if (parsed <= 0 || parsed > Integer.MAX_VALUE) return 1;
+            return (int) parsed;
+        } catch (NumberFormatException e) {
+            throw new PropertyValueException("Invalid If-Match header value: " + ifMatch, "If-Match", ifMatch);
+        }
+    }
 }

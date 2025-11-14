@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+// imports
+import static uk.gov.hmcts.opal.util.VersionUtils.parseIfMatchVersion;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -825,15 +828,19 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         String ifMatch,
         String postedBy) {
 
-        log.info(":updateDefendantAccount: id: {}", defendantAccountId);
+        log.info("Legacy :updateDefendantAccount: id: {}", defendantAccountId);
+
+        // in legacy system, version is inferred from If-Match header value.
+        int version = parseIfMatchVersion(ifMatch);
 
         // build legacy request object with mapped fields from UpdateDefendantAccountRequest
+        // pass 'version' into the mapper/to-legacy request builder
         LegacyUpdateDefendantAccountRequest legacyRequest =
             updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(request,
                 String.valueOf(defendantAccountId),
                 businessUnitId,
                 postedBy,
-                parseIfMatchVersion(ifMatch));
+                version);
 
         // Send the request to the gateway service
         Response<LegacyUpdateDefendantAccountResponse> gwResponse = gatewayService.patchToGateway(
@@ -854,22 +861,5 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
 
         return legacyUpdateDefendantAccountResponseMapper.toDefendantAccountResponse(gwResponse.responseEntity);
-    }
-
-    // Helper methods
-    private static Integer parseIfMatchVersion(String ifMatch) {
-        if (ifMatch == null) {
-            return 1;
-        }
-        // Accept formats like "1", "\"1\"", "W/\"1\"" etc. Extract digits.
-        String digits = ifMatch.replaceAll("[^0-9]", "");
-        if (digits.isEmpty()) {
-            return 1;
-        }
-        try {
-            return Integer.valueOf(digits);
-        } catch (NumberFormatException e) {
-            return 1;
-        }
     }
 }
