@@ -73,6 +73,7 @@ class DraftAccountTransactionalTest {
     void testGetDraftAccounts() {
         // Arrange
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
             BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
