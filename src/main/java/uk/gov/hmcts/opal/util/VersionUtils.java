@@ -90,15 +90,21 @@ public class VersionUtils {
      * </p>
      */
     public static int parseIfMatchVersion(String ifMatch) {
-        if (ifMatch == null || ifMatch.isBlank()) return 1;
+        if (ifMatch == null || ifMatch.isBlank()) {
+            return 1;
+        }
 
         Matcher m = DIGITS.matcher(ifMatch);
-        if (!m.find()) return 1;
+        if (!m.find()) {
+            return 1;
+        }
 
         String number = m.group(1); // digits only (no quotes/prefix)
         try {
             long parsed = Long.parseLong(number); // safe for large digits
-            if (parsed <= 0 || parsed > Integer.MAX_VALUE) return 1;
+            if (parsed <= 0 || parsed > Integer.MAX_VALUE) {
+                return 1;
+            }
             return (int) parsed;
         } catch (NumberFormatException e) {
             throw new PropertyValueException("Invalid If-Match header value: " + ifMatch, "If-Match", ifMatch);
