@@ -136,7 +136,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final OpalPartyService opalPartyService;
 
     public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
-        return defendantAccountRepository.findById(defendantAccountId)
+        return defendantAccountRepository.findByDefendantAccountId(defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException(
                 "Defendant Account not found with id: " + defendantAccountId));
     }
@@ -1052,6 +1052,13 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+    private DefendantAccountEntity bumpVersion(Long accountId) {
+        DefendantAccountEntity entity = getDefendantAccountById(accountId);
+        // shouldn't have to do this?
+        // entity.setVersion(entity.getVersion() + 1);
+        return defendantAccountRepository.saveAndFlush(entity);
+    }
+
     @Override
     @Transactional
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
@@ -1120,8 +1127,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         replaceAliasesForParty(party.getPartyId(), request.getPartyDetails());
 
-        account.setLastChangedDate(LocalDate.now());
-        defendantAccountRepository.saveAndFlush(account);
+        DefendantAccountEntity accountEntity = bumpVersion(accountId);
 
         amendmentService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
@@ -1138,7 +1144,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         return GetDefendantAccountPartyResponse.builder()
             .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
-            .version(account.getVersion())
+            .version(accountEntity.getVersion())
             .build();
     }
 

@@ -176,7 +176,7 @@ class OpalDefendantAccountServiceTest {
         long testId = 1L;
 
         DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
-        when(defendantAccountRepository.findById(testId)).thenReturn(java.util.Optional.of(entity));
+        when(defendantAccountRepository.findByDefendantAccountId(testId)).thenReturn(java.util.Optional.of(entity));
 
         DefendantAccountEntity result = service.getDefendantAccountById(testId);
         assertNotNull(result);
