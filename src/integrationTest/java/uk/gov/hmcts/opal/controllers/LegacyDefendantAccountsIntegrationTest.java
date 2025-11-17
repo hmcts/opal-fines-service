@@ -80,4 +80,9 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
     void testGetDefendantAccountParty_500Error() throws Exception {
         super.legacyGetDefendantAccountParty_500Error(log);
     }
+
+    @Test
+    void testPutReplaceDefendantAccountParty_Success() throws Exception {
+        super.legacyPutReplaceDefendantAccountParty_SUCCESS(log);
+    }
 }
