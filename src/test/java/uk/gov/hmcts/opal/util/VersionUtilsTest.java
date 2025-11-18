@@ -69,44 +69,47 @@ public class VersionUtilsTest {
     }
 
     @Test
-    @DisplayName("null/blank -> 1")
-    void nullOrBlank() {
-        assertEquals(1, VersionUtils.parseIfMatchVersion(null));
-        assertEquals(1, VersionUtils.parseIfMatchVersion(""));
-        assertEquals(1, VersionUtils.parseIfMatchVersion("   "));
+    @DisplayName("null or blank If-Match values throw PropertyValueException")
+    void testParseIfMatch_nullOrBlank_ThrowsPropertyValueException() {
+        assertThrows(IllegalArgumentException.class, () -> VersionUtils.parseIfMatchVersion(null));
+        assertThrows(IllegalArgumentException.class, () -> VersionUtils.parseIfMatchVersion(""));
+        assertThrows(IllegalArgumentException.class, () -> VersionUtils.parseIfMatchVersion("   "));
     }
 
     @Test
-    @DisplayName("Quoted / weak validators parse their digits")
-    void commonFormats() {
-        assertEquals(3,  VersionUtils.parseIfMatchVersion("\"3\""));
-        assertEquals(7,  VersionUtils.parseIfMatchVersion("W/\"7\""));
+    @DisplayName("Quoted and weak ETag formats parse correctly")
+    void testParseIfMatch_quotedAndWeakParse() {
+        assertEquals(3, VersionUtils.parseIfMatchVersion("\"3\""));
+        assertEquals(7, VersionUtils.parseIfMatchVersion("W/\"7\""));
         assertEquals(12, VersionUtils.parseIfMatchVersion("  \"12\"  "));
-        assertEquals(1,  VersionUtils.parseIfMatchVersion("W/\"001\"")); // leading zeros ok -> 1
+        // leading zeros parse to their numeric value (001 -> 1)
+        assertEquals(1, VersionUtils.parseIfMatchVersion("W/\"001\""));
     }
 
     @Test
-    @DisplayName("Garbage or no digits -> 1")
-    void garbage() {
-        assertEquals(1, VersionUtils.parseIfMatchVersion("garbage"));
-        assertEquals(1, VersionUtils.parseIfMatchVersion("W/\"abc\""));
+    @DisplayName("Non-numeric If-Match values throw PropertyValueException")
+    void testParseIfMatch_nonNumeric_ThrowsPropertyValueException() {
+        assertThrows(IllegalArgumentException.class, () -> VersionUtils.parseIfMatchVersion("text"));
+        assertThrows(IllegalArgumentException.class, () -> VersionUtils.parseIfMatchVersion("W/\"abc\""));
     }
 
     @Test
-    @DisplayName("Negative or zero -> 1")
-    void nonPositive() {
-        assertEquals(1, VersionUtils.parseIfMatchVersion("\"-1\""));
-        assertEquals(1, VersionUtils.parseIfMatchVersion("\"0\""));
+    @DisplayName("Zero or negative If-Match values throw PropertyValueException")
+    void testParseIfMatch_nonPositive_ThrowsPropertyValueException() {
+        assertThrows(IllegalArgumentException.class, () -> VersionUtils.parseIfMatchVersion("\"0\""));
+        assertThrows(IllegalArgumentException.class, () -> VersionUtils.parseIfMatchVersion("\"-1\""));
+        assertThrows(IllegalArgumentException.class, () -> VersionUtils.parseIfMatchVersion("W/\"-42\""));
     }
 
     @Test
-    @DisplayName("Bounds: MAX_INT ok, overflow -> 1")
-    void bounds() {
-        assertEquals(Integer.MAX_VALUE,
-            VersionUtils.parseIfMatchVersion("W/\"2147483647\""));
-        assertEquals(1,
-            VersionUtils.parseIfMatchVersion("W/\"2147483648\"")); // > Integer.MAX_VALUE
-        assertEquals(1,
-            VersionUtils.parseIfMatchVersion("999999999999999999999999"));
+    @DisplayName("Integer.MAX_VALUE parses, values > Integer.MAX_VALUE throw PropertyValueException")
+    void testParseIfMatch_bounds() {
+        // edge: max int OK
+        assertEquals(Integer.MAX_VALUE, VersionUtils.parseIfMatchVersion("W/\"2147483647\""));
+
+        // overflow -> PropertyValueException
+        assertThrows(IllegalArgumentException.class, () -> VersionUtils.parseIfMatchVersion("W/\"2147483648\""));
+        assertThrows(IllegalArgumentException.class,
+            () -> VersionUtils.parseIfMatchVersion("999999999999999999999999"));
     }
 }

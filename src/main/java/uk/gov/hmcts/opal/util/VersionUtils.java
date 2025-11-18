@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.util;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.PropertyValueException;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
@@ -81,33 +80,50 @@ public class VersionUtils {
      * For legacy system, version is inferred from the IfMatch value.
      *
      * Examples:
-     *  null/blank/garbage -> 1
-     *  "\"3\""           -> 3
-     *  "W/\"7\""         -> 7
-     *  "W/\"001\""       -> 1
-     *  "\"-1\""          -> 1   (negatives not allowed)
-     *  beyond Integer.MAX_VALUE -> 1
+     * | If-Match value                 | Result                              |
+     * | ------------------------------ | ----------------------------------- |
+     * | `null`, `""`, `"   "`          | **1**                               |
+     * | `"\"3\""`, `"3"`, `"W/\"12\""` | **valid → parsed int**              |
+     * | `"W/\"001\""`                  | **`1` is valid**, returns **1**     |
+     * | `"garbage"`                    | throws PropertyValueException       |
+     * | `"W/\"abc\""`                  | throws PropertyValueException       |
+     * | `"0"`, `"W/\"0\""`             | throws PropertyValueException       |
+     * | `"-1"`                         | throws PropertyValueException       |
+     * | `"2147483648"`                 | throws (overflow)                   |
+     * | `"999999999999999999999999"`   | throws PropertyValueException       |
      * </p>
      */
     public static int parseIfMatchVersion(String ifMatch) {
+        // Per requirement: null/blank -> throw
         if (ifMatch == null || ifMatch.isBlank()) {
-            return 1;
+            throw new IllegalArgumentException("Invalid If-Match header value: " + ifMatch);
+        }
+
+        // If there's an explicit negative sign anywhere, treat as invalid
+        if (ifMatch.indexOf('-') >= 0) {
+            throw new IllegalArgumentException("Invalid If-Match header value: " + ifMatch);
         }
 
         Matcher m = DIGITS.matcher(ifMatch);
         if (!m.find()) {
-            return 1;
+            // no digit found -> invalid
+            throw new IllegalArgumentException("Invalid If-Match header value: " + ifMatch);
         }
 
-        String number = m.group(1); // digits only (no quotes/prefix)
+        String digits = m.group(1);
         try {
-            long parsed = Long.parseLong(number); // safe for large digits
-            if (parsed <= 0 || parsed > Integer.MAX_VALUE) {
-                return 1;
+            long parsed = Long.parseLong(digits);
+
+            if (parsed <= 0) {
+                throw new IllegalArgumentException("Invalid If-Match header value: " + ifMatch);
             }
+            if (parsed > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException("Invalid If-Match header value: " + ifMatch);
+            }
+
             return (int) parsed;
         } catch (NumberFormatException e) {
-            throw new PropertyValueException("Invalid If-Match header value: " + ifMatch, "If-Match", ifMatch);
+            throw new IllegalArgumentException("Invalid If-Match header value: " + ifMatch);
         }
     }
 }

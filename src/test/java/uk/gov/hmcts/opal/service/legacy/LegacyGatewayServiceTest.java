@@ -10,14 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.same;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -31,7 +23,6 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -44,7 +35,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -233,59 +223,6 @@ class LegacyGatewayServiceTest {
         var re = ResponseEntity.ok("plain string body");
         var out = svc.extractResponse(re, String.class, null);
         assertThat(out.body).isEqualTo("plain string body");
-    }
-
-    @Test
-    void testPatchToGateway_tunnelsToPostAndReturnsSameResponse() {
-        // Arrange: real service instance but spied, so we can intercept postToGateway(...)
-        LegacyGatewayProperties props = mock(LegacyGatewayProperties.class);
-        LegacyGatewayService svc = Mockito.spy(new LegacyGatewayService(props, restClient));
-
-        var expected = new LegacyGatewayService.Response<>(HttpStatus.OK, new Dummy());
-        var requestBody = Map.of("k", "v");
-
-        // Stub the delegated call
-        doReturn(expected).when(svc)
-            .postToGateway(eq("ACTION_PATCH"), eq(Dummy.class), same(requestBody), isNull());
-
-        // Act
-        LegacyGatewayService.Response<Dummy> out =
-            svc.patchToGateway("ACTION_PATCH", Dummy.class, requestBody, null);
-
-        // Assert: same instance returned, and delegation happened once with the same args
-        assertThat(out).isSameAs(expected);
-        verify(svc, times(1))
-            .postToGateway(eq("ACTION_PATCH"), eq(Dummy.class), same(requestBody), isNull());
-
-        // No other interactions with HTTP chain needed
-        verifyNoMoreInteractions(restClient);
-    }
-
-    @Test
-    void patchToGatewayAsync_delegatesToSync_andCompletesWithSameResponse() throws Exception {
-        // Arrange
-        LegacyGatewayProperties props = mock(LegacyGatewayProperties.class);
-        LegacyGatewayService svc = Mockito.spy(new LegacyGatewayService(props, restClient));
-
-        var request = Map.of("k", "v");
-        var expected = new LegacyGatewayService.Response<>(HttpStatus.OK, new Dummy());
-
-        // stub the sync method that async delegates to
-        doReturn(expected).when(svc)
-            .patchToGateway(eq("ACTION"), eq(Dummy.class), same(request), isNull());
-
-        // Act
-        CompletableFuture<Response<Dummy>> fut =
-            svc.patchToGatewayAsync("ACTION", Dummy.class, request, null);
-
-        // Assert
-        assertThat(fut).isNotNull();
-        assertThat(fut).isCompleted();
-        assertThat(fut.get()).isSameAs(expected);
-
-        verify(svc, times(1))
-            .patchToGateway(eq("ACTION"), eq(Dummy.class), same(request), isNull());
-        verifyNoMoreInteractions(restClient);
     }
 
     class BrokenMapImplementation<K, V> implements Map<K, V> {

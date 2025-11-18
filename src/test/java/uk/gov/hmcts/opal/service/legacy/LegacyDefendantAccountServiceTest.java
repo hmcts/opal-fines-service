@@ -1802,7 +1802,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             new GatewayService.Response<>(HttpStatus.OK, legacyEntity, null, null);
 
         // Stub spy’d gateway (choose correct overload)
-        doReturn(resp).when(gatewayService).patchToGateway(
+        doReturn(resp).when(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
             eq(LegacyUpdateDefendantAccountResponse.class),
             any(LegacyUpdateDefendantAccountRequest.class),
@@ -1830,7 +1830,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         );
 
         // assert: gateway call & response mapping
-        verify(gatewayService).patchToGateway(
+        verify(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
             eq(LegacyUpdateDefendantAccountResponse.class),
             eq(legacyReq),
@@ -1853,7 +1853,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .thenReturn(LegacyUpdateDefendantAccountRequest.builder().build());
 
         // service stubbed to throw exception
-        when(gatewayService.patchToGateway(eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
+        when(gatewayService.postToGateway(eq(LegacyDefendantAccountService.PATCH_DEFENDANT_ACCOUNT),
             eq(LegacyUpdateDefendantAccountResponse.class),
             any(),
             isNull()))
@@ -1867,7 +1867,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         );
 
         // verify the call path hit the mock
-        verify(gatewayService).patchToGateway(
+        verify(gatewayService).postToGateway(
             eq("LIBRA.patchDefendantAccount"),
             eq(LegacyUpdateDefendantAccountResponse.class),
             any(LegacyUpdateDefendantAccountRequest.class),
@@ -1889,38 +1889,54 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // act + assert
         DefendantAccountResponse response = legacyDefendantAccountService
             .updateDefendantAccount(77L, "78", mock(UpdateDefendantAccountRequest.class),
-                null, "postedBy");
+                "\"1\"", "postedBy");
         assertNull(response);
     }
 
     static Stream<Arguments> ifMatchCases() {
         return Stream.of(
-            // ifMatch, expectedVersion
-            org.junit.jupiter.params.provider.Arguments.of(null,                   1),   // default
-            org.junit.jupiter.params.provider.Arguments.of("",                     1),   // empty -> default
-            org.junit.jupiter.params.provider.Arguments.of("\"3\"",                3),
-            org.junit.jupiter.params.provider.Arguments.of("W/\"7\"",              7),
-            org.junit.jupiter.params.provider.Arguments.of("  \"12\"  ",          12),
-            org.junit.jupiter.params.provider.Arguments.of("W/\"001\"",            1),   // leading zeros ok
-            // no digits -> default
-            org.junit.jupiter.params.provider.Arguments.of("garbage",              1),
-            // no digits -> default
-            org.junit.jupiter.params.provider.Arguments.of("W/\"abc\"",            1),
-            // minus stripped -> default (depends on impl)
-            org.junit.jupiter.params.provider.Arguments.of("\"-1\"",               1)
+            // inputs that should THROW PropertyValueException => expectedVersion == null
+            Arguments.of(null,                null),
+            Arguments.of("",                  null),
+            Arguments.of("   ",               null),
+            Arguments.of("garbage",           null),
+            Arguments.of("W/\"abc\"",         null),
+            Arguments.of("\"-1\"",            null),
+            Arguments.of("W/\"-42\"",         null),
+
+            // inputs that should parse to specific versions
+            Arguments.of("\"3\"",             3),
+            Arguments.of("W/\"7\"",           7),
+            Arguments.of("  \"12\"  ",       12),
+            Arguments.of("W/\"001\"",         1),
+            Arguments.of("W/\"2147483647\"", Integer.MAX_VALUE)
         );
     }
 
     @ParameterizedTest
     @MethodSource("ifMatchCases")
-    void testUpdateDefendantAccount_parsesIfMatch_intoMapperVersion(String ifMatch, int expectedVersion) {
+    void testUpdateDefendantAccount_parsesIfMatch_intoMapperVersion(String ifMatch, Integer expectedVersion) {
+
+        // If expectedVersion is null → we expect a PropertyValueException to be thrown
+        if (expectedVersion == null) {
+            assertThrows(IllegalArgumentException.class, () ->
+                legacyDefendantAccountService.updateDefendantAccount(
+                    77L,
+                    "78",
+                    mock(UpdateDefendantAccountRequest.class),
+                    ifMatch,
+                    "user-123")
+            );
+            return;
+        }
+
         // Arrange: mapper returns some legacy request; for this test we only look at the captured version
         when(updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(
             any(), anyString(), anyString(), anyString(), anyInt()
         )).thenReturn(LegacyUpdateDefendantAccountRequest.builder().build());
 
         // Arrange: gateway returns OK + dummy entity so the call finishes
-        when(gatewayService.patchToGateway(
+        when(gatewayService.postToGateway(
             anyString(), eq(LegacyUpdateDefendantAccountResponse.class), any(), isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, new LegacyUpdateDefendantAccountResponse()));
 

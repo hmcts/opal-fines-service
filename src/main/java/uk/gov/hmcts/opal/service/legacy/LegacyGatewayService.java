@@ -112,27 +112,6 @@ public class LegacyGatewayService implements GatewayService {
 
     }
 
-    @Override
-    public <T> Response<T> patchToGateway(
-        String actionType, Class<T> responseType, Object request, String responseSchemaFile) {
-        // Legacy gateway does not support HTTP PATCH — tunnel with POST.
-        log.debug("Legacy gateway does not support PATCH; tunneling PATCH '{}' via POST", actionType);
-        return postToGateway(actionType, responseType, request, responseSchemaFile);
-    }
-
-    public Response<String> patchToGateway(String actionType, Object request) {
-        return patchToGateway(actionType, String.class, request, null);
-    }
-
-    @Override
-    @Async
-    public <T> CompletableFuture<Response<T>> patchToGatewayAsync(
-        String actionType, Class<T> responseType, Object request, String responseSchemaFile) {
-        return CompletableFuture.completedFuture(
-            patchToGateway(actionType, responseType, request, responseSchemaFile)
-        );
-    }
-
     /*
      * This may not be required, but a similar method was implemented in Disco+, so is left here for now.
      */

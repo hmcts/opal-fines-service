@@ -843,7 +843,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 version);
 
         // Send the request to the gateway service
-        Response<LegacyUpdateDefendantAccountResponse> gwResponse = gatewayService.patchToGateway(
+        Response<LegacyUpdateDefendantAccountResponse> gwResponse = gatewayService.postToGateway(
             PATCH_DEFENDANT_ACCOUNT, LegacyUpdateDefendantAccountResponse.class,
             legacyRequest, null);
 
