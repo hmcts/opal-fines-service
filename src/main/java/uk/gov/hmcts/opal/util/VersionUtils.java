@@ -82,15 +82,15 @@ public class VersionUtils {
      * Examples:
      * | If-Match value                 | Result                              |
      * | ------------------------------ | ----------------------------------- |
-     * | `null`, `""`, `"   "`          | **1**                               |
+     * | `null`, `""`, `"   "`          | throws IllegalArgumentException     |
      * | `"\"3\""`, `"3"`, `"W/\"12\""` | **valid → parsed int**              |
      * | `"W/\"001\""`                  | **`1` is valid**, returns **1**     |
-     * | `"garbage"`                    | throws PropertyValueException       |
-     * | `"W/\"abc\""`                  | throws PropertyValueException       |
-     * | `"0"`, `"W/\"0\""`             | throws PropertyValueException       |
-     * | `"-1"`                         | throws PropertyValueException       |
+     * | `"garbage"`                    | throws IllegalArgumentException     |
+     * | `"W/\"abc\""`                  | throws IllegalArgumentException     |
+     * | `"0"`, `"W/\"0\""`             | throws IllegalArgumentException     |
+     * | `"-1"`                         | throws IllegalArgumentException     |
      * | `"2147483648"`                 | throws (overflow)                   |
-     * | `"999999999999999999999999"`   | throws PropertyValueException       |
+     * | `"999999999999999999999999"`   | throws IllegalArgumentException     |
      * </p>
      */
     public static int parseIfMatchVersion(String ifMatch) {
