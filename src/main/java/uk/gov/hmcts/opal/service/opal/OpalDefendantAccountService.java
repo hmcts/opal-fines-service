@@ -1054,8 +1054,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private DefendantAccountEntity bumpVersion(Long accountId) {
         DefendantAccountEntity entity = getDefendantAccountById(accountId);
-        // shouldn't have to do this?
-        // entity.setVersion(entity.getVersion() + 1);
+        entity.setVersion(entity.getVersion() + 1);
         return defendantAccountRepository.saveAndFlush(entity);
     }
 
@@ -1127,8 +1126,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         replaceAliasesForParty(party.getPartyId(), request.getPartyDetails());
 
-        DefendantAccountEntity accountEntity = bumpVersion(accountId);
-
         amendmentService.auditFinaliseStoredProc(
             account.getDefendantAccountId(),
             RecordType.DEFENDANT_ACCOUNTS,
@@ -1144,7 +1141,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         return GetDefendantAccountPartyResponse.builder()
             .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
-            .version(accountEntity.getVersion())
+            .version(bumpVersion(accountId).getVersion())
             .build();
     }
 
@@ -1248,6 +1245,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String surname,
         boolean isOrg
     ) {
+
         AliasEntity row;
         if (aliasId != null) {
             row = byId.get(aliasId);
