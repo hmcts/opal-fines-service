@@ -1,8 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 // imports
-import static uk.gov.hmcts.opal.util.VersionUtils.parseIfMatchVersion;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -830,8 +828,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         log.info("Legacy :updateDefendantAccount: id: {}", defendantAccountId);
 
-        // in legacy system, version is inferred from If-Match header value.
-        int version = parseIfMatchVersion(ifMatch);
+        // in legacy system, If-Match header value is passed in as version.
+        Integer version = Integer.parseInt(ifMatch);
 
         // build legacy request object with mapped fields from UpdateDefendantAccountRequest
         // pass 'version' into the mapper/to-legacy request builder

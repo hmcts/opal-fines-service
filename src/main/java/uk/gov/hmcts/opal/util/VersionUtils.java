@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.util;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
@@ -73,57 +72,7 @@ public class VersionUtils {
                   "Could not parse 'ifMatch': " + ifMatch + " in method: " + method)), id, method);
     }
 
-    /**
-     * Parse If-Match header into a version number.
-     *
-     * <p>
-     * For legacy system, version is inferred from the IfMatch value.
-     *
-     * Examples:
-     * | If-Match value                 | Result                              |
-     * | ------------------------------ | ----------------------------------- |
-     * | `null`, `""`, `"   "`          | throws IllegalArgumentException     |
-     * | `"\"3\""`, `"3"`, `"W/\"12\""` | **valid → parsed int**              |
-     * | `"W/\"001\""`                  | **`1` is valid**, returns **1**     |
-     * | `"garbage"`                    | throws IllegalArgumentException     |
-     * | `"W/\"abc\""`                  | throws IllegalArgumentException     |
-     * | `"0"`, `"W/\"0\""`             | throws IllegalArgumentException     |
-     * | `"-1"`                         | throws IllegalArgumentException     |
-     * | `"2147483648"`                 | throws (overflow)                   |
-     * | `"999999999999999999999999"`   | throws IllegalArgumentException     |
-     * </p>
-     */
-    public static int parseIfMatchVersion(String ifMatch) {
-        // Per requirement: null/blank -> throw
-        if (ifMatch == null || ifMatch.isBlank()) {
-            throw new IllegalArgumentException("Invalid If-Match header value: " + ifMatch);
-        }
-
-        // If there's an explicit negative sign anywhere, treat as invalid
-        if (ifMatch.indexOf('-') >= 0) {
-            throw new IllegalArgumentException("Invalid If-Match header value: " + ifMatch);
-        }
-
-        Matcher m = DIGITS.matcher(ifMatch);
-        if (!m.find()) {
-            // no digit found -> invalid
-            throw new IllegalArgumentException("Invalid If-Match header value: " + ifMatch);
-        }
-
-        String digits = m.group(1);
-        try {
-            long parsed = Long.parseLong(digits);
-
-            if (parsed <= 0) {
-                throw new IllegalArgumentException("Invalid If-Match header value: " + ifMatch);
-            }
-            if (parsed > Integer.MAX_VALUE) {
-                throw new IllegalArgumentException("Invalid If-Match header value: " + ifMatch);
-            }
-
-            return (int) parsed;
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid If-Match header value: " + ifMatch);
-        }
-    }
+    // function to parse IfMatch value from header, removed.
+    // At this stage we assume this will be a number.
+    // If this is needed to it can be re-added later.
 }

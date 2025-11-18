@@ -22,13 +22,9 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -1818,7 +1814,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .updateDefendantAccount(defendantAccountId,
                                     businessUnitId,
                                     updateDefendantAccountRequest,
-                            "\"3\"",
+                            "3",
                                     postedBy);
 
         // assert: correct result
@@ -1863,7 +1859,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertThrows(RuntimeException.class, () ->
             legacyDefendantAccountService
                 .updateDefendantAccount(defendantAccountId, businessUnitId, mock(UpdateDefendantAccountRequest.class),
-                    "\"5\"", postedBy)
+                    "5", postedBy)
         );
 
         // verify the call path hit the mock
@@ -1889,70 +1885,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // act + assert
         DefendantAccountResponse response = legacyDefendantAccountService
             .updateDefendantAccount(77L, "78", mock(UpdateDefendantAccountRequest.class),
-                "\"1\"", "postedBy");
+                "1", "postedBy");
         assertNull(response);
-    }
-
-    static Stream<Arguments> ifMatchCases() {
-        return Stream.of(
-            // inputs that should THROW PropertyValueException => expectedVersion == null
-            Arguments.of(null,                null),
-            Arguments.of("",                  null),
-            Arguments.of("   ",               null),
-            Arguments.of("garbage",           null),
-            Arguments.of("W/\"abc\"",         null),
-            Arguments.of("\"-1\"",            null),
-            Arguments.of("W/\"-42\"",         null),
-
-            // inputs that should parse to specific versions
-            Arguments.of("\"3\"",             3),
-            Arguments.of("W/\"7\"",           7),
-            Arguments.of("  \"12\"  ",       12),
-            Arguments.of("W/\"001\"",         1),
-            Arguments.of("W/\"2147483647\"", Integer.MAX_VALUE)
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("ifMatchCases")
-    void testUpdateDefendantAccount_parsesIfMatch_intoMapperVersion(String ifMatch, Integer expectedVersion) {
-
-        // If expectedVersion is null → we expect a PropertyValueException to be thrown
-        if (expectedVersion == null) {
-            assertThrows(IllegalArgumentException.class, () ->
-                legacyDefendantAccountService.updateDefendantAccount(
-                    77L,
-                    "78",
-                    mock(UpdateDefendantAccountRequest.class),
-                    ifMatch,
-                    "user-123")
-            );
-            return;
-        }
-
-        // Arrange: mapper returns some legacy request; for this test we only look at the captured version
-        when(updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(
-            any(), anyString(), anyString(), anyString(), anyInt()
-        )).thenReturn(LegacyUpdateDefendantAccountRequest.builder().build());
-
-        // Arrange: gateway returns OK + dummy entity so the call finishes
-        when(gatewayService.postToGateway(
-            anyString(), eq(LegacyUpdateDefendantAccountResponse.class), any(), isNull()
-        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, new LegacyUpdateDefendantAccountResponse()));
-
-        when(legacyUpdateDefendantAccountResponseMapper.toDefendantAccountResponse(any()))
-            .thenReturn(DefendantAccountResponse.builder().build());
-
-        // Act
-        legacyDefendantAccountService.updateDefendantAccount(77L, "78",
-            mock(UpdateDefendantAccountRequest.class),
-            ifMatch, "user-123");
-
-        // Assert: capture version given to mapper (this is parseIfMatchVersion’s output)
-        ArgumentCaptor<Integer> versionCap = ArgumentCaptor.forClass(Integer.class);
-        verify(updateDefendantAccountRequestMapper).toLegacyUpdateDefendantAccountRequest(
-            any(), eq("77"), eq("78"), eq("user-123"), versionCap.capture()
-        );
-        assertThat(versionCap.getValue()).isEqualTo(expectedVersion);
     }
 }
