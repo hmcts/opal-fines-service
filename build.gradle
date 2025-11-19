@@ -323,7 +323,7 @@ dependencyManagement {
   }
 
   imports {
-    mavenBom "org.springframework.integration:spring-integration-bom:6.5.3"
+    mavenBom "org.springframework.integration:spring-integration-bom:6.5.4"
   }
 
   dependencies {
@@ -408,7 +408,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
   compileOnly 'org.projectlombok:lombok:1.18.42'
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.34.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.36.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -458,7 +458,7 @@ dependencies {
   implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.14'
   implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.14'
   implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.14'
-  implementation 'org.apache.commons:commons-lang3:3.19.0'
+  implementation 'org.apache.commons:commons-lang3:3.20.0'
 
 }
 
