@@ -1428,12 +1428,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             return;
         }
 
-        DebtorDetailEntity debtor = debtorDetailRepository.findById(partyId)
-            .orElseThrow(() -> new EntityNotFoundException("Party not found with id: " + partyId));
-
         if (!isDebtor && vehicle == null && employer == null && language == null) {
             return;
         }
+
+        DebtorDetailEntity debtor = debtorDetailRepository.findById(partyId)
+            .orElseThrow(() -> new EntityNotFoundException("debtor_detail not found with id: " + partyId));
 
         if (debtor == null) {
             debtor = new DebtorDetailEntity();
