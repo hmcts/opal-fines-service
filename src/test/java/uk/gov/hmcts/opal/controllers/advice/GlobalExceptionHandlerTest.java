@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers.advice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import feign.FeignException;
@@ -13,6 +14,7 @@ import jakarta.persistence.PersistenceException;
 import jakarta.persistence.QueryTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -390,7 +392,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleResourceConflict_false() {
-        ResourceConflictException ex = new ResourceConflictException("DraftAccount", "123", "BU mismatch");
+        ResourceConflictException ex = new ResourceConflictException("DraftAccount", "123", "BU mismatch", null);
         ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleResourceConflictException(ex);
 
         assertEquals(HttpStatus.CONFLICT, r.getStatusCode());
@@ -399,6 +401,22 @@ class GlobalExceptionHandlerTest {
         assertEquals("DraftAccount", pd.getProperties().get("resourceType"));
         assertEquals("123", pd.getProperties().get("resourceId"));
         assertEquals("BU mismatch", pd.getProperties().get("conflictReason"));
+        assertNull(r.getHeaders().getETag());
+    }
+
+    @Test
+    void handleResourceConflict_withVersioned() {
+        ResourceConflictException ex = new ResourceConflictException(
+            "DraftAccount", "123", "BU mismatch", () -> BigInteger.valueOf(666));
+        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleResourceConflictException(ex);
+
+        assertEquals(HttpStatus.CONFLICT, r.getStatusCode());
+        ProblemDetail pd = r.getBody();
+        assertEquals(false, pd.getProperties().get("retriable"));
+        assertEquals("DraftAccount", pd.getProperties().get("resourceType"));
+        assertEquals("123", pd.getProperties().get("resourceId"));
+        assertEquals("BU mismatch", pd.getProperties().get("conflictReason"));
+        assertEquals("\"666\"", r.getHeaders().getETag());
     }
 
     // ---------- FeignException (generic handler) ----------
