@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service;
 
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import lombok.RequiredArgsConstructor;
@@ -119,6 +120,25 @@ public class DefendantAccountService {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }
     }
+
+    public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String authHeaderValue) {
+        log.debug(":addPaymentCardRequest:");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ACCOUNT_MAINTENANCE)) {
+
+            return defendantAccountServiceProxy.addPaymentCardRequest(
+                defendantAccountId, businessUnitId, ifMatch, authHeaderValue
+            );
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
+        }
+    }
+
 
 
 }

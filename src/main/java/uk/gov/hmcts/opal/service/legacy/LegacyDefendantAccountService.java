@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
@@ -818,4 +819,17 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
             "Update Defendant Account is not implemented in legacy mode");
     }
+
+    @Override
+    public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String authHeader) {
+        // Legacy mode does not support Payment Card Requests yet.
+        // For now, throw an UnsupportedOperationException to satisfy the interface contract.
+        throw new UnsupportedOperationException(
+            "Payment Card Request is not implemented for Legacy mode"
+        );
+    }
+
 }
