@@ -504,4 +504,8 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.testGetEnforcementStatus_serverError(log, false);
     }
 
+
+    @Test void addPaymentTerms_Happy() throws Exception {
+        super.test_Opal_AddPaymentTerms_Happy(log);
+    }
 }
