@@ -23,6 +23,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -1674,7 +1675,7 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountEntity account = buildMockAccount(accountId);
         FixedPenaltyOffenceEntity offence = buildMockOffence(false);
         offence.setOffenceLocation("Manchester");
-        offence.setTimeOfOffence("2023-12-12");
+        offence.setTimeOfOffence(LocalTime.parse("12:12"));
 
         when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
         when(fixedPenaltyOffenceRepository.findByDefendantAccountId(accountId)).thenReturn(Optional.of(offence));
@@ -1685,7 +1686,7 @@ class OpalDefendantAccountServiceTest {
         assertFalse(response.isVehicleFixedPenaltyFlag());
         assertEquals("Kingston-upon-Thames Mags Court", response.getFixedPenaltyTicketDetails().getIssuingAuthority());
         assertEquals("888", response.getFixedPenaltyTicketDetails().getTicketNumber());
-        assertEquals("2023-12-12", response.getFixedPenaltyTicketDetails().getTimeOfOffence());
+        assertEquals("12:12", response.getFixedPenaltyTicketDetails().getTimeOfOffence());
         assertEquals("Manchester", response.getFixedPenaltyTicketDetails().getPlaceOfOffence());
         assertNull(response.getVehicleFixedPenaltyDetails());
     }
@@ -1870,7 +1871,7 @@ class OpalDefendantAccountServiceTest {
             .issuedDate(LocalDate.of(2024, 1, 1))
             .licenceNumber("DOE1234567")
             .vehicleFixedPenalty(isVehicle)
-            .timeOfOffence("12:34")
+            .timeOfOffence(LocalTime.parse("12:34"))
             .build();
     }
 }

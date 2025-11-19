@@ -626,7 +626,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         FixedPenaltyTicketDetails ticketDetails = FixedPenaltyTicketDetails.builder()
             .issuingAuthority(account.getOriginatorName())
             .ticketNumber(offence.getTicketNumber())
-            .timeOfOffence(offence.getTimeOfOffence())
+            .timeOfOffence(
+                offence.getTimeOfOffence() != null
+                    ? offence.getTimeOfOffence().toString()
+                    : null
+            )
             .placeOfOffence(offence.getOffenceLocation())
             .build();
 
