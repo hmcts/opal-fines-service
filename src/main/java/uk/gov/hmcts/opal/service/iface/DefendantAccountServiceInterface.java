@@ -4,6 +4,7 @@ import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -42,4 +43,10 @@ public interface DefendantAccountServiceInterface {
                                            String businessUnitId,
                                            String postedBy,
                                            String businessUserId);
+
+    GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+                                            String businessUnitId,
+                                            String ifMatch,
+                                            String authHeader,
+                                            AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest);
 }

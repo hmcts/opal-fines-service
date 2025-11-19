@@ -468,4 +468,8 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     @Test void addPaymentCardRequest_Exists() throws Exception {
         super.opalAddPaymentCardRequest_AlreadyExists(log);
     }
+
+    @Test void addPaymentTerms_Happy() throws Exception {
+        super.test_Opal_AddPaymentTerms_Happy(log);
+    }
 }
