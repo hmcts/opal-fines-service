@@ -1428,7 +1428,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             return;
         }
 
-        if (!isDebtor && vehicle == null && employer == null && language == null) {
+        if (!isDebtor) {
             return;
         }
 
