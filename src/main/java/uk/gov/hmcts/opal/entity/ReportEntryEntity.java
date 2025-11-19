@@ -43,7 +43,7 @@ public class ReportEntryEntity {
     private BusinessUnitFullEntity businessUnit;
 
     @Column(name = "report_id")
-    private Long reportId;
+    private String reportId;
 
     @Column(name = "entry_timestamp")
     @Temporal(TemporalType.DATE)
