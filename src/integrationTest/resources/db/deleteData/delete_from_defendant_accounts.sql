@@ -20,6 +20,10 @@ WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001,
 DELETE FROM notes
 WHERE associated_record_id IN ('77', '88', '901', '333', '555', '666', '777', '444', '999', '9077', '77444');
 
+-- Remove payment card requests created during tests
+DELETE FROM payment_card_requests
+WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444);
+
 -- Remove main defendant accounts
 DELETE FROM defendant_accounts
 WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444);

@@ -76,6 +76,7 @@ import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
@@ -1229,7 +1230,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         // 5. Ensure no existing PCR
         if (paymentCardRequestRepository.existsByDefendantAccountId(defendantAccountId)) {
-            throw new IllegalStateException("A payment card request already exists for this account.");
+            throw new ResourceConflictException(
+                "DefendantAccountEntity",
+                String.valueOf(defendantAccountId),
+                "A payment card request already exists for this account."
+            );
         }
 
         // 6. Retrieve logged-in UserState

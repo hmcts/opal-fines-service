@@ -50,6 +50,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
@@ -80,6 +81,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     @Autowired
     JdbcTemplate jdbcTemplate;
 
+    @MockitoBean
+    private AccessTokenService accessTokenService;
+
+
     final String getAtAGlanceResponseSchemaLocation() {
         return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountAtAGlanceResponse.json";
     }
@@ -98,6 +103,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
     final String getDefendantAccountsSearchResponseSchemaLocation() {
         return SchemaPaths.DEFENDANT_ACCOUNT + "/postDefendantAccountsSearchResponse.json";
+    }
+
+    final String getAddPaymentCardRequestResponseSchemaLocation() {
+        return SchemaPaths.DEFENDANT_ACCOUNT + "/postAddPaymentCardRequestResponse.json";
     }
 
     @BeforeEach
@@ -3519,6 +3528,200 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist());
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL: Add Payment Card Request – Happy Path [@PO-1719]")
+    void opalAddPaymentCardRequest_Happy(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            77L
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add("If-Match", "\"" + currentVersion + "\"");
+
+        ResultActions result = mockMvc.perform(
+            post("/defendant-accounts/77/payment-card-request")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+        );
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":opalAddPaymentCardRequest_Happy body:\n{}", ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value(77));
+    }
+
+    @DisplayName("OPAL: Add Payment Card Request – Not Found when account not in header BU [@PO-1719]")
+    void opalAddPaymentCardRequest_NotFound_WrongBU(Logger log) throws Exception {
+
+        // User authenticated with all required permissions
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        // Get correct version so request passes optimistic locking
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            77L
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "99"); // Wrong BU → should trigger 404
+        headers.add("If-Match", "\"" + currentVersion + "\"");
+
+        ResultActions result = mockMvc.perform(
+            post("/defendant-accounts/77/payment-card-request")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+        );
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":opalAddPaymentCardRequest_NotFound_WrongBU body:\n{}", body);
+
+        result.andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
+            .andExpect(jsonPath("$.status").value(404));
+    }
+
+    @DisplayName("OPAL: Add Payment Card Request – Forbidden when user lacks permission [@PO-1719]")
+    void opalAddPaymentCardRequest_Forbidden_NoPermission(Logger log) throws Exception {
+
+        // User with NO ACCOUNT_MAINTENANCE permission
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(
+                UserState.builder()
+                    .userId(123L)
+                    .userName("no-permission")
+                    .businessUnitUser(java.util.Collections.emptySet()) // no BU permissions
+                    .build()
+            );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("token_without_permission");
+        headers.add("Business-Unit-Id", "78");
+        headers.add("If-Match", "\"0\"");
+
+        mockMvc.perform(
+                post("/defendant-accounts/77/payment-card-request")
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
+    }
+
+    @DisplayName("OPAL: Add Payment Card Request – Unauthorized when missing auth header [@PO-1719]")
+    void opalAddPaymentCardRequest_Unauthorized(Logger log) throws Exception {
+
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        mockMvc.perform(
+                post("/defendant-accounts/77/payment-card-request")
+                    .header("Business-Unit-Id", "78")
+                    .header("If-Match", "\"0\"")
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
+
+    @DisplayName("OPAL: Add Payment Card Request – Conflict when If-Match does not match [@PO-1719]")
+    void opalAddPaymentCardRequest_IfMatchConflict(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add("If-Match", "\"9999\""); // Wrong version
+
+        mockMvc.perform(
+                post("/defendant-accounts/77/payment-card-request")
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+            .andExpect(status().isConflict())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/optimistic-locking"));
+    }
+
+    @DisplayName("OPAL: Add Payment Card Request – Conflict when PCR already exists [@PO-1719]")
+    void opalAddPaymentCardRequest_AlreadyExists(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        // ---- FIRST CALL ----
+        Integer version1 = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            77L
+        );
+        log.info("INITIAL VERSION = {}", version1);
+
+        HttpHeaders headers1 = new HttpHeaders();
+        headers1.setBearerAuth("some_value");
+        headers1.add("Business-Unit-Id", "78");
+        headers1.add("If-Match", "\"" + version1 + "\"");
+
+        mockMvc.perform(
+            post("/defendant-accounts/77/payment-card-request")
+                .headers(headers1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+        ).andExpect(status().isOk());
+
+        // ---- SECOND CALL ----
+        Integer version2 = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            77L
+        );
+        log.info("VERSION AFTER FIRST CALL = {}", version2);
+
+        HttpHeaders headers2 = new HttpHeaders();
+        headers2.setBearerAuth("some_value");
+        headers2.add("Business-Unit-Id", "78");
+        headers2.add("If-Match", "\"" + version2 + "\"");
+
+        ResultActions result = mockMvc.perform(
+            post("/defendant-accounts/77/payment-card-request")
+                .headers(headers2)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+        );
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":opalAddPaymentCardRequest_AlreadyExists body:\n{}", body);
+
+        result.andExpect(status().isConflict())
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/resource-conflict"))
+            .andExpect(jsonPath("$.status").value(409))
+            // generic detail
+            .andExpect(jsonPath("$.detail").value("A conflict occurred with the requested resource"))
+            // actual message
+            .andExpect(jsonPath("$.conflictReason")
+                .value("A payment card request already exists for this account."))
+            .andExpect(jsonPath("$.resourceType").value("DefendantAccountEntity"))
+            .andExpect(jsonPath("$.resourceId").value("77"))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
 }
