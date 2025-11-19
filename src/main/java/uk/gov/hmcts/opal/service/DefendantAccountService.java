@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -229,6 +230,34 @@ public class DefendantAccountService {
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ENTER_ENFORCEMENT);
+        }
+    }
+
+    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String authHeaderValue,
+        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
+
+        log.debug(":addPaymentTerms:");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        short buId = Short.parseShort(businessUnitId);
+        String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
+            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(userState.getUserName());
+
+        if (userState.hasBusinessUnitUserWithPermission(buId,
+            FinesPermission.AMEND_PAYMENT_TERMS)) {
+            return defendantAccountServiceProxy.addPaymentTerms(defendantAccountId,
+                businessUnitId,
+                ifMatch,
+                postedBy,
+                addPaymentTermsRequest);
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
         }
     }
 }

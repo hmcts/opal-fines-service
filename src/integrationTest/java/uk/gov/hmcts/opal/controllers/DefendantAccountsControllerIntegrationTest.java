@@ -4424,4 +4424,57 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     static ResultMatcher ignoreForLegacy(ResultMatcher matcher, boolean legacy) {
         return (legacy) ? (result) -> { } : matcher;
     }
+
+    @DisplayName("OPAL: Add Payment Terms – Happy Path [@PO-1718]")
+    void test_Opal_AddPaymentTerms_Happy(Logger log) throws Exception {
+        // Ensure user has required permissions (pattern used across tests)
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        // Pull the current version from DB to satisfy optimistic locking
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            77L
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+
+        // Minimal valid payload for AddDefendantAccountPaymentTermsRequest - adjust fields if your DTO requires others
+        String requestJson = """
+            {
+              "payment_terms": {
+                "days_in_default": 30,
+                "effective_date": "2025-11-01",
+                "payment_terms_type": { "payment_terms_type_code": "B" },
+                "instalment_period": { "instalment_period_code": "W" },
+                "lump_sum_amount": 0.00,
+                "instalment_amount": 0.00,
+                "reason_for_extension": ""
+              }
+            }
+            """;
+
+        ResultActions result = mockMvc.perform(
+            put("/defendant-accounts/77/payment-terms")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        ).andDo(MockMvcResultHandlers.print());
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        String etag = result.andReturn().getResponse().getHeader(HttpHeaders.ETAG);
+
+        log.info(":opalAddPaymentTerms_Happy body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":opalAddPaymentTerms_Happy ETag: {}", etag);
+
+        // Basic assertions: OK + JSON + expected fields
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.payment_terms.days_in_default").value(30));
+    }
+
 }

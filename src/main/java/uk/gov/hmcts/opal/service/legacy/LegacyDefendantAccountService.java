@@ -81,6 +81,7 @@ import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -970,7 +971,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         throw new IllegalArgumentException("Legacy gateway error: " + gw.code);
     }
 
-
     @Override
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
@@ -1315,4 +1315,16 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         courtRef.setCourtCode(courtService.getCourtById(courtRef.getCourtId()).getCourtCode());
     }
 
+
+    // TODO - is the return type appropriate?
+    @Override
+    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String postedBy,
+        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
+        throw new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
+            "Add Payment Terms is not implemented in legacy mode");
+    }
 }

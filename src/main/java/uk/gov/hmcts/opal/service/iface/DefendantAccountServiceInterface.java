@@ -53,4 +53,10 @@ public interface DefendantAccountServiceInterface {
 
     EnforcementStatus getEnforcementStatus(Long defendantAccountId);
 
+
+    GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+                                            String businessUnitId,
+                                            String ifMatch,
+                                            String authHeader,
+                                            AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest);
 }

@@ -63,6 +63,7 @@ import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -85,6 +86,7 @@ import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
@@ -106,6 +108,7 @@ import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
+import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
@@ -156,6 +159,15 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final OpalPartyService opalPartyService;
 
     private final ResultRepository resultRepository;
+
+    private final PaymentTermsService paymentTermsService;
+
+    private final ResultService resultService;
+
+    private final ReportEntryServiceInterface reportEntryService;
+
+    // Mappers
+    private final PaymentTermsMapper paymentTermsMapper;
 
     @Transactional(readOnly = true)
     public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
@@ -967,4 +979,102 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String forenames,
         String surname,
         String organisationName) { }
+    @Override
+    @Transactional
+    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String postedBy,
+        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
+
+        // Look up the defendant account
+        DefendantAccountEntity defAccount = getDefendantAccountById(defendantAccountId);
+
+        // Validate BU
+        if (defAccount.getBusinessUnit() == null
+            || defAccount.getBusinessUnit().getBusinessUnitId() == null
+            || !String.valueOf(defAccount.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
+            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
+        }
+
+        VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
+
+        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+
+        // lock the account row to serialize concurrent writers
+        em.lock(defAccount, LockModeType.PESSIMISTIC_WRITE);
+        // Toggle any existing active payment term(s) for the defendant account to inactive
+        paymentTermsService.deactivateExistingActivePaymentTerms(defAccount.getDefendantAccountId());
+        // ensure DB sees changes before insert
+        em.flush();
+
+        // Map request -> Payment Terms Entity using MapStruct
+        PaymentTermsEntity paymentTermsEntity
+            = paymentTermsMapper.toEntity(addPaymentTermsRequest.getPaymentTerms());
+        paymentTermsEntity.setDefendantAccount(defAccount);
+        // Persist the new (active) PaymentTermsEntity
+        PaymentTermsEntity savedPaymentTerms = paymentTermsService.addPaymentTerm(paymentTermsEntity, postedBy);
+
+        // Clear last_enforcement on the defendant account, if applicable
+        clearLastEnforcementAction(defAccount,
+            savedPaymentTerms.getPaymentTermsId(),
+            defAccount.getBusinessUnit().getBusinessUnitId());
+
+        // If requestPaymentCardFlag is true: create a PaymentCardRequest row (if not already present)
+        //  and update the defendant account PCR-related attributes (requested flag/date/by/byName).
+        if (Boolean.TRUE.equals(addPaymentTermsRequest.getRequestPaymentCard())) {
+            log.debug(":addPaymentTerms: Request Payment Card flag is TRUE for account {}",
+                defAccount.getDefendantAccountId());
+            addPaymentCardRequest(defendantAccountId, businessUnitId, ifMatch, postedBy);
+        }
+
+        // Create report entry for the Extension of Time to Pay report
+        reportEntryService.createExtendTtpReportEntry(savedPaymentTerms.getPaymentTermsId(),
+            defAccount.getBusinessUnit().getBusinessUnitId());
+
+        log.debug(":addPaymentTerms: saved payment terms id={} for account {}",
+            savedPaymentTerms.getPaymentTermsId(), defAccount.getDefendantAccountId());
+
+        amendmentService.auditFinaliseStoredProc(
+            defAccount.getDefendantAccountId(),
+            RecordType.DEFENDANT_ACCOUNTS,
+            Short.parseShort(businessUnitId),
+            postedBy,
+            defAccount.getProsecutorCaseReference(),
+            "ACCOUNT_ENQUIRY"
+        );
+
+        return GetDefendantAccountPaymentTermsResponse.builder()
+            .paymentTerms(addPaymentTermsRequest.getPaymentTerms())
+            .paymentCardLastRequested(defAccount.getPaymentCardRequestedDate())
+            .lastEnforcement(defAccount.getLastEnforcement())
+            .build();
+    }
+
+    /**
+     * Along with adding a new latest payment_terms we will also clear the last enforcement action on the account.
+     * The only time it doesn't is when the last enforcement has result.extend_ttp_preserve_last_enf = TRUE
+     */
+    private void clearLastEnforcementAction(DefendantAccountEntity defAccount, Long savedPaymentTermsId,
+        Short businessUnitId) {
+        // Retrieve most recent enforcement action for this account using the result
+        Optional<EnforcementEntity.Lite> mostRecentEnforcementOpt = dbEnforcementMostRecent(defAccount);
+
+        if (mostRecentEnforcementOpt.isPresent()) {
+            EnforcementEntity.Lite mostRecentEnforcement = mostRecentEnforcementOpt.get();
+            ResultEntity.Lite resultEntityLite = resultService.getLiteResultById(mostRecentEnforcement.getResultId());
+
+            // If resultEntity exists and extend_ttp_preserve_last_enf is not TRUE, clear last_enforcement
+            if (!resultEntityLite.isExtendTtpPreserveLastEnf()) {
+                log.debug(":clearLastEnforcementAction: Clearing last_enforcement={} for account {}",
+                    defAccount.getLastEnforcement(), defAccount.getDefendantAccountId());
+                defAccount.setLastEnforcement(null);
+                defendantAccountRepository.save(defAccount);
+            } else {
+                log.debug(":clearLastEnforcementAction: Preserving last_enforcement={} for account {} as "
+                        + "extend_ttp_preserve_last_enf=TRUE",
+                    defAccount.getLastEnforcement(), defAccount.getDefendantAccountId());
+            }
+        }
+    }
 }
