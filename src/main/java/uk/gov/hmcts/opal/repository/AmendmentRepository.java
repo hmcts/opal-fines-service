@@ -30,4 +30,6 @@ public interface AmendmentRepository extends JpaRepository<AmendmentEntity, Long
                        @Param(BUSINESS_UNIT_ID) Short businessUnitId, @Param(POSTED_BY) String postedBy,
                        @Param(CASE_REFERENCE) String caseRef, @Param(FUNCTION_CODE) String functionCode);
 
+    void deleteByAssociatedRecordId(String defendantAccountId);
+
 }
