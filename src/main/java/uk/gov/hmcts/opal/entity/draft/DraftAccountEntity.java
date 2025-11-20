@@ -19,6 +19,8 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.StoredProcedureParameter;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import java.math.BigInteger;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -121,6 +123,10 @@ public class DraftAccountEntity implements Versioned {
 
     @Column(name = "version_number")
     @Version
-    private Long version;
+    private Long versionNumber;
 
+    @Override
+    public BigInteger getVersion() {
+        return Optional.ofNullable(versionNumber).map(BigInteger::valueOf).orElse(null);
+    }
 }

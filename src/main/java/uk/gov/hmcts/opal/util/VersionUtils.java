@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.util;
 
-import java.util.regex.Pattern;
+import java.math.BigInteger;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -11,9 +11,6 @@ import java.util.Optional;
 
 @Slf4j(topic = "opal.VersionUtils")
 public class VersionUtils {
-
-    // first run of digits in the header (e.g., matches 7 in W/"7")
-    private static final Pattern DIGITS = Pattern.compile("(\\d+)");
 
     private VersionUtils() {
     }
@@ -29,11 +26,15 @@ public class VersionUtils {
      * @param method the name of the method from where this is being called, only used in the error log.
      */
     public static void verifyVersions(Versioned existingFromDB, Versioned dto, Object id, String method) {
+        verifyVersions(existingFromDB, dto.getVersion(), id, method);
+    }
+
+    public static void verifyVersions(Versioned existingFromDB, BigInteger dto, Object id, String method) {
         if (versionsAreNotEqual(existingFromDB, dto)) {
             String msg = MessageFormatter.arrayFormat(
                 ":{}: Versions do not match for: {} '{}'; DB version: {}, supplied update version: {}",
                 new Object[] { method, existingFromDB.getClass().getSimpleName(),
-                    id, existingFromDB.getVersion(), dto.getVersion()
+                    id, existingFromDB.getVersion(), dto
                 })
                 .getMessage();
             log.warn(msg);
@@ -42,6 +43,10 @@ public class VersionUtils {
     }
 
     public static void verifyUpdated(Versioned updatedFromDB, Versioned dto, Object id, String method) {
+        verifyUpdated(updatedFromDB, dto.getVersion(), id, method);
+    }
+
+    public static void verifyUpdated(Versioned updatedFromDB, BigInteger dto, Object id, String method) {
         if (versionsAreEqual(updatedFromDB, dto)) {
             log.warn(":{}: NO differences detected in Entity '{}',  ID: '{}'. DB has NOT been updated from version :{}",
                      method, updatedFromDB.getClass().getSimpleName(), id, updatedFromDB.getVersion());
@@ -56,7 +61,11 @@ public class VersionUtils {
         return fromDB.getVersion().equals(other.getVersion());
     }
 
-    public static boolean versionsAreNotEqual(Versioned fromDB, Versioned other) {
+    public static boolean versionsAreEqual(Versioned fromDB, BigInteger other) {
+        return fromDB.getVersion().equals(other);
+    }
+
+    public static boolean versionsAreNotEqual(Versioned fromDB, BigInteger other) {
         return !versionsAreEqual(fromDB, other);
     }
 
@@ -64,10 +73,23 @@ public class VersionUtils {
         return "\"" + versioned.getVersion() + "\"";
     }
 
-    public static void verifyIfMatch(Versioned existingFromDB, String ifMatch, Object id, String method) {
-        verifyVersions(existingFromDB, () -> Optional.ofNullable(ifMatch)
+    public static BigInteger extractBigInteger(String ifMatch) {
+        return extractOptionalBigInteger(ifMatch).orElseThrow(() ->
+            new NumberFormatException("Could not parse 'ifMatch': " + ifMatch));
+    }
+
+    public static Optional<BigInteger> extractOptionalBigInteger(String ifMatch) {
+        return Optional.ofNullable(ifMatch)
             .map(s -> s.replace("\"", ""))
-            .map(Long::parseLong)
+            .map(BigInteger::new);
+    }
+
+    public static void verifyIfMatch(Versioned existingFromDB, BigInteger ifMatch, Object id, String method) {
+        verifyVersions(existingFromDB, ifMatch, id, method);
+    }
+
+    public static void verifyIfMatch(Versioned existingFromDB, String ifMatch, Object id, String method) {
+        verifyVersions(existingFromDB, () -> extractOptionalBigInteger(ifMatch)
             .orElseThrow(() -> new ResourceConflictException(existingFromDB.getClass().getSimpleName(), id,
                   "Could not parse 'ifMatch': " + ifMatch + " in method: " + method)), id, method);
     }
