@@ -818,4 +818,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
             "Update Defendant Account is not implemented in legacy mode");
     }
+
+    @Override
+    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
+        Long defendantAccountPartyId,
+        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy) {
+        return null;
+    }
 }

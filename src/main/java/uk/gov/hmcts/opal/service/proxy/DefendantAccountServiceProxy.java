@@ -1,15 +1,15 @@
 package uk.gov.hmcts.opal.service.proxy;
 
-import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
@@ -64,5 +64,13 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
             ifMatch, postedBy);
     }
 
+    @Override
+    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
+        Long defendantAccountPartyId,
+        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy) {
 
+        return getCurrentModeService().replaceDefendantAccountParty(defendantAccountId, defendantAccountPartyId,
+            defendantAccountParty, ifMatch, businessUnitId, postedBy);
+
+    }
 }

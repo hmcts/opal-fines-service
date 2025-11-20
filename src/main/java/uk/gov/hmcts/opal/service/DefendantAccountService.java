@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -115,6 +116,29 @@ public class DefendantAccountService {
             return defendantAccountServiceProxy.updateDefendantAccount(
                 defendantAccountId, businessUnitId, request, ifMatch, postedBy
             );
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
+        }
+    }
+
+    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
+        Long defendantAccountPartyId,
+        String authHeaderValue, String ifMatch, String businessUnitId, DefendantAccountParty request) {
+        log.debug(":replaceDefendantAccountParty");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        short buId = Short.parseShort(businessUnitId);
+
+        String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
+            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(userState.getUserName());
+
+        if (userState.hasBusinessUnitUserWithPermission(buId,
+                FinesPermission.ACCOUNT_MAINTENANCE)) {
+            return defendantAccountServiceProxy.replaceDefendantAccountParty(defendantAccountId,
+                defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy);
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }
