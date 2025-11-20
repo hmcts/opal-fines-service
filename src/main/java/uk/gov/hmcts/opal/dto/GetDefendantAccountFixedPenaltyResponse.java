@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.launchdarkly.shaded.org.jetbrains.annotations.NotNull;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,5 +33,5 @@ public class GetDefendantAccountFixedPenaltyResponse implements Versioned, ToJso
     private VehicleFixedPenaltyDetails vehicleFixedPenaltyDetails;
 
     @JsonIgnore
-    private Long version; // optional
+    private BigInteger version;
 }

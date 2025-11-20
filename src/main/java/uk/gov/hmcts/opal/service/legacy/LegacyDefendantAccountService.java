@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-// imports
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -254,7 +254,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .build();
 
         return DefendantAccountHeaderSummary.builder()
-            .version(response.getVersion() != null ? response.getVersion().longValue() : 1L)
+            .version(BigInteger.valueOf(Optional.ofNullable(response.getVersion()).orElse(1)))
             .defendantAccountId(response.getDefendantAccountId())
             .accountNumber(response.getAccountNumber())
             .defendantAccountPartyId(response.getDefendantPartyId())
@@ -593,7 +593,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         // Return the legacy wrapper with version + correctly-shaped party
         response.setDefendantAccountParty(legacyParty);
-        response.setVersion(legacy.getVersion());
+        response.setVersion(BigInteger.valueOf(legacy.getVersion()));
         return response;
     }
 
@@ -643,7 +643,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .paymentTermsSummary(toPaymentTermsFromSummary(src.getPaymentTermsSummary()))
             .enforcementStatus(toEnforcementStatus(src.getEnforcementStatusSummary()))
             .commentsAndNotes(toComments(src.getCommentsAndNotes()))
-            .version(src.getVersion())
+            .version(BigInteger.valueOf(src.getVersion()))
             .build();
     }
 

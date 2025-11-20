@@ -146,7 +146,7 @@ class DraftAccountPublishTest {
             .timelineData(emptyTimelineData())
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
             .submittedBy("Dave")
-            .version(6L)
+            .versionNumber(6L)
             .build();
     }
 

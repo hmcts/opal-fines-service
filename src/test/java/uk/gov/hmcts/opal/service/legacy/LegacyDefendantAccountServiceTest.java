@@ -22,6 +22,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -129,7 +130,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Assert
         final DefendantAccountHeaderSummary expected = DefendantAccountHeaderSummary.builder()
-            .version(1L)
+            .version(BigInteger.valueOf(1L))
             .defendantAccountId("1")
             .debtorType("Defendant")
             .isYouth(false)
@@ -905,7 +906,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             legacyDefendantAccountService.getDefendantAccountParty(77L, 77L);
 
         assertNotNull(out);
-        assertEquals(1L, out.getVersion());
+        assertEquals(BigInteger.valueOf(1L), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
         // individual kept, organisation null
         assertNotNull(out.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
@@ -939,7 +940,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         GetDefendantAccountPartyResponse outA =
             legacyDefendantAccountService.getDefendantAccountParty(555L, 555L);
         assertNotNull(outA);
-        assertEquals(2L, outA.getVersion());
+        assertEquals(BigInteger.valueOf(2L), outA.getVersion());
         assertNotNull(outA.getDefendantAccountParty());
         assertNotNull(outA.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
         assertNull(outA.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
@@ -950,7 +951,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         GetDefendantAccountPartyResponse outB =
             legacyDefendantAccountService.getDefendantAccountParty(555L, 555L);
         assertNotNull(outB);
-        assertEquals(2L, outB.getVersion());
+        assertEquals(BigInteger.valueOf(2L), outB.getVersion());
         assertNotNull(outB.getDefendantAccountParty());
         assertNotNull(outB.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
         assertNull(outB.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
@@ -1047,7 +1048,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Assert: non-null and some basic fields
         assertNotNull(result);
-        assertEquals(1L, result.getVersion());
+        assertEquals(BigInteger.valueOf(1L), result.getVersion());
         assertNotNull(result.getDefendantAccountParty());
 
         // Verify gateway called once with properly stringified IDs in the request
@@ -1341,7 +1342,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("ACC-42", out.getAccountNumber());
         assertEquals("PERSON", out.getDebtorType());
         assertEquals(Boolean.FALSE, out.getIsYouth());
-        assertEquals(5L, out.getVersion());
+        assertEquals(BigInteger.valueOf(5L), out.getVersion());
         assertNull(out.getPartyDetails());
         assertNull(out.getAddressDetails());
         assertNull(out.getLanguagePreferences());
@@ -1354,7 +1355,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @SuppressWarnings("unchecked")
     void getAtAGlance_legacyFailure5xx_withEntity_mapsAnyway() {
         LegacyGetDefendantAccountAtAGlanceResponse body =
-            LegacyGetDefendantAccountAtAGlanceResponse.builder().defendantAccountId("456").build();
+            LegacyGetDefendantAccountAtAGlanceResponse.builder().version(0L).defendantAccountId("456").build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
             new ParameterizedTypeReference<>() {};
@@ -1414,6 +1415,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         LegacyGetDefendantAccountAtAGlanceResponse body =
             LegacyGetDefendantAccountAtAGlanceResponse.builder()
                 .partyDetails(party)
+                .version(0L)
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
@@ -1468,6 +1470,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         LegacyGetDefendantAccountAtAGlanceResponse body =
             LegacyGetDefendantAccountAtAGlanceResponse.builder()
                 .partyDetails(party)
+                .version(0L)
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
@@ -1558,6 +1561,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 .paymentTermsSummary(legacyPts)
                 .enforcementStatusSummary(legacyEnf)
                 .commentsAndNotes(legacyCom)
+                .version(0L)
                 .build();
 
         ParameterizedTypeReference<uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
@@ -1619,6 +1623,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse body =
             uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse.builder()
                 .paymentTermsSummary(legacyPtsNulls)
+                .version(0L)
                 .build();
 
         ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =

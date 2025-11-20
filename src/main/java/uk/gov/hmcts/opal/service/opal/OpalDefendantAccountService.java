@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -186,7 +187,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .businessUnitSummary(buildBusinessUnitSummary(e))
             .paymentStateSummary(buildPaymentStateSummary(e))
             .partyDetails(buildPartyDetails(e))
-            .version(e.getVersion())
+            .version(BigInteger.valueOf(e.getVersion()))
             .build();
     }
 
@@ -1020,7 +1021,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         em.lock(entity, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         em.flush();
-        Long newVersion = entity.getVersion();
+        BigInteger newVersion = entity.getVersion();
 
         Short buId = entity.getBusinessUnit().getBusinessUnitId();
         amendmentService.auditFinaliseStoredProc(
