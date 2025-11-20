@@ -1912,5 +1912,137 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                 77L, 20010L, null, "1", "78", "poster", "dev_user")
         );
     }
+
+    @Test
+    void replaceDefendantAccountParty_mapsOrganisationDetails_andIndividualIsNull() {
+        // Build a legacy entity with only organisationDetails populated
+        LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
+            .version(2)
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("300")
+                            .organisationFlag(true)
+                            .organisationDetails(
+                                uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy.builder()
+                                    .organisationName("StillCo Ltd")
+                                    .build()
+                            )
+                            .individualDetails(null) // explicitly null
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+
+        GatewayService.Response<LegacyReplaceDefendantAccountPartyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+
+        Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(LegacyReplaceDefendantAccountPartyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // Act
+        GetDefendantAccountPartyResponse out = legacyDefendantAccountService.replaceDefendantAccountParty(
+            77L, 20010L, null, "1", "78", "poster", "dev_user"
+        );
+
+        // Assert
+        assertNotNull(out);
+        assertEquals(2L, out.getVersion());
+        assertNotNull(out.getDefendantAccountParty());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+
+        assertNotNull(out.getDefendantAccountParty().getPartyDetails());
+        assertEquals("300", out.getDefendantAccountParty().getPartyDetails().getPartyId());
+
+        // Organisation should be present
+        assertNotNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails());
+        assertEquals("StillCo Ltd",
+            out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails().getOrganisationName());
+
+        // Individual must be null when organisation is present
+        assertNull(out.getDefendantAccountParty().getPartyDetails().getIndividualDetails(),
+            "Individual details must be null when organisation details are present");
+    }
+
+    @Test
+    void replaceDefendantAccountParty_mapsIndividualDetails_andOrganisationIsNull() {
+        // Build a legacy entity with only individualDetails populated
+        LegacyReplaceDefendantAccountPartyResponse legacyBody = LegacyReplaceDefendantAccountPartyResponse.builder()
+            .version(2)
+            .defendantAccountParty(
+                DefendantAccountPartyLegacy.builder()
+                    .defendantAccountPartyType("Defendant")
+                    .isDebtor(true)
+                    .partyDetails(
+                        PartyDetailsLegacy.builder()
+                            .partyId("301")
+                            .organisationFlag(false)
+                            .organisationDetails(null) // explicitly null
+                            .individualDetails(
+                                uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy.builder()
+                                    .title("Ms")
+                                    .forenames("Jane")
+                                    .surname("Roe")
+                                    .dateOfBirth("1990-05-10")
+                                    .age("35")
+                                    .nationalInsuranceNumber("AB123456C")
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .build()
+            )
+            .build();
+
+        GatewayService.Response<LegacyReplaceDefendantAccountPartyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyBody, null, null);
+
+        Class<LegacyReplaceDefendantAccountPartyResponse> respType = LegacyReplaceDefendantAccountPartyResponse.class;
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.REPLACE_DEFENDANT_ACCOUNT_PARTY),
+            eq(respType),
+            any(LegacyReplaceDefendantAccountPartyRequest.class),
+            Mockito.nullable(String.class)
+        );
+
+        // Act
+        GetDefendantAccountPartyResponse out = legacyDefendantAccountService.replaceDefendantAccountParty(
+            77L, 20010L, null, "1", "78", "poster", "dev_user"
+        );
+
+        // Assert
+        assertNotNull(out);
+        assertEquals(2L, out.getVersion());
+        assertNotNull(out.getDefendantAccountParty());
+        assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
+
+        assertNotNull(out.getDefendantAccountParty().getPartyDetails());
+        assertEquals("301", out.getDefendantAccountParty().getPartyDetails().getPartyId());
+
+        // Individual should be present
+        assertNotNull(out.getDefendantAccountParty().getPartyDetails().getIndividualDetails());
+        assertEquals("Ms",
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getTitle());
+        assertEquals("Jane",
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getForenames());
+        assertEquals("Roe",
+            out.getDefendantAccountParty().getPartyDetails().getIndividualDetails().getSurname());
+
+        // Organisation must be null when individual is present
+        assertNull(out.getDefendantAccountParty().getPartyDetails().getOrganisationDetails(),
+            "Organisation details must be null when individual details are present");
+    }
+
 }
 

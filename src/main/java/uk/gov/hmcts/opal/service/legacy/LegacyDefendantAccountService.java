@@ -853,10 +853,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             log.info(":replaceDefendantAccountParty: Legacy success.");
         }
 
-        return fromLegacy(response.responseEntity);
+        return fromReplaceDefendantAccountPartyLegacy(response.responseEntity);
     }
 
-    private GetDefendantAccountPartyResponse fromLegacy(LegacyReplaceDefendantAccountPartyResponse legacy) {
+    private GetDefendantAccountPartyResponse fromReplaceDefendantAccountPartyLegacy
+        (LegacyReplaceDefendantAccountPartyResponse legacy) {
         if (legacy == null) {
             return null;
         }
