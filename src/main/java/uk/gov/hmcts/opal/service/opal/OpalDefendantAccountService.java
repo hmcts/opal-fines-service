@@ -1117,6 +1117,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+    // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method
     private DefendantAccountEntity bumpVersion(Long accountId) {
         DefendantAccountEntity entity = getDefendantAccountById(accountId);
         entity.setVersion(entity.getVersion() + 1);
