@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.repository.AccountTransferRepository;
 import uk.gov.hmcts.opal.repository.AllocationRepository;
+import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.BacsPaymentRepository;
 import uk.gov.hmcts.opal.repository.ChequeRepository;
 import uk.gov.hmcts.opal.repository.CommittalWarrantProgressRepository;
@@ -49,6 +50,7 @@ public class DefendantAccountDeletionService {
     private final AllocationRepository allocationsRepository;
     private final ChequeRepository chequeRepository;
     private final BacsPaymentRepository bacsPaymentsRepository;
+    private final AmendmentRepository amendmentRepository;
 
 
     public void deleteDefendantAccountAndAssociatedData(long defendantAccountId) {
@@ -103,6 +105,7 @@ public class DefendantAccountDeletionService {
         fixedPenaltyOffenceRepository.deleteByDefendantAccountId(defendantAccountId);
         paymentCardRequestsRepository.deleteByDefendantAccountId(defendantAccountId);
         noteRepository.deleteByAssociatedRecordId(String.valueOf(defendantAccountId));
+        amendmentRepository.deleteByAssociatedRecordId(String.valueOf(defendantAccountId));
 
         log.debug("Completed Level 2 deletion for defendant account {}", defendantAccountId);
     }

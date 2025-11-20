@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,18 +19,15 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
-
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
-
-
-import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 @RestController
 @RequestMapping("/defendant-accounts")
@@ -125,6 +125,23 @@ public class DefendantAccountController {
         return buildResponse(response);
     }
 
+    @PutMapping(value = "/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}")
+    @Operation(summary = "Get defendant account details by providing the defendant account summary")
+    public ResponseEntity<GetDefendantAccountPartyResponse> replaceDefendantAccountParty(
+        @PathVariable Long defendantAccountId,
+        @PathVariable Long defendantAccountPartyId,
+        @RequestHeader("Business-Unit-Id") String businessUnitId,
+        @RequestHeader(value = "If-Match", required = false) String ifMatch,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
+        @RequestBody DefendantAccountParty request
+    ) {
 
+        log.debug(":PUT:replaceDefendantAccountParty: for defendant id: {} and defendantAccountPartyId: {}",
+            defendantAccountId, defendantAccountPartyId);
+
+        return buildResponse(
+            defendantAccountService.replaceDefendantAccountParty(defendantAccountId,
+                defendantAccountPartyId, authHeaderValue, ifMatch, businessUnitId, request));
+    }
 
 }
