@@ -1,12 +1,12 @@
 package uk.gov.hmcts.opal.controllers;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -395,12 +395,18 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
-    void testGetAtAGlance_VerifyAliasesArray_Organisation() throws Exception {
-        super.testGetAtAGlance_VerifyAliasesArray_Organisation(log);
+    void testPut_notFound_whenDapMissing() throws Exception {
+        super.put_notFound_whenDapMissing(log);
     }
 
     @Test
-    void testGetAtAGlance_VerifyAliasesArray_Individual() throws Exception {
-        super.testGetAtAGlance_VerifyAliasesArray_Individual(log);
+    void testPut_notFound_whenAccountNotInHeaderBU() throws Exception {
+        super.put_notFound_whenAccountNotInHeaderBU(log);
     }
+
+    @Test
+    void testPut_happyPath_updates_andReturnsResponse() throws Exception {
+        super.put_happyPath_updates_andReturnsResponse(log);
+    }
+
 }
