@@ -1054,7 +1054,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         DefendantAccountParty request,
         String ifMatch,
         String businessUnitId,
-        String postedBy) {
+        String postedBy,
+        String businessUnitUserId) {
 
         DefendantAccountEntity account = defendantAccountRepository.findById(accountId)
             .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: " + accountId));

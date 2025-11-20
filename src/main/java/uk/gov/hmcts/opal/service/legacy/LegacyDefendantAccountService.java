@@ -824,13 +824,15 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     @Override
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
-        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy) {
+        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
+        String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
+            .version(Long.parseLong(ifMatch))
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
-            .businessUnitUserId(postedBy)
-            .defendantAccountParty(toLegacyDefendantAccountParty(defendantAccountParty))
+            .businessUnitUserId(businessUnitUserId)
+            .defendantAccountParty(defendantAccountParty)
             .build();
 
         Response<LegacyReplaceDefendantAccountPartyResponse> response = gatewayService.postToGateway(
@@ -854,152 +856,40 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return fromLegacy(response.responseEntity);
     }
 
-    private DefendantAccountPartyLegacy toLegacyDefendantAccountParty(DefendantAccountParty src) {
-        if (src == null) {
-            return null;
-        }
-
-        PartyDetails mp = src.getPartyDetails();
-        PartyDetailsLegacy lp = (mp == null) ? null
-            : PartyDetailsLegacy.builder()
-                .partyId(mp.getPartyId())
-                .organisationFlag(mp.getOrganisationFlag())
-                .organisationDetails(
-                    mp.getOrganisationDetails() == null ? null
-                        : OrganisationDetailsLegacy.builder()
-                            .organisationName(mp.getOrganisationDetails().getOrganisationName())
-                            .build()
-                )
-                .individualDetails(
-                    mp.getIndividualDetails() == null ? null
-                        : IndividualDetailsLegacy.builder()
-                            .title(mp.getIndividualDetails().getTitle())
-                            .forenames(mp.getIndividualDetails().getForenames())
-                            .surname(mp.getIndividualDetails().getSurname())
-                            .dateOfBirth(mp.getIndividualDetails().getDateOfBirth())
-                            .age(mp.getIndividualDetails().getAge())
-                            .nationalInsuranceNumber(mp.getIndividualDetails().getNationalInsuranceNumber())
-                            .build()
-                )
-                .build();
-
-        AddressDetails ma = src.getAddress();
-        AddressDetailsLegacy la = (ma == null) ? null
-            : AddressDetailsLegacy.builder()
-                .addressLine1(ma.getAddressLine1())
-                .addressLine2(ma.getAddressLine2())
-                .addressLine3(ma.getAddressLine3())
-                .addressLine4(ma.getAddressLine4())
-                .addressLine5(ma.getAddressLine5())
-                .postcode(ma.getPostcode())
-                .build();
-
-        ContactDetails mc = src.getContactDetails();
-        ContactDetailsLegacy lc = (mc == null) ? null
-            : ContactDetailsLegacy.builder()
-                .primaryEmailAddress(mc.getPrimaryEmailAddress())
-                .secondaryEmailAddress(mc.getSecondaryEmailAddress())
-                .mobileTelephoneNumber(mc.getMobileTelephoneNumber())
-                .homeTelephoneNumber(mc.getHomeTelephoneNumber())
-                .workTelephoneNumber(mc.getWorkTelephoneNumber())
-                .build();
-
-        VehicleDetails mv = src.getVehicleDetails();
-        VehicleDetailsLegacy lv = (mv == null) ? null
-            : VehicleDetailsLegacy.builder()
-                .vehicleMakeAndModel(mv.getVehicleMakeAndModel())
-                .vehicleRegistration(mv.getVehicleRegistration())
-                .build();
-
-        EmployerDetails me = src.getEmployerDetails();
-        EmployerDetailsLegacy le = (me == null) ? null
-            : EmployerDetailsLegacy.builder()
-                .employerName(me.getEmployerName())
-                .employerReference(me.getEmployerReference())
-                .employerEmailAddress(me.getEmployerEmailAddress())
-                .employerTelephoneNumber(me.getEmployerTelephoneNumber())
-                .employerAddress(
-                    me.getEmployerAddress() == null ? null
-                        : AddressDetailsLegacy.builder()
-                            .addressLine1(me.getEmployerAddress().getAddressLine1())
-                            .addressLine2(me.getEmployerAddress().getAddressLine2())
-                            .addressLine3(me.getEmployerAddress().getAddressLine3())
-                            .addressLine4(me.getEmployerAddress().getAddressLine4())
-                            .addressLine5(me.getEmployerAddress().getAddressLine5())
-                            .postcode(me.getEmployerAddress().getPostcode())
-                            .build()
-                )
-                .build();
-
-        LanguagePreferences mLang = src.getLanguagePreferences();
-        LanguagePreferencesLegacy lLang = null;
-        if (mLang != null) {
-            LanguagePreference d = mLang.getDocumentLanguagePreference();
-            LanguagePreferencesLegacy.LanguagePreference dLegacy = (d == null) ? null
-                : LanguagePreferencesLegacy.LanguagePreference.builder()
-                    .languageCode(d.getLanguageCode())
-                    .languageDisplayName(d.getLanguageDisplayName())
-                    .build();
-
-            LanguagePreference h = mLang.getHearingLanguagePreference();
-            LanguagePreferencesLegacy.LanguagePreference hLegacy = (h == null) ? null
-                : LanguagePreferencesLegacy.LanguagePreference.builder()
-                    .languageCode(h.getLanguageCode())
-                    .languageDisplayName(h.getLanguageDisplayName())
-                    .build();
-
-            lLang = LanguagePreferencesLegacy.builder()
-                .documentLanguagePreference(dLegacy)
-                .hearingLanguagePreference(hLegacy)
-                .build();
-        }
-
-        return DefendantAccountPartyLegacy.builder()
-            .defendantAccountPartyType(src.getDefendantAccountPartyType())
-            .isDebtor(src.getIsDebtor())
-            .partyDetails(lp)
-            .address(la)
-            .contactDetails(lc)
-            .vehicleDetails(lv)
-            .employerDetails(le)
-            .languagePreferences(lLang)
-            .build();
-    }
-
     private GetDefendantAccountPartyResponse fromLegacy(LegacyReplaceDefendantAccountPartyResponse legacy) {
         if (legacy == null) {
             return null;
         }
 
-        DefendantAccountPartyLegacy lp = legacy.getDefendantAccountParty();
+        DefendantAccountPartyLegacy legacyDefendantAccountParty = legacy.getDefendantAccountParty();
 
         PartyDetails party = null;
-        if (lp != null && lp.getPartyDetails() != null) {
-            PartyDetailsLegacy pL = lp.getPartyDetails();
+        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getPartyDetails() != null) {
+            PartyDetailsLegacy partyDetailsLegacy = legacyDefendantAccountParty.getPartyDetails();
 
             OrganisationDetails org = null;
-            if (pL.getOrganisationDetails() != null) {
+            if (partyDetailsLegacy.getOrganisationDetails() != null) {
                 org = OrganisationDetails.builder()
-                    .organisationName(pL.getOrganisationDetails().getOrganisationName())
+                    .organisationName(partyDetailsLegacy.getOrganisationDetails().getOrganisationName())
                     .build();
             }
 
             IndividualDetails ind = null;
-            if (pL.getIndividualDetails() != null) {
-                IndividualDetailsLegacy iL = pL.getIndividualDetails();
+            if (partyDetailsLegacy.getIndividualDetails() != null) {
+                IndividualDetailsLegacy individualDetailsLegacy = partyDetailsLegacy.getIndividualDetails();
                 ind = IndividualDetails.builder()
-                    .title(iL.getTitle())
-                    .forenames(iL.getForenames())
-                    .surname(iL.getSurname())
-                    .dateOfBirth(iL.getDateOfBirth())
-                    .age(iL.getAge())
-                    .nationalInsuranceNumber(iL.getNationalInsuranceNumber())
+                    .title(individualDetailsLegacy.getTitle())
+                    .forenames(individualDetailsLegacy.getForenames())
+                    .surname(individualDetailsLegacy.getSurname())
+                    .dateOfBirth(individualDetailsLegacy.getDateOfBirth())
+                    .age(individualDetailsLegacy.getAge())
+                    .nationalInsuranceNumber(individualDetailsLegacy.getNationalInsuranceNumber())
                     .build();
             }
 
             party = PartyDetails.builder()
-                .partyId(pL.getPartyId())
-                .organisationFlag(pL.getOrganisationFlag())
+                .partyId(partyDetailsLegacy.getPartyId())
+                .organisationFlag(partyDetailsLegacy.getOrganisationFlag())
                 .organisationDetails(org)
                 .individualDetails(ind)
                 .build();
@@ -1007,82 +897,82 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         // Map Address
         AddressDetails address = null;
-        if (lp != null && lp.getAddress() != null) {
-            AddressDetailsLegacy aL = lp.getAddress();
+        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getAddress() != null) {
+            AddressDetailsLegacy addressDetailsLegacy = legacyDefendantAccountParty.getAddress();
             address = AddressDetails.builder()
-                .addressLine1(aL.getAddressLine1())
-                .addressLine2(aL.getAddressLine2())
-                .addressLine3(aL.getAddressLine3())
-                .addressLine4(aL.getAddressLine4())
-                .addressLine5(aL.getAddressLine5())
-                .postcode(aL.getPostcode())
+                .addressLine1(addressDetailsLegacy.getAddressLine1())
+                .addressLine2(addressDetailsLegacy.getAddressLine2())
+                .addressLine3(addressDetailsLegacy.getAddressLine3())
+                .addressLine4(addressDetailsLegacy.getAddressLine4())
+                .addressLine5(addressDetailsLegacy.getAddressLine5())
+                .postcode(addressDetailsLegacy.getPostcode())
                 .build();
         }
 
         // Map Contact
         ContactDetails contact = null;
-        if (lp != null && lp.getContactDetails() != null) {
-            ContactDetailsLegacy cL = lp.getContactDetails();
+        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getContactDetails() != null) {
+            ContactDetailsLegacy contactDetailsLegacy = legacyDefendantAccountParty.getContactDetails();
             contact = ContactDetails.builder()
-                .primaryEmailAddress(cL.getPrimaryEmailAddress())
-                .secondaryEmailAddress(cL.getSecondaryEmailAddress())
-                .mobileTelephoneNumber(cL.getMobileTelephoneNumber())
-                .homeTelephoneNumber(cL.getHomeTelephoneNumber())
-                .workTelephoneNumber(cL.getWorkTelephoneNumber())
+                .primaryEmailAddress(contactDetailsLegacy.getPrimaryEmailAddress())
+                .secondaryEmailAddress(contactDetailsLegacy.getSecondaryEmailAddress())
+                .mobileTelephoneNumber(contactDetailsLegacy.getMobileTelephoneNumber())
+                .homeTelephoneNumber(contactDetailsLegacy.getHomeTelephoneNumber())
+                .workTelephoneNumber(contactDetailsLegacy.getWorkTelephoneNumber())
                 .build();
         }
 
         // Map Vehicle
         VehicleDetails vehicle = null;
-        if (lp != null && lp.getVehicleDetails() != null) {
-            VehicleDetailsLegacy vL = lp.getVehicleDetails();
+        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getVehicleDetails() != null) {
+            VehicleDetailsLegacy vehicleDetailsLegacy = legacyDefendantAccountParty.getVehicleDetails();
             vehicle = VehicleDetails.builder()
-                .vehicleMakeAndModel(vL.getVehicleMakeAndModel())
-                .vehicleRegistration(vL.getVehicleRegistration())
+                .vehicleMakeAndModel(vehicleDetailsLegacy.getVehicleMakeAndModel())
+                .vehicleRegistration(vehicleDetailsLegacy.getVehicleRegistration())
                 .build();
         }
 
         // Map Employer
         EmployerDetails employer = null;
-        if (lp != null && lp.getEmployerDetails() != null) {
-            EmployerDetailsLegacy eL = lp.getEmployerDetails();
+        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getEmployerDetails() != null) {
+            EmployerDetailsLegacy employerDetailsLegacy = legacyDefendantAccountParty.getEmployerDetails();
             AddressDetails employerAddr = null;
-            if (eL.getEmployerAddress() != null) {
+            if (employerDetailsLegacy.getEmployerAddress() != null) {
                 employerAddr = AddressDetails.builder()
-                    .addressLine1(eL.getEmployerAddress().getAddressLine1())
-                    .addressLine2(eL.getEmployerAddress().getAddressLine2())
-                    .addressLine3(eL.getEmployerAddress().getAddressLine3())
-                    .addressLine4(eL.getEmployerAddress().getAddressLine4())
-                    .addressLine5(eL.getEmployerAddress().getAddressLine5())
-                    .postcode(eL.getEmployerAddress().getPostcode())
+                    .addressLine1(employerDetailsLegacy.getEmployerAddress().getAddressLine1())
+                    .addressLine2(employerDetailsLegacy.getEmployerAddress().getAddressLine2())
+                    .addressLine3(employerDetailsLegacy.getEmployerAddress().getAddressLine3())
+                    .addressLine4(employerDetailsLegacy.getEmployerAddress().getAddressLine4())
+                    .addressLine5(employerDetailsLegacy.getEmployerAddress().getAddressLine5())
+                    .postcode(employerDetailsLegacy.getEmployerAddress().getPostcode())
                     .build();
             }
             employer = EmployerDetails.builder()
-                .employerName(eL.getEmployerName())
-                .employerReference(eL.getEmployerReference())
-                .employerEmailAddress(eL.getEmployerEmailAddress())
-                .employerTelephoneNumber(eL.getEmployerTelephoneNumber())
+                .employerName(employerDetailsLegacy.getEmployerName())
+                .employerReference(employerDetailsLegacy.getEmployerReference())
+                .employerEmailAddress(employerDetailsLegacy.getEmployerEmailAddress())
+                .employerTelephoneNumber(employerDetailsLegacy.getEmployerTelephoneNumber())
                 .employerAddress(employerAddr)
                 .build();
         }
 
         // Map Language Preferences (use codes; never toString)
         LanguagePreferences languages = null;
-        if (lp != null && lp.getLanguagePreferences() != null) {
-            LanguagePreferencesLegacy lL = lp.getLanguagePreferences();
-            String docCode = lL.getDocumentLanguagePreference() == null
-                ? null : lL.getDocumentLanguagePreference().getLanguageCode();
-            String hearCode = lL.getHearingLanguagePreference() == null
-                ? null : lL.getHearingLanguagePreference().getLanguageCode();
+        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getLanguagePreferences() != null) {
+            LanguagePreferencesLegacy legacyLanguagePreference = legacyDefendantAccountParty.getLanguagePreferences();
+            String docCode = legacyLanguagePreference.getDocumentLanguagePreference() == null
+                ? null : legacyLanguagePreference.getDocumentLanguagePreference().getLanguageCode();
+            String hearCode = legacyLanguagePreference.getHearingLanguagePreference() == null
+                ? null : legacyLanguagePreference.getHearingLanguagePreference().getLanguageCode();
             languages = LanguagePreferences.ofCodes(docCode, hearCode);
         }
 
         // Assemble modern DefendantAccountParty
         DefendantAccountParty modernParty = null;
-        if (lp != null) {
+        if (legacyDefendantAccountParty != null) {
             modernParty = DefendantAccountParty.builder()
-                .defendantAccountPartyType(lp.getDefendantAccountPartyType())
-                .isDebtor(lp.getIsDebtor())
+                .defendantAccountPartyType(legacyDefendantAccountParty.getDefendantAccountPartyType())
+                .isDebtor(legacyDefendantAccountParty.getIsDebtor())
                 .partyDetails(party)
                 .address(address)
                 .contactDetails(contact)

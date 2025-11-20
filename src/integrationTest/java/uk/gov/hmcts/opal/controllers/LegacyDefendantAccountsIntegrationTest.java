@@ -81,8 +81,15 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
         super.legacyGetDefendantAccountParty_500Error(log);
     }
 
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
     void testPutReplaceDefendantAccountParty_Success() throws Exception {
-        super.legacyPutReplaceDefendantAccountParty_SUCCESS(log);
+        super.legacyPutReplaceDefendantAccountParty_Success(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testPutReplaceDefendantAccountParty_Error() throws Exception {
+        super.legacyPutReplaceDefendantAccountParty_500Error(log);
     }
 }

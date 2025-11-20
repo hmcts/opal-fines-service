@@ -3678,7 +3678,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     }
 
     @DisplayName("LEGACY: PUT Replace DAP")
-    void legacyPutReplaceDefendantAccountParty_SUCCESS(Logger log) throws Exception {
+    void legacyPutReplaceDefendantAccountParty_Success(Logger log) throws Exception {
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
@@ -3712,6 +3712,40 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type")
                 .value("Defendant"));
+
+    }
+
+    @DisplayName("LEGACY: PUT Replace DAP")
+    void legacyPutReplaceDefendantAccountParty_500Error(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + 1 + "\"");
+
+        String body = """
+            {
+                    "defendant_account_party_type": "Defendant",
+                    "party_details": {
+                    "party_id": "20010",
+                    "organisation_flag": true,
+                    "organisation_details": { "organisation_name": "StillCo" }
+                 }
+            }
+            """;
+
+        var res = mockMvc.perform(
+            put("/defendant-accounts/500/defendant-account-parties/500")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        log.info("PUT DAP missing DAP resp:\n{}", res.andReturn().getResponse().getContentAsString());
+
+        res.andExpect(status().is5xxServerError());
 
     }
 

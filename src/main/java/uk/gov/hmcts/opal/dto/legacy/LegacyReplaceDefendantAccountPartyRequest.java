@@ -1,35 +1,33 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.jackson.Jacksonized;
+import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@XmlRootElement(name = "request")
-@XmlAccessorType(XmlAccessType.FIELD)
+@Jacksonized
 public class LegacyReplaceDefendantAccountPartyRequest {
 
-    @XmlElement(name = "version")
+    @JsonProperty("version")
     private Long version;
 
-    @XmlElement(name = "defendant_account_id")
+    @JsonProperty("defendant_account_id")
     private Long defendantAccountId;
 
-    @XmlElement(name = "business_unit_id")
+    @JsonProperty("business_unit_id")
     private String businessUnitId;
 
-    @XmlElement(name = "business_unit_user_id")
+    @JsonProperty("business_unit_user_id")
     private String businessUnitUserId;
 
-    @XmlElement(name = "defendant_account_party")
-    private DefendantAccountPartyLegacy defendantAccountParty;
+    @JsonProperty("defendant_account_party")
+    private DefendantAccountParty defendantAccountParty;
 
 }

@@ -67,10 +67,11 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     @Override
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
-        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy) {
+        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
+        String businessUserId) {
 
         return getCurrentModeService().replaceDefendantAccountParty(defendantAccountId, defendantAccountPartyId,
-            defendantAccountParty, ifMatch, businessUnitId, postedBy);
+            defendantAccountParty, ifMatch, businessUnitId, postedBy, businessUserId);
 
     }
 }
