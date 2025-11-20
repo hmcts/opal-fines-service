@@ -42,8 +42,8 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.result_id").value("AAAAAA"))
-            .andExpect(jsonPath("$.result_title").value("First Ever Result Entry for Testing"));
+            .andExpect(jsonPath("$.resultId").value("AAAAAA"))
+            .andExpect(jsonPath("$.resultTitle").value("First Ever Result Entry for Testing"));
     }
 
     @Test
