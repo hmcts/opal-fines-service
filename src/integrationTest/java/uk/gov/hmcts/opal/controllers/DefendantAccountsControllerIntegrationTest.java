@@ -2114,7 +2114,23 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     }
 
     void testGetPaymentTerms(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // --- RESET PCR + version state BEFORE running test (CI fails without this) ---
+        jdbcTemplate.update("""
+        UPDATE defendant_accounts
+        SET 
+            payment_card_requested = false,
+            payment_card_requested_by = NULL,
+            payment_card_requested_by_name = NULL,
+            payment_card_requested_date = '2024-01-01',
+            version_number = 0
+        WHERE defendant_account_id = 77
+            """);
+
+        jdbcTemplate.update("DELETE FROM payment_card_requests WHERE defendant_account_id = 77");
+
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
 
         // Make the 'date_last_amended' deterministic for acct 77
         jdbcTemplate.update(
@@ -3532,6 +3548,19 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
     @DisplayName("OPAL: Add Payment Card Request – Happy Path [@PO-1719]")
     void opalAddPaymentCardRequest_Happy(Logger log) throws Exception {
+
+        // --- Reset state for account 77 before test ---
+        jdbcTemplate.update("""
+        UPDATE defendant_accounts
+        SET 
+            version_number = 0,
+            payment_card_requested = false,
+            payment_card_requested_by = NULL,
+            payment_card_requested_by_name = NULL,
+            payment_card_requested_date = '2024-01-01'
+        WHERE defendant_account_id = 77
+            """);
+        jdbcTemplate.update("DELETE FROM payment_card_requests WHERE defendant_account_id = 77");
 
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());
