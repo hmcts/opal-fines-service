@@ -856,8 +856,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return fromReplaceDefendantAccountPartyLegacy(response.responseEntity);
     }
 
-    private GetDefendantAccountPartyResponse fromReplaceDefendantAccountPartyLegacy
-        (LegacyReplaceDefendantAccountPartyResponse legacy) {
+    private GetDefendantAccountPartyResponse fromReplaceDefendantAccountPartyLegacy(
+        LegacyReplaceDefendantAccountPartyResponse legacy) {
+
         if (legacy == null) {
             return null;
         }
