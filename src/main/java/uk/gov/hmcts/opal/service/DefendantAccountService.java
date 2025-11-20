@@ -129,7 +129,7 @@ public class DefendantAccountService {
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
-        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ACCOUNT_MAINTENANCE)) {
+        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)) {
 
             return defendantAccountServiceProxy.addPaymentCardRequest(
                 defendantAccountId, businessUnitId, ifMatch, authHeaderValue
@@ -138,7 +138,4 @@ public class DefendantAccountService {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }
     }
-
-
-
 }

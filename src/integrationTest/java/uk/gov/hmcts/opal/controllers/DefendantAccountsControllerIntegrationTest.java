@@ -2114,23 +2114,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     }
 
     void testGetPaymentTerms(Logger log) throws Exception {
-
-        // --- RESET PCR + version state BEFORE running test (CI fails without this) ---
-        jdbcTemplate.update("""
-        UPDATE defendant_accounts
-        SET 
-            payment_card_requested = false,
-            payment_card_requested_by = NULL,
-            payment_card_requested_by_name = NULL,
-            payment_card_requested_date = '2024-01-01',
-            version_number = 0
-        WHERE defendant_account_id = 77
-            """);
-
-        jdbcTemplate.update("DELETE FROM payment_card_requests WHERE defendant_account_id = 77");
-
-        when(userStateService.checkForAuthorisedUser(any()))
-            .thenReturn(allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
 
         // Make the 'date_last_amended' deterministic for acct 77
         jdbcTemplate.update(
@@ -3549,26 +3533,13 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     @DisplayName("OPAL: Add Payment Card Request – Happy Path [@PO-1719]")
     void opalAddPaymentCardRequest_Happy(Logger log) throws Exception {
 
-        // --- Reset state for account 77 before test ---
-        jdbcTemplate.update("""
-        UPDATE defendant_accounts
-        SET 
-            version_number = 0,
-            payment_card_requested = false,
-            payment_card_requested_by = NULL,
-            payment_card_requested_by_name = NULL,
-            payment_card_requested_date = '2024-01-01'
-        WHERE defendant_account_id = 77
-            """);
-        jdbcTemplate.update("DELETE FROM payment_card_requests WHERE defendant_account_id = 77");
-
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());
 
         Integer currentVersion = jdbcTemplate.queryForObject(
             "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
             Integer.class,
-            77L
+            901L
         );
 
         HttpHeaders headers = new HttpHeaders();
@@ -3577,7 +3548,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         headers.add("If-Match", "\"" + currentVersion + "\"");
 
         ResultActions result = mockMvc.perform(
-            post("/defendant-accounts/77/payment-card-request")
+            post("/defendant-accounts/901/payment-card-request")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}")
@@ -3588,7 +3559,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         result.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.defendant_account_id").value(77));
+            .andExpect(jsonPath("$.defendant_account_id").value(901));
     }
 
     @DisplayName("OPAL: Add Payment Card Request – Not Found when account not in header BU [@PO-1719]")
@@ -3602,7 +3573,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         Integer currentVersion = jdbcTemplate.queryForObject(
             "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
             Integer.class,
-            77L
+            88L
         );
 
         HttpHeaders headers = new HttpHeaders();
@@ -3611,7 +3582,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         headers.add("If-Match", "\"" + currentVersion + "\"");
 
         ResultActions result = mockMvc.perform(
-            post("/defendant-accounts/77/payment-card-request")
+            post("/defendant-accounts/88/payment-card-request")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}")
@@ -3629,7 +3600,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     @DisplayName("OPAL: Add Payment Card Request – Forbidden when user lacks permission [@PO-1719]")
     void opalAddPaymentCardRequest_Forbidden_NoPermission(Logger log) throws Exception {
 
-        // User with NO ACCOUNT_MAINTENANCE permission
+        // User with NO AMEND_PAYMENT_TERMS permission
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(
                 UserState.builder()
@@ -3645,7 +3616,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         headers.add("If-Match", "\"0\"");
 
         mockMvc.perform(
-                post("/defendant-accounts/77/payment-card-request")
+                post("/defendant-accounts/88/payment-card-request")
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
             )
@@ -3661,7 +3632,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .when(userStateService).checkForAuthorisedUser(any());
 
         mockMvc.perform(
-                post("/defendant-accounts/77/payment-card-request")
+                post("/defendant-accounts/88/payment-card-request")
                     .header("Business-Unit-Id", "78")
                     .header("If-Match", "\"0\"")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -3682,7 +3653,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         headers.add("If-Match", "\"9999\""); // Wrong version
 
         mockMvc.perform(
-                post("/defendant-accounts/77/payment-card-request")
+                post("/defendant-accounts/88/payment-card-request")
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
             )
@@ -3701,7 +3672,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         Integer version1 = jdbcTemplate.queryForObject(
             "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
             Integer.class,
-            77L
+            88L
         );
         log.info("INITIAL VERSION = {}", version1);
 
@@ -3711,7 +3682,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         headers1.add("If-Match", "\"" + version1 + "\"");
 
         mockMvc.perform(
-            post("/defendant-accounts/77/payment-card-request")
+            post("/defendant-accounts/88/payment-card-request")
                 .headers(headers1)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}")
@@ -3721,7 +3692,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         Integer version2 = jdbcTemplate.queryForObject(
             "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
             Integer.class,
-            77L
+            88L
         );
         log.info("VERSION AFTER FIRST CALL = {}", version2);
 
@@ -3731,7 +3702,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         headers2.add("If-Match", "\"" + version2 + "\"");
 
         ResultActions result = mockMvc.perform(
-            post("/defendant-accounts/77/payment-card-request")
+            post("/defendant-accounts/88/payment-card-request")
                 .headers(headers2)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}")
@@ -3743,13 +3714,11 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         result.andExpect(status().isConflict())
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/resource-conflict"))
             .andExpect(jsonPath("$.status").value(409))
-            // generic detail
             .andExpect(jsonPath("$.detail").value("A conflict occurred with the requested resource"))
-            // actual message
             .andExpect(jsonPath("$.conflictReason")
                 .value("A payment card request already exists for this account."))
             .andExpect(jsonPath("$.resourceType").value("DefendantAccountEntity"))
-            .andExpect(jsonPath("$.resourceId").value("77"))
+            .andExpect(jsonPath("$.resourceId").value("88"))
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
