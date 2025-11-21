@@ -1261,10 +1261,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         account.setPaymentCardRequestedByName(displayName);
         defendantAccountRepository.save(account);
 
-        // 12. Lock & flush version
-        em.lock(account, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
-        em.flush();
-
         // 13. Audit complete
         Short accountBuId = account.getBusinessUnit().getBusinessUnitId();
         amendmentService.auditFinaliseStoredProc(
