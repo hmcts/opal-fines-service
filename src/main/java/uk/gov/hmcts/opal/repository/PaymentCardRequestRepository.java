@@ -6,4 +6,7 @@ import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 public interface PaymentCardRequestRepository extends JpaRepository<PaymentCardRequestEntity, Long> {
 
     void deleteByDefendantAccountId(long defendantAccountId);
+
+    boolean existsByDefendantAccountId(Long defendantAccountId);
+
 }
