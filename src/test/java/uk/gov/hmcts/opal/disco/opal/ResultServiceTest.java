@@ -28,6 +28,7 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -162,5 +163,50 @@ class ResultServiceTest {
 
         // Assert
         assertEquals(List.of(refData), result);
+    }
+
+    @Test
+    void testGetResultById_ReturnsFullDto() {
+        // Arrange
+        ResultEntity.Lite entity = ResultEntity.Lite.builder()
+            .resultId("ABC")
+            .resultTitle("Result Title")
+            .resultTitleCy("Welsh Title")
+            .resultType("TYPE1")
+            .active(true)
+            .build();
+
+        uk.gov.hmcts.opal.dto.ResultDto dto = uk.gov.hmcts.opal.dto.ResultDto.builder()
+            .resultId("ABC")
+            .resultTitle("Result Title")
+            .resultTitleCy("Welsh Title")
+            .resultType("TYPE1")
+            .active(true)
+            .build();
+
+        when(resultLiteRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultMapper.toDto(entity)).thenReturn(dto);
+
+        // Act
+        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResultById("ABC");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("ABC", result.getResultId());
+        assertEquals("Result Title", result.getResultTitle());
+        verify(resultLiteRepository).findById("ABC");
+        verify(resultMapper).toDto(entity);
+    }
+
+    @Test
+    void testGetResultById_ThrowsWhenNotFound() {
+        // Arrange
+        when(resultLiteRepository.findById("MISSING")).thenReturn(Optional.empty());
+
+        // Act + Assert
+        org.junit.jupiter.api.Assertions.assertThrows(
+            jakarta.persistence.EntityNotFoundException.class,
+            () -> resultService.getResultById("MISSING")
+        );
     }
 }

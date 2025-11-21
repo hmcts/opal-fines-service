@@ -9,11 +9,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.ResultDto;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity.Lite;
-import uk.gov.hmcts.opal.entity.result.ResultEntity_;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
 import uk.gov.hmcts.opal.repository.ResultLiteRepository;
@@ -40,10 +40,19 @@ public class ResultService {
         return resultMapper.toRefData(getLiteResultById(resultId));
     }
 
+    public ResultDto getResultById(String resultId) {
+        // Fetch the full Lite entity (same logic as existing)
+        ResultEntity.Lite entity = resultLiteRepository.findById(resultId)
+            .orElseThrow(() -> new EntityNotFoundException("'Result' not found with id: " + resultId));
+
+        // Map to full DTO
+        return resultMapper.toDto(entity);
+    }
+
     // @Cacheable(cacheNames = "resultReferenceDataByIds", key = "#resultIds.orElse('noIds'))")
     public ResultReferenceDataResponse getResultsByIds(Optional<List<String>> resultIds) {
 
-        Sort idSort = Sort.by(Sort.Direction.ASC, ResultEntity_.RESULT_ID);
+        Sort idSort = Sort.by(Sort.Direction.ASC, "resultId");
 
         Page<Lite> page = resultLiteRepository
             .findBy(
@@ -67,7 +76,7 @@ public class ResultService {
     @Cacheable(cacheNames = "resultReferenceDataCache", key = "#filter.orElse('noFilter')")
     public List<ResultReferenceData> getReferenceData(Optional<String> filter) {
 
-        Sort nameSort = Sort.by(Sort.Direction.ASC, ResultEntity_.RESULT_TITLE);
+        Sort nameSort = Sort.by(Sort.Direction.ASC, "resultTitle");
 
         Page<ResultEntity.Lite> page = resultLiteRepository
             .findBy(

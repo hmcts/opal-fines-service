@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
+import uk.gov.hmcts.opal.dto.ResultDto;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
@@ -32,13 +32,13 @@ public class ResultController {
     }
 
     @GetMapping(value = "/{resultId}")
-    @Operation(summary = "Returns the Result for the given resultId.")
+    @Operation(summary = "Returns the full ResultDto for the given resultId.")
     @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
-    public ResponseEntity<ResultReferenceData> getResultById(@PathVariable String resultId) {
+    public ResponseEntity<ResultDto> getResultById(@PathVariable String resultId) {
 
         log.debug(":GET:getResultById: resultId: {}", resultId);
 
-        return buildResponse(resultService.getResultRefDataById(resultId));
+        return buildResponse(resultService.getResultById(resultId));
     }
 
 

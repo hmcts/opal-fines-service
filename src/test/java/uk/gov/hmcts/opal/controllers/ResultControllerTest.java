@@ -7,12 +7,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
+import uk.gov.hmcts.opal.dto.ResultDto;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,24 +25,48 @@ class ResultControllerTest {
     private ResultController resultController;
 
     @Test
-    void testGetResult_Success() {
-        // Arrange
-        ResultReferenceData refData = new ResultReferenceData(
-            "ABC", "Result AAA-BBB", "Result AAA-BBB Cy", false,
-            "ResType-XX", "AAA-01234", (short)9);
+    void testGetResultDto_Success() {
+        // Arrange: Build a simple DTO
+        ResultDto dto = ResultDto.builder()
+            .resultId("ABC")
+            .resultTitle("Result AAA-BBB")
+            .resultTitleCy("Result AAA-BBB CY")
+            .build();
 
-        when(resultService.getResultRefDataById(any(String.class))).thenReturn(refData);
+        when(resultService.getResultById(anyString())).thenReturn(dto);
 
         // Act
-        ResponseEntity<ResultReferenceData> response = resultController.getResultById("ABC");
+        ResponseEntity<ResultDto> response = resultController.getResultById("ABC");
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(refData, response.getBody());
-        verify(resultService, times(1)).getResultRefDataById(any(String.class));
+        assertEquals(dto, response.getBody());
+        verify(resultService).getResultById("ABC");
     }
 
+    @Test
+    void testGetResultDto_Success_WithSimpleJsonExpectation() {
+        // Arrange
+        ResultDto dto = ResultDto.builder()
+            .resultId("ABC")
+            .resultTitle("Some Title")
+            .resultTitleCy("Welsh Title")
+            .resultType("TYPE1")
+            .active(true)
+            .build();
 
+        when(resultService.getResultById("ABC")).thenReturn(dto);
 
+        // Act
+        ResponseEntity<ResultDto> response = resultController.getResultById("ABC");
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("ABC", response.getBody().getResultId());
+        assertEquals("Some Title", response.getBody().getResultTitle());
+        assertEquals("Welsh Title", response.getBody().getResultTitleCy());
+        assertEquals("TYPE1", response.getBody().getResultType());
+        assertEquals(true, response.getBody().isActive());
+    }
 
 }
