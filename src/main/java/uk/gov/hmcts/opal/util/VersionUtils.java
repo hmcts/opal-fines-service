@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.util;
 
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -10,6 +11,9 @@ import java.util.Optional;
 
 @Slf4j(topic = "opal.VersionUtils")
 public class VersionUtils {
+
+    // first run of digits in the header (e.g., matches 7 in W/"7")
+    private static final Pattern DIGITS = Pattern.compile("(\\d+)");
 
     private VersionUtils() {
     }
@@ -68,4 +72,7 @@ public class VersionUtils {
                   "Could not parse 'ifMatch': " + ifMatch + " in method: " + method)), id, method);
     }
 
+    // function to parse IfMatch value from header, removed.
+    // At this stage we assume this will be a number.
+    // If this is needed to it can be re-added later.
 }
