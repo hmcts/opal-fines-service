@@ -7,54 +7,41 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-
 import org.hamcrest.core.IsNull;
-
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-
 import org.mockito.Mockito;
-
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
-
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.web.server.ResponseStatusException;
 
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
-
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -3535,7 +3522,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("some_value");
         headers.add("Business-Unit-Id", "78");
-        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\""); // use actual version
+        headers.add(HttpHeaders.IF_MATCH, String.valueOf(currentVersion)); // use actual version
 
         // create patch request with CommentsAndNotes payload
         String requestJson = commentAndNotesPayload("patch DefAcc comment legacy test",
@@ -3553,7 +3540,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         String body = resultActions.andReturn().getResponse().getContentAsString();
         String etag = resultActions.andReturn().getResponse().getHeader("ETag");
         long version = objectMapper.readTree(body).path("version").asLong();
-
+        
         log.info(":legacy_UpdateDefendantAccount_CommentsNotes_Success ETag: {}", etag);
 
         // Verify the response
@@ -3594,5 +3581,81 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         actions.andExpect(status().is5xxServerError())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
             .andExpect(header().doesNotExist("ETag")); // no ETag on error payloads
+    }
+
+    @DisplayName("LEGACY: PATCH Update Defendant Account - 401 Unauthorized [@PO-1908, CEP2]")
+    void test_Legacy_UpdateDefendantAccount_CommentNotes_401Unauthorized(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        String requestJson = commentAndNotesPayload("patch DefAcc comment legacy test",
+            "patch DefAcc note one legacy test", "patch DefAcc note two legacy test",
+            "patch DefAcc note three legacy test");
+
+        mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .header("authorization", "Bearer invalid_token")
+                .header("Business-Unit-Id", "78")
+                .header(HttpHeaders.IF_MATCH, "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        )
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
+
+    @DisplayName("LEGACY: PATCH Update Defendant Account - 403 Forbidden [@PO-1908, CEP3]")
+    void test_Legacy_UpdateDefendantAccount_CommentNotes_403Forbidden(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Forbidden"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        String requestJson = commentAndNotesPayload("patch DefAcc comment legacy test",
+            "patch DefAcc note one legacy test", "patch DefAcc note two legacy test",
+            "patch DefAcc note three legacy test");
+
+        mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .header("authorization", "Bearer some_value")
+                .header("Business-Unit-Id", "78")
+                .header(HttpHeaders.IF_MATCH, "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        )
+            .andExpect(status().isForbidden())
+            .andExpect(content().string(""));
+    }
+
+    @DisplayName("LEGACY: PATCH Update Defendant Account - 400 Bad Request Invalid Payload [@PO-1908, CEP1]")
+    void test_Legacy_UpdateDefendantAccount_CommentNotes_400BadRequest(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Invalid payload - using integer instead of string for account_comment
+        String invalidJson = """
+            {
+              "comment_and_notes": {
+                "account_comment": 12345
+              }
+            }
+            """;
+
+        ResultActions actions = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .header("authorization", "Bearer some_value")
+                .header("Business-Unit-Id", "78")
+                .header(HttpHeaders.IF_MATCH, "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidJson)
+        );
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":Legacy_UpdateDefendantAccount_CommentNotes_400BadRequest body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type")
+                .value("https://hmcts.gov.uk/problems/json-schema-validation"))
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 }
