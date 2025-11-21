@@ -42,7 +42,7 @@ public class VersionUtils {
             log.warn(":{}: NO differences detected in Entity '{}',  ID: '{}'. DB has NOT been updated from version :{}",
                      method, updatedFromDB.getClass().getSimpleName(), id, updatedFromDB.getVersion());
             throw new ResourceConflictException(updatedFromDB.getClass().getSimpleName(), id,
-                                                "No differences detected between DB state and requested update.");
+                                                "No differences detected between DB state and requested update.", dto);
         } else {
             log.debug(":{}: Updated Entity '{}' - '{}", method, updatedFromDB.getClass().getSimpleName(), id);
         }
@@ -65,7 +65,7 @@ public class VersionUtils {
             .map(s -> s.replace("\"", ""))
             .map(Long::parseLong)
             .orElseThrow(() -> new ResourceConflictException(existingFromDB.getClass().getSimpleName(), id,
-                  "Could not parse 'ifMatch': " + ifMatch + " in method: " + method)), id, method);
+                  "Could not parse 'ifMatch': " + ifMatch + " in method: " + method, existingFromDB)), id, method);
     }
 
 }
