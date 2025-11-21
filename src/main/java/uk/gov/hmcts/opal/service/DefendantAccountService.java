@@ -135,7 +135,7 @@ public class DefendantAccountService {
                 defendantAccountId, businessUnitId, ifMatch, authHeaderValue
             );
         } else {
-            throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
+            throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
         }
     }
 }
