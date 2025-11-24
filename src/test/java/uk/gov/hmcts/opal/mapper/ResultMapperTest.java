@@ -106,4 +106,64 @@ class ResultMapperTest {
         assertEquals("R2", response.getRefData().get(1).resultId());
         assertEquals("Result 2", response.getRefData().get(1).resultTitle());
     }
+
+    @Test
+    void toDto_shouldMapLiteEntityToFullResultDto() {
+        // Arrange — build full entity
+        ResultEntity.Lite entity = ResultEntity.Lite.builder()
+            .resultId("R999")
+            .resultTitle("Full Title")
+            .resultTitleCy("Teitl Llawn")
+            .resultType("FULL")
+            .active(true)
+            .impositionAllocationPriority((short) 3)
+            .impositionCreditor("HMCTS")
+            .imposition(true)
+            .impositionCategory("CAT")
+            .impositionAccruing(false)
+            .enforcement(true)
+            .enforcementOverride(false)
+            .furtherEnforcementWarn(true)
+            .furtherEnforcementDisallow(false)
+            .enforcementHold(false)
+            .requiresEnforcer(true)
+            .generatesHearing(true)
+            .collectionOrder(true)
+            .extendTtpDisallow(false)
+            .extendTtpPreserveLastEnf(true)
+            .preventPaymentCard(true)
+            .listsMonies(true)
+            .resultParameters("A,B,C")
+            .build();
+
+        // Act
+        uk.gov.hmcts.opal.dto.ResultDto dto = resultMapper.toDto(entity);
+
+        // Assert — every field 1:1
+        assertNotNull(dto);
+        assertEquals(entity.getResultId(), dto.getResultId());
+        assertEquals(entity.getResultTitle(), dto.getResultTitle());
+        assertEquals(entity.getResultTitleCy(), dto.getResultTitleCy());
+        assertEquals(entity.getResultType(), dto.getResultType());
+        assertEquals(entity.isActive(), dto.isActive());
+        assertEquals(entity.getImpositionAllocationPriority(), dto.getImpositionAllocationPriority());
+        assertEquals(entity.getImpositionCreditor(), dto.getImpositionCreditor());
+        assertEquals(entity.isImposition(), dto.isImposition());
+        assertEquals(entity.getImpositionCategory(), dto.getImpositionCategory());
+        assertEquals(entity.getImpositionAccruing(), dto.getImpositionAccruing());
+        assertEquals(entity.isEnforcement(), dto.isEnforcement());
+        assertEquals(entity.isEnforcementOverride(), dto.isEnforcementOverride());
+        assertEquals(entity.isFurtherEnforcementWarn(), dto.isFurtherEnforcementWarn());
+        assertEquals(entity.isFurtherEnforcementDisallow(), dto.isFurtherEnforcementDisallow());
+        assertEquals(entity.isEnforcementHold(), dto.isEnforcementHold());
+        assertEquals(entity.isRequiresEnforcer(), dto.isRequiresEnforcer());
+        assertEquals(entity.isGeneratesHearing(), dto.isGeneratesHearing());
+        assertEquals(entity.isCollectionOrder(), dto.isCollectionOrder());
+        assertEquals(entity.isExtendTtpDisallow(), dto.isExtendTtpDisallow());
+        assertEquals(entity.isExtendTtpPreserveLastEnf(), dto.isExtendTtpPreserveLastEnf());
+        assertEquals(entity.isPreventPaymentCard(), dto.isPreventPaymentCard());
+        assertEquals(entity.isListsMonies(), dto.isListsMonies());
+        assertEquals(entity.getResultParameters(), dto.getResultParameters());
+    }
+
 }
