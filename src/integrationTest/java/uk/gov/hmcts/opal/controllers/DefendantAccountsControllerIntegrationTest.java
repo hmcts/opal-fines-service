@@ -3272,6 +3272,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.retriable").value(false));
     }
+
     @DisplayName("OPAL: PUT Replace DAP – Not Found (account not in BU)")
     void put_notFound_whenAccountNotInHeaderBU(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
