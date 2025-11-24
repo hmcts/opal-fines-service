@@ -3725,6 +3725,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.retriable").value(false));
     }
+
     @DisplayName("OPAL: Add Payment Card Request – Happy Path [@PO-1719]")
     void opalAddPaymentCardRequest_Happy(Logger log) throws Exception {
 
