@@ -1,17 +1,20 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.math.BigDecimal;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -55,6 +58,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
@@ -62,6 +67,8 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
+import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
@@ -77,9 +84,14 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_DEFENDANT_AT_A_GLANCE = "LIBRA.getDefendantAtAGlance";
 
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
+    public static final String PATCH_DEFENDANT_ACCOUNT = "LIBRA.patchDefendantAccount";
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
+
+    /* ---- Mappers ---- */
+    private final UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
+    private final LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary: id: {}", defendantAccountId);
@@ -242,7 +254,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .build();
 
         return DefendantAccountHeaderSummary.builder()
-            .version(response.getVersion() != null ? response.getVersion().longValue() : 1L)
+            .version(BigInteger.valueOf(Optional.ofNullable(response.getVersion()).orElse(1)))
             .defendantAccountId(response.getDefendantAccountId())
             .accountNumber(response.getAccountNumber())
             .defendantAccountPartyId(response.getDefendantPartyId())
@@ -581,7 +593,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         // Return the legacy wrapper with version + correctly-shaped party
         response.setDefendantAccountParty(legacyParty);
-        response.setVersion(legacy.getVersion());
+        response.setVersion(BigInteger.valueOf(legacy.getVersion()));
         return response;
     }
 
@@ -631,7 +643,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .paymentTermsSummary(toPaymentTermsFromSummary(src.getPaymentTermsSummary()))
             .enforcementStatus(toEnforcementStatus(src.getEnforcementStatusSummary()))
             .commentsAndNotes(toComments(src.getCommentsAndNotes()))
-            .version(src.getVersion())
+            .version(BigInteger.valueOf(src.getVersion()))
             .build();
     }
 
@@ -809,14 +821,50 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
+    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
+        throw new UnsupportedOperationException("Legacy GetDefendantAccountFixedPenalty not implemented yet");
+    }
+
+    @Override
     public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
         String businessUnitId,
-        UpdateDefendantAccountRequest request,
+        @NonNull UpdateDefendantAccountRequest request,
         String ifMatch,
         String postedBy) {
-        throw new org.springframework.web.server.ResponseStatusException(
-            org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
-            "Update Defendant Account is not implemented in legacy mode");
+
+        log.info("Legacy :updateDefendantAccount: id: {}", defendantAccountId);
+
+        // in legacy system, If-Match header value is passed in as version.
+        Integer version = Integer.parseInt(ifMatch);
+
+        // build legacy request object with mapped fields from UpdateDefendantAccountRequest
+        // pass 'version' into the mapper/to-legacy request builder
+        LegacyUpdateDefendantAccountRequest legacyRequest =
+            updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(request,
+                String.valueOf(defendantAccountId),
+                businessUnitId,
+                postedBy,
+                version);
+
+        // Send the request to the gateway service
+        Response<LegacyUpdateDefendantAccountResponse> gwResponse = gatewayService.postToGateway(
+            PATCH_DEFENDANT_ACCOUNT, LegacyUpdateDefendantAccountResponse.class,
+            legacyRequest, null);
+
+        if (gwResponse.isError()) {
+            log.error(":updateDefendantAccount: Legacy Gateway response: HTTP Response Code: {}", gwResponse.code);
+            if (gwResponse.isException()) {
+                log.error(":updateDefendantAccount: Legacy Gateway response exception: {}", gwResponse.exception);
+            } else if (gwResponse.isLegacyFailure()) {
+                log.error(":updateDefendantAccount: Legacy Gateway: body: \n{}", gwResponse.body);
+                LegacyUpdateDefendantAccountResponse responseEntity = gwResponse.responseEntity;
+                log.error(":updateDefendantAccount: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+            }
+        } else if (gwResponse.isSuccessful()) {
+            log.info(":updateDefendantAccount: Legacy Gateway response: Success.");
+        }
+
+        return legacyUpdateDefendantAccountResponseMapper.toDefendantAccountResponse(gwResponse.responseEntity);
     }
 
     @Override

@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.service.proxy;
 
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,6 +56,11 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
 
     public DefendantAccountAtAGlanceResponse getAtAGlance(Long defendantAccountId) {
         return getCurrentModeService().getAtAGlance(defendantAccountId);
+    }
+
+    @Override
+    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
+        return getCurrentModeService().getDefendantAccountFixedPenalty(defendantAccountId);
     }
 
     @Override

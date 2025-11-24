@@ -20,6 +20,7 @@ import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
@@ -104,6 +105,20 @@ public class DefendantAccountController {
 
         return buildResponse(defendantAccountService.getAtAGlance(defendantAccountId, authHeaderValue));
     }
+
+    @GetMapping("/{defendantAccountId}/fixed-penalty")
+    @Operation(summary = "Retrieve Fixed Penalty Offence details for a given Defendant Account")
+    public ResponseEntity<GetDefendantAccountFixedPenaltyResponse> getDefendantAccountFixedPenalty(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader("Authorization") String authHeaderValue) {
+        log.debug(":GET:getDefendantAccountFixedPenalty: for defendantAccountId={}", defendantAccountId);
+
+        GetDefendantAccountFixedPenaltyResponse response =
+            defendantAccountService.getDefendantAccountFixedPenalty(defendantAccountId, authHeaderValue);
+
+        return buildResponse(response);
+    }
+
 
     @PatchMapping(value = "/{defendantAccountId}", consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)

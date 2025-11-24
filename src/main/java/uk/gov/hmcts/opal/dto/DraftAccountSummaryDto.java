@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -68,5 +69,5 @@ public class DraftAccountSummaryDto implements ToJsonString, Versioned {
     private String statusMessage;
 
     @JsonIgnore
-    private Long version;
+    private BigInteger version;
 }
