@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:complexType name="posted_details">
+    <xsd:sequence>
+      <xsd:element name="posted_date" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="posted_by" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="posted_by_name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>
