@@ -7,54 +7,42 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-
 import org.hamcrest.core.IsNull;
-
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-
 import org.mockito.Mockito;
-
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
-
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import org.springframework.web.server.ResponseStatusException;
 
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
-
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -103,6 +91,10 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
     final String getDefendantAccountsSearchResponseSchemaLocation() {
         return SchemaPaths.DEFENDANT_ACCOUNT + "/postDefendantAccountsSearchResponse.json";
+    }
+
+    final String getFixedPenaltyResponseSchemaLocation() {
+        return SchemaPaths.DEFENDANT_ACCOUNT + "/getDefendantAccountFixedPenaltyResponse.json";
     }
 
     final String getAddPaymentCardRequestResponseSchemaLocation() {
@@ -3262,6 +3254,60 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
     }
 
+    @DisplayName("OPAL: Get Defendant Account Fixed Penalty [@PO-1819]")
+    void testGetDefendantAccountFixedPenalty(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        ResultActions actions = mockMvc.perform(
+            get("/defendant-accounts/77/fixed-penalty")
+                .header("authorization", "Bearer some_value")
+        );
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDefendantAccountFixedPenalty: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("etag", matchesPattern("\"\\d+\"")))
+            .andExpect(jsonPath("$.vehicle_fixed_penalty_flag").value(true))
+            .andExpect(jsonPath("$.fixed_penalty_ticket_details.issuing_authority")
+                .value("Kingston-upon-Thames Mags Court"))
+            .andExpect(jsonPath("$.fixed_penalty_ticket_details.ticket_number").value("888"))
+            .andExpect(jsonPath("$.fixed_penalty_ticket_details.place_of_offence").value("London"))
+            .andExpect(jsonPath("$.vehicle_fixed_penalty_details.vehicle_registration_number").value("AB12CDE"))
+            .andExpect(jsonPath("$.vehicle_fixed_penalty_details.vehicle_drivers_license").value("DOE1234567"))
+            .andExpect(jsonPath("$.vehicle_fixed_penalty_details.notice_number").value("PN98765"))
+            .andExpect(jsonPath("$.vehicle_fixed_penalty_details.date_notice_issued").exists());
+
+        // Schema validation
+        jsonSchemaValidationService.validateOrError(body, getFixedPenaltyResponseSchemaLocation());
+    }
+
+    @DisplayName("OPAL: Get Defendant Account Fixed Penalty - 404 when not found [@PO-1819]")
+    void testGetDefendantAccountFixedPenalty_NotFound(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        ResultActions actions = mockMvc.perform(
+            get("/defendant-accounts/99999/fixed-penalty")
+                .header("authorization", "Bearer some_value")
+        );
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDefendantAccountFixedPenalty_NotFound: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
+            .andExpect(jsonPath("$.title").value("Entity Not Found"))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(header().doesNotExist("ETag"));
+    }
+
+
+
     @DisplayName("LEGACY: Get Defendant Account Party - Happy Path [@PO-1973]")
     public void legacyGetDefendantAccountParty_Happy(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -3530,6 +3576,155 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
 
+    @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes [@PO-1908]")
+    void test_Legacy_UpdateDefendantAccount_CommentsNotes_Success(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Read the current version to avoid optimistic locking conflicts
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class, 77L
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, String.valueOf(currentVersion)); // use actual version
+
+        // create patch request with CommentsAndNotes payload
+        String requestJson = commentAndNotesPayload("patch DefAcc comment legacy test",
+            "patch DefAcc note one legacy test", "patch DefAcc note two legacy test",
+            "patch DefAcc note three legacy test");
+
+        ResultActions resultActions = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        )
+            .andDo(MockMvcResultHandlers.print());
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        String etag = resultActions.andReturn().getResponse().getHeader("ETag");
+        long version = objectMapper.readTree(body).path("version").asLong();
+
+        log.info(":legacy_UpdateDefendantAccount_CommentsNotes_Success ETag: {}", etag);
+
+        // Verify the response
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value("77"))
+            .andExpect(jsonPath("$.comment_and_notes.account_comment")
+                .value("patch DefAcc comment legacy test"))
+            .andExpect(jsonPath("$.comment_and_notes.free_text_note_1")
+                .value("patch DefAcc note one legacy test"))
+            .andExpect(jsonPath("$.comment_and_notes.free_text_note_2")
+                .value("patch DefAcc note two legacy test"))
+            .andExpect(jsonPath("$.comment_and_notes.free_text_note_3")
+                .value("patch DefAcc note three legacy test"))
+            .andExpect(header().string("ETag", "\"" + ++currentVersion + "\""));
+    }
+
+
+    @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes - 500 Error [@PO-1908]")
+    void test_Legacy_UpdateDefendantAccount_CommentNotes_500Error(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // create patch request with CommentsAndNotes payload
+        String requestJson = commentAndNotesPayload("patch DefAcc comment legacy test",
+            "patch DefAcc note one legacy test", "patch DefAcc note two legacy test",
+            "patch DefAcc note three legacy test");
+
+        ResultActions actions = mockMvc.perform(
+            patch(URL_BASE + "/500")
+                .header("authorization", "Bearer some_value")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        );
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":Legacy_UpdateDefendantAccount_CommentNotes_500Error body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().is5xxServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+            .andExpect(header().doesNotExist("ETag")); // no ETag on error payloads
+    }
+
+    @DisplayName("LEGACY: PATCH Update Defendant Account - 401 Unauthorized [@PO-1908, CEP2]")
+    void test_Legacy_UpdateDefendantAccount_CommentNotes_401Unauthorized(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        String requestJson = commentAndNotesPayload("patch DefAcc comment legacy test",
+            "patch DefAcc note one legacy test", "patch DefAcc note two legacy test",
+            "patch DefAcc note three legacy test");
+
+        mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .header("authorization", "Bearer invalid_token")
+                .header("Business-Unit-Id", "78")
+                .header(HttpHeaders.IF_MATCH, "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        )
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
+
+    @DisplayName("LEGACY: PATCH Update Defendant Account - 403 Forbidden [@PO-1908, CEP3]")
+    void test_Legacy_UpdateDefendantAccount_CommentNotes_403Forbidden(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(org.springframework.http.HttpStatus.FORBIDDEN, "Forbidden"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        String requestJson = commentAndNotesPayload("patch DefAcc comment legacy test",
+            "patch DefAcc note one legacy test", "patch DefAcc note two legacy test",
+            "patch DefAcc note three legacy test");
+
+        mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .header("authorization", "Bearer some_value")
+                .header("Business-Unit-Id", "78")
+                .header(HttpHeaders.IF_MATCH, "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        )
+            .andExpect(status().isForbidden())
+            .andExpect(content().string(""));
+    }
+
+    @DisplayName("LEGACY: PATCH Update Defendant Account - 400 Bad Request Invalid Payload [@PO-1908, CEP1]")
+    void test_Legacy_UpdateDefendantAccount_CommentNotes_400BadRequest(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Invalid payload - using integer instead of string for account_comment
+        String invalidJson = """
+            {
+              "comment_and_notes": {
+                "account_comment": 12345
+              }
+            }
+            """;
+
+        ResultActions actions = mockMvc.perform(
+            patch(URL_BASE + "/77")
+                .header("authorization", "Bearer some_value")
+                .header("Business-Unit-Id", "78")
+                .header(HttpHeaders.IF_MATCH, "0")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidJson)
+        );
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":Legacy_UpdateDefendantAccount_CommentNotes_400BadRequest body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type")
+                .value("https://hmcts.gov.uk/problems/json-schema-validation"))
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
     @DisplayName("OPAL: Add Payment Card Request – Happy Path [@PO-1719]")
     void opalAddPaymentCardRequest_Happy(Logger log) throws Exception {
 

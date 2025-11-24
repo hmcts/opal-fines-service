@@ -1,10 +1,14 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static uk.gov.hmcts.opal.entity.DefendantAccountEntity_.defendantAccountId;
+import static uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity_.defendantAccountPartyId;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -29,6 +33,7 @@ import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -45,6 +50,7 @@ import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
 import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
 import uk.gov.hmcts.opal.dto.common.Enforcer;
+import uk.gov.hmcts.opal.dto.common.FixedPenaltyTicketDetails;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
@@ -59,6 +65,7 @@ import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
+import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
@@ -69,6 +76,7 @@ import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
@@ -86,6 +94,7 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.repository.EnforcementOverrideResultRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
+import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
@@ -94,6 +103,7 @@ import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.util.DateTimeUtils;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
@@ -135,6 +145,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
 
     private CommentsAndNotes commentAndNotes;
+
+    private final FixedPenaltyOffenceRepository fixedPenaltyOffenceRepository;
 
     @Autowired
     private DebtorDetailRepository debtorDetailRepository;
@@ -189,7 +201,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .businessUnitSummary(buildBusinessUnitSummary(e))
             .paymentStateSummary(buildPaymentStateSummary(e))
             .partyDetails(buildPartyDetails(e))
-            .version(e.getVersion())
+            .version(BigInteger.valueOf(e.getVersion()))
             .build();
     }
 
@@ -343,6 +355,23 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         return toPaymentTermsResponse(entity);
     }
+
+
+    @Override
+    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
+        log.debug(":getDefendantAccountFixedPenalty (Opal): id={}", defendantAccountId);
+
+        DefendantAccountEntity account = defendantAccountRepository.findById(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account not found with id: " + defendantAccountId));
+
+        FixedPenaltyOffenceEntity offence = fixedPenaltyOffenceRepository.findByDefendantAccountId(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Fixed Penalty Offence not found for account: " + defendantAccountId));
+
+        return toFixedPenaltyResponse(account, offence);
+    }
+
 
     private static List<AliasDto> buildSearchAliases(SearchDefendantAccountEntity e) {
         boolean isOrganisation = Boolean.TRUE.equals(e.getOrganisation());
@@ -593,6 +622,41 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .paymentTerms(paymentTerms)
             .paymentCardLastRequested(account.getPaymentCardRequestedDate())
             .lastEnforcement(account.getLastEnforcement())
+            .build();
+    }
+
+    private static GetDefendantAccountFixedPenaltyResponse toFixedPenaltyResponse(
+        DefendantAccountEntity account, FixedPenaltyOffenceEntity offence) {
+
+        boolean isVehicle =
+            offence.getVehicleRegistration() != null
+                && !"NV".equalsIgnoreCase(offence.getVehicleRegistration());
+
+        FixedPenaltyTicketDetails ticketDetails = FixedPenaltyTicketDetails.builder()
+            .issuingAuthority(account.getOriginatorName())
+            .ticketNumber(offence.getTicketNumber())
+            .timeOfOffence(
+                offence.getTimeOfOffence() != null
+                    ? offence.getTimeOfOffence().toString()
+                    : null
+            )
+            .placeOfOffence(offence.getOffenceLocation())
+            .build();
+
+        VehicleFixedPenaltyDetails vehicleDetails = isVehicle
+            ? VehicleFixedPenaltyDetails.builder()
+            .vehicleRegistrationNumber(offence.getVehicleRegistration())
+            .vehicleDriversLicense(offence.getLicenceNumber())
+            .noticeNumber(offence.getNoticeNumber())
+            .dateNoticeIssued(DateTimeUtils.toString(offence.getIssuedDate()))
+            .build()
+            : null;
+
+        return GetDefendantAccountFixedPenaltyResponse.builder()
+            .vehicleFixedPenaltyFlag(isVehicle)
+            .fixedPenaltyTicketDetails(ticketDetails)
+            .vehicleFixedPenaltyDetails(vehicleDetails)
+            .version(account.getVersion())
             .build();
     }
 
@@ -969,7 +1033,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         em.lock(entity, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         em.flush();
-        Long newVersion = entity.getVersion();
+        BigInteger newVersion = entity.getVersion();
 
         Short buId = entity.getBusinessUnit().getBusinessUnitId();
         amendmentService.auditFinaliseStoredProc(

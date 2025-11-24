@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -199,7 +200,7 @@ class DraftAccountServiceTest {
             .account(createAccountString())
             .accountType("Fine")
             .timelineData(createTimelineDataString())
-            .version(0L)
+            .version(BigInteger.valueOf(0L))
             .build();
 
         DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
@@ -209,7 +210,7 @@ class DraftAccountServiceTest {
             .accountType("Fine")
             .accountStatus(DraftAccountStatus.RESUBMITTED)
             .timelineData(createTimelineDataString())
-            .version(1L)
+            .versionNumber(1L)
             .build();
 
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(updatedAccount);
@@ -243,7 +244,7 @@ class DraftAccountServiceTest {
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .timelineData(createTimelineDataString())
-            .version(0L)
+            .version(BigInteger.valueOf(0L))
             .build();
 
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenThrow(
@@ -264,7 +265,7 @@ class DraftAccountServiceTest {
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
-            .version(0L)
+            .versionNumber(0L)
             .build();
 
         ReplaceDraftAccountRequestDto dto = ReplaceDraftAccountRequestDto.builder()
@@ -274,7 +275,7 @@ class DraftAccountServiceTest {
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .timelineData(createTimelineDataString())
-            .version(0L)
+            .version(BigInteger.valueOf(0L))
             .build();
 
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(existingAccount);
@@ -296,12 +297,11 @@ class DraftAccountServiceTest {
             .businessUnitId((short) 2)
             .accountStatus("SUBMITTED")
             .timelineData(createTimelineDataString())
-            .version(0L)
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
-            .version(0L)
+            .versionNumber(0L)
             .build();
 
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any())).thenReturn(existingAccount);
@@ -309,7 +309,7 @@ class DraftAccountServiceTest {
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () -> draftAccountService
-            .updateDraftAccount(draftAccountId, updateDto, "authHeaderValue", "")
+            .updateDraftAccount(draftAccountId, updateDto, "authHeaderValue", "0")
         );
     }
 
@@ -322,7 +322,6 @@ class DraftAccountServiceTest {
             .validatedBy("TestValidator")
             .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
-            .version(0L)
             .build();
 
         DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
@@ -333,7 +332,7 @@ class DraftAccountServiceTest {
             .validatedDate(LocalDateTime.now())
             .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\",\"approved_date\":\"2024-10-03T14:30:00Z\"}")
             .timelineData(createTimelineDataString())
-            .version(1L)
+            .versionNumber(1L)
             .build();
 
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any())).thenReturn(updatedAccount);
@@ -342,7 +341,7 @@ class DraftAccountServiceTest {
 
         // Act
         DraftAccountResponseDto result = draftAccountService
-            .updateDraftAccount(draftAccountId, updateDto, "authHeaderValue", "");
+            .updateDraftAccount(draftAccountId, updateDto, "authHeaderValue", "0");
 
         // Assert
         assertNotNull(result);
