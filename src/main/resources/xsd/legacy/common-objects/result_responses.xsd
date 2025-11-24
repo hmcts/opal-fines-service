@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:include schemaLocation="result_responses_element.xsd"/>
+    <xsd:complexType name="result_responses">
+    <xsd:sequence>
+      <xsd:element name="result_responses_element" type="result_responses_element" minOccurs="1" maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>
