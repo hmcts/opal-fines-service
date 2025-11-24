@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -235,6 +236,7 @@ class OpalDefendantAccountServiceTest {
             .firstnames("Robo")
             .surname("Cop")
             .birthDate(LocalDate.now().minusYears(10))
+            .version(1L)
             .build();
 
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
@@ -250,6 +252,7 @@ class OpalDefendantAccountServiceTest {
             .partyId(999L)
             .accountNumber("177A")
             .accountStatus("L")
+            .version(1L)
             .build();
 
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
@@ -267,6 +270,7 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountId(88L)
             .defendantAccountPartyId(null)
             .accountStatus("L")
+            .version(1L)
             .build();
 
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
@@ -334,6 +338,7 @@ class OpalDefendantAccountServiceTest {
             .accountNumber("177A")
             .accountType("Fines")
             .accountStatus("L")
+            .version(1L)
             .build();
 
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
@@ -353,6 +358,7 @@ class OpalDefendantAccountServiceTest {
             .firstnames("Anna")
             .surname("Graham")
             .accountStatus("L")
+            .version(1L)
             .build();
 
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
@@ -535,7 +541,7 @@ class OpalDefendantAccountServiceTest {
             .build();
 
         // If-Match must match this (@Version)
-        entity.setVersion(1L);
+        entity.setVersionNumber(1L);
 
         // Core repos & deps
         final DefendantAccountHeaderViewRepository headerViewRepo = mock(DefendantAccountHeaderViewRepository.class);
@@ -702,7 +708,7 @@ class OpalDefendantAccountServiceTest {
 
         DefendantAccountEntity entity = DefendantAccountEntity.builder()
             .businessUnit(bu)
-            .version(1L)
+            .versionNumber(1L)
             .build();
 
         when(accountRepo.findById(id)).thenReturn(Optional.of(entity));
@@ -732,7 +738,7 @@ class OpalDefendantAccountServiceTest {
 
         DefendantAccountEntity entity = DefendantAccountEntity.builder()
             .businessUnit(bu)
-            .version(1L)
+            .versionNumber(1L)
             .build();
 
         when(accountRepo.findById(id)).thenReturn(Optional.of(entity));
@@ -802,7 +808,7 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountEntity entity = DefendantAccountEntity.builder()
             .defendantAccountId(id)
             .businessUnit(buEnt)
-            .version(1L)
+            .versionNumber(1L)
             .build();
 
         when(accountRepo.findById(id)).thenReturn(Optional.of(entity));
@@ -839,7 +845,8 @@ class OpalDefendantAccountServiceTest {
         );
 
         var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
-        var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu).version(5L).build();
+        var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu)
+            .versionNumber(5L).build();
         when(repo.findById(77L)).thenReturn(Optional.of(entity));
 
         var req = UpdateDefendantAccountRequest.builder()
@@ -859,7 +866,7 @@ class OpalDefendantAccountServiceTest {
 
         var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
         var entity = DefendantAccountEntity.builder()
-            .defendantAccountId(77L).businessUnit(bu).version(0L).build();
+            .defendantAccountId(77L).businessUnit(bu).versionNumber(0L).build();
         when(accountRepo.findById(77L)).thenReturn(Optional.of(entity));
 
         var svc = new OpalDefendantAccountService(
@@ -911,7 +918,8 @@ class OpalDefendantAccountServiceTest {
         );
 
         var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
-        var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu).version(0L).build();
+        var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu)
+            .versionNumber(0L).build();
         when(accountRepo.findById(77L)).thenReturn(Optional.of(entity));
 
         var req = UpdateDefendantAccountRequest.builder()
@@ -1261,6 +1269,7 @@ class OpalDefendantAccountServiceTest {
             .hasParentGuardian(true)
             .birthDate(LocalDate.now().minusYears(15))
             .accountStatus("L")
+            .version(1L)
             .build();
 
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
@@ -1275,6 +1284,7 @@ class OpalDefendantAccountServiceTest {
             .hasParentGuardian(false)
             .birthDate(null)
             .accountStatus("L")
+            .version(1L)
             .build();
 
         DefendantAccountHeaderSummary dto = service.mapToDto(e);
@@ -1368,7 +1378,7 @@ class OpalDefendantAccountServiceTest {
             .parties(List.of(dap))
             .businessUnit(uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity.builder()
                 .businessUnitId((short) 1).build())
-            .version(0L)
+            .versionNumber(0L)
             .build();
 
         when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
@@ -1459,7 +1469,7 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountId(2L).parties(List.of(dap))
             .businessUnit(uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity.builder()
                 .businessUnitId((short) 1).build())
-            .version(0L).build();
+            .versionNumber(0L).build();
 
         when(accountRepo.findById(2L)).thenReturn(Optional.of(account));
 
@@ -1539,7 +1549,7 @@ class OpalDefendantAccountServiceTest {
             .parties(List.of(dap))
             .businessUnit(uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity.builder()
                 .businessUnitId((short) 1).build())
-            .version(0L)
+            .versionNumber(0L)
             .build();
 
         when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
@@ -1601,7 +1611,7 @@ class OpalDefendantAccountServiceTest {
             .parties(List.of(dap))
             .businessUnit(uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity.builder()
                 .businessUnitId((short) 1).build())
-            .version(0L)
+            .versionNumber(0L)
             .build();
 
         when(accountRepo.findById(2L)).thenReturn(Optional.of(account));
@@ -1741,7 +1751,7 @@ class OpalDefendantAccountServiceTest {
     void getDefendantAccountFixedPenalty_shouldMapVersionCorrectly() {
         Long id = 789L;
         DefendantAccountEntity acc = buildMockAccount(id);
-        acc.setVersion(5L);
+        acc.setVersionNumber(5L);
 
         FixedPenaltyOffenceEntity offence = buildMockOffence(false);
 
@@ -1749,7 +1759,7 @@ class OpalDefendantAccountServiceTest {
         when(fixedPenaltyOffenceRepository.findByDefendantAccountId(id)).thenReturn(Optional.of(offence));
 
         var resp = service.getDefendantAccountFixedPenalty(id);
-        assertEquals(5, resp.getVersion());
+        assertEquals(BigInteger.valueOf(5), resp.getVersion());
     }
 
     @Test
@@ -1858,7 +1868,7 @@ class OpalDefendantAccountServiceTest {
         return DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .originatorName("Kingston-upon-Thames Mags Court")
-            .version(1L)
+            .versionNumber(1L)
             .build();
     }
 

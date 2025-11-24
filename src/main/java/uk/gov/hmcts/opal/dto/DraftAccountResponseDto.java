@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -80,5 +81,5 @@ public class DraftAccountResponseDto implements ToJsonString, Versioned {
     private Long accountId;
 
     @JsonIgnore
-    private Long version;
+    private BigInteger version;
 }

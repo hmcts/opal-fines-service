@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -141,9 +142,9 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
     @Transactional
     public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
-                                                 DraftAccountTransactionalProxy proxy, String ifMatch) {
+                                                 DraftAccountTransactionalProxy proxy, BigInteger updateVersion) {
         DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
-        verifyIfMatch(existingAccount, ifMatch, draftAccountId, "updateDraftAccount");
+        verifyIfMatch(existingAccount, updateVersion, draftAccountId, "updateDraftAccount");
 
         log.info(":updateDraftAccount: existing account: {}", existingAccount);
 
@@ -164,7 +165,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
         log.info(":updateDraftAccount: new status: {}", newStatus);
         existingAccount.setAccountStatus(newStatus);
-        existingAccount.setVersion(dto.getVersion());
+        existingAccount.setVersionNumber(updateVersion.longValueExact());
 
         if (newStatus.isPublishingPending()) {
             existingAccount.setValidatedDate(LocalDateTime.now());
@@ -193,7 +194,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         verifyVersions(dbDraftAccount, entity, draftAccountId, "updateStatus");
 
         dbDraftAccount.setAccountStatus(status);
-        dbDraftAccount.setVersion(entity.getVersion());
+        dbDraftAccount.setVersionNumber(entity.getVersion().longValueExact());
         dbDraftAccount.setAccountStatusDate(LocalDateTime.now());
 
         // These are specific to the results from the 'publish' activity, success
