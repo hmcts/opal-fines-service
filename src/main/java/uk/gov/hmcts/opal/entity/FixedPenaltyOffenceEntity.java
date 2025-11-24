@@ -11,6 +11,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.time.LocalTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -56,5 +57,8 @@ public class FixedPenaltyOffenceEntity {
 
     @Column(name = "vehicle_fixed_penalty")
     private Boolean vehicleFixedPenalty;
+
+    @Column(name = "offence_time")
+    private LocalTime timeOfOffence;
 
 }

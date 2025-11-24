@@ -65,12 +65,12 @@ class NotesServiceTest {
         // Detached param passed by caller
         detachedParam = new DefendantAccountEntity();
         detachedParam.setDefendantAccountId(77L);
-        detachedParam.setVersion(2L); // irrelevant to service; it re-fetches
+        detachedParam.setVersionNumber(2L); // irrelevant to service; it re-fetches
 
         // Managed entity returned by em.find(...)
         managedInEm = new DefendantAccountEntity();
         managedInEm.setDefendantAccountId(77L);
-        managedInEm.setVersion(2L);
+        managedInEm.setVersionNumber(2L);
         managedInEm.setBusinessUnit(bu((short) 1));
     }
 

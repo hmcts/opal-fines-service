@@ -20,7 +20,58 @@
       "type": "integer"
     },
     "defendant_account_party": {
-      "$ref": "./common-objects/defendantAccountPartyLegacy.json"
+      "allOf": [
+        { "$ref": "./common-objects/defendantAccountPartyLegacy.json" },
+        {
+          "properties": {
+            "party_details": {
+              "allOf": [
+                { "$ref": "./common-objects/partyDetailsLegacy.json" },
+                {
+                  "properties": {
+                    "individual_details": {
+                      "allOf": [
+                        { "$ref": "./common-objects/individualDetailsLegacy.json" },
+                        {
+                          "properties": {
+                            "individual_aliases": {
+                              "type": "array",
+                              "items": {
+                                "allOf": [
+                                  { "$ref": "./common-objects/individualAliasLegacy.json" },
+                                  { "required": ["sequence_number", "surname"] }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "organisation_details": {
+                      "allOf": [
+                        { "$ref": "./common-objects/organisationDetailsLegacy.json" },
+                        {
+                          "properties": {
+                            "organisation_aliases": {
+                              "type": "array",
+                              "items": {
+                                "allOf": [
+                                  { "$ref": "./common-objects/organisationAliasLegacy.json" },
+                                  { "required": ["sequence_number", "organisation_name"] }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
     }
   },
   "required": [
@@ -31,3 +82,6 @@
     "defendant_account_party"
   ]
 }
+
+
+

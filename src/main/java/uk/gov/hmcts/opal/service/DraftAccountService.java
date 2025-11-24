@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service;
 
 
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,6 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
+import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
 import static uk.gov.hmcts.opal.util.VersionUtils.verifyUpdated;
 
 @Service
@@ -201,9 +203,11 @@ public class DraftAccountService {
 
         if (UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
 
+            BigInteger updateVersion = extractBigInteger(ifMatch);
+
             DraftAccountEntity updatedEntity = draftAccountTransactional
-                .updateDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch);
-            verifyUpdated(updatedEntity, dto, draftAccountId, "updateDraftAccount");
+                .updateDraftAccount(draftAccountId, dto, draftAccountTransactional, updateVersion);
+            verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
 
             if (updatedEntity.getAccountStatus().isPublishingPending()) {
                 log.info(":updateDraftAccount: publishing: ");

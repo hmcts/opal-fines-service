@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,7 +32,12 @@ public class DefendantAccountSummaryViewEntity implements Versioned {
 
     @Version
     @Column(name = "version_number")
-    private Long version;
+    private Long versionNumber;
+
+    @Override
+    public BigInteger getVersion() {
+        return Optional.ofNullable(versionNumber).map(BigInteger::valueOf).orElse(null);
+    }
 
     @Column(name = "account_number", nullable = false)
     private String accountNumber;

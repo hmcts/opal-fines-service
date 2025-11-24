@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +17,7 @@ import uk.gov.hmcts.opal.util.Versioned;
 public class GetDefendantAccountPartyResponse implements Versioned {
 
     @JsonIgnore
-    private Long version;
+    private BigInteger version;
 
     @JsonProperty("defendant_account_party")
     private DefendantAccountParty defendantAccountParty;

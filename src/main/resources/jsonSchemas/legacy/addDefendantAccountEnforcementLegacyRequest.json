@@ -21,7 +21,31 @@
     },
     "result_id": {
       "type": "string",
-      "minLength": 1
+      "enum": [
+        "ABDC",
+        "AEO",
+        "AEOC",
+        "BWTU",
+        "CLAMPO",
+        "COLLO",
+        "CONF",
+        "CW",
+        "DW",
+        "FSN",
+        "HTT",
+        "INTL",
+        "MPSO",
+        "NAP",
+        "NBWT",
+        "NOENF",
+        "PRIS",
+        "REGF",
+        "REM",
+        "S136",
+        "SC",
+        "UPWO",
+        "WDN"
+      ]
     },
     "enforcement_result_responses": {
       "type": "array",

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.util;
 
+import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
@@ -55,14 +56,14 @@ public class VersionUtilsTest {
 
     private class UtilVersioned implements Versioned {
 
-        private final Long version;
+        private final BigInteger version;
 
         public UtilVersioned(Long v) {
-            this.version = v;
+            this.version = BigInteger.valueOf(v);
         }
 
         @Override
-        public Long getVersion() {
+        public BigInteger getVersion() {
             return version;
         }
     }
