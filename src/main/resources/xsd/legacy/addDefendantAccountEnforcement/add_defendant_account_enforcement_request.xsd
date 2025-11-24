@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:include schemaLocation="../common-objects/enforcement_result_responses.xsd"/>
+    <xsd:include schemaLocation="../common-objects/payment_terms.xsd"/>
+  <xsd:element name="request">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="defendant_account_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="business_unit_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="business_unit_user_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="version" type="xsd:integer" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="result_id" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="enforcement_result_responses" type="enforcement_result_responses" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="payment_terms" type="payment_terms" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>
