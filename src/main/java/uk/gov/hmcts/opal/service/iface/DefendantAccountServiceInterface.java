@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.iface;
 
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
@@ -36,4 +37,8 @@ public interface DefendantAccountServiceInterface {
                                            String ifMatch,
                                            String businessUnitId,
                                            String postedBy);
+
+    AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId, String businessUnitId,
+        String ifMatch, String authHeader);
+
 }

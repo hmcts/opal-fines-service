@@ -18,11 +18,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
@@ -97,6 +99,24 @@ public class DefendantAccountController {
         return buildResponse(
             defendantAccountService.getPaymentTerms(defendantAccountId, authHeaderValue));
     }
+
+    @PostMapping("/{defendantAccountId}/payment-card-request")
+    @Operation(summary = "Create a payment card request for a given defendant account")
+    public ResponseEntity<AddPaymentCardRequestResponse> addPaymentCardRequest(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
+        @RequestHeader("Business-Unit-Id") String businessUnitId,
+        @RequestHeader(value = "If-Match", required = false) String ifMatch
+    ) {
+        log.debug(":POST:addPaymentCardRequest: for defendantAccountId={}", defendantAccountId);
+
+        AddPaymentCardRequestResponse response = defendantAccountService.addPaymentCardRequest(
+            defendantAccountId, businessUnitId, ifMatch, authHeaderValue
+        );
+
+        return buildResponse(response);
+    }
+
 
     @GetMapping(value = "/{defendantAccountId}/at-a-glance")
     @Operation(summary = "Get At A Glance details for a given defendant account")

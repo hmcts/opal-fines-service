@@ -49,8 +49,10 @@ import org.mockito.MockedStatic;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -93,10 +95,12 @@ import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
@@ -109,6 +113,7 @@ import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
+import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
@@ -131,6 +136,16 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountPaymentTermsRepository.class);
     private final FixedPenaltyOffenceRepository fixedPenaltyOffenceRepository = mock(FixedPenaltyOffenceRepository
         .class);
+
+    private final PaymentCardRequestRepository paymentCardRequestRepository =
+        mock(PaymentCardRequestRepository.class);
+
+    private final AccessTokenService accessTokenService =
+        mock(AccessTokenService.class);
+
+    private final UserStateService userStateService =
+        mock(UserStateService.class);
+
 
     @Mock
     AmendmentService amendmentService = mock(AmendmentService.class);
@@ -178,8 +193,13 @@ class OpalDefendantAccountServiceTest {
         // Keep alignment with your existing constructor usage (pass nulls for irrelevant deps)
         return new OpalDefendantAccountService(
             null, defendantAccountRepository, null, null, null,
-            null, null, amendmentService, null, null, null, null, null, opalPartyService,
-            null);
+            null, null,
+            amendmentService, null, null,
+            null, null,
+            null, null,
+            accessTokenService,
+            userStateService,opalPartyService,
+            fixedPenaltyOffenceRepository);
     }
 
     @BeforeEach
@@ -189,22 +209,24 @@ class OpalDefendantAccountServiceTest {
 
         // Build the service with EXACTLY these dependencies in the expected order
         this.service = new OpalDefendantAccountService(
-            /* headerViewRepo */ null,
+            /* headerViewRepo */ mock(DefendantAccountHeaderViewRepository.class),
             /* defendantAccountRepository */ defendantAccountRepository,
-            /* searchDefAccRepo          */ searchDefAccRepo,
-            /* searchDefAccSpecs         */ searchSpecsSpy,
-            /* paymentTermsRepository    */ paymentTermsRepository,
-            /* dasvRepository            */ dasvRepository,
-            /* courtRepo                 */ null,
-            /* amendmentService          */ null,
-
-            /* entityManager             */ null,
-            /* noteRepository            */ null,
-            /* enforcementOverrideResult */ null,
-            /* localJusticeAreaRepo      */ null,
-            /* enforcerRepository        */ null,
-            /* enforcerRepository        */ null,
-            fixedPenaltyOffenceRepository
+            /* searchDefAccRepo */ searchDefAccRepo,
+            /* searchDefAccSpecs */ searchSpecsSpy,
+            /* paymentTermsRepository */ paymentTermsRepository,
+            /* dasvRepository */ dasvRepository,
+            /* courtRepo */ mock(CourtRepository.class),
+            /* amendmentService */ mock(AmendmentService.class),
+            /* entityManager */ mock(EntityManager.class),
+            /* noteRepository */ mock(NoteRepository.class),
+            /* enforcementOverrideResult */ mock(EnforcementOverrideResultRepository.class),
+            /* localJusticeAreaRepo */ mock(LocalJusticeAreaRepository.class),
+            /* enforcerRepository */ mock(EnforcerRepository.class),
+            /* paymentCardRequestRepository */ paymentCardRequestRepository,
+            /* accessTokenService */ accessTokenService,
+            /* userStateService */ userStateService,
+            null,
+            /* fixedPenaltyOffenceRepository */ fixedPenaltyOffenceRepository
         );
 
         // Generic matcher to avoid unchecked warnings
@@ -217,7 +239,7 @@ class OpalDefendantAccountServiceTest {
         long testId = 1L;
 
         DefendantAccountEntity entity = DefendantAccountEntity.builder().build();
-        when(defendantAccountRepository.findByDefendantAccountId(testId)).thenReturn(java.util.Optional.of(entity));
+        when(defendantAccountRepository.findById(testId)).thenReturn(java.util.Optional.of(entity));
 
         DefendantAccountEntity result = service.getDefendantAccountById(testId);
         assertNotNull(result);
@@ -678,6 +700,9 @@ class OpalDefendantAccountServiceTest {
             ljaRepo,
             enforcerRepo,
             null,
+            accessTokenService,
+            userStateService,
+            opalPartyService,
             fixedPenaltyOffenceRepository
         );
 
@@ -755,7 +780,8 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenNoUpdateGroupsProvided() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+            null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -773,7 +799,8 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenBusinessUnitMismatch() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+            null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -803,7 +830,8 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenCollectionOrderDateInvalid() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+            null);
 
         Long id = 1L;
         String buHeader = "10";
@@ -835,7 +863,8 @@ class OpalDefendantAccountServiceTest {
     void updateDefendantAccount_throwsWhenEntityNotFound() {
         DefendantAccountRepository accountRepo = mock(DefendantAccountRepository.class);
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+            null);
 
         when(accountRepo.findById(99L)).thenReturn(Optional.empty());
 
@@ -872,7 +901,10 @@ class OpalDefendantAccountServiceTest {
             null,
             null,
             null,
-            null
+            null,
+            userStateService,
+            opalPartyService,
+            fixedPenaltyOffenceRepository
         );
 
         Long id = 77L;
@@ -919,7 +951,10 @@ class OpalDefendantAccountServiceTest {
             null,
             null,
             null,
-            null
+            null,
+            userStateService,
+            opalPartyService,
+            fixedPenaltyOffenceRepository
         );
 
         var bu = BusinessUnitFullEntity.builder().businessUnitId((short) 78).build();
@@ -962,6 +997,9 @@ class OpalDefendantAccountServiceTest {
             null,
             null,
             null,
+            null,
+            userStateService,
+            opalPartyService,
             null
         );
 
@@ -993,6 +1031,9 @@ class OpalDefendantAccountServiceTest {
             mock(EnforcementOverrideResultRepository.class),
             mock(LocalJusticeAreaRepository.class),
             mock(EnforcerRepository.class),
+            mock(PaymentCardRequestRepository.class),
+            mock(AccessTokenService.class),
+            mock(UserStateService.class),
             mock(OpalPartyService.class),
             mock(FixedPenaltyOffenceRepository.class)
         );
@@ -1118,8 +1159,6 @@ class OpalDefendantAccountServiceTest {
                 && a.getSurname() == null));
     }
 
-    // --- Individuals ---
-
     @Test
     void searchDefendantAccounts_ignoresBlankAliasSlots() {
         SearchDefendantAccountEntity row = SearchDefendantAccountEntity.builder()
@@ -1156,6 +1195,8 @@ class OpalDefendantAccountServiceTest {
         when(e.getOrganisation()).thenReturn(organisation);
         return e;
     }
+
+    // --- Individuals ---
 
     @Test
     void individualAliases_parses_and_trims_and_splits_full_name() {
@@ -1201,8 +1242,6 @@ class OpalDefendantAccountServiceTest {
         assertNull(a.getSurname());                     // single token → null surname
     }
 
-    // --- Organisations ---
-
     @Test
     void individualAliases_malformedRows_areSkipped_safely() {
         var e = mockDasv(false,
@@ -1240,7 +1279,7 @@ class OpalDefendantAccountServiceTest {
         assertEquals("P3", ind.get(1).getAliasId());
     }
 
-    // --- Shared / edge cases ---
+    // --- Organisations ---
 
     @Test
     void organisationAliases_parses_and_trims() {
@@ -1486,7 +1525,8 @@ class OpalDefendantAccountServiceTest {
             /* amendment */ null,
             /* em */ null,
             /* noteRepo */ null,
-            /* eor/lja/enforcer */ null, null, null, null, null
+            /* eor/lja/enforcer */ null, null, null, null,
+            null, null, null, null
         );
         java.lang.reflect.Field f1;
         try {
@@ -1566,7 +1606,8 @@ class OpalDefendantAccountServiceTest {
         when(debtorRepo.findByPartyId(20L)).thenReturn(null);
 
         var svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+            null);
 
         try {
             var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
@@ -1643,7 +1684,8 @@ class OpalDefendantAccountServiceTest {
         when(debtorRepo.findByPartyId(10L)).thenReturn(null);
 
         var svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+            null);
 
         try {
             var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
@@ -1706,7 +1748,8 @@ class OpalDefendantAccountServiceTest {
         when(debtorRepo.findByPartyId(20L)).thenReturn(null);
 
         var svc = new OpalDefendantAccountService(
-            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null);
+            null, accountRepo, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+            null);
 
         try {
             var f1 = OpalDefendantAccountService.class.getDeclaredField("aliasRepository");
@@ -2510,6 +2553,121 @@ class OpalDefendantAccountServiceTest {
             verify(defendantAccountRepository).saveAndFlush(account);
             verify(aliasRepository, times(2)).findByParty_PartyId(300L);
         }
+    }
+
+    @Test
+    void addPaymentCardRequest_happyPath_createsPCRAndUpdatesAccount() {
+        // Arrange
+        Long accountId = 99L;
+        String buHeader = "10";
+        String ifMatch = "\"1\"";
+
+        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10)
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(bu)
+            .versionNumber(1L)
+            .build();
+
+        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        when(paymentCardRequestRepository.existsByDefendantAccountId(accountId)).thenReturn(false);
+
+        // User state resolves a BU user ID
+        var buUser = mock(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser.class);
+        when(buUser.getBusinessUnitUserId()).thenReturn("L080JG");
+
+        var userState = mock(uk.gov.hmcts.opal.common.user.authorisation.model.UserState.class);
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
+            .thenReturn(Optional.of(buUser));
+
+        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
+        when(accessTokenService.extractName("AUTH")).thenReturn("John Smith");
+
+        // Make save(account) echo the argument
+        when(defendantAccountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // Act
+        AddPaymentCardRequestResponse response =
+            service.addPaymentCardRequest(accountId, buHeader, ifMatch, "AUTH");
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(accountId, response.getDefendantAccountId());
+
+        assertTrue(account.getPaymentCardRequested());
+        assertEquals("L080JG", account.getPaymentCardRequestedBy());
+        assertEquals("John Smith", account.getPaymentCardRequestedByName());
+
+        verify(paymentCardRequestRepository).save(any(PaymentCardRequestEntity.class));
+    }
+
+    @Test
+    void addPaymentCardRequest_failsWhenPcrAlreadyExists() {
+        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(
+            DefendantAccountEntity.builder()
+                .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
+                .versionNumber(1L)
+                .build()
+        ));
+
+        when(paymentCardRequestRepository.existsByDefendantAccountId(1L))
+            .thenReturn(true);
+
+        assertThrows(ResourceConflictException.class, () ->
+            service.addPaymentCardRequest(1L, "10", "\"1\"", "AUTH")
+        );
+    }
+
+    @Test
+    void addPaymentCardRequest_failsWhenBusinessUnitMismatch() {
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 77).build())
+            .versionNumber(1L)
+            .build();
+
+        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
+
+        assertThrows(EntityNotFoundException.class, () ->
+            service.addPaymentCardRequest(1L, "10", "\"1\"", "AUTH")
+        );
+    }
+
+    @Test
+    void addPaymentCardRequest_failsWhenUserNotInBusinessUnit() {
+        var account = DefendantAccountEntity.builder()
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
+            .versionNumber(1L)
+            .build();
+
+        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
+        when(paymentCardRequestRepository.existsByDefendantAccountId(1L)).thenReturn(false);
+
+        // UserState returns empty Optional for this BU
+        var userState = mock(uk.gov.hmcts.opal.common.user.authorisation.model.UserState.class);
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.empty());
+        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
+
+        assertThrows(EntityNotFoundException.class, () ->
+            service.addPaymentCardRequest(1L, "10", "\"1\"", "AUTH")
+        );
+    }
+
+    @Test
+    void addPaymentCardRequest_versionConflictThrows() {
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
+            .versionNumber(5L)  // expects If-Match: "5"
+            .build();
+
+        when(defendantAccountRepository.findById(1L))
+            .thenReturn(Optional.of(account));
+
+        assertThrows(ObjectOptimisticLockingFailureException.class, () ->
+            service.addPaymentCardRequest(1L, "10", "\"0\"", "AUTH")
+        );
     }
 
     @Test

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.proxy;
 
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
@@ -81,4 +82,13 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
             defendantAccountParty, ifMatch, businessUnitId, postedBy);
 
     }
+
+    @Override
+    public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String authHeader) {
+        return getCurrentModeService().addPaymentCardRequest(defendantAccountId, businessUnitId, ifMatch, authHeader);
+    }
+
 }

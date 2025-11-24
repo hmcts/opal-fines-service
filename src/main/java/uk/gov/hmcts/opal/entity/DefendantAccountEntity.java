@@ -189,6 +189,9 @@ public class DefendantAccountEntity implements Versioned {
     @Column(name = "payment_card_requested_by", length = 20)
     private String paymentCardRequestedBy;
 
+    @Column(name = "payment_card_requested_by_name", length = 100)
+    private String paymentCardRequestedByName;
+
     @Column(name = "prosecutor_case_reference", length = 40)
     private String prosecutorCaseReference;
 
