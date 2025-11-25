@@ -1,23 +1,23 @@
 package uk.gov.hmcts.opal.controllers;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.SchemaPaths;
-import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import org.springframework.test.web.servlet.ResultActions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import lombok.extern.slf4j.Slf4j;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.ResultControllerIntegrationTest")
@@ -33,17 +33,42 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Test
-    @DisplayName("Get result by ID [@PO-703, PO-304]")
+    @DisplayName("Get result by ID - validates all fields populated [@PO-703, PO-304, PO-2449]")
     void testGetResultById() throws Exception {
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "/AAAAAA"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/BBBBBB"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
-        log.info(":testGetResultById: Response body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":testGetResultById_AllFieldsPopulated: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.result_id").value("AAAAAA"))
-            .andExpect(jsonPath("$.result_title").value("First Ever Result Entry for Testing"));
+            // Core fields
+            .andExpect(jsonPath("$.result_id").value("BBBBBB"))
+            .andExpect(jsonPath("$.result_title").value("Complete Result Entry for Testing"))
+            .andExpect(jsonPath("$.result_title_cy").value("Cais Prawf Cyflawn"))
+            .andExpect(jsonPath("$.result_type").value("Action"))
+            .andExpect(jsonPath("$.active").value(true))
+            // Imposition fields
+            .andExpect(jsonPath("$.imposition_allocation_priority").value(5))
+            .andExpect(jsonPath("$.imposition_creditor").value("CF"))
+            .andExpect(jsonPath("$.imposition").value(true))
+            .andExpect(jsonPath("$.imposition_category").value("Compensation"))
+            .andExpect(jsonPath("$.imposition_accruing").value(true))
+            // Enforcement fields
+            .andExpect(jsonPath("$.enforcement").value(true))
+            .andExpect(jsonPath("$.enforcement_override").value(true))
+            .andExpect(jsonPath("$.further_enforcement_warn").value(true))
+            .andExpect(jsonPath("$.further_enforcement_disallow").value(true))
+            .andExpect(jsonPath("$.enforcement_hold").value(true))
+            .andExpect(jsonPath("$.requires_enforcer").value(true))
+            // Additional fields
+            .andExpect(jsonPath("$.generates_hearing").value(true))
+            .andExpect(jsonPath("$.collection_order").value(true))
+            .andExpect(jsonPath("$.extend_ttp_disallow").value(true))
+            .andExpect(jsonPath("$.extend_ttp_preserve_last_enf").value(true))
+            .andExpect(jsonPath("$.prevent_payment_card").value(true))
+            .andExpect(jsonPath("$.lists_monies").value(true))
+            .andExpect(jsonPath("$.result_parameters").value("{\"param1\":\"value1\",\"param2\":\"value2\"}"));
     }
 
     @Test
@@ -63,7 +88,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(61))
+            .andExpect(jsonPath("$.count").value(62))
             .andExpect(jsonPath("$.refData[0].result_id").value("AAAAAA"))
             .andExpect(jsonPath("$.refData[0].result_title").value("First Ever Result Entry for Testing"))
             .andExpect(jsonPath("$.refData[1].result_id").value("ABDC"))
