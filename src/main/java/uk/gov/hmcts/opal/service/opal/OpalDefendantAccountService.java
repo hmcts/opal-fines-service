@@ -1,10 +1,14 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static uk.gov.hmcts.opal.entity.DefendantAccountEntity_.defendantAccountId;
+import static uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity_.defendantAccountPartyId;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -21,11 +25,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -42,6 +50,7 @@ import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverrideResult;
 import uk.gov.hmcts.opal.dto.common.EnforcementStatusSummary;
 import uk.gov.hmcts.opal.dto.common.Enforcer;
+import uk.gov.hmcts.opal.dto.common.FixedPenaltyTicketDetails;
 import uk.gov.hmcts.opal.dto.common.IndividualAlias;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
@@ -56,6 +65,7 @@ import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
+import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.AliasDto;
@@ -66,12 +76,15 @@ import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
+import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
@@ -81,12 +94,16 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.repository.EnforcementOverrideResultRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
+import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
+import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.util.DateTimeUtils;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
@@ -120,7 +137,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final EnforcerRepository enforcerRepository;
 
+    private final PaymentCardRequestRepository paymentCardRequestRepository;
+
+    private final AccessTokenService accessTokenService;
+
+    private final UserStateService userStateService;
+
+
     private CommentsAndNotes commentAndNotes;
+
+    private final FixedPenaltyOffenceRepository fixedPenaltyOffenceRepository;
 
     @Autowired
     private DebtorDetailRepository debtorDetailRepository;
@@ -166,7 +192,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     : Boolean.FALSE
             )
             .parentGuardianPartyId(Optional.ofNullable(e.getParentGuardianAccountPartyId())
-                                       .map(Object::toString).orElse(null))
+                .map(Object::toString).orElse(null))
             .accountNumber(e.getAccountNumber())
             .accountType(normaliseAccountType(e.getAccountType()))
             .prosecutorCaseReference(e.getProsecutorCaseReference())
@@ -175,7 +201,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .businessUnitSummary(buildBusinessUnitSummary(e))
             .paymentStateSummary(buildPaymentStateSummary(e))
             .partyDetails(buildPartyDetails(e))
-            .version(e.getVersion())
+            .version(BigInteger.valueOf(e.getVersion()))
             .build();
     }
 
@@ -276,12 +302,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts (Opal): criteria: {}", accountSearchDto);
 
-
         boolean hasRef =
             Optional.ofNullable(accountSearchDto.getReferenceNumberDto())
                 .map(r ->
-                         (r.getAccountNumber() != null && !r.getAccountNumber().isBlank())
-                             || (r.getProsecutorCaseReference() != null && !r.getProsecutorCaseReference().isBlank())
+                    (r.getAccountNumber() != null && !r.getAccountNumber().isBlank())
+                        || (r.getProsecutorCaseReference() != null && !r.getProsecutorCaseReference().isBlank())
                 )
                 .orElse(false);
 
@@ -305,7 +330,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 .and(searchDefendantAccountSpecs.filterByAddress1StartsWith(accountSearchDto))
                 .and(searchDefendantAccountSpecs.filterByPostcodeStartsWith(accountSearchDto));
 
-
         List<SearchDefendantAccountEntity> rows = searchDefendantAccountRepository.findAll(spec);
 
         List<DefendantAccountSummaryDto> summaries = new ArrayList<>(rows.size());
@@ -327,14 +351,31 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .findTopByDefendantAccount_DefendantAccountIdOrderByPostedDateDescPaymentTermsIdDesc(
                 defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException("Payment Terms not found for Defendant Account Id: "
-                                                               + defendantAccountId));
+                + defendantAccountId));
 
         return toPaymentTermsResponse(entity);
     }
 
+
+    @Override
+    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
+        log.debug(":getDefendantAccountFixedPenalty (Opal): id={}", defendantAccountId);
+
+        DefendantAccountEntity account = defendantAccountRepository.findById(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account not found with id: " + defendantAccountId));
+
+        FixedPenaltyOffenceEntity offence = fixedPenaltyOffenceRepository.findByDefendantAccountId(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Fixed Penalty Offence not found for account: " + defendantAccountId));
+
+        return toFixedPenaltyResponse(account, offence);
+    }
+
+
     private static List<AliasDto> buildSearchAliases(SearchDefendantAccountEntity e) {
         boolean isOrganisation = Boolean.TRUE.equals(e.getOrganisation());
-        String[] aliasValues = { e.getAlias1(), e.getAlias2(), e.getAlias3(), e.getAlias4(), e.getAlias5() };
+        String[] aliasValues = {e.getAlias1(), e.getAlias2(), e.getAlias3(), e.getAlias4(), e.getAlias5()};
 
         List<AliasDto> out = new ArrayList<>();
         for (int i = 0; i < aliasValues.length; i++) {
@@ -385,15 +426,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     @Override
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
-                                                                     Long defendantAccountPartyId) {
+        Long defendantAccountPartyId) {
         log.debug(":getDefendantAccountParty: Opal mode: accountId={}, partyId={}", defendantAccountId,
             defendantAccountPartyId);
 
         // Find the DefendantAccountEntity by ID
-        DefendantAccountEntity account = defendantAccountRepository
-            .findById(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: "
-                + defendantAccountId));
+        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
 
         // Find the DefendantAccountPartiesEntity by Party ID
         DefendantAccountPartiesEntity party = account.getParties().stream()
@@ -496,7 +534,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .workTelephoneNumber(party.getWorkTelephoneNumber())
             .build();
 
-
         VehicleDetails vehicleDetails = VehicleDetails.builder()
             .vehicleMakeAndModel(debtorDetail != null ? debtorDetail.getVehicleMake() : null)
             .vehicleRegistration(debtorDetail != null ? debtorDetail.getVehicleRegistration() : null)
@@ -569,22 +606,57 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .instalmentPeriod(
                 InstalmentPeriod.builder()
                     .instalmentPeriodCode(safeInstalmentPeriodCode(entity.getInstalmentPeriod())
-                )
+                    )
                     .build()
             )
             .lumpSumAmount(entity.getInstalmentLumpSum())
             .instalmentAmount(entity.getInstalmentAmount())
             .postedDetails(PostedDetails.builder()
-                               .postedDate(entity.getPostedDate())
-                               .postedBy(entity.getPostedBy())
-                               .postedByName(entity.getPostedByUsername())
-                               .build())
+                .postedDate(entity.getPostedDate())
+                .postedBy(entity.getPostedBy())
+                .postedByName(entity.getPostedByUsername())
+                .build())
             .build();
 
         return GetDefendantAccountPaymentTermsResponse.builder()
             .paymentTerms(paymentTerms)
             .paymentCardLastRequested(account.getPaymentCardRequestedDate())
             .lastEnforcement(account.getLastEnforcement())
+            .build();
+    }
+
+    private static GetDefendantAccountFixedPenaltyResponse toFixedPenaltyResponse(
+        DefendantAccountEntity account, FixedPenaltyOffenceEntity offence) {
+
+        boolean isVehicle =
+            offence.getVehicleRegistration() != null
+                && !"NV".equalsIgnoreCase(offence.getVehicleRegistration());
+
+        FixedPenaltyTicketDetails ticketDetails = FixedPenaltyTicketDetails.builder()
+            .issuingAuthority(account.getOriginatorName())
+            .ticketNumber(offence.getTicketNumber())
+            .timeOfOffence(
+                offence.getTimeOfOffence() != null
+                    ? offence.getTimeOfOffence().toString()
+                    : null
+            )
+            .placeOfOffence(offence.getOffenceLocation())
+            .build();
+
+        VehicleFixedPenaltyDetails vehicleDetails = isVehicle
+            ? VehicleFixedPenaltyDetails.builder()
+            .vehicleRegistrationNumber(offence.getVehicleRegistration())
+            .vehicleDriversLicense(offence.getLicenceNumber())
+            .noticeNumber(offence.getNoticeNumber())
+            .dateNoticeIssued(DateTimeUtils.toString(offence.getIssuedDate()))
+            .build()
+            : null;
+
+        return GetDefendantAccountFixedPenaltyResponse.builder()
+            .vehicleFixedPenaltyFlag(isVehicle)
+            .fixedPenaltyTicketDetails(ticketDetails)
+            .vehicleFixedPenaltyDetails(vehicleDetails)
+            .version(account.getVersion())
             .build();
     }
 
@@ -679,22 +751,26 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String forenames,
         String surname,
         String organisationName
-    ) {}
+    ) {
 
-    /** Split a full name into forenames + surname (surname = last token). */
+    }
+
+    /**
+     * Split a full name into forenames + surname (surname = last token).
+     */
     private static String[] splitForenamesSurname(String fullName) {
         if (fullName == null) {
-            return new String[] { null, null };
+            return new String[] {null, null};
         }
         String s = fullName.trim().replaceAll("\\s+", " ");
         int idx = s.lastIndexOf(' ');
         if (idx < 0) {
             // Single token — treat as forename only (no surname)
-            return new String[] { emptyToNull(s), null };
+            return new String[] {emptyToNull(s), null};
         }
         String forenames = emptyToNull(s.substring(0, idx));
-        String surname   = emptyToNull(s.substring(idx + 1));
-        return new String[] { forenames, surname };
+        String surname = emptyToNull(s.substring(idx + 1));
+        return new String[] {forenames, surname};
     }
 
     // ---- public-ish helpers your builders can call ----
@@ -742,8 +818,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     /**
-     * Parse alias in the new unified shape: id|seq|name
-     * Use isOrganisation to decide whether "name" is an organisation name or a personal full name.
+     * Parse alias in the new unified shape: id|seq|name Use isOrganisation to decide whether "name" is an organisation
+     * name or a personal full name.
      */
     private static Optional<ParsedAlias> parseAliasRaw(String raw, boolean isOrganisation) {
         String[] parts = Arrays.stream(raw.split("\\|", -1))
@@ -756,8 +832,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             }
 
             String aliasId = emptyToNull(parts[0]);
-            Integer seq    = parseIntOrNull(parts[1]);
-            String name    = emptyToNull(parts[2]);
+            Integer seq = parseIntOrNull(parts[1]);
+            String name = emptyToNull(parts[2]);
 
             if (isOrganisation) {
                 return Optional.of(new ParsedAlias(
@@ -957,7 +1033,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         em.lock(entity, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         em.flush();
-        Long newVersion = entity.getVersion();
+        BigInteger newVersion = entity.getVersion();
 
         Short buId = entity.getBusinessUnit().getBusinessUnitId();
         amendmentService.auditFinaliseStoredProc(
@@ -1045,6 +1121,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .version(newVersion)
             .build();
     }
+
+    private static String orEmpty(String s) {
+        return (s == null) ? "" : s;
+    }
+
 
     @Override
     @Transactional
@@ -1349,12 +1430,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
      * Determines if the individual is considered a youth (under 18 years old).
      *
      * <p>
-     *     If the birth date is provided, it calculates the age based on the current date.
-     *     If the birth date is not provided, the age parameter is used if available.
-     *     If neither is available, it returns null.
+     * If the birth date is provided, it calculates the age based on the current date. If the birth date is not
+     * provided, the age parameter is used if available. If neither is available, it returns null.
      * </p>
+     *
      * @param birthDate The birth date of the individual.
-     * @param age Age of the individual.
+     * @param age       Age of the individual.
      * @return True if the individual is under 18, false otherwise.
      */
     private static Boolean isYouth(LocalDateTime birthDate, Integer age) {
@@ -1369,8 +1450,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
 
     private void applyCommentAndNotes(DefendantAccountEntity managed,
-                                      CommentsAndNotes notes,
-                                      String postedBy) {
+        CommentsAndNotes notes,
+        String postedBy) {
 
         // Persist values on the main defendant_accounts table
         managed.setAccountComments(notes.getAccountNotesAccountComments());
@@ -1437,7 +1518,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (co.getCollectionOrderFlag() == null || co.getCollectionOrderDate() == null) {
             throw new IllegalArgumentException("collection_order_flag and collection_order_date are required");
         }
-        entity.setCollectionOrder(co.getCollectionOrderFlag());
+        entity.setCollectionOrder(Boolean.TRUE.equals(co.getCollectionOrderFlag()));
         try {
             entity.setCollectionOrderEffectiveDate(LocalDate.parse(co.getCollectionOrderDate()));
         } catch (DateTimeParseException ex) {
@@ -1479,6 +1560,84 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         };
     }
 
+    @Override
+    @Transactional
+    public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String authHeader) {
+
+        log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
+
+        // 1. Fetch defendant account
+        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
+
+        // 2. Validate business unit
+        if (account.getBusinessUnit() == null
+            || account.getBusinessUnit().getBusinessUnitId() == null
+            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
+            throw new EntityNotFoundException(
+                "Defendant Account not found in business unit " + businessUnitId);
+        }
+
+        // 3. Version check
+        VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "addPaymentCardRequest");
+
+        // 4. Audit start
+        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+
+        // 5. Ensure no existing PCR
+        if (paymentCardRequestRepository.existsByDefendantAccountId(defendantAccountId)) {
+            throw new ResourceConflictException(
+                "DefendantAccountEntity",
+                String.valueOf(defendantAccountId),
+                "A payment card request already exists for this account."
+            );
+        }
+
+        // 6. Retrieve logged-in UserState
+        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
+
+        // 7. Create PCR row first (so later declarations appear close to usage)
+        PaymentCardRequestEntity pcr = PaymentCardRequestEntity.builder()
+            .defendantAccountId(defendantAccountId)
+            .build();
+        paymentCardRequestRepository.save(pcr);
+
+        // 8. Resolve BU ID right before use
+        final short buId = Short.parseShort(businessUnitId);
+
+        // 9. Resolve BU user ID — moved DIRECTLY before its first usage
+        final String businessUnitUserId = userState
+            .getBusinessUnitUserForBusinessUnit(buId)
+            .map(bu -> bu.getBusinessUnitUserId())
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Logged in user is not associated with business unit " + buId));
+
+        // 10. Friendly display name — moved DIRECTLY before its first usage
+        final String displayName = accessTokenService.extractName(authHeader);
+
+        // 11. Update defendant_accounts flags
+        account.setPaymentCardRequested(true);
+        account.setPaymentCardRequestedDate(LocalDate.now());
+        account.setPaymentCardRequestedBy(businessUnitUserId);
+        account.setPaymentCardRequestedByName(displayName);
+        defendantAccountRepository.save(account);
+
+        // 13. Audit complete
+        Short accountBuId = account.getBusinessUnit().getBusinessUnitId();
+        amendmentService.auditFinaliseStoredProc(
+            defendantAccountId,
+            RecordType.DEFENDANT_ACCOUNTS,
+            accountBuId,
+            businessUnitUserId,
+            account.getProsecutorCaseReference(),
+            "ACCOUNT_ENQUIRY"
+        );
+
+        // 14. Minimal response
+        return new AddPaymentCardRequestResponse(defendantAccountId);
+    }
     private static Long safeParseLong(String s) {
         if (s == null || s.isBlank()) {
             return null;
@@ -1516,9 +1675,5 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
     }
 
-    private static String orEmpty(String s) {
-        return Objects.requireNonNullElse(s, "");
-    }
-
-
 }
+

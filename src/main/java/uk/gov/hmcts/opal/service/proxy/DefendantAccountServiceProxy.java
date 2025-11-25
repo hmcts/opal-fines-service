@@ -1,5 +1,9 @@
 package uk.gov.hmcts.opal.service.proxy;
 
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
+import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -56,6 +60,11 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     }
 
     @Override
+    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
+        return getCurrentModeService().getDefendantAccountFixedPenalty(defendantAccountId);
+    }
+
+    @Override
     public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                            String businessUnitId,
                                                            UpdateDefendantAccountRequest request,
@@ -74,4 +83,13 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
             defendantAccountParty, ifMatch, businessUnitId, postedBy, businessUserId);
 
     }
+
+    @Override
+    public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String authHeader) {
+        return getCurrentModeService().addPaymentCardRequest(defendantAccountId, businessUnitId, ifMatch, authHeader);
+    }
+
 }

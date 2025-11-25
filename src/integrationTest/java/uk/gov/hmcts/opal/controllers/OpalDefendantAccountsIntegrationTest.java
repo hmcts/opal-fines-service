@@ -315,6 +315,16 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
+    void testGetDefendantAccountFixedPenalty_Success() throws Exception {
+        super.testGetDefendantAccountFixedPenalty(log);
+    }
+
+    @Test
+    void testGetDefendantAccountFixedPenalty_NotFound() throws Exception {
+        super.testGetDefendantAccountFixedPenalty_NotFound(log);
+    }
+
+    @Test
     void opal_updateDefendantAccount_Happy() throws Exception {
         super.opalUpdateDefendantAccount_Happy(log);
     }
@@ -395,6 +405,16 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
+    void testGetAtAGlance_VerifyAliasesArray_Organisation() throws Exception {
+        super.testGetAtAGlance_VerifyAliasesArray_Organisation(log);
+    }
+
+    @Test
+    void testGetAtAGlance_VerifyAliasesArray_Individual() throws Exception {
+        super.testGetAtAGlance_VerifyAliasesArray_Individual(log);
+    }
+
+    @Test
     void testPut_notFound_whenDapMissing() throws Exception {
         super.put_notFound_whenDapMissing(log);
     }
@@ -409,4 +429,28 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.put_happyPath_updates_andReturnsResponse(log);
     }
 
+
+    @Test void addPaymentCardRequest_Happy() throws Exception {
+        super.opalAddPaymentCardRequest_Happy(log);
+    }
+
+    @Test void addPaymentCardRequest_wrongBU() throws Exception {
+        super.opalAddPaymentCardRequest_NotFound_WrongBU(log);
+    }
+
+    @Test void addPaymentCardRequest_noPermsU() throws Exception {
+        super.opalAddPaymentCardRequest_Forbidden_NoPermission(log);
+    }
+
+    @Test void addPaymentCardRequest_unAuth() throws Exception {
+        super.opalAddPaymentCardRequest_Unauthorized(log);
+    }
+
+    @Test void addPaymentCardRequest_IfMatchConfl() throws Exception {
+        super.opalAddPaymentCardRequest_IfMatchConflict(log);
+    }
+
+    @Test void addPaymentCardRequest_Exists() throws Exception {
+        super.opalAddPaymentCardRequest_AlreadyExists(log);
+    }
 }
