@@ -46,9 +46,9 @@ import org.mockito.MockedStatic;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
@@ -97,8 +97,8 @@ import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
@@ -114,12 +114,10 @@ import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
-import uk.gov.hmcts.opal.util.VersionUtils;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
-import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.util.VersionUtils;
 
 class OpalDefendantAccountServiceTest {
 
@@ -1735,7 +1733,7 @@ class OpalDefendantAccountServiceTest {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
             .defendantAccountId(accountId)
             .businessUnit(buEnt)
-            .version(1L)
+            .versionNumber(1L)
             .build();
 
         // Party is mocked so we can verify setters
@@ -1765,9 +1763,25 @@ class OpalDefendantAccountServiceTest {
         when(debtorRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, searchDefAccRepo, searchSpecsSpy, paymentTermsRepository,
-            dasvRepository, null, amendmentService, em, null, null, null, null
+            null,
+            defendantAccountRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            amendmentService,
+            em,
+            null,
+            null,
+            null,
+            null,
+            paymentCardRequestRepository,
+            accessTokenService,
+            userStateService,
+            null
         );
+
 
         setField(svc, "debtorDetailRepository", debtorRepo);
 
@@ -1862,7 +1876,7 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountId(accountId)
             .businessUnit(buEnt)
             .parties(List.of(dap))
-            .version(1L)
+            .versionNumber(1L)
             .build();
 
         when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
@@ -1879,9 +1893,25 @@ class OpalDefendantAccountServiceTest {
         when(debtorRepo.existsById(anyLong())).thenReturn(false);
         when(debtorRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, searchDefAccRepo, searchSpecsSpy, paymentTermsRepository,
-            dasvRepository, null, amendmentService, em, null, null, null, null
+            null,
+            defendantAccountRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            amendmentService,
+            em,
+            null,
+            null,
+            null,
+            null,
+            paymentCardRequestRepository,
+            accessTokenService,
+            userStateService,
+            null
         );
+
         setField(svc, "debtorDetailRepository", debtorRepo);
 
         AliasRepository aliasRepo = mock(AliasRepository.class);
@@ -1899,7 +1929,7 @@ class OpalDefendantAccountServiceTest {
 
         try (MockedStatic<uk.gov.hmcts.opal.util.VersionUtils> vs =
             mockStatic(uk.gov.hmcts.opal.util.VersionUtils.class)) {
-            vs.when(() -> uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+            vs.when(() -> uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
@@ -1924,7 +1954,7 @@ class OpalDefendantAccountServiceTest {
             .businessUnitId(Short.valueOf(bu)).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).versionNumber(1L).build();
 
         PartyEntity party = mock(PartyEntity.class);
         when(party.getPartyId()).thenReturn(123L);
@@ -1941,8 +1971,23 @@ class OpalDefendantAccountServiceTest {
         when(em.contains(party)).thenReturn(true);
 
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, searchDefAccRepo, searchSpecsSpy, paymentTermsRepository,
-            dasvRepository, null, amendmentService, em, null, null, null, null
+            null,
+            defendantAccountRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            amendmentService,
+            em,
+            null,
+            null,
+            null,
+            null,
+            paymentCardRequestRepository,
+            accessTokenService,
+            userStateService,
+            null
         );
 
         DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
@@ -2018,7 +2063,8 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap)).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap))
+            .versionNumber(1L).build();
 
         when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
         when(defendantAccountRepository.save(account)).thenReturn(account);
@@ -2029,8 +2075,23 @@ class OpalDefendantAccountServiceTest {
         when(em.getReference(PartyEntity.class, 300L)).thenReturn(party);
 
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, searchDefAccRepo, searchSpecsSpy, paymentTermsRepository,
-            dasvRepository, null, amendmentService, em, null, null, null, null
+            null,
+            defendantAccountRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            amendmentService,
+            em,
+            null,
+            null,
+            null,
+            null,
+            paymentCardRequestRepository,
+            accessTokenService,
+            userStateService,
+            null
         );
 
         DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
@@ -2050,7 +2111,7 @@ class OpalDefendantAccountServiceTest {
             .build();
 
         try (var vs = mockStatic(VersionUtils.class)) {
-            vs.when(() -> VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
@@ -2076,15 +2137,31 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountPartyId(dapId).party(null).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap)).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap))
+            .versionNumber(1L).build();
+        AmendmentService amendmentService = mock(AmendmentService.class);
 
         when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
 
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, null, null, null, null, null,
-            mock(AmendmentService.class), mock(EntityManager.class), null, null, null, null
+            null,
+            defendantAccountRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            amendmentService,
+            null,
+            null,
+            null,
+            null,
+            null,
+            paymentCardRequestRepository,
+            accessTokenService,
+            userStateService,
+            null
         );
-
         setField(svc, "debtorDetailRepository", mock(DebtorDetailRepository.class));
         setField(svc, "aliasRepository", mock(AliasRepository.class));
 
@@ -2096,7 +2173,7 @@ class OpalDefendantAccountServiceTest {
             .build();
 
         try (var vs = mockStatic(VersionUtils.class)) {
-            vs.when(() -> VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
                 .thenAnswer(i -> null);
 
             assertThrows(IllegalArgumentException.class, () ->
@@ -2122,13 +2199,29 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap)).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap))
+            .versionNumber(1L).build();
 
+        AmendmentService amendmentService = mock(AmendmentService.class);
         when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
-
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, null, null, null, null, null,
-            mock(AmendmentService.class), mock(EntityManager.class), null, null, null, null
+            null,
+            defendantAccountRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            amendmentService,
+            null,
+            null,
+            null,
+            null,
+            null,
+            paymentCardRequestRepository,
+            accessTokenService,
+            userStateService,
+            null
         );
 
         setField(svc, "debtorDetailRepository", mock(DebtorDetailRepository.class));
@@ -2139,7 +2232,7 @@ class OpalDefendantAccountServiceTest {
             .build();
 
         try (var vs = mockStatic(VersionUtils.class)) {
-            vs.when(() -> VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
                 .thenAnswer(i -> null);
 
             assertThrows(IllegalArgumentException.class, () ->
@@ -2158,15 +2251,29 @@ class OpalDefendantAccountServiceTest {
             .businessUnitId((short) 77).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buWrong).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buWrong).versionNumber(1L).build();
 
         when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
 
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, null, null, null, null, null,
-            mock(AmendmentService.class), mock(EntityManager.class), null, null, null, null
+            null,
+             defendantAccountRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            paymentCardRequestRepository,
+            accessTokenService,
+            userStateService,
+            null
         );
-
         setField(svc, "debtorDetailRepository", mock(DebtorDetailRepository.class));
         setField(svc, "aliasRepository", mock(AliasRepository.class));
 
@@ -2192,7 +2299,8 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap)).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap))
+            .versionNumber(1L).build();
 
         when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
         when(defendantAccountRepository.save(account)).thenReturn(account);
@@ -2202,8 +2310,23 @@ class OpalDefendantAccountServiceTest {
         when(em.contains(party)).thenReturn(true);
 
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, null, null, null, null, null, amendmentService, em,
-            null, null, null, null
+            null,
+            defendantAccountRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            amendmentService,
+            em,
+            null,
+            null,
+            null,
+            null,
+            paymentCardRequestRepository,
+            accessTokenService,
+            userStateService,
+            null
         );
 
         DebtorDetailEntity existing = new DebtorDetailEntity();
@@ -2226,7 +2349,7 @@ class OpalDefendantAccountServiceTest {
             .build();
 
         try (var vs = mockStatic(VersionUtils.class)) {
-            vs.when(() -> VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
@@ -2255,7 +2378,8 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap)).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap))
+            .versionNumber(1L).build();
 
         when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
         when(defendantAccountRepository.save(account)).thenReturn(account);
@@ -2265,8 +2389,23 @@ class OpalDefendantAccountServiceTest {
         when(em.contains(party)).thenReturn(true);
 
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, null, null, null, null, null, amendmentService, em,
-            null, null, null, null
+            null,
+            defendantAccountRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            amendmentService,
+            em,
+            null,
+            null,
+            null,
+            null,
+            paymentCardRequestRepository,
+            accessTokenService,
+            userStateService,
+            null
         );
 
         DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
@@ -2292,7 +2431,7 @@ class OpalDefendantAccountServiceTest {
             .build();
 
         try (var vs = mockStatic(VersionUtils.class)) {
-            vs.when(() -> VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
@@ -2345,7 +2484,8 @@ class OpalDefendantAccountServiceTest {
             .defendantAccountPartyId(dapId).party(party).build();
 
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap)).version(1L).build();
+            .defendantAccountId(accountId).businessUnit(buEnt).parties(java.util.List.of(dap))
+            .versionNumber(1L).build();
 
         when(defendantAccountRepository.findById(accountId)).thenReturn(java.util.Optional.of(account));
         when(defendantAccountRepository.save(account)).thenReturn(account);
@@ -2355,10 +2495,24 @@ class OpalDefendantAccountServiceTest {
         when(em.contains(party)).thenReturn(true);
 
         OpalDefendantAccountService svc = new OpalDefendantAccountService(
-            null, defendantAccountRepository, null, null, null, null, null, amendmentService, em,
-            null, null, null, null
+            null,
+            defendantAccountRepository,
+            null,
+            null,
+            null,
+            null,
+            null,
+            amendmentService,
+            em,
+            null,
+            null,
+            null,
+            null,
+            paymentCardRequestRepository,
+            accessTokenService,
+            userStateService,
+            null
         );
-
         DebtorDetailRepository debtorRepo = mock(DebtorDetailRepository.class);
         when(debtorRepo.findById(444L)).thenReturn(java.util.Optional.empty());
         when(debtorRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -2377,7 +2531,7 @@ class OpalDefendantAccountServiceTest {
             .address(null).contactDetails(null).build();
 
         try (var vs = mockStatic(VersionUtils.class)) {
-            vs.when(() -> VersionUtils.verifyIfMatch(any(), any(), anyLong(), anyString()))
+            vs.when(() -> VersionUtils.verifyIfMatch(any(), anyString(), anyLong(), anyString()))
                 .thenAnswer(i -> null);
 
             GetDefendantAccountPartyResponse resp =
@@ -2597,7 +2751,7 @@ class OpalDefendantAccountServiceTest {
         // keep alignment with your existing constructor usage
         return new OpalDefendantAccountService(
             null, null, null, null, null, null, null, mock(AmendmentService.class),
-            em, null, null, null, null
+            em, null, null, null, null, null, null, null, null
         );
     }
 

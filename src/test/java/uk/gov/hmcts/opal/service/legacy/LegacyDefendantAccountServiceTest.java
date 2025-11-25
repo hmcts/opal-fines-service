@@ -1945,7 +1945,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         );
 
         assertNotNull(out);
-        assertEquals(4L, out.getVersion());
+        assertEquals(BigInteger.valueOf(4), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
 
         // party details should exist but nested organisation/individual fields should be null
@@ -2001,7 +2001,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         );
 
         assertNotNull(out);
-        assertEquals(2L, out.getVersion());
+        assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
         assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
         assertTrue(out.getDefendantAccountParty().getIsDebtor());
@@ -2091,7 +2091,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Assert
         assertNotNull(out);
-        assertEquals(2L, out.getVersion());
+        assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
         assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
 
@@ -2157,7 +2157,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Assert
         assertNotNull(out);
-        assertEquals(2L, out.getVersion());
+        assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
         assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
 
@@ -2236,7 +2236,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Assert
         assertNotNull(out);
-        assertEquals(2L, out.getVersion());
+        assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
         assertEquals("Defendant", out.getDefendantAccountParty().getDefendantAccountPartyType());
 
@@ -2296,7 +2296,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Assert
         assertNotNull(out);
-        assertEquals(2L, out.getVersion());
+        assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
 
         // Employer details should be null in modern model when legacy had none
@@ -2360,7 +2360,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Assert
         assertNotNull(out);
-        assertEquals(5L, out.getVersion());
+        assertEquals(BigInteger.valueOf(5), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
 
         // language preferences should be mapped and use codes (document -> "en", hearing -> "fr")
@@ -2412,7 +2412,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Assert
         assertNotNull(out);
-        assertEquals(6L, out.getVersion());
+        assertEquals(BigInteger.valueOf(6), out.getVersion());
         assertNotNull(out.getDefendantAccountParty());
 
         // language preferences should be null in modern model when legacy had none

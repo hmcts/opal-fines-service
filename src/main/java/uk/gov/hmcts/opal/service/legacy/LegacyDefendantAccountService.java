@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.math.BigDecimal;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -1048,7 +1047,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
 
         return GetDefendantAccountPartyResponse.builder()
-            .version(legacy.getVersion() == null ? null : legacy.getVersion().longValue())
+            .version(legacy.getVersion() == null ? null : BigInteger.valueOf(legacy.getVersion()))
             .defendantAccountParty(modernParty)
             .build();
     }

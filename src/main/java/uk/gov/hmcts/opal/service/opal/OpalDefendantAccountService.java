@@ -1,8 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import static uk.gov.hmcts.opal.entity.DefendantAccountEntity_.defendantAccountId;
-import static uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity_.defendantAccountPartyId;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
@@ -1638,6 +1635,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         // 14. Minimal response
         return new AddPaymentCardRequestResponse(defendantAccountId);
     }
+
     private static Long safeParseLong(String s) {
         if (s == null || s.isBlank()) {
             return null;
