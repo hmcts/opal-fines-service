@@ -1,5 +1,17 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.UnmarshalException;
@@ -7,6 +19,10 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,22 +46,6 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
-import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 @Slf4j(topic = "opal.LegacyGatewayServiceTest")
 class LegacyGatewayServiceTest {
@@ -68,6 +68,10 @@ class LegacyGatewayServiceTest {
     @InjectMocks
     private LegacyGatewayService legacy;
 
+    // Dummy payload type for unmarshalled responses
+    public static class Dummy {
+
+    }
 
     @Test
     @SuppressWarnings("unchecked")
@@ -206,6 +210,19 @@ class LegacyGatewayServiceTest {
         when(requestBodySpec.accept(any(MediaType.class))).thenReturn(requestBodySpec);
         when(requestBodySpec.body(any(String.class))).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+    }
+
+    // =========================
+    // extractResponse() tests
+    // =========================
+
+    @Test
+    void testExtractResponse_withStringClass_returnsRawBody() {
+
+        var svc = new LegacyGatewayService(properties, restClient);
+        var re = ResponseEntity.ok("plain string body");
+        var out = svc.extractResponse(re, String.class, null);
+        assertThat(out.body).isEqualTo("plain string body");
     }
 
     class BrokenMapImplementation<K, V> implements Map<K, V> {

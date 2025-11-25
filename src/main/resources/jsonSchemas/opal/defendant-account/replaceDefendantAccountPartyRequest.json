@@ -5,7 +5,66 @@
   "additionalProperties": false,
   "properties": {
     "defendant_account_party": {
-      "$ref": "../common-objects/defendantAccountParty.json"
+      "allOf": [
+        { "$ref": "../common-objects/defendantAccountParty.json" },
+        {
+          "properties": {
+            "party_details": {
+              "allOf": [
+                { "$ref": "../common-objects/partyDetails.json" },
+                {
+                  "properties": {
+                    "individual_details": {
+                      "allOf": [
+                        { "$ref": "../common-objects/individualDetails.json" },
+                        {
+                          "properties": {
+                            "individual_aliases": {
+                              "type": "array",
+                              "items": {
+                                "allOf": [
+                                  { "$ref": "../common-objects/individualAlias.json" },
+                                  {
+                                    "properties": {
+                                      "alias_id": { "type": ["string", "null"] }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "organisation_details": {
+                      "allOf": [
+                        { "$ref": "../common-objects/organisationDetails.json" },
+                        {
+                          "properties": {
+                            "organisation_aliases": {
+                              "type": "array",
+                              "items": {
+                                "allOf": [
+                                  { "$ref": "../common-objects/organisationAlias.json" },
+                                  {
+                                    "properties": {
+                                      "alias_id": { "type": ["string", "null"] }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
     }
   },
   "required": [

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:include schemaLocation="posted_details.xsd"/>
+    <xsd:include schemaLocation="payment_terms_type.xsd"/>
+    <xsd:include schemaLocation="instalment_period.xsd"/>
+    <xsd:complexType name="payment_terms">
+        <xsd:sequence>
+            <xsd:element name="days_in_default" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="date_days_in_default_imposed" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="extension" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="reason_for_extension" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="payment_terms_type" type="payment_terms_type" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="effective_date" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="instalment_period" type="instalment_period" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="lump_sum_amount" type="Money2Decimal" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="instalment_amount" type="Money2Decimal" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="posted_details" type="posted_details" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:complexType name="collection_order">
+    <xsd:sequence>
+      <xsd:element name="collection_order_flag" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="collection_order_date" type="xsd:date" minOccurs="0" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

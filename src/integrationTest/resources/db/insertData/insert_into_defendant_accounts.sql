@@ -151,6 +151,18 @@ INSERT INTO defendant_account_parties
 VALUES ( 0077, 0077, 0077
        , 'Defendant', 'Y');
 
+-- Enhance fixed penalty offence for account 77 (for PO-1819 integration test completeness)
+UPDATE fixed_penalty_offences
+SET
+    vehicle_registration = 'AB12CDE',
+    offence_location = 'London',
+    notice_number = 'PN98765',
+    issued_date = '2024-01-01',
+    licence_number = 'DOE1234567',
+    vehicle_fixed_penalty = TRUE,
+    offence_time = '12:34'
+WHERE defendant_account_id = 77;
+
 INSERT INTO payment_terms
 ( payment_terms_id, defendant_account_id, posted_date, posted_by
 , terms_type_code, effective_date, instalment_period, instalment_amount, instalment_lump_sum
