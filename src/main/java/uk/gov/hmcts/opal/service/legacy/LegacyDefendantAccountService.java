@@ -880,4 +880,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         );
     }
 
+
+    @Override
+    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
+        Long defendantAccountPartyId,
+        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy) {
+        return null;
+    }
 }
