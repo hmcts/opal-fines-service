@@ -430,17 +430,6 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
-    void testReplaceDefendantAccountPartyIsDebtorTrue() throws Exception {
-        super.put_replace_dap_isDebtorTrue_upsertsDebtorDetails(log);
-    }
-
-
-    @Test
-    void testReplaceDefendantAccountPartyIsDebtorTrue() throws Exception {
-        super.put_replace_dap_isDebtorTrue_upsertsDebtorDetails(log);
-    }
-
-    @Test
     void testPut_notFound_whenDapMissing() throws Exception {
         super.put_notFound_whenDapMissing(log);
     }
