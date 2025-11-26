@@ -1,12 +1,12 @@
 package uk.gov.hmcts.opal.controllers;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -405,12 +405,57 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
-    void testGetAtAGlance_VerifyAliasesArray_Organisation() throws Exception {
-        super.testGetAtAGlance_VerifyAliasesArray_Organisation(log);
+    void testPut_notFound_whenDapMissing() throws Exception {
+        super.put_notFound_whenDapMissing(log);
     }
 
     @Test
-    void testGetAtAGlance_VerifyAliasesArray_Individual() throws Exception {
-        super.testGetAtAGlance_VerifyAliasesArray_Individual(log);
+    void testPut_notFound_whenAccountNotInHeaderBU() throws Exception {
+        super.put_notFound_whenAccountNotInHeaderBU(log);
+    }
+
+    @Test
+    void testPut_org_aliases_upsert_and_trim() throws Exception {
+        super.put_org_aliases_upsert_and_trim(log);
+    }
+
+    @Test
+    void testPut_individual_aliases_upsert_and_trim() throws Exception {
+        super.put_individual_aliases_upsert_and_trim(log);
+    }
+
+    @Test
+    void testReplaceDefendantAccountPartyIsDebtorFalse() throws Exception {
+        super.put_replace_dap_isDebtorFalse_clearsDebtorFieldsButKeepsRow(log);
+    }
+
+    @Test
+    void testReplaceDefendantAccountPartyIsDebtorTrue() throws Exception {
+        super.put_replace_dap_isDebtorTrue_upsertsDebtorDetails(log);
+    }
+
+
+    @Test void addPaymentCardRequest_Happy() throws Exception {
+        super.opalAddPaymentCardRequest_Happy(log);
+    }
+
+    @Test void addPaymentCardRequest_wrongBU() throws Exception {
+        super.opalAddPaymentCardRequest_NotFound_WrongBU(log);
+    }
+
+    @Test void addPaymentCardRequest_noPermsU() throws Exception {
+        super.opalAddPaymentCardRequest_Forbidden_NoPermission(log);
+    }
+
+    @Test void addPaymentCardRequest_unAuth() throws Exception {
+        super.opalAddPaymentCardRequest_Unauthorized(log);
+    }
+
+    @Test void addPaymentCardRequest_IfMatchConfl() throws Exception {
+        super.opalAddPaymentCardRequest_IfMatchConflict(log);
+    }
+
+    @Test void addPaymentCardRequest_Exists() throws Exception {
+        super.opalAddPaymentCardRequest_AlreadyExists(log);
     }
 }

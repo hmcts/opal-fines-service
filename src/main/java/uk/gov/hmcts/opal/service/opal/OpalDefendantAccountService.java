@@ -1,8 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import static uk.gov.hmcts.opal.entity.DefendantAccountEntity_.defendantAccountId;
-import static uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity_.defendantAccountPartyId;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
@@ -14,10 +11,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -76,10 +81,12 @@ import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
@@ -92,9 +99,11 @@ import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
+import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -129,6 +138,15 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private final LocalJusticeAreaRepository localJusticeAreaRepository;
 
     private final EnforcerRepository enforcerRepository;
+
+    private final PaymentCardRequestRepository paymentCardRequestRepository;
+
+    private final AccessTokenService accessTokenService;
+
+    private final UserStateService userStateService;
+
+
+    private final OpalPartyService opalPartyService;
 
     private CommentsAndNotes commentAndNotes;
 
@@ -178,7 +196,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                     : Boolean.FALSE
             )
             .parentGuardianPartyId(Optional.ofNullable(e.getParentGuardianAccountPartyId())
-                                       .map(Object::toString).orElse(null))
+                .map(Object::toString).orElse(null))
             .accountNumber(e.getAccountNumber())
             .accountType(normaliseAccountType(e.getAccountType()))
             .prosecutorCaseReference(e.getProsecutorCaseReference())
@@ -288,12 +306,11 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts (Opal): criteria: {}", accountSearchDto);
 
-
         boolean hasRef =
             Optional.ofNullable(accountSearchDto.getReferenceNumberDto())
                 .map(r ->
-                         (r.getAccountNumber() != null && !r.getAccountNumber().isBlank())
-                             || (r.getProsecutorCaseReference() != null && !r.getProsecutorCaseReference().isBlank())
+                    (r.getAccountNumber() != null && !r.getAccountNumber().isBlank())
+                        || (r.getProsecutorCaseReference() != null && !r.getProsecutorCaseReference().isBlank())
                 )
                 .orElse(false);
 
@@ -317,7 +334,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 .and(searchDefendantAccountSpecs.filterByAddress1StartsWith(accountSearchDto))
                 .and(searchDefendantAccountSpecs.filterByPostcodeStartsWith(accountSearchDto));
 
-
         List<SearchDefendantAccountEntity> rows = searchDefendantAccountRepository.findAll(spec);
 
         List<DefendantAccountSummaryDto> summaries = new ArrayList<>(rows.size());
@@ -339,7 +355,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .findTopByDefendantAccount_DefendantAccountIdOrderByPostedDateDescPaymentTermsIdDesc(
                 defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException("Payment Terms not found for Defendant Account Id: "
-                                                               + defendantAccountId));
+                + defendantAccountId));
 
         return toPaymentTermsResponse(entity);
     }
@@ -363,7 +379,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private static List<AliasDto> buildSearchAliases(SearchDefendantAccountEntity e) {
         boolean isOrganisation = Boolean.TRUE.equals(e.getOrganisation());
-        String[] aliasValues = { e.getAlias1(), e.getAlias2(), e.getAlias3(), e.getAlias4(), e.getAlias5() };
+        String[] aliasValues = {e.getAlias1(), e.getAlias2(), e.getAlias3(), e.getAlias4(), e.getAlias5()};
 
         List<AliasDto> out = new ArrayList<>();
         for (int i = 0; i < aliasValues.length; i++) {
@@ -414,15 +430,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     @Override
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
-                                                                     Long defendantAccountPartyId) {
+        Long defendantAccountPartyId) {
         log.debug(":getDefendantAccountParty: Opal mode: accountId={}, partyId={}", defendantAccountId,
             defendantAccountPartyId);
 
         // Find the DefendantAccountEntity by ID
-        DefendantAccountEntity account = defendantAccountRepository
-            .findById(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException("Defendant Account not found with id: "
-                + defendantAccountId));
+        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
 
         // Find the DefendantAccountPartiesEntity by Party ID
         DefendantAccountPartiesEntity party = account.getParties().stream()
@@ -525,7 +538,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .workTelephoneNumber(party.getWorkTelephoneNumber())
             .build();
 
-
         VehicleDetails vehicleDetails = VehicleDetails.builder()
             .vehicleMakeAndModel(debtorDetail != null ? debtorDetail.getVehicleMake() : null)
             .vehicleRegistration(debtorDetail != null ? debtorDetail.getVehicleRegistration() : null)
@@ -598,16 +610,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .instalmentPeriod(
                 InstalmentPeriod.builder()
                     .instalmentPeriodCode(safeInstalmentPeriodCode(entity.getInstalmentPeriod())
-                )
+                    )
                     .build()
             )
             .lumpSumAmount(entity.getInstalmentLumpSum())
             .instalmentAmount(entity.getInstalmentAmount())
             .postedDetails(PostedDetails.builder()
-                               .postedDate(entity.getPostedDate())
-                               .postedBy(entity.getPostedBy())
-                               .postedByName(entity.getPostedByUsername())
-                               .build())
+                .postedDate(entity.getPostedDate())
+                .postedBy(entity.getPostedBy())
+                .postedByName(entity.getPostedByUsername())
+                .build())
             .build();
 
         return GetDefendantAccountPaymentTermsResponse.builder()
@@ -743,22 +755,26 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String forenames,
         String surname,
         String organisationName
-    ) {}
+    ) {
 
-    /** Split a full name into forenames + surname (surname = last token). */
+    }
+
+    /**
+     * Split a full name into forenames + surname (surname = last token).
+     */
     private static String[] splitForenamesSurname(String fullName) {
         if (fullName == null) {
-            return new String[] { null, null };
+            return new String[] {null, null};
         }
         String s = fullName.trim().replaceAll("\\s+", " ");
         int idx = s.lastIndexOf(' ');
         if (idx < 0) {
             // Single token — treat as forename only (no surname)
-            return new String[] { emptyToNull(s), null };
+            return new String[] {emptyToNull(s), null};
         }
         String forenames = emptyToNull(s.substring(0, idx));
-        String surname   = emptyToNull(s.substring(idx + 1));
-        return new String[] { forenames, surname };
+        String surname = emptyToNull(s.substring(idx + 1));
+        return new String[] {forenames, surname};
     }
 
     // ---- public-ish helpers your builders can call ----
@@ -806,8 +822,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     /**
-     * Parse alias in the new unified shape: id|seq|name
-     * Use isOrganisation to decide whether "name" is an organisation name or a personal full name.
+     * Parse alias in the new unified shape: id|seq|name Use isOrganisation to decide whether "name" is an organisation
+     * name or a personal full name.
      */
     private static Optional<ParsedAlias> parseAliasRaw(String raw, boolean isOrganisation) {
         String[] parts = Arrays.stream(raw.split("\\|", -1))
@@ -820,8 +836,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             }
 
             String aliasId = emptyToNull(parts[0]);
-            Integer seq    = parseIntOrNull(parts[1]);
-            String name    = emptyToNull(parts[2]);
+            Integer seq = parseIntOrNull(parts[1]);
+            String name = emptyToNull(parts[2]);
 
             if (isOrganisation) {
                 return Optional.of(new ParsedAlias(
@@ -971,6 +987,44 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+    private static Long safeParseLong(String s) {
+        if (s == null || s.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(s.trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private static Short safeParseShort(String s) {
+        if (s == null || s.isBlank()) {
+            return null;
+        }
+        try {
+            int i = Integer.parseInt(s.trim());
+            if (i < Short.MIN_VALUE || i > Short.MAX_VALUE) {
+                return null;
+            }
+            return (short) i;
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private static LocalDate safeParseLocalDate(String s) {
+        if (s == null || s.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(s.trim()); // ISO yyyy-MM-dd
+        } catch (Exception ex) {
+            return null;
+        }
+
+    }
+
     @Override
     @Transactional
     public DefendantAccountResponse updateDefendantAccount(
@@ -1114,17 +1168,396 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return (s == null) ? "" : s;
     }
 
+    // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method
+    private DefendantAccountEntity bumpVersion(Long accountId) {
+        DefendantAccountEntity entity = getDefendantAccountById(accountId);
+        entity.setVersionNumber(entity.getVersion().add(BigInteger.ONE).longValueExact());
+        return defendantAccountRepository.saveAndFlush(entity);
+    }
+
+
+    @Override
+    @Transactional
+    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
+        Long accountId,
+        Long dapId,
+        DefendantAccountParty request,
+        String ifMatch,
+        String businessUnitId,
+        String postedBy) {
+
+        DefendantAccountEntity account = getDefendantAccountById(accountId);
+
+        if (account.getBusinessUnit() == null
+            || account.getBusinessUnit().getBusinessUnitId() == null
+            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
+            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
+        }
+
+        VersionUtils.verifyIfMatch(account, ifMatch, accountId, "replaceDefendantAccountParty");
+        amendmentService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+
+        DefendantAccountPartiesEntity dap = account.getParties().stream()
+            .filter(p -> p.getDefendantAccountPartyId().equals(dapId))
+            .findFirst()
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account Party not found for accountId=" + accountId + ", partyId=" + dapId));
+
+        PartyEntity party = dap.getParty();
+
+        Long requestedPartyId = safeParseLong(
+            request != null && request.getPartyDetails() != null ? request.getPartyDetails().getPartyId() : null);
+
+        if (party == null) {
+            if (requestedPartyId == null) {
+                throw new IllegalArgumentException("party_id is required");
+            }
+            party = opalPartyService.findById(requestedPartyId);   // loads & manages the entity
+            dap.setParty(party);
+        } else {
+            if (requestedPartyId != null && !Objects.equals(party.getPartyId(), requestedPartyId)) {
+                throw new IllegalArgumentException("Switching party is not allowed");
+            }
+
+            party = opalPartyService.findById(party.getPartyId());
+            dap.setParty(party);
+        }
+
+        if (request == null) {
+            throw new IllegalArgumentException("Request body is required");
+        }
+
+        dap.setAssociationType(request.getDefendantAccountPartyType());
+        dap.setDebtor(request.getIsDebtor());
+
+        applyPartyCoreReplace(party, request.getPartyDetails());
+        applyPartyAddressReplace(party, request.getAddress());
+        applyPartyContactReplace(party, request.getContactDetails());
+
+        boolean isDebtor = Boolean.TRUE.equals(request.getIsDebtor());
+        replaceDebtorDetail(
+            party.getPartyId(),
+            request.getVehicleDetails(),
+            request.getEmployerDetails(),
+            request.getLanguagePreferences(),
+            isDebtor
+        );
+
+        replaceAliasesForParty(party.getPartyId(), request.getPartyDetails());
+
+        amendmentService.auditFinaliseStoredProc(
+            account.getDefendantAccountId(),
+            RecordType.DEFENDANT_ACCOUNTS,
+            Short.parseShort(businessUnitId),
+            postedBy,
+            account.getProsecutorCaseReference(),
+            "ACCOUNT_ENQUIRY"
+        );
+
+        List<AliasEntity> aliasEntity = party.getPartyId() == null
+            ? java.util.Collections.emptyList()
+            : aliasRepository.findByParty_PartyId(party.getPartyId());
+
+        return GetDefendantAccountPartyResponse.builder()
+            .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
+            .version(bumpVersion(accountId).getVersion())
+            .build();
+    }
+
+    private void replaceAliasesForParty(Long partyId, PartyDetails pd) {
+        if (partyId == null || pd == null || pd.getOrganisationFlag() == null) {
+            return;
+        }
+
+        PartyEntity party = opalPartyService.findById(partyId);
+
+        List<AliasEntity> existing = aliasRepository.findByParty_PartyId(partyId);
+
+        Map<Long, AliasEntity> byId = new HashMap<>();
+        for (AliasEntity e : existing) {
+            if (e.getAliasId() != null) {
+                byId.put(e.getAliasId(), e);
+            }
+        }
+
+        List<AliasEntity> toPersist = new ArrayList<>();
+        Set<Long> keepIds = new HashSet<>();
+
+        if (Boolean.TRUE.equals(pd.getOrganisationFlag())) {
+            List<OrganisationAlias> orgAliases = Optional.ofNullable(pd.getOrganisationDetails())
+                .map(OrganisationDetails::getOrganisationAliases)
+                .orElse(Collections.emptyList());
+
+            for (OrganisationAlias a : orgAliases) {
+                if (a == null) {
+                    continue;
+                }
+
+                String idStr = a.getAliasId();
+                Long id = (idStr == null || idStr.trim().isEmpty()) ? null : Long.valueOf(idStr.trim());
+
+                AliasEntity row = upsertAlias(
+                    byId, party,
+                    id, a.getSequenceNumber(),
+                    a.getOrganisationName(),
+                    null, null,
+                    true
+                );
+                toPersist.add(row);
+                if (row.getAliasId() != null) {
+                    keepIds.add(row.getAliasId());
+                }
+            }
+
+        } else {
+            List<IndividualAlias> indAliases = Optional.ofNullable(pd.getIndividualDetails())
+                .map(IndividualDetails::getIndividualAliases)
+                .orElse(Collections.emptyList());
+
+            for (IndividualAlias a : indAliases) {
+                if (a == null) {
+                    continue;
+                }
+
+                String idStr = a.getAliasId();
+                Long id = (idStr == null || idStr.trim().isEmpty()) ? null : Long.valueOf(idStr.trim());
+
+                AliasEntity row = upsertAlias(
+                    byId, party,
+                    id, a.getSequenceNumber(),
+                    null,
+                    a.getForenames(), a.getSurname(),
+                    false
+                );
+                toPersist.add(row);
+                if (row.getAliasId() != null) {
+                    keepIds.add(row.getAliasId());
+                }
+            }
+        }
+
+        if (!toPersist.isEmpty()) {
+            List<AliasEntity> persisted = aliasRepository.saveAll(toPersist);
+            for (AliasEntity p : persisted) {
+                if (p.getAliasId() != null) {
+                    keepIds.add(p.getAliasId());
+                }
+            }
+        }
+
+        deleteAliasesNotIn(partyId, keepIds);
+        aliasRepository.flush();
+    }
+
+    /**
+     * Upsert a single alias: - if aliasId present, updates the existing row (must belong to this party) - if aliasId
+     * null, creates a new row (insert) Also normalizes org/individual fields.
+     */
+    private AliasEntity upsertAlias(
+        Map<Long, AliasEntity> byId,
+        PartyEntity party,
+        Long aliasId,
+        Integer sequenceNumber,
+        String orgName,
+        String forenames,
+        String surname,
+        boolean isOrg
+    ) {
+
+        AliasEntity row;
+        if (aliasId != null) {
+            row = byId.get(aliasId);
+            if (row == null) {
+                throw new EntityNotFoundException(
+                    "Alias not found for partyId=" + party.getPartyId() + ", aliasId=" + aliasId);
+            }
+        } else {
+            row = new AliasEntity();
+        }
+
+        row.setParty(party);
+        row.setSequenceNumber(sequenceNumber);
+
+        if (isOrg) {
+            row.setOrganisationName(orgName);
+            row.setForenames(null);
+            row.setSurname(null);
+        } else {
+            row.setOrganisationName(null);
+            row.setForenames(forenames);
+            row.setSurname(surname);
+        }
+        return row;
+    }
+
+    private void deleteAliasesNotIn(Long partyId, Set<Long> keepIds) {
+        if (keepIds == null || keepIds.isEmpty()) {
+            aliasRepository.deleteByParty_PartyId(partyId);
+        } else {
+            aliasRepository.deleteByParty_PartyIdAndAliasIdNotIn(partyId, keepIds);
+        }
+    }
+
+    private void applyPartyCoreReplace(PartyEntity party, PartyDetails details) {
+
+        Boolean orgFlag = details.getOrganisationFlag();
+        party.setOrganisation(orgFlag);
+
+        if (orgFlag) {
+            OrganisationDetails od = details.getOrganisationDetails();
+            if (od != null) {
+                party.setOrganisationName(od.getOrganisationName());
+            } else {
+                party.setOrganisationName(null);
+            }
+            party.setTitle(null);
+            party.setForenames(null);
+            party.setSurname(null);
+            party.setBirthDate(null);
+            party.setAge(null);
+            party.setNiNumber(null);
+        } else {
+            IndividualDetails id = details.getIndividualDetails();
+            if (id != null) {
+                party.setTitle(id.getTitle());
+                party.setForenames(id.getForenames());
+                party.setSurname(id.getSurname());
+                party.setBirthDate(safeParseLocalDate(id.getDateOfBirth()));
+                party.setAge(safeParseShort(id.getAge()));
+                party.setNiNumber(id.getNationalInsuranceNumber());
+            } else {
+                party.setTitle(null);
+                party.setForenames(null);
+                party.setSurname(null);
+                party.setBirthDate(null);
+                party.setAge(null);
+                party.setNiNumber(null);
+            }
+            party.setOrganisationName(null);
+        }
+    }
+
+    private void applyPartyAddressReplace(PartyEntity party, AddressDetails a) {
+        if (a == null) {
+            party.setAddressLine1(null);
+            party.setAddressLine2(null);
+            party.setAddressLine3(null);
+            party.setAddressLine4(null);
+            party.setAddressLine5(null);
+            party.setPostcode(null);
+            return;
+        }
+        party.setAddressLine1(a.getAddressLine1());
+        party.setAddressLine2(a.getAddressLine2());
+        party.setAddressLine3(a.getAddressLine3());
+        party.setAddressLine4(a.getAddressLine4());
+        party.setAddressLine5(a.getAddressLine5());
+        party.setPostcode(a.getPostcode());
+    }
+
+    private void applyPartyContactReplace(PartyEntity party, ContactDetails c) {
+        if (c == null) {
+            party.setPrimaryEmailAddress(null);
+            party.setSecondaryEmailAddress(null);
+            party.setMobileTelephoneNumber(null);
+            party.setHomeTelephoneNumber(null);
+            party.setWorkTelephoneNumber(null);
+            return;
+        }
+        party.setPrimaryEmailAddress(c.getPrimaryEmailAddress());
+        party.setSecondaryEmailAddress(c.getSecondaryEmailAddress());
+        party.setMobileTelephoneNumber(c.getMobileTelephoneNumber());
+        party.setHomeTelephoneNumber(c.getHomeTelephoneNumber());
+        party.setWorkTelephoneNumber(c.getWorkTelephoneNumber());
+    }
+
+    private void replaceDebtorDetail(Long partyId,
+        VehicleDetails vehicle,
+        EmployerDetails employer,
+        LanguagePreferences language,
+        boolean isDebtor) {
+
+        if (partyId == null) {
+            return;
+        }
+
+        if (!isDebtor) {
+            return;
+        }
+
+        DebtorDetailEntity debtor = debtorDetailRepository.findById(partyId)
+            .orElseThrow(() -> new EntityNotFoundException("debtor_detail not found with id: " + partyId));
+
+        if (debtor == null) {
+            debtor = new DebtorDetailEntity();
+            debtor.setPartyId(partyId);
+        }
+
+        debtor.setVehicleMake(vehicle != null ? vehicle.getVehicleMakeAndModel() : null);
+        debtor.setVehicleRegistration(vehicle != null ? vehicle.getVehicleRegistration() : null);
+
+        if (employer != null) {
+            debtor.setEmployerName(employer.getEmployerName());
+            debtor.setEmployeeReference(employer.getEmployerReference());
+            debtor.setEmployerEmail(employer.getEmployerEmailAddress());
+            debtor.setEmployerTelephone(employer.getEmployerTelephoneNumber());
+
+            AddressDetails ea = employer.getEmployerAddress();
+            if (ea != null) {
+                debtor.setEmployerAddressLine1(ea.getAddressLine1());
+                debtor.setEmployerAddressLine2(ea.getAddressLine2());
+                debtor.setEmployerAddressLine3(ea.getAddressLine3());
+                debtor.setEmployerAddressLine4(ea.getAddressLine4());
+                debtor.setEmployerAddressLine5(ea.getAddressLine5());
+                debtor.setEmployerPostcode(ea.getPostcode());
+            } else {
+                debtor.setEmployerAddressLine1(null);
+                debtor.setEmployerAddressLine2(null);
+                debtor.setEmployerAddressLine3(null);
+                debtor.setEmployerAddressLine4(null);
+                debtor.setEmployerAddressLine5(null);
+                debtor.setEmployerPostcode(null);
+            }
+        } else {
+            debtor.setEmployerName(null);
+            debtor.setEmployeeReference(null);
+            debtor.setEmployerEmail(null);
+            debtor.setEmployerTelephone(null);
+            debtor.setEmployerAddressLine1(null);
+            debtor.setEmployerAddressLine2(null);
+            debtor.setEmployerAddressLine3(null);
+            debtor.setEmployerAddressLine4(null);
+            debtor.setEmployerAddressLine5(null);
+            debtor.setEmployerPostcode(null);
+        }
+
+        if (language != null) {
+            debtor.setDocumentLanguage(language.getDocumentLanguagePreference() != null
+                ? language.getDocumentLanguagePreference().getLanguageCode() : null);
+            debtor.setHearingLanguage(language.getHearingLanguagePreference() != null
+                ? language.getHearingLanguagePreference().getLanguageCode() : null);
+            debtor.setDocumentLanguageDate(LocalDate.now());
+            debtor.setHearingLanguageDate(LocalDate.now());
+        } else {
+            debtor.setDocumentLanguage(null);
+            debtor.setHearingLanguage(null);
+            debtor.setDocumentLanguageDate(null);
+            debtor.setHearingLanguageDate(null);
+        }
+
+        debtorDetailRepository.save(debtor);
+    }
 
     /**
      * Determines if the individual is considered a youth (under 18 years old).
      *
      * <p>
-     *     If the birth date is provided, it calculates the age based on the current date.
-     *     If the birth date is not provided, the age parameter is used if available.
-     *     If neither is available, it returns null.
+     * If the birth date is provided, it calculates the age based on the current date. If the birth date is not
+     * provided, the age parameter is used if available. If neither is available, it returns null.
      * </p>
+     *
      * @param birthDate The birth date of the individual.
-     * @param age Age of the individual.
+     * @param age       Age of the individual.
      * @return True if the individual is under 18, false otherwise.
      */
     private static Boolean isYouth(LocalDateTime birthDate, Integer age) {
@@ -1139,8 +1572,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
 
     private void applyCommentAndNotes(DefendantAccountEntity managed,
-                                      CommentsAndNotes notes,
-                                      String postedBy) {
+        CommentsAndNotes notes,
+        String postedBy) {
 
         // Persist values on the main defendant_accounts table
         managed.setAccountComments(notes.getAccountNotesAccountComments());
@@ -1177,7 +1610,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         noteRepository.save(note);
         log.debug(":applyCommentAndNotes: saved note for account {}", managed.getDefendantAccountId());
     }
-
 
     private void applyEnforcementCourt(DefendantAccountEntity entity, CourtReferenceDto courtRef) {
         Integer courtId = courtRef.getCourtId();
@@ -1249,4 +1681,83 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         };
     }
 
+    @Override
+    @Transactional
+    public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String authHeader) {
+
+        log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
+
+        // 1. Fetch defendant account
+        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
+
+        // 2. Validate business unit
+        if (account.getBusinessUnit() == null
+            || account.getBusinessUnit().getBusinessUnitId() == null
+            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
+            throw new EntityNotFoundException(
+                "Defendant Account not found in business unit " + businessUnitId);
+        }
+
+        // 3. Version check
+        VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "addPaymentCardRequest");
+
+        // 4. Audit start
+        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+
+        // 5. Ensure no existing PCR
+        if (paymentCardRequestRepository.existsByDefendantAccountId(defendantAccountId)) {
+            throw new ResourceConflictException(
+                "DefendantAccountEntity",
+                String.valueOf(defendantAccountId),
+                "A payment card request already exists for this account."
+            );
+        }
+
+        // 6. Retrieve logged-in UserState
+        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
+
+        // 7. Create PCR row first (so later declarations appear close to usage)
+        PaymentCardRequestEntity pcr = PaymentCardRequestEntity.builder()
+            .defendantAccountId(defendantAccountId)
+            .build();
+        paymentCardRequestRepository.save(pcr);
+
+        // 8. Resolve BU ID right before use
+        final short buId = Short.parseShort(businessUnitId);
+
+        // 9. Resolve BU user ID — moved DIRECTLY before its first usage
+        final String businessUnitUserId = userState
+            .getBusinessUnitUserForBusinessUnit(buId)
+            .map(bu -> bu.getBusinessUnitUserId())
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Logged in user is not associated with business unit " + buId));
+
+        // 10. Friendly display name — moved DIRECTLY before its first usage
+        final String displayName = accessTokenService.extractName(authHeader);
+
+        // 11. Update defendant_accounts flags
+        account.setPaymentCardRequested(true);
+        account.setPaymentCardRequestedDate(LocalDate.now());
+        account.setPaymentCardRequestedBy(businessUnitUserId);
+        account.setPaymentCardRequestedByName(displayName);
+        defendantAccountRepository.save(account);
+
+        // 13. Audit complete
+        Short accountBuId = account.getBusinessUnit().getBusinessUnitId();
+        amendmentService.auditFinaliseStoredProc(
+            defendantAccountId,
+            RecordType.DEFENDANT_ACCOUNTS,
+            accountBuId,
+            businessUnitUserId,
+            account.getProsecutorCaseReference(),
+            "ACCOUNT_ENQUIRY"
+        );
+
+        // 14. Minimal response
+        return new AddPaymentCardRequestResponse(defendantAccountId);
+    }
 }
+
