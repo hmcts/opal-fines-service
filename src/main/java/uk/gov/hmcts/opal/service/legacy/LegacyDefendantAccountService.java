@@ -890,7 +890,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         String businessUnitUserId) {
 
         LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
-            .version(Long.parseLong(ifMatch))
+            .version(Long.parseLong(ifMatch.replace("\"", "").trim()))
             .defendantAccountId(defendantAccountId)
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
