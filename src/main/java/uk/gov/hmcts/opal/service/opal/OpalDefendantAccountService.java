@@ -11,10 +11,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -140,6 +145,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final UserStateService userStateService;
 
+
+    private final OpalPartyService opalPartyService;
 
     private CommentsAndNotes commentAndNotes;
 
@@ -980,6 +987,44 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+    private static Long safeParseLong(String s) {
+        if (s == null || s.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.parseLong(s.trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private static Short safeParseShort(String s) {
+        if (s == null || s.isBlank()) {
+            return null;
+        }
+        try {
+            int i = Integer.parseInt(s.trim());
+            if (i < Short.MIN_VALUE || i > Short.MAX_VALUE) {
+                return null;
+            }
+            return (short) i;
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private static LocalDate safeParseLocalDate(String s) {
+        if (s == null || s.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(s.trim()); // ISO yyyy-MM-dd
+        } catch (Exception ex) {
+            return null;
+        }
+
+    }
+
     @Override
     @Transactional
     public DefendantAccountResponse updateDefendantAccount(
@@ -1123,6 +1168,385 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return (s == null) ? "" : s;
     }
 
+    // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method
+    private DefendantAccountEntity bumpVersion(Long accountId) {
+        DefendantAccountEntity entity = getDefendantAccountById(accountId);
+        entity.setVersionNumber(entity.getVersion().add(BigInteger.ONE).longValueExact());
+        return defendantAccountRepository.saveAndFlush(entity);
+    }
+
+
+    @Override
+    @Transactional
+    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
+        Long accountId,
+        Long dapId,
+        DefendantAccountParty request,
+        String ifMatch,
+        String businessUnitId,
+        String postedBy) {
+
+        DefendantAccountEntity account = getDefendantAccountById(accountId);
+
+        if (account.getBusinessUnit() == null
+            || account.getBusinessUnit().getBusinessUnitId() == null
+            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
+            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
+        }
+
+        VersionUtils.verifyIfMatch(account, ifMatch, accountId, "replaceDefendantAccountParty");
+        amendmentService.auditInitialiseStoredProc(accountId, RecordType.DEFENDANT_ACCOUNTS);
+
+        DefendantAccountPartiesEntity dap = account.getParties().stream()
+            .filter(p -> p.getDefendantAccountPartyId().equals(dapId))
+            .findFirst()
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account Party not found for accountId=" + accountId + ", partyId=" + dapId));
+
+        PartyEntity party = dap.getParty();
+
+        Long requestedPartyId = safeParseLong(
+            request != null && request.getPartyDetails() != null ? request.getPartyDetails().getPartyId() : null);
+
+        if (party == null) {
+            if (requestedPartyId == null) {
+                throw new IllegalArgumentException("party_id is required");
+            }
+            party = opalPartyService.findById(requestedPartyId);   // loads & manages the entity
+            dap.setParty(party);
+        } else {
+            if (requestedPartyId != null && !Objects.equals(party.getPartyId(), requestedPartyId)) {
+                throw new IllegalArgumentException("Switching party is not allowed");
+            }
+
+            party = opalPartyService.findById(party.getPartyId());
+            dap.setParty(party);
+        }
+
+        if (request == null) {
+            throw new IllegalArgumentException("Request body is required");
+        }
+
+        dap.setAssociationType(request.getDefendantAccountPartyType());
+        dap.setDebtor(request.getIsDebtor());
+
+        applyPartyCoreReplace(party, request.getPartyDetails());
+        applyPartyAddressReplace(party, request.getAddress());
+        applyPartyContactReplace(party, request.getContactDetails());
+
+        boolean isDebtor = Boolean.TRUE.equals(request.getIsDebtor());
+        replaceDebtorDetail(
+            party.getPartyId(),
+            request.getVehicleDetails(),
+            request.getEmployerDetails(),
+            request.getLanguagePreferences(),
+            isDebtor
+        );
+
+        replaceAliasesForParty(party.getPartyId(), request.getPartyDetails());
+
+        amendmentService.auditFinaliseStoredProc(
+            account.getDefendantAccountId(),
+            RecordType.DEFENDANT_ACCOUNTS,
+            Short.parseShort(businessUnitId),
+            postedBy,
+            account.getProsecutorCaseReference(),
+            "ACCOUNT_ENQUIRY"
+        );
+
+        List<AliasEntity> aliasEntity = party.getPartyId() == null
+            ? java.util.Collections.emptyList()
+            : aliasRepository.findByParty_PartyId(party.getPartyId());
+
+        return GetDefendantAccountPartyResponse.builder()
+            .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
+            .version(bumpVersion(accountId).getVersion())
+            .build();
+    }
+
+    private void replaceAliasesForParty(Long partyId, PartyDetails pd) {
+        if (partyId == null || pd == null || pd.getOrganisationFlag() == null) {
+            return;
+        }
+
+        PartyEntity party = opalPartyService.findById(partyId);
+
+        List<AliasEntity> existing = aliasRepository.findByParty_PartyId(partyId);
+
+        Map<Long, AliasEntity> byId = new HashMap<>();
+        for (AliasEntity e : existing) {
+            if (e.getAliasId() != null) {
+                byId.put(e.getAliasId(), e);
+            }
+        }
+
+        List<AliasEntity> toPersist = new ArrayList<>();
+        Set<Long> keepIds = new HashSet<>();
+
+        if (Boolean.TRUE.equals(pd.getOrganisationFlag())) {
+            List<OrganisationAlias> orgAliases = Optional.ofNullable(pd.getOrganisationDetails())
+                .map(OrganisationDetails::getOrganisationAliases)
+                .orElse(Collections.emptyList());
+
+            for (OrganisationAlias a : orgAliases) {
+                if (a == null) {
+                    continue;
+                }
+
+                String idStr = a.getAliasId();
+                Long id = (idStr == null || idStr.trim().isEmpty()) ? null : Long.valueOf(idStr.trim());
+
+                AliasEntity row = upsertAlias(
+                    byId, party,
+                    id, a.getSequenceNumber(),
+                    a.getOrganisationName(),
+                    null, null,
+                    true
+                );
+                toPersist.add(row);
+                if (row.getAliasId() != null) {
+                    keepIds.add(row.getAliasId());
+                }
+            }
+
+        } else {
+            List<IndividualAlias> indAliases = Optional.ofNullable(pd.getIndividualDetails())
+                .map(IndividualDetails::getIndividualAliases)
+                .orElse(Collections.emptyList());
+
+            for (IndividualAlias a : indAliases) {
+                if (a == null) {
+                    continue;
+                }
+
+                String idStr = a.getAliasId();
+                Long id = (idStr == null || idStr.trim().isEmpty()) ? null : Long.valueOf(idStr.trim());
+
+                AliasEntity row = upsertAlias(
+                    byId, party,
+                    id, a.getSequenceNumber(),
+                    null,
+                    a.getForenames(), a.getSurname(),
+                    false
+                );
+                toPersist.add(row);
+                if (row.getAliasId() != null) {
+                    keepIds.add(row.getAliasId());
+                }
+            }
+        }
+
+        if (!toPersist.isEmpty()) {
+            List<AliasEntity> persisted = aliasRepository.saveAll(toPersist);
+            for (AliasEntity p : persisted) {
+                if (p.getAliasId() != null) {
+                    keepIds.add(p.getAliasId());
+                }
+            }
+        }
+
+        deleteAliasesNotIn(partyId, keepIds);
+        aliasRepository.flush();
+    }
+
+    /**
+     * Upsert a single alias: - if aliasId present, updates the existing row (must belong to this party) - if aliasId
+     * null, creates a new row (insert) Also normalizes org/individual fields.
+     */
+    private AliasEntity upsertAlias(
+        Map<Long, AliasEntity> byId,
+        PartyEntity party,
+        Long aliasId,
+        Integer sequenceNumber,
+        String orgName,
+        String forenames,
+        String surname,
+        boolean isOrg
+    ) {
+
+        AliasEntity row;
+        if (aliasId != null) {
+            row = byId.get(aliasId);
+            if (row == null) {
+                throw new EntityNotFoundException(
+                    "Alias not found for partyId=" + party.getPartyId() + ", aliasId=" + aliasId);
+            }
+        } else {
+            row = new AliasEntity();
+        }
+
+        row.setParty(party);
+        row.setSequenceNumber(sequenceNumber);
+
+        if (isOrg) {
+            row.setOrganisationName(orgName);
+            row.setForenames(null);
+            row.setSurname(null);
+        } else {
+            row.setOrganisationName(null);
+            row.setForenames(forenames);
+            row.setSurname(surname);
+        }
+        return row;
+    }
+
+    private void deleteAliasesNotIn(Long partyId, Set<Long> keepIds) {
+        if (keepIds == null || keepIds.isEmpty()) {
+            aliasRepository.deleteByParty_PartyId(partyId);
+        } else {
+            aliasRepository.deleteByParty_PartyIdAndAliasIdNotIn(partyId, keepIds);
+        }
+    }
+
+    private void applyPartyCoreReplace(PartyEntity party, PartyDetails details) {
+
+        Boolean orgFlag = details.getOrganisationFlag();
+        party.setOrganisation(orgFlag);
+
+        if (orgFlag) {
+            OrganisationDetails od = details.getOrganisationDetails();
+            if (od != null) {
+                party.setOrganisationName(od.getOrganisationName());
+            } else {
+                party.setOrganisationName(null);
+            }
+            party.setTitle(null);
+            party.setForenames(null);
+            party.setSurname(null);
+            party.setBirthDate(null);
+            party.setAge(null);
+            party.setNiNumber(null);
+        } else {
+            IndividualDetails id = details.getIndividualDetails();
+            if (id != null) {
+                party.setTitle(id.getTitle());
+                party.setForenames(id.getForenames());
+                party.setSurname(id.getSurname());
+                party.setBirthDate(safeParseLocalDate(id.getDateOfBirth()));
+                party.setAge(safeParseShort(id.getAge()));
+                party.setNiNumber(id.getNationalInsuranceNumber());
+            } else {
+                party.setTitle(null);
+                party.setForenames(null);
+                party.setSurname(null);
+                party.setBirthDate(null);
+                party.setAge(null);
+                party.setNiNumber(null);
+            }
+            party.setOrganisationName(null);
+        }
+    }
+
+    private void applyPartyAddressReplace(PartyEntity party, AddressDetails a) {
+        if (a == null) {
+            party.setAddressLine1(null);
+            party.setAddressLine2(null);
+            party.setAddressLine3(null);
+            party.setAddressLine4(null);
+            party.setAddressLine5(null);
+            party.setPostcode(null);
+            return;
+        }
+        party.setAddressLine1(a.getAddressLine1());
+        party.setAddressLine2(a.getAddressLine2());
+        party.setAddressLine3(a.getAddressLine3());
+        party.setAddressLine4(a.getAddressLine4());
+        party.setAddressLine5(a.getAddressLine5());
+        party.setPostcode(a.getPostcode());
+    }
+
+    private void applyPartyContactReplace(PartyEntity party, ContactDetails c) {
+        if (c == null) {
+            party.setPrimaryEmailAddress(null);
+            party.setSecondaryEmailAddress(null);
+            party.setMobileTelephoneNumber(null);
+            party.setHomeTelephoneNumber(null);
+            party.setWorkTelephoneNumber(null);
+            return;
+        }
+        party.setPrimaryEmailAddress(c.getPrimaryEmailAddress());
+        party.setSecondaryEmailAddress(c.getSecondaryEmailAddress());
+        party.setMobileTelephoneNumber(c.getMobileTelephoneNumber());
+        party.setHomeTelephoneNumber(c.getHomeTelephoneNumber());
+        party.setWorkTelephoneNumber(c.getWorkTelephoneNumber());
+    }
+
+    private void replaceDebtorDetail(Long partyId,
+        VehicleDetails vehicle,
+        EmployerDetails employer,
+        LanguagePreferences language,
+        boolean isDebtor) {
+
+        if (partyId == null) {
+            return;
+        }
+
+        if (!isDebtor) {
+            return;
+        }
+
+        DebtorDetailEntity debtor = debtorDetailRepository.findById(partyId)
+            .orElseThrow(() -> new EntityNotFoundException("debtor_detail not found with id: " + partyId));
+
+        if (debtor == null) {
+            debtor = new DebtorDetailEntity();
+            debtor.setPartyId(partyId);
+        }
+
+        debtor.setVehicleMake(vehicle != null ? vehicle.getVehicleMakeAndModel() : null);
+        debtor.setVehicleRegistration(vehicle != null ? vehicle.getVehicleRegistration() : null);
+
+        if (employer != null) {
+            debtor.setEmployerName(employer.getEmployerName());
+            debtor.setEmployeeReference(employer.getEmployerReference());
+            debtor.setEmployerEmail(employer.getEmployerEmailAddress());
+            debtor.setEmployerTelephone(employer.getEmployerTelephoneNumber());
+
+            AddressDetails ea = employer.getEmployerAddress();
+            if (ea != null) {
+                debtor.setEmployerAddressLine1(ea.getAddressLine1());
+                debtor.setEmployerAddressLine2(ea.getAddressLine2());
+                debtor.setEmployerAddressLine3(ea.getAddressLine3());
+                debtor.setEmployerAddressLine4(ea.getAddressLine4());
+                debtor.setEmployerAddressLine5(ea.getAddressLine5());
+                debtor.setEmployerPostcode(ea.getPostcode());
+            } else {
+                debtor.setEmployerAddressLine1(null);
+                debtor.setEmployerAddressLine2(null);
+                debtor.setEmployerAddressLine3(null);
+                debtor.setEmployerAddressLine4(null);
+                debtor.setEmployerAddressLine5(null);
+                debtor.setEmployerPostcode(null);
+            }
+        } else {
+            debtor.setEmployerName(null);
+            debtor.setEmployeeReference(null);
+            debtor.setEmployerEmail(null);
+            debtor.setEmployerTelephone(null);
+            debtor.setEmployerAddressLine1(null);
+            debtor.setEmployerAddressLine2(null);
+            debtor.setEmployerAddressLine3(null);
+            debtor.setEmployerAddressLine4(null);
+            debtor.setEmployerAddressLine5(null);
+            debtor.setEmployerPostcode(null);
+        }
+
+        if (language != null) {
+            debtor.setDocumentLanguage(language.getDocumentLanguagePreference() != null
+                ? language.getDocumentLanguagePreference().getLanguageCode() : null);
+            debtor.setHearingLanguage(language.getHearingLanguagePreference() != null
+                ? language.getHearingLanguagePreference().getLanguageCode() : null);
+            debtor.setDocumentLanguageDate(LocalDate.now());
+            debtor.setHearingLanguageDate(LocalDate.now());
+        } else {
+            debtor.setDocumentLanguage(null);
+            debtor.setHearingLanguage(null);
+            debtor.setDocumentLanguageDate(null);
+            debtor.setHearingLanguageDate(null);
+        }
+
+        debtorDetailRepository.save(debtor);
+    }
 
     @Override
     @Transactional
@@ -1485,7 +1909,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         noteRepository.save(note);
         log.debug(":applyCommentAndNotes: saved note for account {}", managed.getDefendantAccountId());
     }
-
 
     private void applyEnforcementCourt(DefendantAccountEntity entity, CourtReferenceDto courtRef) {
         Integer courtId = courtRef.getCourtId();

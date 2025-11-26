@@ -1,45 +1,47 @@
 -- Delete company/individual aliases (AC9d/AC9di and others)
 DELETE FROM aliases
 WHERE alias_id IN (
-                   7701, 7702, 7703,         -- new: aliases for party 77 added in seeds
+                   7701, 7702, 7703,         -- aliases for party 77 (individual)
                    8801, 9011,               -- existing (88, 901)
                    5551, 5552, 6661, 6662, 7771,
-                   10001, 10002, 10003, 10004, 10005, 100011, 100012, 100013
+                   10001, 10002, 10003, 10004, 10005, 100011, 100012, 100013,
+                   200101, 200102,           -- org aliases for party 20010 (NEW)
+                   2200401                   -- individual alias for party 22004 (NEW)
     );
 
 -- Also cover any aliases by party for full safety
 DELETE FROM aliases
 WHERE party_id IN (
                    77, 88, 901, 333, 555, 666, 777, 444, 999, 77444, 10001, 10002, 10003,
-                   20010
+                   20010, 22004              -- NEW: party used by individual-aliases IT
     );
 
 -- Remove defendant_account_parties links
 DELETE FROM defendant_account_parties
 WHERE defendant_account_party_id IN (
                                      77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
-                                     20010
+                                     20010, 22004         -- NEW
     );
 
 -- Remove from fixed_penalty_offences (safe even if none exist)
 DELETE FROM fixed_penalty_offences
 WHERE defendant_account_id IN (
                                77, 88, 901, 333, 555, 666, 777, 444, 999, 9077, 77444,
-                               20010
+                               20010, 22004     -- NEW
     );
 
 -- Remove payment_terms (safe even if none exist)
 DELETE FROM payment_terms
 WHERE defendant_account_id IN (
                                77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
-                               20010
+                               20010, 22004     -- NEW
     );
 
 -- Remove notes (ASSOCIATED_RECORD_ID is varchar)
 DELETE FROM notes
 WHERE associated_record_id IN (
                                '77', '88', '901', '333', '555', '666', '777', '444', '999', '9077', '77444',
-                               '20010'
+                               '20010', '22004'   -- NEW
     );
 
 -- Reset PCR-related fields to stable test values BEFORE deleting accounts
@@ -63,21 +65,21 @@ WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001,
 DELETE FROM defendant_accounts
 WHERE defendant_account_id IN (
                                77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
-                               20010
+                               20010, 22004       -- NEW
     );
 
 -- Remove from debtor_detail before removing parties
 DELETE FROM debtor_detail
 WHERE party_id IN (
                    77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
-                   20010
+                   20010, 22004     -- NEW
     );
 
 -- Remove inserted parties
 DELETE FROM parties
 WHERE party_id IN (
                    77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
-                   20010
+                   20010, 22004     -- NEW
     );
 
 -- Remove from draft_accounts referencing test BU
@@ -126,8 +128,8 @@ DELETE FROM business_units WHERE business_unit_id = 9999;
 
 -- Ensure table exists so delete is a no-op if absent
 CREATE TABLE IF NOT EXISTS public.enforcement_override_results (
-    enforcement_override_result_id   varchar(50) PRIMARY KEY,
-    enforcement_override_result_name varchar(200) NOT NULL
+                                                                   enforcement_override_result_id   varchar(50) PRIMARY KEY,
+                                                                   enforcement_override_result_name varchar(200) NOT NULL
 );
 
 -- Remove test enforcement-override result used by ITs

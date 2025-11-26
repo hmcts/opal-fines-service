@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.repository;
 
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -12,4 +13,8 @@ public interface AliasRepository extends JpaRepository<AliasEntity, Long>, JpaSp
     void deleteByParty_PartyId(Long partyId);
 
     List<AliasEntity> findByParty_PartyId(Long partyId);
+
+    void deleteByParty_PartyId(Long partyId);
+
+    void deleteByParty_PartyIdAndAliasIdNotIn(Long partyId, Collection<Long> keepIds);
 }

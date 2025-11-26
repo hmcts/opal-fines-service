@@ -415,6 +415,32 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
+    void testPut_org_aliases_upsert_and_trim() throws Exception {
+        super.put_org_aliases_upsert_and_trim(log);
+    }
+
+    @Test
+    void testPut_individual_aliases_upsert_and_trim() throws Exception {
+        super.put_individual_aliases_upsert_and_trim(log);
+    }
+
+    @Test
+    void testReplaceDefendantAccountPartyIsDebtorFalse() throws Exception {
+        super.put_replace_dap_isDebtorFalse_clearsDebtorFieldsButKeepsRow(log);
+    }
+
+    @Test
+    void testReplaceDefendantAccountPartyIsDebtorTrue() throws Exception {
+        super.put_replace_dap_isDebtorTrue_upsertsDebtorDetails(log);
+    }
+
+
+    @Test
+    void testReplaceDefendantAccountPartyIsDebtorTrue() throws Exception {
+        super.put_replace_dap_isDebtorTrue_upsertsDebtorDetails(log);
+    }
+
+    @Test
     void testPut_notFound_whenDapMissing() throws Exception {
         super.put_notFound_whenDapMissing(log);
     }

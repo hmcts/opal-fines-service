@@ -93,108 +93,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
 
-    /* This is probably common code that will be needed across multiple Legacy requests to get
-    Defendant Account details. */
-    public static LegacyGetDefendantAccountRequest createGetDefendantAccountRequest(String defendantAccountId) {
-        return LegacyGetDefendantAccountRequest.builder()
-            .defendantAccountId(defendantAccountId)
-            .build();
-    }
-
-    private static BigDecimal toBigDecimalOrZero(Object input) {
-        if (input == null) {
-            return BigDecimal.ZERO;
-        }
-        if (input instanceof BigDecimal) {
-            return (BigDecimal) input;
-        }
-        if (input instanceof CharSequence) {
-            String s = input.toString().trim();
-            if (s.isEmpty()) {
-                return BigDecimal.ZERO;
-            }
-            try {
-                return new BigDecimal(s);
-            } catch (NumberFormatException e) {
-                log.warn(":toBigDecimalOrZero: Invalid number format for input '{}'. Defaulting to ZERO.", s, e);
-                return BigDecimal.ZERO;
-            }
-        }
-        if (input instanceof Number) {
-            return BigDecimal.valueOf(((Number) input).doubleValue());
-        }
-        log.warn(":toBigDecimalOrZero: Unsupported type {}. Defaulting to ZERO.", input.getClass().getName());
-        return BigDecimal.ZERO;
-    }
-
-    private static PaymentTerms toPaymentTerms(LegacyPaymentTerms legacy) {
-        if (legacy == null) {
-            return null;
-        }
-        return PaymentTerms.builder()
-            .daysInDefault(legacy.getDaysInDefault())
-            .dateDaysInDefaultImposed(legacy.getDateDaysInDefaultImposed())
-            .extension(legacy.isExtension())
-            .reasonForExtension(legacy.getReasonForExtension())
-            .paymentTermsType(toPaymentTermsType(legacy.getPaymentTermsType()))
-            .effectiveDate(legacy.getEffectiveDate())
-            .instalmentPeriod(toInstalmentPeriod(legacy.getInstalmentPeriod()))
-            .lumpSumAmount(legacy.getLumpSumAmount())
-            .instalmentAmount(legacy.getInstalmentAmount())
-            .postedDetails(toPostedDetails(legacy.getPostedDetails()))
-            .build();
-    }
-
-    private static PaymentTermsType toPaymentTermsType(LegacyPaymentTermsType legacy) {
-        if (legacy == null) {
-            return null;
-        }
-
-        PaymentTermsType.PaymentTermsTypeCode code = null;
-        if (legacy.getPaymentTermsTypeCode() != null) {
-            code = PaymentTermsType.PaymentTermsTypeCode.fromValue(
-                legacy.getPaymentTermsTypeCode().name()
-            );
-        }
-
-        return PaymentTermsType.builder()
-            .paymentTermsTypeCode(code)
-            .build();
-    }
-
-    private static InstalmentPeriod toInstalmentPeriod(LegacyInstalmentPeriod legacy) {
-        if (legacy == null) {
-            return null;
-        }
-
-        InstalmentPeriod.InstalmentPeriodCode code = null;
-        if (legacy.getInstalmentPeriodCode() != null) {
-            code = InstalmentPeriod.InstalmentPeriodCode.fromValue(
-                legacy.getInstalmentPeriodCode().name()
-            );
-        }
-
-        return InstalmentPeriod.builder()
-            .instalmentPeriodCode(code)
-            .build();
-    }
-
-    private static PostedDetails toPostedDetails(LegacyPostedDetails legacy) {
-        if (legacy == null) {
-            return null;
-        }
-
-        return PostedDetails.builder()
-            .postedDate(legacy.getPostedDate())
-            .postedBy(legacy.getPostedBy())
-            .postedByName(legacy.getPostedByName())
-            .build();
-    }
-
-    private static <T, R> R mapSafe(T obj, java.util.function.Function<T, R> f) {
-        return obj == null ? null : f.apply(obj);
-    }
-
     /* ---- Mappers ---- */
     private final UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
     private final LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
@@ -263,6 +161,14 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
 
         return toPaymentTermsResponse(response.responseEntity);
+    }
+
+    /* This is probably common code that will be needed across multiple Legacy requests to get
+    Defendant Account details. */
+    public static LegacyGetDefendantAccountRequest createGetDefendantAccountRequest(String defendantAccountId) {
+        return LegacyGetDefendantAccountRequest.builder()
+            .defendantAccountId(defendantAccountId)
+            .build();
     }
 
     private DefendantAccountHeaderSummary toHeaderSumaryDto(
@@ -369,6 +275,33 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
+
+    private static BigDecimal toBigDecimalOrZero(Object input) {
+        if (input == null) {
+            return BigDecimal.ZERO;
+        }
+        if (input instanceof BigDecimal) {
+            return (BigDecimal) input;
+        }
+        if (input instanceof CharSequence) {
+            String s = input.toString().trim();
+            if (s.isEmpty()) {
+                return BigDecimal.ZERO;
+            }
+            try {
+                return new BigDecimal(s);
+            } catch (NumberFormatException e) {
+                log.warn(":toBigDecimalOrZero: Invalid number format for input '{}'. Defaulting to ZERO.", s, e);
+                return BigDecimal.ZERO;
+            }
+        }
+        if (input instanceof Number) {
+            return BigDecimal.valueOf(((Number) input).doubleValue());
+        }
+        log.warn(":toBigDecimalOrZero: Unsupported type {}. Defaulting to ZERO.", input.getClass().getName());
+        return BigDecimal.ZERO;
+    }
+
     private GetDefendantAccountPaymentTermsResponse toPaymentTermsResponse(
         LegacyGetDefendantAccountPaymentTermsResponse legacy) {
 
@@ -381,6 +314,70 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
             .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
             .lastEnforcement(legacy.getLastEnforcement())
+            .build();
+    }
+
+    private static PaymentTerms toPaymentTerms(LegacyPaymentTerms legacy) {
+        if (legacy == null) {
+            return null;
+        }
+        return PaymentTerms.builder()
+            .daysInDefault(legacy.getDaysInDefault())
+            .dateDaysInDefaultImposed(legacy.getDateDaysInDefaultImposed())
+            .extension(legacy.isExtension())
+            .reasonForExtension(legacy.getReasonForExtension())
+            .paymentTermsType(toPaymentTermsType(legacy.getPaymentTermsType()))
+            .effectiveDate(legacy.getEffectiveDate())
+            .instalmentPeriod(toInstalmentPeriod(legacy.getInstalmentPeriod()))
+            .lumpSumAmount(legacy.getLumpSumAmount())
+            .instalmentAmount(legacy.getInstalmentAmount())
+            .postedDetails(toPostedDetails(legacy.getPostedDetails()))
+            .build();
+    }
+
+    private static PaymentTermsType toPaymentTermsType(LegacyPaymentTermsType legacy) {
+        if (legacy == null) {
+            return null;
+        }
+
+        PaymentTermsType.PaymentTermsTypeCode code = null;
+        if (legacy.getPaymentTermsTypeCode() != null) {
+            code = PaymentTermsType.PaymentTermsTypeCode.fromValue(
+                legacy.getPaymentTermsTypeCode().name()
+            );
+        }
+
+        return PaymentTermsType.builder()
+            .paymentTermsTypeCode(code)
+            .build();
+    }
+
+    private static InstalmentPeriod toInstalmentPeriod(LegacyInstalmentPeriod legacy) {
+        if (legacy == null) {
+            return null;
+        }
+
+        InstalmentPeriod.InstalmentPeriodCode code = null;
+        if (legacy.getInstalmentPeriodCode() != null) {
+            code = InstalmentPeriod.InstalmentPeriodCode.fromValue(
+                legacy.getInstalmentPeriodCode().name()
+            );
+        }
+
+        return InstalmentPeriod.builder()
+            .instalmentPeriodCode(code)
+            .build();
+    }
+
+    private static PostedDetails toPostedDetails(LegacyPostedDetails legacy) {
+        if (legacy == null) {
+            return null;
+        }
+
+        return PostedDetails.builder()
+            .postedDate(legacy.getPostedDate())
+            .postedBy(legacy.getPostedBy())
+            .postedByName(legacy.getPostedByName())
             .build();
     }
 
@@ -602,6 +599,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         response.setDefendantAccountParty(legacyParty);
         response.setVersion(BigInteger.valueOf(legacy.getVersion()));
         return response;
+    }
+
+    private static <T, R> R mapSafe(T obj, java.util.function.Function<T, R> f) {
+        return obj == null ? null : f.apply(obj);
     }
 
     @Override
