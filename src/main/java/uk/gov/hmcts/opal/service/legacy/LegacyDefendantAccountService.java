@@ -11,6 +11,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -77,6 +78,7 @@ import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 @Service
 @RequiredArgsConstructor
@@ -101,6 +103,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     /* ---- Mappers ---- */
     private final UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
     private final LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
+
+    private final UserStateService userStateService;
+
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary: id: {}", defendantAccountId);
@@ -894,11 +899,25 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             throw new IllegalArgumentException("Invalid version/If-Match header");
         }
 
-        // 2. Build legacy request (matches legacy schema exactly)
+        // 2. Try to resolve Business Unit User ID (Legacy allows null)
+        String businessUnitUserId = null;
+        try {
+            UserState userState = userStateService.checkForAuthorisedUser(authHeader);
+
+            businessUnitUserId = userState
+                .getBusinessUnitUserForBusinessUnit(Short.parseShort(businessUnitId))
+                .map(bu -> bu.getBusinessUnitUserId())
+                .orElse(null);
+
+        } catch (Exception ex) {
+            log.warn(":addPaymentCardRequest: unable to resolve businessUnitUserId for BU {}", businessUnitId);
+        }
+
+        // 3. Build legacy request
         AddPaymentCardRequestLegacyRequest legacyReq = AddPaymentCardRequestLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
             .businessUnitId(businessUnitId)
-            .businessUnitUserId(null)   // Legacy PCR schema allows NULL
+            .businessUnitUserId(businessUnitUserId)
             .version(version)
             .build();
 
@@ -936,7 +955,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             throw new RuntimeException("Legacy response missing");
         }
 
-        // 5. Convert legacy response → Opal response
+        // 6. Convert legacy response → Opal response
         Long id = Long.valueOf(entity.getDefendantAccountId());
 
         return new AddPaymentCardRequestResponse(id);
