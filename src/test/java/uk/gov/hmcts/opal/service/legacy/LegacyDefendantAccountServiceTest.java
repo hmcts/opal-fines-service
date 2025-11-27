@@ -43,6 +43,7 @@ import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
@@ -60,6 +61,8 @@ import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardRequestLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardRequestLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
@@ -70,14 +73,8 @@ import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementOverview;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
-import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
-import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest;
@@ -85,25 +82,12 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder;
-import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
-import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride;
-import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverrideResultReference;
-import uk.gov.hmcts.opal.dto.legacy.common.EnforcerReference;
 import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
 import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
-import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
-import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
-import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
-import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
-import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 
@@ -338,7 +322,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // Arrange
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()
-                .version("1")
+                .version(1)
                 .defendantAccountId("1")
                 .accountNumber("SAMPLE")
                 .accountType("Fine")
@@ -2970,5 +2954,124 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .version("1234567890123456789012345678901234567890")
             .employerFlag("true")
             .build();
+    }
+
+    @Test
+    void addPaymentCardRequest_legacy_happyPath() {
+
+        // Given
+        AddPaymentCardRequestLegacyResponse legacyResp =
+            new AddPaymentCardRequestLegacyResponse("123", 4);
+
+        GatewayService.Response<AddPaymentCardRequestLegacyResponse> gwResp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
+
+        doReturn(gwResp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(AddPaymentCardRequestLegacyResponse.class),
+            any(AddPaymentCardRequestLegacyRequest.class),
+            isNull()
+        );
+
+        // When
+        AddPaymentCardRequestResponse out =
+            legacyDefendantAccountService.addPaymentCardRequest(123L, "78", "4", "AUTH");
+
+        // Then
+        assertNotNull(out);
+        assertEquals(123L, out.getDefendantAccountId());
+    }
+
+    @Test
+    void addPaymentCardRequest_legacy_buildsCorrectRequest() {
+
+        // Given
+        GatewayService.Response<AddPaymentCardRequestLegacyResponse> gwResp =
+            new GatewayService.Response<>(HttpStatus.OK,
+                new AddPaymentCardRequestLegacyResponse("123", 4),
+                null, null);
+
+        ArgumentCaptor<AddPaymentCardRequestLegacyRequest> captor =
+            ArgumentCaptor.forClass(AddPaymentCardRequestLegacyRequest.class);
+
+        doReturn(gwResp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(AddPaymentCardRequestLegacyResponse.class),
+            captor.capture(),
+            isNull()
+        );
+
+        // When
+        legacyDefendantAccountService.addPaymentCardRequest(123L, "78", "9", "AUTH");
+
+        // Then
+        AddPaymentCardRequestLegacyRequest sent = captor.getValue();
+        assertEquals("123", sent.getDefendantAccountId());
+        assertEquals("78", sent.getBusinessUnitId());
+        assertEquals(9, sent.getVersion());
+        assertNull(sent.getBusinessUnitUserId());
+    }
+
+    @Test
+    void addPaymentCardRequest_legacy_5xxFailureThrows() {
+
+        GatewayService.Response<AddPaymentCardRequestLegacyResponse> gwResp =
+            new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, null, "<error/>", null);
+
+        doReturn(gwResp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(AddPaymentCardRequestLegacyResponse.class),
+            any(),
+            isNull()
+        );
+
+        assertThrows(RuntimeException.class, () ->
+            legacyDefendantAccountService.addPaymentCardRequest(99L, "78", "1", "AUTH")
+        );
+    }
+
+    @Test
+    void addPaymentCardRequest_legacy_gatewayExceptionThrows() {
+
+        Throwable ex = new RuntimeException("gateway boom");
+
+        GatewayService.Response<AddPaymentCardRequestLegacyResponse> gwResp =
+            new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, ex, null);
+
+        doReturn(gwResp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(AddPaymentCardRequestLegacyResponse.class),
+            any(),
+            isNull()
+        );
+
+        assertThrows(RuntimeException.class, () ->
+            legacyDefendantAccountService.addPaymentCardRequest(88L, "78", "2", "AUTH")
+        );
+    }
+
+    @Test
+    void addPaymentCardRequest_legacy_nullEntityThrows() {
+
+        GatewayService.Response<AddPaymentCardRequestLegacyResponse> gwResp =
+            new GatewayService.Response<>(HttpStatus.OK, null, null, null);
+
+        doReturn(gwResp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(AddPaymentCardRequestLegacyResponse.class),
+            any(),
+            isNull()
+        );
+
+        assertThrows(RuntimeException.class, () ->
+            legacyDefendantAccountService.addPaymentCardRequest(55L, "78", "3", "AUTH")
+        );
+    }
+
+    @Test
+    void addPaymentCardRequest_legacy_invalidIfMatchThrows() {
+        assertThrows(IllegalArgumentException.class, () ->
+            legacyDefendantAccountService.addPaymentCardRequest(1L, "78", "notANumber", "AUTH")
+        );
     }
 }
