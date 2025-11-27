@@ -1,0 +1,18 @@
+NOTICE:  === Setting up test data for v_major_creditor_account_at_a_glance tests ===
+NOTICE:  Test data setup completed: MJ creditor_account_id = 999801, CF creditor_account_id = 999802
+NOTICE:  === TEST 1: Test Major Creditor (MJ) account at a glance ===
+NOTICE:  TEST 1 PASSED: Major Creditor account at a glance retrieved and validated successfully
+NOTICE:  === TEST 2: Test Central Fund (CF) account at a glance ===
+NOTICE:  TEST 2 PASSED: Central Fund account at a glance retrieved and validated successfully
+NOTICE:  === TEST 3: Test Major Creditor with BACS not provided ===
+NOTICE:  TEST 3 PASSED: Major Creditor with BACS disabled handled correctly
+NOTICE:  === TEST 4: Test Central Fund with different JSON structure ===
+NOTICE:  TEST 4 PASSED: Central Fund with minimal JSON structure handled correctly
+NOTICE:  === TEST 5: Test UNION operation - verify both MJ and CF records are returned ===
+NOTICE:  TEST 5 PASSED: UNION operation working correctly - MJ: 2, CF: 2, Total: 4
+NOTICE:  === Cleaning up test data ===
+NOTICE:  Test data cleanup completed
+NOTICE:  === All tests completed for v_major_creditor_account_at_a_glance view ===
+DO
+
+Query returned successfully in 38 msec
