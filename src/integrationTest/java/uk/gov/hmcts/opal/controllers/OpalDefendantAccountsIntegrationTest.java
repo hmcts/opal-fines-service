@@ -405,13 +405,13 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
-    void testPut_notFound_whenDapMissing() throws Exception {
-        super.put_notFound_whenDapMissing(log);
+    void testGetAtAGlance_VerifyAliasesArray_Organisation() throws Exception {
+        super.testGetAtAGlance_VerifyAliasesArray_Organisation(log);
     }
 
     @Test
-    void testPut_notFound_whenAccountNotInHeaderBU() throws Exception {
-        super.put_notFound_whenAccountNotInHeaderBU(log);
+    void testGetAtAGlance_VerifyAliasesArray_Individual() throws Exception {
+        super.testGetAtAGlance_VerifyAliasesArray_Individual(log);
     }
 
     @Test
@@ -430,8 +430,18 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     }
 
     @Test
-    void testReplaceDefendantAccountPartyIsDebtorTrue() throws Exception {
-        super.put_replace_dap_isDebtorTrue_upsertsDebtorDetails(log);
+    void testPut_notFound_whenDapMissing() throws Exception {
+        super.put_notFound_whenDapMissing(log);
+    }
+
+    @Test
+    void testPut_notFound_whenAccountNotInHeaderBU() throws Exception {
+        super.put_notFound_whenAccountNotInHeaderBU(log);
+    }
+
+    @Test
+    void testPut_happyPath_updates_andReturnsResponse() throws Exception {
+        super.put_happyPath_updates_andReturnsResponse(log);
     }
 
 

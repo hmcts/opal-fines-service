@@ -56,6 +56,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
@@ -2169,7 +2170,8 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         ResultActions actions = mockMvc.perform(
             get("/defendant-accounts/88/defendant-account-parties/88").header("Authorization", "Bearer test-token"));
         log.info("Null fields response:\n" + actions.andReturn().getResponse().getContentAsString());
-        actions.andExpect(status().isOk())
+        actions.andExpect(status(
+            ).isOk())
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname").doesNotExist())
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").doesNotExist());
     }
@@ -3131,6 +3133,233 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
 
+    @DisplayName("OPAL: PUT Replace DAP – Not Found (account not in BU)")
+    void put_notFound_whenAccountNotInHeaderBU(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Use the known test account we seed below: 20010 in BU=78
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            20010L
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "99");                 // wrong BU on purpose
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+
+        String body = """
+            {
+                "defendant_account_party_type": "Defendant",
+                "is_debtor": true,
+                "party_details": {
+                "party_id": "20010",
+                "organisation_flag": true,
+                "organisation_details": { "organisation_name": "PutCo Ltd" }
+                }
+            }
+            """;
+
+        var res = mockMvc.perform(
+            put("/defendant-accounts/20010/defendant-account-parties/20010")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        log.info("PUT DAP wrong BU resp:\n{}", res.andReturn().getResponse().getContentAsString());
+
+        res.andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
+    }
+
+    @DisplayName("OPAL: PUT Replace DAP – Happy path (updates party + debtor + bumps version)")
+    void put_happyPath_updates_andReturnsResponse(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        // Get current version so we can set If-Match and then assert ETag bumped
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            20010L
+        );
+
+        String etag = "\"" + currentVersion + "\"";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, etag);
+
+        String body = """
+        {
+            "defendant_account_party_type": "Defendant",
+            "is_debtor": true,
+            "party_details": {
+             "party_id": "20010",
+             "organisation_flag": true,
+              "organisation_details": { "organisation_name": "PutCo Ltd" }
+            },
+            "address": {
+            "address_line_1": "100 Put Street",
+            "postcode": "PU1 1TT"
+            },
+                "contact_details": {
+                "primary_email_address": "putco@example.com",
+                "work_telephone_number": "0207000000"
+            },
+                "vehicle_details": {
+                "vehicle_make_and_model": "VW Golf",
+                "vehicle_registration": "PU70ABC"
+            },
+                "employer_details": {
+                "employer_name": "Put Employer",
+                "employer_address": {
+                    "address_line_1": "1 Employer Way",
+                    "postcode": "EM1 1AA"
+                }
+            },
+                "language_preferences": {
+                "document_language_preference": { "language_code": "EN" },
+                "hearing_language_preference":  { "language_code": "CY" }
+             }
+        }
+            """;
+
+        var call = mockMvc.perform(
+            put("/defendant-accounts/20010/defendant-account-parties/20010")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        String resp = call.andReturn().getResponse().getContentAsString();
+        log.info("PUT DAP happy path resp:\n{}", resp);
+
+        String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";
+
+        call.andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.ETAG, expectedNextEtag))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // response wrapper shape
+            .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type").value("Defendant"));
+
+
+    }
+
+    @DisplayName("OPAL: PUT Replace DAP – DAP not found on account")
+    void put_notFound_whenDapMissing(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        Integer currentVersion = jdbcTemplate.queryForObject(
+            "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
+            Integer.class,
+            20010L
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
+
+        String body = """
+            {
+                    "defendant_account_party_type": "Defendant",
+                    "party_details": {
+                    "party_id": "20010",
+                    "organisation_flag": true,
+                    "organisation_details": { "organisation_name": "StillCo" }
+                 }
+            }
+            """;
+
+        var res = mockMvc.perform(
+            put("/defendant-accounts/20010/defendant-account-parties/99999")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        log.info("PUT DAP missing DAP resp:\n{}", res.andReturn().getResponse().getContentAsString());
+
+        res.andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
+    }
+
+    @DisplayName("LEGACY: PUT Replace DAP")
+    void legacyPutReplaceDefendantAccountParty_Success(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + 1 + "\"");
+
+        String body = """
+            {
+                    "defendant_account_party_type": "Defendant",
+                    "party_details": {
+                    "party_id": "20010",
+                    "organisation_flag": true,
+                    "organisation_details": { "organisation_name": "StillCo" }
+                 }
+            }
+            """;
+
+        var res = mockMvc.perform(
+            put("/defendant-accounts/77/defendant-account-parties/77")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        log.info("PUT DAP missing DAP resp:\n{}", res.andReturn().getResponse().getContentAsString());
+
+        res.andExpect(status().isOk())
+            .andExpect(header().string("etag", matchesPattern("\"\\d+\"")))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_party.defendant_account_party_type")
+                .value("Defendant"));
+
+    }
+
+    @DisplayName("LEGACY: PUT Replace DAP")
+    void legacyPutReplaceDefendantAccountParty_500Error(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + 1 + "\"");
+
+        String body = """
+            {
+                    "defendant_account_party_type": "Defendant",
+                    "party_details": {
+                    "party_id": "20010",
+                    "organisation_flag": true,
+                    "organisation_details": { "organisation_name": "StillCo" }
+                 }
+            }
+            """;
+
+        var res = mockMvc.perform(
+            put("/defendant-accounts/500/defendant-account-parties/500")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        log.info("PUT DAP missing DAP resp:\n{}", res.andReturn().getResponse().getContentAsString());
+
+        res.andExpect(status().is5xxServerError());
+
+    }
+
     @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes [@PO-1908]")
     void test_Legacy_UpdateDefendantAccount_CommentsNotes_Success(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
@@ -3471,76 +3700,6 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.resourceType").value("DefendantAccountEntity"))
             .andExpect(jsonPath("$.resourceId").value("88"))
             .andExpect(jsonPath("$.retriable").value(false));
-    }
-
-
-    @DisplayName("OPAL: PUT Replace DAP – Not Found (account not in BU)")
-    void put_notFound_whenAccountNotInHeaderBU(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
-        // Use the known test account we seed below: 20010 in BU=78
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 20010L);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
-        headers.add("Business-Unit-Id", "99");                 // wrong BU on purpose
-        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
-
-        String body = """
-            {
-                "defendant_account_party_type": "Defendant",
-                "is_debtor": true,
-                "party_details": {
-                "party_id": "20010",
-                "organisation_flag": true,
-                "organisation_details": { "organisation_name": "PutCo Ltd" }
-                }
-            }
-            """;
-
-        var res = mockMvc.perform(put("/defendant-accounts/20010/defendant-account-parties/20010").headers(headers)
-            .contentType(MediaType.APPLICATION_JSON).content(body));
-
-        log.info("PUT DAP wrong BU resp:\n{}", res.andReturn().getResponse().getContentAsString());
-
-        res.andExpect(status().isNotFound()).andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
-    }
-
-
-    @DisplayName("OPAL: PUT Replace DAP – DAP not found on account")
-    void put_notFound_whenDapMissing(Logger log) throws Exception {
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
-
-        Integer currentVersion =
-            jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
-                Integer.class, 20010L);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("good_token");
-        headers.add("Business-Unit-Id", "78");
-        headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
-
-        String body = """
-            {
-                    "defendant_account_party_type": "Defendant",
-                    "party_details": {
-                    "party_id": "20010",
-                    "organisation_flag": true,
-                    "organisation_details": { "organisation_name": "StillCo" }
-                 }
-            }
-            """;
-
-        var res = mockMvc.perform(put("/defendant-accounts/20010/defendant-account-parties/99999").headers(headers)
-            .contentType(MediaType.APPLICATION_JSON).content(body));
-
-        log.info("PUT DAP missing DAP resp:\n{}", res.andReturn().getResponse().getContentAsString());
-
-        res.andExpect(status().isNotFound()).andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
     }
 
     @DisplayName("OPAL: PUT Replace DAP – Individual aliases upsert/trim on isolated IDs (22004)")

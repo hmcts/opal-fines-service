@@ -10,9 +10,9 @@ import uk.gov.hmcts.opal.entity.AliasEntity;
 @Repository
 public interface AliasRepository extends JpaRepository<AliasEntity, Long>, JpaSpecificationExecutor<AliasEntity> {
 
-    List<AliasEntity> findByParty_PartyId(Long partyId);
-
     void deleteByParty_PartyId(Long partyId);
+
+    List<AliasEntity> findByParty_PartyId(Long partyId);
 
     void deleteByParty_PartyIdAndAliasIdNotIn(Long partyId, Collection<Long> keepIds);
 }
