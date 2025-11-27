@@ -21,9 +21,13 @@ import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
@@ -106,12 +110,17 @@ public class DefendantAccountController {
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
+        @RequestHeader(value = "Business-Unit-User-Id", required = false) String businessUnitUserId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch
     ) {
         log.debug(":POST:addPaymentCardRequest: for defendantAccountId={}", defendantAccountId);
 
         AddPaymentCardRequestResponse response = defendantAccountService.addPaymentCardRequest(
-            defendantAccountId, businessUnitId, ifMatch, authHeaderValue
+            defendantAccountId,
+            businessUnitId,
+            businessUnitUserId,
+            ifMatch,
+            authHeaderValue
         );
 
         return buildResponse(response);

@@ -31,14 +31,16 @@ public interface DefendantAccountServiceInterface {
                                                     UpdateDefendantAccountRequest request,String ifMatch,
                                                     String postedBy);
 
+    AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId, String businessUnitId,
+        String businessUnitUserId,
+        String ifMatch, String authHeader);
+
+
     GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
                                            Long defendantAccountPartyId,
                                            DefendantAccountParty defendantAccountParty,
                                            String ifMatch,
                                            String businessUnitId,
-                                           String postedBy);
-
-    AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId, String businessUnitId,
-        String ifMatch, String authHeader);
-
+                                           String postedBy,
+                                           String businessUserId);
 }

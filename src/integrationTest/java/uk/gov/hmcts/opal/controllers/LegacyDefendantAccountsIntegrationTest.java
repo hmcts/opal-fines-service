@@ -89,6 +89,18 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
 
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
+    void testPutReplaceDefendantAccountParty_Success() throws Exception {
+        super.legacyPutReplaceDefendantAccountParty_Success(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testPutReplaceDefendantAccountParty_Error() throws Exception {
+        super.legacyPutReplaceDefendantAccountParty_500Error(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
     void testUpdateDefendantAccount_CommentNotes_Success() throws Exception {
         super.test_Legacy_UpdateDefendantAccount_CommentsNotes_Success(log);
     }
@@ -115,5 +127,17 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
     @Test
     void testUpdateDefendantAccount_CommentNotes_400BadRequest() throws Exception {
         super.test_Legacy_UpdateDefendantAccount_CommentNotes_400BadRequest(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void legacyAddPaymentCardRequest_Success() throws Exception {
+        super.legacyAddPaymentCardRequest_Happy(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void addPaymentCardRequest_Legacy_500() throws Exception {
+        super.legacyAddPaymentCardRequest_500(log);
     }
 }

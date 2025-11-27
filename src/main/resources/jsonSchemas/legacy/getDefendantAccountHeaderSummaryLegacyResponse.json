@@ -29,6 +29,10 @@
     "is_youth": {
       "type": "boolean"
     },
+    "has_consolidated_accounts": {
+      "type": "boolean",
+      "description": "This field will return true if the account has had accounts consolidated into it or false if it has not."
+    },
     "account_status_reference": {
       "$ref": "./common-objects/accountStatusReferenceLegacy.json"
     },
@@ -75,6 +79,7 @@
     "defendant_party_id",
     "debtor_type",
     "is_youth",
+    "has_consolidated_accounts",
     "account_status_reference",
     "account_type",
     "originator_type",
