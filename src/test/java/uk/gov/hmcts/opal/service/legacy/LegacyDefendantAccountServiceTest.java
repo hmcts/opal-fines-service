@@ -2130,7 +2130,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             legacyDefendantAccountService.addPaymentCardRequest(1L, "78", "notANumber", "AUTH")
         );
     }
-}
 
     @Test
     void replaceDefendantAccountParty_exceptionBranch_rethrows() {
