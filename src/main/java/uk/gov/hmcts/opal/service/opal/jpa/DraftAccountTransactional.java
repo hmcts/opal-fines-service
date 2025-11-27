@@ -121,7 +121,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             throw new ResourceConflictException(
                 "DraftAccount", Long.toString(draftAccountId),
                 "Business Unit ID mismatch. Existing: " + existingAccount.getBusinessUnit().getBusinessUnitId()
-                    + ", Requested: " + dto.getBusinessUnitId()
+                    + ", Requested: " + dto.getBusinessUnitId(), null
             );
         }
 
@@ -153,7 +153,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             throw new ResourceConflictException(
                 "DraftAccount", Long.toString(draftAccountId),
                 "Business Unit ID mismatch. Existing: " + existingAccount.getBusinessUnit().getBusinessUnitId()
-                    + ", Requested: " + dto.getBusinessUnitId()
+                    + ", Requested: " + dto.getBusinessUnitId(), null
             );
         }
 
