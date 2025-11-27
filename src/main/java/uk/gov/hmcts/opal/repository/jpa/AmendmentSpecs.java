@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.repository.jpa;
 import uk.gov.hmcts.opal.dto.search.AmendmentSearchDto;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity;
 import uk.gov.hmcts.opal.entity.amendment.AmendmentEntity_;
-
 import org.springframework.data.jpa.domain.Specification;
 
 public class AmendmentSpecs extends EntitySpecs<AmendmentEntity> {

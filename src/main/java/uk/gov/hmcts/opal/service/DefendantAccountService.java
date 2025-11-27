@@ -150,10 +150,15 @@ public class DefendantAccountService {
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
 
+        String businessUserId = userState.getBusinessUnitUserForBusinessUnit(buId)
+            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(null);
+
         if (userState.hasBusinessUnitUserWithPermission(buId,
                 FinesPermission.ACCOUNT_MAINTENANCE)) {
             return defendantAccountServiceProxy.replaceDefendantAccountParty(defendantAccountId,
-                defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy);
+                defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy, businessUserId);
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }
