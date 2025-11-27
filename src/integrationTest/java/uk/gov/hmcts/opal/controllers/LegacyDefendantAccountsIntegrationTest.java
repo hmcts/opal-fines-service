@@ -128,4 +128,16 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
     void testUpdateDefendantAccount_CommentNotes_400BadRequest() throws Exception {
         super.test_Legacy_UpdateDefendantAccount_CommentNotes_400BadRequest(log);
     }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void legacyAddPaymentCardRequest_Success() throws Exception {
+        super.legacyAddPaymentCardRequest_Happy(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void addPaymentCardRequest_Legacy_500() throws Exception {
+        super.legacyAddPaymentCardRequest_500(log);
+    }
 }
