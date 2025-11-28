@@ -359,6 +359,7 @@ components:
           type: integer
         result_title:
           type: string
+          maxLength: 60
       required:
         - result_id
         - result_title
@@ -448,8 +449,10 @@ components:
           format: date
         posted_by:
           type: string
+          maxLength: 20
         posted_by_name:
           type: string
+          maxLength: 100
       required:
         - posted_date
     paymentTerms:
@@ -668,5 +671,65 @@ components:
         postcode:
           type: string
           description: DB Mapping - major_creditors.postcode
+    offenceReference:
+      title: Offence Reference
+      type: object
+      additionalProperties: false
+      required:
+        - title
+      properties:
+        id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB mapping - offences.offence_id
+        code:
+          type: string
+          maxLength: 10
+          description: DB mapping - offences.cjs_code
+        title:
+          type: string
+          maxLength: 120
+          description: DB mapping - offences.offence_title
+    impositionSummary:
+      title: Imposition Summary
+      type: object
+      required:
+        - posted_details
+        - result
+        - creditor
+        - imposed_amount
+        - paid_amount
+        - balance
+        - date_imposed
+        - offence
+        - imposition_id
+      properties:
+        posted_details:
+          $ref: '#/components/schemas/postedDetails'
+        result:
+          description: DB Mapping - impositions.result_id
+          $ref: '#/components/schemas/resultReference'
+        creditor:
+          description: DB Mapping - impositions.creditor_account_id
+          $ref: '#/components/schemas/creditorAccountTypeReference'
+        imposed_amount:
+          $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+        paid_amount:
+          $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+        balance:
+          $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+        date_imposed:
+          type: string
+          format: date
+        offence:
+          $ref: '#/components/schemas/offenceReference'
+        imposing_court:
+          description: DB Mapping - impositions.imposing_court_id
+          $ref: '#/components/schemas/courtReference'
+        imposition_id:
+          description: DB Mapping - impositions.imposition_id
+          $ref: './types.yaml#/components/schemas/BigInt'
+
+
+
 
 
