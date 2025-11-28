@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static java.util.Collections.emptyList;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -100,8 +101,6 @@ import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantA
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
@@ -130,19 +129,10 @@ class OpalDefendantAccountServiceTest {
     private DefendantAccountSummaryViewRepository dasvRepository;
 
     @Mock
-    private DefendantAccountHeaderViewRepository dahvRepository;
-
-    @Mock
     private SearchDefendantAccountRepository searchDefAccRepo;
 
     @Mock
-    private DefendantAccountPaymentTermsRepository paymentTermsRepository;
-
-    @Mock
     private FixedPenaltyOffenceRepository fixedPenaltyOffenceRepository;
-
-    @Mock
-    private DefendantAccountPaymentTermsRepository paymentTermsRepo;
 
     @Mock
     private NoteRepository noteRepository;
@@ -2091,7 +2081,13 @@ class OpalDefendantAccountServiceTest {
 
         // Act
         AddPaymentCardRequestResponse response =
-            service.addPaymentCardRequest(accountId, buHeader, ifMatch, "AUTH");
+            service.addPaymentCardRequest(
+                accountId,
+                buHeader,
+                "L080JG",     // businessUnitUserId MUST be the 3rd argument
+                ifMatch,
+                "AUTH"
+            );
 
         // Assert
         assertNotNull(response);
@@ -2117,7 +2113,7 @@ class OpalDefendantAccountServiceTest {
             .thenReturn(true);
 
         assertThrows(ResourceConflictException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "\"1\"", "AUTH")
+            service.addPaymentCardRequest(1L, "10",null, "\"1\"", "AUTH")
         );
     }
 
@@ -2131,12 +2127,13 @@ class OpalDefendantAccountServiceTest {
         when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "\"1\"", "AUTH")
+            service.addPaymentCardRequest(1L, "10", null,"\"1\"", "AUTH")
         );
     }
 
     @Test
-    void addPaymentCardRequest_failsWhenUserNotInBusinessUnit() {
+    void addPaymentCardRequest_allowsNullBusinessUnitUserId_whenUserNotInBusinessUnit() {
+        // Arrange
         var account = DefendantAccountEntity.builder()
             .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
             .versionNumber(1L)
@@ -2150,9 +2147,16 @@ class OpalDefendantAccountServiceTest {
         when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.empty());
         when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
 
-        assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "\"1\"", "AUTH")
+        when(defendantAccountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // Act + Assert
+        assertDoesNotThrow(() ->
+            service.addPaymentCardRequest(1L, "10", null, "\"1\"", "AUTH")
         );
+
+        // And verify the account was updated with null BU-user-id
+        assertTrue(account.getPaymentCardRequested());
+        assertNull(account.getPaymentCardRequestedBy());
     }
 
     @Test
@@ -2166,7 +2170,7 @@ class OpalDefendantAccountServiceTest {
             .thenReturn(Optional.of(account));
 
         assertThrows(ObjectOptimisticLockingFailureException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "\"0\"", "AUTH")
+            service.addPaymentCardRequest(1L, "10", null,"\"0\"", "AUTH")
         );
     }
 
@@ -2280,4 +2284,79 @@ class OpalDefendantAccountServiceTest {
         assertEquals(DefendantAccountTypeEnum.ADULT, response.getDefendantAccountType());
         assertFalse(response.getIsHmrcCheckEligible());
     }
+
+    @Test
+    void addPaymentCardRequest_newSignature_failsWhenBusinessUnitMismatch() {
+        // Arrange
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .businessUnit(BusinessUnitFullEntity.builder()
+                .businessUnitId((short) 20)   // Actual BU = 20
+                .build())
+            .versionNumber(1L)
+            .build();
+
+        when(defendantAccountRepository.findById(1L))
+            .thenReturn(Optional.of(account));
+
+        // Act + Assert
+        assertThrows(EntityNotFoundException.class, () ->
+            service.addPaymentCardRequest(
+                1L,
+                "10",              // Requested BU = 10 (mismatch)
+                "BU-USER-123",     // Passed in from above layer
+                "\"1\"",
+                "AUTH"
+            )
+        );
+
+        verify(defendantAccountRepository, never()).save(any());
+    }
+
+    @Test
+    void addPaymentCardRequest_newSignature_succeedsWhenBusinessUnitMatches() {
+        // Arrange
+        Long accountId = 99L;
+        String buHeader = "10";
+        String ifMatch = "\"1\"";
+        String businessUnitUserId = "L080JG";
+
+        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10)
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(bu)
+            .versionNumber(1L)
+            .build();
+
+        when(defendantAccountRepository.findById(accountId))
+            .thenReturn(Optional.of(account));
+        when(paymentCardRequestRepository.existsByDefendantAccountId(accountId))
+            .thenReturn(false);
+        when(accessTokenService.extractName("AUTH"))
+            .thenReturn("John Smith");
+        when(defendantAccountRepository.save(any()))
+            .thenAnswer(inv -> inv.getArgument(0));
+
+        // Act
+        AddPaymentCardRequestResponse response = service.addPaymentCardRequest(
+            accountId,
+            buHeader,
+            businessUnitUserId,   // MUST be passed here now
+            ifMatch,
+            "AUTH"
+        );
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(accountId, response.getDefendantAccountId());
+        assertTrue(account.getPaymentCardRequested());
+        assertEquals("L080JG", account.getPaymentCardRequestedBy());
+        assertEquals("John Smith", account.getPaymentCardRequestedByName());
+
+        verify(paymentCardRequestRepository).save(any(PaymentCardRequestEntity.class));
+        verify(defendantAccountRepository).save(account);
+    }
+
 }

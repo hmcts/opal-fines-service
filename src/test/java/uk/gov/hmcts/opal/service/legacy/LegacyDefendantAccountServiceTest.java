@@ -2994,7 +2994,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // When
         AddPaymentCardRequestResponse out =
-            legacyDefendantAccountService.addPaymentCardRequest(123L, "78", "4", "AUTH");
+            legacyDefendantAccountService.addPaymentCardRequest(123L, "78", null,"4", "AUTH");
 
         // Then
         assertNotNull(out);
@@ -3021,7 +3021,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         );
 
         // When
-        legacyDefendantAccountService.addPaymentCardRequest(123L, "78", "9", "AUTH");
+        legacyDefendantAccountService.addPaymentCardRequest(123L, "78",null, "9", "AUTH");
 
         // Then
         AddPaymentCardRequestLegacyRequest sent = captor.getValue();
@@ -3045,7 +3045,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService.addPaymentCardRequest(99L, "78", "1", "AUTH")
+            legacyDefendantAccountService.addPaymentCardRequest(99L, "78", null,"1", "AUTH")
         );
     }
 
@@ -3065,7 +3065,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService.addPaymentCardRequest(88L, "78", "2", "AUTH")
+            legacyDefendantAccountService.addPaymentCardRequest(88L, "78", null,"2", "AUTH")
         );
     }
 
@@ -3083,14 +3083,14 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         );
 
         assertThrows(RuntimeException.class, () ->
-            legacyDefendantAccountService.addPaymentCardRequest(55L, "78", "3", "AUTH")
+            legacyDefendantAccountService.addPaymentCardRequest(55L, "78", null, "3", "AUTH")
         );
     }
 
     @Test
     void addPaymentCardRequest_legacy_invalidIfMatchThrows() {
         assertThrows(IllegalArgumentException.class, () ->
-            legacyDefendantAccountService.addPaymentCardRequest(1L, "78", "notANumber", "AUTH")
+            legacyDefendantAccountService.addPaymentCardRequest(1L, "78", null,"notANumber", "AUTH")
         );
     }
 }
