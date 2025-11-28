@@ -14,22 +14,7 @@
   ],
   "properties": {
     "posted_details": {
-      "allOf": [
-        {
-          "$ref": "./postedDetailsLegacy.json"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "posted_by": {
-              "maxLength": 20
-            },
-            "posted_by_name": {
-              "maxLength": 100
-            }
-          }
-        }
-      ]
+      "$ref": "./postedDetailsLegacy.json"
     },
     "result": {
       "$ref": "./resultReferenceLegacy.json"

@@ -449,8 +449,10 @@ components:
           format: date
         posted_by:
           type: string
+          maxLength: 20
         posted_by_name:
           type: string
+          maxLength: 100
       required:
         - posted_date
     paymentTerms:
@@ -702,18 +704,7 @@ components:
         - imposition_id
       properties:
         posted_details:
-          allOf:
-            - $ref: '#/components/schemas/postedDetails'
-            - type: object
-              properties:
-                posted_date:
-                  description: DB Mapping - impositions.posted_by_date
-                posted_by:
-                  description: DB Mapping - impositions.posted_by
-                  maxLength: 20
-                posted_by_name:
-                  description: DB Mapping - imposition.posted_by_name
-                  maxLength: 100
+          $ref: '#/components/schemas/postedDetails'
         result:
           description: DB Mapping - impositions.result_id
           $ref: '#/components/schemas/resultReference'
@@ -730,16 +721,7 @@ components:
           type: string
           format: date
         offence:
-          allOf:
-            - $ref: '#/components/schemas/offenceReference'
-            - type: object
-              properties:
-                id:
-                  description: DB mapping - impositions.offence_id
-                code:
-                  description: DB mapping - impositions.offence_code (if set, otherwise from Offences)
-                title:
-                  description: impositions.offence_title (if set, otherwise from Offences)
+          $ref: '#/components/schemas/offenceReference'
         imposing_court:
           description: DB Mapping - impositions.imposing_court_id
           $ref: '#/components/schemas/courtReference'
