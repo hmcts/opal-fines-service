@@ -48,3 +48,9 @@ legacy-gateway:
 user:
   service:
     url: ${OPAL_USER_SERVICE_API_URL:https://opal-user-service.staging.platform.hmcts.net}
+opal:
+  content-digest:
+    request:
+      enforce: false
+    response:
+      auto-generate: false
