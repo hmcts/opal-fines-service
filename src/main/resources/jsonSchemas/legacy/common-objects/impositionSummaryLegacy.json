@@ -1,0 +1,63 @@
+{
+  "title": "Imposition Summary",
+  "type": "object",
+  "required": [
+    "posted_details",
+    "result",
+    "creditor",
+    "imposed_amount",
+    "paid_amount",
+    "balance",
+    "date_imposed",
+    "offence",
+    "imposition_id"
+  ],
+  "properties": {
+    "posted_details": {
+      "allOf": [
+        {
+          "$ref": "./postedDetailsLegacy.json"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "posted_by": {
+              "maxLength": 20
+            },
+            "posted_by_name": {
+              "maxLength": 100
+            }
+          }
+        }
+      ]
+    },
+    "result": {
+      "$ref": "./resultReferenceLegacy.json"
+    },
+    "creditor": {
+      "$ref": "./creditorAccountTypeReferenceLegacy.json"
+    },
+    "imposed_amount": {
+      "$ref": "./monetaryZeroOrPositive.json"
+    },
+    "paid_amount": {
+      "$ref": "./monetaryZeroOrPositive.json"
+    },
+    "balance": {
+      "$ref": "./monetaryZeroOrPositive.json"
+    },
+    "date_imposed": {
+      "type": "string",
+      "format": "date"
+    },
+    "offence": {
+      "$ref": "./offenceReferenceLegacy.json"
+    },
+    "imposing_court": {
+      "$ref": "./courtReferenceLegacy.json"
+    },
+    "imposition_id": {
+      "$ref": "./bigInt.json"
+    }
+  }
+}
