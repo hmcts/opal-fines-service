@@ -147,6 +147,7 @@ paths:
                   - defendant_party_id
                   - debtor_type
                   - is_youth
+                  - has_consolidated_accounts
                   - account_status_reference
                   - account_type
                   - originator_type
@@ -192,6 +193,9 @@ paths:
                       parties.age = null, then the value is ‘FALSE’
 
                       DB Mapping - parties.birth_date The defendants DOB is derived from this database field, but is not returned. Instead the BE will set the is_youth flag depending on the DOB value parties.age
+                  has_consolidated_accounts:
+                    type: boolean
+                    description: This field will return true if the account has had accounts consolidated into it or false if it has not.
                   account_status_reference:
                     $ref: './common.yaml#/components/schemas/accountStatusReference'
                   account_type:
