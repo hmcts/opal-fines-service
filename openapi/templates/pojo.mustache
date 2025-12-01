@@ -28,6 +28,10 @@
 {{#withXml}}
 {{>xmlAnnotation}}
 {{/withXml}}
+{{#vendorExtensions.x-extendable}}
+@lombok.experimental.SuperBuilder
+@jakarta.persistence.MappedSuperclass
+{{/vendorExtensions.x-extendable}}
 {{>generatedAnnotation}}
 {{#vendorExtensions.x-class-extra-annotation}}
 {{{vendorExtensions.x-class-extra-annotation}}}

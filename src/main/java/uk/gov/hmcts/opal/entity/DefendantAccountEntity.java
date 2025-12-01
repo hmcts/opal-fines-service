@@ -222,6 +222,9 @@ public class DefendantAccountEntity implements Versioned {
     @Column(name = "account_note_3")
     private String accountNote3;
 
+    @Column(name = "jail_days")
+    private Integer jailDays;
+
     @Column(name = "version_number")
     @Version
     private Long versionNumber;
