@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import java.util.Optional;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
@@ -154,17 +155,17 @@ public class DefendantAccountService {
                 FinesPermission.ACCOUNT_MAINTENANCE)) {
             return defendantAccountServiceProxy.replaceDefendantAccountParty(defendantAccountId,
                 defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy,
-                getBusinessUnitUserIdForBusinessUnit(userState, buId));
+                getBusinessUnitUserIdForBusinessUnit(userState, buId)
+                    .orElse(userState.getUserName()));
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }
     }
 
-    private String getBusinessUnitUserIdForBusinessUnit(UserState userState, short buId) {
+    private Optional<String> getBusinessUnitUserIdForBusinessUnit(UserState userState, short buId) {
         return userState.getBusinessUnitUserForBusinessUnit(buId)
             .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
-            .filter(id -> !id.isBlank())
-            .orElse(null);
+            .filter(id -> !id.isBlank());
     }
 
 
