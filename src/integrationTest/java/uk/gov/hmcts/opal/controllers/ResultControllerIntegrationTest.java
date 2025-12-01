@@ -1,19 +1,21 @@
 package uk.gov.hmcts.opal.controllers;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.test.context.jdbc.Sql;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
-import org.springframework.test.web.servlet.ResultActions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
@@ -88,7 +90,7 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(62))
+            .andExpect(jsonPath("$.count").value(64))
             .andExpect(jsonPath("$.refData[0].result_id").value("AAAAAA"))
             .andExpect(jsonPath("$.refData[0].result_title").value("First Ever Result Entry for Testing"))
             .andExpect(jsonPath("$.refData[1].result_id").value("ABDC"))
@@ -116,4 +118,106 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
 
         jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
+
+
+    @Test
+    @DisplayName("Get results by multiple IDs [@PO-703, PO-304]")
+    void testGetResultsByIdsMultipleIds() throws Exception {
+
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids=AAAAAA,BWTD"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetResultsByIds: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.refData[0].result_id").value("AAAAAA"))
+            .andExpect(jsonPath("$.refData[0].result_title").value("First Ever Result Entry for Testing"))
+            .andExpect(jsonPath("$.refData[1].result_id").value("BWTD"))
+            .andExpect(jsonPath("$.refData[1].result_title").value("Bail Warrant - dated"));
+
+        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
+    }
+
+    @Test
+    @DisplayName("Get result by single ID and validate result_parameters JSON")
+    void testGetSingleResultAndParameters() throws Exception {
+
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids=BWTD"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetSingleResultAndParameters: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.refData[0].result_id").value("BWTD"))
+            .andExpect(jsonPath("$.refData[0].result_title").value("Bail Warrant - dated"))
+            .andExpect(jsonPath("$.refData[0].result_title_cy").value("Gwarant Mechniaeth - Gyda dyddiad"))
+            .andExpect(jsonPath("$.refData[0].active").value(true))
+            .andExpect(jsonPath("$.refData[0].result_type").value("Result"))
+            .andExpect(jsonPath("$.refData[0].imposition_creditor").value(nullValue()))
+            .andExpect(jsonPath("$.refData[0].imposition_allocation_order").value(nullValue()));
+
+        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
+    }
+
+    @Test
+    @DisplayName("Get results by ids with unknown id returns only known results")
+    void testGetResultsWithUnknownId() throws Exception {
+
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids=AAAAAA,UNKNOWN_ID"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetResultsWithUnknownId: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.refData[0].result_id").value("AAAAAA"));
+
+        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
+    }
+
+    @Test
+    @DisplayName("Get results by IDs with generates_hearing filter returns only those with generates_hearing=true")
+    void testGetResultsWithGeneratesHearingFilter() throws Exception {
+
+        // AAAA has generates_hearing = true; BBBBBB has it = false
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids=AAAAAA,BBBBBB&generates_hearing=true"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetResultsWithGeneratesHearingFilter: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.refData[0].result_id").value("AAAAAA"));
+
+        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
+    }
+
+    @Test
+    @DisplayName("Get all active results when active=true")
+    void testGetResultsActiveFilter() throws Exception {
+
+        // CC0000 is inactive = false; others are active = true
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "?active=true"));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetResultsActiveFilter: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            // we expect 3 active rows: AAAA, BBBB, BWTD
+            .andExpect(jsonPath("$.count").value(58))
+            .andExpect(jsonPath("$.refData[*].result_id").value(hasItems("AAAAAA","BBBBBB","BWTD")))
+            // ensure inactive one is not present
+            .andExpect(jsonPath("$.refData[*].result_id").value(org.hamcrest.Matchers.not(hasItems("CC0000"))));
+
+        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
+    }
 }
+

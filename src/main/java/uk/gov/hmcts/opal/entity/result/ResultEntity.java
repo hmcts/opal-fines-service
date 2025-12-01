@@ -93,6 +93,9 @@ public abstract class ResultEntity {
     @Column(name = "result_parameters")
     private String resultParameters;
 
+    @Column(name = "manual_enforcement", nullable = false)
+    private boolean manualEnforcement;
+
     @Entity
     @Getter
     @EqualsAndHashCode(callSuper = true)

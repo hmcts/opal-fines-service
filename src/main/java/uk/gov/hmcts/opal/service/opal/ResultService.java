@@ -50,16 +50,20 @@ public class ResultService {
     }
 
     // @Cacheable(cacheNames = "resultReferenceDataByIds", key = "#resultIds.orElse('noIds'))")
-    public ResultReferenceDataResponse getResultsByIds(Optional<List<String>> resultIds) {
+    public ResultReferenceDataResponse getResultsByIds(Optional<List<String>> resultIds,
+        boolean active,
+        boolean manualEnforcement,
+        boolean generatesHearing,
+        boolean enforcement) {
 
         Sort idSort = Sort.by(Sort.Direction.ASC, "resultId");
 
-        Page<Lite> page = resultLiteRepository
-            .findBy(
-                specsLite.referenceDataByIds(resultIds),
-                    ffq -> ffq
-                        .sortBy(idSort)
-                        .page(Pageable.unpaged()));
+        Page<Lite> page = resultLiteRepository.findBy(
+            specsLite.referenceDataByIds(resultIds, active, manualEnforcement, generatesHearing, enforcement),
+            ffq -> ffq
+                .sortBy(idSort)
+                .page(Pageable.unpaged())
+        );
 
         return resultMapper.toReferenceDataResponse(page.getContent());
     }

@@ -29,11 +29,25 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
         ));
     }
 
-    public Specification<ResultEntity.Lite> referenceDataByIds(Optional<List<String>> resultIds) {
+    public Specification<ResultEntity.Lite> referenceDataByIds(
+        Optional<List<String>> resultIds,
+        boolean active,
+        boolean manualEnforcement,
+        boolean generatesHearing,
+        boolean enforcement) {
+
         return Specification.allOf(specificationList(
-            resultIds.map(ResultSpecsLite::equalsAnyResultId)
+            // optional resultIds clause
+            resultIds.map(ResultSpecsLite::equalsAnyResultId),
+
+            // only include the boolean clauses when the corresponding argument is true
+            active ? Optional.of(hasActive()) : Optional.empty(),
+            manualEnforcement ? Optional.of(hasManualEnforcementOnly()) : Optional.empty(),
+            generatesHearing ? Optional.of(hasGeneratesHearing()) : Optional.empty(),
+            enforcement ? Optional.of(hasEnforcement()) : Optional.empty()
         ));
     }
+
 
     public static Specification<ResultEntity.Lite> equalsAnyResultId(List<String> resultIds) {
         return (root, query, builder) -> root.get(ResultEntity_.resultId).in(resultIds);
@@ -76,5 +90,21 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
             likeResultTitle(filter),
             likeResultTitleCy(filter)
         );
+    }
+
+    public static Specification<ResultEntity.Lite> hasActive() {
+        return (root, query, builder) -> builder.isTrue(root.get(ResultEntity_.active));
+    }
+
+    public static Specification<ResultEntity.Lite> hasManualEnforcementOnly() {
+        return (root, query, builder) -> builder.isTrue(root.get(ResultEntity_.manualEnforcement));
+    }
+
+    public static Specification<ResultEntity.Lite> hasGeneratesHearing() {
+        return (root, query, builder) -> builder.isTrue(root.get(ResultEntity_.generatesHearing));
+    }
+
+    public static Specification<ResultEntity.Lite> hasEnforcement() {
+        return (root, query, builder) -> builder.isTrue(root.get(ResultEntity_.enforcement));
     }
 }
