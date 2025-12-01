@@ -2,7 +2,7 @@ import org.flywaydb.gradle.task.FlywayMigrateTask
 
 buildscript {
   dependencies {
-    classpath("org.flywaydb:flyway-database-postgresql:11.17.0")
+    classpath("org.flywaydb:flyway-database-postgresql:11.17.2")
   }
 }
 
@@ -10,11 +10,11 @@ plugins {
   id 'application'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.5.7'
+  id 'org.springframework.boot' version '3.5.8'
   id 'com.github.ben-manes.versions' version '0.53.0'
-  id 'org.sonarqube' version '7.0.1.6134'
+  id 'org.sonarqube' version '7.1.0.6387'
   id 'uk.gov.hmcts.java' version '0.12.67'
-  id 'org.flywaydb.flyway' version '11.17.0'
+  id 'org.flywaydb.flyway' version '11.17.2'
   id 'net.serenity-bdd.serenity-gradle-plugin' version '4.3.2'
   id "org.openapi.generator" version "7.16.0"
 }
@@ -23,6 +23,7 @@ ext {
   log4JVersion = "2.25.2"
   serenityVersion = "4.3.4"
   cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
+  springVersion = "3.5.8"
 }
 
 //Should we fail fast on test failures?
@@ -325,7 +326,7 @@ dependencyManagement {
   }
 
   imports {
-    mavenBom "org.springframework.integration:spring-integration-bom:6.5.3"
+    mavenBom "org.springframework.integration:spring-integration-bom:6.5.4"
   }
 
   dependencies {
@@ -357,20 +358,20 @@ ext['tomcat.version'] = '10.1.42'
 dependencies {
 
   implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
-  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.35"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.40"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.40"
+  openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.36"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.41"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.41"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.1"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-quartz'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: springVersion
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: springVersion
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: springVersion
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json', version: springVersion
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: springVersion
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: springVersion
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: springVersion
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-quartz', version: springVersion
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
   implementation 'org.springframework.boot:spring-boot-starter-cache'
 
@@ -401,8 +402,8 @@ dependencies {
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.8'
   implementation group: 'io.rest-assured', name: 'rest-assured'
-  implementation 'org.flywaydb:flyway-core:11.17.0'
-  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.17.0', {
+  implementation 'org.flywaydb:flyway-core:11.17.2'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql:11.17.2', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
   }
   implementation 'org.postgresql:postgresql'
@@ -410,7 +411,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
   compileOnly 'org.projectlombok:lombok:1.18.42'
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.34.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.37.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
@@ -460,7 +461,7 @@ dependencies {
   implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.14'
   implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.14'
   implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.14'
-  implementation 'org.apache.commons:commons-lang3:3.19.0'
+  implementation 'org.apache.commons:commons-lang3:3.20.0'
 
 }
 

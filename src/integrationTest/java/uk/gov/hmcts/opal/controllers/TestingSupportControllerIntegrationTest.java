@@ -145,6 +145,10 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
             "associated_record_id = '1001'"
         )).isGreaterThan(0);
         assertThat(count(
+            "amendments",
+            "associated_record_id = '1001'"
+        )).isGreaterThan(0);
+        assertThat(count(
             "allocations",
             "imposition_id IN (SELECT imposition_id FROM impositions WHERE defendant_account_id = 1001)")
         ).isGreaterThan(0);
@@ -170,6 +174,7 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(count("defendant_transactions", "defendant_account_id = 1001")).isZero();
         assertThat(count("impositions", "defendant_account_id = 1001")).isZero();
         assertThat(count("notes", "associated_record_id = '1001'")).isZero();
+        assertThat(count("amendments", "associated_record_id = '1001'")).isZero();
 
         assertThat(count(
             "allocations",

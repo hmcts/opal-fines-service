@@ -1,9 +1,10 @@
 package uk.gov.hmcts.opal.mapper;
 
+import org.mapstruct.Mapper;
+import uk.gov.hmcts.opal.dto.ResultDto;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceDataResponse;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import org.mapstruct.Mapper;
 
 import java.util.List;
 
@@ -21,4 +22,7 @@ public interface ResultMapper {
             .refData(dtoList)
             .build();
     }
+
+    // NEW — used by GET /results/{resultId}
+    ResultDto toDto(ResultEntity.Lite entity);
 }

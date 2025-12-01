@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:complexType name="enforcement_result_responses_element">
+    <xsd:sequence>
+      <xsd:element name="parameter_name" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+      <xsd:element name="response" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

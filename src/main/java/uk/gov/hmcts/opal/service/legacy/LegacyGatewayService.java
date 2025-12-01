@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.legacy;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +32,11 @@ public class LegacyGatewayService implements GatewayService {
 
     @SuppressWarnings("unchecked")
     public <T> Response<T> extractResponse(ResponseEntity<String> responseEntity, Class<T> clzz, String schemaFile) {
+
+        if (responseEntity == null) {
+            return new Response<>(HttpStatus.INTERNAL_SERVER_ERROR, (T) null);
+        }
+
         HttpStatusCode code = responseEntity.getStatusCode();
 
         if (clzz.equals(String.class)) {

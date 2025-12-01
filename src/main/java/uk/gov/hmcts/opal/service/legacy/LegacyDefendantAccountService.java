@@ -1,17 +1,21 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.math.BigDecimal;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -55,6 +59,10 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
@@ -62,6 +70,8 @@ import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
+import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
@@ -77,9 +87,15 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_DEFENDANT_AT_A_GLANCE = "LIBRA.getDefendantAtAGlance";
 
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
+    public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
+    public static final String PATCH_DEFENDANT_ACCOUNT = "LIBRA.patchDefendantAccount";
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
+
+    /* ---- Mappers ---- */
+    private final UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
+    private final LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary: id: {}", defendantAccountId);
@@ -242,7 +258,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .build();
 
         return DefendantAccountHeaderSummary.builder()
-            .version(response.getVersion() != null ? response.getVersion().longValue() : 1L)
+            .version(BigInteger.valueOf(Optional.ofNullable(response.getVersion()).orElse(1)))
             .defendantAccountId(response.getDefendantAccountId())
             .accountNumber(response.getAccountNumber())
             .defendantAccountPartyId(response.getDefendantPartyId())
@@ -581,7 +597,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
         // Return the legacy wrapper with version + correctly-shaped party
         response.setDefendantAccountParty(legacyParty);
-        response.setVersion(legacy.getVersion());
+        response.setVersion(BigInteger.valueOf(legacy.getVersion()));
         return response;
     }
 
@@ -631,7 +647,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .paymentTermsSummary(toPaymentTermsFromSummary(src.getPaymentTermsSummary()))
             .enforcementStatus(toEnforcementStatus(src.getEnforcementStatusSummary()))
             .commentsAndNotes(toComments(src.getCommentsAndNotes()))
-            .version(src.getVersion())
+            .version(BigInteger.valueOf(src.getVersion()))
             .build();
     }
 
@@ -809,13 +825,231 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
+    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
+        throw new UnsupportedOperationException("Legacy GetDefendantAccountFixedPenalty not implemented yet");
+    }
+
+    @Override
     public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
         String businessUnitId,
-        UpdateDefendantAccountRequest request,
+        @NonNull UpdateDefendantAccountRequest request,
         String ifMatch,
         String postedBy) {
-        throw new org.springframework.web.server.ResponseStatusException(
-            org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
-            "Update Defendant Account is not implemented in legacy mode");
+
+        log.info("Legacy :updateDefendantAccount: id: {}", defendantAccountId);
+
+        // in legacy system, If-Match header value is passed in as version.
+        Integer version = Integer.parseInt(ifMatch);
+
+        // build legacy request object with mapped fields from UpdateDefendantAccountRequest
+        // pass 'version' into the mapper/to-legacy request builder
+        LegacyUpdateDefendantAccountRequest legacyRequest =
+            updateDefendantAccountRequestMapper.toLegacyUpdateDefendantAccountRequest(request,
+                String.valueOf(defendantAccountId),
+                businessUnitId,
+                postedBy,
+                version);
+
+        // Send the request to the gateway service
+        Response<LegacyUpdateDefendantAccountResponse> gwResponse = gatewayService.postToGateway(
+            PATCH_DEFENDANT_ACCOUNT, LegacyUpdateDefendantAccountResponse.class,
+            legacyRequest, null);
+
+        if (gwResponse.isError()) {
+            log.error(":updateDefendantAccount: Legacy Gateway response: HTTP Response Code: {}", gwResponse.code);
+            if (gwResponse.isException()) {
+                log.error(":updateDefendantAccount: Legacy Gateway response exception: {}", gwResponse.exception);
+            } else if (gwResponse.isLegacyFailure()) {
+                log.error(":updateDefendantAccount: Legacy Gateway: body: \n{}", gwResponse.body);
+                LegacyUpdateDefendantAccountResponse responseEntity = gwResponse.responseEntity;
+                log.error(":updateDefendantAccount: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+            }
+        } else if (gwResponse.isSuccessful()) {
+            log.info(":updateDefendantAccount: Legacy Gateway response: Success.");
+        }
+
+        return legacyUpdateDefendantAccountResponseMapper.toDefendantAccountResponse(gwResponse.responseEntity);
+    }
+
+    @Override
+    public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String authHeader) {
+        // Legacy mode does not support Payment Card Requests yet.
+        // For now, throw an UnsupportedOperationException to satisfy the interface contract.
+        throw new UnsupportedOperationException(
+            "Payment Card Request is not implemented for Legacy mode"
+        );
+    }
+
+
+    @Override
+    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
+        Long defendantAccountPartyId,
+        DefendantAccountParty defendantAccountParty, String ifMatch, String businessUnitId, String postedBy,
+        String businessUnitUserId) {
+
+        LegacyReplaceDefendantAccountPartyRequest req = LegacyReplaceDefendantAccountPartyRequest.builder()
+            .version(Long.parseLong(ifMatch.replace("\"", "").trim()))
+            .defendantAccountId(defendantAccountId)
+            .businessUnitId(businessUnitId)
+            .businessUnitUserId(businessUnitUserId)
+            .defendantAccountParty(defendantAccountParty)
+            .build();
+
+        Response<LegacyReplaceDefendantAccountPartyResponse> response = gatewayService.postToGateway(
+            REPLACE_DEFENDANT_ACCOUNT_PARTY,
+            LegacyReplaceDefendantAccountPartyResponse.class,
+            req,
+            null
+        );
+
+        if (response.isError()) {
+            log.error(":replaceDefendantAccountParty: Legacy error HTTP {}", response.code);
+            if (response.isException()) {
+                log.error(":replaceDefendantAccountParty: exception:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":replaceDefendantAccountParty: legacy failure body:\n{}", response.body);
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":replaceDefendantAccountParty: Legacy success.");
+        }
+
+        return fromReplaceDefendantAccountPartyLegacy(response.responseEntity);
+    }
+
+    private GetDefendantAccountPartyResponse fromReplaceDefendantAccountPartyLegacy(
+        LegacyReplaceDefendantAccountPartyResponse legacy) {
+
+        if (legacy == null) {
+            return null;
+        }
+
+        DefendantAccountPartyLegacy legacyDefendantAccountParty = legacy.getDefendantAccountParty();
+
+        PartyDetails party = null;
+        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getPartyDetails() != null) {
+            PartyDetailsLegacy partyDetailsLegacy = legacyDefendantAccountParty.getPartyDetails();
+
+            OrganisationDetails org = null;
+            if (partyDetailsLegacy.getOrganisationDetails() != null) {
+                org = OrganisationDetails.builder()
+                    .organisationName(partyDetailsLegacy.getOrganisationDetails().getOrganisationName())
+                    .build();
+            }
+
+            IndividualDetails ind = null;
+            if (partyDetailsLegacy.getIndividualDetails() != null) {
+                IndividualDetailsLegacy individualDetailsLegacy = partyDetailsLegacy.getIndividualDetails();
+                ind = IndividualDetails.builder()
+                    .title(individualDetailsLegacy.getTitle())
+                    .forenames(individualDetailsLegacy.getForenames())
+                    .surname(individualDetailsLegacy.getSurname())
+                    .dateOfBirth(individualDetailsLegacy.getDateOfBirth())
+                    .age(individualDetailsLegacy.getAge())
+                    .nationalInsuranceNumber(individualDetailsLegacy.getNationalInsuranceNumber())
+                    .build();
+            }
+
+            party = PartyDetails.builder()
+                .partyId(partyDetailsLegacy.getPartyId())
+                .organisationFlag(partyDetailsLegacy.getOrganisationFlag())
+                .organisationDetails(org)
+                .individualDetails(ind)
+                .build();
+        }
+
+        // Map Address
+        AddressDetails address = null;
+        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getAddress() != null) {
+            AddressDetailsLegacy addressDetailsLegacy = legacyDefendantAccountParty.getAddress();
+            address = AddressDetails.builder()
+                .addressLine1(addressDetailsLegacy.getAddressLine1())
+                .addressLine2(addressDetailsLegacy.getAddressLine2())
+                .addressLine3(addressDetailsLegacy.getAddressLine3())
+                .addressLine4(addressDetailsLegacy.getAddressLine4())
+                .addressLine5(addressDetailsLegacy.getAddressLine5())
+                .postcode(addressDetailsLegacy.getPostcode())
+                .build();
+        }
+
+        // Map Contact
+        ContactDetails contact = null;
+        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getContactDetails() != null) {
+            ContactDetailsLegacy contactDetailsLegacy = legacyDefendantAccountParty.getContactDetails();
+            contact = ContactDetails.builder()
+                .primaryEmailAddress(contactDetailsLegacy.getPrimaryEmailAddress())
+                .secondaryEmailAddress(contactDetailsLegacy.getSecondaryEmailAddress())
+                .mobileTelephoneNumber(contactDetailsLegacy.getMobileTelephoneNumber())
+                .homeTelephoneNumber(contactDetailsLegacy.getHomeTelephoneNumber())
+                .workTelephoneNumber(contactDetailsLegacy.getWorkTelephoneNumber())
+                .build();
+        }
+
+        // Map Vehicle
+        VehicleDetails vehicle = null;
+        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getVehicleDetails() != null) {
+            VehicleDetailsLegacy vehicleDetailsLegacy = legacyDefendantAccountParty.getVehicleDetails();
+            vehicle = VehicleDetails.builder()
+                .vehicleMakeAndModel(vehicleDetailsLegacy.getVehicleMakeAndModel())
+                .vehicleRegistration(vehicleDetailsLegacy.getVehicleRegistration())
+                .build();
+        }
+
+        // Map Employer
+        EmployerDetails employer = null;
+        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getEmployerDetails() != null) {
+            EmployerDetailsLegacy employerDetailsLegacy = legacyDefendantAccountParty.getEmployerDetails();
+            AddressDetails employerAddr = null;
+            if (employerDetailsLegacy.getEmployerAddress() != null) {
+                employerAddr = AddressDetails.builder()
+                    .addressLine1(employerDetailsLegacy.getEmployerAddress().getAddressLine1())
+                    .addressLine2(employerDetailsLegacy.getEmployerAddress().getAddressLine2())
+                    .addressLine3(employerDetailsLegacy.getEmployerAddress().getAddressLine3())
+                    .addressLine4(employerDetailsLegacy.getEmployerAddress().getAddressLine4())
+                    .addressLine5(employerDetailsLegacy.getEmployerAddress().getAddressLine5())
+                    .postcode(employerDetailsLegacy.getEmployerAddress().getPostcode())
+                    .build();
+            }
+            employer = EmployerDetails.builder()
+                .employerName(employerDetailsLegacy.getEmployerName())
+                .employerReference(employerDetailsLegacy.getEmployerReference())
+                .employerEmailAddress(employerDetailsLegacy.getEmployerEmailAddress())
+                .employerTelephoneNumber(employerDetailsLegacy.getEmployerTelephoneNumber())
+                .employerAddress(employerAddr)
+                .build();
+        }
+
+        // Map Language Preferences (use codes; never toString)
+        LanguagePreferences languages = null;
+        if (legacyDefendantAccountParty != null && legacyDefendantAccountParty.getLanguagePreferences() != null) {
+            LanguagePreferencesLegacy legacyLanguagePreference = legacyDefendantAccountParty.getLanguagePreferences();
+            String docCode = legacyLanguagePreference.getDocumentLanguagePreference() == null
+                ? null : legacyLanguagePreference.getDocumentLanguagePreference().getLanguageCode();
+            String hearCode = legacyLanguagePreference.getHearingLanguagePreference() == null
+                ? null : legacyLanguagePreference.getHearingLanguagePreference().getLanguageCode();
+            languages = LanguagePreferences.ofCodes(docCode, hearCode);
+        }
+
+        // Assemble modern DefendantAccountParty
+        DefendantAccountParty modernParty = null;
+        if (legacyDefendantAccountParty != null) {
+            modernParty = DefendantAccountParty.builder()
+                .defendantAccountPartyType(legacyDefendantAccountParty.getDefendantAccountPartyType())
+                .isDebtor(legacyDefendantAccountParty.getIsDebtor())
+                .partyDetails(party)
+                .address(address)
+                .contactDetails(contact)
+                .vehicleDetails(vehicle)
+                .employerDetails(employer)
+                .languagePreferences(languages)
+                .build();
+        }
+
+        return GetDefendantAccountPartyResponse.builder()
+            .version(legacy.getVersion() == null ? null : BigInteger.valueOf(legacy.getVersion()))
+            .defendantAccountParty(modernParty)
+            .build();
     }
 }

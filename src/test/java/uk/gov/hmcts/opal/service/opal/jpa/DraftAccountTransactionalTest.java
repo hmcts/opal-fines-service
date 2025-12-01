@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal.jpa;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigInteger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,6 +74,7 @@ class DraftAccountTransactionalTest {
     void testGetDraftAccounts() {
         // Arrange
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(any())).thenReturn(sfq);
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
             BusinessUnitFullEntity.builder().businessUnitId((short)77).build())
@@ -178,14 +180,14 @@ class DraftAccountTransactionalTest {
             .account(createAccountString())
             .accountType("Fine")
             .timelineData(createTimelineDataString())
-            .version(0L)
+            .version(BigInteger.valueOf(0L))
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
             .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
             .createdDate(LocalDateTime.now())
-            .version(0L)
+            .versionNumber(0L)
             .build();
 
         BusinessUnitFullEntity businessUnit = BusinessUnitFullEntity.builder()
@@ -200,7 +202,7 @@ class DraftAccountTransactionalTest {
             .accountType("Fine")
             .accountStatus(DraftAccountStatus.RESUBMITTED)
             .timelineData(createTimelineDataString())
-            .version(1L)
+            .versionNumber(1L)
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
@@ -236,7 +238,7 @@ class DraftAccountTransactionalTest {
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .timelineData(createTimelineDataString())
-            .version(0L)
+            .version(BigInteger.valueOf(0L))
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.empty());
@@ -259,10 +261,10 @@ class DraftAccountTransactionalTest {
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .timelineData(createTimelineDataString())
-            .version(0L)
+            .version(BigInteger.valueOf(0L))
             .build();
 
-        DraftAccountEntity existingAccount = DraftAccountEntity.builder().version(0L).build();
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder().versionNumber(0L).build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
         when(businessUnitRepository.findById((short) 2)).thenReturn(Optional.empty());
@@ -281,7 +283,7 @@ class DraftAccountTransactionalTest {
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
-            .version(0L)
+            .versionNumber(0L)
             .build();
 
         BusinessUnitFullEntity businessUnit = BusinessUnitFullEntity.builder()
@@ -295,7 +297,7 @@ class DraftAccountTransactionalTest {
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .timelineData(createTimelineDataString())
-            .version(0L)
+            .version(BigInteger.valueOf(0L))
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
@@ -315,19 +317,19 @@ class DraftAccountTransactionalTest {
             .businessUnitId((short) 2)
             .accountStatus("SUBMITTED")
             .timelineData(createTimelineDataString())
-            .version(0L)
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 3).build())
-            .version(0L)
+            .versionNumber(0L)
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () ->
-            draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, "0")
+            draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
+                BigInteger.ZERO)
         );
     }
 
@@ -340,7 +342,6 @@ class DraftAccountTransactionalTest {
             .validatedBy("TestValidator")
             .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
-            .version(0L)
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
@@ -349,7 +350,7 @@ class DraftAccountTransactionalTest {
             .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\"}")
             .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
             .timelineData(createTimelineDataString())
-            .version(0L)
+            .versionNumber(0L)
             .build();
 
         DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
@@ -360,7 +361,7 @@ class DraftAccountTransactionalTest {
             .validatedDate(LocalDateTime.now())
             .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\",\"approved_date\":\"2024-10-03T14:30:00Z\"}")
             .timelineData(createTimelineDataString())
-            .version(1L)
+            .versionNumber(1L)
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
@@ -368,7 +369,7 @@ class DraftAccountTransactionalTest {
 
         // Act
         DraftAccountEntity result = draftAccountTransactional
-            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, "0");
+            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO);
 
         // Assert
         assertNotNull(result);
@@ -392,7 +393,6 @@ class DraftAccountTransactionalTest {
             .accountStatus("SUBMITTED")
             .businessUnitId((short) 2)
             .timelineData(createTimelineDataString())
-            .version(0L)
             .build();
 
         DraftAccountEntity existingAccount = DraftAccountEntity.builder()
@@ -400,14 +400,15 @@ class DraftAccountTransactionalTest {
             .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 2).build())
             .accountStatus(DraftAccountStatus.SUBMITTED)
             .timelineData(createTimelineDataString())
-            .version(0L)
+            .versionNumber(0L)
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-            draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, "0")
+            draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
+                BigInteger.ZERO)
         );
         assertEquals("'SUBMITTED' is not a valid Draft Account Status.", exception.getMessage());
 
@@ -420,7 +421,7 @@ class DraftAccountTransactionalTest {
         // Arrange
         DraftAccountEntity entity = DraftAccountEntity.builder()
             .draftAccountId(007L)
-            .version(0L)
+            .versionNumber(0L)
             .build();
 
         when(draftAccountRepository.findById(any())).thenReturn(Optional.of(entity));

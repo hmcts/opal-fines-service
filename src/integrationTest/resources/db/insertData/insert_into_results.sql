@@ -28,4 +28,11 @@ VALUES
 ,TRUE,TRUE,TRUE,FALSE,FALSE
 ,TRUE,FALSE,FALSE,FALSE
 ,FALSE,FALSE,FALSE,FALSE,NULL
+),
+(
+'BBBBBB','Complete Result Entry for Testing','Cais Prawf Cyflawn','Action'
+,TRUE,TRUE,'Compensation',5,TRUE,'CF'
+,TRUE,TRUE,TRUE,TRUE,TRUE
+,TRUE,TRUE,TRUE,TRUE
+,TRUE,TRUE,TRUE,TRUE,'{"param1":"value1","param2":"value2"}'
 );
