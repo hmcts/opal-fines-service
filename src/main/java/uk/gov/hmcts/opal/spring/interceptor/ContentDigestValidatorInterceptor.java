@@ -3,18 +3,14 @@ package uk.gov.hmcts.opal.spring.interceptor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -24,6 +20,7 @@ import uk.gov.hmcts.opal.spring.properties.ContentDigestProperties;
 
 @Slf4j
 @Component
+@Getter
 public class ContentDigestValidatorInterceptor implements HandlerInterceptor {
 
     private static final String CONTENT_DIGEST = "Content-Digest";
@@ -34,6 +31,7 @@ public class ContentDigestValidatorInterceptor implements HandlerInterceptor {
     private final boolean enforce;
     private final Map<String, String> rfcToJca;    // RFC token -> JCA name
     private final Set<String> supportedAlgosLower; // RFC tokens (lowercase)
+
 
     public ContentDigestValidatorInterceptor(ContentDigestProperties contentDigestProperties) {
         this.enforce = contentDigestProperties.getRequest().isEnforced();
@@ -47,95 +45,38 @@ public class ContentDigestValidatorInterceptor implements HandlerInterceptor {
             rfcToJca);
     }
 
+
     @Override
-    public boolean preHandle(HttpServletRequest request,
-        HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+        throws Exception {
         byte[] body = ((CachedBodyHttpServletRequest) request).getCachedBody();
         if (!enforce || body.length == 0) {
             return true;
         }
 
-        String contentDigest = getAndValidateContentDigestHeader(request);
-        List<Map.Entry<String, String>> entries = getAndValidateDigestEntries(contentDigest);
+        ContentDigest contentDigest = new ContentDigest(getAndValidateContentDigestHeader(request));
 
-        List<String> tried = new ArrayList<>();
-        boolean matched = false;
+        byte[] expectedBytes = contentDigest.decodeSfBinary();
+        MessageDigest md = contentDigest.getMessageDigest();
 
-        for (var entry : entries) {
-            String algo = entry.getKey();
-            String expectedB64 = entry.getValue();
-
-            if (!supportedAlgosLower.contains(algo)) {
-                tried.add(algo + " (unsupported)");
-                continue;
+        byte[] actualBytes = md.digest(body);
+        if (!MessageDigest.isEqual(actualBytes, expectedBytes)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Content-Digest verification failed for algorithms: {}. Expected: {}, Actual: {}",
+                    contentDigest.getAlgorithm(),
+                    Base64.getEncoder().encodeToString(expectedBytes),
+                    Base64.getEncoder().encodeToString(actualBytes));
             }
-
-            String jcaName = rfcToJca.get(algo);
-
-            byte[] expectedBytes;
-            try {
-                expectedBytes = decodeSfBinary(expectedB64); // tolerant Base64 decode
-            } catch (IllegalArgumentException e) {
-                tried.add(algo + " (bad base64)");
-                continue;
-            }
-
-            MessageDigest md;
-            try {
-                md = MessageDigest.getInstance(jcaName);
-            } catch (NoSuchAlgorithmException e) {
-                tried.add(algo + " (JCA unsupported)");
-                continue;
-            }
-
-            byte[] actualBytes = md.digest(body);
-            if (MessageDigest.isEqual(actualBytes, expectedBytes)) {
-                matched = true;
-                break;
-            } else {
-                tried.add(algo + " (mismatch)");
-            }
-        }
-
-        if (!matched) {
             throw new InvalidContentDigestException("Digest validation failed",
-                "Body hash did not match any supported digest algorithms. Supported algorithms ("
-                    + String.join(",", supportedAlgosLower) + "). Found digests: "
-                    + String.join(", ", tried));
+                "Body hash did not match for algorithm: " + contentDigest.getAlgorithm());
         }
-
-        log.debug("Content-Digest verification passed for algorithms: {}", tried);
+        log.debug("Content-Digest verification passed for algorithms: {}", contentDigest.getAlgorithm());
         return true;
     }
 
-    List<Entry<String, String>> getAndValidateDigestEntries(String contentDigest) {
-        // Split by commas (multiple digests)
-        String[] parts = contentDigest.split("\\s*,\\s*");
-        List<Map.Entry<String, String>> entries = new ArrayList<>();
-        for (String part : parts) {
-            Matcher matcher = ENTRY_PATTERN.matcher(part);
-            if (matcher.matches()) {
-                String algo = matcher.group(1).toLowerCase(Locale.ROOT);
-                String b64 = matcher.group("b64");
-                entries.add(Map.entry(algo, b64));
-            }
-        }
-
-        if (entries.isEmpty()) {
-            throw new InvalidContentDigestException("Invalid Content-Digest header",
-                "No valid digest entries found in header: " + contentDigest);
-        }
-        return entries;
-    }
 
     String getAndValidateContentDigestHeader(HttpServletRequest request) {
-        Enumeration<String> headers = request.getHeaders(CONTENT_DIGEST);
-        String contentDigest;
-        if (headers == null || !headers.hasMoreElements()) {
-            contentDigest = null;
-        } else {
-            contentDigest = String.join(", ", Collections.list(headers));
-        }
+        String contentDigest = request.getHeader(CONTENT_DIGEST);
         if (contentDigest == null || contentDigest.isBlank()) {
             throw new InvalidContentDigestException(
                 "Missing/Blank Content-Digest header",
@@ -144,12 +85,63 @@ public class ContentDigestValidatorInterceptor implements HandlerInterceptor {
         return contentDigest;
     }
 
-    static byte[] decodeSfBinary(String base64NoColons) {
-        String b64 = base64NoColons;
-        int mod = b64.length() % 4;
-        if (mod != 0) {
-            b64 = b64 + "===".substring(mod - 1); // append '=' padding if needed
+
+    @RequiredArgsConstructor
+    @Getter
+    public class ContentDigest {
+
+        private final String algorithm;
+        private final String base64;
+
+        public ContentDigest(String contentDigest) {
+            if (contentDigest.contains(",")) {
+                throw new InvalidContentDigestException("Invalid Content-Digest header",
+                    "Multiple digest entries are not supported");
+            }
+            Matcher matcher = ENTRY_PATTERN.matcher(contentDigest);
+            if (!matcher.matches()) {
+                throw new InvalidContentDigestException("Invalid Content-Digest header",
+                    "No valid digest entries found in header");
+            }
+            this.algorithm = matcher.group(1).toLowerCase(Locale.ROOT);
+            this.base64 = matcher.group("b64");
+            validate();
         }
-        return Base64.getDecoder().decode(b64);
+
+        void validate() {
+            if (getAlgorithm() == null || getAlgorithm().isBlank()) {
+                throw new InvalidContentDigestException("Digest validation failed",
+                    "Digest algorithm is missing or blank.");
+            }
+            if (!supportedAlgosLower.contains(getAlgorithm())) {
+                throw new InvalidContentDigestException("Digest validation failed",
+                    "Unsupported digest algorithm: " + getAlgorithm()
+                        + ". Supported algorithms (" + String.join(",", supportedAlgosLower) + ").");
+            }
+        }
+
+        public MessageDigest getMessageDigest() {
+            try {
+                return MessageDigest.getInstance(rfcToJca.get(getAlgorithm()));
+            } catch (Exception e) {
+                throw new InvalidContentDigestException("Digest validation failed",
+                    "Unsupported digest algorithm: " + getAlgorithm()
+                        + ". Supported algorithms (" + String.join(",", supportedAlgosLower) + ").");
+            }
+        }
+
+        byte[] decodeSfBinary() {
+            try {
+                String b64 = getBase64();
+                int mod = b64.length() % 4;
+                if (mod != 0) {
+                    b64 = b64 + "===".substring(mod - 1); // append '=' padding if needed
+                }
+                return Base64.getDecoder().decode(b64);
+            } catch (Exception e) {
+                throw new InvalidContentDigestException("Digest validation failed",
+                    "Bad base64 encoding for algorithm: " + getAlgorithm());
+            }
+        }
     }
 }
