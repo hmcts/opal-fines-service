@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountServiceTest {
@@ -251,5 +253,26 @@ class DefendantAccountServiceTest {
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountServiceProxy);
         verifyNoMoreInteractions(userStateService, userState);
+    }
+
+    @Test
+    void testGetEnforcementStatus() {
+        // Arrange
+        GetDefendantAccountEnforcementStatusResponse status = GetDefendantAccountEnforcementStatusResponse.builder()
+            .employerFlag(true)
+            .isHmrcCheckEligible(true)
+            .build();
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(defendantAccountServiceProxy.getEnforcementStatus(anyLong())).thenReturn(status);
+
+        // Act
+        GetDefendantAccountEnforcementStatusResponse response = defendantAccountService
+            .getEnforcementStatus(33L, "Bearer a_bearer_token");
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getEmployerFlag());
+        assertTrue(response.getIsHmrcCheckEligible());
+
     }
 }

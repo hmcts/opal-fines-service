@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -71,6 +72,11 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
                                                            String ifMatch, String postedBy) {
         return getCurrentModeService().updateDefendantAccount(defendantAccountId, businessUnitId, request,
             ifMatch, postedBy);
+    }
+
+    @Override
+    public GetDefendantAccountEnforcementStatusResponse getEnforcementStatus(Long defendantAccountId) {
+        return getCurrentModeService().getEnforcementStatus(defendantAccountId);
     }
 
     @Override

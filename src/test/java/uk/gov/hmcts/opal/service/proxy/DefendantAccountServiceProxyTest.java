@@ -11,6 +11,7 @@ import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
@@ -45,6 +46,9 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
 
     void testMode(DefendantAccountServiceInterface targetService, DefendantAccountServiceInterface otherService) {
         testGetHeaderSummary(targetService, otherService);
+        testSearchDefendantAccounts(targetService, otherService);
+        testGetPaymentTerms(targetService, otherService);
+        testGetEnforcementStatus(targetService, otherService);
     }
 
     void testGetHeaderSummary(DefendantAccountServiceInterface targetService,
@@ -54,6 +58,49 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
         when(targetService.getHeaderSummary(anyLong())).thenReturn(entity);
 
         DefendantAccountHeaderSummary headerSummaryResult = serviceProxy.getHeaderSummary(1L);
+
+        // Then: target service should be used, and the returned entity should be as expected
+        verify(targetService).getHeaderSummary(1L);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(entity, headerSummaryResult);
+    }
+
+    void testSearchDefendantAccounts(DefendantAccountServiceInterface targetService,
+        DefendantAccountServiceInterface otherService) {
+        AccountSearchDto dto = AccountSearchDto.builder().build();
+        DefendantAccountSearchResultsDto expected = new DefendantAccountSearchResultsDto();
+
+        when(targetService.searchDefendantAccounts(dto)).thenReturn(expected);
+
+        DefendantAccountSearchResultsDto result = serviceProxy.searchDefendantAccounts(dto);
+
+        verify(targetService).searchDefendantAccounts(dto);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(expected, result);
+    }
+
+    void testGetPaymentTerms(DefendantAccountServiceInterface targetService,
+        DefendantAccountServiceInterface otherService) {
+
+        GetDefendantAccountPaymentTermsResponse expected = new GetDefendantAccountPaymentTermsResponse();
+
+        when(targetService.getPaymentTerms(77L)).thenReturn(expected);
+
+        GetDefendantAccountPaymentTermsResponse result = serviceProxy.getPaymentTerms(77L);
+
+        verify(targetService).getPaymentTerms(77L);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(expected, result);
+    }
+
+    void testGetEnforcementStatus(DefendantAccountServiceInterface targetService,
+                              DefendantAccountServiceInterface otherService) {
+        // Given: a Entity is returned from the target service
+        GetDefendantAccountEnforcementStatusResponse entity = GetDefendantAccountEnforcementStatusResponse.builder()
+            .build();
+        when(targetService.getEnforcementStatus(anyLong())).thenReturn(entity);
+
+        GetDefendantAccountEnforcementStatusResponse headerSummaryResult = serviceProxy.getEnforcementStatus(1L);
 
         // Then: target service should be used, and the returned entity should be as expected
         verify(targetService).getHeaderSummary(1L);
@@ -75,53 +122,6 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
         setMode(LEGACY);
         // Then: the target service is called, but the other service is not
         testMode(legacyService, opalService);
-    }
-
-    @Test
-    void shouldDelegateSearchToLegacyServiceWhenInLegacyMode() {
-
-        setMode(LEGACY);
-        AccountSearchDto dto = AccountSearchDto.builder().build();
-        DefendantAccountSearchResultsDto expected = new DefendantAccountSearchResultsDto();
-
-        when(legacyService.searchDefendantAccounts(dto)).thenReturn(expected);
-
-        DefendantAccountSearchResultsDto result = serviceProxy.searchDefendantAccounts(dto);
-
-        verify(legacyService).searchDefendantAccounts(dto);
-        verifyNoInteractions(opalService);
-        Assertions.assertEquals(expected, result);
-    }
-
-    @Test
-    void shouldDelegateSearchToOpalServiceWhenInOpalMode() {
-
-        setMode(OPAL);
-        AccountSearchDto dto = AccountSearchDto.builder().build();
-        DefendantAccountSearchResultsDto expected = new DefendantAccountSearchResultsDto();
-
-        when(opalService.searchDefendantAccounts(dto)).thenReturn(expected);
-
-        DefendantAccountSearchResultsDto result = serviceProxy.searchDefendantAccounts(dto);
-
-        verify(opalService).searchDefendantAccounts(dto);
-        verifyNoInteractions(legacyService);
-        Assertions.assertEquals(expected, result);
-    }
-
-    @Test
-    void shouldDelegateGetPaymentTermsToOpalServiceWhenInOpalMode() {
-
-        setMode(OPAL);
-        GetDefendantAccountPaymentTermsResponse expected = new GetDefendantAccountPaymentTermsResponse();
-
-        when(opalService.getPaymentTerms(77L)).thenReturn(expected);
-
-        GetDefendantAccountPaymentTermsResponse result = serviceProxy.getPaymentTerms(77L);
-
-        verify(opalService).getPaymentTerms(77L);
-        verifyNoInteractions(legacyService);
-        Assertions.assertEquals(expected, result);
     }
 
 }

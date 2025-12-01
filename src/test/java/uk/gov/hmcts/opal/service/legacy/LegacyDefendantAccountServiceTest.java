@@ -60,6 +60,9 @@ import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementOverview;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyRequest;
@@ -69,12 +72,20 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder;
+import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
+import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride;
+import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverrideResultReference;
+import uk.gov.hmcts.opal.dto.legacy.common.EnforcerReference;
 import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
 import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 
@@ -309,7 +320,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // Arrange
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()
-                .version(1)
+                .version("1")
                 .defendantAccountId("1")
                 .accountNumber("SAMPLE")
                 .accountType("Fine")
@@ -2420,5 +2431,74 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             "Language preferences should be null when legacy languagePreferences is null");
     }
 
-}
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetEnforcementStatus_success() {
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(true);
 
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
+        )).thenReturn(responseBody);
+
+        ResponseEntity<String> serverSuccessResponse =
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+
+        // Act
+        GetDefendantAccountEnforcementStatusResponse response = legacyDefendantAccountService
+            .getEnforcementStatus(33L);
+
+        // Assert
+        assertNotNull(response);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetEnforcementStatus_successMinimal() {
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(false);
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
+        )).thenReturn(responseBody);
+
+        ResponseEntity<String> serverSuccessResponse =
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+
+        // Act
+        GetDefendantAccountEnforcementStatusResponse response = legacyDefendantAccountService
+            .getEnforcementStatus(33L);
+
+        // Assert
+        assertNotNull(response);
+    }
+
+    private LegacyGetDefendantAccountEnforcementStatusResponse createLegacyEnforcementStatusResponse(boolean full) {
+        return LegacyGetDefendantAccountEnforcementStatusResponse.builder()
+            .accountStatusReference(
+                uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference.builder()
+                    .accountStatusCode("L")
+                    .build())
+            .enforcementOverride(full ? EnforcementOverride.builder()  // Optional
+                .lja(LjaReference.builder().build())
+                .enforcer(EnforcerReference.builder().build())
+                .enforcementOverrideResult(EnforcementOverrideResultReference.builder().build())
+                .build() : null)
+            .enforcementOverview(EnforcementOverview.builder()
+                .enforcementCourt(CourtReference.builder().build())
+                .collectionOrder(CollectionOrder.builder().build())
+                .build())
+            .lastEnforcementAction(full ? EnforcementAction.builder() // Optional
+                .enforcer(EnforcerReference.builder().build())
+                .resultReference(ResultReference.builder().build())
+                .dateAdded("2024-01-01T10:00:00")
+                .build() : null)
+            .version("1234567890123456789012345678901234567890")
+            .employerFlag("true")
+            .build();
+    }
+}

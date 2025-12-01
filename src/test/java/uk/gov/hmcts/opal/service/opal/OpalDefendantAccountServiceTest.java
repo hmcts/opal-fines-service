@@ -93,7 +93,10 @@ import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountEnforcementStatusResponse;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
@@ -102,6 +105,7 @@ import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.repository.EnforcementOverrideResultRepository;
+import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
@@ -169,6 +173,9 @@ class OpalDefendantAccountServiceTest {
 
     @Mock
     private PaymentCardRequestRepository paymentCardRequestRepository;
+
+    @Mock
+    private EnforcementRepository enforcementRepository;
 
     @Mock
     private AccessTokenService accessTokenService;
@@ -2239,5 +2246,38 @@ class OpalDefendantAccountServiceTest {
             verify(defendantAccountRepository).saveAndFlush(account);
             verify(aliasRepo, times(2)).findByParty_PartyId(333L);
         }
+    }
+
+    @Test
+    void testGetEnforcementStatus() {
+        // Arrange
+        DefendantAccountEntity defAccount = DefendantAccountEntity.builder()
+            .parties(List.of(
+                DefendantAccountPartiesEntity.builder()
+                    .associationType("Defendant")
+                    .party(PartyEntity.builder()
+                        .birthDate(LocalDate.of(1990, 1, 1))
+                        .build())
+                    .build()))
+            .defendantAccountId(1L)
+            .accountStatus("L")
+            .build();
+
+        EnforcementEntity.Lite enforcementEntity = EnforcementEntity.Lite.builder()
+                .build();
+
+        when(defendantAccountRepository.findById(anyLong())).thenReturn(Optional.of(defAccount));
+        when(enforcementRepository.findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
+            any(), any())).thenReturn(Optional.of(enforcementEntity));
+
+        // Act
+        GetDefendantAccountEnforcementStatusResponse response = service.getEnforcementStatus(1L);
+
+        // Assert
+        assertNotNull(response);
+        assertNull(response.getNextEnforcementActionData());
+        assertFalse(response.getEmployerFlag());
+        assertEquals(DefendantAccountTypeEnum.ADULT, response.getDefendantAccountType());
+        assertFalse(response.getIsHmrcCheckEligible());
     }
 }
