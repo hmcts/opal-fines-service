@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
@@ -1666,15 +1665,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     @Transactional
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
         String businessUnitId,
+        String businessUnitUserId,
         String ifMatch,
         String authHeader) {
 
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        // 1. Fetch defendant account
+        //  Fetch defendant account
         DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
 
-        // 2. Validate business unit
+        //  Validate business unit
         if (account.getBusinessUnit() == null
             || account.getBusinessUnit().getBusinessUnitId() == null
             || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
@@ -1682,13 +1682,13 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 "Defendant Account not found in business unit " + businessUnitId);
         }
 
-        // 3. Version check
+        //  Version check
         VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "addPaymentCardRequest");
 
-        // 4. Audit start
+        //  Audit start
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
-        // 5. Ensure no existing PCR
+        //  Ensure no existing PCR
         if (paymentCardRequestRepository.existsByDefendantAccountId(defendantAccountId)) {
             throw new ResourceConflictException(
                 "DefendantAccountEntity",
@@ -1697,36 +1697,24 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             );
         }
 
-        // 6. Retrieve logged-in UserState
-        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
 
-        // 7. Create PCR row first (so later declarations appear close to usage)
+        // Create PCR row first (so later declarations appear close to usage)
         PaymentCardRequestEntity pcr = PaymentCardRequestEntity.builder()
             .defendantAccountId(defendantAccountId)
             .build();
         paymentCardRequestRepository.save(pcr);
 
-        // 8. Resolve BU ID right before use
-        final short buId = Short.parseShort(businessUnitId);
-
-        // 9. Resolve BU user ID — moved DIRECTLY before its first usage
-        final String businessUnitUserId = userState
-            .getBusinessUnitUserForBusinessUnit(buId)
-            .map(bu -> bu.getBusinessUnitUserId())
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Logged in user is not associated with business unit " + buId));
-
-        // 10. Friendly display name — moved DIRECTLY before its first usage
+        // Friendly display name — moved DIRECTLY before its first usage
         final String displayName = accessTokenService.extractName(authHeader);
 
-        // 11. Update defendant_accounts flags
+        //  Update defendant_accounts flags
         account.setPaymentCardRequested(true);
         account.setPaymentCardRequestedDate(LocalDate.now());
         account.setPaymentCardRequestedBy(businessUnitUserId);
         account.setPaymentCardRequestedByName(displayName);
         defendantAccountRepository.save(account);
 
-        // 13. Audit complete
+        //  Audit complete
         Short accountBuId = account.getBusinessUnit().getBusinessUnitId();
         amendmentService.auditFinaliseStoredProc(
             defendantAccountId,
@@ -1737,7 +1725,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             "ACCOUNT_ENQUIRY"
         );
 
-        // 14. Minimal response
+        //  Minimal response
         return new AddPaymentCardRequestResponse(defendantAccountId);
     }
 

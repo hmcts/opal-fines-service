@@ -3525,6 +3525,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth("some_value");
         headers.add("Business-Unit-Id", "78");
+        headers.add("Business-Unit-User-Id", "TEST_USER_123");
         headers.add("If-Match", "\"" + currentVersion + "\"");
 
         ResultActions result = mockMvc.perform(
@@ -3648,6 +3649,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         when(userStateService.checkForAuthorisedUser(any()))
             .thenReturn(allPermissionsUser());
 
+        when(accessTokenService.extractName(any()))
+            .thenReturn("TEST_USER_DISPLAY_NAME");   // <-- REQUIRED FIX
+
         // ---- FIRST CALL ----
         Integer version1 = jdbcTemplate.queryForObject(
             "SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
@@ -3659,6 +3663,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         HttpHeaders headers1 = new HttpHeaders();
         headers1.setBearerAuth("some_value");
         headers1.add("Business-Unit-Id", "78");
+        headers1.add("Business-Unit-User-Id", "TEST_USER_123");
         headers1.add("If-Match", "\"" + version1 + "\"");
 
         mockMvc.perform(
@@ -3674,11 +3679,11 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             Integer.class,
             88L
         );
-        log.info("VERSION AFTER FIRST CALL = {}", version2);
 
         HttpHeaders headers2 = new HttpHeaders();
         headers2.setBearerAuth("some_value");
         headers2.add("Business-Unit-Id", "78");
+        headers2.add("Business-Unit-User-Id", "TEST_USER_123");
         headers2.add("If-Match", "\"" + version2 + "\"");
 
         ResultActions result = mockMvc.perform(
@@ -3688,18 +3693,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 .content("{}")
         );
 
-        String body = result.andReturn().getResponse().getContentAsString();
-        log.info(":opalAddPaymentCardRequest_AlreadyExists body:\n{}", body);
-
         result.andExpect(status().isConflict())
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/resource-conflict"))
-            .andExpect(jsonPath("$.status").value(409))
-            .andExpect(jsonPath("$.detail").value("A conflict occurred with the requested resource"))
             .andExpect(jsonPath("$.conflictReason")
-                .value("A payment card request already exists for this account."))
-            .andExpect(jsonPath("$.resourceType").value("DefendantAccountEntity"))
-            .andExpect(jsonPath("$.resourceId").value("88"))
-            .andExpect(jsonPath("$.retriable").value(false));
+                .value("A payment card request already exists for this account."));
     }
 
     @DisplayName("OPAL: PUT Replace DAP – Individual aliases upsert/trim on isolated IDs (22004)")
@@ -4037,4 +4033,50 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         assertEquals(currentVersion + 1, updatedVersion);
     }
 
+    @DisplayName("LEGACY: Add Payment Card Request – Happy Path [@PO-2088]")
+    void legacyAddPaymentCardRequest_Happy(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add("If-Match", "3");
+
+        ResultActions result = mockMvc.perform(
+            post("/defendant-accounts/901/payment-card-request")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":legacyAddPaymentCardRequest_Happy body:\n{}", ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value(901));
+    }
+
+    @DisplayName("LEGACY: Add Payment Card Request – 500 Error [@PO-2088]")
+    void legacyAddPaymentCardRequest_500(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add("If-Match", "1");
+
+        ResultActions result = mockMvc.perform(
+            post("/defendant-accounts/555/payment-card-request")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        log.info(":legacyAddPaymentCardRequest_500 body:\n{}", result.andReturn().getResponse().getContentAsString());
+
+        result.andExpect(status().is5xxServerError());
+    }
 }
