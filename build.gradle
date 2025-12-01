@@ -374,7 +374,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-quartz', version: springVersion
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
   implementation 'org.springframework.boot:spring-boot-starter-cache'
-  implementation group: 'uk.gov.hmcts', name: 'spring-exception-handler', version: '0.0.2'
+  implementation group: 'uk.gov.hmcts', name: 'spring-exception-handler', version: '0.0.3'
 
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-integration'
   implementation group: 'org.springframework.integration', name: 'spring-integration-sftp'
