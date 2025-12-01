@@ -19,7 +19,7 @@ WHERE party_id IN (
 -- Remove defendant_account_parties links
 DELETE FROM defendant_account_parties
 WHERE defendant_account_party_id IN (
-                                     77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
+                                     77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
                                      20010, 22004         -- NEW
     );
 
@@ -44,6 +44,9 @@ WHERE associated_record_id IN (
                                '20010', '22004'   -- NEW
     );
 
+DELETE FROM enforcements
+WHERE defendant_account_id IN ( 78 );
+
 -- Reset PCR-related fields to stable test values BEFORE deleting accounts
 UPDATE defendant_accounts
 SET
@@ -64,21 +67,21 @@ WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001,
 -- Remove main defendant accounts
 DELETE FROM defendant_accounts
 WHERE defendant_account_id IN (
-                               77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
+                               77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
                                20010, 22004       -- NEW
     );
 
 -- Remove from debtor_detail before removing parties
 DELETE FROM debtor_detail
 WHERE party_id IN (
-                   77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
+                   77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
                    20010, 22004     -- NEW
     );
 
 -- Remove inserted parties
 DELETE FROM parties
 WHERE party_id IN (
-                   77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
+                   77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
                    20010, 22004     -- NEW
     );
 
@@ -126,15 +129,15 @@ DELETE FROM major_creditors WHERE business_unit_id = 9999;
 -- Remove the test business unit
 DELETE FROM business_units WHERE business_unit_id = 9999;
 
--- Ensure table exists so delete is a no-op if absent
-CREATE TABLE IF NOT EXISTS public.enforcement_override_results (
-                                                                   enforcement_override_result_id   varchar(50) PRIMARY KEY,
-                                                                   enforcement_override_result_name varchar(200) NOT NULL
-);
-
--- Remove test enforcement-override result used by ITs
-DELETE FROM public.enforcement_override_results
-WHERE enforcement_override_result_id IN ('FWEC');
+-- -- Ensure table exists so delete is a no-op if absent
+-- CREATE TABLE IF NOT EXISTS public.enforcement_override_results (
+--                                                                    enforcement_override_result_id   varchar(50) PRIMARY KEY,
+--                                                                    enforcement_override_result_name varchar(200) NOT NULL
+-- );
+--
+-- -- Remove test enforcement-override result used by ITs
+-- DELETE FROM public.enforcement_override_results
+-- WHERE enforcement_override_result_id IN ('FWEC');
 
 -- Remove test Local Justice Area used by ITs
 DELETE FROM local_justice_areas

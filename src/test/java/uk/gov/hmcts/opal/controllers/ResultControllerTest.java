@@ -33,7 +33,7 @@ class ResultControllerTest {
             .resultTitleCy("Result AAA-BBB CY")
             .build();
 
-        when(resultService.getResultById(anyString())).thenReturn(dto);
+        when(resultService.getResult(anyString())).thenReturn(dto);
 
         // Act
         ResponseEntity<ResultDto> response = resultController.getResultById("ABC");
@@ -41,7 +41,7 @@ class ResultControllerTest {
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(dto, response.getBody());
-        verify(resultService).getResultById("ABC");
+        verify(resultService).getResult("ABC");
     }
 
     @Test
@@ -55,7 +55,7 @@ class ResultControllerTest {
             .active(true)
             .build();
 
-        when(resultService.getResultById("ABC")).thenReturn(dto);
+        when(resultService.getResult("ABC")).thenReturn(dto);
 
         // Act
         ResponseEntity<ResultDto> response = resultController.getResultById("ABC");

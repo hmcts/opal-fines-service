@@ -4,6 +4,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +40,6 @@ public class DefendantAccountService {
 
         return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
     }
-
-
 
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto,
                                                                     String authHeaderValue) {
@@ -135,7 +134,20 @@ public class DefendantAccountService {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }
     }
+    
+    public EnforcementStatus getEnforcementStatus(Long defendantAccountId, String authHeaderValue) {
 
+        log.debug(":getEnforcementStatus:");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            return defendantAccountServiceProxy.getEnforcementStatus(defendantAccountId);
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+    }
+    
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
         String authHeaderValue, String ifMatch, String businessUnitId, DefendantAccountParty request) {

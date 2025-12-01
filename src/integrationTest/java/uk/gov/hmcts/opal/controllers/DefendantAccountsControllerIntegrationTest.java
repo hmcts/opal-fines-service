@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+
 import org.hamcrest.core.IsNull;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+
 import org.mockito.Mockito;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -34,35 +36,21 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUse
 
 import java.util.List;
 import java.util.Map;
-import org.hamcrest.core.IsNull;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -83,7 +71,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     private JsonSchemaValidationService jsonSchemaValidationService;
     // Suppressed until @MockBean is replaced with new approach (Spring Boot 3.3+)
     @SuppressWarnings("removal")
-    @MockBean
+    @MockitoBean
     private UserState userState;
 
     private static String commentAndNotesPayload(String accountComment) {
@@ -3389,6 +3377,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andDo(MockMvcResultHandlers.print());
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
+
         String etag = resultActions.andReturn().getResponse().getHeader("ETag");
         long version = objectMapper.readTree(body).path("version").asLong();
 
@@ -4035,6 +4024,63 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
                 Integer.class, 20010L);
         assertEquals(currentVersion + 1, updatedVersion);
+    }
+
+    @DisplayName("Get enforcement status for individual defendant account [@PO-1696]")
+    void testGetEnforcementStatus(Logger log, boolean isLegacy) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/78/enforcement-status")
+            .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getEnforcementStatus: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(header().string("ETag", "\"20\""))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(ignoreForLegacy(jsonPath("$.defendant_account_type").value("adult"), isLegacy))
+            .andExpect(jsonPath("$.employer_flag").value(true))
+            .andExpect(jsonPath("$.is_hmrc_check_eligible").value(false))
+            .andExpect(jsonPath("$.enforcement_overview.days_in_default").value(101))
+            .andExpect(jsonPath("$.enforcement_overview.collection_order.collection_order_flag").value(true))
+            .andExpect(jsonPath("$.enforcement_overview.collection_order.collection_order_date").value("2024-02-18"))
+            .andExpect(jsonPath("$.enforcement_overview.enforcement_court.court_id").value(780000000185L))
+            .andExpect(jsonPath("$.enforcement_overview.enforcement_court.court_name").value("CH17"))
+            .andExpect(jsonPath("$.enforcement_override.enforcement_override_result.enforcement_override_result_id")
+                .value("FWEC"))
+            .andExpect(jsonPath("$.enforcement_override.enforcement_override_result.enforcement_override_result_name")
+                .value("WITNESS EXPENSES - CENTRAL FUNDS"))
+            .andExpect(jsonPath("$.enforcement_override.enforcer.enforcer_id").value(780000000021L))
+            .andExpect(jsonPath("$.enforcement_override.enforcer.enforcer_name").value("North East Enforcement"))
+            .andExpect(jsonPath("$.enforcement_override.lja.lja_id").value(240))
+            .andExpect(jsonPath("$.enforcement_override.lja.lja_name").value("Tyne & Wear LJA"))
+            .andExpect(jsonPath("$.last_enforcement_action.reason").value("Late Payment"))
+            .andExpect(jsonPath("$.last_enforcement_action.warrant_number").value("Warrent007"))
+            .andExpect(jsonPath("$.last_enforcement_action.date_added").value("2025-02-13T10:05:10"))
+            .andExpect(jsonPath("$.last_enforcement_action.enforcement_action.result_id").value("MPSO"))
+            .andExpect(jsonPath("$.last_enforcement_action.enforcement_action.result_title")
+                .value("Money Payment Supervision Order"))
+            .andExpect(jsonPath("$.last_enforcement_action.enforcer.enforcer_id").value("21"))
+            .andExpect(jsonPath("$.last_enforcement_action.enforcer.enforcer_name").value("North East Enforcement"))
+            .andExpect(jsonPath("$.last_enforcement_action.result_responses[0].parameter_name").value("reason"))
+            .andExpect(jsonPath("$.last_enforcement_action.result_responses[0].response").value("Evasion of Prison"))
+            .andExpect(ignoreForLegacy(jsonPath("$.last_enforcement_action.result_responses[1].parameter_name")
+                    .value("supervisor"), isLegacy))
+            .andExpect(ignoreForLegacy(jsonPath("$.last_enforcement_action.result_responses[1].response")
+                .value("Mordred"), isLegacy))
+            .andExpect(ignoreForLegacy(jsonPath("$.last_enforcement_action.result_responses[2].parameter_name")
+                .value("prisondetention"), isLegacy))
+            .andExpect(ignoreForLegacy(jsonPath("$.last_enforcement_action.result_responses[2].response")
+                .doesNotExist(), isLegacy))
+            .andExpect(jsonPath("$.account_status_reference.account_status_code").value("L"))
+            .andExpect(jsonPath("$.account_status_reference.account_status_display_name").value("Live"))
+            .andExpect(ignoreForLegacy(jsonPath("$.next_enforcement_action_data").value("All"), isLegacy));
+    }
+
+    static ResultMatcher ignoreForLegacy(ResultMatcher matcher, boolean legacy) {
+        return (legacy) ? (result) -> { } : matcher;
     }
 
 }

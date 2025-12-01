@@ -42,5 +42,4 @@ public class DefendantDetails {
 
     @XmlElement(name = "is_youth_flag")
     private Boolean isYouthFlag;
-
 }

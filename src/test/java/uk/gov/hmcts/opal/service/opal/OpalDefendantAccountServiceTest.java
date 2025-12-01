@@ -50,6 +50,7 @@ import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
@@ -83,7 +84,6 @@ import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
-import uk.gov.hmcts.opal.entity.EnforcementOverrideResultEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
@@ -93,7 +93,10 @@ import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
@@ -101,12 +104,13 @@ import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
-import uk.gov.hmcts.opal.repository.EnforcementOverrideResultRepository;
+import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
+import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DefendantAccountSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
@@ -147,9 +151,6 @@ class OpalDefendantAccountServiceTest {
     private CourtRepository courtRepo;
 
     @Mock
-    private EnforcementOverrideResultRepository eorRepo;
-
-    @Mock
     private LocalJusticeAreaRepository ljaRepo;
 
     @Mock
@@ -171,6 +172,9 @@ class OpalDefendantAccountServiceTest {
     private PaymentCardRequestRepository paymentCardRequestRepository;
 
     @Mock
+    private EnforcementRepository enforcementRepository;
+
+    @Mock
     private AccessTokenService accessTokenService;
 
     @Mock
@@ -178,6 +182,9 @@ class OpalDefendantAccountServiceTest {
 
     @Mock
     private OpalPartyService opalPartyService;
+
+    @Mock
+    private ResultRepository resultRepo;
 
     @Spy
     private DefendantAccountSpecs defendantAccountSpecs;
@@ -608,9 +615,9 @@ class OpalDefendantAccountServiceTest {
         when(courtRepo.findById(100L)).thenReturn(Optional.of(court));
 
         // Reference entities: stub getters so the service can copy IDs onto the account
-        EnforcementOverrideResultEntity eor = mock(EnforcementOverrideResultEntity.class);
-        when(eor.getEnforcementOverrideResultId()).thenReturn("EO-1");
-        when(eorRepo.findById("EO-1")).thenReturn(Optional.of(eor));
+        ResultEntity.Lite eor = mock(ResultEntity.Lite.class);
+        when(eor.getResultId()).thenReturn("EO-1");
+        when(resultRepo.findById("EO-1")).thenReturn(Optional.of(eor));
 
         EnforcerEntity enforcer = mock(EnforcerEntity.class);
         when(enforcer.getEnforcerId()).thenReturn(22L);
@@ -2239,5 +2246,38 @@ class OpalDefendantAccountServiceTest {
             verify(defendantAccountRepository).saveAndFlush(account);
             verify(aliasRepo, times(2)).findByParty_PartyId(333L);
         }
+    }
+
+    @Test
+    void testGetEnforcementStatus() {
+        // Arrange
+        DefendantAccountEntity defAccount = DefendantAccountEntity.builder()
+            .parties(List.of(
+                DefendantAccountPartiesEntity.builder()
+                    .associationType("Defendant")
+                    .party(PartyEntity.builder()
+                        .birthDate(LocalDate.of(1990, 1, 1))
+                        .build())
+                    .build()))
+            .defendantAccountId(1L)
+            .accountStatus("L")
+            .build();
+
+        EnforcementEntity.Lite enforcementEntity = EnforcementEntity.Lite.builder()
+                .build();
+
+        when(defendantAccountRepository.findById(anyLong())).thenReturn(Optional.of(defAccount));
+        when(enforcementRepository.findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
+            any(), any())).thenReturn(Optional.of(enforcementEntity));
+
+        // Act
+        EnforcementStatus response = service.getEnforcementStatus(1L);
+
+        // Assert
+        assertNotNull(response);
+        assertNull(response.getNextEnforcementActionData());
+        assertFalse(response.getEmployerFlag());
+        assertEquals(DefendantAccountTypeEnum.ADULT, response.getDefendantAccountType());
+        assertFalse(response.getIsHmrcCheckEligible());
     }
 }

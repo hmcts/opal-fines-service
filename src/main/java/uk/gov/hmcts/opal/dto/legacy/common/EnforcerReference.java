@@ -23,7 +23,7 @@ public class EnforcerReference implements ToXmlString {
 
     @JsonProperty(value = "enforcer_id", required = true)
     @XmlElement(name = "enforcer_id", required = true)
-    private Integer enforcerId;
+    private Long enforcerId;
 
     @JsonProperty(value = "enforcer_name", required = true)
     @XmlElement(name = "enforcer_name", required = true)
