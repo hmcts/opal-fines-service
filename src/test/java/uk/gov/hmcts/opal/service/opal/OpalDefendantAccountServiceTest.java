@@ -13,6 +13,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -46,6 +47,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
@@ -2357,6 +2359,104 @@ class OpalDefendantAccountServiceTest {
 
         verify(paymentCardRequestRepository).save(any(PaymentCardRequestEntity.class));
         verify(defendantAccountRepository).save(account);
+    }
+
+    @Test
+    void getHeaderSummary_permissionDenied_throws403() {
+        var proxy = mock(DefendantAccountServiceProxy.class);
+        var userStateService = mock(UserStateService.class);
+        var userState = mock(UserState.class);
+
+        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(false);
+
+        var svc = new DefendantAccountService(proxy, userStateService);
+
+        assertThrows(PermissionNotAllowedException.class,
+            () -> svc.getHeaderSummary(1L, "AUTH"));
+
+        verifyNoInteractions(proxy);
+    }
+
+    @Test
+    void updateDefendantAccount_blankBUUserId_fallsBackToUsername() {
+        var proxy = mock(DefendantAccountServiceProxy.class);
+        var userStateService = mock(UserStateService.class);
+        var userState = mock(UserState.class);
+
+        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ACCOUNT_MAINTENANCE))
+            .thenReturn(true);
+
+        var buUser = mock(BusinessUnitUser.class);
+        when(buUser.getBusinessUnitUserId()).thenReturn("   "); // blank -> filtered out
+        when(userState.getBusinessUnitUserForBusinessUnit((short)10))
+            .thenReturn(Optional.of(buUser));
+
+        when(userState.getUserName()).thenReturn("fallbackUser");
+
+        var req = mock(UpdateDefendantAccountRequest.class);
+
+        var svc = new DefendantAccountService(proxy, userStateService);
+
+        svc.updateDefendantAccount(1L, "10", req, "\"1\"", "AUTH");
+
+        verify(proxy).updateDefendantAccount(1L, "10", req, "\"1\"", "fallbackUser");
+    }
+
+    @Test
+    void replaceParty_blankBUUserId_fallsBackToUsername() {
+        var proxy = mock(DefendantAccountServiceProxy.class);
+        var userStateService = mock(UserStateService.class);
+        var userState = mock(UserState.class);
+
+        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
+        when(userState.hasBusinessUnitUserWithPermission((short)10, FinesPermission.ACCOUNT_MAINTENANCE))
+            .thenReturn(true);
+
+        var buUser = mock(BusinessUnitUser.class);
+        when(buUser.getBusinessUnitUserId()).thenReturn("   "); // BLANK → triggers fallback
+
+        when(userState.getBusinessUnitUserForBusinessUnit((short)10))
+            .thenReturn(Optional.of(buUser));
+
+        when(userState.getUserName()).thenReturn("fallbackUser");
+
+        var svc = new DefendantAccountService(proxy, userStateService);
+
+        svc.replaceDefendantAccountParty(
+            1L, 2L, "AUTH", "\"1\"", "10",
+            mock(DefendantAccountParty.class)
+        );
+
+        verify(proxy).replaceDefendantAccountParty(
+            eq(1L),
+            eq(2L),
+            any(DefendantAccountParty.class),
+            eq("\"1\""),
+            eq("10"),
+            eq("fallbackUser"),
+            isNull()
+        );
+    }
+
+    @Test
+    void addPaymentCardRequest_permissionDenied_throws403() {
+        var proxy = mock(DefendantAccountServiceProxy.class);
+        var userStateService = mock(UserStateService.class);
+        var userState = mock(UserState.class);
+
+        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS))
+            .thenReturn(false);
+
+        var svc = new DefendantAccountService(proxy, userStateService);
+
+        assertThrows(PermissionNotAllowedException.class,
+            () -> svc.addPaymentCardRequest(1L, "10", "USR", "\"1\"", "AUTH"));
+
+        verifyNoInteractions(proxy);
     }
 
 }
