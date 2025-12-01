@@ -128,4 +128,10 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
     void testUpdateDefendantAccount_CommentNotes_400BadRequest() throws Exception {
         super.test_Legacy_UpdateDefendantAccount_CommentNotes_400BadRequest(log);
     }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetEnforcementStatus() throws Exception {
+        super.getEnforcementStatus(log);
+    }
 }

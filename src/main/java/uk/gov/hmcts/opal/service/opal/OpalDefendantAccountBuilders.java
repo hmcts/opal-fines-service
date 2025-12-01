@@ -15,6 +15,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
+import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -66,16 +67,22 @@ import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity.Lite;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.generated.model.CourtReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.LjaReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.ResultResponsesCommon;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
 
 public class OpalDefendantAccountBuilders {
@@ -733,6 +740,53 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
+    static EnforcementStatus buildEnforcementStatus(DefendantAccountEntity defendantEntity,
+        DefendantAccountPartiesEntity defendantParty, Optional<DebtorDetailEntity> debtDetails,
+        Optional<ResultEntity.Lite> recentResult, EnforcementOverride override,
+        EnforcementActionDefendantAccount enfActDefAcc) {
+
+        return EnforcementStatus.builder()
+            .enforcementOverview(buildEnforcementOverview(defendantEntity))
+            .enforcementOverride(buildEnforcementOverrideCommon(override))
+            .lastEnforcementAction(enfActDefAcc)
+            .nextEnforcementActionData(recentResult.map(ResultEntity::getEnfNextPermittedActions).orElse(null))
+            .accountStatusReference(buildAccountStatusReferenceCommon(defendantEntity.getAccountStatus()))
+            .defendantAccountType(determineAccountType(defendantParty))
+            .employerFlag(Objects.nonNull(debtDetails.map(DebtorDetailEntity::getEmployerName).orElse(null)))
+            .isHmrcCheckEligible(false)  // TODO: See PO-2370
+            .version(defendantEntity.getVersion())
+            .build();
+    }
+
+    static EnforcementActionDefendantAccount buildEnforcementAction(Optional<Lite> recentEnforcement,
+        Optional<EnforcerEntity> recentEnforcer) {
+
+        return recentEnforcement.map(enforcement -> {
+
+            Optional<ResultEntity.Lite> recentResult = recentEnforcement.map(EnforcementEntity::getResult);
+
+            return EnforcementActionDefendantAccount.builder()
+                .enforcementAction(ResultReferenceCommon.builder()
+                    .resultId(recentEnforcement.get().getResultId())
+                    .resultTitle(recentResult.map(ResultEntity::getResultTitle).orElse(null))
+                    .build())
+                .enforcer(EnforcerReferenceCommon.builder()
+                    .enforcerId(recentEnforcer.map(EnforcerEntity::getEnforcerId).orElse(null))
+                    .enforcerName(recentEnforcer.map(EnforcerEntity::getName).orElse(null))
+                    .build())
+                .dateAdded(recentEnforcement.get().getPostedDate())
+                .reason(recentEnforcement.get().getReason())
+                .warrantNumber(recentEnforcement.get().getWarrantReference())
+                .resultResponses(List.of(
+                    ResultResponsesCommon.builder()
+                        .parameterName(recentResult.map(ResultEntity::getResultParameters).orElse(null))
+                        .response(recentEnforcement.get().getResultResponses())
+                        .build()))
+                .build();
+
+        }).orElse(null);
+    }
+
     static LJA buildLja(Optional<LocalJusticeAreaEntity> entity) {
         return entity.map(lja -> LJA.builder()
                 .ljaId(Optional.ofNullable(lja.getLocalJusticeAreaId()).map(Short::intValue).orElse(null))
@@ -795,7 +849,7 @@ public class OpalDefendantAccountBuilders {
      * @param age       Age of the individual.
      * @return True if the individual is under 18, false otherwise.
      */
-    static Boolean isYouth(LocalDateTime birthDate, Integer age) {
+    static Boolean isYouth(LocalDateTime birthDate, Short age) {
         if (birthDate != null) {
             return calculateAge(birthDate.toLocalDate()) < 18;
         } else if (age != null) {
@@ -868,7 +922,7 @@ public class OpalDefendantAccountBuilders {
     }
 
     public static boolean isNotYouth(PartyEntity party) {
-        return !isYouth(party.getBirthDate().atStartOfDay(), party.getAge().intValue());
+        return !isYouth(party.getBirthDate().atStartOfDay(), party.getAge());
     }
 
     public static DefendantAccountPartiesEntity filterDefendantParty(DefendantAccountEntity account) {
@@ -879,6 +933,7 @@ public class OpalDefendantAccountBuilders {
             .orElseThrow(() -> new EntityNotFoundException(
                 "Defendant Party not found for Defendant Account Id: " + account.getDefendantAccountId()));
     }
+
 
     static void applyCollectionOrder(DefendantAccountEntity entity, CollectionOrderDto co) {
         if (co.getCollectionOrderFlag() == null || co.getCollectionOrderDate() == null) {

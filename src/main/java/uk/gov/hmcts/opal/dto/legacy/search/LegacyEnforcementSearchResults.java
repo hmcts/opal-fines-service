@@ -4,10 +4,9 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.List;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 
 @Data
