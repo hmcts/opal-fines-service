@@ -16,12 +16,18 @@ import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
+
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class DefendantAccountServiceProxyTest extends ProxyTestsBase {
 
@@ -48,6 +54,9 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
 
     void testMode(DefendantAccountServiceInterface targetService, DefendantAccountServiceInterface otherService) {
         testGetHeaderSummary(targetService, otherService);
+        testSearchDefendantAccounts(targetService, otherService);
+        testGetPaymentTerms(targetService, otherService);
+        testGetEnforcementStatus(targetService, otherService);
     }
 
     void testGetHeaderSummary(DefendantAccountServiceInterface targetService,
@@ -57,6 +66,49 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
         when(targetService.getHeaderSummary(anyLong())).thenReturn(entity);
 
         DefendantAccountHeaderSummary headerSummaryResult = serviceProxy.getHeaderSummary(1L);
+
+        // Then: target service should be used, and the returned entity should be as expected
+        verify(targetService).getHeaderSummary(1L);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(entity, headerSummaryResult);
+    }
+
+    void testSearchDefendantAccounts(DefendantAccountServiceInterface targetService,
+        DefendantAccountServiceInterface otherService) {
+        AccountSearchDto dto = AccountSearchDto.builder().build();
+        DefendantAccountSearchResultsDto expected = new DefendantAccountSearchResultsDto();
+
+        when(targetService.searchDefendantAccounts(dto)).thenReturn(expected);
+
+        DefendantAccountSearchResultsDto result = serviceProxy.searchDefendantAccounts(dto);
+
+        verify(targetService).searchDefendantAccounts(dto);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(expected, result);
+    }
+
+    void testGetPaymentTerms(DefendantAccountServiceInterface targetService,
+        DefendantAccountServiceInterface otherService) {
+
+        GetDefendantAccountPaymentTermsResponse expected = new GetDefendantAccountPaymentTermsResponse();
+
+        when(targetService.getPaymentTerms(77L)).thenReturn(expected);
+
+        GetDefendantAccountPaymentTermsResponse result = serviceProxy.getPaymentTerms(77L);
+
+        verify(targetService).getPaymentTerms(77L);
+        verifyNoInteractions(otherService);
+        Assertions.assertEquals(expected, result);
+    }
+
+    void testGetEnforcementStatus(DefendantAccountServiceInterface targetService,
+                              DefendantAccountServiceInterface otherService) {
+        // Given: a Entity is returned from the target service
+        EnforcementStatus entity = EnforcementStatus.builder()
+            .build();
+        when(targetService.getEnforcementStatus(anyLong())).thenReturn(entity);
+
+        EnforcementStatus headerSummaryResult = serviceProxy.getEnforcementStatus(1L);
 
         // Then: target service should be used, and the returned entity should be as expected
         verify(targetService).getHeaderSummary(1L);

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy.common;
 
+
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -8,24 +9,19 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.dto.ToXmlString;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@XmlRootElement(name = "party_details")
+@XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LegacyPartyDetails {
+public class CourtReference implements ToXmlString {
 
-    @XmlElement(name = "party_id")
-    private String partyId;
+    @XmlElement(name = "court_id")
+    private Long courtId;
 
-    @XmlElement(name = "organisation_flag")
-    private Boolean organisationFlag;
-
-    @XmlElement(name = "organisation_details")
-    private OrganisationDetails organisationDetails;
-
-    @XmlElement(name = "individual_details")
-    private IndividualDetails individualDetails;
+    @XmlElement(name = "court_name")
+    private String courtName;
 }

@@ -152,4 +152,10 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
     void testLegacyPostAddEnforcement_500Error() throws Exception {
         super.legacyPostAddEnforcement_500Error(log);
     }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetEnforcementStatus() throws Exception {
+        super.testGetEnforcementStatus(log, true);
+    }
 }

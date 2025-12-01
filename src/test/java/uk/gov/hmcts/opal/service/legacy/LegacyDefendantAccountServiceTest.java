@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -24,6 +25,8 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +45,7 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
@@ -66,6 +70,9 @@ import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementOverview;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
@@ -78,12 +85,25 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder;
+import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
+import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride;
+import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverrideResultReference;
+import uk.gov.hmcts.opal.dto.legacy.common.EnforcerReference;
 import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
 import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
+import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
+import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 
@@ -318,7 +338,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // Arrange
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()
-                .version(1)
+                .version("1")
                 .defendantAccountId("1")
                 .accountNumber("SAMPLE")
                 .accountType("Fine")
@@ -2753,4 +2773,203 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     }
 
 }
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetEnforcementStatus_success() {
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(true);
 
+        when(restClient.responseSpec
+            .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
+            .thenReturn(responseBody);
+
+        ResponseEntity<String> serverSuccessResponse =
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+
+        // Act
+        EnforcementStatus response = legacyDefendantAccountService
+            .getEnforcementStatus(33L);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getEmployerFlag());
+        assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
+        assertFalse(response.getIsHmrcCheckEligible());
+        assertNull(response.getNextEnforcementActionData());
+        assertNotNull(response.getEnforcementOverride());
+        assertNotNull(response.getLastEnforcementAction());
+        assertNotNull(response.getEnforcementOverview());
+        assertNotNull(response.getAccountStatusReference());
+
+        EnforcementOverrideCommon override = response.getEnforcementOverride();
+        assertNotNull(override.getEnforcementOverrideResult());
+        assertEquals("AAB", override.getEnforcementOverrideResult().getEnforcementOverrideResultId());
+        assertEquals("AaAaBb", override.getEnforcementOverrideResult().getEnforcementOverrideResultName());
+        assertNotNull(override.getEnforcer());
+        assertEquals(2L, override.getEnforcer().getEnforcerId());
+        assertEquals("Arthur", override.getEnforcer().getEnforcerName());
+        assertNotNull(override.getLja());
+        assertEquals(1, override.getLja().getLjaId());
+        assertEquals("England", override.getLja().getLjaName());
+
+        EnforcementActionDefendantAccount action = response.getLastEnforcementAction();
+        assertEquals("late", action.getReason());
+        assertEquals("123", action.getWarrantNumber());
+        assertEquals(LocalDateTime.of(2024, 1, 1, 10, 0), action.getDateAdded());
+        assertNotNull(action.getEnforcer());
+        assertEquals(4L, action.getEnforcer().getEnforcerId());
+        assertEquals("Merlin", action.getEnforcer().getEnforcerName());
+        assertNotNull(action.getEnforcementAction());
+        assertEquals("FEE", action.getEnforcementAction().getResultId());
+        assertEquals("Result Ref", action.getEnforcementAction().getResultTitle());
+        assertNotNull(action.getResultResponses());
+        assertNotNull(action.getResultResponses().getFirst());
+        assertEquals("Param Name", action.getResultResponses().getFirst().getParameterName());
+        assertEquals("A response", action.getResultResponses().getFirst().getResponse());
+
+        EnforcementOverviewDefendantAccount overview = response.getEnforcementOverview();
+        assertEquals(6, overview.getDaysInDefault());
+        assertNotNull(overview.getCollectionOrder());
+        assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
+        assertEquals(LocalDate.of(2024, 3, 4), overview.getCollectionOrder().getCollectionOrderDate());
+        assertNotNull(overview.getEnforcementCourt());
+        assertEquals(3, overview.getEnforcementCourt().getCourtId());
+        assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
+
+        AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();
+        assertEquals(AccountStatusCodeEnum.L, statusRef.getAccountStatusCode());
+        assertEquals("Alive", statusRef.getAccountStatusDisplayName());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetEnforcementStatus_successMinimal() {
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(false);
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
+        )).thenReturn(responseBody);
+
+        ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+
+        // Act
+        EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(72L);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getEmployerFlag());
+        assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
+        assertFalse(response.getIsHmrcCheckEligible());
+        assertNull(response.getNextEnforcementActionData());
+        assertNull(response.getEnforcementOverride());
+        assertNull(response.getLastEnforcementAction());
+        assertNotNull(response.getEnforcementOverview());
+        assertNotNull(response.getAccountStatusReference());
+
+        EnforcementOverviewDefendantAccount overview = response.getEnforcementOverview();
+        assertEquals(6, overview.getDaysInDefault());
+        assertNotNull(overview.getCollectionOrder());
+        assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
+        assertEquals(LocalDate.of(2024, 3, 4), overview.getCollectionOrder().getCollectionOrderDate());
+        assertNotNull(overview.getEnforcementCourt());
+        assertEquals(3, overview.getEnforcementCourt().getCourtId());
+        assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
+
+        AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();
+        assertEquals(AccountStatusCodeEnum.L, statusRef.getAccountStatusCode());
+        assertEquals("Alive", statusRef.getAccountStatusDisplayName());
+    }
+
+    @Test
+    void testGetEnforcementStatus_throwsRuntimeException() {
+        // Arrange
+        doThrow(new RuntimeException("boom"))
+            .when(gatewayService)
+            .postToGateway(any(), any(), any(), any());
+
+        // Act + Assert
+        assertThrows(RuntimeException.class, () -> legacyDefendantAccountService.getEnforcementStatus(1L));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testGetEnforcementStatus_returnsNull() {
+        // Arrange
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any())).thenReturn(null);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
+
+        // Act
+        EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(42L);
+
+        // Assert
+        assertNull(response);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testGetEnforcementStatus_returnsFailure() {
+
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(false);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
+        )).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+
+        EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(66L);
+
+        assertNotNull(response);
+        assertTrue(response.getEmployerFlag());
+        assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
+        assertFalse(response.getIsHmrcCheckEligible());
+        assertNull(response.getNextEnforcementActionData());
+    }
+
+    private LegacyGetDefendantAccountEnforcementStatusResponse createLegacyEnforcementStatusResponse(boolean full) {
+        return LegacyGetDefendantAccountEnforcementStatusResponse.builder()
+            .accountStatusReference(
+                uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference.builder()
+                    .accountStatusCode("L")
+                    .accountStatusDisplayName("Alive")
+                    .build())
+            .enforcementOverride(full ? EnforcementOverride.builder()  // Optional
+                .lja(LjaReference.builder()
+                    .ljaId(1).ljaName("England").build())
+                .enforcer(EnforcerReference.builder()
+                    .enforcerId(2L).enforcerName("Arthur").build())
+                .enforcementOverrideResult(EnforcementOverrideResultReference.builder()
+                    .enforcementOverrideResultId("AAB").enforcementOverrideResultName("AaAaBb").build())
+                .build() : null)
+            .enforcementOverview(EnforcementOverview.builder()
+                .enforcementCourt(CourtReference.builder()
+                    .courtId(3L).courtName("Bath").build())
+                .collectionOrder(CollectionOrder.builder()
+                    .collectionOrderCode("XX").collectionOrderFlag(true)
+                    .collectionOrderDate(LocalDate.of(2024, 3,4)).build())
+                .daysInDefault(6)
+                .build())
+            .lastEnforcementAction(full ? EnforcementAction.builder() // Optional
+                .enforcer(EnforcerReference.builder()
+                    .enforcerId(4L).enforcerName("Merlin").build())
+                .resultReference(ResultReference.builder()
+                    .resultId("FEE").resultTitle("Result Ref").build())
+                .resultResponses(ResultResponses.builder()
+                    .parameterName("Param Name").response("A response").build())
+                .dateAdded("2024-01-01T10:00:00")
+                .reason("late")
+                .warrantNumber("123")
+                .build() : null)
+            .version("1234567890123456789012345678901234567890")
+            .employerFlag("true")
+            .build();
+    }
+}
