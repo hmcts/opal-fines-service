@@ -40,14 +40,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.common.user.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
-import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
-import uk.gov.hmcts.opal.spring.exceptions.OpalException;
 import uk.gov.hmcts.opal.util.LogUtil;
 
 @Slf4j(topic = "opal.GlobalExceptionHandler")
@@ -501,11 +500,6 @@ public class GlobalExceptionHandler {
             e
         );
         return responseWithProblemDetail(status, problemDetail);
-    }
-
-    @ExceptionHandler(OpalException.class)
-    public ResponseEntity<ProblemDetail> handleFeignException(OpalException opalException) {
-        return responseWithProblemDetail(opalException.getStatus(), opalException.toProblemDetail());
     }
 
     private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,

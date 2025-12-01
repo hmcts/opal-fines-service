@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import uk.gov.hmcts.opal.spring.exceptions.InvalidContentDigestException;
+import uk.gov.hmcts.common.exceptions.standard.InvalidContentDigestException;
 import uk.gov.hmcts.opal.spring.http.CachedBodyHttpServletRequest;
 import uk.gov.hmcts.opal.spring.properties.ContentDigestProperties;
 
@@ -108,7 +108,7 @@ public class ContentDigestValidatorInterceptor implements HandlerInterceptor {
         return true;
     }
 
-    private List<Entry<String, String>> getAndValidateDigestEntries(String contentDigest) {
+    List<Entry<String, String>> getAndValidateDigestEntries(String contentDigest) {
         // Split by commas (multiple digests)
         String[] parts = contentDigest.split("\\s*,\\s*");
         List<Map.Entry<String, String>> entries = new ArrayList<>();
@@ -128,7 +128,7 @@ public class ContentDigestValidatorInterceptor implements HandlerInterceptor {
         return entries;
     }
 
-    private String getAndValidateContentDigestHeader(HttpServletRequest request) {
+    String getAndValidateContentDigestHeader(HttpServletRequest request) {
         Enumeration<String> headers = request.getHeaders(CONTENT_DIGEST);
         String contentDigest;
         if (headers == null || !headers.hasMoreElements()) {
@@ -144,7 +144,7 @@ public class ContentDigestValidatorInterceptor implements HandlerInterceptor {
         return contentDigest;
     }
 
-    private static byte[] decodeSfBinary(String base64NoColons) {
+    static byte[] decodeSfBinary(String base64NoColons) {
         String b64 = base64NoColons;
         int mod = b64.length() % 4;
         if (mod != 0) {

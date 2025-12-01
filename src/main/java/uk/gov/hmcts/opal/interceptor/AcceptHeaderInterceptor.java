@@ -2,10 +2,13 @@ package uk.gov.hmcts.opal.interceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerInterceptor;
 import uk.gov.hmcts.opal.annotation.CheckAcceptHeader;
 
+
+@Component
 public class AcceptHeaderInterceptor implements HandlerInterceptor {
 
     @Override
@@ -17,7 +20,7 @@ public class AcceptHeaderInterceptor implements HandlerInterceptor {
             if (!isAcceptableMediaType(acceptHeader)) {
                 response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
                 response.getWriter().write("{\"error\":\"Not Acceptable\",\"message\""
-                                               + ":\"The requested media type is not supported\"}");
+                    + ":\"The requested media type is not supported\"}");
                 return false;
             }
         }

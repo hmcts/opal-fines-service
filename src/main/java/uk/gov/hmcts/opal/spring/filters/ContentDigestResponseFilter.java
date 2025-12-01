@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -25,6 +26,14 @@ public class ContentDigestResponseFilter extends OncePerRequestFilter {
 
     private final ContentDigestProperties contentDigestProperties;
 
+
+    ContentCachingResponseWrapper wrapResponse(HttpServletResponse response) {
+        if (response instanceof ContentCachingResponseWrapper contentCachingResponseWrapper) {
+            return contentCachingResponseWrapper;
+        }
+        return new ContentCachingResponseWrapper(response);
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
         throws ServletException, IOException {
@@ -35,13 +44,16 @@ public class ContentDigestResponseFilter extends OncePerRequestFilter {
             return;
         }
 
-        ContentCachingResponseWrapper wrapped = new ContentCachingResponseWrapper(response);
+        ContentCachingResponseWrapper wrapped = wrapResponse(response);
 
         try {
             chain.doFilter(request, wrapped);
 
             byte[] body = wrapped.getContentAsByteArray();
             if (body.length == 0) {
+                return;
+            }
+            if (wrapped.getHeader("Content-Digest") != null) {
                 return;
             }
 
