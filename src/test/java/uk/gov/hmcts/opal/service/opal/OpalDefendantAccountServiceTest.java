@@ -16,7 +16,6 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
@@ -2917,7 +2916,7 @@ class OpalDefendantAccountServiceTest {
             eq("\"1\""),
             eq("10"),
             eq("fallbackUser"),
-            isNull()
+            eq("fallbackUser")
         );
     }
 
