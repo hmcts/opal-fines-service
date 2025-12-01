@@ -113,7 +113,6 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-
   /defendant-accounts/{id}/header-summary:
     get:
       tags:
@@ -232,6 +231,65 @@ paths:
                     $ref: './common.yaml#/components/schemas/paymentStateSummary'
                   party_details:
                     $ref: './common.yaml#/components/schemas/partyDetails'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+  /defendant-accounts/{id}/impositions:
+    get:
+      tags:
+        - Defendant Account
+      summary: Get Defendant Account Impositions
+      description: The Get Defendant Account Impositions API is used return an array of data relating to impositions on a defendant account, which populates the on screen table.
+      operationId: getDefendantAccountImpositions
+      security:
+        - permissions:
+            - Search and View Accounts (in at least one business unit)
+      parameters:
+        - in: path
+          name: id
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: './common.yaml#/components/schemas/impositionSummary'
+
         400:
           description: Bad request
           content:

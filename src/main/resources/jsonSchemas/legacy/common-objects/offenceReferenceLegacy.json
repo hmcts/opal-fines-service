@@ -1,0 +1,21 @@
+{
+  "title": "Offence Reference",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "./bigInt.json"
+    },
+    "code": {
+      "type": "string",
+      "maxLength": 10
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 120
+    }
+  }
+}

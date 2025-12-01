@@ -4,9 +4,20 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "posted_date": { "type": "string", "format": "date" },
-    "posted_by": { "type": "string" },
-    "posted_by_name": { "type": "string" }
+    "posted_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "posted_by": {
+      "type": "string",
+      "maxLength": 20
+    },
+    "posted_by_name": {
+      "type": "string",
+      "maxLength": 100
+    }
   },
-  "required": ["posted_date"]
+  "required": [
+    "posted_date"
+  ]
 }
