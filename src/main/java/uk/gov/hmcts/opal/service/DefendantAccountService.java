@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -136,7 +137,7 @@ public class DefendantAccountService {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }
     }
-    
+
     public EnforcementStatus getEnforcementStatus(Long defendantAccountId, String authHeaderValue) {
 
         log.debug(":getEnforcementStatus:");
@@ -149,7 +150,7 @@ public class DefendantAccountService {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
     }
-    
+
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
         String authHeaderValue, String ifMatch, String businessUnitId, DefendantAccountParty request) {
@@ -168,17 +169,17 @@ public class DefendantAccountService {
                 FinesPermission.ACCOUNT_MAINTENANCE)) {
             return defendantAccountServiceProxy.replaceDefendantAccountParty(defendantAccountId,
                 defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy,
-                getBusinessUnitUserIdForBusinessUnit(userState, buId));
+                getBusinessUnitUserIdForBusinessUnit(userState, buId)
+                    .orElse(userState.getUserName()));
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }
     }
 
-    private String getBusinessUnitUserIdForBusinessUnit(UserState userState, short buId) {
+    private Optional<String> getBusinessUnitUserIdForBusinessUnit(UserState userState, short buId) {
         return userState.getBusinessUnitUserForBusinessUnit(buId)
             .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
-            .filter(id -> !id.isBlank())
-            .orElse(null);
+            .filter(id -> !id.isBlank());
     }
 
 
