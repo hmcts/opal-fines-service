@@ -1,20 +1,20 @@
 package uk.gov.hmcts.opal.steps.defendantaccount;
 
+import static net.serenitybdd.rest.SerenityRest.then;
+import static org.junit.Assert.assertEquals;
+
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.Map;
 import net.serenitybdd.rest.SerenityRest;
 import org.json.JSONException;
 import org.json.JSONObject;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
-
-import java.util.Map;
-
-import static net.serenitybdd.rest.SerenityRest.then;
-import static org.junit.Assert.assertEquals;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
+import uk.gov.hmcts.opal.utils.RequestSupport;
 
 public class DefendantAccountAddNoteStepDef extends BaseStepDef {
+
     @When("I make a request to the defendant account add notes api with")
     public void postToDefAccountAddNotesApi(DataTable data) throws JSONException {
         Map<String, String> dataToPost = data.asMap(String.class, String.class);
@@ -23,14 +23,14 @@ public class DefendantAccountAddNoteStepDef extends BaseStepDef {
         for (String key : dataToPost.keySet()) {
             postBody.put(key, dataToPost.get(key));
         }
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body(postBody.toString())
-            .when()
-            .post(getTestUrl() + "/defendant-accounts/addNote");
+        RequestSupport.responseProcessor(
+            SerenityRest
+                .given()
+                .spec(RequestSupport.postRequestSpec("/defendant-accounts/addNote", postBody.toString()).build())
+                .when()
+                .post()
+                .then()
+        );
     }
 
     @Then("the add notes response contains")

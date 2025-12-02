@@ -424,6 +424,9 @@ dependencies {
   integrationTestCompileOnly 'org.projectlombok:lombok:1.18.42'
   integrationTestAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
 
+  functionalTestCompileOnly 'org.projectlombok:lombok:1.18.42'
+  functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
+
   implementation 'org.mapstruct:mapstruct:1.6.3'
   annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 

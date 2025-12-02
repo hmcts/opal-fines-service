@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.scripts;
 
+import lombok.extern.slf4j.Slf4j;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -14,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class TestReportSummaryGenerator {
 
     public static void main(String[] args) throws Exception {
@@ -68,7 +70,7 @@ public class TestReportSummaryGenerator {
                         </tr>""", rowClass, suiteName, total, passed, failures, errors, skipped
                 ));
             } catch (Exception e) {
-                System.out.println("Error reading " + xmlPath + ": " + e.getMessage());
+                log.error("Error reading {}: {}", xmlPath, e.getMessage());
             }
         }
 
@@ -98,7 +100,7 @@ public class TestReportSummaryGenerator {
                         </tr>""", rowClass, suiteName, total, passed, failures, errors, skipped
                 ));
             } catch (Exception e) {
-                System.out.println("Error reading " + xmlPath + ": " + e.getMessage());
+                log.error("Error reading {}: {}", xmlPath, e.getMessage());
             }
         }
 
@@ -124,7 +126,7 @@ public class TestReportSummaryGenerator {
                 errorIntegration += errors;
                 skippedIntegration += skipped;
             } catch (Exception e) {
-                System.out.println("Exception: " + e);
+                log.error("Exception: {}", String.valueOf(e));
             }
         }
 
@@ -149,7 +151,7 @@ public class TestReportSummaryGenerator {
                 errorFunctional += errors;
                 skippedFunctional += skipped;
             } catch (Exception e) {
-                System.out.println("Exception: " + e);
+                log.error("Exception: {}", String.valueOf(e));
             }
         }
 
@@ -269,6 +271,6 @@ public class TestReportSummaryGenerator {
             ), StandardCharsets.UTF_8
         );
 
-        System.out.println("HTML test summary written to: " + output.toAbsolutePath());
+        log.info("HTML test summary written to: {}", output.toAbsolutePath());
     }
 }

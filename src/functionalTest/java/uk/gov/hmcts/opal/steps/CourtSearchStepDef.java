@@ -1,24 +1,25 @@
 package uk.gov.hmcts.opal.steps;
 
+import static net.serenitybdd.rest.SerenityRest.then;
+
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import net.serenitybdd.rest.SerenityRest;
 import org.json.JSONException;
-
-import static net.serenitybdd.rest.SerenityRest.then;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
+import uk.gov.hmcts.opal.utils.RequestSupport;
 
 public class CourtSearchStepDef extends BaseStepDef {
+
     @When("I make a request to get the courts")
     public void postCourtSearch() throws JSONException {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body("{}")
-            .when()
-            .post(getTestUrl() + "/courts/search");
+        RequestSupport.responseProcessor(
+            SerenityRest
+                .given()
+                .spec(RequestSupport.postRequestSpec("/courts/search", "{}").build())
+                .when()
+                .post()
+                .then()
+        );
     }
 
     @Then("the court search response returns 200")

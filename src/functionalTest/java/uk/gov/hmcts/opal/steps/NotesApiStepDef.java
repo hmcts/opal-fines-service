@@ -2,15 +2,12 @@ package uk.gov.hmcts.opal.steps;
 
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.When;
+import java.util.Map;
 import net.serenitybdd.rest.SerenityRest;
 import org.hamcrest.Matchers;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.Map;
-
-import static net.serenitybdd.rest.SerenityRest.then;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
+import uk.gov.hmcts.opal.utils.RequestSupport;
 
 public class NotesApiStepDef extends BaseStepDef {
 
@@ -30,14 +27,13 @@ public class NotesApiStepDef extends BaseStepDef {
             body.put("noteId", dataToPost.get("noteId"));
         }
 
-        SerenityRest.given()
-            .accept("*/*")
-            .header("Authorization", "Bearer " + getToken())
-            .contentType("application/json")
-            .body(body.toString())
-            .when()
-            .post(getTestUrl() + "/notes");
-        then().assertThat()
+        RequestSupport.responseProcessor(SerenityRest
+                .given()
+                .spec(RequestSupport.postRequestSpec("/notes", body.toString()).build())
+                .when()
+                .get()
+                .then())
+            .assertThat()
             .statusCode(201)
             .body("associatedRecordId", Matchers.equalTo(dataToPost.get("recordId")))
             .body("associatedRecordType", Matchers.equalTo(dataToPost.get("recordType")))
