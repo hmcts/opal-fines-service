@@ -1,7 +1,5 @@
 package uk.gov.hmcts.opal.steps.draftaccount;
 
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
-
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.When;
 import io.restassured.specification.RequestSpecification;

@@ -73,15 +73,13 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
                 then().assertThat()
                     .body(
                         "search_results.date_of_birth[" + index + "]",
-                        Matchers.containsString(expectedResult.get("date_of_birth"))
-                    );
+                        Matchers.containsString(expectedResult.get("date_of_birth")));
             }
             if (expectedResult.get("address_line_1") != null) {
                 then().assertThat()
                     .body(
                         "search_results.address_line_1[" + index + "]",
-                        Matchers.containsString(expectedResult.get("addressLine1"))
-                    );
+                        Matchers.containsString(expectedResult.get("addressLine1")));
             }
             index++;
         }
