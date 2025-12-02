@@ -95,7 +95,7 @@ public class DefendantAccountDeletionService {
         // Entities with @ManyToOne defendantAccount relationships
         accountTransferRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         defendantAccountPartiesRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
-        enforcementRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
+        enforcementRepository.deleteByDefendantAccountId(defendantAccountId);
         creditorAccountTransactional.deleteAllByDefendantAccountId(defendantAccountId, creditorAccountTransactional);
         paymentTermsRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         defendantTransactionRepository.deleteByDefendantAccountId(defendantAccountId);
