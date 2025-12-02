@@ -208,8 +208,8 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         RequestSupport.responseProcessor(
             SerenityRest
                 .given()
-                .urlEncodingEnabled(false)
                 .spec(RequestSupport.patchRequestSpec("/draft-accounts/%20", "").build())
+                .urlEncodingEnabled(false)
                 .when()
                 .patch()
                 .then()

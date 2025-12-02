@@ -1,9 +1,11 @@
 package uk.gov.hmcts.opal.utils;
 
+import static io.restassured.config.HeaderConfig.headerConfig;
 import static uk.gov.hmcts.opal.steps.BaseStepDef.getTestUrl;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
 import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.config.RestAssuredConfig;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
@@ -19,6 +21,16 @@ public class RequestSupport {
         String path
     ) {
         return new RequestSpecBuilder()
+            .setConfig(
+                RestAssuredConfig.config()
+                    .headerConfig(
+                        headerConfig()
+                            .overwriteHeadersWithName(
+                                HttpHeader.AUTHORIZATION.toString(),
+                                HttpHeader.CONTENT_TYPE.toString(),
+                                HttpHeader.ACCEPT.toString(),
+                                Constants.CONTENT_DIGEST_HEADER
+                            )))
             .setBaseUri(getTestUrl())
             .setBasePath(path)
             .log(LogDetail.ALL)
@@ -63,7 +75,7 @@ public class RequestSupport {
     }
 
     public static ValidatableResponse responseProcessor(ValidatableResponse validatableResponse) {
-        validatableResponse.log().all();
+        validatableResponse.log().body(true);
         return validatableResponse;
     }
 }
