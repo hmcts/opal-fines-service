@@ -19,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.math.BigDecimal;
@@ -41,7 +42,7 @@ public class CommittalWarrantProgressEntity {
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "enforcement_id", nullable = false)
-    private EnforcementEntity enforcement;
+    private EnforcementEntity.Lite enforcement;
 
     @Column(name = "amount", precision = 18, scale = 2)
     private BigDecimal amount;

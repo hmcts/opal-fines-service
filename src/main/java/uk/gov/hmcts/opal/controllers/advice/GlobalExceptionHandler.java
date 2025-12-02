@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers.advice;
 
 import static uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService.AUTH_HEADER;
 import static uk.gov.hmcts.opal.util.HttpUtil.extractPreferredUsername;
+import static uk.gov.hmcts.opal.util.VersionUtils.createETag;
 
 import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
@@ -28,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.orm.jpa.JpaSystemException;
@@ -48,6 +50,7 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.util.LogUtil;
+import uk.gov.hmcts.opal.util.Versioned;
 
 @Slf4j(topic = "opal.GlobalExceptionHandler")
 @ControllerAdvice
@@ -470,7 +473,7 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("resourceType", e.getResourceType());
         problemDetail.setProperty("resourceId", e.getResourceId());
         problemDetail.setProperty("conflictReason", e.getConflictReason());
-        return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail);
+        return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail, e.getVersioned());
     }
 
     @ExceptionHandler(FeignException.Unauthorized.class)
@@ -517,9 +520,14 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ProblemDetail> responseWithProblemDetail(HttpStatus status, ProblemDetail problemDetail) {
-        return ResponseEntity.status(status)
-            .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-            .body(problemDetail);
+        return responseWithProblemDetail(status, problemDetail, null);
+    }
+
+    private ResponseEntity<ProblemDetail> responseWithProblemDetail(HttpStatus status, ProblemDetail problemDetail,
+        Versioned versioned) {
+        BodyBuilder builder = ResponseEntity.status(status).contentType(MediaType.APPLICATION_PROBLEM_JSON);
+        Optional.ofNullable(versioned).ifPresent(v -> builder.eTag(createETag(v)));
+        return builder.body(problemDetail);
     }
 
     private String extractUsername(String authorization) {
@@ -555,4 +563,5 @@ public class GlobalExceptionHandler {
             || state.equals("40P01")   // deadlock_detected
             || state.equals("55P03");  // lock_not_available
     }
+
 }
