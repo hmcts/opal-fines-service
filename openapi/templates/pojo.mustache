@@ -71,11 +71,13 @@ public {{>sealed}}class {{classname}}{{#parent}} extends {{{parent}}}{{/parent}}
   {{#vendorExtensions.x-field-extra-annotation}}
   {{{vendorExtensions.x-field-extra-annotation}}}
   {{/vendorExtensions.x-field-extra-annotation}}
+  {{^vendorExtensions.x-extendable}}
   {{#lombok.Builder}}
   {{#defaultValue}}
   @lombok.Builder.Default
   {{/defaultValue}}
   {{/lombok.Builder}}
+  {{/vendorExtensions.x-extendable}}
   {{#deprecated}}
   @Deprecated
   {{/deprecated}}
@@ -366,8 +368,10 @@ public {{>sealed}}class {{classname}}{{#parent}} extends {{{parent}}}{{/parent}}
     return o.toString().replace("\n", "\n    ");
   }
   {{/lombok.ToString}}
+  {{^vendorExtensions.x-extendable}}
   {{#generateBuilders}}
   {{>javaBuilder}}
   {{/generateBuilders}}
+  {{/vendorExtensions.x-extendable}}
   {{/lombok.Data}}
 }

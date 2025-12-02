@@ -96,6 +96,9 @@ public abstract class ResultEntity {
     @Column(name = "manual_enforcement", nullable = false)
     private boolean manualEnforcement;
 
+    @Column(name = "enf_next_permitted_actions")
+    private String enfNextPermittedActions;
+
     @Entity
     @Getter
     @EqualsAndHashCode(callSuper = true)
