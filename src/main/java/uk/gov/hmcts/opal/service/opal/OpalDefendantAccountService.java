@@ -459,7 +459,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             throw new ResourceConflictException(
                 "DefendantAccountEntity",
                 String.valueOf(defendantAccountId),
-                "A payment card request already exists for this account."
+                "A payment card request already exists for this account.", account
             );
         }
 
