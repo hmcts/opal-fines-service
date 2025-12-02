@@ -62,7 +62,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
         RequestSupport.responseProcessor(
             SerenityRest
                 .given()
-                .spec(RequestSupport.postRequestSpec(DRAFT_ACCOUNTS_URI + "/" + draftAccountId, postBody.toString())
+                .spec(RequestSupport.putRequestSpec(DRAFT_ACCOUNTS_URI + "/" + draftAccountId, postBody.toString())
                     .build())
                 .header(createQuotedLongHeader("If-Match", dataToPost))
                 .when()
@@ -134,7 +134,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
         RequestSupport.responseProcessor(
             SerenityRest
                 .given()
-                .spec(RequestSupport.postRequestSpec(DRAFT_ACCOUNTS_URI, "{}")
+                .spec(RequestSupport.putRequestSpec(DRAFT_ACCOUNTS_URI, "{}")
                     .build())
                 .header("Authorization", "Bearer invalidToken")
                 .when()
@@ -181,7 +181,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
         RequestSupport.responseProcessor(
             SerenityRest
                 .given()
-                .spec(RequestSupport.postRequestSpec(DRAFT_ACCOUNTS_URI + "/" + draftAccountId, postBody.toString())
+                .spec(RequestSupport.putRequestSpec(DRAFT_ACCOUNTS_URI + "/" + draftAccountId, postBody.toString())
                     .build())
                 .when()
                 .put()
@@ -224,7 +224,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
         RequestSupport.responseProcessor(
             SerenityRest
                 .given()
-                .spec(RequestSupport.postRequestSpec(DRAFT_ACCOUNTS_URI + "/999999", postBody.toString())
+                .spec(RequestSupport.putRequestSpec(DRAFT_ACCOUNTS_URI + "/999999", postBody.toString())
                     .build())
                 .header(createQuotedLongHeader("If-Match", dataToPost))
                 .when()
@@ -269,7 +269,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
         RequestSupport.responseProcessor(
             SerenityRest
                 .given()
-                .spec(RequestSupport.postRequestSpec(DRAFT_ACCOUNTS_URI + "/" + draftAccountId, postBody.toString())
+                .spec(RequestSupport.putRequestSpec(DRAFT_ACCOUNTS_URI + "/" + draftAccountId, postBody.toString())
                     .build())
                 .accept("text/html")
                 .when()
@@ -315,7 +315,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
         RequestSupport.responseProcessor(
             SerenityRest
                 .given()
-                .spec(RequestSupport.postRequestSpec(DRAFT_ACCOUNTS_URI + "/" + draftAccountId, postBody.toString())
+                .spec(RequestSupport.putRequestSpec(DRAFT_ACCOUNTS_URI + "/" + draftAccountId, postBody.toString())
                     .build())
                 .accept("text/plain")
                 .when()
@@ -329,7 +329,7 @@ public class DraftAccountPutSteps extends BaseStepDef {
         RequestSupport.responseProcessor(
             SerenityRest
                 .given()
-                .spec(RequestSupport.postRequestSpec(DRAFT_ACCOUNTS_URI + "?business_unit=%20", "{}")
+                .spec(RequestSupport.putRequestSpec(DRAFT_ACCOUNTS_URI + "?business_unit=%20", "{}")
                     .build())
                 .when()
                 .put()
