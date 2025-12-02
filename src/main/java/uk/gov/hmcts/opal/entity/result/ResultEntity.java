@@ -93,6 +93,9 @@ public abstract class ResultEntity {
     @Column(name = "result_parameters")
     private String resultParameters;
 
+    @Column(name = "enf_next_permitted_actions")
+    private String enfNextPermittedActions;
+
     @Entity
     @Getter
     @EqualsAndHashCode(callSuper = true)
