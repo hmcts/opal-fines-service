@@ -392,5 +392,30 @@ class ResultControllerIntegrationTest extends AbstractIntegrationTest {
         jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
     }
 
+    @Test
+    @DisplayName("Get results with empty result_ids parameter returns all results")
+    void testGetResultsWithEmptyResultIdsReturnsAll() throws Exception {
+
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "?result_ids="));
+
+        String body = actions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetResultsWithEmptyResultIdsReturnsAll: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        actions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(64))
+            // Assert that a few well-known IDs are present
+            .andExpect(jsonPath("$.refData[*].result_id").value(hasItems(
+                "AAAAAA",
+                "BBBBBB",
+                "DDDDDD",
+                "CC0000",
+                "BWTD"
+            )));
+
+        jsonSchemaValidationService.validateOrError(body, GET_RESULTS_REF_DATA_RESPONSE);
+    }
+
 }
 
