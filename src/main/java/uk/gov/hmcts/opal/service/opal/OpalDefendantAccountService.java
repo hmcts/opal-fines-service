@@ -76,6 +76,7 @@ import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
@@ -641,6 +642,17 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return debtorDetailRepository.findByPartyId(party.getPartyId());
     }
 
+    @Transactional(readOnly = true)
+    List<EnforcementEntity.Lite> dbEnforcements(DefendantAccountEntity entity) {
+        return enforcementRepository.findAllByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
+            entity.getDefendantAccountId(), entity.getLastEnforcement());
+    }
+
+    @Transactional(readOnly = true)
+    Optional<EnforcementEntity.Lite> dbEnforcementMostRecent(DefendantAccountEntity entity) {
+        return enforcementRepository.findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
+            entity.getDefendantAccountId(), entity.getLastEnforcement());
+    }
 
     // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method. This is all wrong.
     private DefendantAccountEntity bumpVersion(Long accountId) {
