@@ -45,10 +45,10 @@ public class ResultController {
     @Operation(summary = "Returns all results or results for the given resultIds.")
     public ResponseEntity<ResultReferenceDataResponse> getResults(
         @RequestParam(name = "result_ids") Optional<List<String>> resultIds,
-        @RequestParam(name = "active", required = false) boolean active,
-        @RequestParam(name = "manual_enforcement_only", required = false) boolean manualEnforcementOnly,
-        @RequestParam(name = "generates_hearing", required = false) boolean generatesHearing,
-        @RequestParam(name = "enforcement", required = false) boolean enforcement) {
+        @RequestParam(name = "active", required = false) Boolean active,
+        @RequestParam(name = "manual_enforcement_only", required = false) Boolean manualEnforcementOnly,
+        @RequestParam(name = "generates_hearing", required = false) Boolean generatesHearing,
+        @RequestParam(name = "enforcement", required = false) Boolean enforcement) {
 
         log.debug("GET:getResults: resultIds: {}", resultIds);
 

@@ -51,10 +51,10 @@ public class ResultService {
 
     // @Cacheable(cacheNames = "resultReferenceDataByIds", key = "#resultIds.orElse('noIds'))")
     public ResultReferenceDataResponse getResultsByIds(Optional<List<String>> resultIds,
-        boolean active,
-        boolean manualEnforcement,
-        boolean generatesHearing,
-        boolean enforcement) {
+        Boolean active,
+        Boolean manualEnforcement,
+        Boolean generatesHearing,
+        Boolean enforcement) {
 
         Sort idSort = Sort.by(Sort.Direction.ASC, "resultId");
 

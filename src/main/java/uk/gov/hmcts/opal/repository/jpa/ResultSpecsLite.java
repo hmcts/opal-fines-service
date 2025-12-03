@@ -31,20 +31,19 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
 
     public Specification<ResultEntity.Lite> referenceDataByIds(
         Optional<List<String>> resultIds,
-        boolean active,
-        boolean manualEnforcement,
-        boolean generatesHearing,
-        boolean enforcement) {
+        Boolean active,
+        Boolean manualEnforcement,
+        Boolean generatesHearing,
+        Boolean enforcement) {
 
         return Specification.allOf(specificationList(
             // optional resultIds clause
             resultIds.map(ResultSpecsLite::equalsAnyResultId),
 
-            // only include the boolean clauses when the corresponding argument is true
-            active ? Optional.of(hasActive()) : Optional.empty(),
-            manualEnforcement ? Optional.of(hasManualEnforcementOnly()) : Optional.empty(),
-            generatesHearing ? Optional.of(hasGeneratesHearing()) : Optional.empty(),
-            enforcement ? Optional.of(hasEnforcement()) : Optional.empty()
+            Optional.ofNullable(active).map(ResultSpecsLite::hasActive),
+            Optional.ofNullable(manualEnforcement).map(ResultSpecsLite::hasManualEnforcementOnly),
+            Optional.ofNullable(generatesHearing).map(ResultSpecsLite::hasGeneratesHearing),
+            Optional.ofNullable(enforcement).map(ResultSpecsLite::hasEnforcement)
         ));
     }
 
@@ -92,19 +91,23 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
         );
     }
 
-    public static Specification<ResultEntity.Lite> hasActive() {
-        return (root, query, builder) -> builder.isTrue(root.get(ResultEntity_.active));
+    public static Specification<ResultEntity.Lite> hasActive(boolean active) {
+        return (root, query, builder) -> builder.equal(root.get(
+            ResultEntity_.active), active);
     }
 
-    public static Specification<ResultEntity.Lite> hasManualEnforcementOnly() {
-        return (root, query, builder) -> builder.isTrue(root.get(ResultEntity_.manualEnforcement));
+    public static Specification<ResultEntity.Lite> hasManualEnforcementOnly(boolean manualEnforcement) {
+        return (root, query, builder) -> builder.equal(root.get(
+            ResultEntity_.manualEnforcement), manualEnforcement);
     }
 
-    public static Specification<ResultEntity.Lite> hasGeneratesHearing() {
-        return (root, query, builder) -> builder.isTrue(root.get(ResultEntity_.generatesHearing));
+    public static Specification<ResultEntity.Lite> hasGeneratesHearing(boolean generatesHearing) {
+        return (root, query, builder) -> builder.equal(root.get(
+            ResultEntity_.generatesHearing), generatesHearing);
     }
 
-    public static Specification<ResultEntity.Lite> hasEnforcement() {
-        return (root, query, builder) -> builder.isTrue(root.get(ResultEntity_.enforcement));
+    public static Specification<ResultEntity.Lite> hasEnforcement(boolean hasEnforcement) {
+        return (root, query, builder) -> builder.equal(root.get(
+            ResultEntity_.enforcement), hasEnforcement);
     }
 }
