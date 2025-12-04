@@ -38,6 +38,14 @@ JUnit 5 backs unit, integration, and db tests, so mirror source packages and nam
 - When unsure, check the Opal Confluence Tech Decision Register (TD.* links) and raise deviations early so code review can flag anything “off piste.”
 - Mention applicable TDR IDs in PR descriptions when implementing or diverging from a decision.
 
+## Definition of Done – Code Quality & Best Practice
+- Each class owns one responsibility you can describe in a sentence; keep members cohesive and extract collaborators when logic diverges.
+- Prefer classes under ~500 lines and methods under ~50 lines; when code grows, extract expressive helpers.
+- Maintain the layer flow `controller → service → repository → domain/DTO`; only annotate beans that belong in each layer and avoid ad-hoc `@Autowired` usage.
+- Limit `@Transactional` to service methods that set a boundary, keeping scopes small and purposeful.
+- Log deliberately: DEBUG for flow, INFO for lifecycle or key state changes, WARN/ERROR for problems; omit sensitive payloads.
+- Reuse utilities via dedicated helpers instead of cloning logic; when a pattern emerges, promote it to a shared component.
+
 ## Commit & Pull Request Guidelines
 Follow the repo log style: prefix messages with a ticket or imperative (`PO-896`, `fix(deps)`, `refactor:`) and keep them concise. Squash WIP commits so each change set is coherent and self-explanatory. PRs need a short description, linked Jira reference, and a tests-evidence checklist; include screenshots or API traces when responses or docs change. Confirm CI (Gradle, Sonar, Docker) is green before requesting review.
 
