@@ -11,6 +11,7 @@
 * Date          Author      Version     Nature of Change
 * ----------    --------    --------    ------------------------------------------------------------------------------------
 * 31/07/2025    C Cho       1.0         PO-1641 Unit tests for v_defendant_accounts_header view
+* 01/12/2025    C Cho       1.1         PO-2338 Added checks for has_consolidated_accounts flag
 *
 **/
 
@@ -25,6 +26,7 @@ DECLARE
     v_party_id_defendant      bigint := 999901;
     v_party_id_guardian       bigint := 999902;
     v_payment_terms_id        bigint := 999901;
+    v_defendant_transaction_id bigint := 999901;
     
     -- Second test case variables
     v_business_unit_id_2      smallint := 9998;
@@ -245,6 +247,26 @@ BEGIN
         posted_by = EXCLUDED.posted_by,
         account_balance = EXCLUDED.account_balance;
     
+    -- Create defendant transaction indicating consolidation for first account
+    INSERT INTO defendant_transactions (
+        defendant_transaction_id,
+        defendant_account_id,
+        posted_date,
+        transaction_type,
+        transaction_amount,
+        associated_record_type,
+        associated_record_id
+    ) VALUES (
+        v_defendant_transaction_id,
+        v_defendant_account_id,
+        CURRENT_TIMESTAMP,
+        'CONSOL',
+        0.00,
+        'defendant_accounts',
+        v_defendant_account_id::varchar
+    )
+    ON CONFLICT (defendant_transaction_id) DO NOTHING;
+    
     RAISE NOTICE 'Test data setup completed: defendant_account_id = % and %', v_defendant_account_id, v_defendant_account_id_2;
 END $$;
 
@@ -262,6 +284,9 @@ DECLARE
     v_forenames               varchar;
     v_surname                 varchar;
     v_title                   varchar;
+    
+    -- Consolidation flag
+    v_has_consolidated        boolean;
     
     -- Financial information variables
     v_amount_paid             decimal(18,2);
@@ -300,6 +325,7 @@ BEGIN
         paid_written_off,
         account_balance,
         amount_imposed,
+        has_consolidated_accounts,
         business_unit_id,
         business_unit_name,
         business_unit_code,
@@ -320,6 +346,7 @@ BEGIN
         v_amount_paid,
         v_account_balance,
         v_amount_imposed,
+        v_has_consolidated,
         v_business_unit_id,
         v_business_unit_name,
         v_business_unit_code,
@@ -349,6 +376,7 @@ BEGIN
     ASSERT v_amount_paid = 50.00, 'Amount paid should be 50.00';
     ASSERT v_account_balance = 100.00, 'Account balance should be 100.00';
     ASSERT v_amount_imposed = 150.00, 'Amount imposed should be 150.00';
+    ASSERT v_has_consolidated = TRUE, 'has_consolidated_accounts should be TRUE when consolidation transactions exist';
     
     -- 4. Business unit information
     ASSERT v_business_unit_id = 9999, 'Business unit ID should be 9999';
@@ -381,6 +409,9 @@ DECLARE
     v_surname                 varchar;
     v_title                   varchar;
     
+    -- Consolidation flag
+    v_has_consolidated        boolean;
+    
     -- Financial information variables
     v_amount_paid             decimal(18,2);
     v_account_balance         decimal(18,2);
@@ -410,6 +441,7 @@ BEGIN
         paid_written_off,
         account_balance,
         amount_imposed,
+        has_consolidated_accounts,
         has_parent_guardian,
         parent_guardian_debtor_type,
         ticket_number,
@@ -424,6 +456,7 @@ BEGIN
         v_amount_paid,
         v_account_balance,
         v_amount_imposed,
+        v_has_consolidated,
         v_has_parent_guardian,
         v_parent_guardian_debtor,
         v_ticket_number,
@@ -447,6 +480,7 @@ BEGIN
     ASSERT v_amount_paid = 0.00, 'Amount paid should be 0.00';
     ASSERT v_account_balance = 200.00, 'Account balance should be 200.00';
     ASSERT v_amount_imposed = 200.00, 'Amount imposed should be 200.00';
+    ASSERT v_has_consolidated = FALSE, 'has_consolidated_accounts should be FALSE when no consolidation transactions exist';
     
     -- 4. Parent/Guardian relationship
     ASSERT v_has_parent_guardian = FALSE, 'has_parent_guardian should be FALSE';
@@ -471,6 +505,8 @@ BEGIN
     DELETE FROM payment_terms WHERE payment_terms_id IN (999901);
     
     DELETE FROM fixed_penalty_offences WHERE defendant_account_id IN (999901, 999902);
+    
+    DELETE FROM defendant_transactions WHERE defendant_transaction_id IN (999901);
     
     DELETE FROM defendant_account_parties WHERE defendant_account_party_id IN (999901, 999902, 999903);
     
