@@ -28,6 +28,7 @@ JUnit 5 backs unit, integration, and db tests, so mirror source packages and nam
 - **P2 advisory:** naming, duplicate code, or documentation gaps—note these only when they clarify future work.
 - Use the template `"[Severity]: <Rule>\nProblem: ...\nWhy: ...\nFix: ..."` so comments stay actionable.
 - Prefer small, deterministic examples (e.g., reference `src/main/java/...Service`) and remind contributors to run local Checkstyle/PMD (`./gradlew check`) before asking for re-review.
+- Reviewers should call out duplicated logic and suggest extraction to shared utilities when the same transformation, validation, or formatting exists in multiple services; always check `src/main/java/**/util` for an existing helper before reimplementing, and propose moving new reusable methods there.
 
 ## Green Coding & Efficiency
 - Push work to the data layer: use repository queries with pagination or projections instead of loading entire tables into memory.
@@ -48,7 +49,7 @@ JUnit 5 backs unit, integration, and db tests, so mirror source packages and nam
 - Maintain the layer flow `controller → service → repository → domain/DTO`; only annotate beans that belong in each layer and avoid ad-hoc `@Autowired` usage.
 - Limit `@Transactional` to service methods that set a boundary, keeping scopes small and purposeful.
 - Log deliberately: DEBUG for flow, INFO for lifecycle or key state changes, WARN/ERROR for problems; omit sensitive payloads.
-- Reuse utilities via dedicated helpers instead of cloning logic; when a pattern emerges, promote it to a shared component.
+- Reuse utilities via dedicated helpers instead of cloning logic; inspect existing `.util` packages for candidates before writing new code, and when a method could help other features, add it to the relevant util class and refactor callers.
 
 ## Commit & Pull Request Guidelines
 Follow the repo log style: prefix messages with a ticket or imperative (`PO-896`, `fix(deps)`, `refactor:`) and keep them concise. Squash WIP commits so each change set is coherent and self-explanatory. PRs need a short description, linked Jira reference, and a tests-evidence checklist; include screenshots or API traces when responses or docs change. Confirm CI (Gradle, Sonar, Docker) is green before requesting review.
