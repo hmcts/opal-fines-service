@@ -17,6 +17,10 @@ Target Java 21 with Spring Boot 3.5 and Lombok. The `uk.gov.hmcts.java` Gradle p
 
 ## Testing Guidelines
 JUnit 5 backs unit, integration, and db tests, so mirror source packages and name test classes `*Test`. Functional and smoke suites rely on Serenity runners (`OpalTestRunner`, `LegacyTestRunner`, `SmokeTestRunner`). Keep Jacoco coverage green in Sonar; justify any exclusions in `build.gradle` and the PR description. Run `./gradlew bootTestRun` or `integration` before submitting cross-cutting changes.
+- **Must-unit-test logic that hides bugs:** branching/conditionals, business rules, calculations, validation (including cross-field), error handling, mapping layers, security checks, helpers, caching decisions, and ID/correlation logic.
+- Skip trivial getters/setters, data records, generated OpenAPI models/clients, or one-line delegators with no decision logic.
+- Target branch coverage for decision-heavy code; use parameterised tests for boundaries, property tests for round-trip mappers, and cover both happy/unhappy paths.
+- Mock external dependencies (repos, clients, UUID/time sources) to keep tests fast and deterministic, and name tests `given_<precondition>_when_<action>_then_<outcome>`.
 
 ## Code Review Guidance for Agents
 - **P0 blockers:** security flaws (auth gaps, SQL injection risk), data corruption, or behaviour regressions such as missing transaction boundaries or unchecked nulls. Halt the review and request a fix.
