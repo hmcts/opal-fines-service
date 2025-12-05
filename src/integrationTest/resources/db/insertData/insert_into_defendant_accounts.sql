@@ -151,6 +151,18 @@ INSERT INTO defendant_account_parties
 VALUES ( 0077, 0077, 0077
        , 'Defendant', 'Y');
 
+-- Enhance fixed penalty offence for account 77 (for PO-1819 integration test completeness)
+UPDATE fixed_penalty_offences
+SET
+    vehicle_registration = 'AB12CDE',
+    offence_location = 'London',
+    notice_number = 'PN98765',
+    issued_date = '2024-01-01',
+    licence_number = 'DOE1234567',
+    vehicle_fixed_penalty = TRUE,
+    offence_time = '12:34'
+WHERE defendant_account_id = 77;
+
 INSERT INTO payment_terms
 ( payment_terms_id, defendant_account_id, posted_date, posted_by
 , terms_type_code, effective_date, instalment_period, instalment_amount, instalment_lump_sum
@@ -174,6 +186,13 @@ INSERT INTO NOTES
 VALUES ( 001077, 'AC', 'defendant_accounts', 0077
        , 'Comment for Notes for Ms Anna Graham', NULL, 'Dr Notes');
 
+-- Add multiple aliases for individual party 77 (Anna Graham) to test aliases array
+INSERT INTO aliases
+(alias_id, party_id, surname, forenames, sequence_number, organisation_name)
+VALUES 
+(7701, 77, 'Smith', 'Annie', 1, NULL),
+(7702, 77, 'Johnson', 'Anne', 2, NULL),
+(7703, 77, 'Williams', 'Ana', 3, NULL);
 
 -- 177B (inactive) — new unique ID
 INSERT INTO defendant_accounts (
@@ -524,7 +543,10 @@ VALUES (10001, 10001, 10001,
 
 INSERT INTO aliases
 (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
-VALUES (10001, 10001, 'AliasSurname', 'AliasForenames', 1, 'AliasOrg');
+VALUES 
+(100011, 10001, 'AliasSurname', 'AliasForenames', 1, 'AliasOrg'),
+(100012, 10001, 'SecondAlias', 'SecondForenames', 2, 'SecondAliasOrg'),
+(100013, 10001, 'ThirdAlias', 'ThirdForenames', 3, 'ThirdAliasOrg');
 
 INSERT INTO debtor_detail
 ( party_id, vehicle_make, vehicle_registration,
@@ -823,6 +845,97 @@ WHERE payment_terms_id = 10004
 
 -- ✅ END TEST DATA: Account where party is an individual (parent/guardian)
 
+INSERT INTO defendant_accounts
+( defendant_account_id, version_number, business_unit_id, account_number,
+  amount_paid, account_balance, amount_imposed, account_status,
+  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+  collection_order, payment_card_requested )
+VALUES (20010, 0, 78, '20010A',
+        0.00, 0.00, 0.00, 'L',
+        '20010PCR', 'N', 'N', 'Fine',
+        'N', 'N')
+ON CONFLICT (defendant_account_id) DO NOTHING;
 
+-- Party linked to the account (starts as organisation=false → your PUT can set org=true if you like)
+INSERT INTO parties
+( party_id, organisation, organisation_name,
+  surname, forenames, title,
+  address_line_1, postcode, birth_date, national_insurance_number, last_changed_date )
+VALUES (20010, 'N', NULL,
+        'SeedSurname', 'SeedForenames', 'Mr',
+        'Seed Address', 'SE1 1ED', '1980-01-01 00:00:00', 'SEEDNI10', NULL)
+ON CONFLICT (party_id) DO NOTHING;
 
+-- DAP linking account ↔ party; association_type kept simple
+INSERT INTO defendant_account_parties
+( defendant_account_party_id, defendant_account_id, party_id, association_type, debtor )
+VALUES (20010, 20010, 20010, 'Defendant', 'Y')
+ON CONFLICT (defendant_account_party_id) DO NOTHING;
+
+-- Minimal debtor_detail row so the upsert/patch has something to merge with
+INSERT INTO debtor_detail
+( party_id, vehicle_make, vehicle_registration,
+  employer_name, employer_address_line_1, employer_postcode,
+  employee_reference, employer_telephone, employer_email,
+  document_language, document_language_date, hearing_language, hearing_language_date )
+VALUES
+    ( 20010, NULL, NULL,
+      NULL, NULL, NULL,
+      NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL )
+ON CONFLICT (party_id) DO NOTHING;
+
+INSERT INTO aliases
+(alias_id, party_id, surname, forenames, sequence_number, organisation_name)
+VALUES
+    (200101, 20010, NULL, NULL, 1, 'Seed Org Alias 1'),
+    (200102, 20010, NULL, NULL, 2, 'Seed Org Alias 2')
+ON CONFLICT (alias_id) DO NOTHING;
+
+-- === Individual aliases test dataset (isolated) ===
+-- Account 22004 (BU 78)
+INSERT INTO defendant_accounts
+( defendant_account_id, version_number, business_unit_id, account_number,
+  amount_paid, account_balance, amount_imposed, account_status,
+  prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+  collection_order, payment_card_requested )
+VALUES (22004, 0, 78, '22004A',
+        0.00, 0.00, 0.00, 'L',
+        '22004PCR', 'N', 'N', 'Fine',
+        'N', 'N')
+ON CONFLICT (defendant_account_id) DO NOTHING;
+
+-- Party 22004 (individual)
+INSERT INTO parties
+( party_id, organisation, organisation_name,
+  surname, forenames, title,
+  address_line_1, postcode, birth_date, national_insurance_number, last_changed_date )
+VALUES (22004, 'N', NULL,
+        'SeedSurname22004', 'SeedForenames22004', 'Mr',
+        'Seed Address 22004', 'SE2 0AA', '1990-01-01 00:00:00', 'SNI22004', NULL)
+ON CONFLICT (party_id) DO NOTHING;
+
+-- DAP link
+INSERT INTO defendant_account_parties
+( defendant_account_party_id, defendant_account_id, party_id, association_type, debtor )
+VALUES (22004, 22004, 22004, 'Defendant', 'Y')
+ON CONFLICT (defendant_account_party_id) DO NOTHING;
+
+-- Minimal debtor_detail
+INSERT INTO debtor_detail
+( party_id, vehicle_make, vehicle_registration,
+  employer_name, employer_address_line_1, employer_postcode,
+  employee_reference, employer_telephone, employer_email,
+  document_language, document_language_date, hearing_language, hearing_language_date )
+VALUES
+    ( 22004, NULL, NULL,
+      NULL, NULL, NULL,
+      NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL )
+ON CONFLICT (party_id) DO NOTHING;
+
+-- Seed one individual alias we will update in the test
+INSERT INTO aliases (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
+VALUES (2200401, 22004, 'AliasSurnameSeed', 'AliasForenamesSeed', 1, NULL)
+ON CONFLICT (alias_id) DO NOTHING;
 

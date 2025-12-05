@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.util;
 
+import java.math.BigInteger;
+
 public interface Versioned {
-    Long getVersion();
+    BigInteger getVersion();
 }

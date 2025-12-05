@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,7 +32,12 @@ public class DefendantAccountSummaryViewEntity implements Versioned {
 
     @Version
     @Column(name = "version_number")
-    private Long version;
+    private Long versionNumber;
+
+    @Override
+    public BigInteger getVersion() {
+        return Optional.ofNullable(versionNumber).map(BigInteger::valueOf).orElse(null);
+    }
 
     @Column(name = "account_number", nullable = false)
     private String accountNumber;
@@ -43,6 +50,21 @@ public class DefendantAccountSummaryViewEntity implements Versioned {
 
     @Column(name = "last_enf_title", nullable = false)
     private String lastEnforcementTitle;
+
+    @Column(name = "alias_1")
+    private String alias1;
+
+    @Column(name = "alias_2")
+    private String alias2;
+
+    @Column(name = "alias_3")
+    private String alias3;
+
+    @Column(name = "alias_4")
+    private String alias4;
+
+    @Column(name = "alias_5")
+    private String alias5;
 
     @Column(name = "collection_order")
     private Boolean collectionOrder;
@@ -137,21 +159,6 @@ public class DefendantAccountSummaryViewEntity implements Versioned {
 
     @Column(name = "national_insurance_number")
     private String nationalInsuranceNumber;
-
-    @Column(name = "alias_id")
-    private String aliasId;
-
-    @Column(name = "sequence_number")
-    private Integer sequenceNumber;
-
-    @Column(name = "alias_org_name")
-    private String aliasOrgName;
-
-    @Column(name = "alias_forenames")
-    private String aliasForenames;
-
-    @Column(name = "alias_surname")
-    private String aliasSurname;
 
     @Column(name = "terms_type_code")
     private String termsTypeCode;

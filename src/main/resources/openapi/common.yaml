@@ -40,6 +40,12 @@ components:
           type: string
           format: uri
           example: 'https://example.com/problem/12345'
+        operation_id:
+          type: string
+          description: A unique operation id that links logs of the same operation together
+          format: uuid
+        retriable:
+          type: boolean
         properties:
           type: object
           additionalProperties:
@@ -239,14 +245,6 @@ components:
             - WO
         account_status_display_name:
           type: string
-          enum:
-            - Live
-            - Completed
-            - TFO to be acknowledged
-            - TFO to NI/Scotland to be acknowledged
-            - TFO acknowledged
-            - Account consolidated
-            - Account written off
       required:
         - account_status_code
         - account_status_display_name
@@ -350,9 +348,10 @@ components:
       additionalProperties: false
       properties:
         result_id:
-          type: integer
+          type: string
         result_title:
           type: string
+          maxLength: 60
       required:
         - result_id
         - result_title
@@ -442,8 +441,10 @@ components:
           format: date
         posted_by:
           type: string
+          maxLength: 20
         posted_by_name:
           type: string
+          maxLength: 100
       required:
         - posted_date
     paymentTerms:
@@ -522,6 +523,7 @@ components:
       properties:
         enforcer_id:
           type: integer
+          format: int64
         enforcer_name:
           type: string
       required:
@@ -630,6 +632,10 @@ components:
         account_type:
           type: string
           description: DB Mapping - creditor_accounts.creditor_account_type
+          enum:
+            - MN
+            - MJ
+            - CF
         display_name:
           type: string
           description: |
@@ -642,4 +648,76 @@ components:
             - Minor Creditor
             - Major Creditor
             - Central Fund
-
+    majorCreditorAddressDetails:
+      title: Major Creditor Address Details
+      type: object
+      properties:
+        line_1:
+          type: string
+          description: major_creditors.address_line_1 where the creditor account type is 'MJ'  configuration_items.item_values.$.address_line_1 where configuration_items.item_name = 'CENTRAL_FUND_ACCOUNT' and configuration_items.business_unit_id = creditor_accounts.business_unit_id
+        line_2:
+          type: string
+          description: major_creditors.address_line_2 where the creditor account type is 'MJ'  configuration_items.item_values.$.address_line_2 where configuration_items.item_name = 'CENTRAL_FUND_ACCOUNT' and configuration_items.business_unit_id = creditor_accounts.business_unit_id
+        line_3:
+          type: string
+          description: major_creditors.address_line_3 where the creditor account type is 'MJ'            configuration_items.item_values.$.address_line_3 where configuration_items.item_name = 'CENTRAL_FUND_ACCOUNT' and configuration_items.business_unit_id = creditor_accounts.business_unit_id
+        postcode:
+          type: string
+          description: DB Mapping - major_creditors.postcode
+    offenceReference:
+      title: Offence Reference
+      type: object
+      additionalProperties: false
+      required:
+        - title
+      properties:
+        id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB mapping - offences.offence_id
+        code:
+          type: string
+          maxLength: 10
+          description: DB mapping - offences.cjs_code
+        title:
+          type: string
+          maxLength: 120
+          description: DB mapping - offences.offence_title
+    impositionSummary:
+      title: Imposition Summary
+      type: object
+      required:
+        - posted_details
+        - result
+        - creditor
+        - imposed_amount
+        - paid_amount
+        - balance
+        - date_imposed
+        - offence
+        - imposition_id
+      properties:
+        posted_details:
+          $ref: '#/components/schemas/postedDetails'
+        result:
+          description: DB Mapping - impositions.result_id
+          $ref: '#/components/schemas/resultReference'
+        creditor:
+          description: DB Mapping - impositions.creditor_account_id
+          $ref: '#/components/schemas/creditorAccountTypeReference'
+        imposed_amount:
+          $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+        paid_amount:
+          $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+        balance:
+          $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+        date_imposed:
+          type: string
+          format: date
+        offence:
+          $ref: '#/components/schemas/offenceReference'
+        imposing_court:
+          description: DB Mapping - impositions.imposing_court_id
+          $ref: '#/components/schemas/courtReference'
+        imposition_id:
+          description: DB Mapping - impositions.imposition_id
+          $ref: './types.yaml#/components/schemas/BigInt'

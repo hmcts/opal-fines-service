@@ -2,12 +2,15 @@ package uk.gov.hmcts.opal.service;
 
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -95,6 +98,19 @@ public class DefendantAccountService {
         }
     }
 
+    public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(
+        Long defendantAccountId,
+        String authHeaderValue) {
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (!userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
+            throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        }
+
+        return defendantAccountServiceProxy.getDefendantAccountFixedPenalty(defendantAccountId);
+    }
+
     public DefendantAccountResponse updateDefendantAccount(Long defendantAccountId,
                                                            String businessUnitId,
                                                            UpdateDefendantAccountRequest request,
@@ -120,5 +136,49 @@ public class DefendantAccountService {
         }
     }
 
+    public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
+        Long defendantAccountPartyId,
+        String authHeaderValue, String ifMatch, String businessUnitId, DefendantAccountParty request) {
+        log.debug(":replaceDefendantAccountParty");
 
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        short buId = Short.parseShort(businessUnitId);
+
+        String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
+            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(userState.getUserName());
+
+        String businessUserId = userState.getBusinessUnitUserForBusinessUnit(buId)
+            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(null);
+
+        if (userState.hasBusinessUnitUserWithPermission(buId,
+                FinesPermission.ACCOUNT_MAINTENANCE)) {
+            return defendantAccountServiceProxy.replaceDefendantAccountParty(defendantAccountId,
+                defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy, businessUserId);
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
+        }
+    }
+
+    public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String authHeaderValue) {
+        log.debug(":addPaymentCardRequest:");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)) {
+
+            return defendantAccountServiceProxy.addPaymentCardRequest(
+                defendantAccountId, businessUnitId, ifMatch, authHeaderValue
+            );
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
+        }
+    }
 }

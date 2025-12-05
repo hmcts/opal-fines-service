@@ -1,15 +1,14 @@
-package uk.gov.hmcts.opal.entity;
+package uk.gov.hmcts.opal.entity.enforcement;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -19,25 +18,26 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "enforcements")
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "enforcementId")
+@MappedSuperclass
+@ToString(callSuper = true)
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class EnforcementEntity {
+public abstract class EnforcementEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "enforcement_id_seq_generator")
@@ -45,9 +45,8 @@ public class EnforcementEntity {
     @Column(name = "enforcement_id", nullable = false)
     private Long enforcementId;
 
-    @ManyToOne
-    @JoinColumn(name = "defendant_account_id", referencedColumnName = "defendant_account_id", nullable = false)
-    private DefendantAccountEntity defendantAccount;
+    @Column(name = "defendant_account_id", insertable = false, updatable = false)
+    private Long defendantAccountId;
 
     @Column(name = "posted_date", nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -57,15 +56,18 @@ public class EnforcementEntity {
     @Column(name = "posted_by", length = 20)
     private String postedBy;
 
-    @Column(name = "result_id", length = 10)
+    @Column(name = "result_id", length = 10, insertable = false, updatable = false)
     private String resultId;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "result_id", insertable = false, updatable = false)
+    private ResultEntity.Lite result;
 
     @Column(name = "reason", length = 50)
     private String reason;
 
-    @ManyToOne
-    @JoinColumn(name = "enforcer_id", referencedColumnName = "enforcer_id")
-    private EnforcerEntity enforcer;
+    @Column(name = "enforcer_id", insertable = false, updatable = false)
+    private Long enforcerId;
 
     @Column(name = "jail_days")
     private Integer jailDays;
@@ -81,9 +83,8 @@ public class EnforcementEntity {
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime hearingDate;
 
-    @ManyToOne
-    @JoinColumn(name = "hearing_court_id", referencedColumnName = "court_id", nullable = false)
-    private CourtEntity.Lite hearingCourt;
+    @Column(name = "hearing_court_id", insertable = false, updatable = false)
+    private Long hearingCourtId;
 
     @Column(name = "account_type", length = 20)
     private String accountType;
@@ -91,4 +92,15 @@ public class EnforcementEntity {
     @Column(name = "posted_by_name", length = 100)
     private String postedByUsername;
 
+    @Column(name = "result_responses")
+    private String resultResponses;
+
+    @Entity
+    @Getter
+    @EqualsAndHashCode(callSuper = true)
+    @Table(name = "enforcements")
+    @SuperBuilder
+    @NoArgsConstructor
+    public static class Lite extends EnforcementEntity {
+    }
 }

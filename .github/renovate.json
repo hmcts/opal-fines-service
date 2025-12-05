@@ -1,8 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "local>hmcts/.github:renovate-config",
-    "local>hmcts/.github//renovate/automerge-all"
+    "local>hmcts/.github:renovate-config"
   ],
   "packageRules": [
     {
@@ -12,6 +11,13 @@
       "rangeStrategy": "pin",
       "allowedVersions": "7.23.0",
       "versioning": "fixed"
+    },
+    {
+      "description": "Lock the Schema Validator to v1.x.y to avoid major issues with v2+",
+      "matchManagers": ["gradle"],
+      "matchPackageNames": ["json-schema-validator"],
+      "matchPackagePrefixes": "com.networknt",
+      "matchUpdateTypes": ["minor", "patch"]
     },
     {
       "matchDatasources": ["docker"],

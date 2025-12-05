@@ -23,6 +23,8 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.math.BigInteger;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -187,6 +189,9 @@ public class DefendantAccountEntity implements Versioned {
     @Column(name = "payment_card_requested_by", length = 20)
     private String paymentCardRequestedBy;
 
+    @Column(name = "payment_card_requested_by_name", length = 100)
+    private String paymentCardRequestedByName;
+
     @Column(name = "prosecutor_case_reference", length = 40)
     private String prosecutorCaseReference;
 
@@ -217,8 +222,15 @@ public class DefendantAccountEntity implements Versioned {
     @Column(name = "account_note_3")
     private String accountNote3;
 
+    @Column(name = "jail_days")
+    private Integer jailDays;
+
     @Column(name = "version_number")
     @Version
-    private Long version;
+    private Long versionNumber;
 
+    @Override
+    public BigInteger getVersion() {
+        return Optional.ofNullable(versionNumber).map(BigInteger::valueOf).orElse(null);
+    }
 }

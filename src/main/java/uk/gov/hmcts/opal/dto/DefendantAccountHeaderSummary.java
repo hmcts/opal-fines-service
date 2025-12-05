@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,7 +34,7 @@ public class DefendantAccountHeaderSummary implements ToJsonString, Versioned {
     private String accountNumber;
 
     @JsonIgnore
-    private Long version;
+    private BigInteger version;
 
     @JsonProperty("defendant_account_party_id")
     private String defendantAccountPartyId;

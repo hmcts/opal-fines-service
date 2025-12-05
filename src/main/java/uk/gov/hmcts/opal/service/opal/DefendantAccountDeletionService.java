@@ -2,11 +2,13 @@ package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.repository.AccountTransferRepository;
 import uk.gov.hmcts.opal.repository.AllocationRepository;
+import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.BacsPaymentRepository;
 import uk.gov.hmcts.opal.repository.ChequeRepository;
 import uk.gov.hmcts.opal.repository.CommittalWarrantProgressRepository;
@@ -15,14 +17,13 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
+import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.jpa.AllocationSpecs;
 import uk.gov.hmcts.opal.repository.jpa.BacsPaymentSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ChequeSpecs;
 import uk.gov.hmcts.opal.service.opal.jpa.CreditorAccountTransactional;
-
-import java.util.List;
 
 @Service
 @Transactional
@@ -43,11 +44,13 @@ public class DefendantAccountDeletionService {
     private final CommittalWarrantProgressRepository committalWarrantProgressRepository;
     private final CreditorAccountTransactional creditorAccountTransactional;
     private final PaymentCardRequestRepository paymentCardRequestsRepository;
+    private final NoteRepository noteRepository;
 
     // Level 3 - Grandchildren
     private final AllocationRepository allocationsRepository;
     private final ChequeRepository chequeRepository;
     private final BacsPaymentRepository bacsPaymentsRepository;
+    private final AmendmentRepository amendmentRepository;
 
 
     public void deleteDefendantAccountAndAssociatedData(long defendantAccountId) {
@@ -92,7 +95,7 @@ public class DefendantAccountDeletionService {
         // Entities with @ManyToOne defendantAccount relationships
         accountTransferRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         defendantAccountPartiesRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
-        enforcementRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
+        enforcementRepository.deleteByDefendantAccountId(defendantAccountId);
         creditorAccountTransactional.deleteAllByDefendantAccountId(defendantAccountId, creditorAccountTransactional);
         paymentTermsRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         defendantTransactionRepository.deleteByDefendantAccountId(defendantAccountId);
@@ -101,7 +104,8 @@ public class DefendantAccountDeletionService {
         committalWarrantProgressRepository.deleteByDefendantAccountId(defendantAccountId);
         fixedPenaltyOffenceRepository.deleteByDefendantAccountId(defendantAccountId);
         paymentCardRequestsRepository.deleteByDefendantAccountId(defendantAccountId);
-
+        noteRepository.deleteByAssociatedRecordId(String.valueOf(defendantAccountId));
+        amendmentRepository.deleteByAssociatedRecordId(String.valueOf(defendantAccountId));
 
         log.debug("Completed Level 2 deletion for defendant account {}", defendantAccountId);
     }
