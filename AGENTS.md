@@ -33,7 +33,7 @@ JUnit 5 backs unit, integration, and db tests, so mirror source packages and nam
 ## Green Coding & Efficiency
 - Push work to the data layer: use repository queries with pagination or projections instead of loading entire tables into memory.
 - Reuse Spring-managed clients (`JdbcTemplate`, `WebClient`, `ObjectMapper`) rather than creating per-request instances; close any manual resources via `try-with-resources`.
-- Avoid chatty remote calls—cache reference data or wrap expensive lookups with Caffeine/Spring Cache where safe.
+- Avoid chatty remote calls—reuse the Spring Cache layer (Redis when enabled, ConcurrentMap fallback locally) for reference data instead of inventing bespoke caches.
 - Mark read flows as `@Transactional(readOnly = true)` and prefer async event handling over busy polling to reduce locking and CPU usage.
 - Keep logs purposeful (INFO for lifecycle, DEBUG for noise) and strip large payloads unless explicitly needed.
 
