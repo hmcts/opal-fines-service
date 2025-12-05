@@ -181,4 +181,29 @@ public class DefendantAccountService {
             throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
         }
     }
+
+    public AddPaymentCardRequestResponse addEnforcement(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String authHeaderValue) {
+
+        log.debug(":addEnforcement:");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(Short.parseShort(businessUnitId))
+            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(userState.getUserName());
+
+        // TODO - verify correct permission DB
+        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ACCOUNT_MAINTENANCE)) {
+
+            return defendantAccountServiceProxy.addEnforcement(
+                defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, authHeaderValue
+            );
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
+        }
+    }
 }

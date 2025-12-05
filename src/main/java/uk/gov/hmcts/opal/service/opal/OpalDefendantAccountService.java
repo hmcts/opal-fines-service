@@ -509,6 +509,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     @Override
+    public AddPaymentCardRequestResponse addEnforcement(Long defendantAccountId, String businessUnitId,
+        String businessUnitUserId, String ifMatch, String authHeader) {
+        return null;
+    }
+
+    @Override
     @Transactional
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
         Long accountId,

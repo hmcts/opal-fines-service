@@ -21,14 +21,9 @@ import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
-import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
-import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
-import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
@@ -182,5 +177,24 @@ public class DefendantAccountController {
             defendantAccountService.replaceDefendantAccountParty(defendantAccountId,
                 defendantAccountPartyId, authHeaderValue, ifMatch, businessUnitId, request));
     }
+
+    @PostMapping("/{defendantAccountId}/enforcements")
+    @Operation(summary = "Create an enforcement for a given defendant account")
+    public ResponseEntity<AddPaymentCardRequestResponse> addDefendantAccountEnforcement(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
+        @RequestHeader("Business-Unit-Id") String businessUnitId,
+        @RequestHeader(value = "If-Match", required = false) String ifMatch
+    ) {
+        log.debug(":POST:addEnforcement: for defendantAccountId={}", defendantAccountId);
+
+        AddPaymentCardRequestResponse response = defendantAccountService.addPaymentCardRequest(
+            defendantAccountId, businessUnitId, ifMatch, authHeaderValue
+        );
+
+        return buildResponse(response);
+    }
+
+
 
 }

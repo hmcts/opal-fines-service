@@ -34,6 +34,9 @@ public interface DefendantAccountServiceInterface {
     AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId, String businessUnitId,
         String ifMatch, String authHeader);
 
+    AddPaymentCardRequestResponse addEnforcement(Long defendantAccountId, String businessUnitId, String businessUnitUserId,
+        String ifMatch, String authHeader);
+
 
     GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
                                            Long defendantAccountPartyId,

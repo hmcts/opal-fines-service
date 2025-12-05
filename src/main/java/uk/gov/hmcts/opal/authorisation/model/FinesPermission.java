@@ -21,6 +21,7 @@ public enum FinesPermission implements PermissionDescriptor {
     ACCOUNT_MAINTENANCE(7L, "Account Maintenance"),
     AMEND_PAYMENT_TERMS(9L, "Amend Payment Terms");
 
+
     /**
      * Convenience aggregate used by parts of the service that require both draft account
      * permissions.

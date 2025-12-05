@@ -883,7 +883,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         );
     }
 
-
     @Override
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
@@ -1051,5 +1050,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .version(legacy.getVersion() == null ? null : BigInteger.valueOf(legacy.getVersion()))
             .defendantAccountParty(modernParty)
             .build();
+    }
+
+    @Override
+    public AddPaymentCardRequestResponse addEnforcement(Long defendantAccountId, String businessUnitId,
+        String businessUnitUserId, String ifMatch, String authHeader) {
+        return null;
     }
 }
