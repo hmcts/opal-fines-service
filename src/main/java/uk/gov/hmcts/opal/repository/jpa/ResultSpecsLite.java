@@ -29,11 +29,24 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
         ));
     }
 
-    public Specification<ResultEntity.Lite> referenceDataByIds(Optional<List<String>> resultIds) {
+    public Specification<ResultEntity.Lite> referenceDataByIds(
+        Optional<List<String>> resultIds,
+        Boolean active,
+        Boolean manualEnforcement,
+        Boolean generatesHearing,
+        Boolean enforcement) {
+
         return Specification.allOf(specificationList(
-            resultIds.map(ResultSpecsLite::equalsAnyResultId)
+            // optional resultIds clause
+            resultIds.map(ResultSpecsLite::equalsAnyResultId),
+
+            Optional.ofNullable(active).map(ResultSpecsLite::hasActive),
+            Optional.ofNullable(manualEnforcement).map(ResultSpecsLite::hasManualEnforcementOnly),
+            Optional.ofNullable(generatesHearing).map(ResultSpecsLite::hasGeneratesHearing),
+            Optional.ofNullable(enforcement).map(ResultSpecsLite::hasEnforcement)
         ));
     }
+
 
     public static Specification<ResultEntity.Lite> equalsAnyResultId(List<String> resultIds) {
         return (root, query, builder) -> root.get(ResultEntity_.resultId).in(resultIds);
@@ -76,5 +89,25 @@ public class ResultSpecsLite extends EntitySpecs<Lite> {
             likeResultTitle(filter),
             likeResultTitleCy(filter)
         );
+    }
+
+    public static Specification<ResultEntity.Lite> hasActive(boolean active) {
+        return (root, query, builder) -> builder.equal(root.get(
+            ResultEntity_.active), active);
+    }
+
+    public static Specification<ResultEntity.Lite> hasManualEnforcementOnly(boolean manualEnforcement) {
+        return (root, query, builder) -> builder.equal(root.get(
+            ResultEntity_.manualEnforcement), manualEnforcement);
+    }
+
+    public static Specification<ResultEntity.Lite> hasGeneratesHearing(boolean generatesHearing) {
+        return (root, query, builder) -> builder.equal(root.get(
+            ResultEntity_.generatesHearing), generatesHearing);
+    }
+
+    public static Specification<ResultEntity.Lite> hasEnforcement(boolean hasEnforcement) {
+        return (root, query, builder) -> builder.equal(root.get(
+            ResultEntity_.enforcement), hasEnforcement);
     }
 }
