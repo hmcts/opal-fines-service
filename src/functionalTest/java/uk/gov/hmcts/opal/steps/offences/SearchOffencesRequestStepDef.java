@@ -1,18 +1,18 @@
 package uk.gov.hmcts.opal.steps.offences;
 
+import static uk.gov.hmcts.opal.config.Constants.OFFENCES_SEARCH_URI;
+
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.When;
+import java.util.Map;
 import net.serenitybdd.rest.SerenityRest;
 import org.json.JSONException;
 import org.json.JSONObject;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
-
-import java.util.Map;
-
-import static uk.gov.hmcts.opal.config.Constants.OFFENCES_SEARCH_URI;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
+import uk.gov.hmcts.opal.utils.RequestSupport;
 
 public class SearchOffencesRequestStepDef extends BaseStepDef {
+
     @When("I make a request to the offence search api filtering by")
     public void postOffencesSearchRequest(DataTable filters) throws JSONException {
         Map<String, String> dataToPost = filters.asMap(String.class, String.class);
@@ -24,13 +24,13 @@ public class SearchOffencesRequestStepDef extends BaseStepDef {
         requestBody.put("active_date", dataToPost.get("active_date") != null ? dataToPost.get("active_date") : "");
         requestBody.put("max_results", dataToPost.get("max_results") != null ? dataToPost.get("max_results") : "100");
 
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body(requestBody.toString())
-            .when()
-            .post(getTestUrl() + OFFENCES_SEARCH_URI);
+        RequestSupport.responseProcessor(
+            SerenityRest
+                .given()
+                .spec(RequestSupport.postRequestSpec(OFFENCES_SEARCH_URI, requestBody.toString()).build())
+                .when()
+                .post()
+                .then()
+        );
     }
 }
