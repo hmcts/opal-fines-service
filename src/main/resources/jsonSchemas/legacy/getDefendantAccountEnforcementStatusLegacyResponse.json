@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "properties": {
     "version": {
-      "type": "integer"
+      "type": "string"
     },
     "enforcement_overview": {
       "$ref": "#/$defs/enforcementOverview"
@@ -81,5 +81,3 @@
     }
   }
 }
-
-

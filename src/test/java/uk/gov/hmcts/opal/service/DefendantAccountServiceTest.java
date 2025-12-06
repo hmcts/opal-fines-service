@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import java.math.BigInteger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +14,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
@@ -30,6 +32,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountServiceTest {
@@ -251,5 +254,28 @@ class DefendantAccountServiceTest {
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountServiceProxy);
         verifyNoMoreInteractions(userStateService, userState);
+    }
+
+    @Test
+    void testGetEnforcementStatus() {
+        // Arrange
+        EnforcementStatus status = EnforcementStatus.builder()
+            .employerFlag(true)
+            .isHmrcCheckEligible(true)
+            .version(new BigInteger("1234567890123345678901234567890"))
+            .build();
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+        when(defendantAccountServiceProxy.getEnforcementStatus(anyLong())).thenReturn(status);
+
+        // Act
+        EnforcementStatus response = defendantAccountService
+            .getEnforcementStatus(33L, "Bearer a_bearer_token");
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getEmployerFlag());
+        assertTrue(response.getIsHmrcCheckEligible());
+        assertEquals(new BigInteger("1234567890123345678901234567890"), response.getVersion());
+
     }
 }

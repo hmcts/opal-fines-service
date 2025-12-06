@@ -40,7 +40,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import org.springframework.http.MediaType;
@@ -83,7 +82,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     private JsonSchemaValidationService jsonSchemaValidationService;
     // Suppressed until @MockBean is replaced with new approach (Spring Boot 3.3+)
     @SuppressWarnings("removal")
-    @MockBean
+    @MockitoBean
     private UserState userState;
 
     private static String commentAndNotesPayload(String accountComment) {
@@ -3389,6 +3388,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andDo(MockMvcResultHandlers.print());
 
         String body = resultActions.andReturn().getResponse().getContentAsString();
+
         String etag = resultActions.andReturn().getResponse().getHeader("ETag");
         long version = objectMapper.readTree(body).path("version").asLong();
 
@@ -3508,6 +3508,35 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 .value("https://hmcts.gov.uk/problems/json-schema-validation"))
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    @DisplayName("Get enforcement status for individual defendant account [@PO-1696]")
+    void getEnforcementStatus(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/77/enforcement-status")
+            .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getEnforcementStatus: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value("77"))
+            .andExpect(jsonPath("$.account_number").value("177A"))
+            .andExpect(jsonPath("$.debtor_type").value("Defendant"))
+            .andExpect(jsonPath("$.is_youth").value(false))
+            .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("888"))
+            .andExpect(jsonPath("$.business_unit_summary.business_unit_id").value("78"))
+            .andExpect(jsonPath("$.payment_state_summary.imposed_amount").value(700.58))
+            .andExpect(jsonPath("$.payment_state_summary.paid_amount").value(200.00))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
+            .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Anna"))
+            .andExpect(jsonPath("$.party_details.individual_details.surname").value("Graham"))
+            .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist());
+
+        jsonSchemaValidationService.validateOrError(body, getHeaderSummaryResponseSchemaLocation());
     }
 
     @DisplayName("OPAL: Add Payment Card Request – Happy Path [@PO-1719]")

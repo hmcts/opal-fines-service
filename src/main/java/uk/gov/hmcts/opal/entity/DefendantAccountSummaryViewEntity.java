@@ -131,7 +131,7 @@ public class DefendantAccountSummaryViewEntity implements Versioned {
     private LocalDateTime birthDate;
 
     @Column(name = "age")
-    private Integer age;
+    private Short age;
 
     @Column(name = "organisation")
     private Boolean organisation;

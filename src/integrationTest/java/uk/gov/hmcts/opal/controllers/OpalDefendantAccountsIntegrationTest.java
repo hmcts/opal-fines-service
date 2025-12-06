@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
+import org.junit.jupiter.api.Disabled;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
@@ -417,6 +418,12 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
     @Test
     void testPut_org_aliases_upsert_and_trim() throws Exception {
         super.put_org_aliases_upsert_and_trim(log);
+    }
+    
+    @Test
+    @Disabled("Not yet implemented")
+    void testGetEnforcementStatus() throws Exception {
+        super.getEnforcementStatus(log);
     }
 
     @Test
