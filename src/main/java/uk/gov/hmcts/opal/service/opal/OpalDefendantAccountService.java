@@ -18,6 +18,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
+import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
@@ -426,85 +428,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .enforcementOverride(buildEnforcementOverride(entity))
             .version(newVersion)
             .build();
-    }
-
-    @Override
-    @Transactional
-    public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
-        String businessUnitId,
-        String ifMatch,
-        String authHeader) {
-
-        log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
-
-        // 1. Fetch defendant account
-        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
-
-        // 2. Validate business unit
-        if (account.getBusinessUnit() == null
-            || account.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
-            throw new EntityNotFoundException(
-                "Defendant Account not found in business unit " + businessUnitId);
-        }
-
-        // 3. Version check
-        VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "addPaymentCardRequest");
-
-        // 4. Audit start
-        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
-
-        // 5. Ensure no existing PCR
-        if (paymentCardRequestRepository.existsByDefendantAccountId(defendantAccountId)) {
-            throw new ResourceConflictException(
-                "DefendantAccountEntity",
-                String.valueOf(defendantAccountId),
-                "A payment card request already exists for this account.", account
-            );
-        }
-
-        // 6. Retrieve logged-in UserState
-        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
-
-        // 7. Create PCR row first (so later declarations appear close to usage)
-        PaymentCardRequestEntity pcr = PaymentCardRequestEntity.builder()
-            .defendantAccountId(defendantAccountId)
-            .build();
-        paymentCardRequestRepository.save(pcr);
-
-        // 8. Resolve BU ID right before use
-        final short buId = Short.parseShort(businessUnitId);
-
-        // 9. Resolve BU user ID — moved DIRECTLY before its first usage
-        final String businessUnitUserId = userState
-            .getBusinessUnitUserForBusinessUnit(buId)
-            .map(bu -> bu.getBusinessUnitUserId())
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Logged in user is not associated with business unit " + buId));
-
-        // 10. Friendly display name — moved DIRECTLY before its first usage
-        final String displayName = accessTokenService.extractName(authHeader);
-
-        // 11. Update defendant_accounts flags
-        account.setPaymentCardRequested(true);
-        account.setPaymentCardRequestedDate(LocalDate.now());
-        account.setPaymentCardRequestedBy(businessUnitUserId);
-        account.setPaymentCardRequestedByName(displayName);
-        defendantAccountRepository.save(account);
-
-        // 13. Audit complete
-        Short accountBuId = account.getBusinessUnit().getBusinessUnitId();
-        amendmentService.auditFinaliseStoredProc(
-            defendantAccountId,
-            RecordType.DEFENDANT_ACCOUNTS,
-            accountBuId,
-            businessUnitUserId,
-            account.getProsecutorCaseReference(),
-            "ACCOUNT_ENQUIRY"
-        );
-
-        // 14. Minimal response
-        return new AddPaymentCardRequestResponse(defendantAccountId);
     }
 
     @Override
@@ -990,7 +913,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             throw new ResourceConflictException(
                 "DefendantAccountEntity",
                 String.valueOf(defendantAccountId),
-                "A payment card request already exists for this account."
+                "A payment card request already exists for this account.",
+                account
             );
         }
 

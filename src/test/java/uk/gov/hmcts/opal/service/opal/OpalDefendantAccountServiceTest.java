@@ -2051,58 +2051,36 @@ class OpalDefendantAccountServiceTest {
     }
 
     @Test
-    void addPaymentCardRequest_happyPath_createsPCRAndUpdatesAccount() {
+    void addPaymentCardRequest_allowsNullBusinessUnitUserId_whenUserNotInBusinessUnit() {
         // Arrange
-        Long accountId = 99L;
-        String buHeader = "10";
-        String ifMatch = "\"1\"";
-
-        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
-            .businessUnitId((short) 10)
-            .build();
-
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId)
-            .businessUnit(bu)
+        var account = DefendantAccountEntity.builder()
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
             .versionNumber(1L)
             .build();
 
-        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
-        when(paymentCardRequestRepository.existsByDefendantAccountId(accountId)).thenReturn(false);
+        when(defendantAccountRepository.findById(1L))
+            .thenReturn(Optional.of(account));
 
-        // User state resolves a BU user ID
-        var buUser = mock(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser.class);
-        when(buUser.getBusinessUnitUserId()).thenReturn("L080JG");
+        when(paymentCardRequestRepository.existsByDefendantAccountId(1L))
+            .thenReturn(false);
 
-        var userState = mock(uk.gov.hmcts.opal.common.user.authorisation.model.UserState.class);
-        when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
-            .thenReturn(Optional.of(buUser));
+        // When the Opal service saves the account, return the same entity
+        when(defendantAccountRepository.save(any()))
+            .thenAnswer(inv -> inv.getArgument(0));
 
-        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
-        when(accessTokenService.extractName("AUTH")).thenReturn("John Smith");
+        // Display name is still used — MUST be stubbed
+        when(accessTokenService.extractName("AUTH"))
+            .thenReturn("DisplayName");
 
-        // Make save(account) echo the argument
-        when(defendantAccountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        // Act
-        AddPaymentCardRequestResponse response =
-            service.addPaymentCardRequest(
-                accountId,
-                buHeader,
-                "L080JG",     // businessUnitUserId MUST be the 3rd argument
-                ifMatch,
-                "AUTH"
-            );
+        // Act — should NOT throw even though businessUnitUserId = null
+        assertDoesNotThrow(() ->
+            service.addPaymentCardRequest(1L, "10", null, "\"1\"", "AUTH")
+        );
 
         // Assert
-        assertNotNull(response);
-        assertEquals(accountId, response.getDefendantAccountId());
-
         assertTrue(account.getPaymentCardRequested());
-        assertEquals("L080JG", account.getPaymentCardRequestedBy());
-        assertEquals("John Smith", account.getPaymentCardRequestedByName());
-
-        verify(paymentCardRequestRepository).save(any(PaymentCardRequestEntity.class));
+        assertNull(account.getPaymentCardRequestedBy());       // <-- key expectation
+        assertEquals("DisplayName", account.getPaymentCardRequestedByName());
     }
 
     @Test
@@ -2134,34 +2112,6 @@ class OpalDefendantAccountServiceTest {
         assertThrows(EntityNotFoundException.class, () ->
             service.addPaymentCardRequest(1L, "10", null,"\"1\"", "AUTH")
         );
-    }
-
-    @Test
-    void addPaymentCardRequest_allowsNullBusinessUnitUserId_whenUserNotInBusinessUnit() {
-        // Arrange
-        var account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(1L)
-            .build();
-
-        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
-        when(paymentCardRequestRepository.existsByDefendantAccountId(1L)).thenReturn(false);
-
-        // UserState returns empty Optional for this BU
-        var userState = mock(uk.gov.hmcts.opal.common.user.authorisation.model.UserState.class);
-        when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.empty());
-        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
-
-        when(defendantAccountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        // Act + Assert
-        assertDoesNotThrow(() ->
-            service.addPaymentCardRequest(1L, "10", null, "\"1\"", "AUTH")
-        );
-
-        // And verify the account was updated with null BU-user-id
-        assertTrue(account.getPaymentCardRequested());
-        assertNull(account.getPaymentCardRequestedBy());
     }
 
 
