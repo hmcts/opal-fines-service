@@ -863,23 +863,40 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     }
 
     private void applyEnforcementOverride(DefendantAccountEntity entity, EnforcementOverride override) {
+
         if (override.getEnforcementOverrideResult() != null) {
             entity.setEnforcementOverrideResultId(
-                override.getEnforcementOverrideResult().getEnforcementOverrideId());
+                override.getEnforcementOverrideResult().getEnforcementOverrideId()
+            );
         }
+
         if (override.getEnforcer() != null && override.getEnforcer().getEnforcerId() != null) {
-            entity.setEnforcementOverrideEnforcerId(override.getEnforcer().getEnforcerId().longValue());
+            entity.setEnforcementOverrideEnforcerId(
+                override.getEnforcer().getEnforcerId()
+            );
         }
+
         if (override.getLja() != null && override.getLja().getLjaId() != null) {
-            entity.setEnforcementOverrideTfoLjaId(override.getLja().getLjaId().shortValue());
+            entity.setEnforcementOverrideTfoLjaId(
+                override.getLja().getLjaId().shortValue()
+            );
         }
+
+
         log.debug(":applyEnforcementOverride: accountId={}, resultId={}, enforcerId={}, ljaId={}",
             entity.getDefendantAccountId(),
             override.getEnforcementOverrideResult() != null
-                ? override.getEnforcementOverrideResult().getEnforcementOverrideId() : null,
-            override.getEnforcer() != null ? override.getEnforcer().getEnforcerId() : null,
-            override.getLja() != null ? override.getLja().getLjaId() : null);
+                ? override.getEnforcementOverrideResult().getEnforcementOverrideId()
+                : null,
+            override.getEnforcer() != null
+                ? override.getEnforcer().getEnforcerId()
+                : null,
+            override.getLja() != null
+                ? override.getLja().getLjaId()
+                : null
+        );
     }
+
 
     @Override
     @Transactional
