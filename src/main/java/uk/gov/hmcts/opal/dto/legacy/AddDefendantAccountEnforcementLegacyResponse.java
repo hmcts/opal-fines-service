@@ -10,12 +10,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Add Defendant Account Enforcement Legacy Response
- * Mirrors schema:
- * - required: defendant_account_id, version, enforcement_id
- * - additionalProperties: false
- */
 @Data
 @Builder
 @NoArgsConstructor

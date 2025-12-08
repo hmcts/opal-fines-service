@@ -2492,7 +2492,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         when(rr.getResponse()).thenReturn("resp-1");
         when(request.getEnforcementResultResponses()).thenReturn(java.util.List.of(rr));
 
-        // PaymentTerms with nested types returning null codes so mapping still produces a LegacyPaymentTerms (but with null sub-enums)
         PaymentTerms pt = mock(PaymentTerms.class);
         PaymentTermsType ptt = mock(PaymentTermsType.class);
         when(ptt.getPaymentTermsTypeCode()).thenReturn(null); // safe for mapLegacyPaymentTermsType
@@ -2541,18 +2540,22 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         var defId = clazz.getMethod("getDefendantAccountId").invoke(sentLegacyRequest);
         var buId = clazz.getMethod("getBusinessUnitId").invoke(sentLegacyRequest);
         var buUser = clazz.getMethod("getBusinessUnitUserId").invoke(sentLegacyRequest);
-        var version = clazz.getMethod("getVersion").invoke(sentLegacyRequest);
-        var enforcementList = clazz.getMethod("getEnforcementResultResponses").invoke(sentLegacyRequest);
-        var paymentTermsLegacy = clazz.getMethod("getPaymentTerms").invoke(sentLegacyRequest);
+
 
         assertEquals("999", defId);
         assertEquals("BU-TEST", buId);
         assertEquals("user-test", buUser);
+        var version = clazz.getMethod("getVersion").invoke(sentLegacyRequest);
+
         assertEquals(11, ((Number) version).intValue());
-        // enforcementList should be a non-empty collection because request had one ResultResponse
+
+        var enforcementList = clazz.getMethod("getEnforcementResultResponses").invoke(sentLegacyRequest);
+
         assertNotNull(enforcementList);
         assertTrue(((java.util.Collection<?>) enforcementList).size() >= 1);
-        // paymentTermsLegacy should not be null (mapping created a legacy payment terms object)
+
+        var paymentTermsLegacy = clazz.getMethod("getPaymentTerms").invoke(sentLegacyRequest);
+
         assertNotNull(paymentTermsLegacy);
     }
 
