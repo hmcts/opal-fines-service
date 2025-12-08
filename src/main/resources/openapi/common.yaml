@@ -245,14 +245,6 @@ components:
             - WO
         account_status_display_name:
           type: string
-          enum:
-            - Live
-            - Completed
-            - TFO to be acknowledged
-            - TFO to NI/Scotland to be acknowledged
-            - TFO acknowledged
-            - Account consolidated
-            - Account written off
       required:
         - account_status_code
         - account_status_display_name
@@ -356,7 +348,7 @@ components:
       additionalProperties: false
       properties:
         result_id:
-          type: integer
+          type: string
         result_title:
           type: string
           maxLength: 60
@@ -531,6 +523,7 @@ components:
       properties:
         enforcer_id:
           type: integer
+          format: int64
         enforcer_name:
           type: string
       required:
@@ -728,8 +721,3 @@ components:
         imposition_id:
           description: DB Mapping - impositions.imposition_id
           $ref: './types.yaml#/components/schemas/BigInt'
-
-
-
-
-

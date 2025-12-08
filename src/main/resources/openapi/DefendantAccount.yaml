@@ -27,6 +27,12 @@ paths:
             type: integer
             format: int64
           required: true
+        - in: header
+          name: Authorization
+          description: Bearer token
+          schema:
+            type: string
+          required: false
       responses:
         '200':
           description: OK
@@ -38,6 +44,7 @@ paths:
               schema:
                 title: Get Defendant Account Enforcement Status Response
                 type: object
+                x-extendable: true
                 additionalProperties: false
                 properties:
                   enforcement_overview:
@@ -47,11 +54,8 @@ paths:
                   last_enforcement_action:
                     $ref: '#/components/schemas/enforcementAction'
                   next_enforcement_action_data:
-                    oneOf:
-                      - type: string
-                        pattern: '^[A-Za-z0-9]{1,6}(,[A-Za-z0-9]{1,6})*$'
-                      - type: string
-                        const: all
+                    type: string
+                    pattern: '^(?i:all|[A-Za-z0-9]{1,6}(,[A-Za-z0-9]{1,6})*|)$'
                     description: 'A comma-separated list of result IDs, ''all'' , or null .'
                   defendant_account_type:
                     type: string

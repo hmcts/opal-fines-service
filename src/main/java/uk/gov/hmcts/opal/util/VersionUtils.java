@@ -51,7 +51,7 @@ public class VersionUtils {
             log.warn(":{}: NO differences detected in Entity '{}',  ID: '{}'. DB has NOT been updated from version :{}",
                      method, updatedFromDB.getClass().getSimpleName(), id, updatedFromDB.getVersion());
             throw new ResourceConflictException(updatedFromDB.getClass().getSimpleName(), id,
-                                                "No differences detected between DB state and requested update.");
+                "No differences detected between DB state and requested update.", updatedFromDB);
         } else {
             log.debug(":{}: Updated Entity '{}' - '{}", method, updatedFromDB.getClass().getSimpleName(), id);
         }
@@ -91,7 +91,7 @@ public class VersionUtils {
     public static void verifyIfMatch(Versioned existingFromDB, String ifMatch, Object id, String method) {
         verifyVersions(existingFromDB, () -> extractOptionalBigInteger(ifMatch)
             .orElseThrow(() -> new ResourceConflictException(existingFromDB.getClass().getSimpleName(), id,
-                  "Could not parse 'ifMatch': " + ifMatch + " in method: " + method)), id, method);
+                  "Could not parse 'ifMatch': " + ifMatch + " in method: " + method, existingFromDB)), id, method);
     }
 
     // function to parse IfMatch value from header, removed.
