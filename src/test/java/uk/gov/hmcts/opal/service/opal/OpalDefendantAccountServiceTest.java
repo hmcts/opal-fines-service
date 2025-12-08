@@ -102,6 +102,8 @@ import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantA
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
@@ -131,16 +133,25 @@ class OpalDefendantAccountServiceTest {
     private DefendantAccountSummaryViewRepository dasvRepository;
 
     @Mock
+    private DefendantAccountHeaderViewRepository dahvRepository;
+
+    @Mock
     private SearchDefendantAccountRepository searchDefAccRepo;
 
     @Mock
     private FixedPenaltyOffenceRepository fixedPenaltyOffenceRepository;
 
     @Mock
+    private DefendantAccountPaymentTermsRepository paymentTermsRepo;
+
+    @Mock
     private NoteRepository noteRepository;
 
     @Mock
     private CourtRepository courtRepo;
+
+    @Mock
+    private EnforcementOverrideResultRepository eorRepo;
 
     @Mock
     private LocalJusticeAreaRepository ljaRepo;
@@ -315,7 +326,7 @@ class OpalDefendantAccountServiceTest {
         assertEquals("77", dto.getDefendantAccountPartyId(),
             "defendant_account_party_id should map from defendantAccountPartyId");
         assertNotEquals("999", dto.getDefendantAccountPartyId(),
-                        "should not map from partyId");
+            "should not map from partyId");
     }
 
     @Test
@@ -801,7 +812,7 @@ class OpalDefendantAccountServiceTest {
 
     @Test
     void updateDefendantAccount_versionMismatch_throwsResourceConflict() {
-        var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
+        var bu = BusinessUnitFullEntity.builder().businessUnitId((short) 78).build();
         var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu)
             .versionNumber(5L).build();
         when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
@@ -816,7 +827,7 @@ class OpalDefendantAccountServiceTest {
 
     @Test
     void updateDefendantAccount_callsAuditProcs() {
-        var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
+        var bu = BusinessUnitFullEntity.builder().businessUnitId((short) 78).build();
         var entity = DefendantAccountEntity.builder()
             .defendantAccountId(77L).businessUnit(bu).versionNumber(0L).build();
         when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
@@ -828,13 +839,13 @@ class OpalDefendantAccountServiceTest {
 
         verify(amendmentService).auditInitialiseStoredProc(77L, RecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
-            eq(77L), eq(RecordType.DEFENDANT_ACCOUNTS), eq((short)78),
+            eq(77L), eq(RecordType.DEFENDANT_ACCOUNTS), eq((short) 78),
             eq("11111111A"), any(), eq("ACCOUNT_ENQUIRY"));
     }
 
     @Test
     void updateDefendantAccount_enforcementOverrideLookupsMissing_areNull() {
-        var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
+        var bu = BusinessUnitFullEntity.builder().businessUnitId((short) 78).build();
         var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu)
             .versionNumber(0L).build();
         when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
@@ -1126,7 +1137,7 @@ class OpalDefendantAccountServiceTest {
     @Test
     void all_null_or_blank_alias_slots_yield_empty_lists_for_both_entity_types() {
         var person = mockDasv(false, null, "", "   ", null, "");
-        var org    = mockDasv(true,  null, "", "   ", null, "");
+        var org = mockDasv(true, null, "", "   ", null, "");
 
         assertTrue(OpalDefendantAccountBuilders.buildIndividualAliasesList(person).isEmpty());
         assertTrue(OpalDefendantAccountBuilders.buildOrganisationAliasesList(person).isEmpty());
@@ -2115,7 +2126,7 @@ class OpalDefendantAccountServiceTest {
             .thenReturn(true);
 
         assertThrows(ResourceConflictException.class, () ->
-            service.addPaymentCardRequest(1L, "10",null, "\"1\"", "AUTH")
+            service.addPaymentCardRequest(1L, "10", null, "\"1\"", "AUTH")
         );
     }
 
@@ -2129,7 +2140,7 @@ class OpalDefendantAccountServiceTest {
         when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
 
         assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null,"\"1\"", "AUTH")
+            service.addPaymentCardRequest(1L, "10", null, "\"1\"", "AUTH")
         );
     }
 
@@ -2172,7 +2183,7 @@ class OpalDefendantAccountServiceTest {
             .thenReturn(Optional.of(account));
 
         assertThrows(ObjectOptimisticLockingFailureException.class, () ->
-            service.addPaymentCardRequest(1L, "10", null,"\"0\"", "AUTH")
+            service.addPaymentCardRequest(1L, "10", null, "\"0\"", "AUTH")
         );
     }
 
@@ -2391,7 +2402,7 @@ class OpalDefendantAccountServiceTest {
 
         var buUser = mock(BusinessUnitUser.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("   "); // blank -> filtered out
-        when(userState.getBusinessUnitUserForBusinessUnit((short)10))
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
             .thenReturn(Optional.of(buUser));
 
         when(userState.getUserName()).thenReturn("fallbackUser");
@@ -2412,13 +2423,13 @@ class OpalDefendantAccountServiceTest {
         var userState = mock(UserState.class);
 
         when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
-        when(userState.hasBusinessUnitUserWithPermission((short)10, FinesPermission.ACCOUNT_MAINTENANCE))
+        when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
 
         var buUser = mock(BusinessUnitUser.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("   "); // BLANK → triggers fallback
 
-        when(userState.getBusinessUnitUserForBusinessUnit((short)10))
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
             .thenReturn(Optional.of(buUser));
 
         when(userState.getUserName()).thenReturn("fallbackUser");
@@ -2592,6 +2603,56 @@ class OpalDefendantAccountServiceTest {
             );
         }
 
+    }
+
+    @Test
+    void replaceDefendantAccountParty_requestNull_throws() {
+        Long accountId = 90L;
+        Long dapId = 91L;
+
+        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10)
+            .build();
+
+        PartyEntity party = PartyEntity.builder()
+            .partyId(300L)
+            .build();
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(dapId)
+            .party(party)
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(bu)
+            .versionNumber(1L)
+            .parties(List.of(dap))
+            .build();
+
+        when(defendantAccountRepository.findById(accountId))
+            .thenReturn(Optional.of(account));
+
+        try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(
+                any(Versioned.class),
+                anyString(),
+                anyLong(),
+                anyString()
+            )).thenAnswer(inv -> null);
+
+            assertThrows(IllegalArgumentException.class, () ->
+                service.replaceDefendantAccountParty(
+                    accountId,
+                    dapId,
+                    null,
+                    "\"1\"",
+                    "10",
+                    "tester",
+                    null
+                )
+            );
+        }
     }
 
 }
