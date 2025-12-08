@@ -883,7 +883,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     @Override
     @Transactional
-    public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
+    public AddPaymentCardRequestResponse addPaymentCardRequest(
+        Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
         String ifMatch,
@@ -891,10 +892,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        //  Fetch defendant account
+        // 1. Fetch defendant account
         DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
 
-        //  Validate business unit
+        // 2. Validate business unit
         if (account.getBusinessUnit() == null
             || account.getBusinessUnit().getBusinessUnitId() == null
             || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
@@ -902,13 +903,13 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 "Defendant Account not found in business unit " + businessUnitId);
         }
 
-        //  Version check
+        // 3. Version check
         VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "addPaymentCardRequest");
 
-        //  Audit start
+        // 4. Audit start
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
-        //  Ensure no existing PCR
+        // 5. Ensure no existing PCR
         if (paymentCardRequestRepository.existsByDefendantAccountId(defendantAccountId)) {
             throw new ResourceConflictException(
                 "DefendantAccountEntity",
@@ -918,24 +919,23 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             );
         }
 
-
-        // Create PCR row first (so later declarations appear close to usage)
+        // 6. Create PCR row first
         PaymentCardRequestEntity pcr = PaymentCardRequestEntity.builder()
             .defendantAccountId(defendantAccountId)
             .build();
         paymentCardRequestRepository.save(pcr);
 
-        // Friendly display name — moved DIRECTLY before its first usage
+        // 7. Display name
         final String displayName = accessTokenService.extractName(authHeader);
 
-        //  Update defendant_accounts flags
+        // 8. Update the account using the businessUnitUserId passed in header
         account.setPaymentCardRequested(true);
         account.setPaymentCardRequestedDate(LocalDate.now());
         account.setPaymentCardRequestedBy(businessUnitUserId);
         account.setPaymentCardRequestedByName(displayName);
         defendantAccountRepository.save(account);
 
-        //  Audit complete
+        // 9. Audit complete
         Short accountBuId = account.getBusinessUnit().getBusinessUnitId();
         amendmentService.auditFinaliseStoredProc(
             defendantAccountId,
@@ -946,7 +946,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             "ACCOUNT_ENQUIRY"
         );
 
-        //  Minimal response
+        // 10. Return a minimal response
         return new AddPaymentCardRequestResponse(defendantAccountId);
     }
 
