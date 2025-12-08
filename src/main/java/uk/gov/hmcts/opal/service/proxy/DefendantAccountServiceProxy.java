@@ -103,5 +103,4 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
             ifMatch, authHeader, request);
     }
 
-
 }
