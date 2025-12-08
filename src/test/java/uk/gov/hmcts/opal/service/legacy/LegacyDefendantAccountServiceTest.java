@@ -45,6 +45,7 @@ import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
+import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.ResultResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
@@ -67,6 +68,9 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod;
+import uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType;
+import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountRequest;
@@ -2606,6 +2610,146 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertThrows(NullPointerException.class, () ->
             legacyDefendantAccountService.addEnforcement(1L, "BU", "U", "\"1\"", "auth", null)
         );
+    }
+
+    @Test
+    void mapLegacyPostedDetails_null_returnsNull() throws Exception {
+        var method = LegacyDefendantAccountService.class
+            .getDeclaredMethod("mapLegacyPostedDetails", PostedDetails.class);
+        method.setAccessible(true);
+
+        Object result = method.invoke(legacyDefendantAccountService, (Object) null);
+
+        assertNull(result, "Null input must return null");
+    }
+
+    @Test
+    void mapLegacyPostedDetails_mapsFieldsCorrectly() throws Exception {
+        // Arrange
+        PostedDetails pd = new PostedDetails();
+        pd.setPostedBy("tester");
+        pd.setPostedByName("Test User");
+        pd.setPostedDate(java.time.LocalDate.of(2024, 1, 1));
+
+        var method = LegacyDefendantAccountService.class
+            .getDeclaredMethod("mapLegacyPostedDetails", PostedDetails.class);
+        method.setAccessible(true);
+
+        // Act
+        LegacyPostedDetails out =
+            (LegacyPostedDetails) method.invoke(legacyDefendantAccountService, pd);
+
+        // Assert
+        assertNotNull(out);
+        assertEquals(pd.getPostedBy(), out.getPostedBy());
+        assertEquals(pd.getPostedByName(), out.getPostedByName());
+        assertEquals(pd.getPostedDate(), out.getPostedDate());
+    }
+
+    @Test
+    void mapLegacyPaymentTermsType_nullOrMissingCode_returnsNull() throws Exception {
+        var method = LegacyDefendantAccountService.class
+            .getDeclaredMethod("mapLegacyPaymentTermsType", PaymentTermsType.class);
+        method.setAccessible(true);
+
+        // null → null
+        assertNull(method.invoke(legacyDefendantAccountService, (Object) null));
+
+        // PaymentTermsType with null code → null
+        PaymentTermsType pt = mock(PaymentTermsType.class);
+        when(pt.getPaymentTermsTypeCode()).thenReturn(null);
+        assertNull(method.invoke(legacyDefendantAccountService, pt));
+    }
+
+    @Test
+    void mapLegacyPaymentTermsType_validCode_mapsCorrectEnum() throws Exception {
+        PaymentTermsType pt = mock(PaymentTermsType.class);
+        when(pt.getPaymentTermsTypeCode()).thenReturn(PaymentTermsType.PaymentTermsTypeCode.B);
+
+        var method = LegacyDefendantAccountService.class
+            .getDeclaredMethod("mapLegacyPaymentTermsType", PaymentTermsType.class);
+        method.setAccessible(true);
+
+        LegacyPaymentTermsType out =
+            (LegacyPaymentTermsType) method.invoke(legacyDefendantAccountService, pt);
+
+        assertNotNull(out);
+        assertEquals(LegacyPaymentTermsType.PaymentTermsTypeCode.B, out.getPaymentTermsTypeCode());
+    }
+
+    @Test
+    void mapLegacyInstalmentPeriod_nullOrMissingCode_returnsNull() throws Exception {
+        var method = LegacyDefendantAccountService.class
+            .getDeclaredMethod("mapLegacyInstalmentPeriod", InstalmentPeriod.class);
+        method.setAccessible(true);
+
+        // null → null
+        assertNull(method.invoke(legacyDefendantAccountService, (Object) null));
+
+        InstalmentPeriod ip = mock(InstalmentPeriod.class);
+        when(ip.getInstalmentPeriodCode()).thenReturn(null);
+        assertNull(method.invoke(legacyDefendantAccountService, ip));
+    }
+
+    @Test
+    void mapLegacyInstalmentPeriod_validCode_mapsCorrectEnum() throws Exception {
+        InstalmentPeriod ip = mock(InstalmentPeriod.class);
+        when(ip.getInstalmentPeriodCode()).thenReturn(
+            InstalmentPeriod.InstalmentPeriodCode.W
+        );
+
+        var method = LegacyDefendantAccountService.class
+            .getDeclaredMethod("mapLegacyInstalmentPeriod", InstalmentPeriod.class);
+        method.setAccessible(true);
+
+        LegacyInstalmentPeriod out =
+            (LegacyInstalmentPeriod) method.invoke(legacyDefendantAccountService, ip);
+
+        assertNotNull(out);
+        assertEquals(LegacyInstalmentPeriod.InstalmentPeriodCode.W, out.getInstalmentPeriodCode());
+    }
+
+    @Test
+    void mapPaymentTermsTypeCodeEnum_validAndInvalid() throws Exception {
+        var method = LegacyDefendantAccountService.class
+            .getDeclaredMethod("mapPaymentTermsTypeCodeEnum", String.class);
+        method.setAccessible(true);
+
+        assertEquals(
+            LegacyPaymentTermsType.PaymentTermsTypeCode.B,
+            method.invoke(legacyDefendantAccountService, "B")
+        );
+
+        assertEquals(
+            LegacyPaymentTermsType.PaymentTermsTypeCode.P,
+            method.invoke(legacyDefendantAccountService, "p")
+        );
+
+        assertNull(method.invoke(legacyDefendantAccountService, (Object) null));
+
+        // Invalid code → IllegalArgumentException (wrapped in InvocationTargetException)
+        assertThrows(Exception.class, () -> method.invoke(legacyDefendantAccountService, "X"));
+    }
+
+    @Test
+    void mapInstalmentPeriodCodeEnum_validAndInvalid() throws Exception {
+        var method = LegacyDefendantAccountService.class
+            .getDeclaredMethod("mapInstalmentPeriodCodeEnum", String.class);
+        method.setAccessible(true);
+
+        assertEquals(
+            LegacyInstalmentPeriod.InstalmentPeriodCode.W,
+            method.invoke(legacyDefendantAccountService, "W")
+        );
+
+        assertEquals(
+            LegacyInstalmentPeriod.InstalmentPeriodCode.M,
+            method.invoke(legacyDefendantAccountService, "m")
+        );
+
+        assertNull(method.invoke(legacyDefendantAccountService, (Object) null));
+
+        assertThrows(Exception.class, () -> method.invoke(legacyDefendantAccountService, "Z"));
     }
 
 }
