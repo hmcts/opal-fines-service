@@ -13,7 +13,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -119,6 +118,7 @@ import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
+import uk.gov.hmcts.opal.util.Versioned;
 
 // TODO: This class is testing a lot of things that AREN'T in the system under test. Refactor needed.
 @ExtendWith(MockitoExtension.class)
@@ -2437,7 +2437,7 @@ class OpalDefendantAccountServiceTest {
             eq("\"1\""),
             eq("10"),
             eq("fallbackUser"),
-            isNull()
+            eq("fallbackUser")
         );
     }
 
@@ -2457,6 +2457,141 @@ class OpalDefendantAccountServiceTest {
             () -> svc.addPaymentCardRequest(1L, "10", "USR", "\"1\"", "AUTH"));
 
         verifyNoInteractions(proxy);
+    }
+
+    @Test
+    void searchDefendantAccounts_hasRef_whenBothFieldsNull_shouldBeFalse() {
+        // Arrange
+        ReferenceNumberDto ref = new ReferenceNumberDto();
+        ref.setAccountNumber(null);
+        ref.setProsecutorCaseReference(null);
+
+        AccountSearchDto dto = AccountSearchDto.builder()
+            .activeAccountsOnly(true)
+            .referenceNumberDto(ref)
+            .businessUnitIds(Collections.emptyList())
+            .build();
+
+        when(searchDefAccRepo.findAll(
+            ArgumentMatchers.<Specification<SearchDefendantAccountEntity>>any()
+        )).thenReturn(Collections.emptyList());
+
+        // Act
+        service.searchDefendantAccounts(dto);
+
+        // Assert
+        verify(searchSpecsSpy).filterByActiveOnly(true);
+    }
+
+    @Test
+    void replaceDefendantAccountParty_throwsWhenAccountHasNoBusinessUnit() {
+        // Arrange
+        Long accountId = 10L;
+        Long dapId = 20L;
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(null) // <-- triggers first missing branch
+            .versionNumber(1L)
+            .parties(Collections.emptyList())
+            .build();
+
+        when(defendantAccountRepository.findById(accountId))
+            .thenReturn(Optional.of(account));
+
+        // Act + Assert
+        assertThrows(EntityNotFoundException.class, () ->
+            service.replaceDefendantAccountParty(
+                accountId, dapId,
+                mock(DefendantAccountParty.class),
+                "\"1\"",
+                "10",
+                "tester",
+                null
+            )
+        );
+    }
+
+    @Test
+    void replaceDefendantAccountParty_throwsWhenAccountHasNullBusinessUnitId() {
+        // Arrange
+        Long accountId = 11L;
+        Long dapId = 21L;
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(BusinessUnitFullEntity.builder()
+                .businessUnitId(null)   // <-- triggers second missing branch
+                .build())
+            .versionNumber(1L)
+            .parties(Collections.emptyList())
+            .build();
+
+        when(defendantAccountRepository.findById(accountId))
+            .thenReturn(Optional.of(account));
+
+        // Act + Assert
+        assertThrows(EntityNotFoundException.class, () ->
+            service.replaceDefendantAccountParty(
+                accountId, dapId,
+                mock(DefendantAccountParty.class),
+                "\"1\"",
+                "10",
+                "tester",
+                null
+            )
+        );
+    }
+
+    @Test
+    void replaceDefendantAccountParty_partyNull_andRequestedPartyIdNull_throws() {
+        Long accountId = 50L;
+        Long dapId = 60L;
+
+        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10)
+            .build();
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(dapId)
+            .party(null)     // <-- triggers 'party == null' branch
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(bu)
+            .versionNumber(1L)
+            .parties(List.of(dap))
+            .build();
+
+        when(defendantAccountRepository.findById(accountId))
+            .thenReturn(Optional.of(account));
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .partyDetails(PartyDetails.builder()
+                .partyId(null)
+                .organisationFlag(Boolean.TRUE)
+                .build())
+            .build();
+
+        try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(any(Versioned.class), any(String.class), anyLong(),
+                    any(String.class)))
+                .thenAnswer(inv -> null);
+
+            assertThrows(IllegalArgumentException.class, () ->
+                service.replaceDefendantAccountParty(
+                    accountId,
+                    dapId,
+                    req,
+                    "\"1\"",
+                    "10",
+                    null,
+                    null
+                )
+            );
+        }
+
     }
 
 }
