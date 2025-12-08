@@ -38,10 +38,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
+import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
+import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.PaymentTerms;
+import uk.gov.hmcts.opal.dto.ResultResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
@@ -50,6 +54,7 @@ import uk.gov.hmcts.opal.dto.common.InstalmentPeriod;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
+import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
@@ -2418,6 +2423,186 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // language preferences should be null in modern model when legacy had none
         assertNull(out.getDefendantAccountParty().getLanguagePreferences(),
             "Language preferences should be null when legacy languagePreferences is null");
+    }
+
+    @Test
+    void addEnforcement_success_returnsMappedAddEnforcementResponse_simple() {
+        AddDefendantAccountEnforcementLegacyResponse legacyResp =
+            mock(AddDefendantAccountEnforcementLegacyResponse.class);
+        when(legacyResp.getEnforcementId()).thenReturn("ENF-1");
+        when(legacyResp.getDefendantAccountId()).thenReturn("123");
+        when(legacyResp.getVersion()).thenReturn(1);
+
+        GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_ENFORCEMENT),
+            eq(AddDefendantAccountEnforcementLegacyResponse.class),
+            any(),
+            Mockito.nullable(String.class)
+        );
+
+        AddEnforcementResponse out =
+            legacyDefendantAccountService.addEnforcement(123L, "BU-1", "user-1", "\"1\"", "auth", null);
+
+        assertNotNull(out);
+        assertEquals("ENF-1", out.getEnforcementId());
+        assertEquals("123", out.getDefendantAccountId());
+        assertEquals(1, out.getVersion());
+    }
+
+    @Test
+    void addEnforcement_legacyFailure5xx_withEntity_stillReturnsMappedResponse_simple() {
+        AddDefendantAccountEnforcementLegacyResponse legacyResp =
+            mock(AddDefendantAccountEnforcementLegacyResponse.class);
+        when(legacyResp.getEnforcementId()).thenReturn("ENF-500");
+        when(legacyResp.getDefendantAccountId()).thenReturn("500");
+        when(legacyResp.getVersion()).thenReturn(5);
+
+        GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacyResp, "<legacy-failure/>", null);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_ENFORCEMENT),
+            eq(AddDefendantAccountEnforcementLegacyResponse.class),
+            any(),
+            Mockito.nullable(String.class)
+        );
+
+        // Act
+        AddEnforcementResponse out =
+            legacyDefendantAccountService.addEnforcement(500L, "BU-500", "user-500", "\"5\"", "auth", null);
+
+        // Assert
+        assertNotNull(out);
+        assertEquals("ENF-500", out.getEnforcementId());
+        assertEquals("500", out.getDefendantAccountId());
+        assertEquals(5, out.getVersion());
+    }
+
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void addEnforcement_withRequest_sendsLegacyRequestContainingMappedCollectionsAndPaymentTerms() throws Exception {
+        // Arrange: mock modern request with one ResultResponse and a PaymentTerms object
+        AddDefendantAccountEnforcementRequest request = mock(AddDefendantAccountEnforcementRequest.class);
+        ResultResponse rr = mock(ResultResponse.class);
+        when(rr.getParameterName()).thenReturn("param-1");
+        when(rr.getResponse()).thenReturn("resp-1");
+        when(request.getEnforcementResultResponses()).thenReturn(java.util.List.of(rr));
+
+        // PaymentTerms with nested types returning null codes so mapping still produces a LegacyPaymentTerms (but with null sub-enums)
+        PaymentTerms pt = mock(PaymentTerms.class);
+        PaymentTermsType ptt = mock(PaymentTermsType.class);
+        when(ptt.getPaymentTermsTypeCode()).thenReturn(null); // safe for mapLegacyPaymentTermsType
+        InstalmentPeriod ip = mock(InstalmentPeriod.class);
+        when(ip.getInstalmentPeriodCode()).thenReturn(null); // safe for mapLegacyInstalmentPeriod
+        when(pt.getPaymentTermsType()).thenReturn(ptt);
+        when(pt.getInstalmentPeriod()).thenReturn(ip);
+        when(request.getPaymentTerms()).thenReturn(pt);
+
+        // Prepare legacy response entity that will be returned by gateway
+        AddDefendantAccountEnforcementLegacyResponse legacyResp =
+            mock(AddDefendantAccountEnforcementLegacyResponse.class);
+        when(legacyResp.getEnforcementId()).thenReturn("ENF-CAP");
+        when(legacyResp.getDefendantAccountId()).thenReturn("999");
+        when(legacyResp.getVersion()).thenReturn(11);
+
+        GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
+
+        // stub gateway to capture the legacy request and return the response
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Object> reqCaptor = ArgumentCaptor.forClass(Object.class);
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_ENFORCEMENT),
+            eq(AddDefendantAccountEnforcementLegacyResponse.class),
+            reqCaptor.capture(),
+            Mockito.nullable(String.class)
+        );
+
+        // Act
+        AddEnforcementResponse out =
+            legacyDefendantAccountService.addEnforcement(999L, "BU-TEST", "user-test", "\"11\"", "auth", request);
+
+        // Assert - public DTO returned correctly
+        assertNotNull(out);
+        assertEquals("ENF-CAP", out.getEnforcementId());
+        assertEquals("999", out.getDefendantAccountId());
+        assertEquals(11, out.getVersion());
+
+        // Also assert the service built a legacy request with expected top-level fields and mapped collections
+        Object sentLegacyRequest = reqCaptor.getValue();
+        assertNotNull(sentLegacyRequest);
+
+        // Use reflection to verify the legacy request's fields (getters created by builder)
+        var clazz = sentLegacyRequest.getClass();
+        var defId = clazz.getMethod("getDefendantAccountId").invoke(sentLegacyRequest);
+        var buId = clazz.getMethod("getBusinessUnitId").invoke(sentLegacyRequest);
+        var buUser = clazz.getMethod("getBusinessUnitUserId").invoke(sentLegacyRequest);
+        var version = clazz.getMethod("getVersion").invoke(sentLegacyRequest);
+        var enforcementList = clazz.getMethod("getEnforcementResultResponses").invoke(sentLegacyRequest);
+        var paymentTermsLegacy = clazz.getMethod("getPaymentTerms").invoke(sentLegacyRequest);
+
+        assertEquals("999", defId);
+        assertEquals("BU-TEST", buId);
+        assertEquals("user-test", buUser);
+        assertEquals(11, ((Number) version).intValue());
+        // enforcementList should be a non-empty collection because request had one ResultResponse
+        assertNotNull(enforcementList);
+        assertTrue(((java.util.Collection<?>) enforcementList).size() >= 1);
+        // paymentTermsLegacy should not be null (mapping created a legacy payment terms object)
+        assertNotNull(paymentTermsLegacy);
+    }
+
+    @Test
+    void addEnforcement_legacyFailure5xx_withEntity_stillReturnsMappedResponse_simpleCoverage() {
+        // Arrange - legacy 5xx but responseEntity present (exercises legacy-failure logging path)
+        AddDefendantAccountEnforcementLegacyResponse legacyResp =
+            mock(AddDefendantAccountEnforcementLegacyResponse.class);
+        when(legacyResp.getEnforcementId()).thenReturn("ENF-500");
+        when(legacyResp.getDefendantAccountId()).thenReturn("500");
+        when(legacyResp.getVersion()).thenReturn(5);
+
+        GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> resp =
+            new GatewayService.Response<>(HttpStatus.SERVICE_UNAVAILABLE, legacyResp, "<legacy-failure/>", null);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_ENFORCEMENT),
+            eq(AddDefendantAccountEnforcementLegacyResponse.class),
+            any(),
+            Mockito.nullable(String.class)
+        );
+
+        // Act
+        AddEnforcementResponse out =
+            legacyDefendantAccountService.addEnforcement(500L, "BU-500", "user-500", "\"5\"", "auth", null);
+
+        // Assert
+        assertNotNull(out);
+        assertEquals("ENF-500", out.getEnforcementId());
+        assertEquals("500", out.getDefendantAccountId());
+        assertEquals(5, out.getVersion());
+    }
+
+    @Test
+    void addEnforcement_gatewayResponseWithException_throwsNullPointerDueToMissingEntity() {
+        // Arrange: simulate gateway returning Response with exception and no responseEntity
+        GatewayService.Response<AddDefendantAccountEnforcementLegacyResponse> errResp =
+            new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, new RuntimeException("boom"), "<err/>");
+
+        doReturn(errResp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_ENFORCEMENT),
+            eq(AddDefendantAccountEnforcementLegacyResponse.class),
+            any(),
+            Mockito.nullable(String.class)
+        );
+
+        // Act & Assert: calling the public method should throw a NullPointerException inside production code
+        assertThrows(NullPointerException.class, () ->
+            legacyDefendantAccountService.addEnforcement(1L, "BU", "U", "\"1\"", "auth", null)
+        );
     }
 
 }

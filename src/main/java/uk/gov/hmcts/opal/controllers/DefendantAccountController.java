@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
+import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
+import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
@@ -180,21 +182,21 @@ public class DefendantAccountController {
 
     @PostMapping("/{defendantAccountId}/enforcements")
     @Operation(summary = "Create an enforcement for a given defendant account")
-    public ResponseEntity<AddPaymentCardRequestResponse> addDefendantAccountEnforcement(
+    public ResponseEntity<AddEnforcementResponse> addDefendantAccountEnforcement(
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
-        @RequestHeader(value = "If-Match", required = false) String ifMatch
+        @RequestHeader(value = "If-Match", required = false) String ifMatch,
+        @RequestBody AddDefendantAccountEnforcementRequest request
+
     ) {
         log.debug(":POST:addEnforcement: for defendantAccountId={}", defendantAccountId);
 
-        AddPaymentCardRequestResponse response = defendantAccountService.addPaymentCardRequest(
-            defendantAccountId, businessUnitId, ifMatch, authHeaderValue
+        AddEnforcementResponse response = defendantAccountService.addEnforcement(
+            defendantAccountId, businessUnitId, ifMatch, authHeaderValue, request
         );
 
         return buildResponse(response);
     }
-
-
 
 }

@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal.service.proxy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
+import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
@@ -91,13 +93,14 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     }
 
     @Override
-    public AddPaymentCardRequestResponse addEnforcement(Long defendantAccountId,
+    public AddEnforcementResponse addEnforcement(Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        String authHeader) {
+        String authHeader,
+        AddDefendantAccountEnforcementRequest request) {
         return getCurrentModeService().addEnforcement(defendantAccountId, businessUnitId, businessUnitUserId,
-            ifMatch, authHeader);
+            ifMatch, authHeader, request);
     }
 
 
