@@ -182,7 +182,7 @@ public class DefendantAccountController {
 
     @PostMapping("/{defendantAccountId}/enforcements")
     @Operation(summary = "Create an enforcement for a given defendant account")
-    public ResponseEntity<AddEnforcementResponse> addDefendantAccountEnforcement(
+    public ResponseEntity<AddEnforcementResponse> addEnforcement(
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
         @RequestHeader("Business-Unit-Id") String businessUnitId,
