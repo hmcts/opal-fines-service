@@ -22,5 +22,5 @@ public class AddDefendantAccountEnforcementRequest {
     private List<ResultResponse> enforcementResultResponses;
 
     @JsonProperty("payment_terms")
-    private PaymentTerms paymentTerms; // assume this class already exists in your project
+    private PaymentTerms paymentTerms;
 }
