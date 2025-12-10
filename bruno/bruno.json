@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "opal-fines-service",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

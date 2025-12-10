@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "name": "Opal Fines Service REST API Collection",
+  "type": "workspace",
+  "settings": {
+    "requestTimeout": 30000,
+    "followRedirects": true,
+    "prettyPrintResponse": true,
+    "validateSSL": false
+  },
+  "envs": {
+    "default": "local",
+    "paths": [
+      "./environments"
+    ]
+  },
+  "collections": [
+    {
+      "name": "Dependant Accounts API",
+      "path": "./collections/DefendantAccount"
+    },
+    {
+      "name": "Draft Account API",
+      "path": "./collections/DraftAccount"
+    }
+  ]
+}
