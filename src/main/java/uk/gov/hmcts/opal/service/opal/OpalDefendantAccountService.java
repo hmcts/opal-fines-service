@@ -1002,10 +1002,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
         // lock the account row to serialize concurrent writers
-        em.lock(defAccount, LockModeType.PESSIMISTIC_WRITE);
+        em.lock(defAccount, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         // Toggle any existing active payment term(s) for the defendant account to inactive
         paymentTermsService.deactivateExistingActivePaymentTerms(defAccount.getDefendantAccountId());
-        // ensure DB sees changes before insert
+        // ensure DB sees changes before inserting a payment terms row
         em.flush();
 
         // Map request -> Payment Terms Entity using MapStruct
