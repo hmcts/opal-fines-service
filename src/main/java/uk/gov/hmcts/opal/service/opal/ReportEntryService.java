@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +16,9 @@ import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
 @Qualifier("reportEntryService")
 public class ReportEntryService implements ReportEntryServiceInterface {
 
+    public static final String LIST_EXTEND_TTP = "list_extend_ttp";
+    public static final String PAYMENT_TERMS = "payment_terms";
+
     @Autowired
     private ReportEntryRepository reportEntryRepository;
 
@@ -31,10 +33,10 @@ public class ReportEntryService implements ReportEntryServiceInterface {
         ReportEntryEntity reportEntry = new ReportEntryEntity();
 
         reportEntry.setBusinessUnit(businessUnitService.getBusinessUnit(businessUnitId));
-        reportEntry.setReportId("list_extend_ttp");
-        reportEntry.setEntryTimestamp(LocalDate.from(LocalDateTime.now()));
+        reportEntry.setReportId(LIST_EXTEND_TTP);
+        reportEntry.setEntryTimestamp(LocalDateTime.now());
         reportEntry.setAssociatedRecordId(String.valueOf(paymentTermsId));
-        reportEntry.setAssociatedRecordType("payment_terms");
+        reportEntry.setAssociatedRecordType(PAYMENT_TERMS);
 
         reportEntryRepository.save(reportEntry);
 
