@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.controllers;
 
+import java.util.List;
+import java.util.Map;
+
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
@@ -7,48 +10,46 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import org.hamcrest.core.IsNull;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
-
-import java.util.List;
-import java.util.Map;
-import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.Mockito;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.web.server.ResponseStatusException;
+
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -4137,5 +4138,124 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         res.andExpect(status().is5xxServerError());
     }
+    @DisplayName("LEGACY: POST Add Enforcement - forbidden without ENTER_ENFORCEMENT")
+    void legacyPostAddEnforcement_403Forbidden(Logger log) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(
+            UserState.builder()
+                .userId(999L)
+                .userName("no-permission-user")
+                .businessUnitUser(java.util.Collections.emptySet())
+                .build()
+        );
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("good_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + 1 + "\"");
+
+        String body = """
+            {
+              "result_id": "CONF",
+              "enforcement_result_responses": [
+                {
+                  "parameter_name": "amount_due",
+                  "response": "100.00"
+                },
+                {
+                  "parameter_name": "next_payment_date",
+                  "response": "2026-01-15"
+                }
+              ],
+              "payment_terms": {
+                "days_in_default": 30,
+                "date_days_in_default_imposed": "2025-11-01",
+                "extension": true,
+                "reason_for_extension": "Financial hardship",
+                "payment_terms_type": {
+                  "payment_terms_type_code": "B"
+                },
+                "effective_date": "2025-11-15",
+                "instalment_period": {
+                  "instalment_period_code": "M"
+                },
+                "lump_sum_amount": 0.00,
+                "instalment_amount": 150.00,
+                "posted_details": {
+                  "posted_date": "2025-11-02",
+                  "posted_by": "System",
+                  "posted_by_name": "System User"
+                }
+              }
+            }
+            """;
+
+        ResultActions res = mockMvc.perform(
+            post("/defendant-accounts/72/enforcements")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
+
+        String responseBody = res.andReturn().getResponse().getContentAsString();
+        log.info(":legacyPostAddEnforcement_403Forbidden response:\n{}", ToJsonString.toPrettyJson(responseBody));
+
+        res.andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    @DisplayName("LEGACY: POST Add Enforcement - unauthorized token rejected")
+    void legacyPostAddEnforcement_401Unauthorized(Logger log) throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
+            .when(userStateService).checkForAuthorisedUser(any());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("bad_token");
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, "\"" + 1 + "\"");
+
+        String body = """
+            {
+              "result_id": "CONF",
+              "enforcement_result_responses": [
+                {
+                  "parameter_name": "amount_due",
+                  "response": "100.00"
+                }
+              ],
+              "payment_terms": {
+                "days_in_default": 30,
+                "date_days_in_default_imposed": "2025-11-01",
+                "extension": true,
+                "reason_for_extension": "Financial hardship",
+                "payment_terms_type": {
+                  "payment_terms_type_code": "B"
+                },
+                "effective_date": "2025-11-15",
+                "instalment_period": {
+                  "instalment_period_code": "M"
+                },
+                "lump_sum_amount": 0.00,
+                "instalment_amount": 150.00,
+                "posted_details": {
+                  "posted_date": "2025-11-02",
+                  "posted_by": "System",
+                  "posted_by_name": "System User"
+                }
+              }
+            }
+            """;
+
+        mockMvc.perform(
+            post("/defendant-accounts/72/enforcements")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        )
+            .andExpect(status().isUnauthorized())
+            .andExpect(content().string(""));
+    }
 }

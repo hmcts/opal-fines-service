@@ -137,6 +137,18 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
 
     @Disabled("A running instance of Legacy Stub App is required to execute this test")
     @Test
+    void testLegacyPostAddEnforcement_403Forbidden() throws Exception {
+        super.legacyPostAddEnforcement_403Forbidden(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testLegacyPostAddEnforcement_401Unauthorized() throws Exception {
+        super.legacyPostAddEnforcement_401Unauthorized(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
     void testLegacyPostAddEnforcement_500Error() throws Exception {
         super.legacyPostAddEnforcement_500Error(log);
     }
