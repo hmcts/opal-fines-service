@@ -4138,6 +4138,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         res.andExpect(status().is5xxServerError());
     }
+    
     @DisplayName("LEGACY: POST Add Enforcement - forbidden without ENTER_ENFORCEMENT")
     void legacyPostAddEnforcement_403Forbidden(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
