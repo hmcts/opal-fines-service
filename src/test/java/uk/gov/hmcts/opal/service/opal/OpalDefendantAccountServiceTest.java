@@ -2071,15 +2071,6 @@ class OpalDefendantAccountServiceTest {
         when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
         when(paymentCardRequestRepository.existsByDefendantAccountId(accountId)).thenReturn(false);
 
-        // User state resolves a BU user ID
-        var buUser = mock(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser.class);
-        when(buUser.getBusinessUnitUserId()).thenReturn("L080JG");
-
-        var userState = mock(uk.gov.hmcts.opal.common.user.authorisation.model.UserState.class);
-        when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
-            .thenReturn(Optional.of(buUser));
-
-        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
         when(accessTokenService.extractName("AUTH")).thenReturn("John Smith");
 
         // Make save(account) echo the argument
@@ -2147,11 +2138,6 @@ class OpalDefendantAccountServiceTest {
 
         when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
         when(paymentCardRequestRepository.existsByDefendantAccountId(1L)).thenReturn(false);
-
-        // UserState returns empty Optional for this BU
-        var userState = mock(uk.gov.hmcts.opal.common.user.authorisation.model.UserState.class);
-        when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.empty());
-        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
 
         when(defendantAccountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
