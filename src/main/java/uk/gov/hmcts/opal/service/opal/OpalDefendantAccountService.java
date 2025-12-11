@@ -166,6 +166,13 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 "Defendant Account not found with id: " + defendantAccountId));
     }
 
+    @Transactional
+    public DefendantAccountEntity getDefendantAccountByIdForUpdate(long defendantAccountId) {
+        return defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account not found with id: " + defendantAccountId));
+    }
+
     @Override
     @Transactional(readOnly = true)
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
@@ -943,7 +950,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
 
         // Look up the defendant account
-        DefendantAccountEntity defAccount = getDefendantAccountById(defendantAccountId);
+        DefendantAccountEntity defAccount = getDefendantAccountByIdForUpdate(defendantAccountId);
 
         // Validate BU
         if (defAccount.getBusinessUnit() == null
@@ -956,12 +963,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
-        // lock the account row to serialize concurrent writers
-        em.lock(defAccount, LockModeType.OPTIMISTIC_FORCE_INCREMENT);
         // Toggle any existing active payment term(s) for the defendant account to inactive
         paymentTermsService.deactivateExistingActivePaymentTerms(defAccount.getDefendantAccountId());
-        // ensure DB sees changes before inserting a payment terms row
-        em.flush();
 
         // Map request -> Payment Terms Entity using MapStruct
         PaymentTermsEntity paymentTermsEntity

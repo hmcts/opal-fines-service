@@ -90,7 +90,8 @@ public class OpalDefendantAccountServiceTestAddPaymentTermsTest {
         request.setPaymentTerms(paymentTermsDto);
 
         // Mock account lookup
-        when(defendantAccountRepository.findById(defendantAccountId)).thenReturn(Optional.of(account));
+        when(defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId))
+            .thenReturn(Optional.of(account));
 
         PaymentTermsEntity paymentTermsReturned = new PaymentTermsEntity();
         paymentTermsReturned.setPaymentTermsId(200L);
