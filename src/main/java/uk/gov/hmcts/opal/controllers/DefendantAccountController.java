@@ -94,7 +94,7 @@ public class DefendantAccountController {
         return buildResponse(response);
     }
 
-    @PutMapping(value = "/{defendantAccountId}/payment-terms")
+    @PostMapping(value = "/{defendantAccountId}/payment-terms")
     @Operation(summary = "Add Payment Terms to a defendant account")
     public ResponseEntity<GetDefendantAccountPaymentTermsResponse> addPaymentTerms(
         @PathVariable Long defendantAccountId,
