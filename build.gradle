@@ -85,7 +85,7 @@ configurations {
   smokeTestRuntimeOnly.extendsFrom runtimeOnly
 }
 
-configurations.all {
+configurations.configureEach {
   resolutionStrategy {
     force "io.cucumber:cucumber-core:${cucumberVersion}"
     force "io.cucumber:cucumber-java:${cucumberVersion}"
@@ -99,13 +99,13 @@ tasks.register("bundleOpenApi", JavaExec) {
   group = "openapi"
   description = "Bundle multiple OpenAPI YAML files into one"
   mainClass = 'uk.gov.hmcts.opal.openapi.OpenApiBundler'
-  args = ["$rootDir/src/main/resources/openapi", "$buildDir/openapi-bundled.yaml"]
+  args = ["$rootDir/src/main/resources/openapi", layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath]
 }
 
 openApiGenerate {
   generatorName = "spring"
-  inputSpec = "$buildDir/openapi-bundled.yaml".toString()
-  outputDir = "$buildDir/generated/openapi".toString()
+  inputSpec = layout.buildDirectory.file("openapi-bundled.yaml").get().asFile.absolutePath
+  outputDir = layout.buildDirectory.dir("generated/openapi").get().asFile.absolutePath
   apiPackage = "uk.gov.hmcts.opal.generated.".toString() + "http.api"
   modelPackage = "uk.gov.hmcts.opal.generated.".toString() + "model"
   // Point to your customized mustache templates
@@ -290,8 +290,12 @@ static String[] jacocoExclusionArray(ArrayList<String> exclusions) {
   return lst.toArray()
 }
 
-project.tasks['sonarqube'].dependsOn jacocoTestReport
-project.tasks['check'].dependsOn integration
+tasks.named("sonarqube") {
+  dependsOn(tasks.named("jacocoTestReport"))
+}
+tasks.named("check") {
+  dependsOn(tasks.named("integration"))
+}
 
 jacocoTestReport.dependsOn check
 jacocoTestCoverageVerification.dependsOn jacocoTestReport
