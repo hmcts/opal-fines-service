@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service;
 
-import java.util.Optional;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
@@ -151,42 +150,32 @@ public class DefendantAccountService {
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
 
+        String businessUserId = userState.getBusinessUnitUserForBusinessUnit(buId)
+            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(null);
+
         if (userState.hasBusinessUnitUserWithPermission(buId,
                 FinesPermission.ACCOUNT_MAINTENANCE)) {
             return defendantAccountServiceProxy.replaceDefendantAccountParty(defendantAccountId,
-                defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy,
-                getBusinessUnitUserIdForBusinessUnit(userState, buId)
-                    .orElse(userState.getUserName()));
+                defendantAccountPartyId, request, ifMatch, businessUnitId, postedBy, businessUserId);
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }
     }
 
-    private Optional<String> getBusinessUnitUserIdForBusinessUnit(UserState userState, short buId) {
-        return userState.getBusinessUnitUserForBusinessUnit(buId)
-            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
-            .filter(id -> !id.isBlank());
-    }
-
-
-    public AddPaymentCardRequestResponse addPaymentCardRequest(
-        Long defendantAccountId,
+    public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
         String businessUnitId,
-        String businessUnitUserId,
         String ifMatch,
-        String authHeaderValue
-    ) {
+        String authHeaderValue) {
         log.debug(":addPaymentCardRequest:");
 
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS)) {
+
             return defendantAccountServiceProxy.addPaymentCardRequest(
-                defendantAccountId,
-                businessUnitId,
-                businessUnitUserId,
-                ifMatch,
-                authHeaderValue
+                defendantAccountId, businessUnitId, ifMatch, authHeaderValue
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
