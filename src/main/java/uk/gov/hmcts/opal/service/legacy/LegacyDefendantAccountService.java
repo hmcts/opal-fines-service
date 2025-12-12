@@ -900,67 +900,81 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         String businessUnitId,
         String businessUnitUserId,
         String ifMatch,
-        String authHeader) {
-
+        String authHeader
+    ) {
         log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        // 1. Convert If-Match to version (legacy uses version directly)
-        Integer version;
+        Integer version = parseVersion(ifMatch);
+        AddPaymentCardRequestLegacyRequest request = buildLegacyRequest(defendantAccountId, businessUnitId,
+            businessUnitUserId, version);
+
+        AddPaymentCardRequestLegacyResponse response = callGateway(request);
+        Long id = Long.valueOf(response.getDefendantAccountId());
+
+        return new AddPaymentCardRequestResponse(id);
+    }
+
+    private Integer parseVersion(String ifMatch) {
         try {
-            version = Integer.parseInt(ifMatch);
+            return Integer.parseInt(ifMatch);
         } catch (Exception ex) {
             log.error(":addPaymentCardRequest: invalid If-Match '{}'", ifMatch);
             throw new IllegalArgumentException("Invalid version/If-Match header");
         }
+    }
 
-
-        // 3. Build legacy request
-        AddPaymentCardRequestLegacyRequest legacyReq = AddPaymentCardRequestLegacyRequest.builder()
+    private AddPaymentCardRequestLegacyRequest buildLegacyRequest(
+        Long defendantAccountId,
+        String businessUnitId,
+        String businessUnitUserId,
+        Integer version
+    ) {
+        return AddPaymentCardRequestLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
             .version(version)
             .build();
+    }
 
-        // 3. Call legacy Gateway via standard helper
-        Response<AddPaymentCardRequestLegacyResponse> gwResponse =
+    private AddPaymentCardRequestLegacyResponse callGateway(AddPaymentCardRequestLegacyRequest request) {
+
+        Response<AddPaymentCardRequestLegacyResponse> gw =
             gatewayService.postToGateway(
                 ADD_PAYMENT_CARD_REQUEST,
                 AddPaymentCardRequestLegacyResponse.class,
-                legacyReq,
+                request,
                 null
             );
 
-        // 4. Handle gateway error patterns
-        if (gwResponse.isError()) {
-            log.error(":addPaymentCardRequest: Legacy Gateway error {}", gwResponse.code);
-
-            if (gwResponse.isException()) {
-                log.error(":addPaymentCardRequest: exception", gwResponse.exception);
-                throw new IllegalArgumentException("Legacy gateway exception", gwResponse.exception);
-            }
-
-            if (gwResponse.isLegacyFailure()) {
-                log.error(":addPaymentCardRequest: legacy failure:\n{}", gwResponse.body);
-                throw new IllegalArgumentException(("Legacy gateway returned failure"));
-            }
-
-            throw new IllegalArgumentException("Legacy gateway error: " + gwResponse.code);
+        if (gw.isError()) {
+            handleGatewayError(gw);
         }
 
-        log.info(":addPaymentCardRequest: Legacy Gateway Success");
-
-        AddPaymentCardRequestLegacyResponse entity = gwResponse.responseEntity;
-
-        if (entity == null) {
+        if (gw.responseEntity == null) {
             throw new IllegalArgumentException("Legacy response missing");
         }
 
-        // 6. Convert legacy response → Opal response
-        Long id = Long.valueOf(entity.getDefendantAccountId());
-
-        return new AddPaymentCardRequestResponse(id);
+        return gw.responseEntity;
     }
+
+    private void handleGatewayError(Response<?> gw) {
+
+        log.error(":addPaymentCardRequest: Legacy Gateway error {}", gw.code);
+
+        if (gw.isException()) {
+            log.error(":addPaymentCardRequest: exception", gw.exception);
+            throw new IllegalArgumentException("Legacy gateway exception", gw.exception);
+        }
+
+        if (gw.isLegacyFailure()) {
+            log.error(":addPaymentCardRequest: legacy failure:\n{}", gw.body);
+            throw new IllegalArgumentException("Legacy gateway returned failure");
+        }
+
+        throw new IllegalArgumentException("Legacy gateway error: " + gw.code);
+    }
+
 
     @Override
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,

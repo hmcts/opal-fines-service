@@ -780,7 +780,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             }
         }
 
-        deleteAliasesNotIn(partyId, keepIds);
+        deletePartyAliasesNotIn(partyId, keepIds);
         aliasRepository.flush();
     }
 
@@ -825,7 +825,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return row;
     }
 
-    private void deleteAliasesNotIn(Long partyId, Set<Long> keepIds) {
+    private void deletePartyAliasesNotIn(Long partyId, Set<Long> keepIds) {
         if (keepIds == null || keepIds.isEmpty()) {
             aliasRepository.deleteByParty_PartyId(partyId);
         } else {
@@ -965,63 +965,84 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        //  Fetch defendant account
-        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
+        DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
+        validateVersion(account, ifMatch);
 
-        //  Validate business unit
-        if (account.getBusinessUnit() == null
-            || account.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
-            throw new EntityNotFoundException(
-                "Defendant Account not found in business unit " + businessUnitId);
-        }
-
-        //  Version check
-        VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "addPaymentCardRequest");
-
-        //  Audit start
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
-        //  Ensure no existing PCR
-        if (paymentCardRequestRepository.existsByDefendantAccountId(defendantAccountId)) {
-            throw new ResourceConflictException(
-                "DefendantAccountEntity",
-                String.valueOf(defendantAccountId),
-                "A payment card request already exists for this account.",
-                account
-            );
+        ensureNoExistingPaymentCardRequest(defendantAccountId);
+
+        createPaymentCardRequest(defendantAccountId);
+
+        updateDefendantAccountWithPcr(account, businessUnitUserId, authHeader);
+
+        auditComplete(defendantAccountId, account, businessUnitUserId);
+
+        return new AddPaymentCardRequestResponse(defendantAccountId);
+    }
+
+    private DefendantAccountEntity loadAndValidateAccount(Long accountId, String buId) {
+        DefendantAccountEntity account = getDefendantAccountById(accountId);
+
+        if (account.getBusinessUnit() == null
+            || account.getBusinessUnit().getBusinessUnitId() == null
+            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(buId)) {
+            throw new EntityNotFoundException("Defendant Account not found in business unit " + buId);
         }
 
+        return account;
+    }
 
-        // Create PCR row first (so later declarations appear close to usage)
+    private void validateVersion(DefendantAccountEntity account, String ifMatch) {
+        VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCardRequest");
+    }
+
+    private void ensureNoExistingPaymentCardRequest(Long accountId) {
+        if (paymentCardRequestRepository.existsByDefendantAccountId(accountId)) {
+            throw new ResourceConflictException(
+                "DefendantAccountEntity",
+                String.valueOf(accountId),
+                "A payment card request already exists for this account.",
+                null
+            );
+        }
+    }
+
+    private void createPaymentCardRequest(Long accountId) {
         PaymentCardRequestEntity pcr = PaymentCardRequestEntity.builder()
-            .defendantAccountId(defendantAccountId)
+            .defendantAccountId(accountId)
             .build();
         paymentCardRequestRepository.save(pcr);
+    }
 
-        // Friendly display name — moved DIRECTLY before its first usage
-        final String displayName = accessTokenService.extractName(authHeader);
+    private void updateDefendantAccountWithPcr(DefendantAccountEntity account,
+        String businessUnitUserId,
+        String authHeader) {
 
-        //  Update defendant_accounts flags
+        String displayName = accessTokenService.extractName(authHeader);
+
         account.setPaymentCardRequested(true);
         account.setPaymentCardRequestedDate(LocalDate.now());
         account.setPaymentCardRequestedBy(businessUnitUserId);
         account.setPaymentCardRequestedByName(displayName);
-        defendantAccountRepository.save(account);
 
-        //  Audit complete
-        Short accountBuId = account.getBusinessUnit().getBusinessUnitId();
+        defendantAccountRepository.save(account);
+    }
+
+    private void auditComplete(Long accountId,
+        DefendantAccountEntity account,
+        String businessUnitUserId) {
+
+        Short buId = account.getBusinessUnit().getBusinessUnitId();
+
         amendmentService.auditFinaliseStoredProc(
-            defendantAccountId,
+            accountId,
             RecordType.DEFENDANT_ACCOUNTS,
-            accountBuId,
+            buId,
             businessUnitUserId,
             account.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"
         );
-
-        //  Minimal response
-        return new AddPaymentCardRequestResponse(defendantAccountId);
     }
 
     private static record ParsedAlias(
