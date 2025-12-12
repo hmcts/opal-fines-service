@@ -8,6 +8,7 @@ import lombok.Getter;
 
 /**
  * Language Preference object.
+ *
  * <p>
  * Language Code:
  *   - CY = "Welsh and English"
