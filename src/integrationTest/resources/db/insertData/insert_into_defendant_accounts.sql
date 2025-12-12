@@ -16,13 +16,6 @@
 -- Make sure we’re operating in the expected schema
 SET search_path TO public;
 
--- === DDL guardrails (safe to run repeatedly) =================================
--- Lookup table used by DefendantAccount.enf_override_result_id
-CREATE TABLE IF NOT EXISTS public.enforcement_override_results (
-    enforcement_override_result_id   varchar(50) PRIMARY KEY,
-    enforcement_override_result_name varchar(200) NOT NULL
-);
-
 -- Columns used below that might not exist in some environments
 ALTER TABLE public.enforcers
   ADD COLUMN IF NOT EXISTS name varchar(255);
@@ -41,11 +34,11 @@ ON CONFLICT (business_unit_id) DO UPDATE
         welsh_language     = EXCLUDED.welsh_language;
 
 
---  Enforcement Override Result: FWEC
-INSERT INTO enforcement_override_results (enforcement_override_result_id, enforcement_override_result_name)
-VALUES ('FWEC', 'Further Warrant Execution Cancelled')
-ON CONFLICT (enforcement_override_result_id) DO UPDATE
-  SET enforcement_override_result_name = EXCLUDED.enforcement_override_result_name;
+-- --  Enforcement Override Result: FWEC
+-- INSERT INTO enforcement_override_results (enforcement_override_result_id, enforcement_override_result_name)
+-- VALUES ('FWEC', 'Further Warrant Execution Cancelled')
+-- ON CONFLICT (enforcement_override_result_id) DO UPDATE
+--   SET enforcement_override_result_name = EXCLUDED.enforcement_override_result_name;
 
 --  Enforcer referenced by enf_override_enforcer_id = 780000000021
 INSERT INTO enforcers (enforcer_id, business_unit_id, enforcer_code, name, warrant_reference_sequence, warrant_register_sequence)
@@ -100,6 +93,7 @@ INSERT INTO defendant_accounts
 , consolidated_account_type, payment_card_requested, payment_card_requested_date, payment_card_requested_by
 , prosecutor_case_reference, enforcement_case_status, account_type
 , account_comments, account_note_1, account_note_2, account_note_3
+, jail_days
 )
 VALUES ( 0077, 0, 078, '177A'
        , '2023-11-03 16:05:10', 780000000185, 700.58
@@ -114,6 +108,22 @@ VALUES ( 0077, 0, 078, '177A'
        , 'Y', 'Y', '2024-01-01 00:00:00', '11111111A'
        , '090A', NULL, 'Fine'
        , 'Text - Account Comment', 'free_text_note_1', 'free_text_note_2', 'free_text_note_3'
+       , 101
+       ),
+       ( 0078, 20, 078, '178A'
+       , '2023-11-03 16:05:10', 780000000185, 700.58
+       , 200.00, 500.58, 'L', NULL
+       , 780000000185, 780000000185, '2024-02-24 18:06:11'
+       , '2025-01-02 17:08:09', '2025-01-03 12:00:12', 'MPSO'
+       , 'Kingston-upon-Thames Mags Court', NULL, NULL
+       , 'N', 'N', 14, 21
+       , 'FWEC', 780000000021, 240
+       , 'GB pound sterling', 700.00, 'Y', '2024-02-18 00:00:00'
+       , '2024-02-19 00:00:00', NULL, NULL, NULL
+       , 'Y', 'Y', '2025-01-01 00:00:00', '11111111A'
+       , '099B', NULL, 'Fine'
+       , 'Text', NULL, NULL, 'text_note_3'
+       , 101
        );
 
 INSERT INTO parties
@@ -126,7 +136,12 @@ VALUES ( 0077, 'N', 'Sainsco'
        , 'Graham', 'Anna', 'Ms'
        , 'Lumber House', '77 Gordon Road', 'Maidstone, Kent'
        , NULL, NULL, 'MA4 1AL'
-       , 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL);
+       , 'Debtor', '1980-02-03 00:00:00', 33, 'A11111A', NULL),
+       ( 0078, 'N', 'Sainsco'
+       , 'Wilkins', 'Dave', 'Mr'
+       , 'Lumber House', '78 Gordon Road', 'Maidstone, Kent'
+       , NULL, NULL, 'MA5 1AL'
+       , 'Debtor', '1970-02-03 00:00:00', 43, 'A11111A', NULL);
 
 INSERT INTO debtor_detail
 ( party_id, vehicle_make, vehicle_registration,
@@ -139,6 +154,11 @@ VALUES
   'Tesco Ltd', '123 Employer Road', NULL,
   NULL, NULL, NULL,
   'EMP1 2AA', 'EMPREF77', '02079997777', 'employer77@company.com',
+  'EN', NULL, 'EN', NULL ),
+( 78, 'Toyota Prius', 'AB77CDE',
+  'Tesco Ltd', '123 Employer Road', NULL,
+  NULL, NULL, NULL,
+  'EMP1 2AA', 'EMPREF78', '02079997777', 'employer78@company.com',
   'EN', NULL, 'EN', NULL );
 
 
@@ -149,6 +169,8 @@ INSERT INTO defendant_account_parties
 ( defendant_account_party_id, defendant_account_id, party_id
 , association_type, debtor)
 VALUES ( 0077, 0077, 0077
+       , 'Defendant', 'Y'),
+       ( 0078, 0078, 0078
        , 'Defendant', 'Y');
 
 -- Enhance fixed penalty offence for account 77 (for PO-1819 integration test completeness)
@@ -938,4 +960,31 @@ ON CONFLICT (party_id) DO NOTHING;
 INSERT INTO aliases (alias_id, party_id, surname, forenames, sequence_number, organisation_name)
 VALUES (2200401, 22004, 'AliasSurnameSeed', 'AliasForenamesSeed', 1, NULL)
 ON CONFLICT (alias_id) DO NOTHING;
+
+-- Populate with Enforcement
+INSERT INTO enforcements
+( enforcement_id, defendant_account_id, posted_date, posted_by,
+  result_id, reason, enforcer_id, jail_days, warrant_reference,
+  result_responses)
+VALUES
+(
+  10001, 78, '2025-02-23 16:05:10', 'Merlin',
+  'FEES', 'Late Payment', 21, 101, 'Warrent007',
+ NULL
+),
+(
+    10002, 78, '2025-02-24 12:05:10', 'Merlin',
+    'FCOST', 'Late Payment', 21, 101, 'Warrent007',
+ NULL
+),
+(
+    10003, 78, '2025-02-13 10:05:10', 'Merlin',
+    'FCOST', 'Late Payment', 21, 101, 'Warrent007',
+ NULL
+),
+(
+    10004, 78, '2025-02-13 10:05:10', 'Merlin',
+    'MPSO', 'Late Payment', 21, 101, 'Warrent007',
+    '{"reason":"Evasion of Prison", "supervisor":"Mordred"}'
+);
 

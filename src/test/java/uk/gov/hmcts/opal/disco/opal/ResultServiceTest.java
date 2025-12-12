@@ -27,14 +27,14 @@ import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity.Lite;
 import uk.gov.hmcts.opal.mapper.ResultMapper;
-import uk.gov.hmcts.opal.repository.ResultLiteRepository;
+import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.service.opal.ResultService;
 
 @ExtendWith(MockitoExtension.class)
 class ResultServiceTest {
 
     @Mock
-    private ResultLiteRepository resultLiteRepository;
+    private ResultRepository resultRepository;
 
     @Spy
     private ResultMapper resultMapper;
@@ -47,10 +47,10 @@ class ResultServiceTest {
         // Arrange
 
         ResultEntity.Lite resultEntity = Lite.builder().build();
-        when(resultLiteRepository.findById(any())).thenReturn(Optional.of(resultEntity));
+        when(resultRepository.findById(any())).thenReturn(Optional.of(resultEntity));
 
         // Act
-        ResultEntity.Lite result = resultService.getLiteResultById("ABC");
+        ResultEntity.Lite result = resultService.getResultById("ABC");
 
         // Assert
         assertNotNull(result);
@@ -65,7 +65,7 @@ class ResultServiceTest {
         ResultReferenceData expectedRefData = new ResultReferenceData(
             "ABC", null, null, false, null, null, null
         );
-        when(resultLiteRepository.findById(any())).thenReturn(Optional.of(resultEntity));
+        when(resultRepository.findById(any())).thenReturn(Optional.of(resultEntity));
         when(resultMapper.toRefData(resultEntity)).thenReturn(expectedRefData);
 
         // Act
@@ -89,7 +89,7 @@ class ResultServiceTest {
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         Page<Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
-        when(resultLiteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
@@ -117,7 +117,7 @@ class ResultServiceTest {
 
         ResultEntity.Lite resultEntity = ResultEntity.Lite.builder().build();
         Page<ResultEntity.Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 999L);
-        when(resultLiteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
@@ -143,7 +143,7 @@ class ResultServiceTest {
         when(resultMapper.toRefData(entity)).thenReturn(expectedRefData);
 
         Page<ResultEntity.Lite> mockPage = new PageImpl<>(List.of(entity), Pageable.unpaged(), 999L);
-        when(resultLiteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
@@ -166,7 +166,7 @@ class ResultServiceTest {
     }
 
     @Test
-    void testGetResultById_ReturnsFullDto() {
+    void testGetResult_ReturnsFullDto() {
         // Arrange
         ResultEntity.Lite entity = ResultEntity.Lite.builder()
             .resultId("ABC")
@@ -184,29 +184,29 @@ class ResultServiceTest {
             .active(true)
             .build();
 
-        when(resultLiteRepository.findById("ABC")).thenReturn(Optional.of(entity));
+        when(resultRepository.findById("ABC")).thenReturn(Optional.of(entity));
         when(resultMapper.toDto(entity)).thenReturn(dto);
 
         // Act
-        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResultById("ABC");
+        uk.gov.hmcts.opal.dto.ResultDto result = resultService.getResult("ABC");
 
         // Assert
         assertNotNull(result);
         assertEquals("ABC", result.getResultId());
         assertEquals("Result Title", result.getResultTitle());
-        verify(resultLiteRepository).findById("ABC");
+        verify(resultRepository).findById("ABC");
         verify(resultMapper).toDto(entity);
     }
 
     @Test
-    void testGetResultById_ThrowsWhenNotFound() {
+    void testGetResult_ThrowsWhenNotFound() {
         // Arrange
-        when(resultLiteRepository.findById("MISSING")).thenReturn(Optional.empty());
+        when(resultRepository.findById("MISSING")).thenReturn(Optional.empty());
 
         // Act + Assert
         org.junit.jupiter.api.Assertions.assertThrows(
             jakarta.persistence.EntityNotFoundException.class,
-            () -> resultService.getResultById("MISSING")
+            () -> resultService.getResult("MISSING")
         );
     }
 
@@ -220,7 +220,7 @@ class ResultServiceTest {
         Lite resultEntity = Lite.builder().resultId("ABC").build();
         Page<Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 1L);
 
-        when(resultLiteRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
+        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
             invocation.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
@@ -251,7 +251,7 @@ class ResultServiceTest {
         Lite resultEntity = Lite.builder().resultId("ACT-1").active(true).build();
         Page<Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 1L);
 
-        when(resultLiteRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
+        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
             invocation.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
@@ -282,7 +282,7 @@ class ResultServiceTest {
         Lite resultEntity = Lite.builder().resultId("MEF-FALSE").manualEnforcement(false).build();
         Page<Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 1L);
 
-        when(resultLiteRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
+        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
             invocation.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
@@ -320,7 +320,7 @@ class ResultServiceTest {
 
         Page<Lite> mockPage = new PageImpl<>(List.of(resultEntity), Pageable.unpaged(), 1L);
 
-        when(resultLiteRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
+        when(resultRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
             invocation.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
