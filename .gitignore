@@ -1,5 +1,5 @@
 .gradle
-.env
+bruno/environments/local.env
 /build/
 !gradle/wrapper/gradle-wrapper.jar
 *.class
@@ -32,3 +32,11 @@ target
 
 applicationinsights-agent-*.jar
 *.log
+
+### Bruno ###
+
+# Ignore real Bruno environment files
+bruno/environments/*.env
+
+# But keep the template (example)
+!bruno/environments/env.template
