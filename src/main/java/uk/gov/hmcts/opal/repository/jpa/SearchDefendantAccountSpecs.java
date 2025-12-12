@@ -14,7 +14,6 @@ import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity_;
 
 import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.likeStartsWithNormalized;
 import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.equalNormalized;
-import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.stripCheckLetter;
 import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.normalize;
 import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.normalizeExpr;
 

@@ -19,6 +19,7 @@ import uk.gov.hmcts.opal.util.Versioned;
 
 /**
  * Defendant Account At A Glance Response.
+ *
  * <p>
  * based on getDefendantAccountAtAGlanceResponse.json
  * </p>
