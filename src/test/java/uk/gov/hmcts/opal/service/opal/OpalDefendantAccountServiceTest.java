@@ -45,8 +45,8 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -88,12 +88,14 @@ import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
+import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
@@ -117,7 +119,6 @@ import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
-import uk.gov.hmcts.opal.util.Versioned;
 
 // TODO: This class is testing a lot of things that AREN'T in the system under test. Refactor needed.
 @ExtendWith(MockitoExtension.class)
@@ -326,7 +327,7 @@ class OpalDefendantAccountServiceTest {
         assertEquals("77", dto.getDefendantAccountPartyId(),
             "defendant_account_party_id should map from defendantAccountPartyId");
         assertNotEquals("999", dto.getDefendantAccountPartyId(),
-            "should not map from partyId");
+                        "should not map from partyId");
     }
 
     @Test
@@ -2056,6 +2057,121 @@ class OpalDefendantAccountServiceTest {
             verify(defendantAccountRepository).saveAndFlush(account);
             verify(aliasRepo, times(2)).findByParty_PartyId(300L);
         }
+    }
+
+    @Test
+    void addPaymentCardRequest_happyPath_createsPCRAndUpdatesAccount() {
+        // Arrange
+        Long accountId = 99L;
+        String buHeader = "10";
+        String ifMatch = "\"1\"";
+
+        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10)
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .businessUnit(bu)
+            .versionNumber(1L)
+            .build();
+
+        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        when(paymentCardRequestRepository.existsByDefendantAccountId(accountId)).thenReturn(false);
+
+        // User state resolves a BU user ID
+        var buUser = mock(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser.class);
+        when(buUser.getBusinessUnitUserId()).thenReturn("L080JG");
+
+        var userState = mock(uk.gov.hmcts.opal.common.user.authorisation.model.UserState.class);
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
+            .thenReturn(Optional.of(buUser));
+
+        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
+        when(accessTokenService.extractName("AUTH")).thenReturn("John Smith");
+
+        // Make save(account) echo the argument
+        when(defendantAccountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // Act
+        AddPaymentCardRequestResponse response =
+            service.addPaymentCardRequest(accountId, buHeader, ifMatch, "AUTH");
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(accountId, response.getDefendantAccountId());
+
+        assertTrue(account.getPaymentCardRequested());
+        assertEquals("L080JG", account.getPaymentCardRequestedBy());
+        assertEquals("John Smith", account.getPaymentCardRequestedByName());
+
+        verify(paymentCardRequestRepository).save(any(PaymentCardRequestEntity.class));
+    }
+
+    @Test
+    void addPaymentCardRequest_failsWhenPcrAlreadyExists() {
+        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(
+            DefendantAccountEntity.builder()
+                .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
+                .versionNumber(1L)
+                .build()
+        ));
+
+        when(paymentCardRequestRepository.existsByDefendantAccountId(1L))
+            .thenReturn(true);
+
+        assertThrows(ResourceConflictException.class, () ->
+            service.addPaymentCardRequest(1L, "10", "\"1\"", "AUTH")
+        );
+    }
+
+    @Test
+    void addPaymentCardRequest_failsWhenBusinessUnitMismatch() {
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 77).build())
+            .versionNumber(1L)
+            .build();
+
+        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
+
+        assertThrows(EntityNotFoundException.class, () ->
+            service.addPaymentCardRequest(1L, "10", "\"1\"", "AUTH")
+        );
+    }
+
+    @Test
+    void addPaymentCardRequest_failsWhenUserNotInBusinessUnit() {
+        var account = DefendantAccountEntity.builder()
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
+            .versionNumber(1L)
+            .build();
+
+        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
+        when(paymentCardRequestRepository.existsByDefendantAccountId(1L)).thenReturn(false);
+
+        // UserState returns empty Optional for this BU
+        var userState = mock(uk.gov.hmcts.opal.common.user.authorisation.model.UserState.class);
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.empty());
+        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
+
+        assertThrows(EntityNotFoundException.class, () ->
+            service.addPaymentCardRequest(1L, "10", "\"1\"", "AUTH")
+        );
+    }
+
+    @Test
+    void addPaymentCardRequest_versionConflictThrows() {
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
+            .versionNumber(5L)  // expects If-Match: "5"
+            .build();
+
+        when(defendantAccountRepository.findById(1L))
+            .thenReturn(Optional.of(account));
+
+        assertThrows(ObjectOptimisticLockingFailureException.class, () ->
+            service.addPaymentCardRequest(1L, "10", "\"0\"", "AUTH")
+        );
     }
 
     @Test
