@@ -2361,9 +2361,8 @@ class OpalDefendantAccountServiceTest {
     @Test
     void getHeaderSummary_permissionDenied_throws403() {
         var proxy = mock(DefendantAccountServiceProxy.class);
-        var userStateService = mock(UserStateService.class);
-        var userState = mock(UserState.class);
 
+        UserState userState = mock(UserState.class);
         when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(false);
@@ -2379,9 +2378,8 @@ class OpalDefendantAccountServiceTest {
     @Test
     void updateDefendantAccount_blankBUUserId_fallsBackToUsername() {
         var proxy = mock(DefendantAccountServiceProxy.class);
-        var userStateService = mock(UserStateService.class);
-        var userState = mock(UserState.class);
 
+        UserState userState = mock(UserState.class);
         when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
@@ -2405,9 +2403,8 @@ class OpalDefendantAccountServiceTest {
     @Test
     void replaceParty_blankBUUserId_fallsBackToUsername() {
         var proxy = mock(DefendantAccountServiceProxy.class);
-        var userStateService = mock(UserStateService.class);
-        var userState = mock(UserState.class);
 
+        UserState userState = mock(UserState.class);
         when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission((short) 10, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
@@ -2441,9 +2438,8 @@ class OpalDefendantAccountServiceTest {
     @Test
     void addPaymentCardRequest_permissionDenied_throws403() {
         var proxy = mock(DefendantAccountServiceProxy.class);
-        var userStateService = mock(UserStateService.class);
-        var userState = mock(UserState.class);
 
+        UserState userState = mock(UserState.class);
         when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.AMEND_PAYMENT_TERMS))
             .thenReturn(false);
@@ -2640,5 +2636,228 @@ class OpalDefendantAccountServiceTest {
             );
         }
     }
+
+    @Test
+    void replaceDefendantAccountParty_throwsWhenBusinessUnitMissing() {
+        // Arrange
+        DefendantAccountEntity account = new DefendantAccountEntity();
+        account.setBusinessUnit(null); // THIS triggers the uncovered branch
+
+        when(defendantAccountRepository.findById(99L))
+            .thenReturn(Optional.of(account));
+
+        // Act + Assert
+        assertThrows(EntityNotFoundException.class, () ->
+            service.replaceDefendantAccountParty(
+                99L, 1L, mock(DefendantAccountParty.class),
+                "\"1\"", "10", "POSTED_BY", "BU_USER")
+        );
+    }
+
+    @Test
+    void replaceDefendantAccountParty_throwsWhenRequestedPartyIdNull() {
+        // ───── Arrange account with correct BU so it gets past BU validation ─────
+        DefendantAccountEntity account = new DefendantAccountEntity();
+        BusinessUnitFullEntity bu = new BusinessUnitFullEntity();
+        bu.setBusinessUnitId((short) 78);
+        account.setBusinessUnit(bu);
+        account.setVersionNumber(1L);
+
+        // ───── Create a DAP (DefendantAccountParty) entry with NO internal Party ─────
+        // This forces the service into the: if (party == null && requestedPartyId == null) branch
+        DefendantAccountPartiesEntity dap = new DefendantAccountPartiesEntity();
+        dap.setDefendantAccountPartyId(20010L);
+        dap.setParty(null);   // ← REQUIRED to trigger the branch
+
+        account.setParties(List.of(dap));
+
+        when(defendantAccountRepository.findById(77L))
+            .thenReturn(Optional.of(account));
+
+        // ───── Mock request → request.getPartyDetails() returns null ─────
+        // This forces requestedPartyId = null
+        DefendantAccountParty request = mock(DefendantAccountParty.class);
+        when(request.getPartyDetails()).thenReturn(null);
+
+        // ───── Act + Assert ─────
+        assertThrows(IllegalArgumentException.class, () ->
+            service.replaceDefendantAccountParty(
+                77L,
+                20010L,
+                request,
+                "\"1\"",   // ifMatch
+                "78",      // BU
+                "POSTED_BY",
+                "BU_USER"
+            )
+        );
+    }
+
+    @Test
+    void replaceDefendantAccountParty_coreReplace_handlesOrgAndIndividualNullBranches() {
+        // Arrange a BU-matching account + party
+        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10).build();
+
+        PartyEntity party = mock(PartyEntity.class);
+        when(party.getPartyId()).thenReturn(500L);
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .defendantAccountPartyId(999L)
+            .party(party)
+            .build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(100L)
+            .versionNumber(1L)
+            .businessUnit(bu)
+            .parties(List.of(dap))
+            .build();
+
+        when(defendantAccountRepository.findById(100L)).thenReturn(Optional.of(account));
+        when(opalPartyService.findById(500L)).thenReturn(party);
+        when(aliasRepo.findByParty_PartyId(500L)).thenReturn(Collections.emptyList());
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+
+        // Request with orgFlag = true but organisationDetails = null → covers NULL org branch
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .defendantAccountPartyType("Defendant")
+            .isDebtor(false)
+            .partyDetails(PartyDetails.builder()
+                .partyId("500")
+                .organisationFlag(true)
+                .organisationDetails(null) // ← triggers red branch
+                .build())
+            .build();
+
+        try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(
+                any(Versioned.class), anyString(), anyLong(), anyString()
+            )).thenAnswer(i -> null);
+
+
+            service.replaceDefendantAccountParty(100L, 999L, req, "\"1\"", "10", "poster", null);
+
+            // Verify organisation null branch executed
+            verify(party).setOrganisationName(null);
+            verify(party).setTitle(null);
+            verify(party).setForenames(null);
+            verify(party).setSurname(null);
+            verify(party).setBirthDate(null);
+            verify(party).setAge(null);
+            verify(party).setNiNumber(null);
+        }
+    }
+
+    @Test
+    void replaceDefendantAccountParty_addressNotNull_setsFields() {
+        PartyEntity party = mock(PartyEntity.class);
+        when(party.getPartyId()).thenReturn(600L);
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .party(party)
+            .defendantAccountPartyId(700L)
+            .build();
+
+        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10).build();
+
+        DefendantAccountEntity account = DefendantAccountEntity.builder()
+            .defendantAccountId(600L)
+            .businessUnit(bu)
+            .versionNumber(1L)
+            .parties(List.of(dap))
+            .build();
+
+        when(defendantAccountRepository.findById(600L)).thenReturn(Optional.of(account));
+        when(opalPartyService.findById(600L)).thenReturn(party);
+        when(aliasRepo.findByParty_PartyId(600L)).thenReturn(Collections.emptyList());
+        when(defendantAccountRepository.saveAndFlush(account)).thenReturn(account);
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .partyDetails(PartyDetails.builder()
+                .partyId("600")
+                .organisationFlag(false)
+                .individualDetails(IndividualDetails.builder()
+                    .title("Mr").forenames("John").surname("Smith")
+                    .build())
+                .build())
+            .address(AddressDetails.builder()
+                .addressLine1("Line1")
+                .addressLine2("Line2")
+                .postcode("ZZ1 1ZZ")
+                .build())
+            .defendantAccountPartyType("Defendant")
+            .isDebtor(false)
+            .build();
+
+        try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(
+                any(Versioned.class), anyString(), anyLong(), anyString()
+            )).thenAnswer(i -> null);
+
+
+            service.replaceDefendantAccountParty(
+                600L, 700L, req, "\"1\"", "10", "poster", null);
+
+            verify(party).setAddressLine1("Line1");
+            verify(party).setAddressLine2("Line2");
+            verify(party).setPostcode("ZZ1 1ZZ");
+        }
+    }
+
+    @Test
+    void replaceDefendantAccountParty_contactNotNull_setsFields() {
+        PartyEntity party = mock(PartyEntity.class);
+        when(party.getPartyId()).thenReturn(601L);
+
+        DefendantAccountPartiesEntity dap = DefendantAccountPartiesEntity.builder()
+            .party(party)
+            .defendantAccountPartyId(701L)
+            .build();
+
+        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
+            .businessUnitId((short) 10).build();
+
+        DefendantAccountEntity acc = DefendantAccountEntity.builder()
+            .defendantAccountId(601L)
+            .businessUnit(bu)
+            .versionNumber(1L)
+            .parties(List.of(dap))
+            .build();
+
+        when(defendantAccountRepository.findById(601L)).thenReturn(Optional.of(acc));
+        when(opalPartyService.findById(601L)).thenReturn(party);
+        when(aliasRepo.findByParty_PartyId(601L)).thenReturn(Collections.emptyList());
+        when(defendantAccountRepository.saveAndFlush(acc)).thenReturn(acc);
+
+        DefendantAccountParty req = DefendantAccountParty.builder()
+            .partyDetails(PartyDetails.builder()
+                .partyId("601")
+                .organisationFlag(false)
+                .individualDetails(IndividualDetails.builder()
+                    .title("Dr").forenames("Amy").surname("Pond").build())
+                .build())
+            .contactDetails(ContactDetails.builder()
+                .primaryEmailAddress("x@y.com")
+                .mobileTelephoneNumber("07123456789")
+                .build())
+            .defendantAccountPartyType("Defendant")
+            .isDebtor(false)
+            .build();
+
+        try (MockedStatic<VersionUtils> vs = mockStatic(VersionUtils.class)) {
+            vs.when(() -> VersionUtils.verifyIfMatch(any(Versioned.class), any(String.class), anyLong(),
+                    any(String.class)))
+                .thenAnswer(i -> null);
+
+            service.replaceDefendantAccountParty(
+                601L, 701L, req, "\"1\"", "10", "poster", null);
+
+            verify(party).setPrimaryEmailAddress("x@y.com");
+            verify(party).setMobileTelephoneNumber("07123456789");
+        }
+    }
+
 
 }

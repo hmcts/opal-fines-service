@@ -937,15 +937,15 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
             if (gwResponse.isException()) {
                 log.error(":addPaymentCardRequest: exception", gwResponse.exception);
-                throw new RuntimeException("Legacy gateway exception", gwResponse.exception);
+                throw new IllegalArgumentException("Legacy gateway exception", gwResponse.exception);
             }
 
             if (gwResponse.isLegacyFailure()) {
                 log.error(":addPaymentCardRequest: legacy failure:\n{}", gwResponse.body);
-                throw new RuntimeException("Legacy gateway returned failure");
+                throw new IllegalArgumentException(("Legacy gateway returned failure"));
             }
 
-            throw new RuntimeException("Legacy gateway error: " + gwResponse.code);
+            throw new IllegalArgumentException("Legacy gateway error: " + gwResponse.code);
         }
 
         log.info(":addPaymentCardRequest: Legacy Gateway Success");
@@ -953,7 +953,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         AddPaymentCardRequestLegacyResponse entity = gwResponse.responseEntity;
 
         if (entity == null) {
-            throw new RuntimeException("Legacy response missing");
+            throw new IllegalArgumentException("Legacy response missing");
         }
 
         // 6. Convert legacy response → Opal response
