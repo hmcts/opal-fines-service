@@ -2,6 +2,8 @@ package uk.gov.hmcts.opal.service;
 
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
+import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
@@ -189,6 +191,31 @@ public class DefendantAccountService {
             );
         } else {
             throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);
+        }
+    }
+
+    public AddEnforcementResponse addEnforcement(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String authHeaderValue,
+        AddDefendantAccountEnforcementRequest request) {
+
+        log.debug(":addEnforcement:");
+
+        UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
+
+        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(Short.parseShort(businessUnitId))
+            .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElse(null);
+
+        if (userState.anyBusinessUnitUserHasPermission(FinesPermission.ENTER_ENFORCEMENT)) {
+
+            return defendantAccountServiceProxy.addEnforcement(
+                defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, authHeaderValue, request
+            );
+        } else {
+            throw new PermissionNotAllowedException(FinesPermission.ENTER_ENFORCEMENT);
         }
     }
 }
