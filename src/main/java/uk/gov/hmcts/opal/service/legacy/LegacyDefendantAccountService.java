@@ -89,6 +89,7 @@ import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
+import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -915,11 +916,17 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     private Integer parseVersion(String ifMatch) {
+        // Extract BigInteger using VersionUtils
+        BigInteger big =
+            VersionUtils.extractOptionalBigInteger(ifMatch)
+                .orElseThrow(() ->
+                    new IllegalArgumentException("Invalid version/If-Match header: " + ifMatch));
+
         try {
-            return Integer.parseInt(ifMatch);
-        } catch (Exception ex) {
-            log.error(":addPaymentCardRequest: invalid If-Match '{}'", ifMatch);
-            throw new IllegalArgumentException("Invalid version/If-Match header");
+            // Legacy request schema requires an Integer, so convert safely
+            return big.intValueExact();
+        } catch (ArithmeticException ex) {
+            throw new IllegalArgumentException("Legacy version value too large for Integer: " + big, ex);
         }
     }
 
