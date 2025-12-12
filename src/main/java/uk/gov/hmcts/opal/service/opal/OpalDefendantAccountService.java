@@ -12,15 +12,12 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildP
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildPartyDetails;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildVehicleDetails;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.normaliseAccountType;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.safeParseLocalDate;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.safeParseShort;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,7 +36,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
-import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
@@ -50,7 +46,6 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.CommentsAndNotes;
-import uk.gov.hmcts.opal.dto.common.ContactDetails;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.common.EmployerDetails;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
@@ -721,79 +716,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
     }
 
-    private void applyPartyCoreReplace(PartyEntity party, PartyDetails details) {
-
-        Boolean orgFlag = details.getOrganisationFlag();
-        party.setOrganisation(orgFlag);
-
-        if (orgFlag) {
-            OrganisationDetails od = details.getOrganisationDetails();
-            if (od != null) {
-                party.setOrganisationName(od.getOrganisationName());
-            } else {
-                party.setOrganisationName(null);
-            }
-            party.setTitle(null);
-            party.setForenames(null);
-            party.setSurname(null);
-            party.setBirthDate(null);
-            party.setAge(null);
-            party.setNiNumber(null);
-        } else {
-            IndividualDetails id = details.getIndividualDetails();
-            if (id != null) {
-                party.setTitle(id.getTitle());
-                party.setForenames(id.getForenames());
-                party.setSurname(id.getSurname());
-                party.setBirthDate(safeParseLocalDate(id.getDateOfBirth()));
-                party.setAge(safeParseShort(id.getAge()));
-                party.setNiNumber(id.getNationalInsuranceNumber());
-            } else {
-                party.setTitle(null);
-                party.setForenames(null);
-                party.setSurname(null);
-                party.setBirthDate(null);
-                party.setAge(null);
-                party.setNiNumber(null);
-            }
-            party.setOrganisationName(null);
-        }
-    }
-
-    private void applyPartyAddressReplace(PartyEntity party, AddressDetails a) {
-        if (a == null) {
-            party.setAddressLine1(null);
-            party.setAddressLine2(null);
-            party.setAddressLine3(null);
-            party.setAddressLine4(null);
-            party.setAddressLine5(null);
-            party.setPostcode(null);
-            return;
-        }
-        party.setAddressLine1(a.getAddressLine1());
-        party.setAddressLine2(a.getAddressLine2());
-        party.setAddressLine3(a.getAddressLine3());
-        party.setAddressLine4(a.getAddressLine4());
-        party.setAddressLine5(a.getAddressLine5());
-        party.setPostcode(a.getPostcode());
-    }
-
-    private void applyPartyContactReplace(PartyEntity party, ContactDetails c) {
-        if (c == null) {
-            party.setPrimaryEmailAddress(null);
-            party.setSecondaryEmailAddress(null);
-            party.setMobileTelephoneNumber(null);
-            party.setHomeTelephoneNumber(null);
-            party.setWorkTelephoneNumber(null);
-            return;
-        }
-        party.setPrimaryEmailAddress(c.getPrimaryEmailAddress());
-        party.setSecondaryEmailAddress(c.getSecondaryEmailAddress());
-        party.setMobileTelephoneNumber(c.getMobileTelephoneNumber());
-        party.setHomeTelephoneNumber(c.getHomeTelephoneNumber());
-        party.setWorkTelephoneNumber(c.getWorkTelephoneNumber());
-    }
-
     private void replaceDebtorDetail(Long partyId,
         VehicleDetails vehicle,
         EmployerDetails employer,
@@ -910,67 +832,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         entity.setEnforcingCourt(OpalDefendantAccountBuilders.asLite(court));
         log.debug(":applyEnforcementCourt: accountId={}, courtId={}",
             entity.getDefendantAccountId(), court.getCourtId());
-    }
-
-    private CourtEntity.Lite asLite(CourtEntity court) {
-        return CourtEntity.Lite.builder()
-            .courtId(court.getCourtId())
-            .businessUnitId(court.getBusinessUnitId())
-            .courtCode(court.getCourtCode())
-            .localJusticeAreaId(court.getLocalJusticeAreaId())
-            .courtType(court.getCourtType())
-            .division(court.getDivision())
-            .name(court.getName())
-            .build();
-    }
-
-    private void applyCollectionOrder(DefendantAccountEntity entity, CollectionOrderDto co) {
-        if (co.getCollectionOrderFlag() == null || co.getCollectionOrderDate() == null) {
-            throw new IllegalArgumentException("collection_order_flag and collection_order_date are required");
-        }
-        entity.setCollectionOrder(Boolean.TRUE.equals(co.getCollectionOrderFlag()));
-        try {
-            entity.setCollectionOrderEffectiveDate(LocalDate.parse(co.getCollectionOrderDate()));
-        } catch (DateTimeParseException ex) {
-            throw new IllegalArgumentException("collection_order_date must be ISO date (yyyy-MM-dd)", ex);
-        }
-        log.debug(":applyCollectionOrder: accountId={}, flag={}, date={}",
-            entity.getDefendantAccountId(), co.getCollectionOrderFlag(), co.getCollectionOrderDate());
-    }
-
-    private void applyEnforcementOverride(DefendantAccountEntity entity, EnforcementOverride override) {
-
-        if (override.getEnforcementOverrideResult() != null) {
-            entity.setEnforcementOverrideResultId(
-                override.getEnforcementOverrideResult().getEnforcementOverrideId()
-            );
-        }
-
-        if (override.getEnforcer() != null && override.getEnforcer().getEnforcerId() != null) {
-            entity.setEnforcementOverrideEnforcerId(
-                override.getEnforcer().getEnforcerId()
-            );
-        }
-
-        if (override.getLja() != null && override.getLja().getLjaId() != null) {
-            entity.setEnforcementOverrideTfoLjaId(
-                override.getLja().getLjaId().shortValue()
-            );
-        }
-
-
-        log.debug(":applyEnforcementOverride: accountId={}, resultId={}, enforcerId={}, ljaId={}",
-            entity.getDefendantAccountId(),
-            override.getEnforcementOverrideResult() != null
-                ? override.getEnforcementOverrideResult().getEnforcementOverrideId()
-                : null,
-            override.getEnforcer() != null
-                ? override.getEnforcer().getEnforcerId()
-                : null,
-            override.getLja() != null
-                ? override.getLja().getLjaId()
-                : null
-        );
     }
 
 
