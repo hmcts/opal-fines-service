@@ -1,13 +1,13 @@
 package uk.gov.hmcts.opal.controllers;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 
 @ActiveProfiles({"integration", "legacy"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -127,5 +127,29 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
     @Test
     void testUpdateDefendantAccount_CommentNotes_400BadRequest() throws Exception {
         super.test_Legacy_UpdateDefendantAccount_CommentNotes_400BadRequest(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testLegacyPostAddEnforcement_Success() throws Exception {
+        super.legacyPostAddEnforcement_Success(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testLegacyPostAddEnforcement_403Forbidden() throws Exception {
+        super.legacyPostAddEnforcement_403Forbidden(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testLegacyPostAddEnforcement_401Unauthorized() throws Exception {
+        super.legacyPostAddEnforcement_401Unauthorized(log);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testLegacyPostAddEnforcement_500Error() throws Exception {
+        super.legacyPostAddEnforcement_500Error(log);
     }
 }

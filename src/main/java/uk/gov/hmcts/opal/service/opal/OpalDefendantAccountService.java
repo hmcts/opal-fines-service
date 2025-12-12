@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
+import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -506,6 +508,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         // 14. Minimal response
         return new AddPaymentCardRequestResponse(defendantAccountId);
+    }
+
+    @Override
+    public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
+        String businessUnitUserId, String ifMatch, String authHeader, AddDefendantAccountEnforcementRequest request) {
+        return null;
     }
 
     @Override
