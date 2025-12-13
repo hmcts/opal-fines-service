@@ -1,31 +1,31 @@
 package uk.gov.hmcts.opal.steps.draftaccount;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import io.cucumber.datatable.DataTable;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
-import net.serenitybdd.rest.SerenityRest;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import uk.gov.hmcts.opal.steps.BaseStepDef;
-import uk.gov.hmcts.opal.utils.DraftAccountUtils;
+import static net.serenitybdd.rest.SerenityRest.then;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.text.IsBlankString.blankOrNullString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 
+import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
-
-import static net.serenitybdd.rest.SerenityRest.then;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
+import net.serenitybdd.rest.SerenityRest;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.gov.hmcts.opal.steps.BaseStepDef;
+import uk.gov.hmcts.opal.utils.DraftAccountUtils;
+import uk.gov.hmcts.opal.utils.RequestSupport;
 
 public class DraftAccountPostSteps extends BaseStepDef {
+
     private static final Logger log = LoggerFactory.getLogger(DraftAccountPostSteps.class);
 
     @When("I create a draft account with the following details")
@@ -60,14 +60,13 @@ public class DraftAccountPostSteps extends BaseStepDef {
         postBody.put("account", accountObject);
         postBody.put("timeline_data", timelineArray);
 
-        SerenityRest
-            .given().log().all()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body(postBody.toString())
+        RequestSupport.responseProcessor(SerenityRest
+            .given()
+            .spec(RequestSupport.postRequestSpec(DRAFT_ACCOUNTS_URI, postBody.toString()).build())
             .when()
-            .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
+            .post()
+            .then()
+        );
     }
 
     @Then("I store the created draft account ID")
@@ -148,14 +147,15 @@ public class DraftAccountPostSteps extends BaseStepDef {
         postBody.put("submitted_by", "BUUID");
         postBody.put("timeline_data", JSONObject.NULL);
 
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + "invalidToken")
-            .accept("*/*")
-            .contentType("application/json")
-            .body(postBody.toString())
-            .when()
-            .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
+        RequestSupport.responseProcessor(
+            SerenityRest
+                .given()
+                .spec(RequestSupport.postRequestSpec(DRAFT_ACCOUNTS_URI, postBody.toString()).build())
+                .header("Authorization", "Bearer " + "invalidToken")
+                .when()
+                .post()
+                .then()
+        );
 
     }
 
@@ -173,15 +173,14 @@ public class DraftAccountPostSteps extends BaseStepDef {
         postBody.put("submitted_by", "BUUID");
         postBody.put("timeline_data", new JSONObject());
 
-        SerenityRest
+        RequestSupport.responseProcessor(SerenityRest
             .given()
-            .header("Authorization", "Bearer " + getToken())
+            .spec(RequestSupport.postRequestSpec(DRAFT_ACCOUNTS_URI, postBody.toString()).build())
             .accept("text/plain")
-            .contentType("application/json")
-            .body(postBody.toString())
             .when()
-            .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
-
+            .post()
+            .then()
+        );
     }
 
     @When("I attempt to create a draft account with an unsupported media type")
@@ -199,14 +198,15 @@ public class DraftAccountPostSteps extends BaseStepDef {
         postBody.put("submitted_by", "BUUID");
         postBody.put("timeline_data", new JSONObject());
 
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/xml")
-            .body(postBody.toString())
-            .when()
-            .post(getTestUrl() + DRAFT_ACCOUNTS_URI);
-
+        RequestSupport.responseProcessor(
+            SerenityRest
+                .given()
+                .spec(RequestSupport.postRequestSpec(DRAFT_ACCOUNTS_URI, postBody.toString()).build())
+                .accept("*/*")
+                .contentType("application/xml")
+                .when()
+                .post()
+                .then()
+        );
     }
 }

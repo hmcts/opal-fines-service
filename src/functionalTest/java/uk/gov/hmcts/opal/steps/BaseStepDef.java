@@ -1,17 +1,16 @@
 package uk.gov.hmcts.opal.steps;
 
 import io.restassured.http.Header;
+import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.Map;
 
 public class BaseStepDef {
 
     private static final String TEST_URL = System.getenv().getOrDefault("TEST_URL", "http://localhost:4550");
     private static final String USER_SERVICE_URL = resolveUserServiceUrl();
 
-    protected static String getTestUrl() {
+    public static String getTestUrl() {
         return TEST_URL;
     }
 
