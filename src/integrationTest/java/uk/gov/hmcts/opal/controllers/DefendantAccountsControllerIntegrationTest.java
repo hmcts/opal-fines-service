@@ -4066,6 +4066,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         result.andExpect(status().is5xxServerError());
     }
+
     @DisplayName("LEGACY: POST Add Enforcement - success")
     void legacyPostAddEnforcement_Success(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
