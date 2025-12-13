@@ -2221,6 +2221,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.enforcement_status").exists())
             // verify comments_and_notes node is not present (no test data added as these are optional)
             .andExpect(jsonPath("$.comments_and_notes").doesNotExist());
+        ;
 
         jsonSchemaValidationService.validateOrError(body, getAtAGlanceResponseSchemaLocation());
     }
@@ -4016,6 +4017,53 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             jdbcTemplate.queryForObject("SELECT version_number FROM defendant_accounts WHERE defendant_account_id = ?",
                 Integer.class, 20010L);
         assertEquals(currentVersion + 1, updatedVersion);
+    }
+
+    @DisplayName("LEGACY: Add Payment Card Request – Happy Path [@PO-2088]")
+    void legacyAddPaymentCardRequest_Happy(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add("If-Match", "3");
+
+        ResultActions result = mockMvc.perform(
+            post("/defendant-accounts/901/payment-card-request")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":legacyAddPaymentCardRequest_Happy body:\n{}", ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value(901));
+    }
+
+    @DisplayName("LEGACY: Add Payment Card Request – 500 Error [@PO-2088]")
+    void legacyAddPaymentCardRequest_500(Logger log) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(allPermissionsUser());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("some_value");
+        headers.add("Business-Unit-Id", "78");
+        headers.add("If-Match", "1");
+
+        ResultActions result = mockMvc.perform(
+            post("/defendant-accounts/555/payment-card-request")
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        log.info(":legacyAddPaymentCardRequest_500 body:\n{}", result.andReturn().getResponse().getContentAsString());
+
+        result.andExpect(status().is5xxServerError());
     }
 
     @DisplayName("LEGACY: POST Add Enforcement - success")
