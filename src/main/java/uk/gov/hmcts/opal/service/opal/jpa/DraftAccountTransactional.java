@@ -1,11 +1,25 @@
 package uk.gov.hmcts.opal.service.opal.jpa;
 
 
+import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
+import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
+import static uk.gov.hmcts.opal.util.VersionUtils.verifyVersions;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountRequestDto;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
@@ -25,24 +40,15 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountSnapshots;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime;
-import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
-import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
-import static uk.gov.hmcts.opal.util.VersionUtils.verifyVersions;
+import uk.gov.hmcts.opal.util.LogUtil;
 
 @Service
 @Slf4j(topic = "opal.DraftAccountService")
@@ -60,6 +66,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     private final BusinessUnitRepository businessUnitRepository;
 
     private final DraftAccountSpecs specs = new DraftAccountSpecs();
+
+    private final LoggingService loggingService;
 
     @Transactional(readOnly = true)
     public DraftAccountEntity getDraftAccount(long draftAccountId) {
@@ -104,7 +112,87 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             dto.getBusinessUnitId());
         String snapshot = createInitialSnapshot(dto, created, businessUnit);
         log.debug(":submitDraftAccount: dto: \n{}", dto.toPrettyJson());
-        return draftAccountRepository.save(toEntity(dto, created, businessUnit, snapshot));
+
+        DraftAccountEntity draftAccountEntity = draftAccountRepository.save(toEntity(dto, created, businessUnit, snapshot));
+
+        pdplForPost(draftAccountEntity);
+
+        return draftAccountEntity;
+
+    }
+
+    private void pdplForPost(DraftAccountEntity entity) {
+        JsonPathUtil.DocContext docContext = createDocContext(entity.getAccount(),
+            "AddDraftAccountRequestDto.account");
+
+        Object dtRaw = docContext.read("$.defendant_type");
+        String defendantType = dtRaw == null ? "" : dtRaw.toString();
+
+        if ("company".equalsIgnoreCase(defendantType)) {
+            return;
+        }
+
+        switch (defendantType) {
+            case "adultOrYouthOnly" -> logDefendantInfo(entity);
+            case "pgToPay" -> {
+                logParentGuardianInfo(entity);
+                logDefendantInfo(entity);
+            }
+            default -> {}
+        }
+
+        List<Map<String, Object>> minorCreditors = docContext.read("$..minor_creditor");
+
+        if (minorCreditors == null) {
+            return;
+        }
+
+        boolean anyIndividualMinor = minorCreditors.stream()
+            .filter(Objects::nonNull)
+            .map(m -> m.get("company_flag"))
+            .anyMatch(flag -> !Boolean.TRUE.equals(flag));
+
+        if (anyIndividualMinor) {
+            logMinorCreditorInfo(entity);
+        }
+    }
+
+    private void logPersonalDataProcessing(DraftAccountEntity entity,
+        String businessIdentifier) {
+
+        ParticipantIdentifier individuals = ParticipantIdentifier.builder()
+            .identifier(entity.getDraftAccountId().toString())
+            .type(PdplIdentifierType.DRAFT_ACCOUNT)
+            .build();
+
+        ParticipantIdentifier createdBy = ParticipantIdentifier.builder()
+            .identifier(entity.getSubmittedBy())
+            .type(PdplIdentifierType.OPAL_USER_ID)
+            .build();
+
+        PersonalDataProcessingLogDetails logDetails = PersonalDataProcessingLogDetails.builder()
+            .recipient(null)
+            .businessIdentifier(businessIdentifier)
+            .category(PersonalDataProcessingCategory.COLLECTION)
+            .ipAddress(LogUtil.getIpAddress())
+            .createdAt(LogUtil.getCurrentDateTime())
+            .createdBy(createdBy)
+            .individuals(List.of(individuals))
+            .build();
+
+        loggingService.personalDataAccessLogAsync(logDetails);
+    }
+
+    private void logDefendantInfo(DraftAccountEntity entity) {
+        logPersonalDataProcessing(entity, "Submit Draft Account - Defendant");
+    }
+
+    private void logParentGuardianInfo(DraftAccountEntity entity) {
+        logPersonalDataProcessing(entity, "Submit Draft Account - Parent or Guardian");
+    }
+
+    private void logMinorCreditorInfo(DraftAccountEntity entity) {
+        logPersonalDataProcessing(entity, "Submit Draft Account - Minor Creditor");
     }
 
     @Transactional
