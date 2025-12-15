@@ -36,7 +36,7 @@ ON CONFLICT (business_unit_id) DO UPDATE
 
 -- --  Enforcement Override Result: FWEC
 -- INSERT INTO enforcement_override_results (enforcement_override_result_id, enforcement_override_result_name)
--- VALUES ('FWEC', 'Further Warrant Execution Cancelled')
+-- VALUES ('FWEC', 'WITNESS EXPENSES - CENTRAL FUNDS')
 -- ON CONFLICT (enforcement_override_result_id) DO UPDATE
 --   SET enforcement_override_result_name = EXCLUDED.enforcement_override_result_name;
 
@@ -987,4 +987,3 @@ VALUES
     'MPSO', 'Late Payment', 21, 101, 'Warrent007',
     '{"reason":"Evasion of Prison", "supervisor":"Mordred"}'
 );
-

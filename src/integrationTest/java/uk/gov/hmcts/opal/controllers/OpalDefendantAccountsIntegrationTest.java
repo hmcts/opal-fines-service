@@ -474,4 +474,34 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.testGetEnforcementStatus(log, false);
     }
 
+    @Test
+    void testGetEnforcementStatus_missingAuth_returns401() throws Exception {
+        super.testGetEnforcementStatus_missingAuthHeader_returns401(log, false);
+    }
+
+    @Test
+    void testGetEnforcementStatus_forbidden_returns403() throws Exception {
+        super.testGetEnforcementStatus_forbidden(log, false);
+    }
+
+    @Test
+    void testGetEnforcementStatus_notFound_returns404() throws Exception {
+        super.testGetEnforcementStatus_notFound(log, false);
+    }
+
+    @Test
+    void testGetEnforcementStatus_timeout_returns408() throws Exception {
+        super.testGetEnforcementStatus_timeout(log, false);
+    }
+
+    @Test
+    void testGetEnforcementStatus_serviceUnavailable_returns503() throws Exception {
+        super.testGetEnforcementStatus_serviceUnavailable(log, false);
+    }
+
+    @Test
+    void testGetEnforcementStatus_serverError_returns500() throws Exception {
+        super.testGetEnforcementStatus_serverError(log, false);
+    }
+
 }

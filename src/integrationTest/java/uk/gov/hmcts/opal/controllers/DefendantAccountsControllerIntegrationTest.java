@@ -52,6 +52,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import org.springframework.test.web.servlet.ResultMatcher;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -61,6 +66,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
@@ -2586,7 +2592,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
               "enforcement_override": {
                 "enforcement_override_result": {
                   "enforcement_override_result_id": "FWEC",
-                  "enforcement_override_result_title": "Further Warrant Execution Cancelled"
+                "enforcement_override_result_title": "WITNESS EXPENSES - CENTRAL FUNDS"
                 },
                 "enforcer": {
                   "enforcer_id": 21,
@@ -4297,8 +4303,9 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.enforcement_overview.enforcement_court.court_name").value("CH17"))
             .andExpect(jsonPath("$.enforcement_override.enforcement_override_result.enforcement_override_result_id")
                 .value("FWEC"))
-            .andExpect(jsonPath("$.enforcement_override.enforcement_override_result.enforcement_override_result_name")
-                .value("WITNESS EXPENSES - CENTRAL FUNDS"))
+            .andExpect(ignoreForLegacy(jsonPath("$.enforcement_override.enforcement_override_result"
+                    + ".enforcement_override_result_name")
+                .value("WITNESS EXPENSES - CENTRAL FUNDS"), isLegacy))
             .andExpect(jsonPath("$.enforcement_override.enforcer.enforcer_id").value(780000000021L))
             .andExpect(jsonPath("$.enforcement_override.enforcer.enforcer_name").value("North East Enforcement"))
             .andExpect(jsonPath("$.enforcement_override.lja.lja_id").value(240))
@@ -4324,6 +4331,68 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.account_status_reference.account_status_code").value("L"))
             .andExpect(jsonPath("$.account_status_reference.account_status_display_name").value("Live"))
             .andExpect(ignoreForLegacy(jsonPath("$.next_enforcement_action_data").value("All"), isLegacy));
+    }
+
+    @DisplayName("Get enforcement status - missing auth header returns 401")
+    void testGetEnforcementStatus_missingAuthHeader_returns401(Logger log, boolean isLegacy) throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Missing token"))
+            .when(userStateService).checkForAuthorisedUser(null);
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status"))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("Get enforcement status - forbidden without permission")
+    void testGetEnforcementStatus_forbidden(Logger log, boolean isLegacy) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(false);
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", "Bearer some_value"))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isForbidden());
+    }
+
+    @DisplayName("Get enforcement status - resource not found")
+    void testGetEnforcementStatus_notFound(Logger log, boolean isLegacy) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultMatcher statusMatcher = isLegacy ? status().is5xxServerError() : status().isNotFound();
+
+        mockMvc.perform(get(URL_BASE + "/999999/enforcement-status").header("authorization", "Bearer some_value"))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(statusMatcher);
+    }
+
+    @DisplayName("Get enforcement status - timeout")
+    void testGetEnforcementStatus_timeout(Logger log, boolean isLegacy) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.REQUEST_TIMEOUT, "Timeout"));
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", "Bearer some_value"))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isRequestTimeout());
+    }
+
+    @DisplayName("Get enforcement status - service unavailable")
+    void testGetEnforcementStatus_serviceUnavailable(Logger log, boolean isLegacy) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "Gateway down"));
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", "Bearer some_value"))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isServiceUnavailable());
+    }
+
+    @DisplayName("Get enforcement status - server error")
+    void testGetEnforcementStatus_serverError(Logger log, boolean isLegacy) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Boom"));
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", "Bearer some_value"))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isInternalServerError());
     }
 
     static ResultMatcher ignoreForLegacy(ResultMatcher matcher, boolean legacy) {
