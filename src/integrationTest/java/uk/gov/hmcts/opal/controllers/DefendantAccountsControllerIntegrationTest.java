@@ -4378,9 +4378,11 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     @DisplayName("Get enforcement status - service unavailable")
     void testGetEnforcementStatus_serviceUnavailable(Logger log, boolean isLegacy) throws Exception {
         when(userStateService.checkForAuthorisedUser(any()))
-            .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "Gateway down"));
+            .thenThrow(new ResponseStatusException(
+                org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "Gateway down"));
 
-        mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", "Bearer some_value"))
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status")
+                .header("authorization", "Bearer some_value"))
             .andDo(MockMvcResultHandlers.print())
             .andExpect(status().isServiceUnavailable());
     }
