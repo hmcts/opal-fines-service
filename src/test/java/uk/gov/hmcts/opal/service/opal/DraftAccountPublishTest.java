@@ -1,5 +1,19 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyShort;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
+import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
+
+import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,21 +31,6 @@ import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
-
-import java.lang.reflect.Field;
-import java.time.LocalDate;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyShort;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
-import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountPublishTest {
@@ -51,7 +50,7 @@ class DraftAccountPublishTest {
 
     @BeforeEach
     void openMocks() throws Exception {
-        draftAccountTransactional = spy(new DraftAccountTransactional(draftRepository, businessRepository));
+        draftAccountTransactional = spy(new DraftAccountTransactional(draftRepository, businessRepository, null));
         injectDraftTransactionsService(draftAccountPublish, draftAccountTransactional);
     }
 
