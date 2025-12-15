@@ -24,11 +24,6 @@ import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
 class DefendantAccountServiceProxyTest extends ProxyTestsBase {
 
     private AutoCloseable closeable;
@@ -70,7 +65,7 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
         // Then: target service should be used, and the returned entity should be as expected
         verify(targetService).getHeaderSummary(1L);
         verifyNoInteractions(otherService);
-        Assertions.assertEquals(entity, headerSummaryResult);
+        assertEquals(entity, headerSummaryResult);
     }
 
     void testSearchDefendantAccounts(DefendantAccountServiceInterface targetService,
@@ -84,7 +79,7 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
 
         verify(targetService).searchDefendantAccounts(dto);
         verifyNoInteractions(otherService);
-        Assertions.assertEquals(expected, result);
+        assertEquals(expected, result);
     }
 
     void testGetPaymentTerms(DefendantAccountServiceInterface targetService,
@@ -98,7 +93,7 @@ class DefendantAccountServiceProxyTest extends ProxyTestsBase {
 
         verify(targetService).getPaymentTerms(77L);
         verifyNoInteractions(otherService);
-        Assertions.assertEquals(expected, result);
+        assertEquals(expected, result);
     }
 
     void testGetEnforcementStatus(DefendantAccountServiceInterface targetService,

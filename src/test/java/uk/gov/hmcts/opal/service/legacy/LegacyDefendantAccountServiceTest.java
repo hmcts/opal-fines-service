@@ -2772,7 +2772,6 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertThrows(Exception.class, () -> method.invoke(legacyDefendantAccountService, "Z"));
     }
 
-}
     @Test
     @SuppressWarnings("unchecked")
     void testGetEnforcementStatus_success() {
