@@ -135,6 +135,7 @@ class DraftAccountTransactionalTest {
         assertEquals(accountText, result.get(0).getAccount());
 
     }
+
     @Test
     void testSubmitDraftAccounts_success() throws Exception {
         // Arrange
@@ -582,8 +583,6 @@ class DraftAccountTransactionalTest {
             """;
     }
 
-// ------------------ LOGGING TESTS ------------------
-
     @Test
     void logDefendantInfo_passes_expected_logDetails_to_loggingService() throws Exception {
         // Arrange
@@ -602,7 +601,8 @@ class DraftAccountTransactionalTest {
             logUtilMock.when(LogUtil::getCurrentDateTime).thenReturn(expectedNow);
 
             // Act - call private method via reflection
-            Method privateMethod = draftAccountTransactional.getClass().getDeclaredMethod("logDefendantInfo", DraftAccountEntity.class);
+            Method privateMethod = draftAccountTransactional.getClass().getDeclaredMethod(
+                "logDefendantInfo", DraftAccountEntity.class);
             privateMethod.setAccessible(true);
             privateMethod.invoke(draftAccountTransactional, entity);
 
@@ -653,7 +653,8 @@ class DraftAccountTransactionalTest {
             logUtilMock.when(LogUtil::getCurrentDateTime).thenReturn(expectedNow);
 
             // Act
-            Method method = draftAccountTransactional.getClass().getDeclaredMethod("logParentGuardianInfo", DraftAccountEntity.class);
+            Method method = draftAccountTransactional.getClass().getDeclaredMethod(
+                "logParentGuardianInfo", DraftAccountEntity.class);
             method.setAccessible(true);
             method.invoke(draftAccountTransactional, entity);
 
@@ -694,7 +695,8 @@ class DraftAccountTransactionalTest {
             logUtilMock.when(LogUtil::getCurrentDateTime).thenReturn(expectedNow);
 
             // Act
-            Method method = draftAccountTransactional.getClass().getDeclaredMethod("logMinorCreditorInfo", DraftAccountEntity.class);
+            Method method = draftAccountTransactional.getClass().getDeclaredMethod(
+                "logMinorCreditorInfo", DraftAccountEntity.class);
             method.setAccessible(true);
             method.invoke(draftAccountTransactional, entity);
 
@@ -715,8 +717,6 @@ class DraftAccountTransactionalTest {
             assertThat(captured.getIndividuals().get(0).getIdentifier()).isEqualTo(draftId.toString());
         }
     }
-
-// ------------------ JSONPATH / SCHEMA TESTS ------------------
 
     @Test
     void jsonPathUtil_extracts_values_from_minimal_account_json() {
@@ -766,7 +766,8 @@ class DraftAccountTransactionalTest {
         assertEquals("B",
             com.jayway.jsonpath.JsonPath.read(json, "$.payment_terms.payment_terms_type_code"));
 
-        assertThat(((Number) com.jayway.jsonpath.JsonPath.read(json, "$.offences[0].offence_id")).intValue()).isEqualTo(42);
+        assertThat(((Number) com.jayway.jsonpath.JsonPath.read(json, "$.offences[0].offence_id"))
+            .intValue()).isEqualTo(42);
     }
 
     @Test

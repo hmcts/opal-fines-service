@@ -113,7 +113,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         String snapshot = createInitialSnapshot(dto, created, businessUnit);
         log.debug(":submitDraftAccount: dto: \n{}", dto.toPrettyJson());
 
-        DraftAccountEntity draftAccountEntity = draftAccountRepository.save(toEntity(dto, created, businessUnit, snapshot));
+        DraftAccountEntity draftAccountEntity = draftAccountRepository.save(
+            toEntity(dto, created, businessUnit, snapshot));
 
         pdplForPost(draftAccountEntity);
 
@@ -138,7 +139,6 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
                 logParentGuardianInfo(entity);
                 logDefendantInfo(entity);
             }
-            default -> {}
         }
 
         List<Map<String, Object>> minorCreditors = docContext.read("$..minor_creditor");
