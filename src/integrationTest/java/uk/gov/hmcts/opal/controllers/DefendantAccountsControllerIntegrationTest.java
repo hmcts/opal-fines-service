@@ -4459,7 +4459,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             """;
 
         ResultActions result = mockMvc.perform(
-            put("/defendant-accounts/77/payment-terms")
+            post("/defendant-accounts/77/payment-terms")
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson)
@@ -4468,7 +4468,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         String body = result.andReturn().getResponse().getContentAsString();
         String etag = result.andReturn().getResponse().getHeader(HttpHeaders.ETAG);
 
-        log.info(":opalAddPaymentTerms_Happy body:\n{}", ToJsonString.toPrettyJson(body));
+        log.info(":opalAddPaymentTerms_Happy response body:\n{}", ToJsonString.toPrettyJson(body));
         log.info(":opalAddPaymentTerms_Happy ETag: {}", etag);
 
         // Basic assertions: OK + JSON + expected fields
