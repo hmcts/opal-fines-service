@@ -10,4 +10,6 @@ public interface ReportEntryRepository extends JpaRepository<ReportEntryEntity, 
     void deleteByAssociatedRecordId(
         String associatedRecordIds
     );
+
+    ReportEntryEntity getAllByAssociatedRecordId(String associatedRecordId);
 }

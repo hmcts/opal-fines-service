@@ -133,8 +133,12 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
             "defendant_account_id = 1001"
         )).isGreaterThan(0);
         assertThat(count(
+            "reports",
+            "report_id = '10001'"
+        )).isGreaterThan(0);
+        assertThat(count(
             "report_entries",
-             "associated_record_id = '1001"
+             "associated_record_id = '1001'"
         )).isGreaterThan(0);
         assertThat(count(
             "defendant_transactions",
@@ -175,6 +179,7 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         assertThat(count("defendant_accounts", "defendant_account_id = 1001")).isZero();
         assertThat(count("defendant_account_parties", "defendant_account_id = 1001")).isZero();
         assertThat(count("payment_terms", "defendant_account_id = 1001")).isZero();
+        assertThat(count("reports", "report_id = '10001'")).isZero();
         assertThat(count("report_entries", "associated_record_id = '1001'")
         ).isZero();
         assertThat(count("defendant_transactions", "defendant_account_id = 1001")).isZero();
