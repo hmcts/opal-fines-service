@@ -32,8 +32,8 @@ public class ReportEntity {
     @Column(name = "report_group", length = 50, nullable = false)
     private String reportGroup;
 
-    @Column(name = "user_entries", nullable = false)
-    private String userEntries;
+    //@Column(name = "user_entries", nullable = false)   check if this needs to be deleted
+    //private String userEntries;
 
     @Column(name = "audited_report", nullable = false)
     private String auditedReport;
