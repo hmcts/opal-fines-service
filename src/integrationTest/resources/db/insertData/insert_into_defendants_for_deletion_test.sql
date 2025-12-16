@@ -94,6 +94,12 @@ VALUES (9103, 1001, '2023-11-03 16:05:10', '01000000A',
         'B', '2025-10-12 00:00:00', NULL, NULL, NULL,
         120, 'N', 700.58);
 
+-- Insert report entry created by payment terms (PO-1718)
+INSERT INTO report_entries (report_entry_id, business_unit_id, report_id,
+                            entry_timestamp, associated_record_type, associated_record_id)
+VALUES (9109, 78, 'list_extend_ttp',
+        '2025-10-27 16:00:00', 'payment_terms', '9103');
+
 -- Insert defendant transaction (Level 2)
 INSERT INTO defendant_transactions (defendant_transaction_id, defendant_account_id, posted_date,
                                     posted_by,

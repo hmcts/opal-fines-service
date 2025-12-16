@@ -19,7 +19,7 @@ public interface ReportEntryRepository extends JpaRepository<ReportEntryEntity, 
             FROM PaymentTermsEntity p
             WHERE p.defendantAccount.defendantAccountId = :defendantAccountId
         )
-      """)
+        """)
     void deletePaymentTermsReportEntriesByDefendantAccountId(
         @Param("defendantAccountId") long defendantAccountId
     );
