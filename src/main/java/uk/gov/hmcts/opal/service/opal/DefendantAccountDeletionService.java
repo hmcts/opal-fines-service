@@ -24,6 +24,7 @@ import uk.gov.hmcts.opal.repository.jpa.AllocationSpecs;
 import uk.gov.hmcts.opal.repository.jpa.BacsPaymentSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ChequeSpecs;
 import uk.gov.hmcts.opal.service.opal.jpa.CreditorAccountTransactional;
+import uk.gov.hmcts.opal.repository.ReportEntryRepository;
 
 @Service
 @Transactional
@@ -45,6 +46,7 @@ public class DefendantAccountDeletionService {
     private final CreditorAccountTransactional creditorAccountTransactional;
     private final PaymentCardRequestRepository paymentCardRequestsRepository;
     private final NoteRepository noteRepository;
+    private final ReportEntryRepository reportEntryRepository;
 
     // Level 3 - Grandchildren
     private final AllocationRepository allocationsRepository;
@@ -97,6 +99,7 @@ public class DefendantAccountDeletionService {
         defendantAccountPartiesRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         enforcementRepository.deleteByDefendantAccountId(defendantAccountId);
         creditorAccountTransactional.deleteAllByDefendantAccountId(defendantAccountId, creditorAccountTransactional);
+        reportEntryRepository.deletePaymentTermsReportEntriesByDefendantAccountId(defendantAccountId);
         paymentTermsRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         defendantTransactionRepository.deleteByDefendantAccountId(defendantAccountId);
 
