@@ -103,4 +103,16 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
             ifMatch, authHeader, request);
     }
 
+    public void deleteDefendantAccountForTestSupport(Long defendantAccountId) {
+        log.warn(":deleteDefendantAccountForTestSupport:");
+
+        if (isLegacyMode(dynamicConfigService)) {
+            throw new UnsupportedOperationException(
+                "Delete Defendant Account is not supported in Legacy mode"
+            );
+        }
+
+        draftAccountPromotion.deleteDefendantAccountForTestSupport(defendantAccountId);
+    }
+
 }

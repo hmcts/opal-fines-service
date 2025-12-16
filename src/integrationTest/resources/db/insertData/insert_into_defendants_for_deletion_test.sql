@@ -1,6 +1,31 @@
 -- File: insert_into_defendants_for_deletion_test.sql
 -- Enhanced test data for comprehensive deletion testing
 
+-- =========================================================
+-- CLEANUP (idempotent setup for repeated integration tests)
+-- =========================================================
+
+DELETE FROM cheques WHERE cheque_id IN (9107);
+DELETE FROM allocations WHERE allocation_id IN (9106, 9108);
+DELETE FROM impositions WHERE imposition_id = 9105;
+DELETE FROM defendant_transactions WHERE defendant_transaction_id = 9104;
+DELETE FROM payment_terms WHERE payment_terms_id = 9103;
+DELETE FROM defendant_account_parties WHERE defendant_account_party_id = 9102;
+DELETE FROM parties WHERE party_id = 9101;
+DELETE FROM notes WHERE associated_record_id = '1001';
+DELETE FROM amendments WHERE associated_record_id = '1001';
+DELETE FROM payment_card_requests WHERE defendant_account_id = 1001;
+DELETE FROM defendant_accounts WHERE defendant_account_id = 1001;
+
+DELETE FROM results WHERE result_id = 'TSTRES';
+DELETE FROM offences WHERE offence_id = 9202;
+DELETE FROM courts WHERE court_id = 9201;
+DELETE FROM creditor_accounts WHERE creditor_account_id = 9200;
+
+-- =========================================================
+-- TEST DATA INSERTS
+-- =========================================================
+
 -- Add a creditor account for the test (this is what impositions references, not major_creditors)
 INSERT INTO creditor_accounts (creditor_account_id, business_unit_id, account_number,
                                creditor_account_type,

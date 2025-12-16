@@ -19,6 +19,7 @@ import jakarta.persistence.LockModeType;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.core.env.Environment;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
@@ -101,6 +103,7 @@ import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
+
 @Service
 @Slf4j(topic = "opal.OpalDefendantAccountService")
 @RequiredArgsConstructor
@@ -148,11 +151,33 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final OpalPartyService opalPartyService;
 
+    private final DefendantAccountDeletionService defendantAccountDeletionService;
+
+    private final Environment environment;
+
+
     @Transactional(readOnly = true)
     public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
         return defendantAccountRepository.findById(defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException(
                 "Defendant Account not found with id: " + defendantAccountId));
+    }
+
+    @Transactional
+    public void deleteDefendantAccountForTestSupport(Long defendantAccountId) {
+
+        log.warn(":deleteDefendantAccountForTestSupport (TEST ONLY): id={}", defendantAccountId);
+
+        // ---- ENVIRONMENT GUARD ----
+        if (Arrays.asList(environment.getActiveProfiles()).contains("prod")) {
+            throw new UnsupportedOperationException(
+                "Delete Defendant Account is disabled in Production"
+            );
+        }
+
+        // ---- DELEGATE TO EXISTING CASCADE DELETE ----
+        defendantAccountDeletionService
+            .deleteDefendantAccountAndAssociatedData(defendantAccountId);
     }
 
     @Override

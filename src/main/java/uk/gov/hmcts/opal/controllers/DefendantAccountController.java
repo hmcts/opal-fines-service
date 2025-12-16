@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -197,6 +198,21 @@ public class DefendantAccountController {
         );
 
         return buildResponse(response);
+    }
+
+    @DeleteMapping("/{defendantAccountId}")
+    @Operation(summary = "Delete a defendant account and all related data (TEST SUPPORT ONLY)")
+    public ResponseEntity<Void> deleteDefendantAccount(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue
+    ) {
+        log.warn(":DELETE:deleteDefendantAccount (TEST SUPPORT ONLY): id={}", defendantAccountId);
+
+        defendantAccountService.deleteDefendantAccountForTestSupport(
+            defendantAccountId, authHeaderValue
+        );
+
+        return ResponseEntity.noContent().build();
     }
 
 }

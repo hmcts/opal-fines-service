@@ -37,7 +37,7 @@ public class AmendmentService {
     public SearchDataResponse<AmendmentEntity> searchAmendments(AmendmentSearchDto criteria) {
         log.info(":searchAmendments: criteria: {}", criteria);
 
-        Sort dateSort = Sort.by(Sort.Direction.DESC, AmendmentEntity_.AMENDED_DATE);
+        Sort dateSort = Sort.by(Sort.Direction.DESC, String.valueOf(AmendmentEntity_.AMENDED_DATE));
 
         Page<AmendmentEntity> page = amendmentRepository
             .findBy(specs.findBySearchCriteria(criteria),
@@ -60,6 +60,28 @@ public class AmendmentService {
                                         Short businessUnitId, String postedBy, String caseRef, String functionCode) {
         amendmentRepository
             .auditFinalise(accountId, recordType.getType(), businessUnitId, postedBy, caseRef, functionCode);
+    }
+
+    @Transactional
+    public void deleteByAssociatedRecord(RecordType recordType, String recordId) {
+        log.warn(
+            ":deleteByAssociatedRecord (TEST SUPPORT): recordType={}, recordId={}",
+            recordType, recordId
+        );
+
+        // RecordType is not required for the DB delete,
+        // but this method MUST exist for backwards compatibility
+        amendmentRepository.deleteByAssociatedRecordId(recordId);
+    }
+
+    @Transactional
+    public void deleteByAssociatedRecord(String recordId) {
+        log.warn(
+            ":deleteByAssociatedRecord (TEST SUPPORT): recordId={}",
+            recordId
+        );
+
+        amendmentRepository.deleteByAssociatedRecordId(recordId);
     }
 
 }

@@ -40,6 +40,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -188,6 +189,10 @@ class OpalDefendantAccountServiceTest {
     // Service under test
     @InjectMocks
     private OpalDefendantAccountService service;
+
+    @Mock
+    private Environment environment;
+
 
     @Test
     void testDefendantAccountById() {
@@ -1610,12 +1615,14 @@ class OpalDefendantAccountServiceTest {
         var userStateService = mock(UserStateService.class);
         var mockUserState = mock(UserState.class);
         var mockResponse = new GetDefendantAccountFixedPenaltyResponse();
+        var environment = mock(Environment.class);
 
         when(userStateService.checkForAuthorisedUser("Bearer token")).thenReturn(mockUserState);
-        when(mockUserState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(mockUserState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(true);
         when(proxy.getDefendantAccountFixedPenalty(123L)).thenReturn(mockResponse);
 
-        var service = new DefendantAccountService(proxy, userStateService);
+        var service = new DefendantAccountService(proxy, userStateService, environment);
 
         // Act
         var response = service.getDefendantAccountFixedPenalty(123L, "Bearer token");
@@ -1632,15 +1639,17 @@ class OpalDefendantAccountServiceTest {
         var proxy = mock(DefendantAccountServiceProxy.class);
         var userStateService = mock(UserStateService.class);
         var mockUserState = mock(UserState.class);
+        var environment = mock(Environment.class);
 
         when(userStateService.checkForAuthorisedUser("auth")).thenReturn(mockUserState);
         when(mockUserState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(false);
 
-        var service = new DefendantAccountService(proxy, userStateService);
+        var service = new DefendantAccountService(proxy, userStateService, environment);
 
         // Act + Assert
-        assertThrows(PermissionNotAllowedException.class,
+        assertThrows(
+            PermissionNotAllowedException.class,
             () -> service.getDefendantAccountFixedPenalty(123L, "auth")
         );
 
@@ -2240,4 +2249,21 @@ class OpalDefendantAccountServiceTest {
             verify(aliasRepo, times(2)).findByParty_PartyId(333L);
         }
     }
+
+    @Test
+    void deleteDefendantAccountForTestSupport_whenProdProfile_throwsUnsupportedOperationException() {
+
+        // Arrange
+        when(environment.getActiveProfiles()).thenReturn(new String[] { "prod" });
+
+        // Act + Assert
+        assertThrows(
+            UnsupportedOperationException.class,
+            () -> service.deleteDefendantAccountForTestSupport(123L)
+        );
+
+        // Safety: ensure no deletion happens
+        verifyNoInteractions(defendantAccountRepository);
+    }
+
 }

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service;
 
+import org.springframework.core.env.Environment;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
@@ -29,6 +30,8 @@ public class DefendantAccountService {
     private final DefendantAccountServiceProxy defendantAccountServiceProxy;
 
     private final UserStateService userStateService;
+
+    private final Environment environment;
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId, String authHeaderValue) {
         log.debug(":getHeaderSummary:");
@@ -208,4 +211,27 @@ public class DefendantAccountService {
             throw new PermissionNotAllowedException(FinesPermission.ENTER_ENFORCEMENT);
         }
     }
+
+    public void deleteDefendantAccountForTestSupport(
+        Long defendantAccountId,
+        String authHeaderValue
+    ) {
+        log.warn(":deleteDefendantAccountForTestSupport: id={}", defendantAccountId);
+
+        // Auth enforced ONLY in production
+        if (isProdProfile()) {
+            userStateService.checkForAuthorisedUser(authHeaderValue);
+        }
+
+        defendantAccountServiceProxy.deleteDefendantAccountForTestSupport(defendantAccountId);
+    }
+
+
+    private boolean isProdProfile() {
+        return environment != null
+            && environment.getActiveProfiles() != null
+            && java.util.Arrays.stream(environment.getActiveProfiles())
+            .anyMatch(p -> p.equalsIgnoreCase("prod"));
+    }
+
 }
