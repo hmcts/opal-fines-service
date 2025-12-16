@@ -99,7 +99,7 @@ public class DefendantAccountDeletionService {
         defendantAccountPartiesRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         enforcementRepository.deleteByDefendantAccountId(defendantAccountId);
         creditorAccountTransactional.deleteAllByDefendantAccountId(defendantAccountId, creditorAccountTransactional);
-        reportEntryRepository.deletePaymentTermsReportEntriesByDefendantAccountId(defendantAccountId);
+        reportEntryRepository.deleteByAssociatedRecordId(String.valueOf(defendantAccountId));
         paymentTermsRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         defendantTransactionRepository.deleteByDefendantAccountId(defendantAccountId);
 
