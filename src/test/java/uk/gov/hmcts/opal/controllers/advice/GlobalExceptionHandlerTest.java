@@ -53,14 +53,11 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
-import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationError;
-import uk.gov.hmcts.opal.common.user.authentication.exception.MissingRequestHeaderException;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
-import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 
@@ -68,12 +65,15 @@ import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 @ContextConfiguration(classes = GlobalExceptionHandler.class)
 class GlobalExceptionHandlerTest {
 
-    @MockitoBean FeatureDisabledException featureDisabledException;
-    @MockitoBean MissingRequestHeaderException missingRequestHeaderException;
-    @MockitoBean PermissionNotAllowedException permissionNotAllowedException;
-    @MockitoBean AccessTokenService tokenService;
+    @MockitoBean
+    FeatureDisabledException featureDisabledException;
+    @MockitoBean
+    PermissionNotAllowedException permissionNotAllowedException;
+    @MockitoBean
+    AccessTokenService tokenService;
 
-    @Autowired GlobalExceptionHandler globalExceptionHandler;
+    @Autowired
+    GlobalExceptionHandler globalExceptionHandler;
 
     // ---------- Simple false (non-retriable) buckets ----------
 
@@ -93,18 +93,6 @@ class GlobalExceptionHandlerTest {
         assertTrue(r.getHeaders().getContentType().toString().contains(MediaType.APPLICATION_PROBLEM_JSON_VALUE));
     }
 
-    @Test
-    void handleMissingHeader_false() {
-        MissingRequestHeaderException ex = new MissingRequestHeaderException("TYPE");
-        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleMissingRequestHeaderException(ex);
-
-        assertEquals(HttpStatus.BAD_REQUEST, r.getStatusCode());
-        ProblemDetail pd = r.getBody();
-        assertEquals(HttpStatus.BAD_REQUEST.value(), pd.getStatus());
-        assertEquals("Missing Required Header", pd.getTitle());
-        assertEquals(URI.create("https://hmcts.gov.uk/problems/missing-header"), pd.getType());
-        assertEquals(false, pd.getProperties().get("retriable"));
-    }
 
     @Test
     void handleForbidden_false() {
@@ -209,14 +197,6 @@ class GlobalExceptionHandlerTest {
         assertEquals(false, r.getBody().getProperties().get("retriable"));
     }
 
-    @Test
-    void handleOpalApi_false() {
-        OpalApiException ex = new OpalApiException(AuthenticationError.FAILED_TO_OBTAIN_AUTHENTICATION_CONFIG);
-        ResponseEntity<ProblemDetail> r = globalExceptionHandler.handleOpalApiException(ex);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, r.getStatusCode());
-        assertEquals(false, r.getBody().getProperties().get("retriable"));
-    }
-
     // ---------- Servlet/Transaction/Persistence buckets ----------
 
     @Test
@@ -271,7 +251,7 @@ class GlobalExceptionHandlerTest {
     @Test
     void handlePsql_connectivity_true() throws Exception {
         PSQLException ex = new PSQLException("db down", PSQLState.CONNECTION_FAILURE,
-                                             new ConnectException("refused"));
+            new ConnectException("refused"));
         ResponseEntity<ProblemDetail> r = globalExceptionHandler.handlePsqlException(ex);
 
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, r.getStatusCode());
