@@ -5,6 +5,7 @@ import com.microsoft.applicationinsights.telemetry.BaseTelemetry;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import com.microsoft.applicationinsights.web.internal.RequestTelemetryContext;
 import com.microsoft.applicationinsights.web.internal.ThreadContext;
+import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -16,6 +17,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 @Slf4j
 public final class LogUtil {
+
+    private static Clock clock;
 
     private LogUtil() {
 
@@ -66,6 +69,6 @@ public final class LogUtil {
     }
 
     public static OffsetDateTime getCurrentDateTime() {
-        return OffsetDateTime.now();
+        return OffsetDateTime.now(clock);
     }
 }
