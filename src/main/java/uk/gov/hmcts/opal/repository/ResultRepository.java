@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.entity.result.ResultEntity.Lite;
 import java.util.List;
 
 @Repository
-public interface ResultLiteRepository extends JpaRepository<Lite, String>,
+public interface ResultRepository extends JpaRepository<Lite, String>,
     JpaSpecificationExecutor<Lite> {
     List<Lite> findByResultIdIn(List<String> resultIds);
 }
