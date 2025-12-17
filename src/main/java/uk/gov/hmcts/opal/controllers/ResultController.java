@@ -37,7 +37,7 @@ public class ResultController {
 
         log.debug(":GET:getResultById: resultId: {}", resultId);
 
-        return buildResponse(resultService.getResultById(resultId));
+        return buildResponse(resultService.getResult(resultId));
     }
 
 

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal;
 
+
 import org.springframework.boot.test.context.TestConfiguration;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -15,6 +16,9 @@ public class TestContainerConfig {
             .withUsername("test")
             .withPassword("test")
             .withCommand("postgres -c max_connections=150 -c log_connections=on -c log_disconnections=on");
+
+        // Uncomment the following to enable connection to the Test Containers DB whilst debugging.
+        //POSTGRES_CONTAINER.setPortBindings(List.of("55432:5432"));
 
         POSTGRES_CONTAINER.start();
     }

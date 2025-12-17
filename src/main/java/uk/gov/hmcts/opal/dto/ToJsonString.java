@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.util.Optional;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
 
@@ -63,6 +64,17 @@ public interface ToJsonString {
 
     static JsonNode toJsonNode(String json) throws JsonProcessingException {
         return OBJECT_MAPPER.readTree(json);
+    }
+
+    static Optional<JsonNode> toOptionalJsonNode(String json) {
+        if (json == null) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(OBJECT_MAPPER.readTree(json));
+        } catch (JsonProcessingException e) {
+            return Optional.empty();
+        }
     }
 
     static ObjectMapper getObjectMapper() {

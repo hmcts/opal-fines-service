@@ -14,8 +14,8 @@ public interface EnforcementRepository extends JpaRepository<Lite, Long>,
     void deleteByDefendantAccountId(long defendantAccountId);
 
     Optional<Lite> findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
-        long defendantAccountId, String resultId);
+        Long defendantAccountId, String resultId);
 
     List<Lite> findAllByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
-        long defendantAccountId, String resultId);
+        Long defendantAccountId, String resultId);
 }
