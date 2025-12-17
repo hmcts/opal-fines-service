@@ -1,32 +1,12 @@
 package uk.gov.hmcts.opal.controllers;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.SchemaPaths;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
-import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
-import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-import uk.gov.hmcts.opal.service.UserStateService;
-
-import java.time.LocalDate;
-import java.util.stream.Stream;
-
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -41,6 +21,35 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermissionUser;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
+
+import java.time.LocalDate;
+import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
+import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
+import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.gov.hmcts.opal.service.opal.PdplLoggingService;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
@@ -58,6 +67,12 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     UserStateService userStateService;
+
+    @MockitoBean
+    PdplLoggingService pdplLoggingService;
+
+    @MockitoBean
+    LoggingService loggingService;
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
@@ -898,6 +913,52 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"));
     }
 
+    @Test
+    @DisplayName("Create draft account - Should create and log PDPL event")
+    void testPostDraftAccount_success_and_pdplLogged() throws Exception {
+
+        // arrange: request body from your helper
+        String validRequestBody = validPostRequestBody();
+
+        // make the loggingService a no-op (void method)
+        doNothing().when(loggingService).personalDataAccessLogAsync(any());
+
+        // act: perform POST
+        ResultActions resultActions = mockMvc.perform(post(URL_BASE)
+            .header("authorization", "Bearer some_value")
+            .header("If-Match", "0")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(validRequestBody));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testPostDraftAccount_success_and_pdplLogged: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().is2xxSuccessful())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+
+        // verify loggingService was called (use timeout in case logging is async)
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+
+        // wait up to 1s for the async invocation (increase if your async path is slower)
+        verify(loggingService, timeout(1000).times(1))
+            .personalDataAccessLogAsync(captor.capture());
+
+        PersonalDataProcessingLogDetails captured = captor.getValue();
+        assertNotNull(captured, "Expected loggingService to be invoked with details");
+
+        // light assertions — adapt these to what your flow should produce
+        String businessIdentifier = captured.getBusinessIdentifier();
+        assertTrue(businessIdentifier != null && businessIdentifier.startsWith("Submit Draft Account"),
+            "Expected businessIdentifier to start with 'Submit Draft Account' but was: " + businessIdentifier);
+
+        // assert the individuals field contains the draft account id if your code sets it
+        assertNotNull(captured.getIndividuals(), "Expected individuals to be present in log details");
+        assertFalse(captured.getIndividuals().isEmpty(), "Expected at least one individual in log details");
+    }
+
+
     //CEP 1 CEP1 - Invalid Request Payload (400)
     @ParameterizedTest
     @MethodSource("endpointsWithInvalidBodiesProvider")
@@ -1075,6 +1136,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
               ]
             }""";
     }
+
 
     private static String validCreateRequestBody() {
         return """
@@ -1335,6 +1397,127 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             },
                 "business_unit_id": 1
             }""";
+    }
+
+    private String validPostRequestBody() {
+        return """
+            {
+              "draft_account_id": 5,
+              "created_at": "2025-11-01T10:30:00+00:00",
+              "business_unit_id": 78,
+              "validated_by": null,
+              "account": {
+                "account_type": "Fines",
+                "defendant_type": "adultOrYouthOnly",
+                "originator_name": "LJS",
+                "originator_id": 123,
+                "prosecutor_case_reference": null,
+                "enforcement_court_id": 456,
+                "collection_order_made": null,
+                "collection_order_made_today": null,
+                "collection_order_date": null,
+                "suspended_committal_date": null,
+                "payment_card_request": false,
+                "account_sentence_date": "2025-10-01",
+                "defendant": {
+                  "company_flag": false,
+                  "title": null,
+                  "surname": "Smith",
+                  "company_name": null,
+                  "forenames": "John",
+                  "dob": "1985-07-20",
+                  "address_line_1": "1 Justice Road",
+                  "address_line_2": null,
+                  "address_line_3": null,
+                  "address_line_4": null,
+                  "address_line_5": null,
+                  "post_code": "AB1 2CD",
+                  "telephone_number_home": null,
+                  "telephone_number_business": null,
+                  "telephone_number_mobile": "07123456789",
+                  "email_address_1": "john.smith@example.com",
+                  "email_address_2": null,
+                  "national_insurance_number": "QQ123456C",
+                  "driving_licence_number": null,
+                  "pnc_id": null,
+                  "nationality_1": "British",
+                  "nationality_2": null,
+                  "ethnicity_self_defined": null,
+                  "ethnicity_observed": null,
+                  "cro_number": null,
+                  "occupation": "Engineer",
+                  "gender": "M",
+                  "custody_status": null,
+                  "prison_number": null,
+                  "interpreter_lang": null,
+                  "debtor_detail": null,
+                  "parent_guardian": null
+                },
+                "offences": [
+                  {
+                    "date_of_sentence": "2025-10-01",
+                    "imposing_court_id": 789,
+                    "offence_id": 10,
+                    "impositions": [
+                      {
+                        "result_id": "FINE",
+                        "amount_imposed": 100.00,
+                        "amount_paid": 0.00,
+                        "major_creditor_id": null,
+                        "minor_creditor": {
+                          "company_flag": false,
+                          "title": null,
+                          "company_name": null,
+                          "surname": "Minor",
+                          "forenames": "Alice",
+                          "dob": "2010-05-05",
+                          "address_line_1": "5 Minor St",
+                          "address_line_2": null,
+                          "address_line_3": null,
+                          "address_line_4": null,
+                          "address_line_5": null,
+                          "post_code": "MN1 2OP",
+                          "telephone": null,
+                          "email_address": null,
+                          "payout_hold": false,
+                          "pay_by_bacs": false,
+                          "bank_account_type": null,
+                          "bank_sort_code": null,
+                          "bank_account_number": null,
+                          "bank_account_name": null,
+                          "bank_account_ref": null
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "fp_ticket_detail": null,
+                "payment_terms": {
+                  "payment_terms_type_code": "B",
+                  "effective_date": null,
+                  "instalment_period": null,
+                  "lump_sum_amount": null,
+                  "instalment_amount": null,
+                  "default_days_in_jail": null,
+                  "enforcements": null
+                },
+                "account_notes": null
+              },
+              "account_snapshot": null,
+              "account_type": "Fines",
+              "timeline_data": [
+                {
+                  "username": "johndoe123",
+                  "status": "Active",
+                  "status_date": "2025-10-15",
+                  "reason_text": "Account created for testing"
+                }
+              ],
+              "submitted_by": "BUUID1",
+              "submitted_by_name": "Business User 1"
+            }
+            
+            """;
     }
 
 }
