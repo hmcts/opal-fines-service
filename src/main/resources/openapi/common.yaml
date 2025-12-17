@@ -301,6 +301,7 @@ components:
       properties:
         court_id:
           type: integer
+          format: int64
         court_name:
           type: string
       required:

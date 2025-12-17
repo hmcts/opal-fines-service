@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountBuilders.toEnforcementStatusResponse;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -18,6 +20,7 @@ import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
+import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -58,6 +61,7 @@ import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountSearchCriteria;
 import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
@@ -98,6 +102,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String GET_DEFENDANT_ACCOUNT_PARTY = "LIBRA.get_defendant_account_party";
     public static final String REPLACE_DEFENDANT_ACCOUNT_PARTY = "LIBRA.replace_defendant_account_party";
     public static final String PATCH_DEFENDANT_ACCOUNT = "LIBRA.patchDefendantAccount";
+    public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
 
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
@@ -267,7 +272,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
                 .build();
 
         return DefendantAccountHeaderSummary.builder()
-            .version(BigInteger.valueOf(Optional.ofNullable(response.getVersion()).orElse(1)))
+            .version(new BigInteger(Optional.ofNullable(response.getVersion()).orElse("1")))
             .defendantAccountId(response.getDefendantAccountId())
             .accountNumber(response.getAccountNumber())
             .defendantAccountPartyId(response.getDefendantPartyId())
@@ -892,6 +897,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         );
     }
 
+
     @Override
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
@@ -1188,6 +1194,39 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             case "F" -> LegacyInstalmentPeriod.InstalmentPeriodCode.F;
             default -> throw new IllegalArgumentException("Unknown InstalmentPeriod code: " + code);
         };
+    }
+
+
+    @Override
+    public EnforcementStatus getEnforcementStatus(Long defendantAccountId) {
+        log.debug(":getEnforcementStatus: id: {}", defendantAccountId);
+
+        try {
+
+            Response<LegacyGetDefendantAccountEnforcementStatusResponse> response = gatewayService.postToGateway(
+                GET_ENFORCEMENT_STATUS, LegacyGetDefendantAccountEnforcementStatusResponse.class,
+                createGetDefendantAccountRequest(defendantAccountId.toString()), null);
+
+            if (response.isError()) {
+                log.error(":getEnforcementStatus: Legacy Gateway response: HTTP Response Code: {}", response.code);
+                if (response.isException()) {
+                    log.error(":getEnforcementStatus:", response.exception);
+                } else if (response.isLegacyFailure()) {
+                    log.error(":getEnforcementStatus: Legacy Gateway: body: \n{}", response.body);
+                    LegacyGetDefendantAccountEnforcementStatusResponse responseEntity = response.responseEntity;
+                    log.error(":getEnforcementStatus: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+                }
+            } else if (response.isSuccessful()) {
+                log.info(":getEnforcementStatus: Legacy Gateway response: Success.");
+            }
+
+            return toEnforcementStatusResponse(response.responseEntity);
+
+        } catch (RuntimeException e) {
+            log.error(":getEnforcementStatus: problem with call to Legacy: {}", e.getClass().getName());
+            log.error(":getEnforcementStatus:", e);
+            throw e;
+        }
     }
 
 }

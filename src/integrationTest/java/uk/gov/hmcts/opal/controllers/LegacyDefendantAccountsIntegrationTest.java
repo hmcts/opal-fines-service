@@ -152,4 +152,40 @@ class LegacyDefendantAccountsIntegrationTest extends DefendantAccountsController
     void testLegacyPostAddEnforcement_500Error() throws Exception {
         super.legacyPostAddEnforcement_500Error(log);
     }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetEnforcementStatus() throws Exception {
+        super.testGetEnforcementStatus(log, true);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetEnforcementStatus_missingAuth_returns401() throws Exception {
+        super.testGetEnforcementStatus_missingAuthHeader_returns401(log, true);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetEnforcementStatus_forbidden_returns403() throws Exception {
+        super.testGetEnforcementStatus_forbidden(log, true);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetEnforcementStatus_timeout_returns408() throws Exception {
+        super.testGetEnforcementStatus_timeout(log, true);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetEnforcementStatus_serviceUnavailable_returns503() throws Exception {
+        super.testGetEnforcementStatus_serviceUnavailable(log, true);
+    }
+
+    @Disabled("A running instance of Legacy Stub App is required to execute this test")
+    @Test
+    void testGetEnforcementStatus_serverError_returns500() throws Exception {
+        super.testGetEnforcementStatus_serverError(log, true);
+    }
 }

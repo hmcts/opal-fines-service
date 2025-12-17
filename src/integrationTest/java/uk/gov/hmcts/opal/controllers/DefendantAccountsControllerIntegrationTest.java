@@ -1,8 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import java.util.List;
-import java.util.Map;
-
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
@@ -10,46 +7,49 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import org.hamcrest.core.IsNull;
 import static org.htmlunit.util.MimeType.APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import org.mockito.Mockito;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
+
+import java.util.List;
+import java.util.Map;
+import org.hamcrest.core.IsNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.web.server.ResponseStatusException;
-
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -70,7 +70,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
     private JsonSchemaValidationService jsonSchemaValidationService;
     // Suppressed until @MockBean is replaced with new approach (Spring Boot 3.3+)
     @SuppressWarnings("removal")
-    @MockBean
+    @MockitoBean
     private UserState userState;
 
     private static String commentAndNotesPayload(String accountComment) {
@@ -2572,7 +2572,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
               "enforcement_override": {
                 "enforcement_override_result": {
                   "enforcement_override_result_id": "FWEC",
-                  "enforcement_override_result_title": "Further Warrant Execution Cancelled"
+                "enforcement_override_result_title": "WITNESS EXPENSES - CENTRAL FUNDS"
                 },
                 "enforcer": {
                   "enforcer_id": 21,
@@ -4138,7 +4138,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
 
         res.andExpect(status().is5xxServerError());
     }
-    
+
     @DisplayName("LEGACY: POST Add Enforcement - forbidden without ENTER_ENFORCEMENT")
     void legacyPostAddEnforcement_403Forbidden(Logger log) throws Exception {
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(
@@ -4259,4 +4259,127 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(status().isUnauthorized())
             .andExpect(content().string(""));
     }
+
+    @DisplayName("Get enforcement status for individual defendant account [@PO-1696]")
+    void testGetEnforcementStatus(Logger log, boolean isLegacy) throws Exception {
+
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/78/enforcement-status")
+            .header("authorization", "Bearer some_value"));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getEnforcementStatus: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(header().string("ETag", "\"20\""))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(ignoreForLegacy(jsonPath("$.defendant_account_type").value("adult"), isLegacy))
+            .andExpect(jsonPath("$.employer_flag").value(true))
+            .andExpect(jsonPath("$.is_hmrc_check_eligible").value(false))
+            .andExpect(jsonPath("$.enforcement_overview.days_in_default").value(101))
+            .andExpect(jsonPath("$.enforcement_overview.collection_order.collection_order_flag").value(true))
+            .andExpect(jsonPath("$.enforcement_overview.collection_order.collection_order_date").value("2024-02-18"))
+            .andExpect(jsonPath("$.enforcement_overview.enforcement_court.court_id").value(780000000185L))
+            .andExpect(jsonPath("$.enforcement_overview.enforcement_court.court_name").value("CH17"))
+            .andExpect(jsonPath("$.enforcement_override.enforcement_override_result.enforcement_override_result_id")
+                .value("FWEC"))
+            .andExpect(ignoreForLegacy(jsonPath("$.enforcement_override.enforcement_override_result"
+                    + ".enforcement_override_result_name")
+                .value("WITNESS EXPENSES - CENTRAL FUNDS"), isLegacy))
+            .andExpect(jsonPath("$.enforcement_override.enforcer.enforcer_id").value(780000000021L))
+            .andExpect(jsonPath("$.enforcement_override.enforcer.enforcer_name").value("North East Enforcement"))
+            .andExpect(jsonPath("$.enforcement_override.lja.lja_id").value(240))
+            .andExpect(jsonPath("$.enforcement_override.lja.lja_name").value("Tyne & Wear LJA"))
+            .andExpect(jsonPath("$.last_enforcement_action.reason").value("Late Payment"))
+            .andExpect(jsonPath("$.last_enforcement_action.warrant_number").value("Warrent007"))
+            .andExpect(jsonPath("$.last_enforcement_action.date_added").value("2025-02-13T10:05:10"))
+            .andExpect(jsonPath("$.last_enforcement_action.enforcement_action.result_id").value("MPSO"))
+            .andExpect(jsonPath("$.last_enforcement_action.enforcement_action.result_title")
+                .value("Money Payment Supervision Order"))
+            .andExpect(jsonPath("$.last_enforcement_action.enforcer.enforcer_id").value("21"))
+            .andExpect(jsonPath("$.last_enforcement_action.enforcer.enforcer_name").value("North East Enforcement"))
+            .andExpect(jsonPath("$.last_enforcement_action.result_responses[0].parameter_name").value("reason"))
+            .andExpect(jsonPath("$.last_enforcement_action.result_responses[0].response").value("Evasion of Prison"))
+            .andExpect(ignoreForLegacy(jsonPath("$.last_enforcement_action.result_responses[1].parameter_name")
+                    .value("supervisor"), isLegacy))
+            .andExpect(ignoreForLegacy(jsonPath("$.last_enforcement_action.result_responses[1].response")
+                .value("Mordred"), isLegacy))
+            .andExpect(ignoreForLegacy(jsonPath("$.last_enforcement_action.result_responses[2].parameter_name")
+                .value("prisondetention"), isLegacy))
+            .andExpect(ignoreForLegacy(jsonPath("$.last_enforcement_action.result_responses[2].response")
+                .doesNotExist(), isLegacy))
+            .andExpect(jsonPath("$.account_status_reference.account_status_code").value("L"))
+            .andExpect(jsonPath("$.account_status_reference.account_status_display_name").value("Live"))
+            .andExpect(ignoreForLegacy(jsonPath("$.next_enforcement_action_data").value("All"), isLegacy));
+    }
+
+    @DisplayName("Get enforcement status - missing auth header returns 401")
+    void testGetEnforcementStatus_missingAuthHeader_returns401(Logger log, boolean isLegacy) throws Exception {
+        doThrow(new ResponseStatusException(UNAUTHORIZED, "Missing token"))
+            .when(userStateService).checkForAuthorisedUser(null);
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status"))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("Get enforcement status - forbidden without permission")
+    void testGetEnforcementStatus_forbidden(Logger log, boolean isLegacy) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(false);
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", "Bearer some_value"))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isForbidden());
+    }
+
+    @DisplayName("Get enforcement status - resource not found")
+    void testGetEnforcementStatus_notFound(Logger log, boolean isLegacy) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allPermissionsUser());
+
+        ResultMatcher statusMatcher = isLegacy ? status().is5xxServerError() : status().isNotFound();
+
+        mockMvc.perform(get(URL_BASE + "/999999/enforcement-status").header("authorization", "Bearer some_value"))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(statusMatcher);
+    }
+
+    @DisplayName("Get enforcement status - timeout")
+    void testGetEnforcementStatus_timeout(Logger log, boolean isLegacy) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.REQUEST_TIMEOUT, "Timeout"));
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", "Bearer some_value"))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isRequestTimeout());
+    }
+
+    @DisplayName("Get enforcement status - service unavailable")
+    void testGetEnforcementStatus_serviceUnavailable(Logger log, boolean isLegacy) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenThrow(new ResponseStatusException(
+                org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "Gateway down"));
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status")
+                .header("authorization", "Bearer some_value"))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isServiceUnavailable());
+    }
+
+    @DisplayName("Get enforcement status - server error")
+    void testGetEnforcementStatus_serverError(Logger log, boolean isLegacy) throws Exception {
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Boom"));
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status").header("authorization", "Bearer some_value"))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(status().isInternalServerError());
+    }
+
+    static ResultMatcher ignoreForLegacy(ResultMatcher matcher, boolean legacy) {
+        return (legacy) ? (result) -> { } : matcher;
+    }
+
 }
