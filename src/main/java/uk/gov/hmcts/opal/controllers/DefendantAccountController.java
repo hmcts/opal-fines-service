@@ -53,11 +53,6 @@ public class DefendantAccountController {
     public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-        SecurityUtil.getAuthenticationToken().getAuthorities().forEach(grantedAuthority -> {
-            log.info("TMP: {}", grantedAuthority.getAuthority());
-        });
-
-
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
 
         return buildResponse(
