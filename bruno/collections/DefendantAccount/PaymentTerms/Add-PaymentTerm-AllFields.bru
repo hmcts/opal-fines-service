@@ -1,7 +1,7 @@
 meta {
-  name: Add-PaymentTerm
+  name: Add-PaymentTerm-AllFields
   type: http
-  seq: 1
+  seq: 2
 }
 
 post {
@@ -12,7 +12,7 @@ post {
 
 headers {
   Business-Unit-Id: 78
-  If-Match: 17
+  If-Match: 26
 }
 
 auth:bearer {
@@ -23,14 +23,14 @@ body:json {
   {
     "payment_terms": {
       "days_in_default": 30,
-      "date_days_in_default_imposed": "2025-11-06",
+      "date_days_in_default_imposed": "2025-11-05",
       "extension": true,
       "reason_for_extension": "extn reason text",
       "effective_date": "2025-11-01",
-      "payment_terms_type": { "payment_terms_type_code": "B" ,
+      "payment_terms_type": { "payment_terms_type_code": "B",
       "payment_terms_type_display_name": "By date"},
-      "instalment_period": { "instalment_period_code": "W",
-      "instalment_period_display_name": "Weekly" },
+      "instalment_period": { "instalment_period_code": "W" ,
+      "instalment_period_display_name": "Weekly"},
       "lump_sum_amount": 120.00,
       "instalment_amount": 10.00,
       "posted_details": {
@@ -39,7 +39,7 @@ body:json {
         "posted_by_name": "aa"
       }
     },
-    "request_payment_card": false,
+    "request_payment_card": true,
     "generate_payment_terms_change_letter": false
   }
 }

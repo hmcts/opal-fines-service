@@ -101,6 +101,7 @@ public class DefendantAccountController {
         @RequestHeader("Business-Unit-Id") String businessUnitId,
         @RequestHeader(value = "If-Match", required = false) String ifMatch,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
+        @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_ADD_PAYMENT_TERMS)
         @RequestBody AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
 
         log.debug(":POST: :addPaymentTerms: for defendant id: {}", defendantAccountId);

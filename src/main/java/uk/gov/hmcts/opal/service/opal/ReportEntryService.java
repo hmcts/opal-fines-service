@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static uk.gov.hmcts.opal.util.RecordTypeConstants.PAYMENT_TERMS;
+import static uk.gov.hmcts.opal.util.ReportIdConstants.LIST_EXTEND_TTP;
+
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +18,6 @@ import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
 @Slf4j(topic = "opal.ReportEntryService")
 @Qualifier("reportEntryService")
 public class ReportEntryService implements ReportEntryServiceInterface {
-
-    public static final String LIST_EXTEND_TTP = "list_extend_ttp";
-    public static final String PAYMENT_TERMS = "payment_terms";
 
     @Autowired
     private ReportEntryRepository reportEntryRepository;

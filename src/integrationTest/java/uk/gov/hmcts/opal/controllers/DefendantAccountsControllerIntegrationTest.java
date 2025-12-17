@@ -4443,18 +4443,28 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
-        // Minimal valid payload for AddDefendantAccountPaymentTermsRequest - adjust fields if your DTO requires others
         String requestJson = """
             {
               "payment_terms": {
                 "days_in_default": 30,
+                "date_days_in_default_imposed": "2025-11-05",
+                "extension": true,
+                "reason_for_extension": "extn reason text",
                 "effective_date": "2025-11-01",
-                "payment_terms_type": { "payment_terms_type_code": "B" },
-                "instalment_period": { "instalment_period_code": "W" },
-                "lump_sum_amount": 0.00,
-                "instalment_amount": 0.00,
-                "reason_for_extension": ""
-              }
+                "payment_terms_type": { "payment_terms_type_code": "B",
+                "payment_terms_type_display_name": "By date"},
+                "instalment_period": { "instalment_period_code": "W" ,
+                "instalment_period_display_name": "Weekly"},
+                "lump_sum_amount": 120.00,
+                "instalment_amount": 10.00,
+                "posted_details": {
+                  "posted_by": "clerk1",
+                  "posted_date": "2025-02-02",
+                  "posted_by_name": "aa"
+                }
+              },
+              "request_payment_card": true,
+              "generate_payment_terms_change_letter": false
             }
             """;
 

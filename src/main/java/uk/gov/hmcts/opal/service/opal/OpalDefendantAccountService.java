@@ -434,6 +434,75 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+    /**
+     * This method adds a payment card request to a defendant account.
+     * <p>
+     * This method is separated from the public interface to allow for
+     * addition of a payment card in a chained operation.
+     * </p>
+     */
+    private AddPaymentCardRequestResponse addPaymentCard(
+        Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String authHeader) {
+
+        // Fetch defendant account
+        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
+
+        // Validate business unit
+        if (account.getBusinessUnit() == null
+            || account.getBusinessUnit().getBusinessUnitId() == null
+            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
+            throw new EntityNotFoundException(
+                "Defendant Account not found in business unit " + businessUnitId);
+        }
+
+        // Version check
+        VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "addPaymentCardRequest");
+
+        // Ensure no existing PCR
+        if (paymentCardRequestRepository.existsByDefendantAccountId(defendantAccountId)) {
+            throw new ResourceConflictException(
+                "DefendantAccountEntity",
+                String.valueOf(defendantAccountId),
+                "A payment card request already exists for this account.", account
+            );
+        }
+
+        // Retrieve logged-in UserState
+        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
+
+        // Create PCR row first (so later declarations appear close to usage)
+        PaymentCardRequestEntity pcr = PaymentCardRequestEntity.builder()
+            .defendantAccountId(defendantAccountId)
+            .build();
+        paymentCardRequestRepository.save(pcr);
+
+        // Resolve BU ID right before use
+        final short buId = Short.parseShort(businessUnitId);
+
+        // Resolve BU user ID — moved DIRECTLY before its first usage
+        final String businessUnitUserId = userState
+            .getBusinessUnitUserForBusinessUnit(buId)
+            .map(bu -> bu.getBusinessUnitUserId())
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Logged in user is not associated with business unit " + buId));
+
+        // Friendly display name — moved DIRECTLY before its first usage
+        final String displayName = accessTokenService.extractName(authHeader);
+
+        // Update defendant_accounts flags
+        account.setPaymentCardRequested(true);
+        account.setPaymentCardRequestedDate(LocalDate.now());
+        account.setPaymentCardRequestedBy(businessUnitUserId);
+        account.setPaymentCardRequestedByName(displayName);
+        defendantAccountRepository.save(account);
+
+        // Minimal response
+        return new AddPaymentCardRequestResponse(defendantAccountId);
+    }
+
     // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method
     private DefendantAccountEntity bumpVersion(Long accountId) {
         DefendantAccountEntity entity = getDefendantAccountById(accountId);
@@ -986,12 +1055,13 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String forenames,
         String surname,
         String organisationName) { }
+
     @Override
     @Transactional
     public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
         String ifMatch,
-        String postedBy,
+        String authHeader,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
 
         // Look up the defendant account
@@ -1016,19 +1086,24 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             = paymentTermsMapper.toEntity(addPaymentTermsRequest.getPaymentTerms());
         paymentTermsEntity.setDefendantAccount(defAccount);
         // Persist the new (active) PaymentTermsEntity
-        PaymentTermsEntity savedPaymentTerms = paymentTermsService.addPaymentTerm(paymentTermsEntity, postedBy);
+        PaymentTermsEntity savedPaymentTerms = paymentTermsService.addPaymentTerm(paymentTermsEntity);
+
+        // Update defendant account with any payment term related attributes
+        addPaymentTerm(defAccount, addPaymentTermsRequest);
 
         // Clear last_enforcement on the defendant account, if applicable
         clearLastEnforcementAction(defAccount,
             savedPaymentTerms.getPaymentTermsId(),
             defAccount.getBusinessUnit().getBusinessUnitId());
 
+        defendantAccountRepository.save(defAccount);
+
         // If requestPaymentCardFlag is true: create a PaymentCardRequest row (if not already present)
         //  and update the defendant account PCR-related attributes (requested flag/date/by/byName).
         if (Boolean.TRUE.equals(addPaymentTermsRequest.getRequestPaymentCard())) {
             log.debug(":addPaymentTerms: Request Payment Card flag is TRUE for account {}",
                 defAccount.getDefendantAccountId());
-            addPaymentCardRequest(defendantAccountId, businessUnitId, ifMatch, postedBy);
+            addPaymentCard(defendantAccountId, businessUnitId, ifMatch, authHeader);
         }
 
         // Create report entry for the Extension of Time to Pay report
@@ -1038,20 +1113,29 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         log.debug(":addPaymentTerms: saved payment terms id={} for account {}",
             savedPaymentTerms.getPaymentTermsId(), defAccount.getDefendantAccountId());
 
+        // Retrieve logged-in UserState
+        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
+
+        // Resolve BU ID right before use
+        final short buId = Short.parseShort(businessUnitId);
+
+        // Resolve BU user ID — moved DIRECTLY before its first usage
+        final String businessUnitUserId = userState
+            .getBusinessUnitUserForBusinessUnit(buId)
+            .map(bu -> bu.getBusinessUnitUserId())
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Logged in user is not associated with business unit " + buId));
+
         amendmentService.auditFinaliseStoredProc(
             defAccount.getDefendantAccountId(),
             RecordType.DEFENDANT_ACCOUNTS,
             Short.parseShort(businessUnitId),
-            postedBy,
+            businessUnitUserId,
             defAccount.getProsecutorCaseReference(),
             "ACCOUNT_ENQUIRY"
         );
 
-        return GetDefendantAccountPaymentTermsResponse.builder()
-            .paymentTerms(addPaymentTermsRequest.getPaymentTerms())
-            .paymentCardLastRequested(defAccount.getPaymentCardRequestedDate())
-            .lastEnforcement(defAccount.getLastEnforcement())
-            .build();
+        return OpalDefendantAccountBuilders.buildPaymentTermsResponse(savedPaymentTerms);
     }
 
     /**
@@ -1072,12 +1156,21 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
                 log.debug(":clearLastEnforcementAction: Clearing last_enforcement={} for account {}",
                     defAccount.getLastEnforcement(), defAccount.getDefendantAccountId());
                 defAccount.setLastEnforcement(null);
-                defendantAccountRepository.save(defAccount);
+
             } else {
                 log.debug(":clearLastEnforcementAction: Preserving last_enforcement={} for account {} as "
                         + "extend_ttp_preserve_last_enf=TRUE",
                     defAccount.getLastEnforcement(), defAccount.getDefendantAccountId());
             }
         }
+    }
+
+    /**
+     * Add payment term related attributes to the defendant account.
+     */
+    private void addPaymentTerm(DefendantAccountEntity defAccount,
+        AddDefendantAccountPaymentTermsRequest paymentTermsRequest) {
+
+        defAccount.setSuspendedCommittalDate(paymentTermsRequest.getPaymentTerms().getDateDaysInDefaultImposed());
     }
 }

@@ -97,7 +97,7 @@ public class OpalDefendantAccountServiceTestAddPaymentTermsTest {
         paymentTermsReturned.setPaymentTermsId(200L);
         paymentTermsReturned.setActive(Boolean.TRUE);
 
-        when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class), any(String.class)))
+        when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class)))
             .thenReturn(paymentTermsReturned);
 
         PaymentTermsEntity paymentTerms = new PaymentTermsEntity();
@@ -129,7 +129,7 @@ public class OpalDefendantAccountServiceTestAddPaymentTermsTest {
 
         // Assert
         // 1) Verify PaymentTermsService.addPaymentTerm was called
-        verify(paymentTermsService).addPaymentTerm(any(PaymentTermsEntity.class), any(String.class));
+        verify(paymentTermsService).addPaymentTerm(any(PaymentTermsEntity.class));
         // 2) Verify that defendantAccountRepository.save was called to update lastEnforcement
         verify(defendantAccountRepository).save(accountCaptor.capture());
         DefendantAccountEntity savedAccount = accountCaptor.getValue();
