@@ -4,7 +4,7 @@ import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 
 public interface PaymentTermsServiceInterface {
 
-    public PaymentTermsEntity addPaymentTerm(PaymentTermsEntity paymentTermsEntity, String postedBy);
+    public PaymentTermsEntity addPaymentTerm(PaymentTermsEntity paymentTermsEntity);
 
     /**
      * Deactivate any existing PaymentTerms entities for this defendant account

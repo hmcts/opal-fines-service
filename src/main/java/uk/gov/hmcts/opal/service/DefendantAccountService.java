@@ -243,7 +243,7 @@ public class DefendantAccountService {
             return defendantAccountServiceProxy.addPaymentTerms(defendantAccountId,
                 businessUnitId,
                 ifMatch,
-                postedBy,
+                authHeaderValue,
                 addPaymentTermsRequest);
         } else {
             throw new PermissionNotAllowedException(FinesPermission.AMEND_PAYMENT_TERMS);

@@ -21,16 +21,15 @@ public class PaymentTermsService implements PaymentTermsServiceInterface {
     private final DefendantAccountPaymentTermsRepository paymentTermsRepository;
 
     @Override
-    public PaymentTermsEntity addPaymentTerm(PaymentTermsEntity paymentTermsEntity, String postedBy) {
+    public PaymentTermsEntity addPaymentTerm(PaymentTermsEntity paymentTermsEntity) {
         // Set new one to active
         paymentTermsEntity.setActive(Boolean.TRUE);
 
         // Set posted metadata
         paymentTermsEntity.setPostedDate(LocalDate.from(LocalDateTime.now()));
-        paymentTermsEntity.setPostedBy(postedBy);
-        paymentTermsEntity.setPostedByUsername(postedBy);
+        paymentTermsEntity.setPostedBy(paymentTermsEntity.getPostedBy());
+        paymentTermsEntity.setPostedByUsername(paymentTermsEntity.getPostedByUsername());
 
-        // Persist using repository
         return paymentTermsRepository.save(paymentTermsEntity);
     }
 
