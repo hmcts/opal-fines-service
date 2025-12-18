@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,12 +14,15 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
+import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.PostedDetails;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.common.AddressDetails;
 import uk.gov.hmcts.opal.dto.common.AddressDetails.AddressDetailsBuilder;
@@ -56,7 +60,6 @@ import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
-import uk.gov.hmcts.opal.entity.EnforcementOverrideResultEntity;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
@@ -66,16 +69,22 @@ import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity.Lite;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.generated.model.CourtReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcerReferenceCommon;
-import uk.gov.hmcts.opal.generated.model.GetDefendantAccountEnforcementStatusResponse.DefendantAccountTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.LjaReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.ResultResponsesCommon;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
 
 public class OpalDefendantAccountBuilders {
@@ -697,10 +706,10 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static EnforcementOverrideResult buildEnforcementOverrideResult(Optional<EnforcementOverrideResultEntity> entity) {
+    static EnforcementOverrideResult buildEnforcementOverrideResult(Optional<ResultEntity.Lite> entity) {
         return entity.map(r -> EnforcementOverrideResult.builder()
-                .enforcementOverrideId(r.getEnforcementOverrideResultId())
-                .enforcementOverrideTitle(r.getEnforcementOverrideResultName())
+                .enforcementOverrideId(r.getResultId())
+                .enforcementOverrideTitle(r.getResultTitle())
                 .build())
             .orElse(null);
     }
@@ -731,6 +740,80 @@ public class OpalDefendantAccountBuilders {
             .enforcementCourt(buildCourtReferenceCommon(defendantEntity.getEnforcingCourt()))
             .daysInDefault(defendantEntity.getJailDays())
             .build();
+    }
+
+    static EnforcementStatus buildEnforcementStatus(DefendantAccountEntity defendantEntity,
+        DefendantAccountPartiesEntity defendantParty, Optional<DebtorDetailEntity> debtDetails,
+        Optional<ResultEntity.Lite> recentResult, EnforcementOverride override,
+        EnforcementActionDefendantAccount enfActDefAcc) {
+
+        return EnforcementStatus.builder()
+            .enforcementOverview(buildEnforcementOverview(defendantEntity))
+            .enforcementOverride(buildEnforcementOverrideCommon(override))
+            .lastEnforcementAction(enfActDefAcc)
+            .nextEnforcementActionData(recentResult.map(ResultEntity::getEnfNextPermittedActions).orElse(null))
+            .accountStatusReference(buildAccountStatusReferenceCommon(defendantEntity.getAccountStatus()))
+            .defendantAccountType(determineAccountType(defendantParty))
+            .employerFlag(Objects.nonNull(debtDetails.map(DebtorDetailEntity::getEmployerName).orElse(null)))
+            .isHmrcCheckEligible(false)  // TODO: See PO-2370
+            .version(defendantEntity.getVersion())
+            .build();
+    }
+
+    static EnforcementActionDefendantAccount buildEnforcementAction(Optional<Lite> recentEnforcement,
+        Optional<EnforcerEntity> recentEnforcer) {
+
+        return recentEnforcement.map(enforcement -> {
+
+            Optional<ResultEntity.Lite> recentResult = recentEnforcement.map(EnforcementEntity::getResult);
+
+            return EnforcementActionDefendantAccount.builder()
+                .enforcementAction(ResultReferenceCommon.builder()
+                    .resultId(recentEnforcement.get().getResultId())
+                    .resultTitle(recentResult.map(ResultEntity::getResultTitle).orElse(null))
+                    .build())
+                .enforcer(EnforcerReferenceCommon.builder()
+                    .enforcerId(recentEnforcer.map(EnforcerEntity::getEnforcerId).orElse(null))
+                    .enforcerName(recentEnforcer.map(EnforcerEntity::getName).orElse(null))
+                    .build())
+                .dateAdded(recentEnforcement.get().getPostedDate())
+                .reason(recentEnforcement.get().getReason())
+                .warrantNumber(recentEnforcement.get().getWarrantReference())
+                .resultResponses(
+                    buildResultResponses(recentResult.map(ResultEntity::getResultParameters),
+                        ToJsonString.toOptionalJsonNode(enforcement.getResultResponses())))
+                .build();
+
+        }).orElse(null);
+    }
+
+    static List<ResultResponsesCommon> buildResultResponses(
+        Optional<String> resultParameters, Optional<JsonNode> responses) {
+
+        return convertStringToStreamOfJsonNodes(resultParameters) // resultParameters is a String of Json
+            .map(OpalDefendantAccountBuilders::getNameTextValueAsString) // Just need the 'name' value from each node
+            .flatMap(Optional::stream) // A stream of response 'keys' (i.e. 'name' values) for this enforcement
+            .map(key -> ResultResponsesCommon.builder()
+                .parameterName(key)
+                .response(getTextValueFromJsonNode(responses, key).orElse(null)) // 'Lookup' the response
+                .build())
+            .toList();
+    }
+
+    static Stream<JsonNode> convertStringToStreamOfJsonNodes(Optional<String> json) {
+        return json
+            .flatMap(ToJsonString::toOptionalJsonNode)
+            .map(JsonNode::spliterator)  // A JsonNode is Iterable
+            .map(s -> StreamSupport.stream(s, false))
+            .orElse(Stream.empty());
+    }
+
+    static Optional<String> getNameTextValueAsString(JsonNode node) {
+        return Optional.ofNullable(node.findValue("name")).map(JsonNode::textValue);
+    }
+
+    static Optional<String> getTextValueFromJsonNode(Optional<JsonNode> node, String key) {
+        return node.flatMap(r -> Optional.ofNullable(r.findValue(key))).map(JsonNode::asText);
     }
 
     static LJA buildLja(Optional<LocalJusticeAreaEntity> entity) {
@@ -775,9 +858,8 @@ public class OpalDefendantAccountBuilders {
 
     static CourtReferenceCommon buildCourtReferenceCommon(CourtEntity.Lite court) {
         return Optional.ofNullable(court)
-            .filter(c -> safeInt(c.getCourtId()) != null)
             .map(c -> CourtReferenceCommon.builder()
-                .courtId(safeInt(c.getCourtId()))
+                .courtId(c.getCourtId())
                 .courtName(c.getName())
                 .build())
             .orElse(null);
@@ -795,7 +877,7 @@ public class OpalDefendantAccountBuilders {
      * @param age       Age of the individual.
      * @return True if the individual is under 18, false otherwise.
      */
-    static Boolean isYouth(LocalDateTime birthDate, Integer age) {
+    static Boolean isYouth(LocalDateTime birthDate, Short age) {
         if (birthDate != null) {
             return calculateAge(birthDate.toLocalDate()) < 18;
         } else if (age != null) {
@@ -868,7 +950,7 @@ public class OpalDefendantAccountBuilders {
     }
 
     public static boolean isNotYouth(PartyEntity party) {
-        return !isYouth(party.getBirthDate().atStartOfDay(), party.getAge().intValue());
+        return !isYouth(party.getBirthDate().atStartOfDay(), party.getAge());
     }
 
     public static DefendantAccountPartiesEntity filterDefendantParty(DefendantAccountEntity account) {
@@ -879,6 +961,7 @@ public class OpalDefendantAccountBuilders {
             .orElseThrow(() -> new EntityNotFoundException(
                 "Defendant Party not found for Defendant Account Id: " + account.getDefendantAccountId()));
     }
+
 
     static void applyCollectionOrder(DefendantAccountEntity entity, CollectionOrderDto co) {
         if (co.getCollectionOrderFlag() == null || co.getCollectionOrderDate() == null) {
