@@ -40,7 +40,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
-
+import uk.gov.hmcts.opal.service.opal.PdplLoggingService;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -51,6 +51,9 @@ class DraftAccountTransactionalTest {
 
     @Mock
     private BusinessUnitRepository businessUnitRepository;
+
+    @Mock
+    private PdplLoggingService loggingService;
 
     @InjectMocks
     private DraftAccountTransactional draftAccountTransactional;
@@ -119,12 +122,10 @@ class DraftAccountTransactionalTest {
     }
 
     @Test
-    void testSubmitDraftAccounts_success() throws Exception {
-        // Arrange
-        String minimalAccountJson = createAccountString(); // non-empty valid JSON
+    void testSubmitDraftAccounts_success() {
+        String minimalAccountJson = createAccountString();
 
-        // ensure the entity returned from the repo contains the account JSON (so assertEquals can compare)
-        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder()
+        DraftAccountEntity saved = DraftAccountEntity.builder()
             .account(minimalAccountJson)
             .accountSnapshot("{}")
             .accountType("Fine")
@@ -134,13 +135,13 @@ class DraftAccountTransactionalTest {
             .accountStatusDate(LocalDateTime.now())
             .build();
 
-        AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
-            .businessUnitId((short) 2)
+        AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
+            .businessUnitId((short)2)
             .submittedBy("TestUser")
             .submittedByName("Test User")
             .account(minimalAccountJson)
             .accountType("Fine")
-            .timelineData(createTimelineDataString())
+            .timelineData("[]")
             .build();
 
         BusinessUnitFullEntity businessUnit = BusinessUnitFullEntity.builder()
@@ -148,13 +149,11 @@ class DraftAccountTransactionalTest {
             .build();
 
         when(businessUnitRepository.getReferenceById(any())).thenReturn(businessUnit);
-        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(draftAccountEntity);
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenReturn(saved);
 
-        // Act
-        DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(addDraftAccountDto);
+        DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto);
 
-        // Assert
-        assertEquals(draftAccountEntity.getAccount(), result.getAccount());
+        assertEquals(saved.getAccount(), result.getAccount());
     }
 
     @Test
