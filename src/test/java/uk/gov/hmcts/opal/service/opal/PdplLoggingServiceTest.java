@@ -448,4 +448,24 @@ public class PdplLoggingServiceTest {
         assertEquals("user-pg", capturedList.get(0).getCreatedBy().getIdentifier());
     }
 
+    @Test
+    @DisplayName("logSubmitDraftAccountMinorCreditorInfo - when docContext.read returns null -> no logging")
+    void logSubmitDraftAccountMinorCreditorInfo_handlesNullMinorCreditors_noLogging() {
+        // Arrange
+        DraftAccountEntity entity = Mockito.mock(DraftAccountEntity.class);
+        // DON'T stub entity.getDraftAccountId() or entity.getSubmittedBy() — they are NOT used in this branch.
+
+        // mocked DocContext returns null for the minor_creditor path
+        JsonPathUtil.DocContext docContext = Mockito.mock(JsonPathUtil.DocContext.class);
+        when(docContext.read("$..minor_creditor")).thenReturn(null);
+
+        // DO NOT stub loggingService.personalDataAccessLogAsync(...) — it shouldn't be called.
+
+        // Act
+        pdplLoggingService.logSubmitDraftAccountMinorCreditorInfo(docContext, entity);
+
+        // Assert - loggingService should NOT be called
+        verify(loggingService, times(0)).personalDataAccessLogAsync(any());
+    }
+
 }
