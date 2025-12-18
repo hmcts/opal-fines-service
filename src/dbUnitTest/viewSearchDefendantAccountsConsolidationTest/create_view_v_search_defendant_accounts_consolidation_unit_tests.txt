@@ -1,0 +1,17 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  === Data cleanup before tests completed ===
+NOTICE:  === Setting up test data ===
+NOTICE:  Test data setup completed for accounts 7701, 7702, 7703
+NOTICE:  --- TEST 1: All error messages are generated correctly ---
+NOTICE:  TEST 1 PASSED
+NOTICE:  --- TEST 2: Both warning messages are generated correctly ---
+NOTICE:  TEST 2 PASSED
+NOTICE:  --- TEST 3: Clean account returns no errors or warnings ---
+NOTICE:  TEST 3 PASSED
+NOTICE:  --- TEST 4: Account with cleared cheque should not generate warning ---
+NOTICE:  TEST 4 PASSED
+NOTICE:  === Cleaning up test data ===
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 36 msec.
