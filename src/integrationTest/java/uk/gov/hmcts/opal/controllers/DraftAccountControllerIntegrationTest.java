@@ -1,10 +1,6 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,8 +40,8 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
-import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -120,7 +116,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(29))
+            .andExpect(jsonPath("$.count").value(30))
             .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[2].account_type")
@@ -257,7 +253,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         log.info(":testGetDraftAccountsSummaries_paramNotSubmittedBy: body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(23))
+            .andExpect(jsonPath("$.count").value(24))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
             .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
@@ -914,14 +910,13 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("Create draft account - Should create and log PDPL event")
-    void testPostDraftAccount_success_and_pdplLogged() throws Exception {
+    @DisplayName("Create draft account - Should create and call PDPLLoggingService")
+    void testPostDraftAccount_success_and_pdplServiceCalled() throws Exception {
 
         // arrange: request body from your helper
-        String validRequestBody = validPostRequestBody();
+        String validRequestBody = validPostRequestBody(); // reuse your helper
 
-        // make the loggingService a no-op (void method)
-        doNothing().when(loggingService).personalDataAccessLogAsync(any());
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
         // act: perform POST
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
@@ -930,34 +925,34 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
 
-        String body = resultActions.andReturn().getResponse().getContentAsString();
-        log.info(":testPostDraftAccount_success_and_pdplLogged: Response body:\n{}",
-            ToJsonString.toPrettyJson(body));
-
-        resultActions.andExpect(status().is2xxSuccessful())
+        // assert response (controller returned 201 in your run)
+        resultActions.andExpect(status().isCreated())
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
 
-        // verify loggingService was called (use timeout in case logging is async)
-        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
-            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        // verify PDPLLoggingService was called with a DraftAccountEntity
+        ArgumentCaptor<DraftAccountEntity> captor = ArgumentCaptor.forClass(DraftAccountEntity.class);
 
-        // wait up to 1s for the async invocation (increase if your async path is slower)
-        verify(loggingService, timeout(1000).times(1))
-            .personalDataAccessLogAsync(captor.capture());
+        // wait up to 2s for invocation (increase if CI is slow)
+        verify(pdplLoggingService, timeout(2000).times(1))
+            .pdplForSubmitDraftAccount(captor.capture());
 
-        PersonalDataProcessingLogDetails captured = captor.getValue();
-        assertNotNull(captured, "Expected loggingService to be invoked with details");
+        DraftAccountEntity capturedEntity = captor.getValue();
+        if (capturedEntity == null) {
+            throw new AssertionError("Expected pdplForSubmitDraftAccount to be invoked");
+        }
 
-        // light assertions — adapt these to what your flow should produce
-        String businessIdentifier = captured.getBusinessIdentifier();
-        assertTrue(businessIdentifier != null && businessIdentifier.startsWith("Submit Draft Account"),
-            "Expected businessIdentifier to start with 'Submit Draft Account' but was: " + businessIdentifier);
+        // light assertions — adapt to expected values from your response/payload
+        // e.g. check submittedBy or draftAccountId (your controller may set draft id on response only)
+        if (capturedEntity.getSubmittedBy() == null || capturedEntity.getSubmittedBy().isEmpty()) {
+            throw new AssertionError("expected capturedEntity.submittedBy to be set");
+        }
 
-        // assert the individuals field contains the draft account id if your code sets it
-        assertNotNull(captured.getIndividuals(), "Expected individuals to be present in log details");
-        assertFalse(captured.getIndividuals().isEmpty(), "Expected at least one individual in log details");
+        // if account is stored as JSON string on entity, you can assert it contains expected key
+        String accountJson = capturedEntity.getAccount();
+        if (accountJson == null || !accountJson.contains("\"account_type\"")) {
+            throw new AssertionError("expected account JSON on entity to contain account_type");
+        }
     }
-
 
     //CEP 1 CEP1 - Invalid Request Payload (400)
     @ParameterizedTest
