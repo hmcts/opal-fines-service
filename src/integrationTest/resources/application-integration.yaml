@@ -1,4 +1,9 @@
 spring:
+  # Flyway
+  flyway:
+    locations: classpath:db/migration/allEnvs, classpath:db/migration/devOnly
+    baseline-on-migrate: true
+    ignoreMigrationPatterns: "*:missing"
   main:
     allow-bean-definition-overriding: true
   security:
@@ -27,12 +32,6 @@ logging:
         jdbc:
           datasource:
             init: DEBUG
-# Flyway
-flyway:
-  locations: classpath:db/migration/allEnvs, classpath:db/migration/devOnly
-  baseline-on-migrate: true
-  ignoreMigrationPatterns: "*:missing"
-
 # Hibernate
 jpa:
   hibernate:
