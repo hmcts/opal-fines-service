@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,6 +49,9 @@ public class PdplLoggingServiceTest {
         Mockito.when(entity.getDraftAccountId()).thenReturn(draftId);
         Mockito.when(entity.getSubmittedBy()).thenReturn(submittedBy);
 
+        // stub loggingService boolean-return (method returns boolean)
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
         String expectedBusinessIdentifier = "Submit Draft Account - Defendant";
         String expectedIp = "192.0.2.33";
         OffsetDateTime expectedNow = OffsetDateTime.parse("2023-01-02T03:04:05+00:00");
@@ -80,7 +84,7 @@ public class PdplLoggingServiceTest {
 
             List<ParticipantIdentifier> individuals = captured.getIndividuals();
             assertThat(individuals).hasSize(1);
-            ParticipantIdentifier individual = individuals.get(0); // fixed from getFirst()
+            ParticipantIdentifier individual = individuals.get(0);
             assertThat(individual.getIdentifier()).isEqualTo(draftId.toString());
             assertThat(individual.getType()).isEqualTo(PdplIdentifierType.DRAFT_ACCOUNT);
 
@@ -96,6 +100,9 @@ public class PdplLoggingServiceTest {
         DraftAccountEntity entity = Mockito.mock(DraftAccountEntity.class);
         Mockito.when(entity.getDraftAccountId()).thenReturn(draftId);
         Mockito.when(entity.getSubmittedBy()).thenReturn(submittedBy);
+
+        // stub loggingService boolean-return
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         String expectedBusinessIdentifier = "Submit Draft Account - Parent or Guardian";
         String expectedIp = "10.0.0.5";
@@ -135,6 +142,9 @@ public class PdplLoggingServiceTest {
         DraftAccountEntity entity = Mockito.mock(DraftAccountEntity.class);
         Mockito.when(entity.getDraftAccountId()).thenReturn(draftId);
         Mockito.when(entity.getSubmittedBy()).thenReturn(submittedBy);
+
+        // stub loggingService boolean-return
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         String expectedBusinessIdentifier = "Submit Draft Account - Minor Creditor";
         String expectedIp = "203.0.113.7";
