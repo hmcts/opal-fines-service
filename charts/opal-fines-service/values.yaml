@@ -39,6 +39,12 @@ java:
           alias: OPAL_SFTP_OUTBOUND_USER
         - name: outbound-password
           alias: OPAL_SFTP_OUTBOUND_PASSWORD
+        - name: servicebus-connection-string
+          alias: SERVICEBUS_CONNECTION_STRING
+        - name: servicebus-shared-access-key
+          alias: SERVICEBUS_SHARED_ACCESS_KEY
+        - name: servicebus-logging-pdpl-queue-name
+          alias: SERVICEBUS_LOGGING_PDPL_QUEUE_NAME
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: https://opal-frontend.{{ .Values.global.environment }}.platform.hmcts.net
