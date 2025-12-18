@@ -17,7 +17,7 @@ public class WebConfig implements WebMvcConfigurer {
     private final ContentDigestValidatorInterceptor contentDigestValidatorInterceptor;
     private final AcceptHeaderInterceptor acceptHeaderInterceptor;
 
-    @Value("${opal.content-digest.enforce:true}")
+    @Value("${opal.content-digest.request.enforce:true}")
     private boolean enforceContentDigest;
 
     @Override
