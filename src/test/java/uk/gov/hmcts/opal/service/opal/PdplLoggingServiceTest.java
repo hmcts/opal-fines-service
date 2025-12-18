@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -293,4 +294,158 @@ public class PdplLoggingServiceTest {
             com.jayway.jsonpath.JsonPath.read(json, "$.nonexistent_field")
         );
     }
+
+    @Test
+    @DisplayName("defendant_type == company -> no PDPL logging")
+    void pdplForSubmitDraftAccount_company_noLogging() {
+        String accountJson = """
+            {
+              "account_type":"Fines",
+              "defendant_type":"company",
+              "originator_name":"LJS",
+              "originator_id": 1
+            }
+            """;
+
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .draftAccountId(1L)
+            .submittedBy("user-x")
+            .account(accountJson)
+            .build();
+
+        pdplLoggingService.pdplForSubmitDraftAccount(entity);
+
+        // no calls expected
+        verify(loggingService, times(0)).personalDataAccessLogAsync(any());
+    }
+
+    @Test
+    @DisplayName("adultOrYouthOnly without minor_creditor -> only Defendant logged")
+    void pdplForSubmitDraftAccount_adultNoMinor_onlyDefendant() {
+        String accountJson = """
+            {
+              "account_type":"Fines",
+              "defendant_type":"adultOrYouthOnly",
+              "originator_name":"LJS",
+              "originator_id": 2,
+              "offences": []
+            }
+            """;
+
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .draftAccountId(11L)
+            .submittedBy("user-def")
+            .account(accountJson)
+            .build();
+
+        try (MockedStatic<LogUtil> logUtil = Mockito.mockStatic(LogUtil.class)) {
+            logUtil.when(LogUtil::getIpAddress).thenReturn("10.10.10.10");
+            logUtil.when(LogUtil::getCurrentDateTime).thenReturn(OffsetDateTime.parse("2025-02-02T02:02:02Z"));
+
+            pdplLoggingService.pdplForSubmitDraftAccount(entity);
+        }
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+
+        verify(loggingService, times(1)).personalDataAccessLogAsync(captor.capture());
+
+        PersonalDataProcessingLogDetails captured = captor.getValue();
+        assertThat(captured).isNotNull();
+        assertEquals("Submit Draft Account - Defendant", captured.getBusinessIdentifier());
+        assertEquals("11", captured.getIndividuals().get(0).getIdentifier());
+        assertEquals("user-def", captured.getCreatedBy().getIdentifier());
+    }
+
+    @Test
+    @DisplayName("adultOrYouthOnly with individual minor_creditor -> Defendant + Minor Creditor logged")
+    void pdplForSubmitDraftAccount_adultWithMinor_logsDefendantAndMinor() {
+        String accountJson = """
+            {
+              "account_type":"Fines",
+              "defendant_type":"adultOrYouthOnly",
+              "originator_name":"LJS",
+              "originator_id": 3,
+              "offences": [
+                {
+                  "impositions": [
+                    {
+                      "minor_creditor": {
+                        "company_flag": false,
+                        "surname": "Minor",
+                        "forenames": "Alice"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+            """;
+
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .draftAccountId(22L)
+            .submittedBy("user-min")
+            .account(accountJson)
+            .build();
+
+        try (MockedStatic<LogUtil> logUtil = Mockito.mockStatic(LogUtil.class)) {
+            logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.1");
+            logUtil.when(LogUtil::getCurrentDateTime).thenReturn(OffsetDateTime.parse("2025-03-03T03:03:03Z"));
+
+            pdplLoggingService.pdplForSubmitDraftAccount(entity);
+        }
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+
+        // expect two calls: defendant (switch) + minor creditor (after switch)
+        verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
+
+        List<PersonalDataProcessingLogDetails> capturedList = captor.getAllValues();
+        assertEquals(2, capturedList.size());
+
+        assertEquals("Submit Draft Account - Defendant", capturedList.get(0).getBusinessIdentifier());
+        assertEquals("Submit Draft Account - Minor Creditor", capturedList.get(1).getBusinessIdentifier());
+        assertEquals("22", capturedList.get(0).getIndividuals().get(0).getIdentifier());
+        assertEquals("user-min", capturedList.get(0).getCreatedBy().getIdentifier());
+    }
+
+    @Test
+    @DisplayName("pgToPay -> Parent/Guardian and Defendant logged (in that order)")
+    void pdplForSubmitDraftAccount_pgToPay_parentThenDefendant() {
+        String accountJson = """
+            {
+              "account_type":"Fines",
+              "defendant_type":"pgToPay",
+              "originator_name":"LJS",
+              "originator_id": 4,
+              "offences": []
+            }
+            """;
+
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .draftAccountId(33L)
+            .submittedBy("user-pg")
+            .account(accountJson)
+            .build();
+
+        try (MockedStatic<LogUtil> logUtil = Mockito.mockStatic(LogUtil.class)) {
+            logUtil.when(LogUtil::getIpAddress).thenReturn("203.0.113.5");
+            logUtil.when(LogUtil::getCurrentDateTime).thenReturn(OffsetDateTime.parse("2025-04-04T04:04:04Z"));
+
+            pdplLoggingService.pdplForSubmitDraftAccount(entity);
+        }
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+
+        verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
+
+        List<PersonalDataProcessingLogDetails> capturedList = captor.getAllValues();
+        assertEquals("Submit Draft Account - Parent or Guardian", capturedList.get(0).getBusinessIdentifier());
+        assertEquals("Submit Draft Account - Defendant", capturedList.get(1).getBusinessIdentifier());
+        assertEquals("33", capturedList.get(0).getIndividuals().get(0).getIdentifier());
+        assertEquals("user-pg", capturedList.get(0).getCreatedBy().getIdentifier());
+    }
+
 }
