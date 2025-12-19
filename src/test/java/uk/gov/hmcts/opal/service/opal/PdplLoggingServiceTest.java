@@ -398,7 +398,6 @@ public class PdplLoggingServiceTest {
         ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
             ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
 
-        // expect two calls: defendant (switch) + minor creditor (after switch)
         verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
 
         List<PersonalDataProcessingLogDetails> capturedList = captor.getAllValues();
@@ -453,13 +452,9 @@ public class PdplLoggingServiceTest {
     void logSubmitDraftAccountMinorCreditorInfo_handlesNullMinorCreditors_noLogging() {
         // Arrange
         DraftAccountEntity entity = Mockito.mock(DraftAccountEntity.class);
-        // DON'T stub entity.getDraftAccountId() or entity.getSubmittedBy() — they are NOT used in this branch.
 
-        // mocked DocContext returns null for the minor_creditor path
         JsonPathUtil.DocContext docContext = Mockito.mock(JsonPathUtil.DocContext.class);
         when(docContext.read("$..minor_creditor")).thenReturn(null);
-
-        // DO NOT stub loggingService.personalDataAccessLogAsync(...) — it shouldn't be called.
 
         // Act
         pdplLoggingService.logSubmitDraftAccountMinorCreditorInfo(docContext, entity);
