@@ -501,7 +501,7 @@ flyway {
   password = System.getenv('FLYWAY_PASSWORD')
   baselineOnMigrate = true
   baselineVersion = '000'
-  locations = ['classpath:db/migration/allEnvs', 'classpath:db/migration/devOnly', 'classpath:db/migration/stgOnly']
+
 }
 checkstyle {
   checkstyleMain.exclude '**uk/gov/hmcts/opal/generated/**'
