@@ -122,7 +122,7 @@ public class OpalDefendantAccountServiceTestAddPaymentTermsTest {
         resultEntityLite.setExtendTtpPreserveLastEnf(Boolean.FALSE);
         //when(resultRepository.findById(Long.valueOf("55"))).thenReturn(Optional.of(resultEntityLite));
 
-        when(resultService.getLiteResultById("55")).thenReturn(resultEntityLite);
+        when(resultService.getResultById("55")).thenReturn(resultEntityLite);
 
         // Act
         defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, ifMatch, postedBy, request);

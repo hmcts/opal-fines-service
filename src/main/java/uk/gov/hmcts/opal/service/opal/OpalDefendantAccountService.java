@@ -495,6 +495,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     /**
      * This method adds a payment card request to a defendant account.
+     *
      * <p>
      * This method is separated from the public interface to allow for
      * addition of a payment card in a chained operation.
@@ -1170,7 +1171,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         if (mostRecentEnforcementOpt.isPresent()) {
             EnforcementEntity.Lite mostRecentEnforcement = mostRecentEnforcementOpt.get();
-            ResultEntity.Lite resultEntityLite = resultService.getLiteResultById(mostRecentEnforcement.getResultId());
+            ResultEntity.Lite resultEntityLite = resultService.getResultById(mostRecentEnforcement.getResultId());
 
             // If resultEntity exists and extend_ttp_preserve_last_enf is not TRUE, clear last_enforcement
             if (!resultEntityLite.isExtendTtpPreserveLastEnf()) {

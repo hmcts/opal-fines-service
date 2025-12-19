@@ -87,7 +87,6 @@ import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
-import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders;
 
 @Service
 @RequiredArgsConstructor
@@ -326,7 +325,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
 
         return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(Optional.of(BigInteger.valueOf(legacy.getVersion())).orElse(BigInteger.ONE))
+            //.version(Optional.of(BigInteger.valueOf(legacy.getVersion())).orElse(BigInteger.ONE))
+            .version(Optional.ofNullable(legacy.getVersion()).map(BigInteger::valueOf).orElse(BigInteger.ONE))
             .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
             .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
             .lastEnforcement(legacy.getLastEnforcement())

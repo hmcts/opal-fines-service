@@ -14,7 +14,6 @@ import uk.gov.hmcts.opal.util.Versioned;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-//   implements ToJsonString, Versioned
 public class GetDefendantAccountPaymentTermsResponse implements ToJsonString, Versioned {
 
     @JsonIgnore
