@@ -663,7 +663,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(1L);
 
         assertNotNull(out);
-        assertEquals(3, out.getVersion());
+        assertEquals(BigInteger.valueOf(3L), out.getVersion());
         assertEquals(5, out.getPaymentTerms().getDaysInDefault());
         assertEquals(PaymentTermsType.PaymentTermsTypeCode.P,
                      out.getPaymentTerms().getPaymentTermsType().getPaymentTermsTypeCode());
