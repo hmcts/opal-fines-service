@@ -1,16 +1,15 @@
-Timing is on.
-psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:600: NOTICE:  === Setting up test data for v_defendant_accounts_summary tests ===
-psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:600: NOTICE:  Test data setup completed: defendant_account_id = 999901 & 999902
+NOTICE:  === Setting up test data for v_defendant_accounts_summary tests ===
+NOTICE:  Test data setup completed: defendant_account_id = 999901 & 999902
+NOTICE:  === Comprehensive set of tests for Defendant Accounts ===
+NOTICE:  TEST 1 PASSED: All information retrieved and validated successfully for account 999901
+NOTICE:  TEST 2 PASSED: All information retrieved and validated successfully for account 999902
+NOTICE:  === All tests completed and passed for v_defendant_accounts_summary view ===
+NOTICE:  === Test 3: For multiple payment terms only return active one (PO-2304) ===
+NOTICE:  Testing that view returns only active payment terms when multiple terms exist
+NOTICE:  Row count verification PASSED: Only 1 row returned for account with 3 payment terms
+NOTICE:  TEST 3 PASSED: View correctly returns only active payment terms
+NOTICE:  === Cleaning up test data ===
+NOTICE:  Test data cleanup completed
 DO
-Time: 10.726 ms
-psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:897: NOTICE:  === Comprehensive set of tests for Defendant Accounts ===
-psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:897: NOTICE:  TEST 1 PASSED: All information retrieved and validated successfully for account 999901
-psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:897: NOTICE:  TEST 2 PASSED: All information retrieved and validated successfully for account 999902
-psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:897: NOTICE:  === All tests completed and passed for v_defendant_accounts_summary view ===
-DO
-Time: 293.527 ms
-psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:922: NOTICE:  === Cleaning up test data ===
-psql:create_view_v_defendant_accounts_summary_unit_tests_v3.sql:922: NOTICE:  Test data cleanup completed
-DO
-Time: 7.403 ms
-Timing is off.
+
+Query returned successfully in 87 msec.
