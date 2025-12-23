@@ -17,6 +17,8 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PaymentTerms;
 import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
@@ -30,6 +32,7 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.ReportEntryRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.service.UserStateService;
 
 @ExtendWith(MockitoExtension.class)
 public class OpalDefendantAccountServiceTestAddPaymentTermsTest {
@@ -49,10 +52,16 @@ public class OpalDefendantAccountServiceTestAddPaymentTermsTest {
     private ReportEntryRepository reportEntryRepository;
 
     // other dependencies the service needs (audit, userState, mappers etc.)
-    @Mock private AmendmentService amendmentService;
-    @Mock private PaymentTermsService paymentTermsService;
-    @Mock private ResultService resultService;
-    @Mock private ReportEntryService reportEntryService;
+    @Mock
+    private AmendmentService amendmentService;
+    @Mock
+    private PaymentTermsService paymentTermsService;
+    @Mock
+    private ResultService resultService;
+    @Mock
+    private ReportEntryService reportEntryService;
+    @Mock
+    private UserStateService userStateService;
 
     @Mock
     private EntityManager entityManager;
@@ -64,6 +73,12 @@ public class OpalDefendantAccountServiceTestAddPaymentTermsTest {
     private ArgumentCaptor<DefendantAccountEntity> accountCaptor;
 
     @Mock
+    private BusinessUnitUser buUser;
+
+    @Mock
+    private UserState userState;
+
+    @Mock
     private PaymentTermsMapper paymentTermsMapper;
 
     @Test
@@ -73,6 +88,16 @@ public class OpalDefendantAccountServiceTestAddPaymentTermsTest {
         final String businessUnitId = "10";
         final String ifMatch = "\"1\"";
         final String postedBy = "tester";
+
+
+        // User state resolves a BU user ID
+        when(buUser.getBusinessUnitUserId()).thenReturn("L080JG");
+
+        when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
+            .thenReturn(Optional.of(buUser));
+
+        when(userStateService.checkForAuthorisedUser("tester")).thenReturn(userState);
+        //when(accessTokenService.extractName("AUTH")).thenReturn("John Smith");
 
         BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
             .businessUnitId((short) 10)
@@ -93,18 +118,23 @@ public class OpalDefendantAccountServiceTestAddPaymentTermsTest {
         when(defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId))
             .thenReturn(Optional.of(account));
 
-        PaymentTermsEntity paymentTermsReturned = new PaymentTermsEntity();
-        paymentTermsReturned.setPaymentTermsId(200L);
-        paymentTermsReturned.setActive(Boolean.TRUE);
+        PaymentTermsEntity paymentTermsReturned = PaymentTermsEntity.builder()
+            .paymentTermsId(200L)
+            .active(Boolean.TRUE)
+            .defendantAccount(account)  // ensure builder can access the account and its version
+            .extension(Boolean.TRUE)
+            .build();
 
         when(paymentTermsService.addPaymentTerm(any(PaymentTermsEntity.class)))
             .thenReturn(paymentTermsReturned);
 
-        PaymentTermsEntity paymentTerms = new PaymentTermsEntity();
-        paymentTerms.setActive(Boolean.TRUE);
-        paymentTerms.setPostedDate(LocalDate.from(LocalDateTime.now()));
-        paymentTerms.setPostedBy(postedBy);
-        paymentTerms.setPostedByUsername(postedBy);
+        PaymentTermsEntity paymentTerms = PaymentTermsEntity.builder()
+            .active(Boolean.TRUE)
+            .postedDate(LocalDate.from(LocalDateTime.now()))
+            .postedBy(postedBy)
+            .postedByUsername(postedBy)
+            .build();
+
         when(paymentTermsMapper.toEntity(any(PaymentTerms.class))).thenReturn(paymentTerms);
 
         EnforcementEntity.Lite enforcementLite = new EnforcementEntity.Lite();
