@@ -722,3 +722,47 @@ components:
         imposition_id:
           description: DB Mapping - impositions.imposition_id
           $ref: './types.yaml#/components/schemas/BigInt'
+    enforcementAccountType:
+      title: Enforcement Account
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: integer
+        version:
+          type: integer
+        minimum_balance:
+          type: number
+          multipleOf: 0.01
+        account_type:
+          type: string
+          enum:
+            - COL
+            - A
+            - CO
+            - Y
+            - CFP
+        enforcement_account_type:
+          type: string
+          enum:
+            - COLL
+            - AL
+            - AH
+            - COLH
+            - COL
+            - COH
+            - YL
+            - YH
+            - CFPL
+            - CFPH
+        path:
+          type: string
+          enum:
+            - H
+            - L
+      required:
+        - id
+        - version
+        - account_type
+        - enforcement_account_type
+        - path
