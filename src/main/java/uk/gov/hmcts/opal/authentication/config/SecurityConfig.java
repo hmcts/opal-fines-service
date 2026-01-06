@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.authentication.config;
 
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -17,15 +18,14 @@ import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthProviderConfigurationProperties;
-
-import java.util.Map;
+import uk.gov.hmcts.opal.common.spring.OpalJwtAuthenticationProvider;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 
 
 @Configuration
@@ -39,7 +39,7 @@ public class SecurityConfig {
     private final InternalAuthProviderConfigurationProperties internalAuthProviderConfigurationProperties;
     private final AuthenticationEntryPoint customAuthenticationEntryPoint;
     private final AccessDeniedHandler customAccessDeniedHandler;
-
+    private final UserStateClientService userStateClientService;
     private static final String[] AUTH_WHITELIST = {
         "/swagger-ui.html",
         "/swagger-ui/**",
@@ -61,19 +61,19 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         applyCommonConfig(http)
             .authorizeHttpRequests(authorize ->
-                                       authorize.requestMatchers(PathRequest.toStaticResources().atCommonLocations())
-                                           .permitAll()
-                                           .requestMatchers(AUTH_WHITELIST)
-                                           .permitAll()
-                                           .anyRequest().authenticated()
+                authorize.requestMatchers(PathRequest.toStaticResources().atCommonLocations())
+                    .permitAll()
+                    .requestMatchers(AUTH_WHITELIST)
+                    .permitAll()
+                    .anyRequest().authenticated()
             )
             .exceptionHandling(exceptionHandling ->
-                                   exceptionHandling
-                                       .authenticationEntryPoint(customAuthenticationEntryPoint)
-                                       .accessDeniedHandler(customAccessDeniedHandler)
+                exceptionHandling
+                    .authenticationEntryPoint(customAuthenticationEntryPoint)
+                    .accessDeniedHandler(customAccessDeniedHandler)
             )
             .oauth2ResourceServer(oauth2 ->
-                                      oauth2.authenticationManagerResolver(jwtIssuerAuthenticationManagerResolver())
+                oauth2.authenticationManagerResolver(jwtIssuerAuthenticationManagerResolver())
             );
 
         return http.build();
@@ -98,16 +98,14 @@ public class SecurityConfig {
     }
 
     private Map.Entry<String, AuthenticationManager> createAuthenticationEntry(String issuer,
-                                                                               String jwkSetUri) {
+        String jwkSetUri) {
         var jwtDecoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
             .jwsAlgorithm(SignatureAlgorithm.RS256)
             .build();
 
         OAuth2TokenValidator<Jwt> jwtValidator = JwtValidators.createDefaultWithIssuer(issuer);
         jwtDecoder.setJwtValidator(jwtValidator);
-
-        var authenticationProvider = new JwtAuthenticationProvider(jwtDecoder);
-
+        var authenticationProvider = new OpalJwtAuthenticationProvider(jwtDecoder, userStateClientService);
         return Map.entry(issuer, authenticationProvider::authenticate);
     }
 }

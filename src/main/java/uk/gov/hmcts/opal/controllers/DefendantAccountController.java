@@ -50,7 +50,6 @@ public class DefendantAccountController {
     public ResponseEntity<DefendantAccountHeaderSummary> getHeaderSummary(
         @PathVariable Long defendantAccountId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
-
         log.debug(":GET:getHeaderSummary: for defendant id: {}", defendantAccountId);
 
         return buildResponse(
@@ -78,8 +77,8 @@ public class DefendantAccountController {
     @Operation(summary = "Searches defendant accounts based upon criteria in request body")
     public ResponseEntity<DefendantAccountSearchResultsDto> postDefendantAccountSearch(
         @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_SEARCH_REQUEST)
-            @RequestBody
-           AccountSearchDto accountSearchDto,
+        @RequestBody
+        AccountSearchDto accountSearchDto,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":POST:postDefendantAccountSearch: query: \n{}", accountSearchDto.toPrettyJson());
 
@@ -122,7 +121,7 @@ public class DefendantAccountController {
     @GetMapping(value = "/{defendantAccountId}/at-a-glance")
     @Operation(summary = "Get At A Glance details for a given defendant account")
     public ResponseEntity<DefendantAccountAtAGlanceResponse> getAtAGlance(@PathVariable Long defendantAccountId,
-              @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
 
         return buildResponse(defendantAccountService.getAtAGlance(defendantAccountId, authHeaderValue));
     }
