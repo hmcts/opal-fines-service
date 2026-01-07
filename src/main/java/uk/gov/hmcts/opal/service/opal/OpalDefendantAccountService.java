@@ -39,6 +39,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
+import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
@@ -697,13 +699,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             entity.getDefendantAccountId(), court.getCourtId());
     }
 
-    // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method. This is all wrong.
-    private DefendantAccountEntity bumpVersion(Long accountId) {
-        DefendantAccountEntity entity = getDefendantAccountById(accountId);
-        entity.setVersionNumber(entity.getVersion().add(BigInteger.ONE).longValueExact());
-        return defendantAccountRepository.saveAndFlush(entity);
-    }
-
     private void replaceAliasesForParty(Long partyId, PartyDetails pd) {
         if (partyId == null || pd == null || pd.getOrganisationFlag() == null) {
             return;
@@ -1036,4 +1031,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String surname,
         String organisationName) { }
 
+
+    @Override
+    public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
+        String businessUnitUserId, String ifMatch, String authHeader, AddDefendantAccountEnforcementRequest request) {
+        return null;
+    }
 }
