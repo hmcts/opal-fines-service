@@ -98,6 +98,7 @@ public class LegacyDefendantAccountBuilders {
     static CourtReferenceCommon buildCourtReference(CourtReference courtRef) {
         return CourtReferenceCommon.builder()
             .courtId(courtRef.getCourtId())
+            .courtCode(Optional.ofNullable(courtRef.getCourtCode()).map(Short::intValue).orElse(null))
             .courtName(courtRef.getCourtName())
             .build();
     }
