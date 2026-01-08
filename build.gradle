@@ -414,7 +414,7 @@ dependencies {
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
   compileOnly 'org.projectlombok:lombok:1.18.42'
   annotationProcessor 'org.projectlombok:lombok:1.18.42'
-  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.38.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-jpamodelgen:6.6.40.Final'
 
   // MapStruct
   implementation 'org.mapstruct:mapstruct:1.6.3'
