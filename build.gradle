@@ -390,7 +390,7 @@ dependencies {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
 
-  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
+  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
 
   implementation 'com.github.hmcts.java-logging:logging:6.1.9'
 
