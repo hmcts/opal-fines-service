@@ -1,0 +1,147 @@
+openapi: 3.1.1
+
+servers:
+  - url: http://localhost:4550/
+
+info:
+  description: Opal Fines Service - Enforcement Account Types
+  version: v0.0.1
+  title: Opal Fines Service
+
+paths:
+  /enforcement-accounts-types/:
+    get:
+      tags:
+        - Enforcement Account Types
+      summary: Get Enforcement Account Types
+      description: The Get Enforcement Account Types will be used to return all of the Enforcement Account Types.
+      operationId: getEnforcementAccountTypes
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              description: Version of the Enforcement Account Types. DB Mapping - enforcement_account_types.version
+              schema:
+                $ref: "./types.yaml#/components/schemas/BigInt"
+          content:
+            application/json:
+              schema:
+                additionalProperties: false
+                type: object
+                required:
+                  - enforcement_account_types
+                properties:
+                  enforcement_account_types:
+                    type: array
+                    items:
+                        type: object
+                        $ref: './common.yaml#/components/schemas/enforcementAccountType'
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+    patch:
+      tags:
+        - Enforcement Account Types
+      summary: Update Enforcement Account Type
+      description: The Update Enforcement Account Type will be used to update the minimum balance for a specific Enforcement Account Type.
+      operationId: patchEnforcementAccountType
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - id
+                  - version
+                  - minimum_balance
+                properties:
+                  id:
+                    type: integer
+                  version:
+                    type: integer
+                  minimum_balance:
+                    type: number
+                    multipleOf: 0.01
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              description: Version of the Enforcement Account Types. DB Mapping - enforcement_account_types.version
+              schema:
+                $ref: "./types.yaml#/components/schemas/BigInt"
+          content:
+            application/json:
+              schema:
+                additionalProperties: false
+                type: object
+                required:
+                  - enforcement_account_types
+                properties:
+                  enforcement_account_types:
+                    type: array
+                    items:
+                      type: object
+                      $ref: './common.yaml#/components/schemas/enforcementAccountType'
+        204:
+          description: No Content
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
