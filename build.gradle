@@ -329,7 +329,7 @@ dependencyManagement {
   }
 
   imports {
-    mavenBom "org.springframework.integration:spring-integration-bom:6.5.4"
+    mavenBom "org.springframework.integration:spring-integration-bom:6.5.5"
   }
 
   dependencies {
