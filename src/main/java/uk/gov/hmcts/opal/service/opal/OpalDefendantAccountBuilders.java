@@ -860,6 +860,7 @@ public class OpalDefendantAccountBuilders {
         return Optional.ofNullable(court)
             .map(c -> CourtReferenceCommon.builder()
                 .courtId(c.getCourtId())
+                .courtCode(c.getCourtCode().intValue())
                 .courtName(c.getName())
                 .build())
             .orElse(null);
