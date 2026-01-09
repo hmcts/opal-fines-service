@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -923,6 +924,7 @@ public class OpalDefendantAccountBuilders {
         DefendantAccountEntity account = entity.getDefendantAccount();
 
         return GetDefendantAccountPaymentTermsResponse.builder()
+            .version(Optional.ofNullable(account.getVersion()).orElse(BigInteger.ONE))
             .paymentTerms(buildPaymentTerms(entity, account))
             .paymentCardLastRequested(account.getPaymentCardRequestedDate())
             .lastEnforcement(account.getLastEnforcement())

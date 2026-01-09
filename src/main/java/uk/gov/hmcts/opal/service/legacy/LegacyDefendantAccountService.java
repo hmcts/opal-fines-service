@@ -78,6 +78,7 @@ import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -324,7 +325,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
 
         return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(legacy.getVersion())
+            .version(Optional.ofNullable(legacy.getVersion()).map(BigInteger::valueOf).orElse(BigInteger.ONE))
             .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
             .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
             .lastEnforcement(legacy.getLastEnforcement())
@@ -897,7 +898,6 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         );
     }
 
-
     @Override
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId,
@@ -1229,4 +1229,16 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
     }
 
+
+    // TODO - is the return type appropriate?
+    @Override
+    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+        String businessUnitId,
+        String ifMatch,
+        String postedBy,
+        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
+        throw new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.NOT_IMPLEMENTED,
+            "Add Payment Terms is not implemented in legacy mode");
+    }
 }
