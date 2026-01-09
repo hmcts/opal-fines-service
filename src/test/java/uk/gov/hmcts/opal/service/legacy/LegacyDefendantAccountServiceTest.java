@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -99,6 +101,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.entity.court.CourtEntity.Lite;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
@@ -106,6 +109,7 @@ import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
+import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
@@ -115,6 +119,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @Mock
     private LegacyGatewayProperties gatewayProperties;
+
+    @Mock
+    private CourtService courtService;
 
     private GatewayService gatewayService;
 
@@ -2783,6 +2790,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
             .thenReturn(responseBody);
 
+        when(courtService.getCourtById(anyLong())).thenReturn(Lite.builder().courtCode((short)123).build());
+
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
@@ -2835,6 +2844,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals(LocalDate.of(2024, 3, 4), overview.getCollectionOrder().getCollectionOrderDate());
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
+        assertEquals(123, overview.getEnforcementCourt().getCourtCode());
         assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
 
         AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();
@@ -2855,6 +2865,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        when(courtService.getCourtById(anyLong())).thenReturn(Lite.builder().courtCode((short)123).build());
 
         // Act
         EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(72L);
@@ -2923,6 +2934,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         )).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+        when(courtService.getCourtById(anyLong())).thenReturn(Lite.builder().courtCode((short)123).build());
 
         EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(66L);
 
@@ -2931,6 +2943,27 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
         assertFalse(response.getIsHmrcCheckEligible());
         assertNull(response.getNextEnforcementActionData());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testGetEnforcementStatus_courtNotFoundInOpalDB() {
+
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(false);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
+        )).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+        when(courtService.getCourtById(anyLong())).thenThrow(new EntityNotFoundException("Court not found"));
+
+        EntityNotFoundException error = assertThrows(EntityNotFoundException.class,
+            () -> legacyDefendantAccountService.getEnforcementStatus(66L));
+
+        assertNotNull(error);
+        assertEquals("Court not found", error.getMessage());
     }
 
     private LegacyGetDefendantAccountEnforcementStatusResponse createLegacyEnforcementStatusResponse(boolean full) {

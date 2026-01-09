@@ -22,6 +22,9 @@ public class CourtReference implements ToXmlString {
     @XmlElement(name = "court_id")
     private Long courtId;
 
+    // Court code is not returned from Legacy, and needs to be populated from the Opal DB.
+    private Short courtCode;
+
     @XmlElement(name = "court_name")
     private String courtName;
 }
