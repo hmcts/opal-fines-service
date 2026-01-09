@@ -1,18 +1,19 @@
 package uk.gov.hmcts.opal.steps;
 
+import static net.serenitybdd.rest.SerenityRest.then;
+
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.rest.SerenityRest;
 import org.hamcrest.Matchers;
 import org.json.JSONException;
 import org.json.JSONObject;
+import uk.gov.hmcts.opal.utils.RequestSupport;
 
-import java.util.Map;
-
-import static net.serenitybdd.rest.SerenityRest.then;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
-
+@Slf4j
 public class DefendantSearchApiStepDef extends BaseStepDef {
 
     @When("I make a call to the defendant search API using the parameters")
@@ -23,15 +24,14 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
         JSONObject dateOfBirth = addToNewJsonObject(dataToPost, "day_of_month", "month_of_year", "year");
         requestBody.put("date_of_birth", dateOfBirth);
 
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body(requestBody.toString())
-            .when()
-            .post(getTestUrl() + "/defendant-accounts/search");
-
+        RequestSupport.responseProcessor(
+            SerenityRest
+                .given()
+                .spec(RequestSupport.postRequestSpec("/defendant-accounts/search", requestBody.toString()).build())
+                .when()
+                .post()
+                .then()
+        );
     }
 
     @Then("there is one result returned matching")
@@ -60,7 +60,7 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
             .statusCode(200);
 
         int totalCount = then().extract().jsonPath().getInt("total_count");
-        System.out.println("total count is : " + totalCount);
+        log.info("total count is : {}", totalCount);
 
         int index = 0;
 
@@ -73,15 +73,13 @@ public class DefendantSearchApiStepDef extends BaseStepDef {
                 then().assertThat()
                     .body(
                         "search_results.date_of_birth[" + index + "]",
-                        Matchers.containsString(expectedResult.get("date_of_birth"))
-                );
+                        Matchers.containsString(expectedResult.get("date_of_birth")));
             }
             if (expectedResult.get("address_line_1") != null) {
                 then().assertThat()
                     .body(
                         "search_results.address_line_1[" + index + "]",
-                        Matchers.containsString(expectedResult.get("addressLine1"))
-                );
+                        Matchers.containsString(expectedResult.get("addressLine1")));
             }
             index++;
         }
