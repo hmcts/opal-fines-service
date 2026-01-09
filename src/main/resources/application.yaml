@@ -195,3 +195,9 @@ logging:
 user:
   service:
     url: ${OPAL_USER_SERVICE_API_URL:http://localhost:4555}
+
+logging-service:
+  pdpl:
+    async:
+      connection-string: ${SERVICEBUS_CONNECTION_STRING:Endpoint=sb://example.servicebus.windows.net/;SharedAccessKeyName=opal-logger;SharedAccessKey=replace-me}}
+      queue-name: ${SERVICEBUS_LOGGING_PDPL_QUEUE_NAME:opal-servicebus-logging
