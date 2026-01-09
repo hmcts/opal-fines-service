@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.entity.ReportEntryEntity;
 import uk.gov.hmcts.opal.repository.AccountTransferRepository;
 import uk.gov.hmcts.opal.repository.AllocationRepository;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
@@ -24,6 +25,8 @@ import uk.gov.hmcts.opal.repository.jpa.AllocationSpecs;
 import uk.gov.hmcts.opal.repository.jpa.BacsPaymentSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ChequeSpecs;
 import uk.gov.hmcts.opal.service.opal.jpa.CreditorAccountTransactional;
+import uk.gov.hmcts.opal.repository.ReportEntryRepository;
+import uk.gov.hmcts.opal.repository.ReportRepository;
 
 @Service
 @Transactional
@@ -45,6 +48,8 @@ public class DefendantAccountDeletionService {
     private final CreditorAccountTransactional creditorAccountTransactional;
     private final PaymentCardRequestRepository paymentCardRequestsRepository;
     private final NoteRepository noteRepository;
+    private final ReportEntryRepository reportEntryRepository;
+    private final ReportRepository reportRepository;
 
     // Level 3 - Grandchildren
     private final AllocationRepository allocationsRepository;
@@ -97,6 +102,10 @@ public class DefendantAccountDeletionService {
         defendantAccountPartiesRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         enforcementRepository.deleteByDefendantAccountId(defendantAccountId);
         creditorAccountTransactional.deleteAllByDefendantAccountId(defendantAccountId, creditorAccountTransactional);
+        ReportEntryEntity entity = reportEntryRepository.getAllByAssociatedRecordId(String.valueOf(defendantAccountId));
+        Long reportId = entity.getReportId(); // stores the reportId for deletion
+        reportEntryRepository.deleteByAssociatedRecordId(String.valueOf(defendantAccountId));
+        reportRepository.deleteByReportId(String.valueOf((reportId)));
         paymentTermsRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         defendantTransactionRepository.deleteByDefendantAccountId(defendantAccountId);
 
