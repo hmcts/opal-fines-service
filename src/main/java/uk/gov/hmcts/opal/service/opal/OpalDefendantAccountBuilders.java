@@ -819,6 +819,7 @@ public class OpalDefendantAccountBuilders {
     static LJA buildLja(Optional<LocalJusticeAreaEntity> entity) {
         return entity.map(lja -> LJA.builder()
                 .ljaId(Optional.ofNullable(lja.getLocalJusticeAreaId()).map(Short::intValue).orElse(null))
+                .ljaCode(lja.getLjaCode())
                 .ljaName(Optional.ofNullable(lja.getName()).orElse(lja.getLjaCode()))
                 .build())
             .orElse(null);
@@ -827,6 +828,7 @@ public class OpalDefendantAccountBuilders {
     static LjaReferenceCommon buildLja(LJA lja) {
         return Optional.ofNullable(lja).map(l -> LjaReferenceCommon.builder()
                 .ljaId(l.getLjaId())
+                .ljaCode(l.getLjaCode())
                 .ljaName(l.getLjaName())
                 .build())
             .orElse(null);
