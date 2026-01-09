@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -101,6 +102,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity.Lite;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
@@ -110,6 +112,7 @@ import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.service.opal.CourtService;
+import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
@@ -122,6 +125,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @Mock
     private CourtService courtService;
+
+    @Mock
+    private LocalJusticeAreaService ljaService;
 
     private GatewayService gatewayService;
 
@@ -2791,6 +2797,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .thenReturn(responseBody);
 
         when(courtService.getCourtById(anyLong())).thenReturn(Lite.builder().courtCode((short)123).build());
+        when(ljaService.getLocalJusticeAreaById(anyShort())).thenReturn(
+            LocalJusticeAreaEntity.builder().ljaCode("6-7").build());
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
@@ -2820,6 +2828,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("Arthur", override.getEnforcer().getEnforcerName());
         assertNotNull(override.getLja());
         assertEquals(1, override.getLja().getLjaId());
+        assertEquals("6-7", override.getLja().getLjaCode());
         assertEquals("England", override.getLja().getLjaName());
 
         EnforcementActionDefendantAccount action = response.getLastEnforcementAction();
@@ -2966,6 +2975,28 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals("Court not found", error.getMessage());
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    void testGetEnforcementStatus_ljaNotFoundInOpalDB() {
+
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(true);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
+        )).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+        when(courtService.getCourtById(anyLong())).thenReturn(Lite.builder().courtCode((short)123).build());
+        when(ljaService.getLocalJusticeAreaById(anyShort())).thenThrow(new EntityNotFoundException("Lja not found"));
+
+        EntityNotFoundException error = assertThrows(EntityNotFoundException.class,
+            () -> legacyDefendantAccountService.getEnforcementStatus(66L));
+
+        assertNotNull(error);
+        assertEquals("Lja not found", error.getMessage());
+    }
+
     private LegacyGetDefendantAccountEnforcementStatusResponse createLegacyEnforcementStatusResponse(boolean full) {
         return LegacyGetDefendantAccountEnforcementStatusResponse.builder()
             .accountStatusReference(
@@ -2975,7 +3006,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                     .build())
             .enforcementOverride(full ? EnforcementOverride.builder()  // Optional
                 .lja(LjaReference.builder()
-                    .ljaId(1).ljaName("England").build())
+                    .ljaId((short)1).ljaName("England").build())
                 .enforcer(EnforcerReference.builder()
                     .enforcerId(2L).enforcerName("Arthur").build())
                 .enforcementOverrideResult(EnforcementOverrideResultReference.builder()
