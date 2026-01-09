@@ -93,9 +93,11 @@ public class DefendantAccountServiceProxy implements DefendantAccountServiceInte
     @Override
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
         String businessUnitId,
+        String businessUnitUserId,
         String ifMatch,
         String authHeader) {
-        return getCurrentModeService().addPaymentCardRequest(defendantAccountId, businessUnitId, ifMatch, authHeader);
+        return getCurrentModeService().addPaymentCardRequest(defendantAccountId, businessUnitId,
+            businessUnitUserId, ifMatch, authHeader);
     }
 
     @Override
