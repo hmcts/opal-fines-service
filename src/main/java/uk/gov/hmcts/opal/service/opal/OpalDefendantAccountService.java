@@ -914,47 +914,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         debtorDetailRepository.save(debtor);
     }
 
-    private void applyCommentAndNotes(DefendantAccountEntity managed, CommentsAndNotes notes, String postedBy) {
-
-        // Build a combined text block for the NOTES table (audit/history)
-        final String combined = Stream.of(
-                notes.getAccountNotesAccountComments(),
-                notes.getAccountNotesFreeTextNote1(),
-                notes.getAccountNotesFreeTextNote2(),
-                notes.getAccountNotesFreeTextNote3()
-            )
-            .filter(Objects::nonNull)
-            .map(String::trim)
-            .filter(s -> !s.isEmpty())
-            .collect(Collectors.joining("\n"));
-
-        if (combined.isEmpty()) {
-            log.debug(":applyCommentAndNotes: nothing to add");
-            return;
-        }
-
-        // Persist values on the main defendant_accounts table
-        managed.setAccountComments(notes.getAccountNotesAccountComments());
-        managed.setAccountNote1(notes.getAccountNotesFreeTextNote1());
-        managed.setAccountNote2(notes.getAccountNotesFreeTextNote2());
-        managed.setAccountNote3(notes.getAccountNotesFreeTextNote3());
-
-        noteRepository.save(OpalDefendantAccountBuilders.buildNoteEntity(managed, combined, postedBy));
-        log.debug(":applyCommentAndNotes: saved note for account {}", managed.getDefendantAccountId());
-    }
-
-    private void applyEnforcementCourt(DefendantAccountEntity entity, CourtReferenceDto courtRef) {
-        Integer courtId = courtRef.getCourtId();
-        if (courtId == null) {
-            throw new IllegalArgumentException("enforcement_court.court_id is required");
-        }
-        CourtEntity court = courtRepository.findById(courtId.longValue())
-            .orElseThrow(() -> new EntityNotFoundException("Court not found: " + courtId));
-        entity.setEnforcingCourt(OpalDefendantAccountBuilders.asLite(court));
-        log.debug(":applyEnforcementCourt: accountId={}, courtId={}",
-            entity.getDefendantAccountId(), court.getCourtId());
-    }
-
     private static void applyEnforcementOverride(DefendantAccountEntity entity, EnforcementOverride override) {
         if (override.getEnforcementOverrideResult() != null) {
             entity.setEnforcementOverrideResultId(
@@ -1070,11 +1029,4 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String forenames,
         String surname,
         String organisationName) { }
-
-
-    @Override
-    public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
-        String businessUnitUserId, String ifMatch, String authHeader, AddDefendantAccountEnforcementRequest request) {
-        return null;
-    }
 }
