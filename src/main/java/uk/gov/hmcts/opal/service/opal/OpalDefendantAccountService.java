@@ -943,8 +943,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
-        validateVersion(account, ifMatch);
+        DefendantAccountEntity account = validateAccountExistsInBusinessUnit(defendantAccountId, businessUnitId);
+        VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCardRequest");
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
@@ -959,7 +959,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return new AddPaymentCardRequestResponse(defendantAccountId);
     }
 
-    private DefendantAccountEntity loadAndValidateAccount(Long accountId, String buId) {
+    private DefendantAccountEntity validateAccountExistsInBusinessUnit(Long accountId, String buId) {
         DefendantAccountEntity account = getDefendantAccountById(accountId);
 
         if (account.getBusinessUnit() == null
@@ -969,10 +969,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
 
         return account;
-    }
-
-    private void validateVersion(DefendantAccountEntity account, String ifMatch) {
-        VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCardRequest");
     }
 
     private void ensureNoExistingPaymentCardRequest(Long accountId) {

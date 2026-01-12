@@ -50,8 +50,8 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardRequestLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardRequestLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
@@ -905,38 +905,29 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     ) {
         log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        Integer version = parseVersion(ifMatch);
-        AddPaymentCardRequestLegacyRequest request = buildLegacyRequest(defendantAccountId, businessUnitId,
+        BigInteger version = parseVersion(ifMatch);
+        AddPaymentCardLegacyRequest request = buildLegacyRequest(defendantAccountId, businessUnitId,
             businessUnitUserId, version);
 
-        AddPaymentCardRequestLegacyResponse response = callGateway(request);
+        AddPaymentCardLegacyResponse response = callGateway(request);
         Long id = Long.valueOf(response.getDefendantAccountId());
 
         return new AddPaymentCardRequestResponse(id);
     }
 
-    private Integer parseVersion(String ifMatch) {
-        // Extract BigInteger using VersionUtils
-        BigInteger big =
-            VersionUtils.extractOptionalBigInteger(ifMatch)
-                .orElseThrow(() ->
-                    new IllegalArgumentException("Invalid version/If-Match header: " + ifMatch));
-
-        try {
-            // Legacy request schema requires an Integer, so convert safely
-            return big.intValueExact();
-        } catch (ArithmeticException ex) {
-            throw new IllegalArgumentException("Legacy version value too large for Integer: " + big, ex);
-        }
+    private BigInteger parseVersion(String ifMatch) {
+        return VersionUtils.extractOptionalBigInteger(ifMatch)
+            .orElseThrow(() ->
+                new IllegalArgumentException("Invalid version/If-Match header: " + ifMatch));
     }
 
-    private AddPaymentCardRequestLegacyRequest buildLegacyRequest(
+    private AddPaymentCardLegacyRequest buildLegacyRequest(
         Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
-        Integer version
+        BigInteger version
     ) {
-        return AddPaymentCardRequestLegacyRequest.builder()
+        return AddPaymentCardLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
@@ -944,12 +935,12 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .build();
     }
 
-    private AddPaymentCardRequestLegacyResponse callGateway(AddPaymentCardRequestLegacyRequest request) {
+    private AddPaymentCardLegacyResponse callGateway(AddPaymentCardLegacyRequest request) {
 
-        Response<AddPaymentCardRequestLegacyResponse> gw =
+        Response<AddPaymentCardLegacyResponse> gw =
             gatewayService.postToGateway(
                 ADD_PAYMENT_CARD_REQUEST,
-                AddPaymentCardRequestLegacyResponse.class,
+                AddPaymentCardLegacyResponse.class,
                 request,
                 null
             );

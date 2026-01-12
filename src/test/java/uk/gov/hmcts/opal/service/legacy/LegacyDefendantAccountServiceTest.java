@@ -61,8 +61,8 @@ import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardRequestLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardRequestLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
@@ -2979,16 +2979,16 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     void addPaymentCardRequest_legacy_happyPath() {
 
         // Given
-        AddPaymentCardRequestLegacyResponse legacyResp =
-            new AddPaymentCardRequestLegacyResponse("123", 4);
+        AddPaymentCardLegacyResponse legacyResp =
+            new AddPaymentCardLegacyResponse("123", BigInteger.valueOf(4));
 
-        GatewayService.Response<AddPaymentCardRequestLegacyResponse> gwResp =
+        GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
             new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
 
         doReturn(gwResp).when(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
-            eq(AddPaymentCardRequestLegacyResponse.class),
-            any(AddPaymentCardRequestLegacyRequest.class),
+            eq(AddPaymentCardLegacyResponse.class),
+            any(AddPaymentCardLegacyRequest.class),
             isNull()
         );
 
@@ -3005,17 +3005,17 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     void addPaymentCardRequest_legacy_buildsCorrectRequest() {
 
         // Given
-        GatewayService.Response<AddPaymentCardRequestLegacyResponse> gwResp =
+        GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
             new GatewayService.Response<>(HttpStatus.OK,
-                new AddPaymentCardRequestLegacyResponse("123", 4),
+                new AddPaymentCardLegacyResponse("123", BigInteger.valueOf(4)),
                 null, null);
 
-        ArgumentCaptor<AddPaymentCardRequestLegacyRequest> captor =
-            ArgumentCaptor.forClass(AddPaymentCardRequestLegacyRequest.class);
+        ArgumentCaptor<AddPaymentCardLegacyRequest> captor =
+            ArgumentCaptor.forClass(AddPaymentCardLegacyRequest.class);
 
         doReturn(gwResp).when(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
-            eq(AddPaymentCardRequestLegacyResponse.class),
+            eq(AddPaymentCardLegacyResponse.class),
             captor.capture(),
             isNull()
         );
@@ -3024,22 +3024,22 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         legacyDefendantAccountService.addPaymentCardRequest(123L, "78",null, "9", "AUTH");
 
         // Then
-        AddPaymentCardRequestLegacyRequest sent = captor.getValue();
+        AddPaymentCardLegacyRequest sent = captor.getValue();
         assertEquals("123", sent.getDefendantAccountId());
         assertEquals("78", sent.getBusinessUnitId());
-        assertEquals(9, sent.getVersion());
+        assertEquals(BigInteger.valueOf(9), sent.getVersion());
         assertNull(sent.getBusinessUnitUserId());
     }
 
     @Test
     void addPaymentCardRequest_legacy_5xxFailureThrows() {
 
-        GatewayService.Response<AddPaymentCardRequestLegacyResponse> gwResp =
+        GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
             new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, null, "<error/>", null);
 
         doReturn(gwResp).when(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
-            eq(AddPaymentCardRequestLegacyResponse.class),
+            eq(AddPaymentCardLegacyResponse.class),
             any(),
             isNull()
         );
@@ -3054,12 +3054,12 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         Throwable ex = new RuntimeException("gateway boom");
 
-        GatewayService.Response<AddPaymentCardRequestLegacyResponse> gwResp =
+        GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
             new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, ex, null);
 
         doReturn(gwResp).when(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
-            eq(AddPaymentCardRequestLegacyResponse.class),
+            eq(AddPaymentCardLegacyResponse.class),
             any(),
             isNull()
         );
@@ -3072,12 +3072,12 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
     @Test
     void addPaymentCardRequest_legacy_nullEntityThrows() {
 
-        GatewayService.Response<AddPaymentCardRequestLegacyResponse> gwResp =
+        GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
             new GatewayService.Response<>(HttpStatus.OK, null, null, null);
 
         doReturn(gwResp).when(gatewayService).postToGateway(
             eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
-            eq(AddPaymentCardRequestLegacyResponse.class),
+            eq(AddPaymentCardLegacyResponse.class),
             any(),
             isNull()
         );

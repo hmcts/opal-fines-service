@@ -4,6 +4,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,11 +16,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class AddPaymentCardRequestLegacyResponse {
+public class AddPaymentCardLegacyResponse {
 
     @XmlElement(name = "defendant_account_id")
     private String defendantAccountId;
 
     @XmlElement(name = "version")
-    private Integer version;
+    private BigInteger version;
 }
