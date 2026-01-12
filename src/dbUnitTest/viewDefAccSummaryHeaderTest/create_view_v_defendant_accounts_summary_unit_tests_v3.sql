@@ -15,6 +15,7 @@
 * 18/09/2025    P Brumby    1.1         PO-1641 Unit tests for amended v_defendant_accounts_summary view with new fields -
 *                                               enforcer_id, enforcer_name, lja_id, lja_name, age
 * 20/10/2025    CL          1.2         PO-2312 Updated Unit Tests to reflect the amendment to the v_defendant_accounts_summary
+* 18/12/2025    C Cho       1.3         PO-2304 For multiple payment terms only return active one
 *                                               view to return all aliases in a single row
 *
 **/
@@ -590,7 +591,33 @@ BEGIN
         100.00,
         200.00,
         TRUE
-    ) 
+    ),
+    -- Third defendant account with multiple payment terms (one active, one inactive)
+    -- This tests the bug fix for PO-2304
+    (
+        v_payment_terms_id + 2,
+        v_defendant_account_id + 1,
+        CURRENT_DATE - INTERVAL '2 months',
+        'I',
+        CURRENT_DATE - INTERVAL '2 months',
+        'W',
+        25.00,
+        50.00,
+        200.00,
+        FALSE  -- Inactive payment term
+    ),
+    (
+        v_payment_terms_id + 3,
+        v_defendant_account_id + 1,
+        CURRENT_DATE - INTERVAL '3 months',
+        'I',
+        CURRENT_DATE - INTERVAL '3 months',
+        'M',
+        75.00,
+        150.00,
+        200.00,
+        FALSE  -- Another inactive payment term
+    )
     ON CONFLICT (payment_terms_id) DO UPDATE 
     SET defendant_account_id = EXCLUDED.defendant_account_id,
         posted_date = EXCLUDED.posted_date,
@@ -865,7 +892,7 @@ BEGIN
 
                 -- 5. Address information
                 ASSERT v_address_line_1 = '456 Other Street', 'Address line 1 should match';
-                ASSERT v_address_line_2 = 'Other Area', 'Address line 2 should match';
+             ASSERT v_address_line_2 = 'Other Area', 'Address line 2 should match';
                 ASSERT v_address_line_3 = 'Other Town', 'Address line 3 should match';
                 ASSERT v_address_line_4 = 'Other County', 'Address line 4 should match';
                 ASSERT v_address_line_5 IS NULL, 'Address line 5 should be NULL';
@@ -896,18 +923,85 @@ BEGIN
 
 END $$;
 
+-- Test 3: For multiple payment terms only return active one
+DO $$
+DECLARE
+    v_defendant_account_id      bigint;
+    v_account_number            varchar(20);
+    v_terms_type_code           varchar(1);
+    v_instalment_period         varchar(1);
+    v_instalment_amount         decimal(18,2);
+    v_instalment_lump_sum       decimal(18,2);
+    v_effective_date            timestamp;
+    v_active_payment_terms      boolean;
+    v_row_count                 integer;
+BEGIN
+    RAISE NOTICE '=== Test 3: For multiple payment terms only return active one (PO-2304) ===';
+    RAISE NOTICE 'Testing that view returns only active payment terms when multiple terms exist';
+    
+    -- Count how many rows are returned for the second defendant account
+    SELECT COUNT(*)
+      INTO v_row_count
+      FROM v_defendant_accounts_summary
+     WHERE account_number = 'TEST999902';
+    
+    -- Verify only one row is returned despite multiple payment terms existing
+    ASSERT v_row_count = 1, 
+        FORMAT('Expected 1 row for account with multiple payment terms, got %s rows', v_row_count);
+    
+    RAISE NOTICE 'Row count verification PASSED: Only 1 row returned for account with 3 payment terms';
+    
+    -- Query the view to get payment terms details
+    SELECT  defendant_account_id,
+            account_number,
+            terms_type_code,
+            instalment_period,
+            instalment_amount,
+            instalment_lump_sum,
+            effective_date
+        INTO 
+            v_defendant_account_id,
+            v_account_number,
+            v_terms_type_code,
+            v_instalment_period,
+            v_instalment_amount,
+            v_instalment_lump_sum,
+            v_effective_date
+       FROM v_defendant_accounts_summary
+      WHERE account_number = 'TEST999902';
+    
+    -- Verify the returned payment terms match the ACTIVE record
+    ASSERT v_defendant_account_id = 999902, 'Defendant account ID should be 999902';
+    ASSERT v_account_number = 'TEST999902', 'Account number should match';
+    ASSERT v_terms_type_code = 'I', 'Terms type code should be I (from active record)';
+    ASSERT v_instalment_period = 'M', 'Instalment period should be M (from active record)';
+    ASSERT v_instalment_amount = 50.00, 'Instalment amount should be 50.00 (from active record)';
+    ASSERT v_instalment_lump_sum = 100.00, 'Instalment lump sum should be 100.00 (from active record)';
+    ASSERT v_effective_date::date = CURRENT_DATE::date, 'Effective date should match active record';
+    
+    -- Verify the inactive payment terms are NOT returned
+    ASSERT v_instalment_period != 'W', 'Should not return Weekly period from inactive record';
+    ASSERT v_instalment_amount != 25.00, 'Should not return 25.00 from inactive record';
+    ASSERT v_instalment_amount != 75.00, 'Should not return 75.00 from other inactive record';
+    ASSERT v_terms_type_code != 'F', 'Should not return F (Fixed) from inactive record';
+    
+    RAISE NOTICE 'TEST 3 PASSED: View correctly returns only active payment terms';
+
+END $$;
+
 -- Clean up test data
 DO $$
 BEGIN
     RAISE NOTICE '=== Cleaning up test data ===';
     
-    DELETE FROM payment_terms;
-    DELETE FROM enforcements;
-    DELETE FROM aliases;
-    DELETE FROM debtor_detail;
-    DELETE FROM defendant_account_parties;
-    DELETE FROM defendant_accounts;
-    DELETE FROM parties;
+    DELETE FROM payment_terms WHERE defendant_account_id IN (999901, 999902);
+    DELETE FROM enforcements WHERE defendant_account_id IN (999901, 999902);
+    DELETE FROM defendant_transactions WHERE defendant_account_id IN (999901, 999902);
+    DELETE FROM aliases WHERE party_id IN (999901, 999902);
+    DELETE FROM debtor_detail WHERE party_id IN (999901, 999902);
+    DELETE FROM defendant_account_parties WHERE defendant_account_id IN (999901, 999902);
+    DELETE FROM defendant_accounts WHERE defendant_account_id IN (999901, 999902);
+    DELETE FROM parties WHERE party_id IN (999901, 999902);
 
     -- Delete from reference data tables   
     DELETE FROM result_documents WHERE result_id IN ('DW', 'SE');      
