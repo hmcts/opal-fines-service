@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,9 @@ public class PdplLoggingServiceTest {
     @Mock
     LoggingService loggingService;
 
+    @Mock
+    Clock clock; // injected into PdplLoggingService, used to match static LogUtil call
+
     @InjectMocks
     PdplLoggingService pdplLoggingService;
 
@@ -59,7 +63,7 @@ public class PdplLoggingServiceTest {
 
         try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
             logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
-            logUtilMock.when(LogUtil::getCurrentDateTime).thenReturn(expectedNow);
+            logUtilMock.when(() -> LogUtil.getCurrentDateTime(clock)).thenReturn(expectedNow);
 
             // Act - direct call (package-private method, same package)
             pdplLoggingService.logSubmitDraftAccountDefendantInfo(entity);
@@ -111,7 +115,7 @@ public class PdplLoggingServiceTest {
 
         try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
             logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
-            logUtilMock.when(LogUtil::getCurrentDateTime).thenReturn(expectedNow);
+            logUtilMock.when(() -> LogUtil.getCurrentDateTime(clock)).thenReturn(expectedNow);
 
             // Act - direct call
             pdplLoggingService.logSubmitDraftAccountParentGuardianInfo(entity);
@@ -163,7 +167,7 @@ public class PdplLoggingServiceTest {
 
         try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
             logUtilMock.when(LogUtil::getIpAddress).thenReturn(expectedIp);
-            logUtilMock.when(LogUtil::getCurrentDateTime).thenReturn(expectedNow);
+            logUtilMock.when(() -> LogUtil.getCurrentDateTime(clock)).thenReturn(expectedNow);
 
             // Act - direct call, pass the mocked docContext
             pdplLoggingService.logSubmitDraftAccountMinorCreditorInfo(docContext, entity);
@@ -340,7 +344,8 @@ public class PdplLoggingServiceTest {
 
         try (MockedStatic<LogUtil> logUtil = Mockito.mockStatic(LogUtil.class)) {
             logUtil.when(LogUtil::getIpAddress).thenReturn("10.10.10.10");
-            logUtil.when(LogUtil::getCurrentDateTime).thenReturn(OffsetDateTime.parse("2025-02-02T02:02:02Z"));
+            logUtil.when(() -> LogUtil.getCurrentDateTime(clock))
+                .thenReturn(OffsetDateTime.parse("2025-02-02T02:02:02Z"));
 
             pdplLoggingService.pdplForSubmitDraftAccount(entity);
         }
@@ -390,7 +395,8 @@ public class PdplLoggingServiceTest {
 
         try (MockedStatic<LogUtil> logUtil = Mockito.mockStatic(LogUtil.class)) {
             logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.1");
-            logUtil.when(LogUtil::getCurrentDateTime).thenReturn(OffsetDateTime.parse("2025-03-03T03:03:03Z"));
+            logUtil.when(() -> LogUtil.getCurrentDateTime(clock))
+                .thenReturn(OffsetDateTime.parse("2025-03-03T03:03:03Z"));
 
             pdplLoggingService.pdplForSubmitDraftAccount(entity);
         }
@@ -430,7 +436,8 @@ public class PdplLoggingServiceTest {
 
         try (MockedStatic<LogUtil> logUtil = Mockito.mockStatic(LogUtil.class)) {
             logUtil.when(LogUtil::getIpAddress).thenReturn("203.0.113.5");
-            logUtil.when(LogUtil::getCurrentDateTime).thenReturn(OffsetDateTime.parse("2025-04-04T04:04:04Z"));
+            logUtil.when(() -> LogUtil.getCurrentDateTime(clock))
+                .thenReturn(OffsetDateTime.parse("2025-04-04T04:04:04Z"));
 
             pdplLoggingService.pdplForSubmitDraftAccount(entity);
         }

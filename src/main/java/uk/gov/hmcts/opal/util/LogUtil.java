@@ -18,8 +18,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 @Slf4j
 public final class LogUtil {
 
-    private static Clock clock;
-
     private LogUtil() {
 
     }
@@ -68,7 +66,7 @@ public final class LogUtil {
         return null;
     }
 
-    public static OffsetDateTime getCurrentDateTime() {
+    public static OffsetDateTime getCurrentDateTime(Clock clock) {
         return OffsetDateTime.now(clock);
     }
 }

@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,6 +24,7 @@ import uk.gov.hmcts.opal.util.LogUtil;
 public class PdplLoggingService {
 
     private final LoggingService loggingService;
+    private final Clock clock;
 
     public void pdplForSubmitDraftAccount(DraftAccountEntity entity) {
         JsonPathUtil.DocContext docContext = createDocContext(entity.getAccount(),
@@ -63,7 +65,7 @@ public class PdplLoggingService {
             .businessIdentifier(businessIdentifier)
             .category(PersonalDataProcessingCategory.COLLECTION)
             .ipAddress(LogUtil.getIpAddress())
-            .createdAt(LogUtil.getCurrentDateTime())
+            .createdAt(LogUtil.getCurrentDateTime(clock))
             .createdBy(createdBy)
             .individuals(List.of(individuals))
             .build();

@@ -5,13 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Field;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -20,21 +18,9 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 class LogUtilTest {
 
-    private Field clockField;
-    private Object originalClock;
-
-    @BeforeEach
-    void setUp() throws Exception {
-        // capture original clock so we can restore it later
-        clockField = LogUtil.class.getDeclaredField("clock");
-        clockField.setAccessible(true);
-        originalClock = clockField.get(null);
-    }
-
     @AfterEach
-    void tearDown() throws Exception {
-        // restore original static clock (could be null)
-        clockField.set(null, originalClock);
+    void tearDown() {
+        // Ensure any SecurityContext set during tests is cleared
         SecurityContextHolder.clearContext();
     }
 
@@ -78,16 +64,15 @@ class LogUtilTest {
     }
 
     @Test
-    void getCurrentDateTime_withFixedClock_returnsExpectedOffsetDateTime() throws Exception {
-        // set LogUtil.clock to a fixed instant
+    void getCurrentDateTime_withFixedClock_returnsExpectedOffsetDateTime() {
+        // set a fixed instant and create a fixed Clock
         Instant fixedInstant = Instant.parse("2025-12-18T12:34:56Z");
         Clock fixedClock = Clock.fixed(fixedInstant, ZoneOffset.UTC);
-        clockField.set(null, fixedClock);
 
         OffsetDateTime expected = OffsetDateTime.ofInstant(fixedInstant, ZoneOffset.UTC);
-        OffsetDateTime actual = LogUtil.getCurrentDateTime();
+        OffsetDateTime actual = LogUtil.getCurrentDateTime(fixedClock);
 
-        assertEquals(expected, actual, "getCurrentDateTime should return an "
-            + "OffsetDateTime derived from the static clock");
+        assertEquals(expected, actual,
+            "getCurrentDateTime should return an OffsetDateTime derived from the provided clock");
     }
 }
