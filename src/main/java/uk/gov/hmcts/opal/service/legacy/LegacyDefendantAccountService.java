@@ -905,9 +905,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     ) {
         log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        BigInteger version = parseVersion(ifMatch);
+        BigInteger version = VersionUtils.extractBigInteger(ifMatch);
         AddPaymentCardLegacyRequest request = buildLegacyRequest(defendantAccountId, businessUnitId,
-            businessUnitUserId, version);
+            businessUnitUserId, version.toString());
 
         AddPaymentCardLegacyResponse response = callGateway(request);
         Long id = Long.valueOf(response.getDefendantAccountId());
@@ -915,17 +915,11 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         return new AddPaymentCardRequestResponse(id);
     }
 
-    private BigInteger parseVersion(String ifMatch) {
-        return VersionUtils.extractOptionalBigInteger(ifMatch)
-            .orElseThrow(() ->
-                new IllegalArgumentException("Invalid version/If-Match header: " + ifMatch));
-    }
-
     private AddPaymentCardLegacyRequest buildLegacyRequest(
         Long defendantAccountId,
         String businessUnitId,
         String businessUnitUserId,
-        BigInteger version
+        String version
     ) {
         return AddPaymentCardLegacyRequest.builder()
             .defendantAccountId(String.valueOf(defendantAccountId))

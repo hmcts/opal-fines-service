@@ -2980,7 +2980,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         // Given
         AddPaymentCardLegacyResponse legacyResp =
-            new AddPaymentCardLegacyResponse("123", BigInteger.valueOf(4));
+            new AddPaymentCardLegacyResponse("123", "4");
 
         GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
             new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
@@ -3007,7 +3007,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         // Given
         GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
             new GatewayService.Response<>(HttpStatus.OK,
-                new AddPaymentCardLegacyResponse("123", BigInteger.valueOf(4)),
+                new AddPaymentCardLegacyResponse("123", "4"),
                 null, null);
 
         ArgumentCaptor<AddPaymentCardLegacyRequest> captor =
@@ -3027,7 +3027,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         AddPaymentCardLegacyRequest sent = captor.getValue();
         assertEquals("123", sent.getDefendantAccountId());
         assertEquals("78", sent.getBusinessUnitId());
-        assertEquals(BigInteger.valueOf(9), sent.getVersion());
+        assertEquals(String.valueOf(9), sent.getVersion());
         assertNull(sent.getBusinessUnitUserId());
     }
 

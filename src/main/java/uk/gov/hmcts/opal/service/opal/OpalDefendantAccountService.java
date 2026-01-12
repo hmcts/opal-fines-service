@@ -943,7 +943,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        DefendantAccountEntity account = validateAccountExistsInBusinessUnit(defendantAccountId, businessUnitId);
+        DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
         VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCardRequest");
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
@@ -959,16 +959,18 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return new AddPaymentCardRequestResponse(defendantAccountId);
     }
 
-    private DefendantAccountEntity validateAccountExistsInBusinessUnit(Long accountId, String buId) {
+    private DefendantAccountEntity loadAndValidateAccount(Long accountId, String buId) {
         DefendantAccountEntity account = getDefendantAccountById(accountId);
+        validateBusinessUnitPresent(account, buId);
+        return account;
+    }
 
+    private void validateBusinessUnitPresent(DefendantAccountEntity account, String buId) {
         if (account.getBusinessUnit() == null
             || account.getBusinessUnit().getBusinessUnitId() == null
             || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(buId)) {
             throw new EntityNotFoundException("Defendant Account not found in business unit " + buId);
         }
-
-        return account;
     }
 
     private void ensureNoExistingPaymentCardRequest(Long accountId) {
