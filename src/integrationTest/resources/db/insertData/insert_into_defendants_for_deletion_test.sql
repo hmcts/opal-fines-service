@@ -95,8 +95,9 @@ VALUES (9103, 1001, '2023-11-03 16:05:10', '01000000A',
         120, 'N', 700.58);
 
 ---Insert reports
-INSERT INTO reports (report_id, report_title, report_group, audited_report, report_parameters)
-VALUES ('10001', 'list_extend_ttp', 'FAE', false, '{}');
+INSERT INTO reports (report_id, report_title, report_group, audited_report, report_parameters,supports_multi_bu,is_bespoke_journey,shown_as_worklist,can_manually_create
+)
+VALUES ('10001', 'list_extend_ttp', 'FAE', false, '{}',false,false,false,false);
 
 -- Insert report entry created by payment terms (PO-1718)
 INSERT INTO report_entries (report_entry_id, business_unit_id, report_id, entry_timestamp, reported_timestamp, associated_record_type, associated_record_id)
