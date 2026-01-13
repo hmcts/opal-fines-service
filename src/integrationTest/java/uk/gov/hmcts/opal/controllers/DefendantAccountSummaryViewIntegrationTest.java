@@ -14,19 +14,19 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
-import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DefendantAccountSummaryViewIntegrationTest")
 @DisplayName("Defendant Account Summary View Integration Tests")
 @Sql(
     scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql",
-    executionPhase = BEFORE_TEST_METHOD
+    executionPhase = BEFORE_TEST_CLASS
 )
 @Sql(
     scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql",
-    executionPhase = AFTER_TEST_METHOD
+    executionPhase = AFTER_TEST_CLASS
 )
 class DefendantAccountSummaryViewIntegrationTest extends AbstractIntegrationTest {
 
