@@ -50,6 +50,8 @@ import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
@@ -84,8 +86,10 @@ import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
+import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -104,12 +108,18 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     public static final String PATCH_DEFENDANT_ACCOUNT = "LIBRA.patchDefendantAccount";
     public static final String GET_ENFORCEMENT_STATUS = "LIBRA.of_get_defendant_account_enf_status";
 
+    public static final String ADD_PAYMENT_CARD_REQUEST = "LIBRA.of_add_defendant_account_pcr";
+
+
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
 
     /* ---- Mappers ---- */
     private final UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
     private final LegacyUpdateDefendantAccountResponseMapper legacyUpdateDefendantAccountResponseMapper;
+
+    private final UserStateService userStateService;
+
 
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary: id: {}", defendantAccountId);
@@ -886,15 +896,75 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     @Override
-    public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
+    public AddPaymentCardRequestResponse addPaymentCardRequest(
+        Long defendantAccountId,
         String businessUnitId,
+        String businessUnitUserId,
         String ifMatch,
-        String authHeader) {
-        // Legacy mode does not support Payment Card Requests yet.
-        // For now, throw an UnsupportedOperationException to satisfy the interface contract.
-        throw new UnsupportedOperationException(
-            "Payment Card Request is not implemented for Legacy mode"
-        );
+        String authHeader
+    ) {
+        log.info(":addPaymentCardRequest (Legacy): accountId={}, bu={}", defendantAccountId, businessUnitId);
+
+        BigInteger version = VersionUtils.extractBigInteger(ifMatch);
+        AddPaymentCardLegacyRequest request = buildLegacyRequest(defendantAccountId, businessUnitId,
+            businessUnitUserId, version.toString());
+
+        AddPaymentCardLegacyResponse response = callGateway(request);
+        Long id = Long.valueOf(response.getDefendantAccountId());
+
+        return new AddPaymentCardRequestResponse(id);
+    }
+
+    private AddPaymentCardLegacyRequest buildLegacyRequest(
+        Long defendantAccountId,
+        String businessUnitId,
+        String businessUnitUserId,
+        String version
+    ) {
+        return AddPaymentCardLegacyRequest.builder()
+            .defendantAccountId(String.valueOf(defendantAccountId))
+            .businessUnitId(businessUnitId)
+            .businessUnitUserId(businessUnitUserId)
+            .version(version)
+            .build();
+    }
+
+    private AddPaymentCardLegacyResponse callGateway(AddPaymentCardLegacyRequest request) {
+
+        Response<AddPaymentCardLegacyResponse> gw =
+            gatewayService.postToGateway(
+                ADD_PAYMENT_CARD_REQUEST,
+                AddPaymentCardLegacyResponse.class,
+                request,
+                null
+            );
+
+        if (gw.isError()) {
+            handleGatewayError(gw);
+        }
+
+        if (gw.responseEntity == null) {
+            throw new IllegalArgumentException("Legacy response missing");
+        }
+
+        return gw.responseEntity;
+    }
+
+    private void handleGatewayError(Response<?> gw) {
+
+        log.error(":addPaymentCardRequest: Legacy Gateway error {}", gw.code);
+
+        if (gw.isException()) {
+            log.error(":addPaymentCardRequest: exception", gw.exception);
+            throw new IllegalArgumentException("Legacy gateway exception", gw.exception);
+        }
+
+        if (gw.isLegacyFailure()) {
+            log.error(":addPaymentCardRequest: legacy failure:\n{}", gw.body);
+            throw new IllegalArgumentException("Legacy gateway returned failure");
+        }
+
+        throw new IllegalArgumentException("Legacy gateway error: " + gw.code);
     }
 
 
