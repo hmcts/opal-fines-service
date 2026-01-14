@@ -33,16 +33,16 @@ public abstract class AddressCySpecs<E extends AddressCyEntity> extends AddressS
 
     private Specification<E> likeAddressLine1Cy(String addressLinePattern) {
         return (root, query, builder) ->
-            likeLowerCasePredicate(root.get(AddressCyEntity_.addressLine1Cy), builder, addressLinePattern);
+            likeLowerCaseBothPredicate(root.get(AddressCyEntity_.addressLine1Cy), builder, addressLinePattern);
     }
 
     private Specification<E> likeAddressLine2Cy(String addressLinePattern) {
         return (root, query, builder) ->
-            likeLowerCasePredicate(root.get(AddressCyEntity_.addressLine2Cy), builder, addressLinePattern);
+            likeLowerCaseBothPredicate(root.get(AddressCyEntity_.addressLine2Cy), builder, addressLinePattern);
     }
 
     private Specification<E> likeAddressLine3Cy(String addressLinePattern) {
         return (root, query, builder) ->
-            likeLowerCasePredicate(root.get(AddressCyEntity_.addressLine3Cy), builder, addressLinePattern);
+            likeLowerCaseBothPredicate(root.get(AddressCyEntity_.addressLine3Cy), builder, addressLinePattern);
     }
 }

@@ -5,12 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DefendantAccountParty {
+public class DefendantAccountParty implements ToJsonString {
 
     @JsonProperty("defendant_account_party_type")
     private String defendantAccountPartyType;

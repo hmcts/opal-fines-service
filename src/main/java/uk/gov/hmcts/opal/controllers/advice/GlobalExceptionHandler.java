@@ -48,6 +48,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.util.LogUtil;
 import uk.gov.hmcts.opal.util.Versioned;
@@ -474,6 +475,20 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("resourceId", e.getResourceId());
         problemDetail.setProperty("conflictReason", e.getConflictReason());
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail, e.getVersioned());
+    }
+
+    @ExceptionHandler(UnprocessableException.class)
+    public ResponseEntity<ProblemDetail> handleUnprocessableException(UnprocessableException e) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.UNPROCESSABLE_ENTITY,
+            "TOO_MANY_RESOURCES_FOUND",
+            "The request could not be processed due to processing rules",
+            "unprocessable",
+            false,
+            e
+        );
+        problemDetail.setProperty("unprocessableReason", e.getDetailedReason());
+        return responseWithProblemDetail(HttpStatus.UNPROCESSABLE_ENTITY, problemDetail);
     }
 
     @ExceptionHandler(FeignException.Unauthorized.class)
