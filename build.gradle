@@ -23,7 +23,7 @@ ext {
   log4JVersion = "2.25.3"
   serenityVersion = "4.3.4"
   cucumberVersion = "7.23.0" // Serenity (Integration Tests) 4.2.34 needs cucumber version 7.23.0 (see renovate.json)
-  springVersion = "3.5.8"
+  springVersion = "3.5.9"
 }
 
 //Should we fail fast on test failures?
@@ -441,7 +441,7 @@ dependencies {
 
   testImplementation 'org.springframework.boot:spring-boot-devtools'
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-  testImplementation 'org.testcontainers:junit-jupiter:1.21.3'
+  testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
   testImplementation 'org.testcontainers:postgresql'
   testImplementation(platform('org.junit:junit-bom:6.0.1'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
