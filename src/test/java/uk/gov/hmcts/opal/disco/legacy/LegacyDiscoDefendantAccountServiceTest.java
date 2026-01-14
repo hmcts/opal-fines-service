@@ -81,7 +81,7 @@ class LegacyDiscoDefendantAccountServiceTest extends LegacyTestsBase {
 
     private LegacyDefendantAccountSearchCriteria constructDefendantAccountSearchCriteria() {
         return LegacyDefendantAccountSearchCriteria.builder()
-            .businessUnitIds(List.of(10))
+            .businessUnitIds(List.of((short)10))
             .activeAccountsOnly(true)
             .defendant(new DefendantDto())
             .build();

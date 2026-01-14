@@ -24,7 +24,7 @@ public class LegacyDefendantAccountSearchCriteria implements ToJsonString {
     /** Business Unit IDs (optional). */
     @JsonProperty("business_unit_ids")
     @NotEmpty
-    private List<Integer> businessUnitIds;
+    private List<Short> businessUnitIds;
 
     /** Active accounts only (required). */
     @JsonProperty("active_accounts_only")

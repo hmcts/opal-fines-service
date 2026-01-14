@@ -77,6 +77,7 @@ spring:
         # If 'spring.jpa.show-sql' above is 'true' or 'logging.level.org.hibernate.SQL' below is 'DEBUG',
         # then this option formats the sql in the console or logs (respectively) for easier human parsing.
         format_sql: true
+        highlight_sql: true
         generate_statistics: false
         log_slow_query: 9
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -100,7 +101,6 @@ spring:
     locations: ${FLYWAY_LOCATIONS:classpath:db/migration/allEnvs, classpath:db/migration/devOnly, classpath:db/migration/stgOnly}
     baseline-on-migrate: true
     ignoreMigrationPatterns: "*:missing"
-
 
 dbMigration:
   # When true, the app will run DB migration on startup.
@@ -194,6 +194,11 @@ logging:
           descriptor:
             sql:
               BasicBinder: WARN
+        orm:
+          jdbc:
+            bind: INFO
+
+
 
 user:
   service:

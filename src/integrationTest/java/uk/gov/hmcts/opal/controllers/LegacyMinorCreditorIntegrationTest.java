@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles({"integration", "legacy"})
-@Slf4j(topic = "opal.LegacyDefendantAccountsIntegrationTest")
+@Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
 public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
 
     @Disabled("See DTSPO-27066. A running instance of Legacy Stub App is required to execute this test")
