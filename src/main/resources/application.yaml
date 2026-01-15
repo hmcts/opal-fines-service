@@ -199,5 +199,6 @@ user:
 logging-service:
   pdpl:
     async:
-      connection-string: ${SERVICEBUS_CONNECTION_STRING:Endpoint=sb://example.servicebus.windows.net/;SharedAccessKeyName=opal-logger;SharedAccessKey=replace-me}
-      queue-name: ${SERVICEBUS_LOGGING_PDPL_QUEUE_NAME:opal-servicebus-logging}
+      protocol: ${SERVICEBUS_LOGGING_PDPL_PROTOCOL:"amqp"}
+      connection-string: Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true
+      queue-name: ${SERVICEBUS_LOGGING_PDPL_QUEUE_NAME:logging-pdpl}
