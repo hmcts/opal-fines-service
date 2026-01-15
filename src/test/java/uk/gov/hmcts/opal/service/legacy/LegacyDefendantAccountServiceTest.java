@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -43,6 +45,7 @@ import uk.gov.hmcts.opal.config.properties.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
+import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
@@ -60,6 +63,8 @@ import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyRequest;
+import uk.gov.hmcts.opal.dto.legacy.AddPaymentCardLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
@@ -99,6 +104,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.entity.court.CourtEntity.Lite;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
@@ -106,6 +112,7 @@ import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
+import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
@@ -115,6 +122,9 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
     @Mock
     private LegacyGatewayProperties gatewayProperties;
+
+    @Mock
+    private CourtService courtService;
 
     private GatewayService gatewayService;
 
@@ -2783,6 +2793,8 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
             .thenReturn(responseBody);
 
+        when(courtService.getCourtById(anyLong())).thenReturn(Lite.builder().courtCode((short)123).build());
+
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
@@ -2835,6 +2847,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals(LocalDate.of(2024, 3, 4), overview.getCollectionOrder().getCollectionOrderDate());
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
+        assertEquals(123, overview.getEnforcementCourt().getCourtCode());
         assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
 
         AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();
@@ -2855,6 +2868,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
 
         ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        when(courtService.getCourtById(anyLong())).thenReturn(Lite.builder().courtCode((short)123).build());
 
         // Act
         EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(72L);
@@ -2923,6 +2937,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         )).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+        when(courtService.getCourtById(anyLong())).thenReturn(Lite.builder().courtCode((short)123).build());
 
         EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(66L);
 
@@ -2931,6 +2946,27 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
         assertFalse(response.getIsHmrcCheckEligible());
         assertNull(response.getNextEnforcementActionData());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testGetEnforcementStatus_courtNotFoundInOpalDB() {
+
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(false);
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
+        )).thenReturn(responseBody);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+        when(courtService.getCourtById(anyLong())).thenThrow(new EntityNotFoundException("Court not found"));
+
+        EntityNotFoundException error = assertThrows(EntityNotFoundException.class,
+            () -> legacyDefendantAccountService.getEnforcementStatus(66L));
+
+        assertNotNull(error);
+        assertEquals("Court not found", error.getMessage());
     }
 
     private LegacyGetDefendantAccountEnforcementStatusResponse createLegacyEnforcementStatusResponse(boolean full) {
@@ -2971,4 +3007,275 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
             .employerFlag("true")
             .build();
     }
+
+    @Test
+    void addPaymentCardRequest_legacy_happyPath() {
+
+        // Given
+        AddPaymentCardLegacyResponse legacyResp =
+            new AddPaymentCardLegacyResponse("123", "4");
+
+        GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResp, null, null);
+
+        doReturn(gwResp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(AddPaymentCardLegacyResponse.class),
+            any(AddPaymentCardLegacyRequest.class),
+            isNull()
+        );
+
+        // When
+        AddPaymentCardRequestResponse out =
+            legacyDefendantAccountService.addPaymentCardRequest(123L, "78", null,"4", "AUTH");
+
+        // Then
+        assertNotNull(out);
+        assertEquals(123L, out.getDefendantAccountId());
+    }
+
+    @Test
+    void addPaymentCardRequest_legacy_buildsCorrectRequest() {
+
+        // Given
+        GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
+            new GatewayService.Response<>(HttpStatus.OK,
+                new AddPaymentCardLegacyResponse("123", "4"),
+                null, null);
+
+        ArgumentCaptor<AddPaymentCardLegacyRequest> captor =
+            ArgumentCaptor.forClass(AddPaymentCardLegacyRequest.class);
+
+        doReturn(gwResp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(AddPaymentCardLegacyResponse.class),
+            captor.capture(),
+            isNull()
+        );
+
+        // When
+        legacyDefendantAccountService.addPaymentCardRequest(123L, "78",null, "9", "AUTH");
+
+        // Then
+        AddPaymentCardLegacyRequest sent = captor.getValue();
+        assertEquals("123", sent.getDefendantAccountId());
+        assertEquals("78", sent.getBusinessUnitId());
+        assertEquals(String.valueOf(9), sent.getVersion());
+        assertNull(sent.getBusinessUnitUserId());
+    }
+
+    @Test
+    void addPaymentCardRequest_legacy_5xxFailureThrows() {
+
+        GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
+            new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, null, "<error/>", null);
+
+        doReturn(gwResp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(AddPaymentCardLegacyResponse.class),
+            any(),
+            isNull()
+        );
+
+        assertThrows(RuntimeException.class, () ->
+            legacyDefendantAccountService.addPaymentCardRequest(99L, "78", null,"1", "AUTH")
+        );
+    }
+
+    @Test
+    void addPaymentCardRequest_legacy_gatewayExceptionThrows() {
+
+        Throwable ex = new RuntimeException("gateway boom");
+
+        GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
+            new GatewayService.Response<>(HttpStatus.BAD_GATEWAY, ex, null);
+
+        doReturn(gwResp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(AddPaymentCardLegacyResponse.class),
+            any(),
+            isNull()
+        );
+
+        assertThrows(RuntimeException.class, () ->
+            legacyDefendantAccountService.addPaymentCardRequest(88L, "78", null,"2", "AUTH")
+        );
+    }
+
+    @Test
+    void addPaymentCardRequest_legacy_nullEntityThrows() {
+
+        GatewayService.Response<AddPaymentCardLegacyResponse> gwResp =
+            new GatewayService.Response<>(HttpStatus.OK, null, null, null);
+
+        doReturn(gwResp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.ADD_PAYMENT_CARD_REQUEST),
+            eq(AddPaymentCardLegacyResponse.class),
+            any(),
+            isNull()
+        );
+
+        assertThrows(RuntimeException.class, () ->
+            legacyDefendantAccountService.addPaymentCardRequest(55L, "78", null, "3", "AUTH")
+        );
+    }
+
+    @Test
+    void addPaymentCardRequest_legacy_invalidIfMatchThrows() {
+        assertThrows(IllegalArgumentException.class, () ->
+            legacyDefendantAccountService.addPaymentCardRequest(1L, "78", null,"notANumber", "AUTH")
+        );
+    }
+
+    @Test
+    void legacy_getHeaderSummary_legacyFailureBranch_logsAndContinues() {
+        LegacyGetDefendantAccountHeaderSummaryResponse entity =
+            LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+                .accountNumber("ACC")
+                .accountStatusReference(
+                    uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference.builder()
+                        .accountStatusCode("L")
+                        .build())
+                .build();
+
+        GatewayService.Response<LegacyGetDefendantAccountHeaderSummaryResponse> resp =
+            new GatewayService.Response<>(HttpStatus.INTERNAL_SERVER_ERROR, entity, "<LEGACY_FAIL/>", null);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.GET_HEADER_SUMMARY),
+            eq(LegacyGetDefendantAccountHeaderSummaryResponse.class),
+            any(),
+            isNull()
+        );
+
+        DefendantAccountHeaderSummary out =
+            legacyDefendantAccountService.getHeaderSummary(123L);
+
+        assertNotNull(out);
+        assertEquals("ACC", out.getAccountNumber());
+    }
+
+    @Test
+    void legacy_getHeaderSummary_successBranch_hitsLoggingAndMaps() {
+
+        LegacyGetDefendantAccountHeaderSummaryResponse entity =
+            LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+                .accountNumber("OKAY")
+                .accountStatusReference(
+                    uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference.builder()
+                        .accountStatusCode("L")
+                        .build())
+                .build();
+
+        GatewayService.Response<LegacyGetDefendantAccountHeaderSummaryResponse> resp =
+            new GatewayService.Response<>(HttpStatus.OK, entity, null, null);
+
+        doReturn(resp).when(gatewayService).postToGateway(
+            eq(LegacyDefendantAccountService.GET_HEADER_SUMMARY),
+            eq(LegacyGetDefendantAccountHeaderSummaryResponse.class),
+            any(),
+            isNull()
+        );
+
+        DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(99L);
+
+        assertEquals("OKAY", out.getAccountNumber());
+    }
+
+    @Test
+    void legacyAliasFilters_dropNullAliasIdAndNullOrgName() {
+
+        var alias1 = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias
+            .builder().aliasId(null).sequenceNumber((short)1).organisationName("Name").build();
+
+        var alias2 = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias
+            .builder().aliasId("OK").sequenceNumber((short)2).organisationName(null).build();
+
+        var alias3 = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias
+            .builder().aliasId("GOOD").sequenceNumber((short)3).organisationName("X").build();
+
+        var org = uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.builder()
+            .organisationName("Main")
+            .organisationAliases(new uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[]{
+                alias1, alias2, alias3
+            })
+            .build();
+
+        var party = uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
+            .organisationFlag(true)
+            .organisationDetails(org)
+            .build();
+
+        var respLg = LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+            .partyDetails(party)
+            .accountStatusReference(
+                uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference.builder()
+                    .accountStatusCode("L").build())
+            .build();
+
+        doReturn(new GatewayService.Response<>(HttpStatus.OK, respLg, null, null))
+            .when(gatewayService).postToGateway(any(), any(), any(), any());
+
+        DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(5L);
+
+        assertEquals(1, out.getPartyDetails().getOrganisationDetails().getOrganisationAliases().size());
+        assertEquals("GOOD", out.getPartyDetails().getOrganisationDetails()
+            .getOrganisationAliases().get(0).getAliasId());
+    }
+
+    @Test
+    void legacyIndividual_dateOfBirthFormattingBranch() {
+
+        uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails ind =
+            uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
+                .dateOfBirth(java.time.LocalDate.of(1990, 1, 1))
+                .surname("Smith")
+                .build();
+
+        var party = uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder()
+            .individualDetails(ind)
+            .organisationFlag(false)
+            .build();
+
+        var respLg = LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+            .partyDetails(party)
+            .accountStatusReference(uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference.builder()
+                .accountStatusCode("L").build())
+            .build();
+
+        doReturn(new GatewayService.Response<>(HttpStatus.OK, respLg, null, null))
+            .when(gatewayService).postToGateway(any(), any(), any(), any());
+
+        DefendantAccountHeaderSummary out =
+            legacyDefendantAccountService.getHeaderSummary(77L);
+
+        assertEquals("1990-01-01", out.getPartyDetails().getIndividualDetails().getDateOfBirth());
+    }
+
+    @Test
+    void legacyPaymentTerms_nonNullEnums_areConverted() {
+
+        var legacy = LegacyGetDefendantAccountPaymentTermsResponse.builder()
+            .version(1L)
+            .paymentTerms(
+                uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTerms.builder()
+                    .paymentTermsType(new uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType(
+                        uk.gov.hmcts.opal.dto.legacy.LegacyPaymentTermsType.PaymentTermsTypeCode.B))
+                    .instalmentPeriod(new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
+                        uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.W))
+                    .build()
+            )
+            .build();
+
+        doReturn(new GatewayService.Response<>(HttpStatus.OK, legacy, null, null))
+            .when(gatewayService).postToGateway(eq(LegacyDefendantAccountService.GET_PAYMENT_TERMS),
+                eq(LegacyGetDefendantAccountPaymentTermsResponse.class), any(), any());
+
+        GetDefendantAccountPaymentTermsResponse out =
+            legacyDefendantAccountService.getPaymentTerms(123L);
+
+        assertNotNull(out.getPaymentTerms().getPaymentTermsType());
+        assertNotNull(out.getPaymentTerms().getInstalmentPeriod());
+    }
+
 }

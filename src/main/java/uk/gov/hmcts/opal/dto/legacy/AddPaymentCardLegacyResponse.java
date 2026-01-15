@@ -1,5 +1,4 @@
-package uk.gov.hmcts.opal.dto.legacy.common;
-
+package uk.gov.hmcts.opal.dto.legacy;
 
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
@@ -9,22 +8,18 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import uk.gov.hmcts.opal.dto.ToXmlString;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@XmlRootElement
+@XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class CourtReference implements ToXmlString {
+public class AddPaymentCardLegacyResponse {
 
-    @XmlElement(name = "court_id")
-    private Long courtId;
+    @XmlElement(name = "defendant_account_id")
+    private String defendantAccountId;
 
-    // Court code is not returned from Legacy, and needs to be populated from the Opal DB.
-    private Short courtCode;
-
-    @XmlElement(name = "court_name")
-    private String courtName;
+    @XmlElement(name = "version")
+    private String version;
 }
