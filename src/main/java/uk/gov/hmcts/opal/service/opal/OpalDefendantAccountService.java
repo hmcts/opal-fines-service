@@ -107,8 +107,8 @@ import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
-import uk.gov.hmcts.opal.util.DateTimeUtils;
 import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
+import uk.gov.hmcts.opal.util.DateTimeUtils;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
@@ -445,60 +445,20 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     private AddPaymentCardRequestResponse addPaymentCard(
         Long defendantAccountId,
         String businessUnitId,
+        String businessUnitUserId,
         String ifMatch,
         String authHeader) {
 
-        // Fetch defendant account
-        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
+        log.debug(":addPaymentCard (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        // Validate business unit
-        if (account.getBusinessUnit() == null
-            || account.getBusinessUnit().getBusinessUnitId() == null
-            || !String.valueOf(account.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
-            throw new EntityNotFoundException(
-                "Defendant Account not found in business unit " + businessUnitId);
-        }
+        DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
+        VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCard");
 
-        // Version check
-        VersionUtils.verifyIfMatch(account, ifMatch, defendantAccountId, "addPaymentCardRequest");
+        ensureNoExistingPaymentCardRequest(defendantAccountId);
 
-        // Ensure no existing PCR
-        if (paymentCardRequestRepository.existsByDefendantAccountId(defendantAccountId)) {
-            throw new ResourceConflictException(
-                "DefendantAccountEntity",
-                String.valueOf(defendantAccountId),
-                "A payment card request already exists for this account.", account
-            );
-        }
+        createPaymentCardRequest(defendantAccountId);
 
-        // Retrieve logged-in UserState
-        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
-
-        // Create PCR row first (so later declarations appear close to usage)
-        PaymentCardRequestEntity pcr = PaymentCardRequestEntity.builder()
-            .defendantAccountId(defendantAccountId)
-            .build();
-        paymentCardRequestRepository.save(pcr);
-
-        // Resolve BU ID right before use
-        final short buId = Short.parseShort(businessUnitId);
-
-        // Resolve BU user ID — moved DIRECTLY before its first usage
-        final String businessUnitUserId = userState
-            .getBusinessUnitUserForBusinessUnit(buId)
-            .map(bu -> bu.getBusinessUnitUserId())
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Logged in user is not associated with business unit " + buId));
-
-        // Friendly display name — moved DIRECTLY before its first usage
-        final String displayName = accessTokenService.extractName(authHeader);
-
-        // Update defendant_accounts flags
-        account.setPaymentCardRequested(true);
-        account.setPaymentCardRequestedDate(LocalDate.now());
-        account.setPaymentCardRequestedBy(businessUnitUserId);
-        account.setPaymentCardRequestedByName(displayName);
-        defendantAccountRepository.save(account);
+        updateDefendantAccountWithPcr(account, businessUnitUserId, authHeader);
 
         // Minimal response
         return new AddPaymentCardRequestResponse(defendantAccountId);
@@ -972,20 +932,21 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
-        VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCardRequest");
+        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
-        ensureNoExistingPaymentCardRequest(defendantAccountId);
-
-        createPaymentCardRequest(defendantAccountId);
-
-        updateDefendantAccountWithPcr(account, businessUnitUserId, authHeader);
+        AddPaymentCardRequestResponse paymentCardResponse = addPaymentCard(
+            defendantAccountId,
+            businessUnitId,
+            businessUnitUserId,
+            ifMatch,
+            authHeader
+        );
 
         auditComplete(defendantAccountId, account, businessUnitUserId);
 
-        return new AddPaymentCardRequestResponse(defendantAccountId);
+        return paymentCardResponse;
     }
 
     private DefendantAccountEntity loadAndValidateAccount(Long accountId, String buId) {
@@ -1061,9 +1022,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     @Transactional
     public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
+        String businessUnitUserId,
         String ifMatch,
         String authHeader,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
+
+        log.debug(":addPaymentTerms (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
         // Look up the defendant account
         DefendantAccountEntity defAccount = getDefendantAccountByIdForUpdate(defendantAccountId);
@@ -1104,7 +1068,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (Boolean.TRUE.equals(addPaymentTermsRequest.getRequestPaymentCard())) {
             log.debug(":addPaymentTerms: Request Payment Card flag is TRUE for account {}",
                 defAccount.getDefendantAccountId());
-            addPaymentCard(defendantAccountId, businessUnitId, ifMatch, authHeader);
+            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, authHeader);
         }
 
         // Create report entry for the Extension of Time to Pay report
@@ -1113,19 +1077,6 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         log.debug(":addPaymentTerms: saved payment terms id={} for account {}",
             savedPaymentTerms.getPaymentTermsId(), defAccount.getDefendantAccountId());
-
-        // Retrieve logged-in UserState
-        UserState userState = userStateService.checkForAuthorisedUser(authHeader);
-
-        // Resolve BU ID right before use
-        final short buId = Short.parseShort(businessUnitId);
-
-        // Resolve BU user ID — moved DIRECTLY before its first usage
-        final String businessUnitUserId = userState
-            .getBusinessUnitUserForBusinessUnit(buId)
-            .map(bu -> bu.getBusinessUnitUserId())
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Logged in user is not associated with business unit " + buId));
 
         amendmentService.auditFinaliseStoredProc(
             defAccount.getDefendantAccountId(),

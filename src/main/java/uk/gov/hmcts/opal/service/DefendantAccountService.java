@@ -244,7 +244,7 @@ public class DefendantAccountService {
         UserState userState = userStateService.checkForAuthorisedUser(authHeaderValue);
 
         short buId = Short.parseShort(businessUnitId);
-        String postedBy = userState.getBusinessUnitUserForBusinessUnit(buId)
+        String businessUnitUserId = userState.getBusinessUnitUserForBusinessUnit(buId)
             .map(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
             .orElse(userState.getUserName());
@@ -253,6 +253,7 @@ public class DefendantAccountService {
             FinesPermission.AMEND_PAYMENT_TERMS)) {
             return defendantAccountServiceProxy.addPaymentTerms(defendantAccountId,
                 businessUnitId,
+                businessUnitUserId,
                 ifMatch,
                 authHeaderValue,
                 addPaymentTermsRequest);

@@ -35,7 +35,7 @@ import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 
 @ExtendWith(MockitoExtension.class)
-public class OpalDefendantAccountServiceTestAddPaymentTermsTest {
+public class OpalDefendantAccountServiceAddPaymentTermsTest {
     @Mock
     private DefendantAccountPaymentTermsRepository paymentTermsRepository;
 
@@ -88,16 +88,6 @@ public class OpalDefendantAccountServiceTestAddPaymentTermsTest {
         final String businessUnitId = "10";
         final String ifMatch = "\"1\"";
         final String postedBy = "tester";
-
-
-        // User state resolves a BU user ID
-        when(buUser.getBusinessUnitUserId()).thenReturn("L080JG");
-
-        when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
-            .thenReturn(Optional.of(buUser));
-
-        when(userStateService.checkForAuthorisedUser("tester")).thenReturn(userState);
-        //when(accessTokenService.extractName("AUTH")).thenReturn("John Smith");
 
         BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
             .businessUnitId((short) 10)
@@ -155,7 +145,8 @@ public class OpalDefendantAccountServiceTestAddPaymentTermsTest {
         when(resultService.getResultById("55")).thenReturn(resultEntityLite);
 
         // Act
-        defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, ifMatch, postedBy, request);
+        defendantAccountService.addPaymentTerms(defendantAccountId, businessUnitId, "tester",
+            ifMatch, postedBy, request);
 
         // Assert
         // 1) Verify PaymentTermsService.addPaymentTerm was called

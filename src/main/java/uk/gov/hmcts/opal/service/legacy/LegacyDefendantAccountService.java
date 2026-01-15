@@ -91,9 +91,8 @@ import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
-import uk.gov.hmcts.opal.util.VersionUtils;
 import uk.gov.hmcts.opal.service.opal.CourtService;
-import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders;
+import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -339,7 +338,8 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         }
 
         return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(Optional.of(BigInteger.valueOf(legacy.getVersion())).orElse(BigInteger.ONE))
+            .version(Optional.ofNullable(legacy.getVersion())
+                  .map(v -> BigInteger.valueOf(v.longValue())).orElse(BigInteger.ONE))
             .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
             .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
             .lastEnforcement(legacy.getLastEnforcement())
@@ -1316,11 +1316,10 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         courtRef.setCourtCode(courtService.getCourtById(courtRef.getCourtId()).getCourtCode());
     }
 
-
-    // TODO - is the return type appropriate?
     @Override
     public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
         String businessUnitId,
+        String businessUnitUserId,
         String ifMatch,
         String postedBy,
         AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
