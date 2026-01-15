@@ -443,13 +443,13 @@ dependencies {
   testImplementation 'org.springframework.boot:spring-boot-testcontainers'
   testImplementation 'org.testcontainers:junit-jupiter:1.21.4'
   testImplementation 'org.testcontainers:postgresql'
-  testImplementation(platform('org.junit:junit-bom:6.0.1'))
+  testImplementation(platform('org.junit:junit-bom:6.0.2'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation 'org.springframework.boot:spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  testImplementation 'org.junit.platform:junit-platform-suite:6.0.1'
+  testImplementation 'org.junit.platform:junit-platform-suite:6.0.2'
   testImplementation "io.cucumber:cucumber-junit-platform-engine:${cucumberVersion}"
 
   testImplementation "net.serenity-bdd:serenity-core:${serenityVersion}"
