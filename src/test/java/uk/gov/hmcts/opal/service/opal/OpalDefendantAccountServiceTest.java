@@ -46,7 +46,6 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
-import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
@@ -88,14 +87,12 @@ import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
@@ -104,6 +101,7 @@ import uk.gov.hmcts.opal.repository.DefendantAccountHeaderViewRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
+import uk.gov.hmcts.opal.repository.EnforcementOverrideResultRepository;
 import uk.gov.hmcts.opal.repository.EnforcementRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
@@ -149,6 +147,9 @@ class OpalDefendantAccountServiceTest {
 
     @Mock
     private CourtRepository courtRepo;
+
+    @Mock
+    private EnforcementOverrideResultRepository eorRepo;
 
     @Mock
     private LocalJusticeAreaRepository ljaRepo;
@@ -809,7 +810,7 @@ class OpalDefendantAccountServiceTest {
 
     @Test
     void updateDefendantAccount_versionMismatch_throwsResourceConflict() {
-        var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
+        var bu = BusinessUnitFullEntity.builder().businessUnitId((short) 78).build();
         var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu)
             .versionNumber(5L).build();
         when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
@@ -824,7 +825,7 @@ class OpalDefendantAccountServiceTest {
 
     @Test
     void updateDefendantAccount_callsAuditProcs() {
-        var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
+        var bu = BusinessUnitFullEntity.builder().businessUnitId((short) 78).build();
         var entity = DefendantAccountEntity.builder()
             .defendantAccountId(77L).businessUnit(bu).versionNumber(0L).build();
         when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
@@ -836,13 +837,13 @@ class OpalDefendantAccountServiceTest {
 
         verify(amendmentService).auditInitialiseStoredProc(77L, RecordType.DEFENDANT_ACCOUNTS);
         verify(amendmentService).auditFinaliseStoredProc(
-            eq(77L), eq(RecordType.DEFENDANT_ACCOUNTS), eq((short)78),
+            eq(77L), eq(RecordType.DEFENDANT_ACCOUNTS), eq((short) 78),
             eq("11111111A"), any(), eq("ACCOUNT_ENQUIRY"));
     }
 
     @Test
     void updateDefendantAccount_enforcementOverrideLookupsMissing_areNull() {
-        var bu = BusinessUnitFullEntity.builder().businessUnitId((short)78).build();
+        var bu = BusinessUnitFullEntity.builder().businessUnitId((short) 78).build();
         var entity = DefendantAccountEntity.builder().defendantAccountId(77L).businessUnit(bu)
             .versionNumber(0L).build();
         when(defendantAccountRepository.findById(77L)).thenReturn(Optional.of(entity));
@@ -1134,7 +1135,7 @@ class OpalDefendantAccountServiceTest {
     @Test
     void all_null_or_blank_alias_slots_yield_empty_lists_for_both_entity_types() {
         var person = mockDasv(false, null, "", "   ", null, "");
-        var org    = mockDasv(true,  null, "", "   ", null, "");
+        var org = mockDasv(true, null, "", "   ", null, "");
 
         assertTrue(OpalDefendantAccountBuilders.buildIndividualAliasesList(person).isEmpty());
         assertTrue(OpalDefendantAccountBuilders.buildOrganisationAliasesList(person).isEmpty());
@@ -2055,120 +2056,6 @@ class OpalDefendantAccountServiceTest {
         }
     }
 
-    @Test
-    void addPaymentCardRequest_happyPath_createsPCRAndUpdatesAccount() {
-        // Arrange
-        Long accountId = 99L;
-        String buHeader = "10";
-        String ifMatch = "\"1\"";
-
-        BusinessUnitFullEntity bu = BusinessUnitFullEntity.builder()
-            .businessUnitId((short) 10)
-            .build();
-
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .defendantAccountId(accountId)
-            .businessUnit(bu)
-            .versionNumber(1L)
-            .build();
-
-        when(defendantAccountRepository.findById(accountId)).thenReturn(Optional.of(account));
-        when(paymentCardRequestRepository.existsByDefendantAccountId(accountId)).thenReturn(false);
-
-        // User state resolves a BU user ID
-        var buUser = mock(uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser.class);
-        when(buUser.getBusinessUnitUserId()).thenReturn("L080JG");
-
-        var userState = mock(uk.gov.hmcts.opal.common.user.authorisation.model.UserState.class);
-        when(userState.getBusinessUnitUserForBusinessUnit((short) 10))
-            .thenReturn(Optional.of(buUser));
-
-        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
-        when(accessTokenService.extractName("AUTH")).thenReturn("John Smith");
-
-        // Make save(account) echo the argument
-        when(defendantAccountRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        // Act
-        AddPaymentCardRequestResponse response =
-            service.addPaymentCardRequest(accountId, buHeader, ifMatch, "AUTH");
-
-        // Assert
-        assertNotNull(response);
-        assertEquals(accountId, response.getDefendantAccountId());
-
-        assertTrue(account.getPaymentCardRequested());
-        assertEquals("L080JG", account.getPaymentCardRequestedBy());
-        assertEquals("John Smith", account.getPaymentCardRequestedByName());
-
-        verify(paymentCardRequestRepository).save(any(PaymentCardRequestEntity.class));
-    }
-
-    @Test
-    void addPaymentCardRequest_failsWhenPcrAlreadyExists() {
-        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(
-            DefendantAccountEntity.builder()
-                .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
-                .versionNumber(1L)
-                .build()
-        ));
-
-        when(paymentCardRequestRepository.existsByDefendantAccountId(1L))
-            .thenReturn(true);
-
-        assertThrows(ResourceConflictException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "\"1\"", "AUTH")
-        );
-    }
-
-    @Test
-    void addPaymentCardRequest_failsWhenBusinessUnitMismatch() {
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 77).build())
-            .versionNumber(1L)
-            .build();
-
-        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
-
-        assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "\"1\"", "AUTH")
-        );
-    }
-
-    @Test
-    void addPaymentCardRequest_failsWhenUserNotInBusinessUnit() {
-        var account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(1L)
-            .build();
-
-        when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
-        when(paymentCardRequestRepository.existsByDefendantAccountId(1L)).thenReturn(false);
-
-        // UserState returns empty Optional for this BU
-        var userState = mock(uk.gov.hmcts.opal.common.user.authorisation.model.UserState.class);
-        when(userState.getBusinessUnitUserForBusinessUnit((short) 10)).thenReturn(Optional.empty());
-        when(userStateService.checkForAuthorisedUser("AUTH")).thenReturn(userState);
-
-        assertThrows(EntityNotFoundException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "\"1\"", "AUTH")
-        );
-    }
-
-    @Test
-    void addPaymentCardRequest_versionConflictThrows() {
-        DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .businessUnit(BusinessUnitFullEntity.builder().businessUnitId((short) 10).build())
-            .versionNumber(5L)  // expects If-Match: "5"
-            .build();
-
-        when(defendantAccountRepository.findById(1L))
-            .thenReturn(Optional.of(account));
-
-        assertThrows(ObjectOptimisticLockingFailureException.class, () ->
-            service.addPaymentCardRequest(1L, "10", "\"0\"", "AUTH")
-        );
-    }
 
     @Test
     void replaceDefendantAccountParty_employerNull_languageNull_clearsEmployerAndLanguages_savesDebtor() {
