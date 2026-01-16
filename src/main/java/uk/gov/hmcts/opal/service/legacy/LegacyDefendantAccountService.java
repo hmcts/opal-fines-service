@@ -81,6 +81,7 @@ import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -92,6 +93,7 @@ import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.GatewayService.Response;
 import uk.gov.hmcts.opal.util.VersionUtils;
 import uk.gov.hmcts.opal.service.opal.CourtService;
+import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 
 @Service
 @RequiredArgsConstructor
@@ -116,6 +118,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
     private final CourtService courtService;
+    private final LocalJusticeAreaService ljaService;
 
     /* ---- Mappers ---- */
     private final UpdateDefendantAccountRequestMapper updateDefendantAccountRequestMapper;
@@ -1295,6 +1298,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
 
             LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus = response.responseEntity;
             populateCourtCode(enforcementStatus);
+            populateLjaCode(enforcementStatus);
             return toEnforcementStatusResponse(enforcementStatus);
 
         } catch (RuntimeException e) {
@@ -1308,11 +1312,20 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
         Optional.ofNullable(enforcementStatus)
             .map(es -> es.getEnforcementOverview())
             .map(eo -> eo.getEnforcementCourt()).ifPresent(this::populateCourtCode);
-
     }
 
     private void populateCourtCode(CourtReference courtRef) {
         courtRef.setCourtCode(courtService.getCourtById(courtRef.getCourtId()).getCourtCode());
+    }
+
+    private void populateLjaCode(LegacyGetDefendantAccountEnforcementStatusResponse enforcementStatus) {
+        Optional.ofNullable(enforcementStatus)
+            .map(es -> es.getEnforcementOverride())
+            .map(eo -> eo.getLja()).ifPresent(this::populateLjaCode);
+    }
+
+    private void populateLjaCode(LjaReference ljaRef) {
+        ljaRef.setLjaCode(ljaService.getLocalJusticeAreaById(ljaRef.getLjaId()).getLjaCode());
     }
 
 }
