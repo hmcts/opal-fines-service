@@ -1,21 +1,21 @@
 package uk.gov.hmcts.opal.controllers;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+
+import lombok.extern.slf4j.Slf4j;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DefendantAccountSummaryViewIntegrationTest")
@@ -29,16 +29,13 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TE
     executionPhase = AFTER_TEST_CLASS
 )
 class DefendantAccountSummaryViewIntegrationTest extends AbstractIntegrationTest {
-
     private static final String VIEW = "v_defendant_accounts_summary";
 
     /**
      * Seed assumptions (PO-2629 isolated dataset).
      * - Account 262901: multiple payment_terms (1 active + 1 inactive) -> should produce ONE summary row
      * - Account 262902: inactive-only payment_terms -> should produce NO summary row
-     *
      */
-
     private static final long ACCOUNT_MULTI_TERMS_ONE_ACTIVE = 262901L;
     private static final long ACCOUNT_NO_ACTIVE_TERMS = 262902L;
 
@@ -46,8 +43,8 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractIntegrationTest
     private JdbcTemplate jdbcTemplate;
 
     @Test
-    @DisplayName("PO-2629 INT.01 – Active payment terms returns one row")
-    void int01_activePaymentTerms_returnsOneRow() {
+    @DisplayName("PO-2629 INT.01 – Single active payment terms returns one row")
+    void int01_singleActivePaymentTerms_returnsOneRow() {
         List<Map<String, Object>> rows = byAccountId(ACCOUNT_MULTI_TERMS_ONE_ACTIVE);
 
         assertThat(rows).hasSize(1);
@@ -58,8 +55,8 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    @DisplayName("PO-2629 INT.02 – Multiple payment terms does not duplicate summary rows")
-    void int02_multiplePaymentTerms_doesNotDuplicateSummaryRows() {
+    @DisplayName("PO-2629 INT.02 – Multiple payment terms only active row included")
+    void int02_multiplePaymentTerms_onlyActiveRowIncluded() {
 
         // Prove the account really has multiple payment_terms (so the test is meaningful)
         Long termCount = jdbcTemplate.queryForObject(
@@ -85,9 +82,8 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    @DisplayName("PO-2629 INT.04 – View contains at most one row per defendant_account_id")
-    void int04_viewHasAtMostOneRowPerDefendantAccount() {
-
+    @DisplayName("PO-2629 INT.04 – Multiple accounts each return one summary row")
+    void int04_multipleAccounts_eachReturnOneSummaryRow() {
         List<Long> ids = jdbcTemplate.queryForList(
             "SELECT defendant_account_id FROM " + VIEW,
             Long.class
@@ -95,13 +91,12 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractIntegrationTest
 
         Map<Long, Long> counts =
             ids.stream().collect(Collectors.groupingBy(x -> x, Collectors.counting()));
-
         assertThat(counts.values()).allMatch(c -> c == 1L);
     }
 
     @Test
-    @DisplayName("PO-2629 INT.05 – Regression: repeat query for same account is stable")
-    void int05_regression_repeatQueryStable() {
+    @DisplayName("PO-2629 INT.05 – Accounts with single active payment terms return one defendant row")
+    void int05_singleActivePaymentTerms_returnExpectedSummary() {
         List<Map<String, Object>> first = byAccountId(ACCOUNT_MULTI_TERMS_ONE_ACTIVE);
         List<Map<String, Object>> second = byAccountId(ACCOUNT_MULTI_TERMS_ONE_ACTIVE);
 
@@ -109,8 +104,8 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    @DisplayName("PO-2629 INT.06 – Regression: inactive-only account stays excluded")
-    void int06_regression_inactiveOnlyAccountExcluded() {
+    @DisplayName("PO-2629 INT.06 – Deterministic results for repeated queries")
+    void int06_deterministicResults_repeatedQueriesMatch() {
         List<Map<String, Object>> first = byAccountId(ACCOUNT_NO_ACTIVE_TERMS);
         List<Map<String, Object>> second = byAccountId(ACCOUNT_NO_ACTIVE_TERMS);
 
