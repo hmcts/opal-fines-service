@@ -8,7 +8,8 @@ public class PeekSbEmulator {
 
     public static void main(String[] args) {
         String cs =
-            "Endpoint=sb://localhost;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true;";
+            "Endpoint=sb://localhost;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey"
+                + "=local;UseDevelopmentEmulator=true;";
         String queue = args.length > 0 ? args[0] : "logging-pdpl";
 
         try (ServiceBusReceiverClient receiver =
