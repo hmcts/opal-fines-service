@@ -160,6 +160,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final ResultRepository resultRepository;
 
+    // Services
+    private final DocumentService documentService;
+
     private final PaymentTermsService paymentTermsService;
 
     private final ResultService resultService;
@@ -1069,6 +1072,15 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             log.debug(":addPaymentTerms: Request Payment Card flag is TRUE for account {}",
                 defAccount.getDefendantAccountId());
             addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, authHeader);
+        }
+
+        // if generate_payment_terms_change_letter is true
+        //   Create a Document Instances record for a Payment Terms Change Letter.
+        if (Boolean.TRUE.equals(addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter())) {
+            log.debug(":addPaymentTerms: Generate Payment Terms Change Letter flag is TRUE for account {}",
+                defAccount.getDefendantAccountId());
+            documentService.createDocumentInstance(defendantAccountId,
+                defAccount.getBusinessUnit().getBusinessUnitId());
         }
 
         // Create report entry for the Extension of Time to Pay report

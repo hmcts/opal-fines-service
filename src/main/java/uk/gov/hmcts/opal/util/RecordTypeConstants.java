@@ -5,4 +5,5 @@ public final class RecordTypeConstants {
     }
 
     public static final String PAYMENT_TERMS = "payment_terms";
+    public static final String DEFENDANT_ACCOUNTS = "defendant_accounts";
 }

@@ -4464,7 +4464,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 }
               },
               "request_payment_card": true,
-              "generate_payment_terms_change_letter": false
+              "generate_payment_terms_change_letter": true
             }
             """;
 
