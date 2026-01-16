@@ -4323,6 +4323,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.enforcement_overview.collection_order.collection_order_flag").value(true))
             .andExpect(jsonPath("$.enforcement_overview.collection_order.collection_order_date").value("2024-02-18"))
             .andExpect(jsonPath("$.enforcement_overview.enforcement_court.court_id").value(780000000185L))
+            .andExpect(jsonPath("$.enforcement_overview.enforcement_court.court_code").value(17))
             .andExpect(jsonPath("$.enforcement_overview.enforcement_court.court_name").value("CH17"))
             .andExpect(jsonPath("$.enforcement_override.enforcement_override_result.enforcement_override_result_id")
                 .value("FWEC"))

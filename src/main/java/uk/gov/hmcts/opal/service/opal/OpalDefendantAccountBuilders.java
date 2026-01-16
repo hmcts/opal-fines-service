@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -17,6 +18,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import uk.gov.hmcts.opal.dto.CollectionOrderDto;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
+import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
@@ -860,6 +862,7 @@ public class OpalDefendantAccountBuilders {
         return Optional.ofNullable(court)
             .map(c -> CourtReferenceCommon.builder()
                 .courtId(c.getCourtId())
+                .courtCode(c.getCourtCode().intValue())
                 .courtName(c.getName())
                 .build())
             .orElse(null);
@@ -1133,6 +1136,38 @@ public class OpalDefendantAccountBuilders {
             .build();
     }
 
+    static DefendantAccountHeaderSummary mapToDto(DefendantAccountHeaderViewEntity e) {
+        return DefendantAccountHeaderSummary.builder()
+            .defendantAccountId(
+                e.getDefendantAccountId() != null ? e.getDefendantAccountId().toString() : null
+            )
+            .defendantAccountPartyId(
+                e.getDefendantAccountPartyId() != null ? e.getDefendantAccountPartyId().toString() : null
+            )
+            .debtorType(
+                e.getDebtorType() != null
+                    ? e.getDebtorType()
+                    : (Boolean.TRUE.equals(e.getHasParentGuardian()) ? "Parent/Guardian" : "Defendant")
+            )
+            .isYouth(
+                e.getBirthDate() != null
+                    ? java.time.Period.between(e.getBirthDate(), java.time.LocalDate.now()).getYears() < 18
+                    : Boolean.FALSE
+            )
+            .parentGuardianPartyId(Optional.ofNullable(e.getParentGuardianAccountPartyId())
+                .map(Object::toString).orElse(null))
+            .accountNumber(e.getAccountNumber())
+            .accountType(normaliseAccountType(e.getAccountType()))
+            .prosecutorCaseReference(e.getProsecutorCaseReference())
+            .fixedPenaltyTicketNumber(e.getFixedPenaltyTicketNumber())
+            .accountStatusReference(buildAccountStatusReference(e.getAccountStatus()))
+            .businessUnitSummary(OpalDefendantAccountBuilders.buildBusinessUnitSummary(e))
+            .paymentStateSummary(OpalDefendantAccountBuilders.buildPaymentStateSummary(e))
+            .partyDetails(buildPartyDetails(e))
+            .version(BigInteger.valueOf(e.getVersion()))
+            .build();
+    }
+
     static record ParsedAlias(
         String aliasId,
         Integer sequenceNumber,
@@ -1140,6 +1175,6 @@ public class OpalDefendantAccountBuilders {
         String surname,
         String organisationName
     ) {
-
     }
+
 }
