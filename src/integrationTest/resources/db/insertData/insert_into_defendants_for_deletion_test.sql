@@ -94,6 +94,16 @@ VALUES (9103, 1001, '2023-11-03 16:05:10', '01000000A',
         'B', '2025-10-12 00:00:00', NULL, NULL, NULL,
         120, 'N', 700.58);
 
+---Insert reports
+INSERT INTO reports (report_id, report_title, report_group, audited_report, report_parameters,supports_multi_bu,is_bespoke_journey,shown_as_worklist,can_manually_create
+)
+VALUES ('10001', 'list_extend_ttp', 'FAE', false, '{}',false,false,false,false);
+
+-- Insert report entry created by payment terms (PO-1718)
+INSERT INTO report_entries (report_entry_id, business_unit_id, report_id, entry_timestamp, reported_timestamp, associated_record_type, associated_record_id)
+VALUES (9109, 78, 10001, DATE '2025-10-27', DATE '2025-10-27',
+        'defendant_accounts', '1001');
+
 -- Insert defendant transaction (Level 2)
 INSERT INTO defendant_transactions (defendant_transaction_id, defendant_account_id, posted_date,
                                     posted_by,
