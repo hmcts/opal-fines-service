@@ -189,7 +189,11 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         log.info(":updateDraftAccount: Updating draft account with ID: {} and status: {}",
                   draftAccountId, existingAccount.getAccountStatus());
 
-        return draftAccountRepository.save(existingAccount);
+        DraftAccountEntity entity = draftAccountRepository.save(existingAccount);
+
+        loggingService.pdplForUpdateDraftAccount(entity);
+
+        return entity;
     }
 
     @Transactional
