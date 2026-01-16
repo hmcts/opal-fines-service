@@ -199,6 +199,6 @@ user:
 logging-service:
   pdpl:
     async:
-      protocol: ${SERVICEBUS_LOGGING_PDPL_PROTOCOL:"amqp"}
+      protocol: ${SERVICEBUS_LOGGING_PDPL_PROTOCOL:amqp}
       connection-string: Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true
       queue-name: ${SERVICEBUS_LOGGING_PDPL_QUEUE_NAME:logging-pdpl}
