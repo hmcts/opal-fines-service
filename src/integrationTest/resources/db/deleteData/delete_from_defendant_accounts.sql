@@ -121,6 +121,9 @@ DELETE FROM creditor_accounts WHERE business_unit_id = 9999;
 DELETE FROM courts WHERE business_unit_id = 9999;
 
 -- Remove test results if present (fix test count mismatches)
+DELETE FROM result_documents WHERE result_id IN ('TTPAY');
+
+-- Remove test results if present (fix test count mismatches)
 DELETE FROM results WHERE result_id IN ('TSTRES');
 
 -- Remove from major_creditors referencing test BU
@@ -151,3 +154,11 @@ WHERE enforcer_id IN (780000000021, 21)
 -- Remove test Courts used by ITs
 DELETE FROM courts
 WHERE court_id IN (780000000185, 100);
+
+-- Remove test document instances used by ITs
+DELETE FROM document_instances
+WHERE document_id IN ('TTPLET');
+
+-- Remove test document templates used by ITs
+DELETE FROM documents
+WHERE document_id IN ('TTPLET');
