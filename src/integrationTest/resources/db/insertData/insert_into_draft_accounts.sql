@@ -1243,8 +1243,228 @@ INSERT INTO draft_accounts (
         NULL,
         NULL,
         '{
-          "account_type": "Fixed Penalty",
+          "account_type": "Fines",
           "defendant_type": "adultOrYouthOnly",
+          "originator_name": "LJS",
+          "originator_id": 123,
+          "prosecutor_case_reference": null,
+          "enforcement_court_id": 456,
+          "collection_order_made": null,
+          "collection_order_made_today": null,
+          "collection_order_date": null,
+          "suspended_committal_date": null,
+          "payment_card_request": false,
+          "account_sentence_date": "2025-10-01",
+          "defendant": {
+            "company_flag": false,
+            "title": null,
+            "surname": "Smith",
+            "company_name": null,
+            "forenames": "John",
+            "dob": "1985-07-20",
+            "address_line_1": "1 Justice Road",
+            "address_line_2": null,
+            "address_line_3": null,
+            "address_line_4": null,
+            "address_line_5": null,
+            "post_code": "AB1 2CD",
+            "telephone_number_home": null,
+            "telephone_number_business": null,
+            "telephone_number_mobile": "07123456789",
+            "email_address_1": "john.smith@example.com",
+            "email_address_2": null,
+            "national_insurance_number": "QQ123456C",
+            "driving_licence_number": null,
+            "pnc_id": null,
+            "nationality_1": "British",
+            "nationality_2": null,
+            "ethnicity_self_defined": null,
+            "ethnicity_observed": null,
+            "cro_number": null,
+            "occupation": "Engineer",
+            "gender": "M",
+            "custody_status": null,
+            "prison_number": null,
+            "interpreter_lang": null,
+            "debtor_detail": null,
+            "parent_guardian": null
+          },
+          "offences": [
+            {
+              "date_of_sentence": "2025-10-01",
+              "imposing_court_id": 789,
+              "offence_id": 10,
+              "impositions": [
+                {
+                  "result_id": "FINE",
+                  "amount_imposed": 100,
+                  "amount_paid": 0,
+                  "major_creditor_id": null,
+                  "minor_creditor": {
+                    "company_flag": false,
+                    "title": null,
+                    "company_name": null,
+                    "surname": "Minor",
+                    "forenames": "Alice",
+                    "dob": "2010-05-05",
+                    "address_line_1": "5 Minor St",
+                    "address_line_2": null,
+                    "address_line_3": null,
+                    "address_line_4": null,
+                    "address_line_5": null,
+                    "post_code": "MN1 2OP",
+                    "telephone": null,
+                    "email_address": null,
+                    "payout_hold": false,
+                    "pay_by_bacs": false,
+                    "bank_account_type": null,
+                    "bank_sort_code": null,
+                    "bank_account_number": null,
+                    "bank_account_name": null,
+                    "bank_account_ref": null
+                  }
+                }
+              ]
+            }
+          ],
+          "fp_ticket_detail": null,
+          "payment_terms": {
+            "payment_terms_type_code": "B",
+            "effective_date": null,
+            "instalment_period": null,
+            "lump_sum_amount": null,
+            "instalment_amount": null,
+            "default_days_in_jail": null,
+            "enforcements": null
+          },
+          "account_notes": null
+        }',
+        'Fixed Penalty Registration',
+        NULL,
+        '{"snapshot":"test"}',
+        'SUBMITTED',
+        '[
+          {
+            "username": "alice_creator",
+            "status": "Active",
+            "status_date": "2025-09-02",
+            "reason_text": "Account for minor-creditor test"
+          }
+        ]',
+        NULL,
+        'Business User 2',
+        now(),
+        NULL,
+        NULL,
+        0
+    )
+ON CONFLICT (draft_account_id) DO UPDATE
+    SET
+        account = EXCLUDED.account,
+        account_type = EXCLUDED.account_type,
+        account_snapshot = EXCLUDED.account_snapshot,
+        account_status = EXCLUDED.account_status,
+        timeline_data = EXCLUDED.timeline_data,
+        submitted_by_name = EXCLUDED.submitted_by_name,
+        account_status_date = EXCLUDED.account_status_date,
+        version_number = EXCLUDED.version_number;
+
+
+INSERT INTO draft_accounts (
+    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by,
+    account, account_type, account_id, account_snapshot, account_status, timeline_data,
+    account_number, submitted_by_name, account_status_date, status_message, validated_by_name, version_number
+) VALUES
+    (
+        102,
+        66,
+        now(),
+        'test_user_102',
+        NULL,
+        NULL,
+        '{
+          "account_type": "Fixed Penalty",
+          "defendant_type": "pgToPay",
+          "originator_name": "LJS",
+          "originator_id": 113,
+          "defendant": {
+            "company_flag": false,
+            "surname": "Taylor",
+            "forenames": "Sam",
+            "address_line_1": "4 Test Ave",
+            "parent_guardian": {
+              "company_flag": false,
+              "surname": "TaylorSr",
+              "forenames": "Pat",
+              "address_line_1": "5 Parent St",
+              "dob": "1950-01-01",
+              "post_code": "PT1 1AA"
+            }
+          },
+          "offences": [
+            {
+              "date_of_sentence": "2024-03-01",
+              "imposing_court_id": 789,
+              "offence_id": 1003,
+              "impositions": [
+                {
+                  "result_id": "FO",
+                  "amount_imposed": 75.00,
+                  "amount_paid": 0.00,
+                  "major_creditor_id": null,
+                  "minor_creditor": null
+                }
+              ]
+            }
+          ],
+          "payment_terms": { "payment_terms_type_code": "B" }
+        }',
+        'Fixed Penalty Registration',
+        NULL,
+        '{"snapshot":"test"}',
+        'SUBMITTED',
+        '[
+          {
+            "username": "johndoe456",
+            "status": "Active",
+            "status_date": "2025-10-20",
+            "reason_text": "Account for pgToPay test"
+          }
+        ]',
+        NULL,
+        'Business User 3',
+        now(),
+        NULL,
+        NULL,
+        0
+    )
+ON CONFLICT (draft_account_id) DO UPDATE
+    SET
+        account = EXCLUDED.account,
+        account_type = EXCLUDED.account_type,
+        account_snapshot = EXCLUDED.account_snapshot,
+        account_status = EXCLUDED.account_status,
+        timeline_data = EXCLUDED.timeline_data,
+        submitted_by_name = EXCLUDED.submitted_by_name,
+        account_status_date = EXCLUDED.account_status_date,
+        version_number = EXCLUDED.version_number;
+
+
+INSERT INTO draft_accounts (
+    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by,
+    account, account_type, account_id, account_snapshot, account_status, timeline_data,
+    account_number, submitted_by_name, account_status_date, status_message, validated_by_name, version_number
+) VALUES
+    (
+        103,
+        78,
+        now(),
+        'test_user_103',
+        NULL,
+        NULL,
+        '{
+          "account_type": "Fixed Penalty",
+          "defendant_type": "company",
           "originator_name": "LJS",
           "originator_id": 12345,
           "enforcement_court_id": 650000000045,
@@ -1256,11 +1476,11 @@ INSERT INTO draft_accounts (
           "collection_order_date": "2024-12-01",
           "suspended_committal_date": "2024-12-15",
           "defendant": {
-            "company_flag": false,
-            "title": "Mr",
-            "surname": "Doe",
-            "company_name": "",
-            "forenames": "John",
+            "company_flag": true,
+            "title": "",
+            "surname": "",
+            "company_name": "wawd",
+            "forenames": "",
             "dob": "1980-01-01",
             "address_line_1": "123 Main St",
             "address_line_2": "Apt 4B",
@@ -1422,44 +1642,7 @@ INSERT INTO draft_accounts (
               "date_of_sentence": "2024-11-21",
               "imposing_court_id": 650000000160,
               "offence_id": 30001,
-              "impositions": [
-                {
-                  "result_id": "FCOST",
-                  "amount_imposed": 1678.00,
-                  "amount_paid": 77.00,
-                  "major_creditor_id": 650000000041,
-                  "minor_creditor": null
-                },
-                {
-                  "result_id": "FCOST",
-                  "amount_imposed": 3700.00,
-                  "amount_paid": 120.00,
-                  "major_creditor_id": null,
-                  "minor_creditor": {
-                    "company_flag": false,
-                    "title": "Mr",
-                    "company_name": "",
-                    "surname": "Mohammed",
-                    "forenames": "Koli Naser Ball",
-                    "dob": "1956-09-05",
-                    "address_line_1": "754 Gated Avenue",
-                    "address_line_2": "",
-                    "address_line_3": "",
-                    "address_line_4": "",
-                    "address_line_5": "",
-                    "post_code": "67890",
-                    "telephone": "555-1234",
-                    "email_address": "mohammed.koli@aol.net",
-                    "payout_hold": false,
-                    "pay_by_bacs": true,
-                    "bank_account_type": "S",
-                    "bank_sort_code": "123456",
-                    "bank_account_number": "12345678",
-                    "bank_account_name": "James Smith",
-                    "bank_account_ref": "REF123"
-                  }
-                }
-              ]
+              "impositions": null
             },
             {
               "date_of_sentence": "2024-11-21",
@@ -1470,7 +1653,7 @@ INSERT INTO draft_accounts (
                   "result_id": "FCMP",
                   "amount_imposed": 6926.00,
                   "amount_paid": 743.00,
-                  "major_creditor_id": 650000000021,
+                  "major_creditor_id": 101112,
                   "minor_creditor": null
                 },
                 {
@@ -1568,157 +1751,6 @@ INSERT INTO draft_accounts (
               "note_type": "AA"
             }
           ]
-        }',
-        'Fixed Penalty Registration',
-        NULL,
-        '{"snapshot":"test"}',
-        'SUBMITTED',
-        '[
-          {
-            "username": "alice_creator",
-            "status": "Active",
-            "status_date": "2025-09-02",
-            "reason_text": "Account for minor-creditor test"
-          }
-        ]',
-        NULL,
-        'Business User 2',
-        now(),
-        NULL,
-        NULL,
-        0
-    )
-ON CONFLICT (draft_account_id) DO UPDATE
-    SET
-        account = EXCLUDED.account,
-        account_type = EXCLUDED.account_type,
-        account_snapshot = EXCLUDED.account_snapshot,
-        account_status = EXCLUDED.account_status,
-        timeline_data = EXCLUDED.timeline_data,
-        submitted_by_name = EXCLUDED.submitted_by_name,
-        account_status_date = EXCLUDED.account_status_date,
-        version_number = EXCLUDED.version_number;
-
-
-INSERT INTO draft_accounts (
-    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by,
-    account, account_type, account_id, account_snapshot, account_status, timeline_data,
-    account_number, submitted_by_name, account_status_date, status_message, validated_by_name, version_number
-) VALUES
-    (
-        102,
-        66,
-        now(),
-        'test_user_102',
-        NULL,
-        NULL,
-        '{
-          "account_type": "Fixed Penalty",
-          "defendant_type": "pgToPay",
-          "originator_name": "LJS",
-          "originator_id": 113,
-          "defendant": {
-            "company_flag": false,
-            "surname": "Taylor",
-            "forenames": "Sam",
-            "address_line_1": "4 Test Ave",
-            "parent_guardian": {
-              "company_flag": false,
-              "surname": "TaylorSr",
-              "forenames": "Pat",
-              "address_line_1": "5 Parent St",
-              "dob": "1950-01-01",
-              "post_code": "PT1 1AA"
-            }
-          },
-          "offences": [
-            {
-              "date_of_sentence": "2024-03-01",
-              "imposing_court_id": 789,
-              "offence_id": 1003,
-              "impositions": [
-                {
-                  "result_id": "FO",
-                  "amount_imposed": 75.00,
-                  "amount_paid": 0.00,
-                  "major_creditor_id": null,
-                  "minor_creditor": null
-                }
-              ]
-            }
-          ],
-          "payment_terms": { "payment_terms_type_code": "B" }
-        }',
-        'Fixed Penalty Registration',
-        NULL,
-        '{"snapshot":"test"}',
-        'SUBMITTED',
-        '[
-          {
-            "username": "johndoe456",
-            "status": "Active",
-            "status_date": "2025-10-20",
-            "reason_text": "Account for pgToPay test"
-          }
-        ]',
-        NULL,
-        'Business User 3',
-        now(),
-        NULL,
-        NULL,
-        0
-    )
-ON CONFLICT (draft_account_id) DO UPDATE
-    SET
-        account = EXCLUDED.account,
-        account_type = EXCLUDED.account_type,
-        account_snapshot = EXCLUDED.account_snapshot,
-        account_status = EXCLUDED.account_status,
-        timeline_data = EXCLUDED.timeline_data,
-        submitted_by_name = EXCLUDED.submitted_by_name,
-        account_status_date = EXCLUDED.account_status_date,
-        version_number = EXCLUDED.version_number;
-
-
-INSERT INTO draft_accounts (
-    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by,
-    account, account_type, account_id, account_snapshot, account_status, timeline_data,
-    account_number, submitted_by_name, account_status_date, status_message, validated_by_name, version_number
-) VALUES
-    (
-        103,
-        78,
-        now(),
-        'test_user_103',
-        NULL,
-        NULL,
-        '{
-          "account_type": "Fixed Penalty",
-          "defendant_type": "company",
-          "originator_name": "LJS",
-          "originator_id": 114,
-          "defendant": {
-            "company_flag": true,
-            "company_name": "Acme Ltd",
-            "address_line_1": "6 Business Park"
-          },
-          "offences": [
-            {
-              "date_of_sentence": "2024-04-01",
-              "imposing_court_id": 789,
-              "offence_id": 1004,
-              "impositions": [
-                {
-                  "result_id": "FO",
-                  "amount_imposed": 120.00,
-                  "amount_paid": 0.00,
-                  "major_creditor_id": null,
-                  "minor_creditor": null
-                }
-              ]
-            }
-          ],
-          "payment_terms": { "payment_terms_type_code": "B" }
         }',
         'Fixed Penalty Registration',
         NULL,
