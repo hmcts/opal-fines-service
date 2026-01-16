@@ -26,6 +26,11 @@ import uk.gov.hmcts.opal.dto.DefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountFixedPenaltyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
@@ -87,6 +92,26 @@ public class DefendantAccountController {
             defendantAccountService.searchDefendantAccounts(accountSearchDto, authHeaderValue);
 
         return buildResponse(response);
+    }
+
+    @PostMapping(value = "/{defendantAccountId}/payment-terms")
+    @Operation(summary = "Add Payment Terms to a defendant account")
+    public ResponseEntity<GetDefendantAccountPaymentTermsResponse> addPaymentTerms(
+        @PathVariable Long defendantAccountId,
+        @RequestHeader("Business-Unit-Id") String businessUnitId,
+        @RequestHeader(value = "If-Match", required = false) String ifMatch,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue,
+        @JsonSchemaValidated(schemaPath = SchemaPaths.POST_DEFENDANT_ACCOUNT_ADD_PAYMENT_TERMS)
+        @RequestBody AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
+
+        log.debug(":POST: :addPaymentTerms: for defendant id: {}", defendantAccountId);
+
+        return buildResponse(
+            defendantAccountService.addPaymentTerms(defendantAccountId,
+                businessUnitId,
+                ifMatch,
+                authHeaderValue,
+                addPaymentTermsRequest));
     }
 
     @GetMapping(value = "/{defendantAccountId}/payment-terms/latest")

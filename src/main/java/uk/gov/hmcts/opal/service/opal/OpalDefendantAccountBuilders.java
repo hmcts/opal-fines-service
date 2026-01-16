@@ -926,6 +926,7 @@ public class OpalDefendantAccountBuilders {
         DefendantAccountEntity account = entity.getDefendantAccount();
 
         return GetDefendantAccountPaymentTermsResponse.builder()
+            .version(Optional.ofNullable(account.getVersion()).orElse(BigInteger.ONE))
             .paymentTerms(buildPaymentTerms(entity, account))
             .paymentCardLastRequested(account.getPaymentCardRequestedDate())
             .lastEnforcement(account.getLastEnforcement())

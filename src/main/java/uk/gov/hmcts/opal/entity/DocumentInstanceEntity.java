@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,14 +18,16 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
+import uk.gov.hmcts.opal.entity.document.DocumentEntityStatus;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "document_instances")
@@ -59,7 +63,23 @@ public class DocumentInstanceEntity {
     @Column(name = "generated_by", length = 20, nullable = false)
     private String generatedBy;
 
-    @Column(name = "content", columnDefinition = "xml", nullable = false)
+    @Column(name = "associated_record_type", length = 30, nullable = false)
+    private String associatedRecordType;
+
+    @Column(name = "associated_record_id", nullable = false)
+    private Long associatedRecordId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 20, nullable = false)
+    private DocumentEntityStatus status;
+
+    @Column(name = "printed_date")
+    @Temporal(TemporalType.TIMESTAMP)
+    @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+    private LocalDateTime printedDate;
+
+    @JdbcTypeCode(SqlTypes.SQLXML)
+    @Column(name = "document_content", columnDefinition = "xml", nullable = false)
     private String content;
 
 }

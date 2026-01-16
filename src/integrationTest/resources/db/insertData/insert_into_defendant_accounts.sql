@@ -79,6 +79,11 @@ ON CONFLICT (court_id) DO UPDATE
       court_code       = EXCLUDED.court_code,
       name             = EXCLUDED.name;
 
+-- Basic setup for document template.
+INSERT INTO documents (document_id, recipient, document_language, priority)
+VALUES ('TTPLET', 'DEF', 'EN', 0)
+ON CONFLICT (document_id) DO NOTHING;
+
 INSERT INTO defendant_accounts
 ( defendant_account_id, version_number, business_unit_id, account_number
 , imposed_hearing_date, imposing_court_id, amount_imposed

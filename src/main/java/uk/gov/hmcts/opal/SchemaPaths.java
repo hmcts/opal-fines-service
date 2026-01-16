@@ -20,6 +20,10 @@ public class SchemaPaths {
 
     public static final String GET_PROSECUTORS_REF_DATA_RESPONSE = REFERENCE_DATA
         + "/getProsecutorsRefDataResponse.json";
+
+    public static final String POST_DEFENDANT_ACCOUNT_ADD_PAYMENT_TERMS = DEFENDANT_ACCOUNT
+        + "/addDefendantAccountPaymentTermsRequest.json";
+
     public static final String POST_DEFENDANT_ACCOUNT_SEARCH_RESPONSE = DEFENDANT_ACCOUNT
         + "/postDefendantAccountsSearchResponse.json";
 
