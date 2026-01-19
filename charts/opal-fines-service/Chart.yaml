@@ -27,6 +27,11 @@ dependencies:
     alias: userServicePostgresql
     repository: 'oci://registry-1.docker.io/bitnamicharts'
     condition: userServicePostgresql.enabled
+  - name: postgresql
+    version: 15.5.38
+    alias: loggingServicePostgresql
+    repository: 'oci://registry-1.docker.io/bitnamicharts'
+    condition: loggingServicePostgresql.enabled
   - name: redis
     version: 24.1.0
     repository: 'oci://registry-1.docker.io/bitnamicharts'

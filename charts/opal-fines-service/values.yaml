@@ -75,6 +75,10 @@ userServicePostgresql:
   enabled: false
   image:
     tag: '17.5.0'
+loggingServicePostgresql:
+  enabled: false
+  image:
+    tag: '17.5.0'
 global:
   security:
     allowInsecureImages: true

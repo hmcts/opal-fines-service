@@ -149,13 +149,20 @@ opal-logging-service:
           - name: OpalTestUserPassword
             alias: OPAL_TEST_USER_PASSWORD
     environment:
+      OPAL_LOGGING_DB_HOST: "{{ .Release.Name }}-postgresql-logging-service"
+      OPAL_LOGGING_DB_NAME: "opal-logging-db"
+      OPAL_LOGGING_DB_USERNAME: "javapostgres"
+      OPAL_LOGGING_DB_PASSWORD: "javapassword"
+      OPAL_LOGGING_DB_OPTIONS: "?stringtype=unspecified"
+      OPAL_LOGGING_DB_PORT: 5432
+      RUN_DB_MIGRATION_ON_STARTUP: true
+      TESTING_SUPPORT_ENDPOINTS_ENABLED: true
       SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-logging-service"
     postgresql:
       enabled: false
-
 servicebus:
-  enabled: ${DEV_ENABLE_OPAL_SERVIVE_BUS}
+  enabled: ${DEV_ENABLE_OPAL_SERVICE_BUS}
   releaseNameOverride: ${SERVICE_NAME}-servicebus
   resourceGroup: "opal-aso-dev-rg"
   sbNamespace: "opal-servicebus-dev"
@@ -169,6 +176,29 @@ userServicePostgresql:
     username: javapostgres
     password: javapassword
     database: user-service-db
+  ## Disable Postgres Persistence
+  primary:
+    persistence:
+      enabled: false
+  ## Override metrics image for postgresql-exporter
+  metrics:
+    image:
+      registry: hmctspublic.azurecr.io
+      repository: imported/bitnami/postgres-exporter
+      tag: '0.15.0-debian-12-r16'
+  ## Override volume permissions image for os-shell
+  volumePermissions:
+    image:
+      registry: hmctspublic.azurecr.io
+      repository: imported/bitnami/os-shell
+      tag: '12-debian-12-r18'
+loggingServicePostgresql:
+  enabled: ${DEV_ENABLE_OPAL_LOGGING_SERVICE}
+  nameOverride: postgresql-logging-service
+  auth:
+    username: javapostgres
+    password: javapassword
+    database: opal-logging-db
   ## Disable Postgres Persistence
   primary:
     persistence:

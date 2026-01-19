@@ -9,7 +9,7 @@ def component = "fines-service"
 
 def determineDevEnvironmentDeployment() {
 
-  env.DEV_ENABLE_OPAL_SERVIVE_BUS = false
+  env.DEV_ENABLE_OPAL_SERVICE_BUS = false
 
   env.DEV_ENABLE_OPAL_FRONT_END = false
   env.DEV_OPAL_FRONT_END_URL = "https://opal-frontend.staging.platform.hmcts.net"
@@ -56,7 +56,7 @@ def determineDevEnvironmentDeployment() {
       //Logging service
       if (label ==~ /enable_opal_logging_service.*/) {
         env.DEV_ENABLE_OPAL_LOGGING_SERVICE = true
-        env.DEV_ENABLE_OPAL_SERVIVE_BUS = true
+        env.DEV_ENABLE_OPAL_SERVICE_BUS = true
         env.DEV_OPAL_LOGGING_SERVICE_API_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}-logging-service.dev.platform.hmcts.net"
         if (label ==~ /enable_opal_logging_service:pr-.*/) {
           env.DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX = label.replace("enable_opal_logging_service:", "")
