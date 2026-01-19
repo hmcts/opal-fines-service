@@ -113,7 +113,48 @@ opal-user-service:
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-user-service"
     postgresql:
       enabled: false
+opal-logging-service:
+  enabled: ${DEV_ENABLE_OPAL_LOGGING_SERVICE}
+  java:
+    releaseNameOverride: '{{ .Release.Name }}-logging-service'
+    image: 'sdshmctspublic.azurecr.io/opal/logging-service:${DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX}'
+    ingressHost: "opal-fines-service-pr-${CHANGE_ID}-logging-service.dev.platform.hmcts.net"
+    secrets:
+      SERVICEBUS_SHARED_ACCESS_KEY:
+        secretRef: opal-sb-dev
+        key: primaryKey
+      SERVICEBUS_CONNECTION_STRING:
+        secretRef: opal-sb-dev
+        key: connectionString
+    keyVaults:
+      opal:
+        secrets:
+          - name: app-insights-connection-string
+            alias: app-insights-connection-string
+          - name: launch-darkly-sdk-key
+            alias: LAUNCH_DARKLY_SDK_KEY
+          - name: AzureADTenantId
+            alias: AAD_TENANT_ID
+          - name: AzureADClientId
+            alias: AAD_CLIENT_ID
+          - name: AzureADClientSecret
+            alias: AAD_CLIENT_SECRET
+          - name: OpalTestUserPassword
+            alias: OPAL_TEST_USER_PASSWORD
+    environment:
+      SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
+      APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-logging-service"
+    postgresql:
+      enabled: false
 
+servicebus:
+  enabled: ${DEV_ENABLE_OPAL_SERVIVE_BUS}
+  releaseNameOverride: ${SERVICE_NAME}-servicebus
+  resourceGroup: "opal-aso-dev-rg"
+  sbNamespace: "opal-servicebus-dev"
+  setup:
+    queues:
+      - name: "logging-pdpl"
 userServicePostgresql:
   enabled: ${DEV_ENABLE_OPAL_USER_SERVICE}
   nameOverride: postgresql-user-service

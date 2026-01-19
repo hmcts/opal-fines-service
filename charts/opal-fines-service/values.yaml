@@ -62,6 +62,10 @@ opal-frontend:
   enabled: false
 opal-user-service:
   enabled: false
+opal-logging-service:
+  enabled: false
+servicebus:
+  enabled: false
 redis:
   image:
     registry: hmctspublic.azurecr.io
