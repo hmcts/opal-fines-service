@@ -6,6 +6,13 @@ java:
   devcpuRequests: "250m"
   devmemoryLimits: "2Gi"
   devcpuLimits: "2500m"
+  secrets:
+    SERVICEBUS_SHARED_ACCESS_KEY:
+      secretRef: opal-sb-dev
+      key: primaryKey
+    SERVICEBUS_CONNECTION_STRING:
+      secretRef: opal-sb-dev
+      key: connectionString
   keyVaults:
     opal:
       secrets:
