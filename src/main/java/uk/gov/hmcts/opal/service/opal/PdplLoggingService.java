@@ -34,12 +34,18 @@ public class PdplLoggingService {
     }
 
     public void pdplForUpdateDraftAccount(DraftAccountEntity entity) {
+        log.info("pdplForUpdateDraftAccount");
         pdplForDraftAccount(entity, Action.RESUBMIT);
     }
 
     private void pdplForDraftAccount(DraftAccountEntity entity, Action action) {
+
+        log.info("pdplForDraftAccount is in here");
+
         JsonPathUtil.DocContext docContext = createDocContext(entity.getAccount(),
-            "AddDraftAccountRequestDto.account");
+            "");
+
+        log.info("DocContext here: {}", docContext);
 
         Object dtRaw = docContext.read(JSON_DEFENDANT_TYPE);
         String defendantType = dtRaw == null ? "" : dtRaw.toString();

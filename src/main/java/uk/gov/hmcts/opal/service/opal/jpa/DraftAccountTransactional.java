@@ -191,6 +191,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
         DraftAccountEntity entity = draftAccountRepository.save(existingAccount);
 
+        log.info("calling pdpl now");
         loggingService.pdplForUpdateDraftAccount(entity);
 
         return entity;

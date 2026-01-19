@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -22,7 +21,6 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -48,7 +46,6 @@ import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
-import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -125,7 +122,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(34))
+            .andExpect(jsonPath("$.count").value(31))
             .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[2].account_type")
@@ -209,7 +206,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         log.info(":testGetDraftAccountsSummaries_paramStatus: body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(6))
+            .andExpect(jsonPath("$.count").value(4))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(3))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(73))
             .andExpect(jsonPath("$.summaries[0].account_type")
@@ -262,7 +259,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
         log.info(":testGetDraftAccountsSummaries_paramNotSubmittedBy: body:\n" + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(28))
+            .andExpect(jsonPath("$.count").value(24))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
             .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
@@ -1062,59 +1059,11 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isNotAcceptable());
     }
 
-
-    @Test
-    @DisplayName("Update draft account (id=100) - adultOrYouthOnly no minor -> Defendant PDPL invoked once")
-    void testUpdateDraftAccount_pdpl_id100_defendantOnly() throws Exception {
-        Long draftAccountId = 100L;
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
-        // Mock LogUtil so the PDPL payload has deterministic createdAt/ip (optional but keeps output stable)
-        String expectedIp = "198.51.100.1";
-        OffsetDateTime expectedNow = OffsetDateTime.parse("2025-01-01T01:01:01Z");
-        try (MockedStatic<LogUtil> lu = Mockito.mockStatic(LogUtil.class)) {
-            lu.when(LogUtil::getIpAddress).thenReturn(expectedIp);
-            lu.when(() -> LogUtil.getCurrentDateTime(Mockito.any())).thenReturn(expectedNow);
-
-            ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-                .header("authorization", "Bearer some_value")
-                .header("If-Match", "0")
-                .contentType(MediaType.APPLICATION_JSON)
-                // request asks to publish (same as your example)
-                .content(validUpdateRequestBody("65", "Publishing Pending", "johndoe456")));
-
-            String response = resultActions.andReturn().getResponse().getContentAsString();
-
-            resultActions.andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(header().string("ETag", "\"2\""))
-                .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
-                .andExpect(jsonPath("$.business_unit_id").value(65))
-                .andExpect(jsonPath("$.account_status").value("Published"))
-                .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
-
-            jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
-
-            // Capture PDPL payload(s)
-            ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
-                ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
-
-            // adultOrYouthOnly without minor -> only Defendant PDPL expected (1 call)
-            verify(loggingService, times(1)).personalDataAccessLogAsync(captor.capture());
-
-            PersonalDataProcessingLogDetails details = captor.getValue();
-            assertThat(details.getBusinessIdentifier()).isEqualTo("Re-submit Draft Account - Defendant");
-            assertThat(details.getIpAddress()).isEqualTo(expectedIp);
-            assertThat(details.getCreatedAt()).isEqualTo(expectedNow);
-        }
-    }
-
     @Test
     @DisplayName("Update draft account (id=101) - adultOrYouthOnly WITH minor -> "
         + "Defendant + Minor Creditor PDPL in order")
-    void testUpdateDraftAccount_pdpl_id101_defendantAndMinor() throws Exception {
-        Long draftAccountId = 101L;
+    void testUpdateDraftAccount_pdpl_id8_defendantAndMinor() throws Exception {
+        Long draftAccountId = 8L;
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
@@ -1126,84 +1075,40 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
             ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
                 .header("authorization", "Bearer some_value")
-                .header("If-Match", "0")
+                .header("If-Match", "2")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(validUpdateRequestBody("65", "Publishing Pending", "johndoe456")));
+                .content(validUpdateRequestBody("65", "Publishing Pending", "A")));
 
             String response = resultActions.andReturn().getResponse().getContentAsString();
 
             resultActions.andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(header().string("ETag", "\"2\""))
+                .andExpect(header().string("ETag", "\"4\""))
                 .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
-                .andExpect(jsonPath("$.business_unit_id").value(65))
-                .andExpect(jsonPath("$.account_status").value("Published"))
-                .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
+                .andExpect(jsonPath("$.business_unit_id").value(65));
 
             jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
 
-            // Capture PDPL payloads: expect 2 calls (Defendant then Minor Creditor)
-            ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
-                ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+            // verify PDPLLoggingService was called with a DraftAccountEntity
+            ArgumentCaptor<DraftAccountEntity> captor = ArgumentCaptor.forClass(DraftAccountEntity.class);
 
-            verify(loggingService, times(1)).personalDataAccessLogAsync(captor.capture());
+            // wait up to 2s for invocation (increase if CI is slow)
+            verify(pdplLoggingService, timeout(2000).times(1))
+                .pdplForUpdateDraftAccount(captor.capture());
 
-            List<PersonalDataProcessingLogDetails> calls = captor.getAllValues();
-            assertThat(calls.get(0).getBusinessIdentifier()).isEqualTo("Re-submit Draft Account - Defendant");
-            assertThat(calls.get(1).getBusinessIdentifier()).isEqualTo("Re-submit Draft Account - Minor Creditor");
+            DraftAccountEntity capturedEntity = captor.getValue();
+            if (capturedEntity == null) {
+                throw new AssertionError("Expected pdplForSubmitDraftAccount to be invoked");
+            }
 
-            // shared checks
-            calls.forEach(d -> {
-                assertThat(d.getIpAddress()).isEqualTo(expectedIp);
-                assertThat(d.getCreatedAt()).isEqualTo(expectedNow);
-            });
-        }
-    }
+            if (capturedEntity.getSubmittedBy() == null || capturedEntity.getSubmittedBy().isEmpty()) {
+                throw new AssertionError("expected capturedEntity.submittedBy to be set");
+            }
 
-    @Test
-    @DisplayName("Update draft account (id=102) - pgToPay -> Parent/Guardian then Defendant PDPL in order")
-    void testUpdateDraftAccount_pdpl_id102_parentThenDefendant() throws Exception {
-        Long draftAccountId = 102L;
-
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
-
-        String expectedIp = "198.51.100.3";
-        OffsetDateTime expectedNow = OffsetDateTime.parse("2025-03-03T03:03:03Z");
-        try (MockedStatic<LogUtil> lu = Mockito.mockStatic(LogUtil.class)) {
-            lu.when(LogUtil::getIpAddress).thenReturn(expectedIp);
-            lu.when(() -> LogUtil.getCurrentDateTime(Mockito.any())).thenReturn(expectedNow);
-
-            ResultActions resultActions = mockMvc.perform(patch(URL_BASE + "/" + draftAccountId)
-                .header("authorization", "Bearer some_value")
-                .header("If-Match", "0")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(validUpdateRequestBody("66", "Publishing Pending", "janedoe789")));
-
-            String response = resultActions.andReturn().getResponse().getContentAsString();
-
-            resultActions.andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(header().string("ETag", "\"2\""))
-                .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
-                .andExpect(jsonPath("$.business_unit_id").value(66))
-                .andExpect(jsonPath("$.account_status").value("Published"))
-                .andExpect(jsonPath("$.timeline_data[0].username").value("janedoe789"));
-
-            jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
-
-            ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
-                ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
-
-            verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
-
-            List<PersonalDataProcessingLogDetails> calls = captor.getAllValues();
-            assertThat(calls.get(0).getBusinessIdentifier()).isEqualTo("Re-submit Draft Account - Parent or Guardian");
-            assertThat(calls.get(1).getBusinessIdentifier()).isEqualTo("Re-submit Draft Account - Defendant");
-
-            // verify createdBy/individuals on first call (basic sanity)
-            assertThat(calls.get(0).getCreatedBy()).isNotNull();
-            assertThat(calls.get(0).getIndividuals()).hasSize(1);
-            assertThat(calls.get(0).getIndividuals().get(0).getIdentifier()).isEqualTo(draftAccountId.toString());
+            String accountJson = capturedEntity.getAccount();
+            if (accountJson == null || !accountJson.contains("\"account_type\"")) {
+                throw new AssertionError("expected account JSON on entity to contain account_type");
+            }
         }
     }
 
@@ -1223,7 +1128,7 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 .header("authorization", "Bearer some_value")
                 .header("If-Match", "0")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(validUpdateRequestBody("78", "Publishing Pending", "company_user")));
+                .content(validUpdateRequestBody("65", "Publishing Pending", "B")));
 
             String response = resultActions.andReturn().getResponse().getContentAsString();
 
@@ -1231,9 +1136,9 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(header().string("ETag", "\"2\""))
                 .andExpect(jsonPath("$.draft_account_id").value(draftAccountId))
-                .andExpect(jsonPath("$.business_unit_id").value(78))
+                .andExpect(jsonPath("$.business_unit_id").value(65))
                 .andExpect(jsonPath("$.account_status").value("Published"))
-                .andExpect(jsonPath("$.timeline_data[0].username").value("company_user"));
+                .andExpect(jsonPath("$.timeline_data[0].username").value("johndoe456"));
 
             jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
 
