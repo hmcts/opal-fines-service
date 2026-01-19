@@ -26,11 +26,16 @@ services:
       - OPAL_USER_SERVICE_API_URL=http://host.docker.internal:4555/
       - TESTING_SUPPORT_ENDPOINTS_ENABLED=true
       - OPAL_REDIS_ENABLED=false
+      - SERVICEBUS_CONNECTION_STRING=Endpoint=sb://sb-emulator/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true
 
     ports:
       - "4550:4550"
     depends_on:
       - redis
+      - azure-sb-emulator
+    networks:
+      - default
+      - sb-emulator
 
   opal-fines-db:
     container_name: opal-fines-db
