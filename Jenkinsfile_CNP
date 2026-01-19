@@ -30,41 +30,41 @@ def determineDevEnvironmentDeployment() {
   if (githubApi.checkForLabel(env.BRANCH_NAME, "app_mode_legacy")) {
     env.APP_MODE = "legacy"
   }
-  if (githubApi.checkForLabel(env.BRANCH_NAME, "enable_keep_helm")) {
-    for (label in githubApi.getLabelsbyPattern(env.BRANCH_NAME, "enable_opal_")) {
+  //Enable logging service and service bus by default to allow for functional tests to run with azure service bus connectivity
+  env.DEV_ENABLE_OPAL_LOGGING_SERVICE = true
+  env.DEV_ENABLE_OPAL_SERVICE_BUS = true
+  env.DEV_OPAL_LOGGING_SERVICE_API_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}-logging-service.dev.platform.hmcts.net"
 
-      //Portal
-      if (label ==~ /enable_opal_front_end.*/) {
-        env.DEV_ENABLE_OPAL_FRONT_END = true
-        env.DEV_OPAL_FRONT_END_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}-frontend.dev.platform.hmcts.net"
+  for (label in githubApi.getLabelsbyPattern(env.BRANCH_NAME, "enable_opal_")) {
+    //Portal
+    if (label ==~ /enable_opal_front_end.*/) {
+      env.DEV_ENABLE_OPAL_FRONT_END = true
+      env.DEV_OPAL_FRONT_END_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}-frontend.dev.platform.hmcts.net"
 
-        if (label ==~ /enable_opal_front_end:pr-.*/) {
-          env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX = label.replace("enable_opal_front_end:", "")
-        }
-        echo "Deploying Opal Front end (${env.DEV_OPAL_FRONT_END_URL} - ${env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX}) instance in PR environment"
+      if (label ==~ /enable_opal_front_end:pr-.*/) {
+        env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX = label.replace("enable_opal_front_end:", "")
       }
+      echo "Deploying Opal Front end (${env.DEV_OPAL_FRONT_END_URL} - ${env.DEV_OPAL_FRONT_END_IMAGE_SUFFIX}) instance in PR environment"
+    }
 
-      //User service
-      if (label ==~ /enable_opal_user_service.*/) {
-        env.DEV_ENABLE_OPAL_USER_SERVICE = true
-        env.DEV_OPAL_USER_SERVICE_API_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}-user-service.dev.platform.hmcts.net"
-        if (label ==~ /enable_opal_user_service:pr-.*/) {
-          env.DEV_OPAL_USER_SERVICE_IMAGE_SUFFIX = label.replace("enable_opal_user_service:", "")
-        }
-        echo "Deploying Opal User service (${env.DEV_OPAL_USER_SERVICE_API_URL} - ${env.DEV_OPAL_USER_SERVICE_IMAGE_SUFFIX}) instance in PR environment"
+    //User service
+    if (label ==~ /enable_opal_user_service.*/) {
+      env.DEV_ENABLE_OPAL_USER_SERVICE = true
+      env.DEV_OPAL_USER_SERVICE_API_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}-user-service.dev.platform.hmcts.net"
+      if (label ==~ /enable_opal_user_service:pr-.*/) {
+        env.DEV_OPAL_USER_SERVICE_IMAGE_SUFFIX = label.replace("enable_opal_user_service:", "")
       }
-      //Logging service
-      if (label ==~ /enable_opal_logging_service.*/) {
-        env.DEV_ENABLE_OPAL_LOGGING_SERVICE = true
-        env.DEV_ENABLE_OPAL_SERVICE_BUS = true
-        env.DEV_OPAL_LOGGING_SERVICE_API_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}-logging-service.dev.platform.hmcts.net"
-        if (label ==~ /enable_opal_logging_service:pr-.*/) {
-          env.DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX = label.replace("enable_opal_logging_service:", "")
-        }
-        echo "Deploying Opal logging service (${env.DEV_OPAL_LOGGING_SERVICE_API_URL} - ${env.DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX}) instance in PR environment"
+      echo "Deploying Opal User service (${env.DEV_OPAL_USER_SERVICE_API_URL} - ${env.DEV_OPAL_USER_SERVICE_IMAGE_SUFFIX}) instance in PR environment"
+    }
+
+    //Logging service
+    if (label ==~ /enable_opal_logging_service.*/) {
+      if (label ==~ /enable_opal_logging_service:pr-.*/) {
+        env.DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX = label.replace("enable_opal_logging_service:", "")
       }
     }
   }
+  echo "Deploying Opal logging service (${env.DEV_OPAL_LOGGING_SERVICE_API_URL} - ${env.DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX}) instance in PR environment"
 }
 
 withPipeline(type, product, component) {
