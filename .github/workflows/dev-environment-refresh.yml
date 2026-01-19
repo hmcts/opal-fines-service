@@ -1,0 +1,31 @@
+name: Trigger rebuild on enable labels
+
+on:
+  pull_request:
+    types: [labeled, unlabeled]
+
+permissions:
+  contents: write
+
+jobs:
+  trigger:
+    if: >
+      (startsWith(github.event.label.name, 'enable_opal_') ||
+       github.event.label.name == 'enable_keep_helm') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR head branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push empty commit to trigger rebuild
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git commit --allow-empty -m "ci: trigger rebuild (label change)"
+          git push
