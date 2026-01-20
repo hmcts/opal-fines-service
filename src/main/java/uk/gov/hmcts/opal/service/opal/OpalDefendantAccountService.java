@@ -218,6 +218,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+    //Deprecated - use OpalDefendantAccountPaymentTermsService
+    @Deprecated
     @Override
     @Transactional(readOnly = true)
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
@@ -232,6 +234,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return OpalDefendantAccountBuilders.buildPaymentTermsResponse(entity);
     }
 
+    //Deprecated - use OpalDefendantAccountFixedPenaltyService
+    @Deprecated
     @Override
     @Transactional(readOnly = true)
     public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
@@ -270,6 +274,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+    //Deprecated - use OpalDefendantAccountPartyService
+    @Deprecated
     @Override
     @Transactional(readOnly = true)
     public GetDefendantAccountPartyResponse getDefendantAccountParty(Long defendantAccountId,
@@ -300,6 +306,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     }
 
+    //Deprecated - use OpalDefendantAccountPartyService
+    @Deprecated
     private DefendantAccountParty mapDefendantAccountParty(
         DefendantAccountPartiesEntity partyEntity, List<AliasEntity> aliases) {
 
@@ -318,6 +326,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+    //Deprecated - use OpalDefendantAccountFixedPenaltyService
+    @Deprecated
     private static GetDefendantAccountFixedPenaltyResponse toFixedPenaltyResponse(
         DefendantAccountEntity account, FixedPenaltyOffenceEntity offence) {
 
@@ -352,6 +362,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+    //TODO - Deprecate into view CRUD service
     @Transactional(readOnly = true)
     public DefendantAccountSummaryViewEntity getDefendantAccountSummaryViewById(long defendantAccountId) {
         return defendantAccountSummaryViewRepository.findById(defendantAccountId)
@@ -467,6 +478,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return new AddPaymentCardRequestResponse(defendantAccountId);
     }
 
+    //Deprecated - use OpalDefendantAccountPartyService
+    @Deprecated
     // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method
     private DefendantAccountEntity bumpVersion(Long accountId) {
         DefendantAccountEntity entity = getDefendantAccountById(accountId);
@@ -474,12 +487,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return defendantAccountRepository.saveAndFlush(entity);
     }
 
+    //Deprecated - use OpalDefendantAccountEnforcementService
+    @Deprecated
     @Override
     public AddEnforcementResponse addEnforcement(Long defendantAccountId, String businessUnitId,
         String businessUnitUserId, String ifMatch, String authHeader, AddDefendantAccountEnforcementRequest request) {
         return null;
     }
 
+    //Deprecated - use OpalDefendantAccountPartyService
+    @Deprecated
     @Override
     @Transactional
     public GetDefendantAccountPartyResponse replaceDefendantAccountParty(
@@ -569,6 +586,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .build();
     }
 
+    //Deprecated - use OpalDefendantAccountEnforcementService
+    @Deprecated
     EnforcementOverride buildEnforcementOverride(DefendantAccountEntity entity) {
         if (entity.getEnforcementOverrideResultId() == null
             && entity.getEnforcementOverrideEnforcerId() == null
@@ -586,17 +605,23 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     // These 'DB' methods are focused purely on fetching relevant entities from the DB without any mapping.
 
+    //Deprecated - use OpalDefendantAccountEnforcementService
+    @Deprecated
     @Transactional(readOnly = true)
     Optional<ResultEntity.Lite> dbResultEntity(String resultId) {
         return Optional.ofNullable(resultId).flatMap(resultRepository::findById);
     }
 
+    //Deprecated - use OpalDefendantAccountEnforcementService
+    @Deprecated
     @Transactional(readOnly = true)
     Optional<EnforcementOverrideResultEntity> dbEnforcementOverrideResult(DefendantAccountEntity entity) {
         return Optional.ofNullable(entity.getEnforcementOverrideResultId())
             .flatMap(enforcementOverrideResultRepository::findById);
     }
 
+    //Deprecated - use OpalDefendantAccountEnforcementService
+    @Deprecated
     @Transactional(readOnly = true)
     Optional<EnforcerEntity> dbEnforcerEntity(DefendantAccountEntity entity) {
         return Optional.ofNullable(entity.getEnforcementOverrideEnforcerId())
@@ -604,6 +629,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .filter(enf -> Objects.nonNull(enf.getEnforcerId()));
     }
 
+    //Deprecated - use OpalDefendantAccountEnforcementService
+    @Deprecated
     @Transactional(readOnly = true)
     Optional<LocalJusticeAreaEntity> dbLja(DefendantAccountEntity entity) {
         return Optional.ofNullable(entity.getEnforcementOverrideTfoLjaId())
@@ -615,6 +642,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return aliasRepository.findAll(AliasSpecs.byDefendantAccountId(defendantAccountId));
     }
 
+    //Deprecated - use OpalDefendantAccountEnforcementService
+    @Deprecated
     @Transactional(readOnly = true)
     Optional<DebtorDetailEntity> dbDebtorDetails(PartyEntity party) {
         return debtorDetailRepository.findByPartyId(party.getPartyId());
@@ -626,12 +655,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             entity.getDefendantAccountId(), entity.getLastEnforcement());
     }
 
+    //Deprecated - use OpalDefendantAccountEnforcementService
+    @Deprecated
     @Transactional(readOnly = true)
     Optional<EnforcementEntity.Lite> dbEnforcementMostRecent(DefendantAccountEntity entity) {
         return enforcementRepository.findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
             entity.getDefendantAccountId(), entity.getLastEnforcement());
     }
 
+    //Deprecated - use OpalDefendantAccountEnforcementService
+    @Deprecated
     @Override
     @Transactional(readOnly = true)
     public EnforcementStatus getEnforcementStatus(Long defendantAccountId) {
@@ -695,6 +728,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             entity.getDefendantAccountId(), court.getCourtId());
     }
 
+    //Deprecated - use OpalDefendantAccountPartyService
+    @Deprecated
     private void replaceAliasesForParty(Long partyId, PartyDetails pd) {
         if (partyId == null || pd == null || pd.getOrganisationFlag() == null) {
             return;
@@ -784,6 +819,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
      * Upsert a single alias: - if aliasId present, updates the existing row (must belong to this party) - if aliasId
      * null, creates a new row (insert) Also normalizes org/individual fields.
      */
+    //Deprecated - use OpalDefendantAccountPartyService
+    @Deprecated
     private AliasEntity upsertAlias(
         Map<Long, AliasEntity> byId,
         PartyEntity party,
@@ -821,6 +858,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return row;
     }
 
+    //Deprecated - use OpalDefendantAccountPartyService
+    @Deprecated
     private void deletePartyAliasesNotIn(Long partyId, Set<Long> keepIds) {
         if (keepIds == null || keepIds.isEmpty()) {
             aliasRepository.deleteByParty_PartyId(partyId);
@@ -829,6 +868,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
     }
 
+    //Deprecated - use OpalDefendantAccountPartyService
+    @Deprecated
     private void replaceDebtorDetail(Long partyId,
         VehicleDetails vehicle,
         EmployerDetails employer,
@@ -925,6 +966,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             override.getLja() != null ? override.getLja().getLjaId() : null);
     }
 
+    //Deprecated - use DefendantAccountPaymentTermsService
+    @Deprecated
     @Override
     @Transactional
     public AddPaymentCardRequestResponse addPaymentCardRequest(Long defendantAccountId,
@@ -952,12 +995,16 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return paymentCardResponse;
     }
 
+    //Deprecated - use DefendantAccountPaymentTermsService
+    @Deprecated
     private DefendantAccountEntity loadAndValidateAccount(Long accountId, String buId) {
         DefendantAccountEntity account = getDefendantAccountById(accountId);
         validateBusinessUnitPresent(account, buId);
         return account;
     }
 
+    //Deprecated - use DefendantAccountPaymentTermsService
+    @Deprecated
     private void validateBusinessUnitPresent(DefendantAccountEntity account, String buId) {
         if (account.getBusinessUnit() == null
             || account.getBusinessUnit().getBusinessUnitId() == null
@@ -966,6 +1013,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
     }
 
+    //Deprecated - use DefendantAccountPaymentTermsService
+    @Deprecated
     private void ensureNoExistingPaymentCardRequest(Long accountId) {
         if (paymentCardRequestRepository.existsByDefendantAccountId(accountId)) {
             throw new ResourceConflictException(
@@ -977,6 +1026,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         }
     }
 
+    //Deprecated - use DefendantAccountPaymentTermsService
+    @Deprecated
     private void createPaymentCardRequest(Long accountId) {
         PaymentCardRequestEntity pcr = PaymentCardRequestEntity.builder()
             .defendantAccountId(accountId)
@@ -984,6 +1035,8 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         paymentCardRequestRepository.save(pcr);
     }
 
+    //Deprecated - use DefendantAccountPaymentTermsService
+    @Deprecated
     private void updateDefendantAccountWithPcr(DefendantAccountEntity account,
         String businessUnitUserId,
         String authHeader) {
