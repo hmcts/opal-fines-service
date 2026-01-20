@@ -1,3 +1,9 @@
+globals:
+  postgresHost: "{{ .Release.Name }}-postgresql"
+  postgresUsername: "javapostgres"
+  postgresOptions: "?stringtype=unspecified"
+  postgresPort:  5432
+  postgresSecret: "tbc"
 java:
   # Don't modify below here
   image: ${IMAGE_NAME}
@@ -41,12 +47,12 @@ java:
         - name: outbound-password
           alias: OPAL_SFTP_OUTBOUND_PASSWORD
   environment:
-    OPAL_FINES_DB_HOST: "{{ .Release.Name }}-postgresql"
+    OPAL_FINES_DB_HOST: "{{ .Values.global.postgresHost}}"
     OPAL_FINES_DB_NAME: "opal-fines-db"
-    OPAL_FINES_DB_USERNAME: "javapostgres"
-    OPAL_FINES_DB_PASSWORD: "javapassword"
-    OPAL_FINES_DB_OPTIONS: "?stringtype=unspecified"
-    OPAL_FINES_DB_PORT: 5432
+    OPAL_FINES_DB_USERNAME: "{{ .Values.global.postgresUsername}}"
+    OPAL_FINES_DB_PASSWORD: "{{ .Values.global.postgresPassword}}"
+    OPAL_FINES_DB_OPTIONS: "{{ .Values.global.postgresOptions}}"
+    OPAL_FINES_DB_PORT: {{ .Values.global.postgresPort}}
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: "${DEV_OPAL_FRONT_END_URL}"
     OPAL_USER_SERVICE_API_URL: "https://opal-user-service.staging.platform.hmcts.net/"
@@ -61,9 +67,9 @@ java:
     primary:
       initdb:
         scripts:
-          01-create-dbs.sql: |
-            CREATE DATABASE opal_logging_db OWNER javapostgres;
-            CREATE DATABASE opal_user_db OWNER javapostgres;
+          init.sql: |-
+            CREATE DATABASE "opal_logging_db" OWNER javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            CREATE DATABASE "opal_user_db" OWNER javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
     auth:
       username: javapostgres
       password: javapassword
@@ -113,11 +119,11 @@ opal-user-service:
           - name: OpalTestUserPassword
             alias: OPAL_TEST_USER_PASSWORD
     environment:
-      OPAL_USER_DB_HOST: "{{ .Release.Name }}-postgresql"
+      OPAL_USER_DB_HOST: "{{ .Values.global.postgresHost}}"
       OPAL_USER_DB_NAME: "opal-user-db"
-      OPAL_USER_DB_USERNAME: "javapostgres"
-      OPAL_USER_DB_PASSWORD: "javapassword"
-      OPAL_USER_DB_OPTIONS: "?stringtype=unspecified"
+      OPAL_USER_DB_USERNAME: "{{ .Values.global.postgresUsername}}"
+      OPAL_USER_DB_PASSWORD: "{{ .Values.global.postgresPassword}}"
+      OPAL_USER_DB_OPTIONS: "{{ .Values.global.postgresOptions}}"
       OPAL_USER_DB_PORT: 5432
       RUN_DB_MIGRATION_ON_STARTUP: true
       OPAL_FRONTEND_URL: "${DEV_OPAL_FRONT_END_URL}"
@@ -155,11 +161,11 @@ opal-logging-service:
           - name: OpalTestUserPassword
             alias: OPAL_TEST_USER_PASSWORD
     environment:
-      OPAL_LOGGING_DB_HOST: "{{ .Release.Name }}-postgresql"
+      OPAL_LOGGING_DB_HOST: "{{ .Values.global.postgresHost}}"
       OPAL_LOGGING_DB_NAME: "opal-logging-db"
-      OPAL_LOGGING_DB_USERNAME: "javapostgres"
-      OPAL_LOGGING_DB_PASSWORD: "javapassword"
-      OPAL_LOGGING_DB_OPTIONS: "?stringtype=unspecified"
+      OPAL_LOGGING_DB_USERNAME: "{{ .Values.global.postgresUsername}}"
+      OPAL_LOGGING_DB_OPTIONS: "{{ .Values.global.postgresOptions}}"
+      OPAL_LOGGING_DB_PASSWORD: "{{ .Values.global.postgresPassword}}"
       OPAL_LOGGING_DB_PORT: 5432
       RUN_DB_MIGRATION_ON_STARTUP: true
       TESTING_SUPPORT_ENDPOINTS_ENABLED: true
