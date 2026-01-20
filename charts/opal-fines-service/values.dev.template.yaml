@@ -1,9 +1,8 @@
-globals:
+global:
   postgresHost: "{{ .Release.Name }}-postgresql"
   postgresUsername: "javapostgres"
   postgresOptions: "?stringtype=unspecified"
-  postgresPort:  5432
-  postgresSecret: "tbc"
+  postgresPassword: "javapassword"
 java:
   # Don't modify below here
   image: ${IMAGE_NAME}
@@ -52,7 +51,6 @@ java:
     OPAL_FINES_DB_USERNAME: "{{ .Values.global.postgresUsername}}"
     OPAL_FINES_DB_PASSWORD: "{{ .Values.global.postgresPassword}}"
     OPAL_FINES_DB_OPTIONS: "{{ .Values.global.postgresOptions}}"
-    OPAL_FINES_DB_PORT: {{ .Values.global.postgresPort}}
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: "${DEV_OPAL_FRONT_END_URL}"
     OPAL_USER_SERVICE_API_URL: "https://opal-user-service.staging.platform.hmcts.net/"
@@ -68,8 +66,8 @@ java:
       initdb:
         scripts:
           init.sql: |-
-            CREATE DATABASE "opal_logging_db" OWNER javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
-            CREATE DATABASE "opal_user_db" OWNER javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            CREATE DATABASE "opal-logging-db" OWNER javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
+            CREATE DATABASE "opal-user-db" OWNER javapostgres ENCODING = 'UTF-8' CONNECTION LIMIT = -1;
     auth:
       username: javapostgres
       password: javapassword
@@ -124,7 +122,6 @@ opal-user-service:
       OPAL_USER_DB_USERNAME: "{{ .Values.global.postgresUsername}}"
       OPAL_USER_DB_PASSWORD: "{{ .Values.global.postgresPassword}}"
       OPAL_USER_DB_OPTIONS: "{{ .Values.global.postgresOptions}}"
-      OPAL_USER_DB_PORT: 5432
       RUN_DB_MIGRATION_ON_STARTUP: true
       OPAL_FRONTEND_URL: "${DEV_OPAL_FRONT_END_URL}"
       TESTING_SUPPORT_ENDPOINTS_ENABLED: true
@@ -166,7 +163,6 @@ opal-logging-service:
       OPAL_LOGGING_DB_USERNAME: "{{ .Values.global.postgresUsername}}"
       OPAL_LOGGING_DB_OPTIONS: "{{ .Values.global.postgresOptions}}"
       OPAL_LOGGING_DB_PASSWORD: "{{ .Values.global.postgresPassword}}"
-      OPAL_LOGGING_DB_PORT: 5432
       RUN_DB_MIGRATION_ON_STARTUP: true
       TESTING_SUPPORT_ENDPOINTS_ENABLED: true
       SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
