@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
+import java.util.function.Function;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.dto.legacy.ReferenceNumberDto;
@@ -12,6 +13,7 @@ import uk.gov.hmcts.opal.dto.search.DefendantDto;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.SearchDefendantAccountEntity_;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.likeStartsWithNormalized;
 import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.equalNormalized;
 import static uk.gov.hmcts.opal.repository.jpa.SpecificationUtils.normalize;
@@ -24,7 +26,6 @@ import java.util.Optional;
 
 @Component
 public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAccountEntity> {
-
 
     public Specification<SearchDefendantAccountEntity> findByAccountSearch(AccountSearchDto accountSearchDto) {
         return Specification.allOf(specificationList(
@@ -84,9 +85,37 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
             likeStartsWithNormalized(cb, root.get(SearchDefendantAccountEntity_.postcode), postcode);
     }
 
+    public static Specification<SearchDefendantAccountEntity> findBySearch(AccountSearchDto accountSearchDto) {
+
+        boolean hasRef =
+            Optional.ofNullable(accountSearchDto.getReferenceNumberDto())
+                .map(refNo ->
+                    isNotBlank(refNo.getAccountNumber()) || isNotBlank(refNo.getProsecutorCaseReference()))
+                .orElse(false);
+
+        boolean applyActiveOnly =
+            Boolean.TRUE.equals(accountSearchDto.getActiveAccountsOnly()) && !hasRef;
+
+        return filterByBusinessUnits(accountSearchDto.getBusinessUnitIds())
+            .and(filterByActiveOnly(applyActiveOnly))
+            .and(filterByAccountNumberStartsWithWithCheckLetter(accountSearchDto))
+            .and(filterByPcrExact(accountSearchDto))
+            .and(filterByReferenceOrganisationFlag(accountSearchDto))
+            .and(
+                accountSearchDto.getDefendant() != null
+                    && Boolean.TRUE.equals(accountSearchDto.getDefendant().getOrganisation())
+                    ? filterByAliasesIfRequested(accountSearchDto)
+                    : filterByNameIncludingAliases(accountSearchDto)
+            )
+            .and(filterByDobStartsWith(accountSearchDto))
+            .and(filterByNiStartsWith(accountSearchDto))
+            .and(filterByAddress1StartsWith(accountSearchDto))
+            .and(filterByPostcodeStartsWith(accountSearchDto));
+    }
+
     /* -------------------- Filters that remain meaningful on the flat view -------------------- */
 
-    public Specification<SearchDefendantAccountEntity> filterByBusinessUnits(List<Integer> businessUnitIds) {
+    public static Specification<SearchDefendantAccountEntity> filterByBusinessUnits(List<Integer> businessUnitIds) {
         return (root, query, cb) ->
             Optional.ofNullable(businessUnitIds)
                 .filter(list -> !list.isEmpty())
@@ -102,14 +131,14 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                 .orElse(cb.conjunction());
     }
 
-    public Specification<SearchDefendantAccountEntity> filterByActiveOnly(Boolean activeOnly) {
+    public static Specification<SearchDefendantAccountEntity> filterByActiveOnly(Boolean activeOnly) {
         return (root, query, cb) ->
             Boolean.TRUE.equals(activeOnly)
                 ? cb.notEqual(cb.upper(root.get(SearchDefendantAccountEntity_.accountStatus)), "C")
                 : cb.conjunction();
     }
 
-    public Specification<SearchDefendantAccountEntity> filterByAccountNumberStartsWithWithCheckLetter(
+    public static Specification<SearchDefendantAccountEntity> filterByAccountNumberStartsWithWithCheckLetter(
         AccountSearchDto dto) {
         return (root, query, cb) ->
             Optional.ofNullable(dto.getReferenceNumberDto())
@@ -122,7 +151,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                 .orElse(cb.conjunction());
     }
 
-    public Specification<SearchDefendantAccountEntity> filterByPcrExact(AccountSearchDto dto) {
+    public static Specification<SearchDefendantAccountEntity> filterByPcrExact(AccountSearchDto dto) {
         return (root, query, cb) ->
             Optional.ofNullable(dto.getReferenceNumberDto())
                 .map(ReferenceNumberDto::getProsecutorCaseReference)
@@ -131,7 +160,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                 .orElse(cb.conjunction());
     }
 
-    public Specification<SearchDefendantAccountEntity> filterByDobStartsWith(AccountSearchDto dto) {
+    public static Specification<SearchDefendantAccountEntity> filterByDobStartsWith(AccountSearchDto dto) {
         return (root, query, cb) ->
             Optional.ofNullable(dto.getDefendant())
                 .map(DefendantDto::getBirthDate)
@@ -149,7 +178,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
     /**
      * Alias matching without joining alias table: uses alias_* columns exposed by the view.
      */
-    public Specification<SearchDefendantAccountEntity> filterByAliasesIfRequested(AccountSearchDto dto) {
+    public static Specification<SearchDefendantAccountEntity> filterByAliasesIfRequested(AccountSearchDto dto) {
         return (root, query, cb) -> {
             DefendantDto def = dto.getDefendant();
             if (def == null) {
@@ -162,7 +191,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
         };
     }
 
-    private Predicate orgAliases(DefendantDto def,
+    private static Predicate orgAliases(DefendantDto def,
                                  From<?, SearchDefendantAccountEntity> root,
                                  CriteriaBuilder cb) {
         String orgName = def.getOrganisationName();
@@ -191,8 +220,8 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
         return cb.and(isOrg, cb.or(onParty, onAlias));
     }
 
-    private java.util.List<Expression<String>> aliases(From<?, SearchDefendantAccountEntity> root) {
-        return java.util.List.of(
+    private static List<Expression<String>> aliases(From<?, SearchDefendantAccountEntity> root) {
+        return List.of(
             root.get("alias1"),
             root.get("alias2"),
             root.get("alias3"),
@@ -201,7 +230,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
         );
     }
 
-    private Predicate personAliases(DefendantDto def,
+    private static Predicate personAliases(DefendantDto def,
                                     From<?, SearchDefendantAccountEntity> root,
                                     CriteriaBuilder cb) {
         if (!Boolean.TRUE.equals(def.getIncludeAliases())) {
@@ -235,7 +264,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
 
 
 
-    public Specification<SearchDefendantAccountEntity> filterByDefendantName(AccountSearchDto dto) {
+    public static Specification<SearchDefendantAccountEntity> filterByDefendantName(AccountSearchDto dto) {
         return (root, query, cb) -> {
             Optional<Predicate> surnamePredicate = Optional.ofNullable(dto.getDefendant())
                 .map(DefendantDto::getSurname)
@@ -256,7 +285,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
         };
     }
 
-    public Specification<SearchDefendantAccountEntity> filterByNameIncludingAliases(AccountSearchDto dto) {
+    public static Specification<SearchDefendantAccountEntity> filterByNameIncludingAliases(AccountSearchDto dto) {
         return (root, query, cb) -> {
             Predicate partyPredicate = filterByDefendantName(dto).toPredicate(root, query, cb);
 
@@ -267,7 +296,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
         };
     }
 
-    public Specification<SearchDefendantAccountEntity> filterByNiStartsWith(AccountSearchDto dto) {
+    public static Specification<SearchDefendantAccountEntity> filterByNiStartsWith(AccountSearchDto dto) {
         return (root, query, cb) ->
             Optional.ofNullable(dto.getDefendant())
                 .map(DefendantDto::getNationalInsuranceNumber)
@@ -277,7 +306,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                 .orElse(cb.conjunction());
     }
 
-    public Specification<SearchDefendantAccountEntity> filterByAddress1StartsWith(AccountSearchDto dto) {
+    public static Specification<SearchDefendantAccountEntity> filterByAddress1StartsWith(AccountSearchDto dto) {
         return (root, query, cb) ->
             Optional.ofNullable(dto.getDefendant())
                 .map(DefendantDto::getAddressLine1)
@@ -286,7 +315,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                 .orElse(cb.conjunction());
     }
 
-    public Specification<SearchDefendantAccountEntity> filterByPostcodeStartsWith(AccountSearchDto dto) {
+    public static Specification<SearchDefendantAccountEntity> filterByPostcodeStartsWith(AccountSearchDto dto) {
         return (root, query, cb) ->
             Optional.ofNullable(dto.getDefendant())
                 .map(DefendantDto::getPostcode)
@@ -297,9 +326,9 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
                 .orElse(cb.conjunction());
     }
 
-    private Predicate orAcrossAliases(CriteriaBuilder cb,
+    private static Predicate orAcrossAliases(CriteriaBuilder cb,
                                       Predicate seed,
-                                      java.util.function.Function<Expression<String>, Predicate> fn,
+                                      Function<Expression<String>, Predicate> fn,
                                       Iterable<Expression<String>> aliases) {
         Predicate acc = seed;
         for (Expression<String> a : aliases) {
@@ -308,7 +337,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
         return acc;
     }
 
-    private Predicate surnamePredicate(CriteriaBuilder cb, Expression<String> aliasExpr,
+    private static Predicate surnamePredicate(CriteriaBuilder cb, Expression<String> aliasExpr,
                                        String surname, boolean exact) {
         String s = normalize(surname);
         return exact
@@ -321,7 +350,7 @@ public class SearchDefendantAccountSpecs extends EntitySpecs<SearchDefendantAcco
      * PO-2298 – ensures that reference searches honour organisation = true/false.
      */
 
-    public Specification<SearchDefendantAccountEntity> filterByReferenceOrganisationFlag(AccountSearchDto dto) {
+    public static Specification<SearchDefendantAccountEntity> filterByReferenceOrganisationFlag(AccountSearchDto dto) {
         return (root, query, cb) ->
             Optional.ofNullable(dto.getReferenceNumberDto())
                 .map(ReferenceNumberDto::getOrganisation)
