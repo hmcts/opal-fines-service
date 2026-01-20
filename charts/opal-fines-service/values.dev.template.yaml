@@ -1,5 +1,4 @@
 global:
-  postgresHost: "{{ .Release.Name }}-postgresql"
   postgresUsername: "javapostgres"
   postgresOptions: "?stringtype=unspecified"
   postgresPassword: "javapassword"
@@ -46,7 +45,7 @@ java:
         - name: outbound-password
           alias: OPAL_SFTP_OUTBOUND_PASSWORD
   environment:
-    OPAL_FINES_DB_HOST: "{{ .Values.global.postgresHost}}"
+    OPAL_FINES_DB_HOST: "{{ .Release.Name }}-postgresql"
     OPAL_FINES_DB_NAME: "opal-fines-db"
     OPAL_FINES_DB_USERNAME: "{{ .Values.global.postgresUsername}}"
     OPAL_FINES_DB_PASSWORD: "{{ .Values.global.postgresPassword}}"
@@ -117,7 +116,7 @@ opal-user-service:
           - name: OpalTestUserPassword
             alias: OPAL_TEST_USER_PASSWORD
     environment:
-      OPAL_USER_DB_HOST: "{{ .Values.global.postgresHost}}"
+      OPAL_USER_DB_HOST: "{{ .Release.Name }}-postgresql"
       OPAL_USER_DB_NAME: "opal-user-db"
       OPAL_USER_DB_USERNAME: "{{ .Values.global.postgresUsername}}"
       OPAL_USER_DB_PASSWORD: "{{ .Values.global.postgresPassword}}"
@@ -158,7 +157,7 @@ opal-logging-service:
           - name: OpalTestUserPassword
             alias: OPAL_TEST_USER_PASSWORD
     environment:
-      OPAL_LOGGING_DB_HOST: "{{ .Values.global.postgresHost}}"
+      OPAL_LOGGING_DB_HOST: "{{ .Release.Name }}-postgresql"
       OPAL_LOGGING_DB_NAME: "opal-logging-db"
       OPAL_LOGGING_DB_USERNAME: "{{ .Values.global.postgresUsername}}"
       OPAL_LOGGING_DB_OPTIONS: "{{ .Values.global.postgresOptions}}"
