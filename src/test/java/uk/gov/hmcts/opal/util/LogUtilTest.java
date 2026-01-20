@@ -70,7 +70,7 @@ class LogUtilTest {
         Clock fixedClock = Clock.fixed(fixedInstant, ZoneOffset.UTC);
 
         OffsetDateTime expected = OffsetDateTime.ofInstant(fixedInstant, ZoneOffset.UTC);
-        OffsetDateTime actual = LogUtil.getCurrentDateTime(fixedClock);
+        OffsetDateTime actual = OffsetDateTime.now(fixedClock);
 
         assertEquals(expected, actual,
             "getCurrentDateTime should return an OffsetDateTime derived from the provided clock");

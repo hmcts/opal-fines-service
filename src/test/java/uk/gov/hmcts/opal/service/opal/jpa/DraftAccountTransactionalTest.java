@@ -154,6 +154,8 @@ class DraftAccountTransactionalTest {
         DraftAccountEntity result = draftAccountTransactional.submitDraftAccount(dto);
 
         assertEquals(saved.getAccount(), result.getAccount());
+
+        verify(loggingService).pdplForDraftAccount(any(DraftAccountEntity.class), any());
     }
 
     @Test

@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.opal;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 
 import java.time.Clock;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -29,23 +30,9 @@ public class PdplLoggingService {
     private final LoggingService loggingService;
     private final Clock clock;
 
-    public void pdplForSubmitDraftAccount(DraftAccountEntity entity) {
-        pdplForDraftAccount(entity, Action.SUBMIT);
-    }
-
-    public void pdplForUpdateDraftAccount(DraftAccountEntity entity) {
-        log.info("pdplForUpdateDraftAccount");
-        pdplForDraftAccount(entity, Action.RESUBMIT);
-    }
-
-    private void pdplForDraftAccount(DraftAccountEntity entity, Action action) {
-
-        log.info("pdplForDraftAccount is in here");
-
+    public void pdplForDraftAccount(DraftAccountEntity entity, Action action) {
         JsonPathUtil.DocContext docContext = createDocContext(entity.getAccount(),
             "");
-
-        log.info("DocContext here: {}", docContext);
 
         Object dtRaw = docContext.read(JSON_DEFENDANT_TYPE);
         String defendantType = dtRaw == null ? "" : dtRaw.toString();
@@ -61,7 +48,7 @@ public class PdplLoggingService {
                 logForRole(entity, action, Role.DEFENDANT);
             }
             default -> {
-                log.debug("Unknown defendant_type '{}', skipping defendant/pg logs", defendantType);
+                log.error("Unknown defendant_type '{}', skipping defendant/pg logs", defendantType);
             }
         }
 
@@ -105,7 +92,7 @@ public class PdplLoggingService {
             .businessIdentifier(businessIdentifier)
             .category(PersonalDataProcessingCategory.COLLECTION)
             .ipAddress(LogUtil.getIpAddress())
-            .createdAt(LogUtil.getCurrentDateTime(clock))
+            .createdAt(OffsetDateTime.now(clock))
             .createdBy(createdBy)
             .individuals(List.of(individuals))
             .build();
@@ -113,7 +100,7 @@ public class PdplLoggingService {
         loggingService.personalDataAccessLogAsync(logDetails);
     }
 
-    private enum Role {
+    public enum Role {
         DEFENDANT("Defendant"),
         PARENT_OR_GUARDIAN("Parent or Guardian"),
         MINOR_CREDITOR("Minor Creditor");
@@ -129,7 +116,7 @@ public class PdplLoggingService {
         }
     }
 
-    private enum Action {
+    public enum Action {
         SUBMIT("Submit Draft Account - %s"),
         RESUBMIT("Re-submit Draft Account - %s");
 

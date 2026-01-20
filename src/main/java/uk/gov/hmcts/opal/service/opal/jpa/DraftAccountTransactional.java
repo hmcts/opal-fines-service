@@ -42,6 +42,7 @@ import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
 import uk.gov.hmcts.opal.service.opal.PdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.PdplLoggingService.Action;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 @Service
@@ -110,7 +111,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         DraftAccountEntity draftAccountEntity = draftAccountRepository.save(
             toEntity(dto, created, businessUnit, snapshot));
 
-        loggingService.pdplForSubmitDraftAccount(draftAccountEntity);
+        loggingService.pdplForDraftAccount(draftAccountEntity, Action.SUBMIT);
 
         return draftAccountEntity;
 
@@ -191,8 +192,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
         DraftAccountEntity entity = draftAccountRepository.save(existingAccount);
 
-        log.info("calling pdpl now");
-        loggingService.pdplForUpdateDraftAccount(entity);
+        loggingService.pdplForDraftAccount(entity, Action.RESUBMIT);
 
         return entity;
     }
