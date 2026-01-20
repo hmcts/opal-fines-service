@@ -207,6 +207,108 @@ WHERE payment_terms_id = 77
                 AND table_name = 'payment_terms'
                 AND column_name = 'active');
 
+-- PO-2629 isolated seed data
+-- Account A: multiple payment_terms, exactly one active
+INSERT INTO defendant_accounts
+(defendant_account_id, version_number, business_unit_id, account_number,
+ amount_paid, account_balance, amount_imposed, account_status,
+ prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+ collection_order, payment_card_requested)
+VALUES (262901, 0, 78, '262901A',
+        0.00, 500.00, 500.00, 'L',
+        '262901PCR', 'N', 'N', 'Fine',
+        'N', 'N')
+    ON CONFLICT (defendant_account_id) DO NOTHING;
+
+INSERT INTO parties
+(party_id, organisation, organisation_name, surname, forenames, title)
+VALUES (262901, 'N', NULL, 'PO2629', 'MultiTerms', 'Mr')
+    ON CONFLICT (party_id) DO NOTHING;
+
+INSERT INTO defendant_account_parties
+(defendant_account_party_id, defendant_account_id, party_id, association_type, debtor)
+VALUES (262901, 262901, 262901, 'Defendant', 'Y')
+    ON CONFLICT (defendant_account_party_id) DO NOTHING;
+
+-- Active payment term
+INSERT INTO payment_terms
+(payment_terms_id, defendant_account_id, posted_date, posted_by,
+ terms_type_code, effective_date, instalment_period, instalment_amount, instalment_lump_sum,
+ jail_days, extension, account_balance)
+VALUES (26290101, 262901, '2023-11-03 16:05:10', '01000000A',
+        'B', '2025-10-12 00:00:00', 'W', NULL, NULL,
+        120, 'N', 500.00)
+    ON CONFLICT (payment_terms_id) DO NOTHING;
+
+UPDATE payment_terms
+SET active = TRUE
+WHERE payment_terms_id = 26290101
+  AND EXISTS (SELECT 1
+              FROM information_schema.columns
+              WHERE table_schema = 'public'
+                AND table_name = 'payment_terms'
+                AND column_name = 'active');
+
+-- Inactive payment term
+INSERT INTO payment_terms
+(payment_terms_id, defendant_account_id, posted_date, posted_by
+, terms_type_code, effective_date, instalment_period, instalment_amount, instalment_lump_sum
+, jail_days, extension, account_balance)
+VALUES (26290102, 262901, '2024-01-10 10:00:00', '01000000A'
+       , 'B', '2026-01-01 00:00:00', 'M', 123.45, NULL
+       , 10, 'N', 500.00)
+    ON CONFLICT (payment_terms_id) DO NOTHING;
+
+UPDATE payment_terms
+SET active = FALSE
+WHERE payment_terms_id = 26290102
+  AND EXISTS (SELECT 1
+              FROM information_schema.columns
+              WHERE table_schema = 'public'
+                AND table_name = 'payment_terms'
+                AND column_name = 'active');
+
+
+-- Account B: payment_terms exist but none active
+INSERT INTO defendant_accounts
+(defendant_account_id, version_number, business_unit_id, account_number,
+ amount_paid, account_balance, amount_imposed, account_status,
+ prosecutor_case_reference, allow_writeoffs, allow_cheques, account_type,
+ collection_order, payment_card_requested)
+VALUES (262902, 0, 78, '262902A',
+        0.00, 500.00, 500.00, 'L',
+        '262902PCR', 'N', 'N', 'Fine',
+        'N', 'N')
+    ON CONFLICT (defendant_account_id) DO NOTHING;
+
+INSERT INTO parties
+(party_id, organisation, organisation_name, surname, forenames, title)
+VALUES (262902, 'N', NULL, 'PO2629', 'InactiveOnly', 'Ms')
+    ON CONFLICT (party_id) DO NOTHING;
+
+INSERT INTO defendant_account_parties
+(defendant_account_party_id, defendant_account_id, party_id, association_type, debtor)
+VALUES (262902, 262902, 262902, 'Defendant', 'Y')
+    ON CONFLICT (defendant_account_party_id) DO NOTHING;
+
+INSERT INTO payment_terms
+(payment_terms_id, defendant_account_id, posted_date, posted_by
+, terms_type_code, effective_date, instalment_period, instalment_amount, instalment_lump_sum
+, jail_days, extension, account_balance)
+VALUES (26290201, 262902, '2024-01-10 10:00:00', '01000000A'
+       , 'B', '2026-01-01 00:00:00', 'M', 222.22, NULL
+       , 20, 'N', 500.00)
+    ON CONFLICT (payment_terms_id) DO NOTHING;
+
+UPDATE payment_terms
+SET active = FALSE
+WHERE payment_terms_id = 26290201
+  AND EXISTS (SELECT 1
+              FROM information_schema.columns
+              WHERE table_schema = 'public'
+                AND table_name = 'payment_terms'
+                AND column_name = 'active');
+
 INSERT INTO NOTES
 ( note_id, note_type, associated_record_type, associated_record_id
 , note_text, posted_date, posted_by)
