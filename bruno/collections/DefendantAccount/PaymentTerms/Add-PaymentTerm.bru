@@ -1,0 +1,50 @@
+meta {
+  name: Add-PaymentTerm
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseURL}}/defendant-accounts/77/payment-terms
+  body: json
+  auth: bearer
+}
+
+headers {
+  Business-Unit-Id: 78
+  If-Match: 17
+}
+
+auth:bearer {
+  token: {{BEARER_TOKEN}}
+}
+
+body:json {
+  {
+    "payment_terms": {
+      "days_in_default": 30,
+      "date_days_in_default_imposed": "2025-11-06",
+      "extension": true,
+      "reason_for_extension": "extn reason text",
+      "effective_date": "2025-11-01",
+      "payment_terms_type": { "payment_terms_type_code": "B" ,
+      "payment_terms_type_display_name": "By date"},
+      "instalment_period": { "instalment_period_code": "W",
+      "instalment_period_display_name": "Weekly" },
+      "lump_sum_amount": 120.00,
+      "instalment_amount": 10.00,
+      "posted_details": {
+        "posted_by": "clerk1",
+        "posted_date": "2025-02-02",
+        "posted_by_name": "aa"
+      }
+    },
+    "request_payment_card": false,
+    "generate_payment_terms_change_letter": false
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
