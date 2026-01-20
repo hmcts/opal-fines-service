@@ -71,14 +71,6 @@ redis:
     registry: hmctspublic.azurecr.io
     repository: imported/bitnami/redis
   enabled: false
-userServicePostgresql:
-  enabled: false
-  image:
-    tag: '17.5.0'
-loggingServicePostgresql:
-  enabled: false
-  image:
-    tag: '17.5.0'
 global:
   security:
     allowInsecureImages: true

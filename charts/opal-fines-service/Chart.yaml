@@ -22,16 +22,6 @@ dependencies:
     version: 1.2.1
     repository: 'oci://hmctspublic.azurecr.io/helm'
     condition: servicebus.enabled
-  - name: postgresql
-    version: 15.5.38
-    alias: userServicePostgresql
-    repository: 'oci://registry-1.docker.io/bitnamicharts'
-    condition: userServicePostgresql.enabled
-  - name: postgresql
-    version: 15.5.38
-    alias: loggingServicePostgresql
-    repository: 'oci://registry-1.docker.io/bitnamicharts'
-    condition: loggingServicePostgresql.enabled
   - name: redis
     version: 24.1.0
     repository: 'oci://registry-1.docker.io/bitnamicharts'

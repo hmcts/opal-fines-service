@@ -42,9 +42,9 @@ java:
           alias: OPAL_SFTP_OUTBOUND_PASSWORD
   environment:
     OPAL_FINES_DB_HOST: "{{ .Release.Name }}-postgresql"
-    OPAL_FINES_DB_NAME: "{{ .Values.postgresql.auth.database}}"
-    OPAL_FINES_DB_USERNAME: "{{ .Values.postgresql.auth.username}}"
-    OPAL_FINES_DB_PASSWORD: "{{ .Values.postgresql.auth.password}}"
+    OPAL_FINES_DB_NAME: "opal-fines-db"
+    OPAL_FINES_DB_USERNAME: "javapostgres"
+    OPAL_FINES_DB_PASSWORD: "javapassword"
     OPAL_FINES_DB_OPTIONS: "?stringtype=unspecified"
     OPAL_FINES_DB_PORT: 5432
     RUN_DB_MIGRATION_ON_STARTUP: true
@@ -58,6 +58,12 @@ java:
     DEFAULT_APP_MODE: ${APP_MODE}
   postgresql:
     enabled: true
+    primary:
+      initdb:
+        scripts:
+          01-create-dbs.sql: |
+            CREATE DATABASE opal_logging_db OWNER javapostgres;
+            CREATE DATABASE opal_user_db OWNER javapostgres;
     auth:
       username: javapostgres
       password: javapassword
@@ -107,8 +113,8 @@ opal-user-service:
           - name: OpalTestUserPassword
             alias: OPAL_TEST_USER_PASSWORD
     environment:
-      OPAL_USER_DB_HOST: "{{ .Release.Name }}-postgresql-user-service"
-      OPAL_USER_DB_NAME: "user-service-db"
+      OPAL_USER_DB_HOST: "{{ .Release.Name }}-postgresql"
+      OPAL_USER_DB_NAME: "opal-user-db"
       OPAL_USER_DB_USERNAME: "javapostgres"
       OPAL_USER_DB_PASSWORD: "javapassword"
       OPAL_USER_DB_OPTIONS: "?stringtype=unspecified"
@@ -149,7 +155,7 @@ opal-logging-service:
           - name: OpalTestUserPassword
             alias: OPAL_TEST_USER_PASSWORD
     environment:
-      OPAL_LOGGING_DB_HOST: "{{ .Release.Name }}-postgresql-logging-service"
+      OPAL_LOGGING_DB_HOST: "{{ .Release.Name }}-postgresql"
       OPAL_LOGGING_DB_NAME: "opal-logging-db"
       OPAL_LOGGING_DB_USERNAME: "javapostgres"
       OPAL_LOGGING_DB_PASSWORD: "javapassword"
@@ -169,52 +175,6 @@ servicebus:
   setup:
     queues:
       - name: "logging-pdpl"
-userServicePostgresql:
-  enabled: ${DEV_ENABLE_OPAL_USER_SERVICE}
-  nameOverride: postgresql-user-service
-  auth:
-    username: javapostgres
-    password: javapassword
-    database: user-service-db
-  ## Disable Postgres Persistence
-  primary:
-    persistence:
-      enabled: false
-  ## Override metrics image for postgresql-exporter
-  metrics:
-    image:
-      registry: hmctspublic.azurecr.io
-      repository: imported/bitnami/postgres-exporter
-      tag: '0.15.0-debian-12-r16'
-  ## Override volume permissions image for os-shell
-  volumePermissions:
-    image:
-      registry: hmctspublic.azurecr.io
-      repository: imported/bitnami/os-shell
-      tag: '12-debian-12-r18'
-loggingServicePostgresql:
-  enabled: ${DEV_ENABLE_OPAL_LOGGING_SERVICE}
-  nameOverride: postgresql-logging-service
-  auth:
-    username: javapostgres
-    password: javapassword
-    database: opal-logging-db
-  ## Disable Postgres Persistence
-  primary:
-    persistence:
-      enabled: false
-  ## Override metrics image for postgresql-exporter
-  metrics:
-    image:
-      registry: hmctspublic.azurecr.io
-      repository: imported/bitnami/postgres-exporter
-      tag: '0.15.0-debian-12-r16'
-  ## Override volume permissions image for os-shell
-  volumePermissions:
-    image:
-      registry: hmctspublic.azurecr.io
-      repository: imported/bitnami/os-shell
-      tag: '12-debian-12-r18'
 redis:
   enabled: true
   architecture: standalone
