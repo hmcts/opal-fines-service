@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
@@ -71,5 +73,19 @@ public class MinorCreditorController {
 
         return buildResponse(opalCreditorAccountService
                                  .deleteCreditorAccount((minorCreditorId), checkExisted, authHeaderValue));
+    }
+
+    @GetMapping(value = "/{minorCreditorId}/header-summary", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Gets Minor Creditor account header summary for the given minorCreditorId")
+    public ResponseEntity<GetMinorCreditorAccountHeaderSummaryResponse> getMinorCreditorAccountHeaderSummary(
+        @PathVariable Long minorCreditorId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+
+        log.debug(":GET:getMinorCreditorAccountHeaderSummary: minorCreditorId: {}", minorCreditorId);
+
+        GetMinorCreditorAccountHeaderSummaryResponse response =
+            minorCreditorService.getMinorCreditorAccountHeaderSummary(minorCreditorId, authHeaderValue);
+
+        return buildResponse(response);
     }
 }
