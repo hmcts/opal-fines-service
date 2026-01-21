@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.proxy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
@@ -26,5 +27,14 @@ public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, 
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch criteria) {
         return getCurrentModeService().searchMinorCreditors(criteria);
+    }
+
+    private MinorCreditorServiceInterface getCurrentHeaderSummaryService() {
+        return isLegacyMode(dynamicConfigService) ? legacyMinorCreditorService : opalMinorCreditorService;
+    }
+
+    public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
+        log.debug(":getHeaderSummary: minorCreditorAccountId={}", minorCreditorAccountId);
+        return getCurrentHeaderSummaryService().getHeaderSummary(minorCreditorAccountId);
     }
 }
