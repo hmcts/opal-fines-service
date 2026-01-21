@@ -40,7 +40,7 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
-import uk.gov.hmcts.opal.service.opal.PdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -53,7 +53,7 @@ class DraftAccountTransactionalTest {
     private BusinessUnitRepository businessUnitRepository;
 
     @Mock
-    private PdplLoggingService loggingService;
+    private DraftAccountPdplLoggingService loggingService;
 
     @InjectMocks
     private DraftAccountTransactional draftAccountTransactional;

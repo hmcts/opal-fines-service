@@ -1,7 +1,10 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
@@ -19,6 +22,8 @@ import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.noFinesPermission
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.permissionUser;
 
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -40,12 +45,13 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
-import uk.gov.hmcts.opal.service.opal.PdplLoggingService;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.DraftAccountControllerIntegrationTest")
@@ -63,9 +69,6 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     UserStateService userStateService;
-
-    @MockitoBean
-    PdplLoggingService pdplLoggingService;
 
     @MockitoBean
     LoggingService loggingService;
@@ -913,12 +916,10 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Create draft account - Should create and call PDPLLoggingService")
     void testPostDraftAccount_success_and_pdplServiceCalled() throws Exception {
 
-        // arrange: request body from your helper
         String validRequestBody = validPostRequestBody(); // reuse your helper
 
         when(userStateService.checkForAuthorisedUser(any())).thenReturn(allFinesPermissionUser());
 
-        // act: perform POST
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
             .header("authorization", "Bearer some_value")
             .header("If-Match", "0")
@@ -930,28 +931,30 @@ class DraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
 
         // verify PDPLLoggingService was called with a DraftAccountEntity
-        ArgumentCaptor<DraftAccountEntity> captor = ArgumentCaptor.forClass(DraftAccountEntity.class);
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor = ArgumentCaptor.forClass(
+            PersonalDataProcessingLogDetails.class);
 
-        // wait up to 2s for invocation (increase if CI is slow)
-        verify(pdplLoggingService, timeout(2000).times(1))
-            .pdplForSubmitDraftAccount(captor.capture());
+        verify(loggingService, times(2)).personalDataAccessLogAsync(captor.capture());
 
-        DraftAccountEntity capturedEntity = captor.getValue();
-        if (capturedEntity == null) {
-            throw new AssertionError("Expected pdplForSubmitDraftAccount to be invoked");
-        }
+        PersonalDataProcessingLogDetails pdpl = captor.getValue();
+        assertNotNull(pdpl);
 
-        // light assertions — adapt to expected values from your response/payload
-        // e.g. check submittedBy or draftAccountId (your controller may set draft id on response only)
-        if (capturedEntity.getSubmittedBy() == null || capturedEntity.getSubmittedBy().isEmpty()) {
-            throw new AssertionError("expected capturedEntity.submittedBy to be set");
-        }
+        assertNotNull(pdpl.getCreatedBy());
+        assertEquals("BUUID1", pdpl.getCreatedBy().getIdentifier()); // adapt to your ParticipantIdentifier API
 
-        // if account is stored as JSON string on entity, you can assert it contains expected key
-        String accountJson = capturedEntity.getAccount();
-        if (accountJson == null || !accountJson.contains("\"account_type\"")) {
-            throw new AssertionError("expected account JSON on entity to contain account_type");
-        }
+        assertEquals("Submit Draft Account - Minor Creditor", pdpl.getBusinessIdentifier());
+
+        OffsetDateTime createdAt = pdpl.getCreatedAt();
+        assertNotNull(createdAt);
+
+        assertEquals(PersonalDataProcessingCategory.COLLECTION, pdpl.getCategory()); // adapt to expected enum
+
+        assertNull(pdpl.getRecipient());
+
+        List<ParticipantIdentifier> individuals = pdpl.getIndividuals();
+        assertNotNull(individuals);
+        assertEquals(1, individuals.size());
+        assertEquals("100", individuals.getFirst().getIdentifier());
     }
 
     //CEP 1 CEP1 - Invalid Request Payload (400)

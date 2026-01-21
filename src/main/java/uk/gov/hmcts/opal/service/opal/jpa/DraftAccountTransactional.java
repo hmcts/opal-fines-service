@@ -41,7 +41,8 @@ import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.repository.jpa.DraftAccountSpecs;
-import uk.gov.hmcts.opal.service.opal.PdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 @Service
@@ -61,7 +62,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
     private final DraftAccountSpecs specs = new DraftAccountSpecs();
 
-    private final PdplLoggingService loggingService;
+    private final DraftAccountPdplLoggingService loggingService;
 
     @Transactional(readOnly = true)
     public DraftAccountEntity getDraftAccount(long draftAccountId) {
@@ -110,7 +111,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         DraftAccountEntity draftAccountEntity = draftAccountRepository.save(
             toEntity(dto, created, businessUnit, snapshot));
 
-        loggingService.pdplForSubmitDraftAccount(draftAccountEntity);
+        loggingService.pdplForDraftAccount(draftAccountEntity, Action.SUBMIT);
 
         return draftAccountEntity;
 
