@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
@@ -98,4 +99,14 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             .creditor(request.getCreditor())
             .accountNumber(request.getAccountNumber()).activeAccountsOnly(request.getActiveAccountsOnly()).build();
     }
+
+    @Override
+    public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
+        log.debug(":getHeaderSummary: Legacy mode not implemented. minorCreditorAccountId={}",
+            minorCreditorAccountId);
+
+        throw new UnsupportedOperationException(
+            "Legacy mode not implemented for GET /minor-creditor-accounts/{id}/header-summary");
+    }
+
 }
