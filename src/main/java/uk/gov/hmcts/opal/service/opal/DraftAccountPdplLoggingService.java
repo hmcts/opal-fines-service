@@ -8,28 +8,26 @@ import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 @Service
 @Slf4j(topic = "opal.pdplLoggingService")
-public class DraftAccountPdplLoggingService
-    extends AbstractDraftAccountPdplLoggingService {
+public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
 
     private static final String JSON_DEFENDANT_TYPE = "$.defendant_type";
     private static final String JSON_MINOR_CREDITOR = "$..minor_creditor";
 
-    public DraftAccountPdplLoggingService(
-        LoggingService loggingService,
-        Clock clock
-    ) {
+    public DraftAccountPdplLoggingService(LoggingService loggingService, Clock clock) {
         super(loggingService, clock);
     }
 
     public void pdplForDraftAccount(DraftAccountEntity entity, Action action) {
-        JsonPathUtil.DocContext docContext =
-            createDocContext(entity.getAccount(), "");
+        JsonPathUtil.DocContext docContext = createDocContext(entity.getAccount(), "");
 
         Object dtRaw = docContext.read(JSON_DEFENDANT_TYPE);
         String defendantType = dtRaw == null ? "" : dtRaw.toString();
@@ -39,19 +37,12 @@ public class DraftAccountPdplLoggingService
         }
 
         switch (defendantType) {
-            case "adultOrYouthOnly" ->
-                logForRole(entity, action, Role.DEFENDANT);
-
+            case "adultOrYouthOnly" -> logForRole(entity, action, Role.DEFENDANT);
             case "pgToPay" -> {
                 logForRole(entity, action, Role.PARENT_OR_GUARDIAN);
                 logForRole(entity, action, Role.DEFENDANT);
             }
-
-            default ->
-                log.error(
-                    "Unknown defendant_type '{}', skipping defendant/pg logs",
-                    defendantType
-                );
+            default -> log.error("Unknown defendant_type '{}', skipping defendant/pg logs", defendantType);
         }
 
         if (hasAnyIndividualMinor(docContext)) {
@@ -59,21 +50,22 @@ public class DraftAccountPdplLoggingService
         }
     }
 
-    private void logForRole(
-        DraftAccountEntity entity,
-        Action action,
-        Role role
-    ) {
-        logDraftAccountPersonalDataProcessing(
-            entity,
-            action.formatFor(role)
-        );
+    private void logForRole(DraftAccountEntity entity, Action action, Role role) {
+        String businessIdentifier = action.formatFor(role);
+
+        ParticipantIdentifier individuals = ParticipantIdentifier.builder()
+            .identifier(entity.getDraftAccountId().toString())
+            .type(PdplIdentifierType.DRAFT_ACCOUNT)
+            .build();
+
+        logPdpl(businessIdentifier,
+            PersonalDataProcessingCategory.COLLECTION,
+            List.of(individuals),
+            null);
     }
 
     private boolean hasAnyIndividualMinor(JsonPathUtil.DocContext docContext) {
-        List<Map<String, Object>> minorCreditors =
-            docContext.read(JSON_MINOR_CREDITOR);
-
+        List<Map<String, Object>> minorCreditors = docContext.read(JSON_MINOR_CREDITOR);
         if (minorCreditors == null || minorCreditors.isEmpty()) {
             return false;
         }
@@ -101,7 +93,8 @@ public class DraftAccountPdplLoggingService
     }
 
     public enum Action {
-        SUBMIT("Submit Draft Account - %s");
+        SUBMIT("Submit Draft Account - %s"),
+        RESUBMIT("Re-submit Draft Account - %s");
 
         private final String template;
 
