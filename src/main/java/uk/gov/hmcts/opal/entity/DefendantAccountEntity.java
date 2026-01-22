@@ -23,7 +23,10 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,11 +36,6 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountTypeConverter;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
-import uk.gov.hmcts.opal.util.Versioned;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
 import uk.gov.hmcts.opal.util.Versioned;
 
 @Entity
@@ -224,6 +222,17 @@ public class DefendantAccountEntity implements Versioned {
 
     @Column(name = "jail_days")
     private Integer jailDays;
+
+    /**
+     * This avoids potential infinite recursion issues when
+     * printing entities with bidirectional relationships.
+     */
+    @Override
+    public String toString() {
+        return "DefendantAccountEntity{"
+            + "defendantAccountId=" + defendantAccountId
+            + '}';
+    }
 
     @Column(name = "version_number")
     @Version

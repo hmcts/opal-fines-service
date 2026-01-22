@@ -23,6 +23,10 @@ WHERE defendant_account_party_id IN (
                                      20010, 22004         -- NEW
     );
 
+-- PO-2629 isolated cleanup (delete links by account id - robust)
+DELETE FROM defendant_account_parties
+WHERE defendant_account_id IN (262901, 262902);
+
 -- Remove from fixed_penalty_offences (safe even if none exist)
 DELETE FROM fixed_penalty_offences
 WHERE defendant_account_id IN (
@@ -34,7 +38,8 @@ WHERE defendant_account_id IN (
 DELETE FROM payment_terms
 WHERE defendant_account_id IN (
                                77, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
-                               20010, 22004     -- NEW
+                               20010, 22004,
+                               262901, 262902
     );
 
 -- Remove notes (ASSOCIATED_RECORD_ID is varchar)
@@ -68,21 +73,24 @@ WHERE defendant_account_id IN (77, 88, 901, 333, 555, 666, 777, 444, 999, 10001,
 DELETE FROM defendant_accounts
 WHERE defendant_account_id IN (
                                77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 9077, 77444,
-                               20010, 22004       -- NEW
+                               20010, 22004,
+                               262901, 262902
     );
 
 -- Remove from debtor_detail before removing parties
 DELETE FROM debtor_detail
 WHERE party_id IN (
                    77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
-                   20010, 22004     -- NEW
+                   20010, 22004,
+                   262901, 262902
     );
 
 -- Remove inserted parties
 DELETE FROM parties
 WHERE party_id IN (
                    77, 78, 88, 901, 333, 555, 666, 777, 444, 999, 10001, 10002, 10003, 10004, 77444,
-                   20010, 22004     -- NEW
+                   20010, 22004,
+                   262901, 262902
     );
 
 -- Remove from draft_accounts referencing test BU
@@ -121,6 +129,9 @@ DELETE FROM creditor_accounts WHERE business_unit_id = 9999;
 DELETE FROM courts WHERE business_unit_id = 9999;
 
 -- Remove test results if present (fix test count mismatches)
+DELETE FROM result_documents WHERE result_id IN ('TTPAY');
+
+-- Remove test results if present (fix test count mismatches)
 DELETE FROM results WHERE result_id IN ('TSTRES');
 
 -- Remove from major_creditors referencing test BU
@@ -151,3 +162,11 @@ WHERE enforcer_id IN (780000000021, 21)
 -- Remove test Courts used by ITs
 DELETE FROM courts
 WHERE court_id IN (780000000185, 100);
+
+-- Remove test document instances used by ITs
+DELETE FROM document_instances
+WHERE document_id IN ('TTPLET');
+
+-- Remove test document templates used by ITs
+DELETE FROM documents
+WHERE document_id IN ('TTPLET');

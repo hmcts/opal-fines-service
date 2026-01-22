@@ -1,12 +1,12 @@
 package uk.gov.hmcts.opal.controllers;
 
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
 
 @ActiveProfiles({"integration", "opal"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
@@ -504,4 +504,44 @@ class OpalDefendantAccountsIntegrationTest extends DefendantAccountsControllerIn
         super.testGetEnforcementStatus_serverError(log, false);
     }
 
+
+    @Test void addPaymentTerms_Happy() throws Exception {
+        super.test_Opal_AddPaymentTerms_Happy(log);
+    }
+
+    @Test void addPaymentTerms_Unauthorized() throws Exception {
+        super.test_Opal_AddPaymentTerms_Unauthorized(log);
+    }
+
+    @Test void addPaymentTerms_Forbidden() throws Exception {
+        super.test_Opal_AddPaymentTerms_Forbidden(log);
+    }
+
+    @Test void addPaymentTerms_NotFoundWrongBU() throws Exception {
+        super.test_Opal_AddPaymentTerms_NotFound_WrongBU(log);
+    }
+
+    @Test void addPaymentTerms_IfMatchConflict() throws Exception {
+        super.test_Opal_AddPaymentTerms_IfMatchConflict(log);
+    }
+
+    @Test void addPaymentTerms_IfMatchMissing() throws Exception {
+        super.test_Opal_AddPaymentTerms_IfMatchMissing(log);
+    }
+
+    @Test void addPaymentTerms_SchemaValidation() throws Exception {
+        super.test_Opal_AddPaymentTerms_SchemaValidation(log);
+    }
+
+    @Test void addPaymentTerms_Timeout() throws Exception {
+        super.test_Opal_AddPaymentTerms_Timeout(log);
+    }
+
+    @Test void addPaymentTerms_ServiceUnavailable() throws Exception {
+        super.test_Opal_AddPaymentTerms_ServiceUnavailable(log);
+    }
+
+    @Test void addPaymentTerms_ServerError() throws Exception {
+        super.test_Opal_AddPaymentTerms_ServerError(log);
+    }
 }

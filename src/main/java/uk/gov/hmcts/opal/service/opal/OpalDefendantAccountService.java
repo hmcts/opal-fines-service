@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildAccountStatusReference;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCollectionOrder;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildCommentsAndNotes;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildContactDetails;
@@ -14,7 +13,7 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildP
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildPartyDetails;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildVehicleDetails;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.filterDefendantParty;
-import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.normaliseAccountType;
+import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.mapToDto;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -64,6 +63,7 @@ import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -86,6 +86,7 @@ import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.mapper.request.PaymentTermsMapper;
 import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.CourtRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
@@ -106,6 +107,7 @@ import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -158,9 +160,28 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final ResultRepository resultRepository;
 
+    // Services
+    private final DocumentService documentService;
+
+    private final PaymentTermsService paymentTermsService;
+
+    private final ResultService resultService;
+
+    private final ReportEntryServiceInterface reportEntryService;
+
+    // Mappers
+    private final PaymentTermsMapper paymentTermsMapper;
+
     @Transactional(readOnly = true)
     public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
         return defendantAccountRepository.findById(defendantAccountId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "Defendant Account not found with id: " + defendantAccountId));
+    }
+
+    @Transactional
+    public DefendantAccountEntity getDefendantAccountByIdForUpdate(long defendantAccountId) {
+        return defendantAccountRepository.findByDefendantAccountIdForUpdate(defendantAccountId)
             .orElseThrow(() -> new EntityNotFoundException(
                 "Defendant Account not found with id: " + defendantAccountId));
     }
@@ -177,71 +198,12 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return mapToDto(entity);
     }
 
-
-    DefendantAccountHeaderSummary mapToDto(DefendantAccountHeaderViewEntity e) {
-        return DefendantAccountHeaderSummary.builder()
-            .defendantAccountId(
-                e.getDefendantAccountId() != null ? e.getDefendantAccountId().toString() : null
-            )
-            .defendantAccountPartyId(
-                e.getDefendantAccountPartyId() != null ? e.getDefendantAccountPartyId().toString() : null
-            )
-            .debtorType(
-                e.getDebtorType() != null
-                    ? e.getDebtorType()
-                    : (Boolean.TRUE.equals(e.getHasParentGuardian()) ? "Parent/Guardian" : "Defendant")
-            )
-            .isYouth(
-                e.getBirthDate() != null
-                    ? java.time.Period.between(e.getBirthDate(), java.time.LocalDate.now()).getYears() < 18
-                    : Boolean.FALSE
-            )
-            .parentGuardianPartyId(Optional.ofNullable(e.getParentGuardianAccountPartyId())
-                .map(Object::toString).orElse(null))
-            .accountNumber(e.getAccountNumber())
-            .accountType(normaliseAccountType(e.getAccountType()))
-            .prosecutorCaseReference(e.getProsecutorCaseReference())
-            .fixedPenaltyTicketNumber(e.getFixedPenaltyTicketNumber())
-            .accountStatusReference(buildAccountStatusReference(e.getAccountStatus()))
-            .businessUnitSummary(OpalDefendantAccountBuilders.buildBusinessUnitSummary(e))
-            .paymentStateSummary(OpalDefendantAccountBuilders.buildPaymentStateSummary(e))
-            .partyDetails(buildPartyDetails(e))
-            .version(BigInteger.valueOf(e.getVersion()))
-            .build();
-    }
-
     @Override
     @Transactional(readOnly = true)
     public DefendantAccountSearchResultsDto searchDefendantAccounts(AccountSearchDto accountSearchDto) {
         log.debug(":searchDefendantAccounts (Opal): criteria: {}", accountSearchDto);
 
-        boolean hasRef =
-            Optional.ofNullable(accountSearchDto.getReferenceNumberDto())
-                .map(r ->
-                    (r.getAccountNumber() != null && !r.getAccountNumber().isBlank())
-                        || (r.getProsecutorCaseReference() != null && !r.getProsecutorCaseReference().isBlank())
-                )
-                .orElse(false);
-
-        boolean applyActiveOnly =
-            Boolean.TRUE.equals(accountSearchDto.getActiveAccountsOnly()) && !hasRef; // ← AC1b: ignore when ref present
-
-        Specification<SearchDefendantAccountEntity> spec =
-            searchDefendantAccountSpecs.filterByBusinessUnits(accountSearchDto.getBusinessUnitIds())
-                .and(searchDefendantAccountSpecs.filterByActiveOnly(applyActiveOnly))
-                .and(searchDefendantAccountSpecs.filterByAccountNumberStartsWithWithCheckLetter(accountSearchDto))
-                .and(searchDefendantAccountSpecs.filterByPcrExact(accountSearchDto))
-                .and(searchDefendantAccountSpecs.filterByReferenceOrganisationFlag(accountSearchDto))
-                .and(
-                    accountSearchDto.getDefendant() != null
-                        && Boolean.TRUE.equals(accountSearchDto.getDefendant().getOrganisation())
-                        ? searchDefendantAccountSpecs.filterByAliasesIfRequested(accountSearchDto)
-                        : searchDefendantAccountSpecs.filterByNameIncludingAliases(accountSearchDto)
-                )
-                .and(searchDefendantAccountSpecs.filterByDobStartsWith(accountSearchDto))
-                .and(searchDefendantAccountSpecs.filterByNiStartsWith(accountSearchDto))
-                .and(searchDefendantAccountSpecs.filterByAddress1StartsWith(accountSearchDto))
-                .and(searchDefendantAccountSpecs.filterByPostcodeStartsWith(accountSearchDto));
+        Specification<SearchDefendantAccountEntity> spec = SearchDefendantAccountSpecs.findBySearch(accountSearchDto);
 
         List<SearchDefendantAccountEntity> rows = searchDefendantAccountRepository.findAll(spec);
 
@@ -473,6 +435,36 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .enforcementOverride(buildEnforcementOverride(entity))
             .version(newVersion)
             .build();
+    }
+
+    /**
+     * This method adds a payment card request to a defendant account.
+     *
+     * <p>
+     * This method is separated from the public interface to allow for
+     * addition of a payment card in a chained operation.
+     * </p>
+     */
+    private AddPaymentCardRequestResponse addPaymentCard(
+        Long defendantAccountId,
+        String businessUnitId,
+        String businessUnitUserId,
+        String ifMatch,
+        String authHeader) {
+
+        log.debug(":addPaymentCard (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
+
+        DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
+        VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCard");
+
+        ensureNoExistingPaymentCardRequest(defendantAccountId);
+
+        createPaymentCardRequest(defendantAccountId);
+
+        updateDefendantAccountWithPcr(account, businessUnitUserId, authHeader);
+
+        // Minimal response
+        return new AddPaymentCardRequestResponse(defendantAccountId);
     }
 
     // TODO - Created PO-2452 to fix bumping the version with a more atomically correct method
@@ -943,20 +935,21 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
         log.debug(":addPaymentCardRequest (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
 
-        DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
-        VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCardRequest");
+        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
 
         amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
-        ensureNoExistingPaymentCardRequest(defendantAccountId);
-
-        createPaymentCardRequest(defendantAccountId);
-
-        updateDefendantAccountWithPcr(account, businessUnitUserId, authHeader);
+        AddPaymentCardRequestResponse paymentCardResponse = addPaymentCard(
+            defendantAccountId,
+            businessUnitId,
+            businessUnitUserId,
+            ifMatch,
+            authHeader
+        );
 
         auditComplete(defendantAccountId, account, businessUnitUserId);
 
-        return new AddPaymentCardRequestResponse(defendantAccountId);
+        return paymentCardResponse;
     }
 
     private DefendantAccountEntity loadAndValidateAccount(Long accountId, String buId) {
@@ -1027,4 +1020,121 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         String forenames,
         String surname,
         String organisationName) { }
+
+    @Override
+    @Transactional
+    public GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+        String businessUnitId,
+        String businessUnitUserId,
+        String ifMatch,
+        String authHeader,
+        AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest) {
+
+        log.debug(":addPaymentTerms (Opal): accountId={}, bu={}", defendantAccountId, businessUnitId);
+
+        // Look up the defendant account
+        DefendantAccountEntity defAccount = getDefendantAccountByIdForUpdate(defendantAccountId);
+
+        // Validate BU
+        if (defAccount.getBusinessUnit() == null
+            || defAccount.getBusinessUnit().getBusinessUnitId() == null
+            || !String.valueOf(defAccount.getBusinessUnit().getBusinessUnitId()).equals(businessUnitId)) {
+            throw new EntityNotFoundException("Defendant Account not found in business unit " + businessUnitId);
+        }
+
+        VersionUtils.verifyIfMatch(defAccount, ifMatch, defendantAccountId, "addPaymentTerms");
+
+        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+
+        // Toggle any existing active payment term(s) for the defendant account to inactive
+        paymentTermsService.deactivateExistingActivePaymentTerms(defAccount.getDefendantAccountId());
+
+        // Map request -> Payment Terms Entity using MapStruct
+        PaymentTermsEntity paymentTermsEntity
+            = paymentTermsMapper.toEntity(addPaymentTermsRequest.getPaymentTerms());
+        paymentTermsEntity.setDefendantAccount(defAccount);
+        // Persist the new (active) PaymentTermsEntity
+        PaymentTermsEntity savedPaymentTerms = paymentTermsService.addPaymentTerm(paymentTermsEntity);
+
+        // Update defendant account with any payment term related attributes
+        addPaymentTerm(defAccount, addPaymentTermsRequest);
+
+        // Clear last_enforcement on the defendant account, if applicable
+        clearLastEnforcementAction(defAccount,
+            savedPaymentTerms.getPaymentTermsId(),
+            defAccount.getBusinessUnit().getBusinessUnitId());
+
+        defendantAccountRepository.save(defAccount);
+
+        // If requestPaymentCardFlag is true: create a PaymentCardRequest row (if not already present)
+        //  and update the defendant account PCR-related attributes (requested flag/date/by/byName).
+        if (Boolean.TRUE.equals(addPaymentTermsRequest.getRequestPaymentCard())) {
+            log.debug(":addPaymentTerms: Request Payment Card flag is TRUE for account {}",
+                defAccount.getDefendantAccountId());
+            addPaymentCard(defendantAccountId, businessUnitId, businessUnitUserId, ifMatch, authHeader);
+        }
+
+        // if generate_payment_terms_change_letter is true
+        //   Create a Document Instances record for a Payment Terms Change Letter.
+        if (Boolean.TRUE.equals(addPaymentTermsRequest.getGeneratePaymentTermsChangeLetter())) {
+            log.debug(":addPaymentTerms: Generate Payment Terms Change Letter flag is TRUE for account {}",
+                defAccount.getDefendantAccountId());
+            documentService.createDocumentInstance(defendantAccountId,
+                defAccount.getBusinessUnit().getBusinessUnitId());
+        }
+
+        // Create report entry for the Extension of Time to Pay report
+        reportEntryService.createExtendTtpReportEntry(savedPaymentTerms.getPaymentTermsId(),
+            defAccount.getBusinessUnit().getBusinessUnitId());
+
+        log.debug(":addPaymentTerms: saved payment terms id={} for account {}",
+            savedPaymentTerms.getPaymentTermsId(), defAccount.getDefendantAccountId());
+
+        amendmentService.auditFinaliseStoredProc(
+            defAccount.getDefendantAccountId(),
+            RecordType.DEFENDANT_ACCOUNTS,
+            Short.parseShort(businessUnitId),
+            businessUnitUserId,
+            defAccount.getProsecutorCaseReference(),
+            "ACCOUNT_ENQUIRY"
+        );
+
+        return OpalDefendantAccountBuilders.buildPaymentTermsResponse(savedPaymentTerms);
+    }
+
+    /**
+     * Along with adding a new latest payment_terms we will also clear the last enforcement action on the account.
+     * The only time it doesn't is when the last enforcement has result.extend_ttp_preserve_last_enf = TRUE
+     */
+    private void clearLastEnforcementAction(DefendantAccountEntity defAccount, Long savedPaymentTermsId,
+        Short businessUnitId) {
+        // Retrieve most recent enforcement action for this account using the result
+        Optional<EnforcementEntity.Lite> mostRecentEnforcementOpt = dbEnforcementMostRecent(defAccount);
+
+        if (mostRecentEnforcementOpt.isPresent()) {
+            EnforcementEntity.Lite mostRecentEnforcement = mostRecentEnforcementOpt.get();
+            ResultEntity.Lite resultEntityLite = resultService.getResultById(mostRecentEnforcement.getResultId());
+
+            // If resultEntity exists and extend_ttp_preserve_last_enf is not TRUE, clear last_enforcement
+            if (!resultEntityLite.isExtendTtpPreserveLastEnf()) {
+                log.debug(":clearLastEnforcementAction: Clearing last_enforcement={} for account {}",
+                    defAccount.getLastEnforcement(), defAccount.getDefendantAccountId());
+                defAccount.setLastEnforcement(null);
+
+            } else {
+                log.debug(":clearLastEnforcementAction: Preserving last_enforcement={} for account {} as "
+                        + "extend_ttp_preserve_last_enf=TRUE",
+                    defAccount.getLastEnforcement(), defAccount.getDefendantAccountId());
+            }
+        }
+    }
+
+    /**
+     * Add payment term related attributes to the defendant account.
+     */
+    private void addPaymentTerm(DefendantAccountEntity defAccount,
+        AddDefendantAccountPaymentTermsRequest paymentTermsRequest) {
+
+        defAccount.setSuspendedCommittalDate(paymentTermsRequest.getPaymentTerms().getDateDaysInDefaultImposed());
+    }
 }
