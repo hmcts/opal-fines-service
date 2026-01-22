@@ -51,7 +51,7 @@ java:
     OPAL_FINES_DB_PASSWORD: "{{ .Values.global.postgresPassword}}"
     OPAL_FINES_DB_OPTIONS: "{{ .Values.global.postgresOptions}}"
     RUN_DB_MIGRATION_ON_STARTUP: true
-    OPAL_FRONTEND_URL: "${DEV_OPAL_FRONT_END_URL}"
+    OPAL_FRONTEND_URL: "${OPAL_FRONT_END_URL}"
     OPAL_USER_SERVICE_API_URL: "https://opal-user-service.staging.platform.hmcts.net/"
     OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.staging.platform.hmcts.net/opal
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
@@ -89,7 +89,7 @@ opal-frontend:
       OPAL_FINES_SERVICE_API_URL: "https://opal-fines-service-pr-${CHANGE_ID}.dev.platform.hmcts.net"
       OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub.staging.platform.hmcts.net/opal
       OPAL_USER_SERVICE_API_URL: "https://opal-user-service.staging.platform.hmcts.net"
-      FRONTEND_HOSTNAME: "${DEV_OPAL_FRONT_END_URL}"
+      FRONTEND_HOSTNAME: "${OPAL_FRONT_END_URL}"
       FEATURES_LAUNCH_DARKLY_ENABLED: false
       FEATURES_SSO_ENABLED: false
       FEATURES_APP_INSIGHTS_ENABLED: false
@@ -122,7 +122,7 @@ opal-user-service:
       OPAL_USER_DB_PASSWORD: "{{ .Values.global.postgresPassword}}"
       OPAL_USER_DB_OPTIONS: "{{ .Values.global.postgresOptions}}"
       RUN_DB_MIGRATION_ON_STARTUP: true
-      OPAL_FRONTEND_URL: "${DEV_OPAL_FRONT_END_URL}"
+      OPAL_FRONTEND_URL: "${OPAL_FRONT_END_URL}"
       TESTING_SUPPORT_ENDPOINTS_ENABLED: true
       LAUNCH_DARKLY_ENABLED: false
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-user-service"
