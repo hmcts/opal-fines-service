@@ -61,7 +61,7 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
         logPdpl(businessIdentifier,
             PersonalDataProcessingCategory.COLLECTION,
             List.of(individuals),
-            null);
+            null, entity);
     }
 
     private boolean hasAnyIndividualMinor(JsonPathUtil.DocContext docContext) {
