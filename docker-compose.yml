@@ -59,6 +59,7 @@ services:
       - LOGBACK_REQUIRE_ERROR_CODE=false
       - OPAL_LOGGING_DB_HOST=opal-fines-db
       - OPAL_LOGGING_DB_NAME=opal-logging-db
+      - OPAL_LOGGING_DB_PORT=5432
       - OPAL_LOGGING_DB_USERNAME=opal-fines
       - OPAL_LOGGING_DB_PASSWORD=opal-fines
       - LOGGING_PDPL_CONSUMER_ENABLED=true
