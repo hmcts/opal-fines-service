@@ -5,8 +5,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
@@ -28,9 +26,7 @@ public abstract class AbstractPdplLoggingService {
         DraftAccountEntity entity) {
 
         // attempt to resolve createdBy from Spring Security
-        ParticipantIdentifier createdBy = null;
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        createdBy = ParticipantIdentifier.builder()
+        ParticipantIdentifier createdBy = ParticipantIdentifier.builder()
             .identifier(entity.getSubmittedBy())
             .type(PdplIdentifierType.OPAL_USER_ID)
             .build();
