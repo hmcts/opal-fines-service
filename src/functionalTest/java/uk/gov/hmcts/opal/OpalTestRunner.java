@@ -17,6 +17,7 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 public class OpalTestRunner {
 
     static Logger log = LoggerFactory.getLogger(OpalTestRunner.class.getName());
+
     static {
         log.info("FINES URL: {}", BaseStepDef.getTestUrl());
         log.info("LOGGING URL: {}", BaseStepDef.getLoggingTestUrl());
