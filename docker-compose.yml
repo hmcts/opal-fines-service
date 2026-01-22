@@ -1,4 +1,3 @@
-
 services:
   opal-fines-service:
     container_name: opal-fines-service
@@ -37,26 +36,47 @@ services:
       - default
       - sb-emulator
 
-  opal-fines-db:
-    container_name: opal-fines-db
-    image: postgres:17.5
-    restart: always
+  opal-logging-service:
+    build:
+      context: .
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    image: hmctspublic.azurecr.io/opal/logging-service
     environment:
-      - POSTGRES_DB=opal-fines-db
-      - POSTGRES_USER=opal-fines
-      - POSTGRES_PASSWORD=opal-fines
-    ports:
-      - "5432:5432"
-    volumes:
-      - opal-database-data:/var/lib/postgresql/data
+      # these environment variables are used by java-logging library
+      - ROOT_APPENDER
+      - JSON_CONSOLE_PRETTY_PRINT
+      - ROOT_LOGGING_LEVEL
+      - REFORM_SERVICE_TYPE
+      - REFORM_SERVICE_NAME
+      - REFORM_TEAM
+      - REFORM_ENVIRONMENT
+      - LOGBACK_DATE_FORMAT
+      - LOGBACK_REQUIRE_THREAD
+      - LOGBACK_REQUIRE_ALERT_LEVEL=false
+      - LOGBACK_REQUIRE_ERROR_CODE=false
+      - OPAL_LOGGING_DB_HOST=opal-fines-db
+      - OPAL_LOGGING_DB_NAME=opal-logging-db
+      - OPAL_LOGGING_DB_USERNAME=opal-fines
+      - OPAL_LOGGING_DB_PASSWORD=opal-fines
+      - LOGGING_PDPL_CONSUMER_ENABLED=true
+      - SERVICEBUS_CONNECTION_STRING=Endpoint=sb://sb-emulator/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true
+      - SERVICEBUS_LOGGING_PDPL_PROTOCOL=amqp
+      - SERVICEBUS_LOGGING_PDPL_QUEUE_NAME=logging-pdpl
 
-  redis:
-    container_name: redis
-    image: redis
+      - FLYWAY_URL=jdbc:postgresql://opal-fines-db:5432/opal-logging-db
+      - FLYWAY_USER=opal-fines
+      - FLYWAY_PASSWORD=opal-fines
+      - FLYWAY_LOCATIONS=classpath:db/migration/allEnvs,classpath:db/migration/devOnly,classpath:db/migration/stgOnly
     ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
+      - "4065:4065"
+    depends_on:
+      - azure-sb-emulator
+    networks:
+      - default
+      - sb-emulator
 
   azure-sb-emulator:
     container_name: "servicebus-emulator"
@@ -90,6 +110,26 @@ services:
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "OpalFines!12345"
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+  opal-fines-db:
+    container_name: opal-fines-db
+    image: postgres:17.5
+    restart: always
+    environment:
+      - POSTGRES_DB=opal-fines-db
+      - POSTGRES_USER=opal-fines
+      - POSTGRES_PASSWORD=opal-fines
+    ports:
+      - "5432:5432"
+    volumes:
+      - opal-database-data:/var/lib/postgresql/data
+      - ./docker-files/postgres/init:/docker-entrypoint-initdb.d:ro
 volumes:
   opal-database-data:
   redis-data:
