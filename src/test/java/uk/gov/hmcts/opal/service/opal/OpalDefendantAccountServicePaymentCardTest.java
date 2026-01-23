@@ -25,11 +25,11 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
-import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
@@ -93,7 +93,7 @@ class OpalDefendantAccountServicePaymentCardTest {
         when(defendantAccountRepository.findById(1L)).thenReturn(Optional.of(account));
         when(paymentCardRequestRepository.existsByDefendantAccountId(1L)).thenReturn(true);
 
-        assertThrows(ResourceConflictException.class, () ->
+        assertThrows(PaymentCardRequestAlreadyExistsException.class, () ->
             service.addPaymentCardRequest(1L, "10", null, "\"1\"", "AUTH")
         );
     }

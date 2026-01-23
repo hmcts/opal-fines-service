@@ -3681,8 +3681,15 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
         );
 
         result.andExpect(status().isConflict())
-            .andExpect(jsonPath("$.conflictReason")
-                .value("A payment card request already exists for this account."));
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/resource-conflict"))
+            .andExpect(jsonPath("$.status").value(409))
+            .andExpect(jsonPath("$.detail")
+                .value("A payment card request already exists for this account."))
+            .andExpect(jsonPath("$.resourceType").value("DefendantAccountEntity"))
+            .andExpect(jsonPath("$.resourceId").value("88"))
+            .andExpect(jsonPath("$.retriable").value(true))
+            .andExpect(jsonPath("$.conflictReason").doesNotExist());
+
     }
 
     @DisplayName("OPAL: PUT Replace DAP – Individual aliases upsert/trim on isolated IDs (22004)")
