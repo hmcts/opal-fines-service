@@ -10,14 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.service.MinorCreditorService;
@@ -52,6 +46,20 @@ public class MinorCreditorController {
 
         return buildResponse(response);
     }
+
+    @GetMapping(value = "{minorCreditorId}/at-a-glance")
+    @Operation(summary = "Get Minor Creditor Account At A Glance")
+    public ResponseEntity<GetMinorCreditorAccountAtAGlanceResponse> getMinorCreditorsAtAGlance(
+        @PathVariable Long minorCreditorId,
+        @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
+        log.debug(":GET:getMinorCreditorsAtAGlance: query: \n{}", minorCreditorId);
+
+        GetMinorCreditorAccountAtAGlanceResponse response = minorCreditorService
+            .getMinorCreditorAtAGlance(minorCreditorId, authHeaderValue);
+
+        return buildResponse(response);
+    }
+
 
     @Hidden
     @DeleteMapping(value = "/{minorCreditorId}", produces = MediaType.APPLICATION_JSON_VALUE)

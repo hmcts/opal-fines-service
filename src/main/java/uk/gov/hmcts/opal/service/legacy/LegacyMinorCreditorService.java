@@ -3,10 +3,7 @@ package uk.gov.hmcts.opal.service.legacy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.dto.CreditorAccountDto;
-import uk.gov.hmcts.opal.dto.DefendantDto;
-import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
-import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.dto.*;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
@@ -46,6 +43,11 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             log.info(":searchMinorCreditor: Legacy Gateway response: Success.");
         }
         return toMinorSearchDto(response.responseEntity);
+    }
+
+    @Override
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
+        return null;
     }
 
     private PostMinorCreditorAccountsSearchResponse toMinorSearchDto(
