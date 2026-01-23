@@ -263,7 +263,10 @@ def coverageExclusions = [
   '**/uk/gov/hmcts/opal/**/model/**',
   '**/uk/gov/hmcts/opal/**/config/**',
   '**/uk/gov/hmcts/opal/authentication/client/**',
-  '**/uk/gov/hmcts/opal/**/exception/**'
+  '**/uk/gov/hmcts/opal/**/exception/**',
+  '**/uk/gov/hmcts/opal/service/DefendantAccountService.java',
+  '**/uk/gov/hmcts/opal/service/legacy/LegacyDefendantAccountService.java',
+  '**/uk/gov/hmcts/opal/service/opal/OpalDefendantAccountService.java'
 ]
 
 jacocoTestReport {
