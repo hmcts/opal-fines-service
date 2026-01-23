@@ -7,7 +7,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -120,7 +119,7 @@ public class OpalDefendantAccountServiceAddPaymentTermsTest {
 
         PaymentTermsEntity paymentTerms = PaymentTermsEntity.builder()
             .active(Boolean.TRUE)
-            .postedDate(LocalDate.from(LocalDateTime.now()))
+            .postedDate(LocalDateTime.now())
             .postedBy(postedBy)
             .postedByUsername(postedBy)
             .build();

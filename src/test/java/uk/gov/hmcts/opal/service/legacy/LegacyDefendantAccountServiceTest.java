@@ -607,7 +607,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
                         .instalmentPeriod(new uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod(
                             uk.gov.hmcts.opal.dto.legacy.LegacyInstalmentPeriod.InstalmentPeriodCode.W))
                         .postedDetails(new uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails(
-                            java.time.LocalDate.of(2023, 11, 3), "01000000A", ""))
+                            java.time.LocalDateTime.of(2023, 11, 3, 11, 15, 12), "01000000A", ""))
                         .build()
                 )
                 .paymentCardLastRequested(java.time.LocalDate.of(2024, 1, 1))
@@ -2659,7 +2659,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         PostedDetails pd = new PostedDetails();
         pd.setPostedBy("tester");
         pd.setPostedByName("Test User");
-        pd.setPostedDate(java.time.LocalDate.of(2024, 1, 1));
+        pd.setPostedDate(java.time.LocalDateTime.of(2024, 1, 1, 10, 31, 45));
 
         var method = LegacyDefendantAccountService.class
             .getDeclaredMethod("mapLegacyPostedDetails", PostedDetails.class);
