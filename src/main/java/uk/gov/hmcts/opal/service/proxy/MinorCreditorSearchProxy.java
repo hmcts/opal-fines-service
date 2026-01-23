@@ -29,12 +29,8 @@ public class MinorCreditorSearchProxy implements MinorCreditorServiceInterface, 
         return getCurrentModeService().searchMinorCreditors(criteria);
     }
 
-    private MinorCreditorServiceInterface getCurrentHeaderSummaryService() {
-        return isLegacyMode(dynamicConfigService) ? legacyMinorCreditorService : opalMinorCreditorService;
-    }
-
     public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
         log.debug(":getHeaderSummary: minorCreditorAccountId={}", minorCreditorAccountId);
-        return getCurrentHeaderSummaryService().getHeaderSummary(minorCreditorAccountId);
+        return getCurrentModeService().getHeaderSummary(minorCreditorAccountId);
     }
 }

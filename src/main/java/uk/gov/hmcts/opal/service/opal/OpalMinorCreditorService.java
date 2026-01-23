@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,11 +51,11 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
         log.debug(":getHeaderSummary (Opal): minorCreditorAccountId={}", minorCreditorAccountId);
 
-        MinorCreditorAccountHeaderEntity entity = minorCreditorAccountHeaderRepository.findById(minorCreditorAccountId)
-            .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.NOT_FOUND,
-                "Minor creditor account not found: " + minorCreditorAccountId
-            ));
+        MinorCreditorAccountHeaderEntity entity =
+            minorCreditorAccountHeaderRepository.findById(minorCreditorAccountId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                    "Minor creditor account not found: " + minorCreditorAccountId
+                ));
 
         return toHeaderSummaryResponse(entity);
     }
