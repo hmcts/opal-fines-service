@@ -1,0 +1,36 @@
+include:
+  - path: ../opal-shared-infrastructure/docker-compose.yml
+  - path: ../opal-shared-infrastructure/docker-compose-service-bus.yml
+
+services:
+  opal-fines-service:
+    environment:
+      # these environment variables are used by java-logging library
+      - ROOT_APPENDER
+      - JSON_CONSOLE_PRETTY_PRINT
+      - ROOT_LOGGING_LEVEL
+      - REFORM_SERVICE_TYPE
+      - REFORM_SERVICE_NAME
+      - REFORM_TEAM
+      - REFORM_ENVIRONMENT
+      - LOGBACK_DATE_FORMAT
+      - LOGBACK_REQUIRE_THREAD
+      - LOGBACK_REQUIRE_ALERT_LEVEL=false
+      - LOGBACK_REQUIRE_ERROR_CODE=false
+      - OPAL_FINES_DB_HOST=opal-db
+      - OPAL_FINES_DB_USERNAME=opal-db-user
+      - OPAL_FINES_DB_PASSWORD=opal-db-password
+      - OPAL_LEGACY_GATEWAY_URL=http://host.docker.internal:4553/opal
+      - OPAL_USER_SERVICE_API_URL=http://host.docker.internal:4555/
+      - TESTING_SUPPORT_ENDPOINTS_ENABLED=true
+      - OPAL_REDIS_ENABLED=false
+      - SERVICEBUS_CONNECTION_STRING=Endpoint=sb://sb-emulator/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true
+    ports:
+      - "${FINES_PORT:-4550}:4550"
+    depends_on:
+      - opal-db
+      - redis
+      - azure-sb-emulator
+    networks:
+      - default
+      - sb-emulator

@@ -1,0 +1,3 @@
+services:
+  opal-fines-service:
+    image: sdshmctspublic.azurecr.io/opal/fines-service:latest
