@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -10,9 +9,9 @@ import uk.gov.hmcts.opal.dto.common.FixedPenaltyTicketDetails;
 import uk.gov.hmcts.opal.dto.common.VehicleFixedPenaltyDetails;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountFixedPenaltyServiceInterface;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.FixedPenaltyOffenceRepositoryService;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
 
 @Service
@@ -20,27 +19,19 @@ import uk.gov.hmcts.opal.util.DateTimeUtils;
 @RequiredArgsConstructor
 public class OpalDefendantAccountFixedPenaltyService implements DefendantAccountFixedPenaltyServiceInterface {
 
-    private final DefendantAccountRepository defendantAccountRepository;
+    private final DefendantAccountRepositoryService defendantAccountRepositoryService;
 
-    private final FixedPenaltyOffenceRepository fixedPenaltyOffenceRepository;
-
-    @Transactional(readOnly = true)
-    public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
-        return defendantAccountRepository.findById(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Defendant Account not found with id: " + defendantAccountId));
-    }
+    private final FixedPenaltyOffenceRepositoryService fixedPenaltyOffenceRepositoryService;
 
     @Override
     @Transactional(readOnly = true)
     public GetDefendantAccountFixedPenaltyResponse getDefendantAccountFixedPenalty(Long defendantAccountId) {
         log.debug(":getDefendantAccountFixedPenalty (Opal): id={}", defendantAccountId);
 
-        DefendantAccountEntity account = getDefendantAccountById(defendantAccountId);
+        DefendantAccountEntity account = defendantAccountRepositoryService.findById(defendantAccountId);
 
-        FixedPenaltyOffenceEntity offence = fixedPenaltyOffenceRepository.findByDefendantAccountId(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Fixed Penalty Offence not found for account: " + defendantAccountId));
+        FixedPenaltyOffenceEntity offence = fixedPenaltyOffenceRepositoryService
+            .findByDefendantAccountId(defendantAccountId);
 
         return toFixedPenaltyResponse(account, offence);
     }

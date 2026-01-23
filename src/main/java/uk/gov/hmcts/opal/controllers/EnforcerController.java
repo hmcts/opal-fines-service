@@ -40,7 +40,7 @@ public class EnforcerController {
     @Operation(summary = "Returns the Enforcer for the given enforcerId.")
     public ResponseEntity<EnforcerEntity> getEnforcerById(@PathVariable Long enforcerId) {
 
-        log.debug(":GET:getEnforcerById: enforcerId: {}", enforcerId);
+        log.debug(":GET:findById: enforcerId: {}", enforcerId);
 
         EnforcerEntity response = enforcerService.getEnforcerById(enforcerId);
 

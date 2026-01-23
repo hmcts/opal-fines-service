@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.opal;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -9,23 +8,17 @@ import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
-import uk.gov.hmcts.opal.entity.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.DefendantAccountPartiesEntity;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.EnforcementRepository;
-import uk.gov.hmcts.opal.repository.EnforcerRepository;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
-import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountEnforcementServiceInterface;
+import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementAction;
@@ -39,27 +32,17 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.filter
 public class OpalDefendantAccountEnforcementService
     implements DefendantAccountEnforcementServiceInterface {
 
-    private final DefendantAccountRepository defendantAccountRepository;
+    private final DefendantAccountRepositoryService defendantAccountRepositoryService;
 
-    private final LocalJusticeAreaRepository localJusticeAreaRepository;
+    private final LocalJusticeAreaRepositoryService localJusticeAreaRepositoryService;
 
-    private final EnforcerRepository enforcerRepository;
+    private final EnforcerRepositoryService enforcerRepositoryService;
 
-    private final EnforcementRepository enforcementRepository;
+    private final EnforcementRepositoryService enforcementRepositoryService;
 
-    private final DebtorDetailRepository debtorDetailRepository;
+    private final DebtorDetailRepositoryService debtorDetailRepositoryService;
 
-    private final ResultRepository resultRepository;
-
-    @Transactional(readOnly = true)
-    public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
-        return defendantAccountRepository
-            .findById(defendantAccountId)
-            .orElseThrow(
-                () ->
-                    new EntityNotFoundException(
-                        "Defendant Account not found with id: " + defendantAccountId));
-    }
+    private final ResultRepositoryService resultRepositoryService;
 
     @Override
     public AddEnforcementResponse addEnforcement(
@@ -81,43 +64,13 @@ public class OpalDefendantAccountEnforcementService
             return EnforcementOverride.builder()
                 .enforcementOverrideResult(
                     buildEnforcementOverrideResult(
-                        dbResultEntity(entity.getEnforcementOverrideResultId())))
-                .enforcer(OpalDefendantAccountBuilders.buildEnforcer(dbEnforcerEntity(entity)))
-                .lja(OpalDefendantAccountBuilders.buildLja(dbLja(entity)))
+                        resultRepositoryService.getResultById(entity.getEnforcementOverrideResultId())))
+                .enforcer(OpalDefendantAccountBuilders.buildEnforcer(
+                    enforcerRepositoryService.findById(entity.getEnforcementOverrideEnforcerId())))
+                .lja(OpalDefendantAccountBuilders.buildLja(
+                    localJusticeAreaRepositoryService.getLjaById(entity.getEnforcementOverrideTfoLjaId())))
                 .build();
         }
-    }
-
-    // These 'DB' methods are focused purely on fetching relevant entities from the DB without any
-    // mapping.
-
-    @Transactional(readOnly = true)
-    Optional<ResultEntity.Lite> dbResultEntity(String resultId) {
-        return Optional.ofNullable(resultId).flatMap(resultRepository::findById);
-    }
-
-    @Transactional(readOnly = true)
-    Optional<EnforcerEntity> dbEnforcerEntity(DefendantAccountEntity entity) {
-        return Optional.ofNullable(entity.getEnforcementOverrideEnforcerId())
-            .flatMap(enforcerRepository::findById)
-            .filter(enf -> Objects.nonNull(enf.getEnforcerId()));
-    }
-
-    @Transactional(readOnly = true)
-    Optional<LocalJusticeAreaEntity> dbLja(DefendantAccountEntity entity) {
-        return Optional.ofNullable(entity.getEnforcementOverrideTfoLjaId())
-            .flatMap(localJusticeAreaRepository::findById);
-    }
-
-    @Transactional(readOnly = true)
-    Optional<DebtorDetailEntity> dbDebtorDetails(PartyEntity party) {
-        return debtorDetailRepository.findByPartyId(party.getPartyId());
-    }
-
-    @Transactional(readOnly = true)
-    Optional<EnforcementEntity.Lite> dbEnforcementMostRecent(DefendantAccountEntity entity) {
-        return enforcementRepository.findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(
-            entity.getDefendantAccountId(), entity.getLastEnforcement());
     }
 
     @Override
@@ -126,20 +79,23 @@ public class OpalDefendantAccountEnforcementService
 
         log.debug(":getEnforcementStatus: def acc: {}", defendantAccountId);
 
-        DefendantAccountEntity defendantEntity = getDefendantAccountById(defendantAccountId);
+        DefendantAccountEntity defendantEntity = defendantAccountRepositoryService
+            .findById(defendantAccountId);
         DefendantAccountPartiesEntity defendantParty = filterDefendantParty(defendantEntity);
-        Optional<EnforcementEntity.Lite> recentEnforcement = dbEnforcementMostRecent(defendantEntity);
+        Optional<EnforcementEntity.Lite> recentEnforcement =
+            enforcementRepositoryService.getEnforcementMostRecent(
+                defendantEntity.getDefendantAccountId(), defendantEntity.getLastEnforcement());
 
         return buildEnforcementStatus(
             defendantEntity,
             defendantParty,
-            dbDebtorDetails(defendantParty.getParty()),
+            debtorDetailRepositoryService.findByPartyId(defendantParty.getParty().getPartyId()),
             recentEnforcement.map(EnforcementEntity::getResult),
             buildEnforcementOverride(defendantEntity),
             buildEnforcementAction(
                 recentEnforcement,
                 recentEnforcement
                     .map(EnforcementEntity::getEnforcerId)
-                    .map(enforcerRepository::findByEnforcerId)));
+                    .flatMap(enforcerRepositoryService::findById)));
     }
 }

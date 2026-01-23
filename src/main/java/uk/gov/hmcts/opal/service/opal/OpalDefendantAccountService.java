@@ -107,6 +107,7 @@ import uk.gov.hmcts.opal.repository.jpa.AliasSpecs;
 import uk.gov.hmcts.opal.repository.jpa.SearchDefendantAccountSpecs;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
+import uk.gov.hmcts.opal.service.persistence.PartyRepositoryService;
 import uk.gov.hmcts.opal.service.iface.ReportEntryServiceInterface;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -156,7 +157,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final UserStateService userStateService;
 
-    private final OpalPartyService opalPartyService;
+    private final PartyRepositoryService partyRepositoryService;
 
     private final ResultRepository resultRepository;
 
@@ -534,14 +535,14 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             if (requestedPartyId == null) {
                 throw new IllegalArgumentException("party_id is required");
             }
-            party = opalPartyService.findById(requestedPartyId);   // loads & manages the entity
+            party = partyRepositoryService.findById(requestedPartyId);   // loads & manages the entity
             dap.setParty(party);
         } else {
             if (requestedPartyId != null && !Objects.equals(party.getPartyId(), requestedPartyId)) {
                 throw new IllegalArgumentException("Switching party is not allowed");
             }
 
-            party = opalPartyService.findById(party.getPartyId());
+            party = partyRepositoryService.findById(party.getPartyId());
             dap.setParty(party);
         }
 
@@ -735,7 +736,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             return;
         }
 
-        PartyEntity party = opalPartyService.findById(partyId);
+        PartyEntity party = partyRepositoryService.findById(partyId);
 
         List<AliasEntity> existing = aliasRepository.findByParty_PartyId(partyId);
 

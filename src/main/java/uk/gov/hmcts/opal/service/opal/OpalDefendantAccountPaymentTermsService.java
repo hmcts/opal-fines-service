@@ -9,16 +9,15 @@ import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.entity.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.amendment.RecordType;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.repository.DefendantAccountPaymentTermsRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.repository.DefendantAccountSummaryViewRepository;
-import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPaymentTermsServiceInterface;
+import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.PaymentCardRequestRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.PaymentTermsRepositoryService;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 import java.time.LocalDate;
@@ -28,24 +27,15 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class OpalDefendantAccountPaymentTermsService implements DefendantAccountPaymentTermsServiceInterface {
 
-    private final DefendantAccountRepository defendantAccountRepository;
+    private final DefendantAccountRepositoryService defendantAccountRepositoryService;
 
-    private final DefendantAccountPaymentTermsRepository defendantAccountPaymentTermsRepository;
+    private final PaymentTermsRepositoryService paymentTermsRepositoryService;
 
-    private final DefendantAccountSummaryViewRepository defendantAccountSummaryViewRepository;
+    private final AmendmentRepositoryService amendmentRepositoryService;
 
-    private final AmendmentService amendmentService;
-
-    private final PaymentCardRequestRepository paymentCardRequestRepository;
+    private final PaymentCardRequestRepositoryService paymentCardRequestRepositoryService;
 
     private final AccessTokenService accessTokenService;
-
-    @Transactional(readOnly = true)
-    public DefendantAccountEntity getDefendantAccountById(long defendantAccountId) {
-        return defendantAccountRepository.findById(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Defendant Account not found with id: " + defendantAccountId));
-    }
 
 
     @Override
@@ -53,21 +43,11 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
     public GetDefendantAccountPaymentTermsResponse getPaymentTerms(Long defendantAccountId) {
         log.debug(":getPaymentTerms (Opal): criteria: {}", defendantAccountId);
 
-        PaymentTermsEntity entity = defendantAccountPaymentTermsRepository
-            .findTopByDefendantAccount_DefendantAccountIdOrderByPostedDateDescPaymentTermsIdDesc(
-                defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException("Payment Terms not found for Defendant Account Id: "
-                + defendantAccountId));
+        PaymentTermsEntity entity = paymentTermsRepositoryService
+            .findLatestByDefendantAccountId(
+                defendantAccountId);
 
         return OpalDefendantAccountBuilders.buildPaymentTermsResponse(entity);
-    }
-
-
-    @Transactional(readOnly = true)
-    public DefendantAccountSummaryViewEntity getDefendantAccountSummaryViewById(long defendantAccountId) {
-        return defendantAccountSummaryViewRepository.findById(defendantAccountId)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Defendant Account Summary View not found with id: " + defendantAccountId));
     }
 
     @Override
@@ -83,7 +63,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         DefendantAccountEntity account = loadAndValidateAccount(defendantAccountId, businessUnitId);
         VersionUtils.verifyIfMatch(account, ifMatch, account.getDefendantAccountId(), "addPaymentCardRequest");
 
-        amendmentService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
+        amendmentRepositoryService.auditInitialiseStoredProc(defendantAccountId, RecordType.DEFENDANT_ACCOUNTS);
 
         ensureNoExistingPaymentCardRequest(defendantAccountId);
 
@@ -97,7 +77,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
     }
 
     private DefendantAccountEntity loadAndValidateAccount(Long accountId, String buId) {
-        DefendantAccountEntity account = getDefendantAccountById(accountId);
+        DefendantAccountEntity account = defendantAccountRepositoryService.findById(accountId);
         validateBusinessUnitPresent(account, buId);
         return account;
     }
@@ -111,7 +91,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
     }
 
     private void ensureNoExistingPaymentCardRequest(Long accountId) {
-        if (paymentCardRequestRepository.existsByDefendantAccountId(accountId)) {
+        if (paymentCardRequestRepositoryService.existsByDefendantAccountId(accountId)) {
             throw new ResourceConflictException(
                 "DefendantAccountEntity",
                 String.valueOf(accountId),
@@ -125,7 +105,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         PaymentCardRequestEntity pcr = PaymentCardRequestEntity.builder()
             .defendantAccountId(accountId)
             .build();
-        paymentCardRequestRepository.save(pcr);
+        paymentCardRequestRepositoryService.save(pcr);
     }
 
     private void updateDefendantAccountWithPcr(DefendantAccountEntity account,
@@ -139,7 +119,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         account.setPaymentCardRequestedBy(businessUnitUserId);
         account.setPaymentCardRequestedByName(displayName);
 
-        defendantAccountRepository.save(account);
+        defendantAccountRepositoryService.save(account);
     }
 
     private void auditComplete(Long accountId,
@@ -148,7 +128,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
         Short buId = account.getBusinessUnit().getBusinessUnitId();
 
-        amendmentService.auditFinaliseStoredProc(
+        amendmentRepositoryService.auditFinaliseStoredProc(
             accountId,
             RecordType.DEFENDANT_ACCOUNTS,
             buId,
