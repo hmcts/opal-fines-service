@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
+import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler.PaymentCardRequestAlreadyExistsException;
 import uk.gov.hmcts.opal.dto.AddDefendantAccountEnforcementRequest;
 import uk.gov.hmcts.opal.dto.AddEnforcementResponse;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
@@ -1072,11 +1073,9 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
     //Deprecated - use DefendantAccountPaymentTermsService
     private void ensureNoExistingPaymentCardRequest(Long accountId) {
         if (paymentCardRequestRepository.existsByDefendantAccountId(accountId)) {
-            throw new ResourceConflictException(
+            throw new PaymentCardRequestAlreadyExistsException(
                 "DefendantAccountEntity",
-                String.valueOf(accountId),
-                "A payment card request already exists for this account.",
-                null
+                String.valueOf(accountId)
             );
         }
     }
