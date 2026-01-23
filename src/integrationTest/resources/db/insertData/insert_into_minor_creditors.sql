@@ -84,70 +84,70 @@ INSERT INTO public.creditor_accounts (
   creditor_account_type, prosecution_service, major_creditor_id,
   minor_creditor_party_id, from_suspense, hold_payout, pay_by_bacs,
   bank_sort_code, bank_account_number, bank_account_name,
-  bank_account_reference, bank_account_type, last_changed_date
+  bank_account_reference, bank_account_type, version_number, last_changed_date
 )
 VALUES
   (104, 10, '12345678A',
    'MJ', TRUE, NULL,
    9000, FALSE, FALSE, TRUE,
    '123456', '12345678A', 'Acme Supplies Ltd',
-   'ACME123REF', '1', '2025-08-19 09:00:00'),
+   'ACME123REF', '1',1, '2025-08-19 09:00:00'),
 
   -- matching 8-digit (no check letter)
   (105, 10, '12345678',
    'MJ', TRUE, NULL,
    9000, FALSE, FALSE, TRUE,
    '123456', '12345678', 'Acme Supplies Ltd',
-   'ACME123REF2', '1', '2025-08-19 09:00:00'),
+   'ACME123REF2', '1',1, '2025-08-19 09:00:00'),
 
   -- Individual creditor account for John Smith
   (999950, 10, 'JS987654',
    'MJ', TRUE, NULL,
    9001, FALSE, FALSE, TRUE,
    '654321', 'JS987654', 'John Smith',
-   'JOHNSMITH123', '1', '2025-08-19 09:00:00'),
+   'JOHNSMITH123', '1', 1,'2025-08-19 09:00:00'),
 
   -- Individual creditor account for Jane Smithson
   (999951, 10, 'JSN98765',
    'MJ', TRUE, NULL,
    9002, FALSE, FALSE, TRUE,
    '654322', 'JSN98765', 'Jane Smithson',
-   'JANESMITHSON123', '1', '2025-08-19 09:00:00'),
+   'JANESMITHSON123', '1', 1,'2025-08-19 09:00:00'),
 
   -- Individual creditor account for Jonathan Doe
   (999952, 10, 'JD123456',
    'MJ', TRUE, NULL,
    9003, FALSE, FALSE, TRUE,
    '654323', 'JD123456', 'Jonathan Doe',
-   'JONATHANDOE123', '1', '2025-08-19 09:00:00'),
+   'JONATHANDOE123', '1', 1,'2025-08-19 09:00:00'),
 
   -- Company creditor account for Tech Solutions
   (999953, 10, 'TS123456',
    'MJ', TRUE, NULL,
    9004, FALSE, FALSE, TRUE,
    '654324', 'TS123456', 'Tech Solutions',
-   'TECHSOLUTIONS123', '1', '2025-08-19 09:00:00'),
+   'TECHSOLUTIONS123', '1',1, '2025-08-19 09:00:00'),
 
   -- Company creditor account for Tech Solutions Ltd
   (999954, 10, 'TSL12345',
    'MJ', TRUE, NULL,
    9005, FALSE, FALSE, TRUE,
    '654325', 'TSL12345', 'Tech Solutions Ltd',
-   'TECHSOLTD123', '1', '2025-08-19 09:00:00'),
+   'TECHSOLTD123', '1', 1,'2025-08-19 09:00:00'),
 
   -- Company creditor account for Technology Partners
   (999955, 10, 'TP123456',
    'MJ', TRUE, NULL,
    9006, FALSE, FALSE, TRUE,
    '654326', 'TP123456', 'Technology Partner',
-   'TECHPARTNERS123', '1', '2025-08-19 09:00:00'),
+   'TECHPARTNERS123', '1', 1,'2025-08-19 09:00:00'),
 
   -- Minor Creditor to be deleted
   (606, 10, 'DEL12345',
    'MN', TRUE, NULL,
    9007, FALSE, FALSE, TRUE,
    '123456', '12345678', 'Dave Deleted',
-   'ACME123REF2', '1', '2025-08-19 09:00:00');
+   'ACME123REF2', '1',1, '2025-08-19 09:00:00');
 
 INSERT INTO public.creditor_transactions (
   creditor_transaction_id, creditor_account_id, posted_date, posted_by, posted_by_name,

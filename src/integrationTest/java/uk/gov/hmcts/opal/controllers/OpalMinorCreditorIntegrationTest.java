@@ -188,6 +188,26 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    void getHeaderSummary_success() throws Exception {
+        super.getHeaderSummaryImpl_Success(log);
+    }
+
+    @Test
+    void getHeaderSummary_notFound_returns404() throws Exception {
+        super.getHeaderSummary_notFound_returns404(log);
+    }
+
+    @Test
+    void getHeaderSummary_missingAuthHeader_returns401() throws Exception {
+        super.getHeaderSummary_missingAuthHeader_returns401();
+    }
+
+    @Test
+    void getHeaderSummary_authenticatedWithoutPermission_returns403() throws Exception {
+        super.getHeaderSummary_authenticatedWithoutPermission_returns403();
+    }
+
+    @Test
     void deleteMinorCreditorAccount() throws Exception {
         // Arrange
         final Long creditorAccountId = 606L;
