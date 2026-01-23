@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -72,7 +73,8 @@ public class LegacyDefendantAccountPaymentTermsService implements DefendantAccou
         }
 
         return GetDefendantAccountPaymentTermsResponse.builder()
-            .version(legacy.getVersion())
+            .version(Optional.ofNullable(legacy.getVersion())
+                .map(v -> BigInteger.valueOf(v.longValue())).orElse(BigInteger.ONE))
             .paymentTerms(toPaymentTerms(legacy.getPaymentTerms()))
             .paymentCardLastRequested(legacy.getPaymentCardLastRequested())
             .lastEnforcement(legacy.getLastEnforcement())
