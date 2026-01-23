@@ -1913,12 +1913,12 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
             .andExpect(jsonPath("$.payment_terms.date_days_in_default_imposed").isEmpty())
             .andExpect(jsonPath("$.payment_terms.reason_for_extension").isEmpty())
             .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
-            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12"))
+            .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12T00:00:00"))
             .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
             .andExpect(jsonPath("$.payment_terms.lump_sum_amount").isEmpty())
             .andExpect(jsonPath("$.payment_terms.instalment_amount").isEmpty())
 
-            .andExpect(jsonPath("$.payment_terms.posted_details.posted_date").value("2023-11-03"))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_date").value("2023-11-03T16:05:10"))
             .andExpect(jsonPath("$.payment_terms.posted_details.posted_by").value("01000000A"))
             .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name").isEmpty())
 
@@ -4451,7 +4451,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": { "payment_terms_type_code": "B",
                 "payment_terms_type_display_name": "By date"},
                 "instalment_period": { "instalment_period_code": "W" ,
@@ -4460,7 +4460,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4504,7 +4504,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4517,7 +4517,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4558,7 +4558,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4571,7 +4571,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4609,7 +4609,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4622,7 +4622,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4658,7 +4658,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4671,7 +4671,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4706,7 +4706,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4719,7 +4719,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4782,7 +4782,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4795,7 +4795,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4831,7 +4831,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4844,7 +4844,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
@@ -4880,7 +4880,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "date_days_in_default_imposed": "2025-11-05",
                 "extension": true,
                 "reason_for_extension": "extn reason text",
-                "effective_date": "2025-11-01",
+                "effective_date": "2025-11-01T09:10:11",
                 "payment_terms_type": {
                   "payment_terms_type_code": "B",
                   "payment_terms_type_display_name": "By date"
@@ -4893,7 +4893,7 @@ abstract class DefendantAccountsControllerIntegrationTest extends AbstractIntegr
                 "instalment_amount": 10.00,
                 "posted_details": {
                   "posted_by": "clerk1",
-                  "posted_date": "2025-02-02",
+                  "posted_date": "2025-02-02T10:11:12",
                   "posted_by_name": "aa"
                 }
               },
