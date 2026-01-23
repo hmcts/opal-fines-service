@@ -94,6 +94,9 @@ spring:
       host: ${OPAL_REDIS_HOST:localhost}
       port: ${OPAL_REDIS_PORT:6379}
   flyway:
+    url: jdbc:postgresql://${OPAL_FINES_DB_HOST:localhost}:${OPAL_FINES_DB_PORT:5432}/${OPAL_FINES_DB_NAME:opal-fines-db}${OPAL_FINES_DB_OPTIONS:}
+    user: ${OPAL_FINES_DB_USERNAME:opal-fines}
+    password: ${OPAL_FINES_DB_PASSWORD:opal-fines}
     locations: ${FLYWAY_LOCATIONS:classpath:db/migration/allEnvs, classpath:db/migration/devOnly, classpath:db/migration/stgOnly}
     baseline-on-migrate: true
     ignoreMigrationPatterns: "*:missing"

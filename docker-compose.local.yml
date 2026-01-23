@@ -1,0 +1,12 @@
+include:
+  - path: ../opal-logging-service/docker-compose.master.yml
+  - path: ../opal-user-service/docker-compose.master.yml
+services:
+  opal-fines-service:
+    image: opal-fines-service:local
+    build:
+      context: .
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
