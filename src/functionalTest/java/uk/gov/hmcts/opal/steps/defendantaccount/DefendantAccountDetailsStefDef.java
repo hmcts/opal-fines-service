@@ -1,19 +1,20 @@
 package uk.gov.hmcts.opal.steps.defendantaccount;
 
-import io.cucumber.datatable.DataTable;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
-import net.serenitybdd.rest.SerenityRest;
-import org.hamcrest.Matchers;
-import uk.gov.hmcts.opal.steps.BaseStepDef;
-
-import java.util.Map;
-
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.Assert.assertEquals;
 import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
 
+import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import net.serenitybdd.rest.SerenityRest;
+import org.hamcrest.Matchers;
+import uk.gov.hmcts.opal.steps.BaseStepDef;
 
+
+@Slf4j
 public class DefendantAccountDetailsStefDef extends BaseStepDef {
 
     @When("I make a request to the defendant account details api with")
@@ -32,7 +33,7 @@ public class DefendantAccountDetailsStefDef extends BaseStepDef {
         Map<String, String> response = fields.asMap(String.class, String.class);
         int rows = response.size();
 
-        System.out.println("Rows: " + rows);
+        log.info("Rows: {}", rows);
 
         then().assertThat()
             .statusCode(200);

@@ -42,11 +42,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.common.user.authentication.exception.MissingRequestHeaderException;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
-import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.util.LogUtil;
@@ -92,7 +92,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({PermissionNotAllowedException.class, AccessDeniedException.class})
     public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(Exception ex,
-                                                                             HttpServletRequest request) {
+        HttpServletRequest request) {
         String authorization = request.getHeader(AUTH_HEADER);
         String preferredName = extractUsername(authorization);
         String internalMessage = String.format("For user %s, %s", preferredName, ex.getMessage());
@@ -456,7 +456,7 @@ public class GlobalExceptionHandler {
         );
         problemDetail.setProperty("resourceType", e.getPersistentClassName());
         problemDetail.setProperty("resourceId",
-                                  Optional.ofNullable(e.getIdentifier()).map(Object::toString).orElse(""));
+            Optional.ofNullable(e.getIdentifier()).map(Object::toString).orElse(""));
         return responseWithProblemDetail(HttpStatus.CONFLICT, problemDetail);
     }
 
@@ -506,7 +506,7 @@ public class GlobalExceptionHandler {
     }
 
     private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,
-                                              String typeUri, boolean retry, Throwable exception) {
+        String typeUri, boolean retry, Throwable exception) {
         String opalOperationId = LogUtil.getOrCreateOpalOperationId();
         log.error("Error ID {}:", opalOperationId, exception);
 

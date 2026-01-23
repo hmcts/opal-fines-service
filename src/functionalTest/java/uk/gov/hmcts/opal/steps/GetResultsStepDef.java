@@ -1,29 +1,30 @@
 package uk.gov.hmcts.opal.steps;
 
-import io.cucumber.datatable.DataTable;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
-import net.serenitybdd.rest.SerenityRest;
-
-import java.util.Map;
-
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.opal.config.Constants.RESULTS_URI;
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
+
+import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import java.util.Map;
+import net.serenitybdd.rest.SerenityRest;
+import uk.gov.hmcts.opal.utils.RequestSupport;
 
 public class GetResultsStepDef extends BaseStepDef {
+
     @When("I make a request to get the results {string}")
     public void getResults(String resultIds) {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .param("result_ids", resultIds)
-            .when()
-            .get(getTestUrl() + RESULTS_URI);
+        RequestSupport.responseProcessor(
+            SerenityRest
+                .given()
+                .spec(RequestSupport.getRequestSpec(RESULTS_URI).build())
+                .param("result_ids", resultIds)
+                .when()
+                .get()
+                .then()
+        );
     }
 
     @Then("The results response contains {int} results")
@@ -38,12 +39,14 @@ public class GetResultsStepDef extends BaseStepDef {
         String resultID = expected.get("result_id");
         for (String key : expected.keySet()) {
             String actual = then().extract().body().jsonPath().getString("refData.find { it.result_id == '"
-                                                                             + resultID + "' }." + key);
+                + resultID + "' }." + key);
             assertEquals(expected.get(key), actual, "Values are not equal");
         }
     }
 
-    /** Verifies the HTTP status code of the last API response. */
+    /**
+     * Verifies the HTTP status code of the last API response.
+     */
     @Then("the response status is {int}")
     public void theResponseStatusIs(int status) {
         then()

@@ -29,7 +29,7 @@ ext {
 //Should we fail fast on test failures?
 //Defaults to true if env is not present
 var failFast = System.getenv('FAIL_FAST') == null || System.getenv('FAIL_FAST').toBoolean()
-
+var skipSonar = System.getenv('SKIP_SONAR') != null && System.getenv('SKIP_SONAR').toBoolean();
 group = 'uk.gov.hmcts'
 version = '0.0.1'
 
@@ -308,6 +308,9 @@ sonarqube {
     property "sonar.exclusions", coverageExclusions.join(', ')
     property 'sonar.coverage.exclusions', "**/entity/*,**/model/*,**/exception/*,**/config/**,**/repository/jpa/*,**/opal/dto/*"
     property 'sonar.cpd.exclusions', "**/entity/*"
+    if (skipSonar) {
+      property 'sonar.exclusions', "**/**"
+    }
   }
 }
 
@@ -377,6 +380,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-quartz:${springVersion}"
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
   implementation 'org.springframework.boot:spring-boot-starter-cache'
+  implementation group: 'uk.gov.hmcts', name: 'spring-exception-handler', version: '0.0.3'
 
   implementation 'org.springframework.boot:spring-boot-starter-integration'
   implementation 'org.springframework.integration:spring-integration-sftp'
@@ -425,6 +429,9 @@ dependencies {
 
   integrationTestCompileOnly 'org.projectlombok:lombok:1.18.42'
   integrationTestAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
+
+  functionalTestCompileOnly 'org.projectlombok:lombok:1.18.42'
+  functionalTestAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
 
   implementation 'org.mapstruct:mapstruct:1.6.3'
   annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'

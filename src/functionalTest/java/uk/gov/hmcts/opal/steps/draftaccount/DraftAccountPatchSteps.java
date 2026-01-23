@@ -3,20 +3,18 @@ package uk.gov.hmcts.opal.steps.draftaccount;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.When;
 import io.restassured.specification.RequestSpecification;
-import net.serenitybdd.rest.SerenityRest;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
 import net.serenitybdd.core.Serenity;
+import net.serenitybdd.rest.SerenityRest;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.utils.DraftAccountUtils;
-
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
-
-import static uk.gov.hmcts.opal.steps.BearerTokenStepDef.getToken;
+import uk.gov.hmcts.opal.utils.RequestSupport;
 
 public class DraftAccountPatchSteps extends BaseStepDef {
 
@@ -55,8 +53,7 @@ public class DraftAccountPatchSteps extends BaseStepDef {
      * </ul>
      *
      * @param raw the raw table value for {@code If-Match} (may be {@code null})
-     * @return the header value to send (e.g., {@code "\"123\""}, {@code W/"abc"}),
-     *         or {@code null} to omit
+     * @return the header value to send (e.g., {@code "\"123\""}, {@code W/"abc"}), or {@code null} to omit
      */
     private String resolveIfMatch(String raw) {
         if (raw == null) {
@@ -93,7 +90,9 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         return "\"" + s + "\"";
     }
 
-    /** Build the PATCH JSON body from the DataTable map. */
+    /**
+     * Build the PATCH JSON body from the DataTable map.
+     */
     private JSONObject buildPatchBody(Map<String, String> m) throws JSONException {
         final JSONObject patch = new JSONObject();
 
@@ -142,16 +141,6 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         return patch;
     }
 
-    /** Start a PATCH request spec with common headers. */
-    private RequestSpecification patchSpec(JSONObject body) {
-        return SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .body(body.toString());
-    }
-
     // ───────────────── steps ─────────────────
 
     @When("I patch the draft account with the following details")
@@ -162,12 +151,13 @@ public class DraftAccountPatchSteps extends BaseStepDef {
         final String ifMatch = resolveIfMatch(m.get("If-Match"));
         final String id = lastCreatedIdOrFail();
 
-        RequestSpecification spec = patchSpec(patchBody);
+        RequestSpecification spec = SerenityRest
+            .given()
+            .spec(RequestSupport.patchRequestSpec("/draft-accounts/" + id, patchBody.toString()).build());
         if (ifMatch != null && !ifMatch.isBlank()) {
             spec = spec.header("If-Match", ifMatch);
         }
-
-        spec.when().patch(getTestUrl() + "/draft-accounts/" + id);
+        RequestSupport.responseProcessor(spec.when().patch().then());
     }
 
     @When("I patch the {string} draft account with the following details")
@@ -177,49 +167,52 @@ public class DraftAccountPatchSteps extends BaseStepDef {
 
         final String ifMatch = resolveIfMatch(m.get("If-Match"));
 
-        RequestSpecification spec = patchSpec(patchBody);
+        RequestSpecification spec = SerenityRest
+            .given()
+            .spec(RequestSupport.patchRequestSpec("/draft-accounts/" + draftAccountId, patchBody.toString()).build());
         if (ifMatch != null && !ifMatch.isBlank()) {
             spec = spec.header("If-Match", ifMatch);
         }
-
-        spec.when().patch(
-            getTestUrl()
-                + "/draft-accounts/"
-                + draftAccountId
-        );
+        RequestSupport.responseProcessor(spec.when().patch().then());
     }
 
     @When("I attempt to patch a draft account with an unsupported content type")
     public void patchDraftAccountWithUnsupportedContentType() {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("text/plain")
-            .contentType("application/json")
-            .when()
-            .patch(getTestUrl() + "/draft-accounts/" + "1");
+        RequestSupport.responseProcessor(
+            SerenityRest
+                .given()
+                .spec(RequestSupport.patchRequestSpec("/draft-accounts/1", "").build())
+                .accept("text/plain")
+                .when()
+                .patch()
+                .then()
+        );
     }
 
     @When("I attempt to patch a draft account with an unsupported media type")
     public void patchDraftAccountWithInvalidMediaType() {
-        SerenityRest
-            .given()
-            .header("Authorization", "Bearer " + getToken())
-            .accept("application/json")
-            .contentType("application/xml")
-            .when()
-            .patch(getTestUrl() + "/draft-accounts/" + "1");
+        RequestSupport.responseProcessor(
+            SerenityRest
+                .given()
+                .urlEncodingEnabled(false)
+                .spec(RequestSupport.patchRequestSpec("/draft-accounts/1", "").build())
+                .contentType("application/xml")
+                .when()
+                .patch()
+                .then()
+        );
     }
 
     @When("I patch the draft account trying to provoke an internal server error")
     public void patchDraftAccountInternalServerError() {
-        SerenityRest
-            .given()
-            .urlEncodingEnabled(false)
-            .header("Authorization", "Bearer " + getToken())
-            .accept("*/*")
-            .contentType("application/json")
-            .when()
-            .patch(getTestUrl() + "/draft-accounts/%20");
+        RequestSupport.responseProcessor(
+            SerenityRest
+                .given()
+                .spec(RequestSupport.patchRequestSpec("/draft-accounts/%20", "").build())
+                .urlEncodingEnabled(false)
+                .when()
+                .patch()
+                .then()
+        );
     }
 }
