@@ -28,6 +28,7 @@ services:
     ports:
       - "${FINES_PORT:-4550}:4550"
     depends_on:
+      - opal-db
       - redis
       - azure-sb-emulator
     networks:
