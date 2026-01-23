@@ -30,7 +30,7 @@ public class ResultController {
         this.resultService = resultService;
     }
 
-    @GetMapping(value = "/{resultId}?include_welsh=true")
+    @GetMapping(value = "/{resultId}")
     @Operation(summary = "Returns the full ResultDto for the given resultId.")
     @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId")
     public ResponseEntity<ResultDto> getResultById(@PathVariable String resultId) {
