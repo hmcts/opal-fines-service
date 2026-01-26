@@ -108,6 +108,7 @@ public class LoggingSteps extends BaseStepDef {
                 log.warn("Exception while polling logging service: {}", e.toString());
             }
 
+            //noinspection BusyWait
             Thread.sleep(pollInterval.toMillis());
         }
 
