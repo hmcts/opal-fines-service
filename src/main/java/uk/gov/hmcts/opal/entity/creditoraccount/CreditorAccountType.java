@@ -23,4 +23,19 @@ public enum CreditorAccountType {
         return this.equals(CF);
     }
 
+    public String getLabel() {
+        return label;
+    }
+
+    public static String getDisplayName(String code) {
+        if (code == null) {
+            return null;
+        }
+        try {
+            return CreditorAccountType.valueOf(code).getLabel();
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
 }
