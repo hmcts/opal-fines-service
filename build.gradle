@@ -362,8 +362,8 @@ dependencies {
 
   implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.37"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.41"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.41"
+  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.42"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.1"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
@@ -392,7 +392,7 @@ dependencies {
 
   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
 
-  implementation 'com.github.hmcts.java-logging:logging:6.1.9'
+  implementation 'com.github.hmcts.java-logging:logging:7.0.0'
 
   implementation "org.apache.logging.log4j:log4j-api:${log4JVersion}"
   implementation "org.apache.logging.log4j:log4j-to-slf4j:${log4JVersion}"
@@ -461,10 +461,10 @@ dependencies {
   testImplementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.17.16'
 
   //Added to override dependency version to resolve vulnerability
-  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.15'
+  implementation 'org.apache.tomcat.embed:tomcat-embed-core:11.0.18'
   implementation 'org.apache.tomcat.embed:tomcat-embed-websocket:11.0.15'
   implementation 'org.apache.tomcat.embed:tomcat-embed-el:11.0.15'
-  implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.15'
+  implementation 'org.apache.tomcat:tomcat-annotations-api:11.0.18'
   implementation 'org.apache.commons:commons-lang3:3.20.0'
 
   implementation group: 'uk.gov.hmcts', name: 'opal-logging-service-integration-lib', version: '0.0.5'
