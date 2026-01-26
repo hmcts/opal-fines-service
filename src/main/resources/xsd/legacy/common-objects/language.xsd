@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <xsd:include schemaLocation="simple_type.xsd"/>
+  <xsd:include schemaLocation="../common-objects/simple_type.xsd"/>
   <xsd:complexType name="language">
     <xsd:sequence>
       <xsd:element name="language_code" type="language_code" minOccurs="0" maxOccurs="1"/>
