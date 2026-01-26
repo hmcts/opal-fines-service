@@ -60,6 +60,8 @@ java:
     FLYWAY_LOCATIONS: classpath:db/migration/allEnvs, classpath:db/migration/devOnly
     APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}"
     DEFAULT_APP_MODE: ${APP_MODE}
+    SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
+    SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
   postgresql:
     enabled: true
     primary:
@@ -165,8 +167,8 @@ opal-logging-service:
       OPAL_LOGGING_DB_PASSWORD: "{{ .Values.global.postgresPassword}}"
       RUN_DB_MIGRATION_ON_STARTUP: true
       OPAL_LOGGING_TEST_SUPPORT_ENABLED: true
-      SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-logging-service"
+      SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
       SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
     postgresql:
       enabled: false
