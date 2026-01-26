@@ -1,4 +1,4 @@
-# Opal Fines Service - Docker Development Environment
+# Opal Logging Service - Docker Development Environment
 
 Start a development environment for Opal Services.
 
@@ -8,7 +8,7 @@ Start a development environment for Opal Services.
 - Clone the following repositories to the same parent directory:
     - [opal-fines-service](https://github.com/hmcts/opal-fines-service) (this repository)
     - [opal-user-service](https://github.com/hmcts/opal-user-service)
-    - [opal-logging-service](https://github.com/hmcts/opal-logging-service)
+    - [opal-logging-service](https://github.com/hmcts/opal-logging-service) 
     - [opal-shared-infrastructure](https://github.com/hmcts/opal-shared-infrastructure)
 - Ensure you have '.env.shared' file in 'opal-shared-infrastructure/docker-files/' directory. (You
   will need to create this file as it is git ignored by default). It is recommended to include the
@@ -26,7 +26,6 @@ following commands:
 
 Docker using local version of fines (Based on your local changes)
 (All other services will use the images from sdshmctspublic)
-
 ```bash / zsh
  docker compose -p opal-fines-local \
   -f docker-compose.base.yml \
@@ -37,9 +36,7 @@ Docker using local version of fines (Based on your local changes)
   -f ../opal-logging-service/docker-compose.master.yml \
   up --build -d
 ```
-
 Docker using master version of fines (Based on the code in master)
-
 ```bash / zsh
  docker compose -p opal-fines-master \
   -f docker-compose.base.yml \
