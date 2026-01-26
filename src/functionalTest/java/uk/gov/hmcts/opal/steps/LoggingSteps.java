@@ -71,9 +71,8 @@ public class LoggingSteps extends BaseStepDef {
 
                 if (status == 200) {
                     // If body empty array or blank, keep polling until it has content or until timeout
-                    if(body == null || body.isBlank() || body.equals("[]")) {
-                        // not found yet; continue polling
-                    } else {
+                    if (body != null && !body.isBlank() && !body.equals("[]")){
+
                         // parse list and assert at least one matching record exists
                         List<Map<String, Object>> results =
                             SerenityRest.then().extract().body().jsonPath().getList("$");
@@ -82,8 +81,7 @@ public class LoggingSteps extends BaseStepDef {
                             found = results.stream().anyMatch(rec -> {
                                 try {
                                     Object cbObj = rec.get("created_by");
-                                    if (!(cbObj instanceof Map)) return false;
-                                    Map<?, ?> cbMap = (Map<?, ?>) cbObj;
+                                    if (!(cbObj instanceof Map<?, ?> cbMap)) return false;
                                     Object idObj = cbMap.get("id");
                                     Object typeObj = cbMap.get("type");
                                     Object biObj = rec.get("business_identifier");
