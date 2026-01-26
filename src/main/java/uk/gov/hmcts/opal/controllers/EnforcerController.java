@@ -1,7 +1,11 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,11 +21,6 @@ import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.projection.EnforcerReferenceData;
 import uk.gov.hmcts.opal.service.opal.EnforcerService;
-
-import java.util.List;
-import java.util.Optional;
-
-import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 
 @RestController
@@ -40,7 +39,7 @@ public class EnforcerController {
     @Operation(summary = "Returns the Enforcer for the given enforcerId.")
     public ResponseEntity<EnforcerEntity> getEnforcerById(@PathVariable Long enforcerId) {
 
-        log.debug(":GET:findById: enforcerId: {}", enforcerId);
+        log.debug(":GET:getEnforcerById: enforcerId: {}", enforcerId);
 
         EnforcerEntity response = enforcerService.getEnforcerById(enforcerId);
 
