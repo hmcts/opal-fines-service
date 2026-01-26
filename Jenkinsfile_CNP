@@ -8,6 +8,7 @@ def product = "opal"
 def component = "fines-service"
 
 def determineDevEnvironmentDeployment() {
+  env.OPAL_FINES_SERVICE_API_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}.dev.platform.hmcts.net"
 
   env.DEV_ENABLE_OPAL_SERVICE_BUS = false
 
