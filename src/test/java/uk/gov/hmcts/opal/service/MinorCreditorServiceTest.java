@@ -1,9 +1,12 @@
 package uk.gov.hmcts.opal.service;
 
 import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
@@ -17,6 +20,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +51,41 @@ class MinorCreditorServiceTest {
 
         // Assert
         assertNotNull(result);
+    }
+
+    @Test
+    void testGetMinorCreditorAccountHeaderSummary() {
+        // Arrange
+        long id = 123L;
+        GetMinorCreditorAccountHeaderSummaryResponse response =
+            GetMinorCreditorAccountHeaderSummaryResponse.builder().build();
+
+        when(minorCreditorSearchProxy.getHeaderSummary(id)).thenReturn(response);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allFinesPermissionUser());
+
+        // Act
+        GetMinorCreditorAccountHeaderSummaryResponse result =
+            minorCreditorService.getMinorCreditorAccountHeaderSummary(id, "authHeaderValue");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(response, result);
+        verify(minorCreditorSearchProxy).getHeaderSummary(eq(id));
+    }
+
+    @Test
+    void testGetMinorCreditorAccountHeaderSummary_permissionNotAllowed() {
+        // Arrange
+        UserState noPermissionUser = mock(UserState.class);
+        when(noPermissionUser.anyBusinessUnitUserHasPermission(
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
+        when(userStateService.checkForAuthorisedUser(any())).thenReturn(noPermissionUser);
+
+        // Act & Assert
+        assertThrows(
+            PermissionNotAllowedException.class, () ->
+                minorCreditorService.getMinorCreditorAccountHeaderSummary(123L, "authHeaderValue")
+        );
     }
 
     @Test
