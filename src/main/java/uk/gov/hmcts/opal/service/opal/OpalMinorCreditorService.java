@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
-import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
@@ -12,10 +11,6 @@ import uk.gov.hmcts.opal.dto.DefendantDto;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
-import uk.gov.hmcts.opal.dto.common.IndividualDetails;
-import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
-import uk.gov.hmcts.opal.dto.common.PartyDetails;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
@@ -57,7 +52,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
                     "Minor creditor account not found: " + minorCreditorAccountId
                 ));
 
-        return toHeaderSummaryResponse(entity);
+        return GetMinorCreditorAccountHeaderSummaryResponse.fromEntity(entity);
     }
 
 
@@ -100,51 +95,6 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
             .count(accounts.size())
             .creditorAccounts(accounts.isEmpty() ? null : accounts)
             .build();
-    }
-
-    private GetMinorCreditorAccountHeaderSummaryResponse toHeaderSummaryResponse(MinorCreditorAccountHeaderEntity e) {
-        return GetMinorCreditorAccountHeaderSummaryResponse.builder()
-            .creditorAccountId(String.valueOf(e.getCreditorAccountId()))
-            .accountNumber(e.getCreditorAccountNumber())
-            .creditorAccountType(e.getCreditorAccountType())
-            .version(e.getVersionNumber() == null ? null : BigInteger.valueOf(e.getVersionNumber()))
-            .businessUnitSummary(toBusinessUnitSummary(e))
-            .partyDetails(toPartyDetails(e))
-            .awardedAmount(e.getAwarded())
-            .paidOutAmount(e.getPaidOut())
-            .awaitingPayoutAmount(e.getAwaitingPayment())
-            .outstandingAmount(e.getOutstanding())
-            .hasAssociatedDefendant(hasAssociatedDefendant(e))
-            .build();
-    }
-
-    private BusinessUnitSummary toBusinessUnitSummary(MinorCreditorAccountHeaderEntity e) {
-        return BusinessUnitSummary.builder()
-            .businessUnitId(String.valueOf(e.getBusinessUnitId()))
-            .businessUnitName(e.getBusinessUnitName())
-            .welshSpeaking(e.isWelshLanguage() ? "Y" : "N")
-            .build();
-    }
-
-    private PartyDetails toPartyDetails(MinorCreditorAccountHeaderEntity e) {
-        boolean isOrg = e.isOrganisation();
-        return PartyDetails.builder()
-            .partyId(String.valueOf(e.getPartyId()))
-            .organisationFlag(isOrg)
-            .organisationDetails(isOrg ? OrganisationDetails.builder()
-                .organisationName(e.getOrganisationName())
-                .build() : null)
-            .individualDetails(!isOrg ? IndividualDetails.builder()
-                .title(e.getTitle())
-                .forenames(e.getForenames())
-                .surname(e.getSurname())
-                .build() : null)
-            .build();
-    }
-
-    private static boolean hasAssociatedDefendant(MinorCreditorAccountHeaderEntity e) {
-        return (e.getAwarded() != null && e.getAwarded().signum() > 0)
-            || (e.getOutstanding() != null && e.getOutstanding().signum() > 0);
     }
 
 }

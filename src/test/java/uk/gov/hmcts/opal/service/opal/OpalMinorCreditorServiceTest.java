@@ -12,14 +12,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import jakarta.persistence.EntityNotFoundException;
 import uk.gov.hmcts.opal.dto.CreditorAccountDto;
 import uk.gov.hmcts.opal.dto.DefendantDto;
 import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorSearch;
 import uk.gov.hmcts.opal.dto.PostMinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.common.CreditorAccountTypeReference;
 import uk.gov.hmcts.opal.dto.common.IndividualDetails;
 import uk.gov.hmcts.opal.dto.common.OrganisationDetails;
 import uk.gov.hmcts.opal.dto.common.PartyDetails;
@@ -251,7 +251,7 @@ class OpalMinorCreditorServiceTest {
         assertNotNull(res);
         assertEquals(String.valueOf(id), res.getCreditorAccountId());
         assertEquals("87654321", res.getAccountNumber());
-        assertEquals("MN", res.getCreditorAccountType());
+        assertCreditorAccountType(res.getCreditorAccountType(), "MN", "Minor Creditor");
         assertEquals(BigInteger.valueOf(5L), res.getVersion());
 
         BusinessUnitSummary bu = res.getBusinessUnitSummary();
@@ -315,7 +315,7 @@ class OpalMinorCreditorServiceTest {
         assertNotNull(res);
         assertEquals(String.valueOf(id), res.getCreditorAccountId());
         assertEquals("87654322", res.getAccountNumber());
-        assertEquals("MN", res.getCreditorAccountType());
+        assertCreditorAccountType(res.getCreditorAccountType(), "MN", "Minor Creditor");
         assertNull(res.getVersion());
 
         BusinessUnitSummary bu = res.getBusinessUnitSummary();
@@ -343,19 +343,18 @@ class OpalMinorCreditorServiceTest {
     }
 
     @Test
-    void getHeaderSummary_notFound_throwsResponseStatusException404_withExpectedMessage() {
+    void getHeaderSummary_notFound_throwsEntityNotFoundException_withExpectedMessage() {
         // Arrange
         long missingId = 123456789L;
         when(minorCreditorAccountHeaderRepository.findById(missingId)).thenReturn(Optional.empty());
 
         // Act
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class,
             () -> service.getHeaderSummary(missingId));
 
         // Assert
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
-        assertNotNull(ex.getReason());
-        assertTrue(ex.getReason().contains("Minor creditor account not found: " + missingId));
+        assertNotNull(ex.getMessage());
+        assertTrue(ex.getMessage().contains("Minor creditor account not found: " + missingId));
 
         verify(minorCreditorAccountHeaderRepository, times(1)).findById(missingId);
     }
@@ -425,7 +424,7 @@ class OpalMinorCreditorServiceTest {
         assertNotNull(resp);
         assertEquals(String.valueOf(id), resp.getCreditorAccountId());
         assertEquals("87654321", resp.getAccountNumber());
-        assertEquals("MN", resp.getCreditorAccountType());
+        assertCreditorAccountType(resp.getCreditorAccountType(), "MN", "Minor Creditor");
         assertNull(resp.getVersion());
 
         // business unit mapping
@@ -487,7 +486,7 @@ class OpalMinorCreditorServiceTest {
         assertNotNull(resp);
         assertEquals("123", resp.getCreditorAccountId());
         assertEquals("ACC123", resp.getAccountNumber());
-        assertEquals("MN", resp.getCreditorAccountType());
+        assertCreditorAccountType(resp.getCreditorAccountType(), "MN", "Minor Creditor");
         assertNotNull(resp.getVersion());
         assertEquals(new java.math.BigInteger("5"), resp.getVersion());
 
@@ -572,19 +571,26 @@ class OpalMinorCreditorServiceTest {
     }
 
     @Test
-    void getHeaderSummary_notFound_throwsResponseStatusException404_withReason() {
+    void getHeaderSummary_notFound_throwsEntityNotFoundException_withReason() {
         // Arrange
         long id = 999L;
         when(minorCreditorAccountHeaderRepository.findById(id)).thenReturn(Optional.empty());
 
         // Act
-        ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> service.getHeaderSummary(id));
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () -> service.getHeaderSummary(id));
 
         // Assert
-        assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());   // Spring 6: getStatusCode(), not getStatus()
-        assertTrue(ex.getReason().contains("Minor creditor account not found: " + id));
+        assertTrue(ex.getMessage().contains("Minor creditor account not found: " + id));
 
         verify(minorCreditorAccountHeaderRepository).findById(id);
+    }
+
+    private static void assertCreditorAccountType(CreditorAccountTypeReference reference,
+                                                  String expectedType,
+                                                  String expectedDisplayName) {
+        assertNotNull(reference);
+        assertEquals(expectedType, reference.getType());
+        assertEquals(expectedDisplayName, reference.getDisplayName());
     }
 
 }
