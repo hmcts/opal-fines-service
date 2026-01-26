@@ -363,7 +363,7 @@ dependencies {
   implementation 'uk.gov.hmcts:opal-common-lib:0.1.9'
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.37"
   openapiImplementation "io.swagger.core.v3:swagger-models:2.2.41"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.41"
+  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.42"
   openapiImplementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.20.1"
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
