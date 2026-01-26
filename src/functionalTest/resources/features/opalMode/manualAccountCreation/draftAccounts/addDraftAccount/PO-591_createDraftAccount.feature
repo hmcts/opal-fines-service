@@ -9,7 +9,7 @@ Feature: PO-591 create draft account
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fines                                       |
       | account_status    | Submitted                                   |
-      | submitted_by      | BUUID                                       |
+      | submitted_by      | L106C2                                       |
       | submitted_by_name | Laura Clerk                                 |
       | timeline_data     | draftAccounts/timelineJson/default.json     |
 
@@ -25,8 +25,10 @@ Feature: PO-591 create draft account
       | account_snapshot.defendant_name     | LNAME, FNAME         |
       | account_snapshot.date_of_birth      | 2000-01-01           |
       | account_snapshot.account_type       | Fine                 |
-      | account_snapshot.submitted_by       | BUUID                |
+      | account_snapshot.submitted_by       | L106C2                |
       | account_snapshot.submitted_by_name  | Laura Clerk          |
       | account_snapshot.business_unit_name | West London          |
+
+    Then the logging service contains an entry with created_by id "L106C2", type "OPAL_USER_ID" and business_identifier "Submit Draft Account - Defendant"
 
     Then I delete the created draft accounts
