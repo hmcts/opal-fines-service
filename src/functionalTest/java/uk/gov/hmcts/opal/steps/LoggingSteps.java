@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class LoggingSteps extends BaseStepDef {
 
@@ -27,7 +26,6 @@ public class LoggingSteps extends BaseStepDef {
      *  - status == 200 AND (body non-empty and contains a matching record)
      * OR
      *  - timeout expires.
-     *
      * Request includes created_by.id and created_by.type (the logging service requires both).
      */
     @Then("the logging service contains an entry with created_by id {string}, type {string} and business_identifier {string}")
@@ -73,7 +71,7 @@ public class LoggingSteps extends BaseStepDef {
 
                 if (status == 200) {
                     // If body empty array or blank, keep polling until it has content or until timeout
-                    if (body == null || body.isBlank() || body.equals("[]")) {
+                    if(body == null || body.isBlank() || body.equals("[]")) {
                         // not found yet; continue polling
                     } else {
                         // parse list and assert at least one matching record exists
