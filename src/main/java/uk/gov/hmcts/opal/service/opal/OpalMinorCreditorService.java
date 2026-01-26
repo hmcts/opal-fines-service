@@ -35,7 +35,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     }
 
     @Override
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId) {
         return null;
     }
 

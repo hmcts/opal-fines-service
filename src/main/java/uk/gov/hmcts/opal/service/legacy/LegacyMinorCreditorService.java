@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.*;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceRequest;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
@@ -20,6 +22,8 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private final GatewayService gatewayService;
 
     private static final String SEARCH_MINOR_CREDITORS = "LIBRA.search_minor_creditors";
+
+    private static final String GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE = "LIBRA.get_minor_creditors_account_at_a_glance";
 
     @Override
     public PostMinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearch minorCreditorEntity) {
@@ -46,7 +50,26 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     }
 
     @Override
-    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(Long minorCreditorId) {
+    public GetMinorCreditorAccountAtAGlanceResponse getMinorCreditorAtAGlance(String minorCreditorId) {
+
+        GatewayService.Response<LegacyGetMinorCreditorAccountAtAGlanceResponse> response =
+            gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE,
+                                         LegacyGetMinorCreditorAccountAtAGlanceResponse.class,
+                                         LegacyGetMinorCreditorAccountAtAGlanceRequest.createRequest(minorCreditorId), null
+            );
+
+        if (response.isError()) {
+            log.error(":getMinorCreditorAtAGlance: Legacy Gateway response: HTTP Response Code: {}", response.code);
+            if (response.isException()) {
+                log.error(":getMinorCreditorAtAGlance:", response.exception);
+            } else if (response.isLegacyFailure()) {
+                log.error(":getMinorCreditorAtAGlance: Legacy Gateway: body: \n{}", response.body);
+                LegacyGetMinorCreditorAccountAtAGlanceResponse responseEntity = response.responseEntity;
+                log.error(":getMinorCreditorAtAGlance: Legacy Gateway: entity: \n{}", responseEntity.toXml());
+            }
+        } else if (response.isSuccessful()) {
+            log.info(":getMinorCreditorAtAGlance: Legacy Gateway response: Success.");
+        }
         return null;
     }
 
@@ -93,6 +116,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             .creditorAccounts(mappedAccounts)
             .build();
     }
+
 
     private LegacyMinorCreditorSearchResultsRequest createRequest(MinorCreditorSearch request) {
         return LegacyMinorCreditorSearchResultsRequest.builder()

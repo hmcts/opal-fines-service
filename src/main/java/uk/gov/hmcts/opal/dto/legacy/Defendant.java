@@ -37,4 +37,10 @@ public class Defendant {
 
     @XmlElement(name = "surname", nillable = true)
     private String surname;
+
+    @XmlElement(name = "account_number")
+    private String accountNumber;
+
+    @XmlElement(name = "account_id")
+    private Long accountId;
 }

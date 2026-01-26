@@ -50,7 +50,7 @@ public class MinorCreditorController {
     @GetMapping(value = "{minorCreditorId}/at-a-glance")
     @Operation(summary = "Get Minor Creditor Account At A Glance")
     public ResponseEntity<GetMinorCreditorAccountAtAGlanceResponse> getMinorCreditorsAtAGlance(
-        @PathVariable Long minorCreditorId,
+        @PathVariable String minorCreditorId,
         @RequestHeader(value = "Authorization", required = false) String authHeaderValue) {
         log.debug(":GET:getMinorCreditorsAtAGlance: query: \n{}", minorCreditorId);
 
