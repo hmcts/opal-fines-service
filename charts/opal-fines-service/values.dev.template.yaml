@@ -167,6 +167,7 @@ opal-logging-service:
       OPAL_LOGGING_TEST_SUPPORT_ENABLED: true
       SERVICEBUS_LOGGING_PDPL_QUEUE_NAME: "{{ .Release.Name}}-servicebus-logging-pdpl"
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-logging-service"
+      SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
     postgresql:
       enabled: false
 servicebus:
