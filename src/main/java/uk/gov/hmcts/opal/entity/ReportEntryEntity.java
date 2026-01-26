@@ -14,13 +14,12 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitFullEntity;
-
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "report_entries")
@@ -43,15 +42,15 @@ public class ReportEntryEntity {
     private BusinessUnitFullEntity businessUnit;
 
     @Column(name = "report_id")
-    private Long reportId;
+    private String reportId;
 
     @Column(name = "entry_timestamp")
-    @Temporal(TemporalType.DATE)
-    private LocalDate entryTimestamp;
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime entryTimestamp;
 
     @Column(name = "reported_timestamp")
-    @Temporal(TemporalType.DATE)
-    private LocalDate reportedTimestamp;
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime reportedTimestamp;
 
     @Column(name = "associated_record_type", length = 30)
     private String associatedRecordType;

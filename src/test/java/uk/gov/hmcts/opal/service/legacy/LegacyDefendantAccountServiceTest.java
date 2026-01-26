@@ -630,7 +630,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(99L);
 
         assertNotNull(out);
-        assertEquals(2, out.getVersion());
+        assertEquals(BigInteger.valueOf(2), out.getVersion());
         assertEquals(120, out.getPaymentTerms().getDaysInDefault());
         assertEquals(
             InstalmentPeriod.InstalmentPeriodCode.W,
@@ -669,7 +669,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(1L);
 
         assertNotNull(out);
-        assertEquals(3, out.getVersion());
+        assertEquals(BigInteger.valueOf(3L), out.getVersion());
         assertEquals(5, out.getPaymentTerms().getDaysInDefault());
         assertEquals(PaymentTermsType.PaymentTermsTypeCode.P,
                      out.getPaymentTerms().getPaymentTermsType().getPaymentTermsTypeCode());
@@ -707,7 +707,7 @@ class LegacyDefendantAccountServiceTest extends LegacyTestsBase {
         GetDefendantAccountPaymentTermsResponse out = legacyDefendantAccountService.getPaymentTerms(3L);
 
         assertNotNull(out);
-        assertNull(out.getVersion());
+        assertEquals(BigInteger.valueOf(1L), out.getVersion());
         assertNull(out.getPaymentTerms());
         assertNull(out.getPaymentCardLastRequested());
         assertNull(out.getLastEnforcement());

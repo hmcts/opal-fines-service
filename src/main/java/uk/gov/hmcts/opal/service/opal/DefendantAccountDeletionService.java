@@ -21,12 +21,12 @@ import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentCardRequestRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
+import uk.gov.hmcts.opal.repository.ReportEntryRepository;
+import uk.gov.hmcts.opal.repository.ReportRepository;
 import uk.gov.hmcts.opal.repository.jpa.AllocationSpecs;
 import uk.gov.hmcts.opal.repository.jpa.BacsPaymentSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ChequeSpecs;
 import uk.gov.hmcts.opal.service.opal.jpa.CreditorAccountTransactional;
-import uk.gov.hmcts.opal.repository.ReportEntryRepository;
-import uk.gov.hmcts.opal.repository.ReportRepository;
 
 @Service
 @Transactional
@@ -103,9 +103,9 @@ public class DefendantAccountDeletionService {
         enforcementRepository.deleteByDefendantAccountId(defendantAccountId);
         creditorAccountTransactional.deleteAllByDefendantAccountId(defendantAccountId, creditorAccountTransactional);
         ReportEntryEntity entity = reportEntryRepository.getAllByAssociatedRecordId(String.valueOf(defendantAccountId));
-        Long reportId = entity.getReportId(); // stores the reportId for deletion
+        String reportId = entity.getReportId(); // stores the reportId for deletion
         reportEntryRepository.deleteByAssociatedRecordId(String.valueOf(defendantAccountId));
-        reportRepository.deleteByReportId(String.valueOf((reportId)));
+        reportRepository.deleteByReportId(reportId);
         paymentTermsRepository.deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         defendantTransactionRepository.deleteByDefendantAccountId(defendantAccountId);
 

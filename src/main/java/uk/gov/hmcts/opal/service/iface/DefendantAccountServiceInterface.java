@@ -11,6 +11,7 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountPartyResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.dto.common.DefendantAccountParty;
+import uk.gov.hmcts.opal.dto.request.AddDefendantAccountPaymentTermsRequest;
 import uk.gov.hmcts.opal.dto.response.DefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -53,4 +54,11 @@ public interface DefendantAccountServiceInterface {
 
     EnforcementStatus getEnforcementStatus(Long defendantAccountId);
 
+
+    GetDefendantAccountPaymentTermsResponse addPaymentTerms(Long defendantAccountId,
+                                            String businessUnitId,
+                                            String businessUnitUserId,
+                                            String ifMatch,
+                                            String authHeader,
+                                            AddDefendantAccountPaymentTermsRequest addPaymentTermsRequest);
 }
