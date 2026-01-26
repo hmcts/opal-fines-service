@@ -22,13 +22,11 @@ public class LoggingSteps extends BaseStepDef {
     private static final String SEARCH_PATH = "/test-support/search";
 
     /**
-     * Poll POST /test-support/search until:
-     *  - status == 200 AND (body non-empty and contains a matching record)
-     * OR
-     *  - timeout expires.
-     * Request includes created_by.id and created_by.type (the logging service requires both).
+     * Poll POST /test-support/search until: - status == 200 AND (body non-empty and contains a matching record) OR -
+     * timeout expires. Request includes created_by.id and created_by.type (the logging service requires both).
      */
-    @Then("the logging service contains an entry with created_by id {string}, type {string} and business_identifier {string}")
+    @Then("the logging service contains an entry with created_by id {string}, "
+        + "type {string} and business_identifier {string}")
     public void loggingServiceContainsEntry(String createdById, String createdByType, String businessIdentifier)
         throws InterruptedException, JSONException {
 
@@ -42,7 +40,11 @@ public class LoggingSteps extends BaseStepDef {
         int timeoutSeconds = 30;
         String envTimeout = System.getenv("LOG_SEARCH_TIMEOUT_SECONDS");
         if (envTimeout != null && !envTimeout.isBlank()) {
-            try { timeoutSeconds = Integer.parseInt(envTimeout); } catch (NumberFormatException ignored) {}
+            try {
+                timeoutSeconds = Integer.parseInt(envTimeout);
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("Log search timeout is not a number", e);
+            }
         }
 
         Duration timeout = Duration.ofSeconds(timeoutSeconds);
@@ -53,7 +55,7 @@ public class LoggingSteps extends BaseStepDef {
         Optional<String> optionalBearer = Optional.ofNullable(System.getenv("OPAL_LOGGING_SERVICE_BEARER"));
 
         log.info("Polling logging service {} for created_by.id='{}' type='{}' business_identifier='{}' up to {}s",
-                 url, createdById, createdByType, businessIdentifier, timeoutSeconds);
+            url, createdById, createdByType, businessIdentifier, timeoutSeconds);
 
         boolean found = false;
 
@@ -71,7 +73,7 @@ public class LoggingSteps extends BaseStepDef {
 
                 if (status == 200) {
                     // If body empty array or blank, keep polling until it has content or until timeout
-                    if (body != null && !body.isBlank() && !body.equals("[]")){
+                    if (body != null && !body.isBlank() && !body.equals("[]")) {
 
                         // parse list and assert at least one matching record exists
                         List<Map<String, Object>> results =
@@ -81,13 +83,15 @@ public class LoggingSteps extends BaseStepDef {
                             found = results.stream().anyMatch(rec -> {
                                 try {
                                     Object cbObj = rec.get("created_by");
-                                    if (!(cbObj instanceof Map<?, ?> cbMap)) return false;
+                                    if (!(cbObj instanceof Map<?, ?> cbMap)) {
+                                        return false;
+                                    }
                                     Object idObj = cbMap.get("id");
                                     Object typeObj = cbMap.get("type");
                                     Object biObj = rec.get("business_identifier");
-                                    return createdById.equals(String.valueOf(idObj)) &&
-                                        createdByType.equals(String.valueOf(typeObj)) &&
-                                        businessIdentifier.equals(String.valueOf(biObj));
+                                    return createdById.equals(String.valueOf(idObj))
+                                        && createdByType.equals(String.valueOf(typeObj))
+                                        && businessIdentifier.equals(String.valueOf(biObj));
                                 } catch (Exception e) {
                                     return false;
                                 }
@@ -114,7 +118,8 @@ public class LoggingSteps extends BaseStepDef {
 
         // If we exit the loop without finding a matching record, fail with helpful info
         String err = String.format(
-            "Did not find logging entry with created_by.id='%s' type='%s' and business_identifier='%s' within %d seconds",
+            "Did not find logging entry with created_by.id='%s' type='%s' "
+                + "and business_identifier='%s' within %d seconds",
             createdById, createdByType, businessIdentifier, timeoutSeconds
         );
         if (lastException != null) {
