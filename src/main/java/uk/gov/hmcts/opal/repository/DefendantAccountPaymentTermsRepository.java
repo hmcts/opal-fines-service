@@ -10,6 +10,7 @@ import uk.gov.hmcts.opal.entity.PaymentTermsEntity;
 
 import java.util.Optional;
 
+//TODO: Remove this repository and use PaymentTermsRepository instead
 @Repository
 public interface DefendantAccountPaymentTermsRepository extends JpaRepository<PaymentTermsEntity, Long>,
     JpaSpecificationExecutor<PaymentTermsEntity> {
