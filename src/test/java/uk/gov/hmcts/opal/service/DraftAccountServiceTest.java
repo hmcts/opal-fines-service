@@ -8,7 +8,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentCaptor;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
@@ -39,6 +41,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountServiceTest {
@@ -126,15 +129,16 @@ class DraftAccountServiceTest {
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().build();
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
-            .submittedBy("TestUser")
-            .submittedByName("Test User")
+            .submittedBy("SpoofedUser")
+            .submittedByName("Spoofed Name")
             .account(createAccountString())
             .accountType("Fine")
             .timelineData(createTimelineDataString())
             .build();
 
         when(draftAccountTransactional.submitDraftAccount(any())).thenReturn(draftAccountEntity);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         // Act
         DraftAccountResponseDto result = draftAccountService
@@ -142,6 +146,11 @@ class DraftAccountServiceTest {
 
         // Assert
         assertEquals(draftAccountEntity.getAccount(), result.getAccount());
+        ArgumentCaptor<AddDraftAccountRequestDto> captor = ArgumentCaptor.forClass(AddDraftAccountRequestDto.class);
+        verify(draftAccountTransactional, times(1)).submitDraftAccount(captor.capture());
+        assertEquals("USER01", captor.getValue().getSubmittedBy());
+        assertEquals("normal@users.com", captor.getValue().getSubmittedByName());
+        assertEquals(null, captor.getValue().getValidatedBy());
     }
 
     @Test
@@ -195,8 +204,8 @@ class DraftAccountServiceTest {
         Long draftAccountId = 1L;
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
-            .submittedBy("TestUser")
-            .submittedByName("Test User")
+            .submittedBy("SpoofedUser")
+            .submittedByName("Spoofed Name")
             .account(createAccountString())
             .accountType("Fine")
             .timelineData(createTimelineDataString())
@@ -205,7 +214,8 @@ class DraftAccountServiceTest {
 
         DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
-            .submittedBy("TestUser")
+            .submittedBy("USER01")
+            .submittedByName("normal@users.com")
             .account(createAccountString())
             .accountType("Fine")
             .accountStatus(DraftAccountStatus.RESUBMITTED)
@@ -214,7 +224,8 @@ class DraftAccountServiceTest {
             .build();
 
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(updatedAccount);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         // Act
         DraftAccountResponseDto result = draftAccountService
@@ -223,11 +234,18 @@ class DraftAccountServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(draftAccountId, result.getDraftAccountId());
-        assertEquals("TestUser", result.getSubmittedBy());
+        assertEquals("USER01", result.getSubmittedBy());
+        assertEquals("normal@users.com", result.getSubmittedByName());
         assertEquals(createAccountString(), result.getAccount());
         assertEquals("Fine", result.getAccountType());
         assertEquals(DraftAccountStatus.RESUBMITTED, result.getAccountStatus());
         assertEquals(createTimelineDataString(), result.getTimelineData());
+
+        ArgumentCaptor<ReplaceDraftAccountRequestDto> captor =
+            ArgumentCaptor.forClass(ReplaceDraftAccountRequestDto.class);
+        verify(draftAccountTransactional).replaceDraftAccount(any(), captor.capture(), any(), any());
+        assertEquals("USER01", captor.getValue().getSubmittedBy());
+        assertEquals("normal@users.com", captor.getValue().getSubmittedByName());
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
 
@@ -241,15 +259,16 @@ class DraftAccountServiceTest {
             .businessUnitId((short)1)
             .accountType("Fine")
             .account(createAccountString())
-            .submittedBy("TestUser")
-            .submittedByName("Test User")
+            .submittedBy("SpoofedUser")
+            .submittedByName("Spoofed Name")
             .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
 
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenThrow(
             new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(UserStateUtil.permissionUser((short) 1, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> draftAccountService
@@ -272,14 +291,15 @@ class DraftAccountServiceTest {
             .businessUnitId((short) 2)
             .accountType("Fine")
             .account(createAccountString())
-            .submittedBy("TestUser")
-            .submittedByName("Test User")
+            .submittedBy("SpoofedUser")
+            .submittedByName("Spoofed Name")
             .timelineData(createTimelineDataString())
             .version(BigInteger.valueOf(0L))
             .build();
 
         when(draftAccountTransactional.replaceDraftAccount(any(), any(), any(), any())).thenReturn(existingAccount);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () -> draftAccountService
@@ -305,7 +325,8 @@ class DraftAccountServiceTest {
             .build();
 
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any())).thenReturn(existingAccount);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () -> draftAccountService
@@ -319,7 +340,8 @@ class DraftAccountServiceTest {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus("PENDING")
-            .validatedBy("TestValidator")
+            .validatedBy("SpoofedUser")
+            .validatedByName("Spoofed Name")
             .timelineData(createTimelineDataString())
             .businessUnitId((short) 2)
             .build();
@@ -327,8 +349,8 @@ class DraftAccountServiceTest {
         DraftAccountEntity updatedAccount = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
-            .validatedBy("TestValidator")
-            .validatedByName("Tester McValidator")
+            .validatedBy("USER01")
+            .validatedByName("normal@users.com")
             .validatedDate(LocalDateTime.now())
             .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\",\"approved_date\":\"2024-10-03T14:30:00Z\"}")
             .timelineData(createTimelineDataString())
@@ -336,7 +358,8 @@ class DraftAccountServiceTest {
             .build();
 
         when(draftAccountTransactional.updateDraftAccount(any(), any(), any(), any())).thenReturn(updatedAccount);
-        when(userStateService.checkForAuthorisedUser(any())).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.checkForAuthorisedUser(any()))
+            .thenReturn(UserStateUtil.permissionUser((short) 2, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS));
         when(draftAccountPublishProxy.publishDefendantAccount(any(), any())).thenReturn(updatedAccount);
 
         // Act
@@ -347,11 +370,17 @@ class DraftAccountServiceTest {
         assertNotNull(result);
         assertEquals(draftAccountId, result.getDraftAccountId());
         assertEquals(DraftAccountStatus.PUBLISHING_PENDING, result.getAccountStatus());
-        assertEquals("TestValidator", result.getValidatedBy());
-        assertEquals("Tester McValidator", result.getValidatedByName());
+        assertEquals("USER01", result.getValidatedBy());
+        assertEquals("normal@users.com", result.getValidatedByName());
         assertNotNull(result.getValidatedDate());
         assertTrue(result.getAccountSnapshot().contains("approved_date"));
         assertEquals(createTimelineDataString(), result.getTimelineData());
+
+        ArgumentCaptor<UpdateDraftAccountRequestDto> captor =
+            ArgumentCaptor.forClass(UpdateDraftAccountRequestDto.class);
+        verify(draftAccountTransactional).updateDraftAccount(any(), captor.capture(), any(), any());
+        assertEquals("USER01", captor.getValue().getValidatedBy());
+        assertEquals("normal@users.com", captor.getValue().getValidatedByName());
 
         verify(jsonSchemaValidationService).validateOrError(any(), any());
     }
