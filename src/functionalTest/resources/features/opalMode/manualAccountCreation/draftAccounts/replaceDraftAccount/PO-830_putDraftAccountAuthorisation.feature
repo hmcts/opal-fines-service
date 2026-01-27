@@ -211,7 +211,7 @@ Feature: PO-830 - Authorisation for put/update draft account
         | timeline_data     | draftAccounts/timelineJson/default.json     |
         | If-Match          | 0                                           |
 
-      Then The draft account response returns 409
+      Then The draft account response returns 400
 
       And I get the single created draft account and the response contains
         | business_unit_id                    | 73          |
